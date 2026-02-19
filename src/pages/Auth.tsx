@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft } from 'lucide-react';
+
+type AuthView = 'landing' | 'login' | 'signup';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<AuthView>('landing');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [studioName, setStudioName] = useState('');
@@ -19,7 +22,7 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    if (isLogin) {
+    if (view === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -44,6 +47,41 @@ const Auth = () => {
     setLoading(false);
   };
 
+  /* ── Landing Screen ── */
+  if (view === 'landing') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+        <div className="w-full max-w-xs text-center space-y-10">
+          <div>
+            <h1 className="font-serif text-4xl font-semibold text-gold tracking-tight">MirrorAI</h1>
+            <p className="mt-2 text-[11px] text-muted-foreground/60 tracking-[0.2em] uppercase">
+              Reflections of Your Moments
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              onClick={() => setView('login')}
+              className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-10 text-[12px] tracking-[0.1em] uppercase font-medium"
+            >
+              Sign In
+            </Button>
+            <Button
+              onClick={() => setView('signup')}
+              variant="outline"
+              className="w-full border-border hover:bg-secondary/50 text-foreground h-10 text-[12px] tracking-[0.1em] uppercase font-medium"
+            >
+              Create Account
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Login / Signup Form ── */
+  const isLogin = view === 'login';
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-8">
@@ -53,11 +91,16 @@ const Auth = () => {
           <p className="mt-1 text-[10px] text-muted-foreground/60 tracking-[0.2em] uppercase">Reflections of Your Moments</p>
         </div>
 
-        {/* Auth card — flat, editorial */}
+        {/* Auth card */}
         <div className="bg-card border border-border p-7">
-          <h2 className="font-serif text-xl font-semibold text-foreground mb-5">
-            {isLogin ? 'Welcome Back' : 'Create Your Studio'}
-          </h2>
+          <div className="flex items-center gap-2 mb-5">
+            <button onClick={() => setView('landing')} className="text-muted-foreground/50 hover:text-foreground transition-colors">
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <h2 className="font-serif text-xl font-semibold text-foreground">
+              {isLogin ? 'Sign In' : 'Create Your Studio'}
+            </h2>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {!isLogin && (
@@ -102,7 +145,7 @@ const Auth = () => {
 
           <div className="mt-5 text-center">
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => setView(isLogin ? 'signup' : 'login')}
               className="text-[11px] text-gold hover:text-gold-hover transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}

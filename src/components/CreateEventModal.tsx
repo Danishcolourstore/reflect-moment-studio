@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
@@ -22,6 +23,8 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const [type, setType] = useState('Wedding');
   const [pin, setPin] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [allowFullDownload, setAllowFullDownload] = useState(true);
+  const [allowFavoritesDownload, setAllowFavoritesDownload] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,6 +51,8 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       event_type: type,
       cover_url: coverUrl,
       gallery_pin: pin || null,
+      allow_full_download: allowFullDownload,
+      allow_favorites_download: allowFavoritesDownload,
     });
 
     if (error) {
@@ -55,6 +60,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
     } else {
       toast({ title: 'Event created' });
       setName(''); setDate(''); setType('Wedding'); setPin(''); setCoverFile(null);
+      setAllowFullDownload(true); setAllowFavoritesDownload(true);
       onOpenChange(false);
       onCreated();
     }
@@ -95,6 +101,20 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery PIN (Optional)</Label>
             <Input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
           </div>
+
+          {/* Download permissions */}
+          <div className="pt-2 border-t border-border space-y-3">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Guest Download Permissions</p>
+            <div className="flex items-center justify-between">
+              <Label className="text-[12px] text-foreground/80 font-normal">Allow full gallery download</Label>
+              <Switch checked={allowFullDownload} onCheckedChange={setAllowFullDownload} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[12px] text-foreground/80 font-normal">Allow favorites download</Label>
+              <Switch checked={allowFavoritesDownload} onCheckedChange={setAllowFavoritesDownload} />
+            </div>
+          </div>
+
           <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-9 text-[12px] tracking-wide uppercase font-medium mt-1" disabled={loading}>
             {loading ? 'Creating...' : 'Create Event'}
           </Button>

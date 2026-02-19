@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       events: {
         Row: {
+          allow_favorites_download: boolean
+          allow_full_download: boolean
           cover_url: string | null
           created_at: string
           event_date: string
@@ -29,6 +31,8 @@ export type Database = {
           views: number
         }
         Insert: {
+          allow_favorites_download?: boolean
+          allow_full_download?: boolean
           cover_url?: string | null
           created_at?: string
           event_date?: string
@@ -42,6 +46,8 @@ export type Database = {
           views?: number
         }
         Update: {
+          allow_favorites_download?: boolean
+          allow_full_download?: boolean
           cover_url?: string | null
           created_at?: string
           event_date?: string
