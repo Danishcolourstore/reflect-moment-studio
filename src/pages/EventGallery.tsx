@@ -3,7 +3,13 @@ import { useParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ShareModal } from '@/components/ShareModal';
 import { Button } from '@/components/ui/button';
-import { Heart, Download, Trash2, Share2, Upload, Search, Image as ImageIcon, PackageOpen, Loader2 } from 'lucide-react';
+import {
+  Heart, Download, Trash2, Share2, Upload, Search,
+  Image as ImageIcon, PackageOpen, Loader2, FolderDown,
+} from 'lucide-react';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +33,8 @@ interface Event {
   photo_count: number;
   gallery_pin: string | null;
   user_id: string;
+  allow_full_download: boolean;
+  allow_favorites_download: boolean;
 }
 
 type GalleryFilter = 'all' | 'favorites';
@@ -41,13 +49,14 @@ const EventGallery = () => {
   const [uploading, setUploading] = useState(false);
   const [filter, setFilter] = useState<GalleryFilter>('all');
   const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState('');
 
   const { favoriteCount, toggleFavorite: toggleGuestFavorite, isFavorite } = useGuestFavorites(id);
 
   const fetchEvent = useCallback(async () => {
     if (!id) return;
     const { data } = await supabase.from('events').select('*').eq('id', id).single();
-    if (data) setEvent(data as Event);
+    if (data) setEvent(data as unknown as Event);
   }, [id]);
 
   const fetchPhotos = useCallback(async () => {
@@ -90,32 +99,37 @@ const EventGallery = () => {
     fetchEvent();
   };
 
-  const downloadFavoritesZip = async () => {
-    const favPhotos = photos.filter((p) => isFavorite(p.id));
-    if (favPhotos.length === 0) {
-      toast({ title: 'No favorites selected' });
+  /* ── ZIP helpers ── */
+  const buildZip = async (targetPhotos: Photo[], label: string) => {
+    if (targetPhotos.length === 0) {
+      toast({ title: 'No photos to download' });
       return;
     }
     setDownloading(true);
     try {
       const zip = new JSZip();
-      const folder = zip.folder(event?.name ?? 'favorites');
-      for (let i = 0; i < favPhotos.length; i++) {
-        const p = favPhotos[i];
+      const folder = zip.folder(event?.name ?? label);
+      for (let i = 0; i < targetPhotos.length; i++) {
+        setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
+        const p = targetPhotos[i];
         const res = await fetch(p.url);
         const blob = await res.blob();
-        const ext = p.file_name?.split('.').pop() ?? 'jpg';
-        folder?.file(`${p.file_name ?? `photo-${i + 1}`}.${p.file_name ? '' : ext}`.replace(/\.\./g, '.'), blob);
+        const fileName = p.file_name ?? `photo-${i + 1}.jpg`;
+        folder?.file(fileName, blob);
       }
       const content = await zip.generateAsync({ type: 'blob' });
-      saveAs(content, `${event?.name ?? 'favorites'}-favorites.zip`);
-      toast({ title: `${favPhotos.length} photos downloaded` });
+      saveAs(content, `${event?.name ?? label}.zip`);
+      toast({ title: `${targetPhotos.length} photos downloaded` });
     } catch {
       toast({ title: 'Download failed', description: 'Please try again.' });
     } finally {
       setDownloading(false);
+      setDownloadProgress('');
     }
   };
+
+  const downloadAll = () => buildZip(photos, 'gallery');
+  const downloadFavorites = () => buildZip(photos.filter((p) => isFavorite(p.id)), 'favorites');
 
   if (!event) {
     return (
@@ -128,6 +142,9 @@ const EventGallery = () => {
   }
 
   const isOwner = user?.id === event.user_id;
+  const canDownloadAll = isOwner || event.allow_full_download;
+  const canDownloadFavs = isOwner || event.allow_favorites_download;
+  const canDownloadAnything = canDownloadAll || canDownloadFavs;
 
   const displayPhotos = filter === 'favorites'
     ? photos.filter((p) => isFavorite(p.id))
@@ -151,19 +168,21 @@ const EventGallery = () => {
             {format(new Date(event.event_date), 'MMMM d, yyyy')} · {event.photo_count} photos
           </p>
         </div>
-        {isOwner && (
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-gold hover:bg-gold/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
-              <Share2 className="mr-1 h-3 w-3" />Share
-            </Button>
-            <Button variant="ghost" size="sm" className="text-muted-foreground/60 hover:bg-muted text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
-              <Search className="mr-1 h-3 w-3" />Face Search
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          {isOwner && (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-gold hover:bg-gold/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
+                <Share2 className="mr-1 h-3 w-3" />Share
+              </Button>
+              <Button variant="ghost" size="sm" className="text-muted-foreground/60 hover:bg-muted text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
+                <Search className="mr-1 h-3 w-3" />Face Search
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Gallery utility bar — filter tabs + download */}
+      {/* Gallery utility bar */}
       <div className="flex items-center justify-between mb-4 border-b border-border">
         <div className="flex items-center gap-0">
           <button
@@ -194,21 +213,44 @@ const EventGallery = () => {
           </button>
         </div>
 
-        {favoriteCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={downloadFavoritesZip}
-            disabled={downloading}
-            className="text-gold hover:bg-gold/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px"
-          >
-            {downloading ? (
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-            ) : (
-              <PackageOpen className="mr-1 h-3 w-3" />
-            )}
-            Download Favorites
-          </Button>
+        {/* Bulk download dropdown */}
+        {canDownloadAnything && photos.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={downloading}
+                className="text-gold hover:bg-gold/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px"
+              >
+                {downloading ? (
+                  <>
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    {downloadProgress}
+                  </>
+                ) : (
+                  <>
+                    <FolderDown className="mr-1 h-3 w-3" />
+                    Download
+                  </>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[180px]">
+              {canDownloadAll && (
+                <DropdownMenuItem onClick={downloadAll} className="text-[12px] gap-2">
+                  <PackageOpen className="h-3.5 w-3.5" />
+                  All Photos ({photos.length})
+                </DropdownMenuItem>
+              )}
+              {canDownloadFavs && favoriteCount > 0 && (
+                <DropdownMenuItem onClick={downloadFavorites} className="text-[12px] gap-2">
+                  <Heart className="h-3.5 w-3.5" />
+                  Favorites ({favoriteCount})
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
@@ -266,9 +308,11 @@ const EventGallery = () => {
                         <Heart className="h-3 w-3" />
                       </button>
                     )}
-                    <a href={photo.url} download className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
-                      <Download className="h-3 w-3" />
-                    </a>
+                    {canDownloadAnything && (
+                      <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                        <Download className="h-3 w-3" />
+                      </a>
+                    )}
                     {isOwner && (
                       <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-destructive hover:bg-card/90 transition">
                         <Trash2 className="h-3 w-3" />
