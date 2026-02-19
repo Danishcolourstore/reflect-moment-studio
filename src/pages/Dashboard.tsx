@@ -56,12 +56,13 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       {/* Greeting — editorial, understated */}
-      <div className="mb-5">
-        <h1 className="font-serif text-[22px] font-semibold text-foreground">{greeting()}, {studioName}</h1>
+      <div className="mb-6">
+        <h1 className="font-serif text-[24px] font-semibold text-foreground tracking-tight">{greeting()}, {studioName}</h1>
+        <p className="mt-0.5 text-[11px] text-muted-foreground/50">Your studio at a glance</p>
       </div>
 
-      {/* Stats strip — flush grid, Pixieset dashboard style */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 border border-border divide-x divide-border overflow-hidden mb-8">
+      {/* Stats strip — flush grid, luxury feel */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 border border-border divide-x divide-y sm:divide-y-0 divide-border overflow-hidden mb-10">
         <StatCard label="Events" value={events.length} icon={<CalendarDays className="h-4 w-4" />} />
         <StatCard label="Photos" value={totalPhotos} icon={<Image className="h-4 w-4" />} />
         <StatCard label="Storage" value="—" icon={<HardDrive className="h-4 w-4" />} />
@@ -69,8 +70,8 @@ const Dashboard = () => {
       </div>
 
       {/* Recent events header */}
-      <div className="flex items-baseline justify-between mb-4">
-        <h2 className="font-serif text-lg font-medium text-foreground">Recent Events</h2>
+      <div className="flex items-baseline justify-between mb-5">
+        <h2 className="font-serif text-lg font-medium text-foreground tracking-tight">Recent Events</h2>
         <Button
           onClick={() => setCreateOpen(true)}
           variant="ghost"
@@ -82,13 +83,13 @@ const Dashboard = () => {
       </div>
 
       {events.length === 0 ? (
-        <div className="border border-dashed border-border py-16 text-center">
-          <Image className="mx-auto h-10 w-10 text-muted-foreground/20" />
-          <p className="mt-3 font-serif text-sm text-muted-foreground">No events yet</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground/60">Create your first event to get started.</p>
+        <div className="border border-dashed border-border/60 py-20 text-center">
+          <Image className="mx-auto h-8 w-8 text-muted-foreground/15" />
+          <p className="mt-4 font-serif text-sm text-muted-foreground/60">No events yet</p>
+          <p className="mt-1 text-[10px] text-muted-foreground/40">Create your first event to get started.</p>
         </div>
       ) : (
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-2.5 grid-cols-2 lg:grid-cols-3">
           {events.slice(0, 6).map((event) => (
             <EventCard
               key={event.id}

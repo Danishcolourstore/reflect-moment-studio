@@ -51,29 +51,38 @@ const Auth = () => {
   if (view === 'landing') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
-        <div className="w-full max-w-xs text-center space-y-10">
-          <div>
-            <h1 className="font-serif text-4xl font-semibold text-gold tracking-tight">MirrorAI</h1>
-            <p className="mt-2 text-[11px] text-muted-foreground/60 tracking-[0.2em] uppercase">
+        <div className="w-full max-w-xs text-center space-y-14">
+          {/* Brand mark */}
+          <div className="space-y-3">
+            <h1 className="font-serif text-5xl font-semibold text-primary tracking-tight leading-none">
+              MirrorAI
+            </h1>
+            <div className="w-8 h-px bg-primary/30 mx-auto" />
+            <p className="text-[10px] text-muted-foreground/50 tracking-[0.25em] uppercase font-medium">
               Reflections of Your Moments
             </p>
           </div>
 
+          {/* CTA buttons */}
           <div className="space-y-3">
             <Button
               onClick={() => setView('login')}
-              className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-10 text-[12px] tracking-[0.1em] uppercase font-medium"
+              className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-11 text-[11px] tracking-[0.14em] uppercase font-medium transition-all duration-200"
             >
               Sign In
             </Button>
             <Button
               onClick={() => setView('signup')}
               variant="outline"
-              className="w-full border-border hover:bg-secondary/50 text-foreground h-10 text-[12px] tracking-[0.1em] uppercase font-medium"
+              className="w-full border-border hover:bg-muted/50 text-foreground h-11 text-[11px] tracking-[0.14em] uppercase font-medium transition-all duration-200"
             >
               Create Account
             </Button>
           </div>
+
+          <p className="text-[9px] text-muted-foreground/30 tracking-[0.08em] uppercase">
+            Gallery delivery for photographers
+          </p>
         </div>
       </div>
     );
@@ -84,17 +93,23 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-8">
-        {/* Logo block */}
-        <div className="text-center">
-          <h1 className="font-serif text-3xl font-semibold text-gold tracking-tight">MirrorAI</h1>
-          <p className="mt-1 text-[10px] text-muted-foreground/60 tracking-[0.2em] uppercase">Reflections of Your Moments</p>
+      <div className="w-full max-w-sm space-y-10">
+        {/* Logo */}
+        <div className="text-center space-y-2">
+          <h1 className="font-serif text-3xl font-semibold text-primary tracking-tight">MirrorAI</h1>
+          <div className="w-6 h-px bg-primary/30 mx-auto" />
+          <p className="text-[9px] text-muted-foreground/50 tracking-[0.2em] uppercase font-medium">
+            Reflections of Your Moments
+          </p>
         </div>
 
-        {/* Auth card */}
-        <div className="bg-card border border-border p-7">
-          <div className="flex items-center gap-2 mb-5">
-            <button onClick={() => setView('landing')} className="text-muted-foreground/50 hover:text-foreground transition-colors">
+        {/* Auth card — borderless, editorial */}
+        <div className="bg-card border border-border p-8">
+          <div className="flex items-center gap-2.5 mb-6">
+            <button
+              onClick={() => setView('landing')}
+              className="text-muted-foreground/40 hover:text-foreground transition-colors"
+            >
               <ArrowLeft className="h-4 w-4" />
             </button>
             <h2 className="font-serif text-xl font-semibold text-foreground">
@@ -102,31 +117,37 @@ const Auth = () => {
             </h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-1.5">
-                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Studio Name</Label>
+                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">
+                  Studio Name
+                </Label>
                 <Input
                   value={studioName}
                   onChange={(e) => setStudioName(e.target.value)}
                   placeholder="Your Studio Name"
-                  className="bg-background h-9 text-[13px]"
+                  className="bg-background border-border h-10 text-[13px]"
                 />
               </div>
             )}
             <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Email</Label>
+              <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">
+                Email
+              </Label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="bg-background h-9 text-[13px]"
+                className="bg-background border-border h-10 text-[13px]"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Password</Label>
+              <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">
+                Password
+              </Label>
               <Input
                 type="password"
                 value={password}
@@ -134,19 +155,23 @@ const Auth = () => {
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="bg-background h-9 text-[13px]"
+                className="bg-background border-border h-10 text-[13px]"
               />
             </div>
 
-            <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-9 text-[12px] tracking-wide uppercase font-medium" disabled={loading}>
-              {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
+            <Button
+              type="submit"
+              className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium mt-2 transition-all duration-200"
+              disabled={loading}
+            >
+              {loading ? 'Please wait…' : isLogin ? 'Sign In' : 'Create Account'}
             </Button>
           </form>
 
-          <div className="mt-5 text-center">
+          <div className="mt-6 text-center">
             <button
               onClick={() => setView(isLogin ? 'signup' : 'login')}
-              className="text-[11px] text-gold hover:text-gold-hover transition-colors"
+              className="text-[11px] text-primary hover:text-primary/80 transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
