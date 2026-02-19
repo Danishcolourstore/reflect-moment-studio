@@ -2,11 +2,11 @@ import { LayoutDashboard, CalendarDays, Upload, BarChart3, Settings } from 'luci
 import { NavLink } from '@/components/NavLink';
 
 const items = [
-  { title: 'Home', url: '/', icon: LayoutDashboard },
-  { title: 'Events', url: '/events', icon: CalendarDays },
-  { title: 'Upload', url: '/upload', icon: Upload },
-  { title: 'Stats', url: '/analytics', icon: BarChart3 },
-  { title: 'More', url: '/settings', icon: Settings },
+  { title: 'Home', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'Events', url: '/dashboard/events', icon: CalendarDays },
+  { title: 'Upload', url: '/dashboard/upload', icon: Upload },
+  { title: 'Stats', url: '/dashboard/analytics', icon: BarChart3 },
+  { title: 'More', url: '/dashboard/settings', icon: Settings },
 ];
 
 export function MobileNav() {
@@ -16,7 +16,7 @@ export function MobileNav() {
         <NavLink
           key={item.url}
           to={item.url}
-          end={item.url === '/'}
+          end={item.url === '/dashboard'}
           className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-muted-foreground transition-colors"
           activeClassName="text-gold"
         >

@@ -102,7 +102,7 @@ const ResetPassword = () => {
                 Please request a new one.
               </p>
               <Button
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/login')}
                 className="bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium transition-all duration-200 mt-2"
               >
                 Back to Sign In
@@ -116,7 +116,7 @@ const ResetPassword = () => {
               <p className="font-serif text-sm text-foreground font-medium">Password successfully reset</p>
               <p className="text-[11px] text-muted-foreground/60">You can now sign in with your new password.</p>
               <Button
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/login')}
                 className="bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium transition-all duration-200 mt-2"
               >
                 Sign In

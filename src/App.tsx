@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -15,35 +15,69 @@ import Billing from "./pages/Billing";
 import ResetPassword from "./pages/ResetPassword";
 import PublicGallery from "./pages/PublicGallery";
 import NotFound from "./pages/NotFound";
+import { GalleryShell } from "./components/GalleryShell";
 
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground font-serif text-lg">Loading...</p></div>;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) {
+    // Store intended destination so we can redirect after login
+    sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
+    return <Navigate to="/login" replace />;
+  }
   return <>{children}</>;
 }
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
+  if (user) {
+    const redirect = sessionStorage.getItem("redirectAfterLogin");
+    if (redirect) {
+      sessionStorage.removeItem("redirectAfterLogin");
+      return <Navigate to={redirect} replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
   return <>{children}</>;
 }
 
 const AppRoutes = () => (
   <Routes>
-    <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
+    {/* Auth routes */}
+    <Route path="/login" element={<AuthRoute><Auth initialView="login" /></AuthRoute>} />
+    <Route path="/register" element={<AuthRoute><Auth initialView="signup" /></AuthRoute>} />
+    <Route path="/forgot-password" element={<AuthRoute><Auth initialView="forgot" /></AuthRoute>} />
     <Route path="/reset-password" element={<ResetPassword />} />
-    <Route path="/gallery/:id" element={<PublicGallery />} />
-    <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-    <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-    <Route path="/events/:id" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
-    <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
-    <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-    <Route path="/settings" element={<ProtectedRoute><StudioSettings /></ProtectedRoute>} />
-    <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+
+    {/* Photographer dashboard routes — all require auth */}
+    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+    <Route path="/dashboard/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+    <Route path="/dashboard/events/:id" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
+    <Route path="/dashboard/events/:id/photos" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
+    <Route path="/dashboard/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
+    <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+    <Route path="/dashboard/settings" element={<ProtectedRoute><StudioSettings /></ProtectedRoute>} />
+    <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+
+    {/* Guest gallery routes — completely public, no auth */}
+    <Route path="/gallery/:id" element={<GalleryShell><PublicGallery /></GalleryShell>} />
+    <Route path="/gallery/:id/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
+
+    {/* Legacy redirects */}
+    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+    <Route path="/auth" element={<Navigate to="/login" replace />} />
+    <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
+    <Route path="/events/:id" element={<Navigate to="/dashboard/events/:id" replace />} />
+    <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
+    <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
+    <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
+    <Route path="/upload" element={<Navigate to="/dashboard/upload" replace />} />
+
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
