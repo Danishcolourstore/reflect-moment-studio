@@ -6,7 +6,7 @@ import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 import { Button } from '@/components/ui/button';
 import {
   Heart, Download, Trash2, Share2, Upload,
-  PackageOpen, Loader2, FolderDown, Settings,
+  PackageOpen, Loader2, FolderDown, Settings, Radio,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -19,6 +19,8 @@ import { usePhotoUpload } from '@/hooks/use-photo-upload';
 import { EventSettingsModal } from '@/components/EventSettingsModal';
 import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
 import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
+import { useLiveSync } from '@/hooks/use-livesync';
+import { LiveSyncStatusBar, LiveFeedGrid } from '@/components/LiveSyncPanel';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -42,6 +44,7 @@ interface Event {
   allow_full_download: boolean;
   allow_favorites_download: boolean;
   gallery_layout: string;
+  livesync_enabled: boolean;
 }
 
 type GalleryFilter = 'all' | 'favorites';
@@ -70,6 +73,8 @@ const EventGallery = () => {
 
   const { favoriteCount, toggleFavorite: toggleGuestFavorite, isFavorite } = useGuestFavorites(id);
   const upload = usePhotoUpload(id, user?.id);
+  const liveSync = useLiveSync(event?.livesync_enabled ?? false);
+  const [liveFeedMode, setLiveFeedMode] = useState(false);
 
   const fetchEvent = useCallback(async () => {
     if (!id) return;
@@ -254,6 +259,18 @@ const EventGallery = () => {
         onDismiss={upload.dismiss}
       />
 
+      {/* LiveSync™ Status Bar */}
+      {event.livesync_enabled && isOwner && (
+        <LiveSyncStatusBar
+          isLive={liveSync.isLive}
+          cameraConnected={liveSync.cameraConnected}
+          syncing={liveSync.syncing}
+          guestViewers={liveSync.guestViewers}
+          onStart={liveSync.start}
+          onStop={liveSync.stop}
+        />
+      )}
+
       {/* Gallery utility bar */}
       <div className="flex items-center justify-between mb-4 border-b border-border">
         <div className="flex items-center gap-0">
@@ -283,6 +300,20 @@ const EventGallery = () => {
               </span>
             )}
           </button>
+          {/* Live Feed Mode tab */}
+          {event.livesync_enabled && liveSync.isLive && (
+            <button
+              onClick={() => setLiveFeedMode(!liveFeedMode)}
+              className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
+                liveFeedMode
+                  ? 'border-destructive text-destructive'
+                  : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
+              }`}
+            >
+              <Radio className="h-3 w-3" />
+              Live Feed
+            </button>
+          )}
         </div>
 
         {canDownloadAnything && photos.length > 0 && (
@@ -364,6 +395,11 @@ const EventGallery = () => {
           <Upload className="h-3.5 w-3.5 text-muted-foreground/30" />
           <p className="text-[11px] text-muted-foreground/40">Drop photos here or click to upload more</p>
         </div>
+      )}
+
+      {/* LiveSync™ Live Feed */}
+      {liveFeedMode && liveSync.isLive && (
+        <LiveFeedGrid photos={liveSync.livePhotos} />
       )}
 
       {/* Photo Grid — dynamic layout */}

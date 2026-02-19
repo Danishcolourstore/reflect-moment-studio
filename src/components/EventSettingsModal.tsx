@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2 } from 'lucide-react';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Zap } from 'lucide-react';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -41,6 +41,7 @@ interface EventData {
   gallery_layout: string;
   allow_full_download: boolean;
   allow_favorites_download: boolean;
+  livesync_enabled: boolean;
 }
 
 interface EventSettingsModalProps {
@@ -60,6 +61,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [galleryLayout, setGalleryLayout] = useState(event.gallery_layout);
   const [allowFullDownload, setAllowFullDownload] = useState(event.allow_full_download);
   const [allowFavoritesDownload, setAllowFavoritesDownload] = useState(event.allow_favorites_download);
+  const [livesyncEnabled, setLivesyncEnabled] = useState(event.livesync_enabled);
   const [saving, setSaving] = useState(false);
 
   // Sync when event changes
@@ -71,6 +73,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setGalleryLayout(event.gallery_layout);
     setAllowFullDownload(event.allow_full_download);
     setAllowFavoritesDownload(event.allow_favorites_download);
+    setLivesyncEnabled(event.livesync_enabled);
   }, [event]);
 
   const handleSave = async () => {
@@ -97,6 +100,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
       gallery_layout: galleryLayout,
       allow_full_download: allowFullDownload,
       allow_favorites_download: allowFavoritesDownload,
+      livesync_enabled: livesyncEnabled,
     }).eq('id', event.id);
 
     if (error) {
@@ -205,6 +209,21 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
             <div className="flex items-center justify-between">
               <Label className="text-[12px] text-foreground/80 font-normal">Allow favorites download</Label>
               <Switch checked={allowFavoritesDownload} onCheckedChange={setAllowFavoritesDownload} />
+            </div>
+          </div>
+
+          {/* LiveSync™ */}
+          <div className="pt-2 border-t border-border space-y-3">
+            <div className="flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5 text-primary" />
+              <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">LiveSync™</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-[12px] text-foreground/80 font-normal">Enable LiveSync™</Label>
+                <p className="text-[9px] text-muted-foreground/50 mt-0.5">Guests see photos as they're captured in real-time</p>
+              </div>
+              <Switch checked={livesyncEnabled} onCheckedChange={setLivesyncEnabled} />
             </div>
           </div>
 
