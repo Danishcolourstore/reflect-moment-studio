@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ShareModal } from '@/components/ShareModal';
 import { UploadProgressPanel } from '@/components/UploadProgressPanel';
@@ -64,6 +64,7 @@ function toGridPhoto(p: Photo, isFav: boolean) {
 const EventGallery = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [event, setEvent] = useState<Event | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -80,10 +81,17 @@ const EventGallery = () => {
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
 
   const fetchEvent = useCallback(async () => {
-    if (!id) return;
+    if (!id || !user) return;
     const { data } = await supabase.from('events').select('*').eq('id', id).single();
-    if (data) setEvent(data as unknown as Event);
-  }, [id]);
+    if (data) {
+      const evt = data as unknown as Event;
+      if (evt.photographer_id !== user.id) {
+        navigate('/dashboard');
+        return;
+      }
+      setEvent(evt);
+    }
+  }, [id, user, navigate]);
 
   const fetchPhotos = useCallback(async () => {
     if (!id) return;
@@ -381,7 +389,7 @@ const EventGallery = () => {
 
       {event && (
         <>
-          <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventId={event.id} eventName={event.title} pin={event.gallery_password} />
+          <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventSlug={event.slug} eventName={event.title} pin={event.gallery_password} />
           <EventSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} event={event} onUpdated={() => { fetchEvent(); fetchPhotos(); }} />
           {sharePhoto && (
             <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}

@@ -33,7 +33,10 @@ const Events = () => {
 
   const fetchEvents = async () => {
     if (!user) return;
-    const { data } = await (supabase.from('events').select('*') as any).eq('photographer_id', user.id).order('date', { ascending: false });
+    const { data } = await (supabase
+      .from('events')
+      .select('id, title, slug, date, location, cover_photo_url, gallery_password, created_at') as any)
+      .order('date', { ascending: false });
     if (data) setEvents(data as unknown as Event[]);
   };
 
@@ -135,9 +138,9 @@ const Events = () => {
         </div>
       )}
 
-      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={fetchEvents} />
+      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
       {shareEvent && (
-        <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventId={shareEvent.id} eventName={shareEvent.title} pin={shareEvent.gallery_password} />
+        <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.title} pin={shareEvent.gallery_password} />
       )}
     </DashboardLayout>
   );

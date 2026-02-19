@@ -8,14 +8,14 @@ import { QRCodeSVG } from 'qrcode.react';
 interface ShareModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  eventId: string;
+  eventSlug: string;
   eventName: string;
   pin?: string | null;
 }
 
-export function ShareModal({ open, onOpenChange, eventId, eventName, pin }: ShareModalProps) {
+export function ShareModal({ open, onOpenChange, eventSlug, eventName, pin }: ShareModalProps) {
   const { toast } = useToast();
-  const galleryUrl = `${window.location.origin}/gallery/${eventId}`;
+  const galleryUrl = `${window.location.origin}/gallery/${eventSlug}`;
   const fullUrl = pin ? `${galleryUrl}?pin=${pin}` : galleryUrl;
 
   const copy = (text: string) => {
