@@ -130,7 +130,7 @@ const PublicGallery = () => {
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${event?.name ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
-    } catch { toast({ title: 'Download failed' }); }
+    } catch (_err) { toast({ title: 'Download failed' }); }
     finally { setDownloading(false); setDownloadProgress(''); }
   };
 

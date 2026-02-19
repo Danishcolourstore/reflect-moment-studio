@@ -5,8 +5,8 @@ import { ShareModal } from '@/components/ShareModal';
 import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 import { Button } from '@/components/ui/button';
 import {
-  Heart, Download, Trash2, Share2, Upload, Search,
-  Image as ImageIcon, PackageOpen, Loader2, FolderDown, Settings,
+  Heart, Download, Trash2, Share2, Upload,
+  PackageOpen, Loader2, FolderDown, Settings,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -144,7 +144,7 @@ const EventGallery = () => {
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${event?.name ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
-    } catch {
+    } catch (_err) {
       toast({ title: 'Download failed', description: 'Please try again.' });
     } finally {
       setDownloading(false);
