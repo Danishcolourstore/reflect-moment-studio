@@ -30,15 +30,26 @@ interface CreateEventModalProps {
 export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
-  const [type, setType] = useState('Wedding');
-  const [pin, setPin] = useState('');
+  const [location, setLocation] = useState('');
+  const [slug, setSlug] = useState('');
+  const [password, setPassword] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [galleryLayout, setGalleryLayout] = useState('masonry');
-  const [allowFullDownload, setAllowFullDownload] = useState(true);
-  const [allowFavoritesDownload, setAllowFavoritesDownload] = useState(true);
+  const [galleryLayout, setGalleryLayout] = useState('classic');
+  const [downloadsEnabled, setDownloadsEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  const generateSlug = (name: string) => {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  };
+
+  const handleTitleChange = (val: string) => {
+    setTitle(val);
+    if (!slug || slug === generateSlug(title)) {
+      setSlug(generateSlug(val));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,23 +69,23 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
     }
 
     const { error } = await supabase.from('events').insert({
-      user_id: user.id,
-      name,
-      event_date: date,
-      event_type: type,
-      cover_url: coverUrl,
-      gallery_pin: pin || null,
-      gallery_layout: galleryLayout,
-      allow_full_download: allowFullDownload,
-      allow_favorites_download: allowFavoritesDownload,
-    });
+      photographer_id: user.id,
+      title,
+      slug: slug || generateSlug(title),
+      date: date,
+      location: location || null,
+      cover_photo_url: coverUrl,
+      gallery_password: password || null,
+      layout: galleryLayout,
+      downloads_enabled: downloadsEnabled,
+    } as any);
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Event created' });
-      setName(''); setDate(''); setType('Wedding'); setPin(''); setCoverFile(null);
-      setGalleryLayout('masonry'); setAllowFullDownload(true); setAllowFavoritesDownload(true);
+      setTitle(''); setDate(''); setLocation(''); setSlug(''); setPassword(''); setCoverFile(null);
+      setGalleryLayout('classic'); setDownloadsEnabled(true);
       onOpenChange(false);
       onCreated();
     }
@@ -89,31 +100,28 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3.5 mt-1">
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Aisha & Rahul Wedding" className="bg-background h-9 text-[13px]" />
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Title</Label>
+            <Input value={title} onChange={(e) => handleTitleChange(e.target.value)} required placeholder="Aisha & Rahul Wedding" className="bg-background h-9 text-[13px]" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Slug</Label>
+            <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="aisha-rahul-wedding" className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Date</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Type</Label>
-            <Select value={type} onValueChange={setType}>
-              <SelectTrigger className="bg-background h-9 text-[13px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {['Wedding', 'Pre-Wedding', 'Portrait', 'Corporate', 'Other'].map(t => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Location</Label>
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Mumbai, India" className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Cover Photo</Label>
             <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery PIN (Optional)</Label>
-            <Input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Password (Optional)</Label>
+            <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
           </div>
 
           {/* Gallery layout preset */}
@@ -142,12 +150,8 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
           <div className="pt-2 border-t border-border space-y-3">
             <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Guest Download Permissions</p>
             <div className="flex items-center justify-between">
-              <Label className="text-[12px] text-foreground/80 font-normal">Allow full gallery download</Label>
-              <Switch checked={allowFullDownload} onCheckedChange={setAllowFullDownload} />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label className="text-[12px] text-foreground/80 font-normal">Allow favorites download</Label>
-              <Switch checked={allowFavoritesDownload} onCheckedChange={setAllowFavoritesDownload} />
+              <Label className="text-[12px] text-foreground/80 font-normal">Allow downloads</Label>
+              <Switch checked={downloadsEnabled} onCheckedChange={setDownloadsEnabled} />
             </div>
           </div>
 

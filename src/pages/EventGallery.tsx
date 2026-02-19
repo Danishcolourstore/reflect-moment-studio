@@ -6,7 +6,7 @@ import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 import { Button } from '@/components/ui/button';
 import {
   Heart, Download, Trash2, Share2, Upload,
-  PackageOpen, Loader2, FolderDown, Settings, Radio, Users,
+  PackageOpen, Loader2, FolderDown, Settings,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -19,9 +19,6 @@ import { usePhotoUpload } from '@/hooks/use-photo-upload';
 import { EventSettingsModal } from '@/components/EventSettingsModal';
 import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
 import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
-import { useLiveSync } from '@/hooks/use-livesync';
-import { LiveSyncStatusBar, LiveFeedGrid } from '@/components/LiveSyncPanel';
-import { AiCullingPanel, PresetApplyPanel } from '@/components/LiveIntelligencePanel';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -29,24 +26,24 @@ import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 
 interface Photo {
   id: string;
-  url: string;
-  is_favorite: boolean;
-  file_name: string | null;
+  storage_path: string;
+  filename: string | null;
 }
 
 interface Event {
   id: string;
-  name: string;
-  event_date: string;
-  event_type: string;
-  cover_url: string | null;
-  photo_count: number;
-  gallery_pin: string | null;
-  user_id: string;
-  allow_full_download: boolean;
-  allow_favorites_download: boolean;
-  gallery_layout: string;
-  livesync_enabled: boolean;
+  title: string;
+  slug: string;
+  date: string;
+  location: string | null;
+  cover_photo_url: string | null;
+  gallery_password: string | null;
+  photographer_id: string;
+  downloads_enabled: boolean;
+  download_resolution: string;
+  watermark_enabled: boolean;
+  layout: string;
+  is_published: boolean;
 }
 
 type GalleryFilter = 'all' | 'favorites';
@@ -58,6 +55,11 @@ const GRID_CLASSES: Record<string, string> = {
   justified: 'flex flex-wrap gap-[3px]',
   editorial: 'columns-1 sm:columns-2 lg:columns-3 gap-4',
 };
+
+// Adapt Photo to the shape grid components expect
+function toGridPhoto(p: Photo, isFav: boolean) {
+  return { id: p.id, url: p.storage_path, is_favorite: isFav, file_name: p.filename };
+}
 
 const EventGallery = () => {
   const { id } = useParams<{ id: string }>();
@@ -75,9 +77,8 @@ const EventGallery = () => {
 
   const { favoriteCount, toggleFavorite: toggleGuestFavorite, isFavorite } = useGuestFavorites(id);
   const upload = usePhotoUpload(id, user?.id);
-  const liveSync = useLiveSync(event?.livesync_enabled ?? false);
-  const [liveFeedMode, setLiveFeedMode] = useState(false);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
+
   const fetchEvent = useCallback(async () => {
     if (!id) return;
     const { data } = await supabase.from('events').select('*').eq('id', id).single();
@@ -86,8 +87,8 @@ const EventGallery = () => {
 
   const fetchPhotos = useCallback(async () => {
     if (!id) return;
-    const { data } = await supabase.from('photos').select('*').eq('event_id', id).order('created_at', { ascending: false });
-    if (data) setPhotos(data as Photo[]);
+    const { data } = await (supabase.from('photos').select('*') as any).eq('event_id', id).order('sort_order', { ascending: true });
+    if (data) setPhotos(data as unknown as Photo[]);
   }, [id]);
 
   useEffect(() => { fetchEvent(); fetchPhotos(); }, [fetchEvent, fetchPhotos]);
@@ -112,56 +113,41 @@ const EventGallery = () => {
   }, [upload]);
 
   /* ── Drag & Drop ── */
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
+  const handleDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); }, []);
+  const handleDragLeave = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); }, []);
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
+    e.preventDefault(); setIsDragging(false);
     if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
   }, [handleFiles]);
 
   const deletePhoto = async (photo: Photo) => {
     await supabase.from('photos').delete().eq('id', photo.id);
-    const { count } = await supabase.from('photos').select('*', { count: 'exact', head: true }).eq('event_id', id);
-    if (count !== null && id) {
-      await supabase.from('events').update({ photo_count: count }).eq('id', id);
-    }
     fetchPhotos();
     fetchEvent();
   };
 
   /* ── ZIP helpers ── */
   const buildZip = async (targetPhotos: Photo[], label: string) => {
-    if (targetPhotos.length === 0) {
-      toast({ title: 'No photos to download' });
-      return;
-    }
+    if (targetPhotos.length === 0) { toast({ title: 'No photos to download' }); return; }
     setDownloading(true);
     try {
       const zip = new JSZip();
-      const folder = zip.folder(event?.name ?? label);
+      const folder = zip.folder(event?.title ?? label);
       for (let i = 0; i < targetPhotos.length; i++) {
         setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
         const p = targetPhotos[i];
-        const res = await fetch(p.url);
+        const res = await fetch(p.storage_path);
         const blob = await res.blob();
-        const fileName = p.file_name ?? `photo-${i + 1}.jpg`;
+        const fileName = p.filename ?? `photo-${i + 1}.jpg`;
         folder?.file(fileName, blob);
       }
       const content = await zip.generateAsync({ type: 'blob' });
-      saveAs(content, `${event?.name ?? label}.zip`);
+      saveAs(content, `${event?.title ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
     } catch (_err) {
       toast({ title: 'Download failed', description: 'Please try again.' });
     } finally {
-      setDownloading(false);
-      setDownloadProgress('');
+      setDownloading(false); setDownloadProgress('');
     }
   };
 
@@ -178,19 +164,17 @@ const EventGallery = () => {
     );
   }
 
-  const isOwner = user?.id === event.user_id;
-  const canDownloadAll = isOwner || event.allow_full_download;
-  const canDownloadFavs = isOwner || event.allow_favorites_download;
-  const canDownloadAnything = canDownloadAll || canDownloadFavs;
+  const isOwner = user?.id === event.photographer_id;
+  const canDownloadAll = isOwner || event.downloads_enabled;
+  const canDownloadAnything = canDownloadAll;
 
   const displayPhotos = filter === 'favorites'
     ? photos.filter((p) => isFavorite(p.id))
     : photos;
 
-  const layout = event.gallery_layout || 'masonry';
+  const layout = event.layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
 
-  /* Per-layout item classes */
   const getItemClass = (layout: string) => {
     switch (layout) {
       case 'classic': return 'relative aspect-square overflow-hidden';
@@ -209,44 +193,36 @@ const EventGallery = () => {
     }
   };
 
+  // Map photos for grid components that expect the old shape
+  const gridPhotos = displayPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
+
   return (
     <DashboardLayout>
       {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => e.target.files && handleFiles(e.target.files)}
-      />
+      <input ref={fileInputRef} type="file" multiple accept="image/*" className="hidden"
+        onChange={(e) => e.target.files && handleFiles(e.target.files)} />
 
       {/* Cover banner */}
-      {event.cover_url && (
+      {event.cover_photo_url && (
         <div className="relative -mx-5 -mt-6 mb-5 h-32 sm:h-40 overflow-hidden sm:-mx-8 lg:-mx-10">
-          <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
+          <img src={event.cover_photo_url} alt={event.title} className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         </div>
       )}
 
-      {/* Header with persistent Upload button */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-5 gap-2">
         <div>
-          <h1 className="font-serif text-xl sm:text-[22px] font-semibold text-foreground leading-tight">{event.name}</h1>
+          <h1 className="font-serif text-xl sm:text-[22px] font-semibold text-foreground leading-tight">{event.title}</h1>
           <p className="text-[11px] text-muted-foreground/60 tracking-wide mt-0.5">
-            {format(new Date(event.event_date), 'MMMM d, yyyy')} · {event.photo_count} photos
+            {format(new Date(event.date), 'MMMM d, yyyy')} · {photos.length} photos
           </p>
         </div>
         <div className="flex items-center gap-1">
           {isOwner && (
             <>
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={upload.isUploading}
-                variant="ghost"
-                size="sm"
-                className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]"
-              >
+              <Button onClick={() => fileInputRef.current?.click()} disabled={upload.isUploading}
+                variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
                 <Upload className="mr-1 h-3 w-3" />Upload
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
@@ -261,150 +237,43 @@ const EventGallery = () => {
       </div>
 
       {/* Upload Progress Panel */}
-      <UploadProgressPanel
-        {...upload}
-        onRetry={upload.retry}
-        onDismiss={upload.dismiss}
-      />
-
-      {/* LiveSync™ Status Bar */}
-      {event.livesync_enabled && isOwner && (
-        <LiveSyncStatusBar
-          isLive={liveSync.isLive}
-          cameraConnected={liveSync.cameraConnected}
-          syncing={liveSync.syncing}
-          guestViewers={liveSync.guestViewers}
-          onStart={liveSync.start}
-          onStop={liveSync.stop}
-        />
-      )}
-
-      {/* Live Intelligence™ Panels */}
-      {event.livesync_enabled && isOwner && liveSync.isLive && (
-        <>
-          <AiCullingPanel stats={liveSync.aiStats} isLive={liveSync.isLive} />
-          <PresetApplyPanel
-            isLive={liveSync.isLive}
-            enabled={liveSync.presetApplyEnabled}
-            activePreset={liveSync.activePreset}
-            onToggle={liveSync.setPresetApplyEnabled}
-            onPresetChange={liveSync.setActivePreset}
-          />
-        </>
-      )}
-
-      {/* Guest Selections Panel (photographer view) */}
-      {isOwner && favoriteCount > 0 && (
-        <div className="mb-5 border border-border bg-card/50 p-4 animate-fade-in">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-              <Users className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-serif text-sm font-medium text-foreground">Guest Selections</h3>
-              <p className="text-[10px] text-muted-foreground/50">Photos favorited by guests</p>
-            </div>
-            <div className="ml-auto flex items-center gap-1.5">
-              <Heart className="h-3.5 w-3.5 text-primary" fill="hsl(var(--primary))" />
-              <span className="text-sm font-medium text-foreground">{favoriteCount}</span>
-              <span className="text-[10px] text-muted-foreground/50">total</span>
-            </div>
-          </div>
-          {/* Top selected preview */}
-          {photos.filter(p => isFavorite(p.id)).length > 0 && (
-            <div className="flex gap-1 overflow-x-auto pb-1">
-              {photos.filter(p => isFavorite(p.id)).slice(0, 8).map(p => (
-                <img key={p.id} src={p.url} alt="" className="h-14 w-14 object-cover flex-shrink-0 opacity-90 hover:opacity-100 transition-opacity" />
-              ))}
-              {photos.filter(p => isFavorite(p.id)).length > 8 && (
-                <div className="h-14 w-14 flex-shrink-0 bg-muted/50 flex items-center justify-center">
-                  <span className="text-[10px] text-muted-foreground/60">+{photos.filter(p => isFavorite(p.id)).length - 8}</span>
-                </div>
-              )}
-            </div>
-          )}
-          <p className="mt-2 text-[9px] text-muted-foreground/40 italic">Guest names will appear here in a future update.</p>
-        </div>
-      )}
+      <UploadProgressPanel {...upload} onRetry={upload.retry} onDismiss={upload.dismiss} />
 
       {/* Gallery utility bar */}
       <div className="flex items-center justify-between mb-4 border-b border-border">
         <div className="flex items-center gap-0">
-          <button
-            onClick={() => setFilter('all')}
+          <button onClick={() => setFilter('all')}
             className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
-              filter === 'all'
-                ? 'border-foreground text-foreground'
-                : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
-            }`}
-          >
-            All Photos
-          </button>
-          <button
-            onClick={() => setFilter('favorites')}
+              filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
+            }`}>All Photos</button>
+          <button onClick={() => setFilter('favorites')}
             className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
-              filter === 'favorites'
-                ? 'border-foreground text-foreground'
-                : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
-            }`}
-          >
-            <Heart className="h-3 w-3" />
-            Favorites
+              filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
+            }`}>
+            <Heart className="h-3 w-3" /> Favorites
             {favoriteCount > 0 && (
-              <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">
-                {favoriteCount}
-              </span>
+              <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favoriteCount}</span>
             )}
           </button>
-          {/* Live Feed Mode tab */}
-          {event.livesync_enabled && liveSync.isLive && (
-            <button
-              onClick={() => setLiveFeedMode(!liveFeedMode)}
-              className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
-                liveFeedMode
-                  ? 'border-destructive text-destructive'
-                  : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
-              }`}
-            >
-              <Radio className="h-3 w-3" />
-              Live Feed
-            </button>
-          )}
         </div>
 
         {canDownloadAnything && photos.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={downloading}
-                className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px"
-              >
-                {downloading ? (
-                  <>
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                    {downloadProgress}
-                  </>
-                ) : (
-                  <>
-                    <FolderDown className="mr-1 h-3 w-3" />
-                    Download
-                  </>
-                )}
+              <Button variant="ghost" size="sm" disabled={downloading}
+                className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
+                {downloading ? (<><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>) : (<><FolderDown className="mr-1 h-3 w-3" />Download</>)}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[180px]">
               {canDownloadAll && (
                 <DropdownMenuItem onClick={downloadAll} className="text-[12px] gap-2">
-                  <PackageOpen className="h-3.5 w-3.5" />
-                  All Photos ({photos.length})
+                  <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
                 </DropdownMenuItem>
               )}
-              {canDownloadFavs && favoriteCount > 0 && (
+              {favoriteCount > 0 && (
                 <DropdownMenuItem onClick={downloadFavorites} className="text-[12px] gap-2">
-                  <Heart className="h-3.5 w-3.5" />
-                  Favorites ({favoriteCount})
+                  <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -415,14 +284,11 @@ const EventGallery = () => {
       {/* Drag & Drop upload zone (owner only) */}
       {isOwner && photos.length === 0 && (
         <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
+          onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
           className={`mb-5 flex flex-col items-center justify-center border border-dashed py-16 transition-colors cursor-pointer ${
             isDragging ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/40'
           } ${upload.isUploading ? 'opacity-50 pointer-events-none' : ''}`}
-          onClick={() => !upload.isUploading && fileInputRef.current?.click()}
-        >
+          onClick={() => !upload.isUploading && fileInputRef.current?.click()}>
           <Upload className="h-6 w-6 text-muted-foreground/25 mb-3" />
           <p className="text-[12px] text-muted-foreground/50 font-medium">
             {upload.isUploading ? 'Upload in progress…' : 'Drop photos here to upload'}
@@ -430,12 +296,9 @@ const EventGallery = () => {
           {!upload.isUploading && (
             <>
               <p className="mt-1 text-[10px] text-muted-foreground/35">or</p>
-              <Button
-                variant="outline"
-                size="sm"
+              <Button variant="outline" size="sm"
                 className="mt-2.5 text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
-                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-              >
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
                 Select Photos
               </Button>
             </>
@@ -445,23 +308,13 @@ const EventGallery = () => {
 
       {/* Inline drop zone when photos exist */}
       {isOwner && photos.length > 0 && !upload.isUploading && (
-        <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
+        <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
           className={`mb-5 flex items-center justify-center gap-2 border border-dashed py-3 px-5 transition-colors cursor-pointer ${
             isDragging ? 'border-primary bg-primary/5' : 'border-border/50 hover:border-primary/30'
-          }`}
-          onClick={() => fileInputRef.current?.click()}
-        >
+          }`} onClick={() => fileInputRef.current?.click()}>
           <Upload className="h-3.5 w-3.5 text-muted-foreground/30" />
           <p className="text-[11px] text-muted-foreground/40">Drop photos here or click to upload more</p>
         </div>
-      )}
-
-      {/* LiveSync™ Live Feed */}
-      {liveFeedMode && liveSync.isLive && (
-        <LiveFeedGrid photos={liveSync.livePhotos} onSharePhoto={liveSync.addShareCount} />
       )}
 
       {/* Photo Grid — dynamic layout */}
@@ -474,13 +327,13 @@ const EventGallery = () => {
       ) : displayPhotos.length > 0 ? (
         ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
           layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} onShare={(p) => setSharePhoto(p)} />
+            <EditorialCollageGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} onShare={(p) => setSharePhoto(p)} />
+            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'cinematic' ? (
-            <CinematicMasonryGrid photos={displayPhotos} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} onShare={(p) => setSharePhoto(p)} />
+            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
           ) : (
-            <HighlightMosaicGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} onShare={(p) => setSharePhoto(p)} />
+            <HighlightMosaicGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
           )
         ) : (
           <div className={gridClass}>
@@ -488,21 +341,11 @@ const EventGallery = () => {
               const fav = isFavorite(photo.id);
               return (
                 <div key={photo.id} className={`group ${getItemClass(layout)}`}>
-                  <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
-                  {/* Always-visible heart — top right */}
-                  <button
-                    onClick={() => {
-                      toggleGuestFavorite(photo.id);
-                      if (!fav) {
-                        toast({ title: 'Added to Favorites', description: 'Photo saved to selections.' });
-                      }
-                    }}
-                    className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125"
-                  >
-                    <Heart
-                      className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
-                      fill={fav ? 'hsl(var(--primary))' : 'none'}
-                    />
+                  <img src={photo.storage_path} alt="" className={getImgClass(layout)} loading="lazy" />
+                  <button onClick={() => { toggleGuestFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to selections.' }); }}
+                    className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
+                    <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
+                      fill={fav ? 'hsl(var(--primary))' : 'none'} />
                   </button>
                   <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
                   <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
@@ -511,7 +354,7 @@ const EventGallery = () => {
                       <Share2 className="h-3 w-3" />
                     </button>
                     {canDownloadAnything && (
-                      <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                      <a href={photo.storage_path} download={photo.filename ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                         <Download className="h-3 w-3" />
                       </a>
                     )}
@@ -530,32 +373,19 @@ const EventGallery = () => {
 
       {/* Mobile sticky upload button */}
       {isOwner && !upload.isUploading && !upload.isDone && (
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="fixed bottom-20 right-4 z-40 sm:hidden bg-primary text-primary-foreground rounded-full w-12 h-12 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-        >
+        <button onClick={() => fileInputRef.current?.click()}
+          className="fixed bottom-20 right-4 z-40 sm:hidden bg-primary text-primary-foreground rounded-full w-12 h-12 flex items-center justify-center shadow-lg active:scale-95 transition-transform">
           <Upload className="h-5 w-5" />
         </button>
       )}
 
       {event && (
         <>
-          <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventId={event.id} eventName={event.name} pin={event.gallery_pin} />
-          <EventSettingsModal
-            open={settingsOpen}
-            onOpenChange={setSettingsOpen}
-            event={event}
-            onUpdated={() => { fetchEvent(); fetchPhotos(); }}
-          />
+          <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventId={event.id} eventName={event.title} pin={event.gallery_password} />
+          <EventSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} event={event} onUpdated={() => { fetchEvent(); fetchPhotos(); }} />
           {sharePhoto && (
-            <PhotoShareSheet
-              open={!!sharePhoto}
-              onOpenChange={() => setSharePhoto(null)}
-              photoUrl={sharePhoto.url}
-              photoName={sharePhoto.file_name}
-              eventName={event.name}
-              canDownload={canDownloadAnything}
-            />
+            <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
+              photoUrl={sharePhoto.storage_path} photoName={sharePhoto.filename} eventName={event.title} canDownload={canDownloadAnything} />
           )}
         </>
       )}

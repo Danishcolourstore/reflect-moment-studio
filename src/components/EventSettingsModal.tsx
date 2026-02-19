@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Zap } from 'lucide-react';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2 } from 'lucide-react';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -33,15 +32,17 @@ const PREVIEW_HEIGHTS: Record<string, number[]> = {
 
 interface EventData {
   id: string;
-  name: string;
-  event_date: string;
-  event_type: string;
-  cover_url: string | null;
-  gallery_pin: string | null;
-  gallery_layout: string;
-  allow_full_download: boolean;
-  allow_favorites_download: boolean;
-  livesync_enabled: boolean;
+  title: string;
+  slug: string;
+  date: string;
+  location: string | null;
+  cover_photo_url: string | null;
+  gallery_password: string | null;
+  layout: string;
+  downloads_enabled: boolean;
+  download_resolution: string;
+  watermark_enabled: boolean;
+  is_published: boolean;
 }
 
 interface EventSettingsModalProps {
@@ -53,33 +54,33 @@ interface EventSettingsModalProps {
 
 export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: EventSettingsModalProps) {
   const { toast } = useToast();
-  const [name, setName] = useState(event.name);
-  const [date, setDate] = useState(event.event_date);
-  const [type, setType] = useState(event.event_type);
-  const [pin, setPin] = useState(event.gallery_pin ?? '');
+  const [title, setTitle] = useState(event.title);
+  const [date, setDate] = useState(event.date);
+  const [location, setLocation] = useState(event.location ?? '');
+  const [password, setPassword] = useState(event.gallery_password ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [galleryLayout, setGalleryLayout] = useState(event.gallery_layout);
-  const [allowFullDownload, setAllowFullDownload] = useState(event.allow_full_download);
-  const [allowFavoritesDownload, setAllowFavoritesDownload] = useState(event.allow_favorites_download);
-  const [livesyncEnabled, setLivesyncEnabled] = useState(event.livesync_enabled);
+  const [galleryLayout, setGalleryLayout] = useState(event.layout);
+  const [downloadsEnabled, setDownloadsEnabled] = useState(event.downloads_enabled);
+  const [watermarkEnabled, setWatermarkEnabled] = useState(event.watermark_enabled);
+  const [isPublished, setIsPublished] = useState(event.is_published);
   const [saving, setSaving] = useState(false);
 
   // Sync when event changes
   useEffect(() => {
-    setName(event.name);
-    setDate(event.event_date);
-    setType(event.event_type);
-    setPin(event.gallery_pin ?? '');
-    setGalleryLayout(event.gallery_layout);
-    setAllowFullDownload(event.allow_full_download);
-    setAllowFavoritesDownload(event.allow_favorites_download);
-    setLivesyncEnabled(event.livesync_enabled);
+    setTitle(event.title);
+    setDate(event.date);
+    setLocation(event.location ?? '');
+    setPassword(event.gallery_password ?? '');
+    setGalleryLayout(event.layout);
+    setDownloadsEnabled(event.downloads_enabled);
+    setWatermarkEnabled(event.watermark_enabled);
+    setIsPublished(event.is_published);
   }, [event]);
 
   const handleSave = async () => {
     setSaving(true);
 
-    let coverUrl = event.cover_url;
+    let coverUrl = event.cover_photo_url;
 
     if (coverFile) {
       const ext = coverFile.name.split('.').pop();
@@ -92,16 +93,16 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     }
 
     const { error } = await supabase.from('events').update({
-      name,
-      event_date: date,
-      event_type: type,
-      cover_url: coverUrl,
-      gallery_pin: pin || null,
-      gallery_layout: galleryLayout,
-      allow_full_download: allowFullDownload,
-      allow_favorites_download: allowFavoritesDownload,
-      livesync_enabled: livesyncEnabled,
-    }).eq('id', event.id);
+      title,
+      date,
+      location: location || null,
+      cover_photo_url: coverUrl,
+      gallery_password: password || null,
+      layout: galleryLayout,
+      downloads_enabled: downloadsEnabled,
+      watermark_enabled: watermarkEnabled,
+      is_published: isPublished,
+    } as any).eq('id', event.id);
 
     if (error) {
       toast({ title: 'Error saving', description: error.message, variant: 'destructive' });
@@ -123,10 +124,10 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
         </DialogHeader>
 
         <div className="space-y-3.5 mt-1">
-          {/* Name */}
+          {/* Title */}
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-background h-9 text-[13px]" />
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Title</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-background h-9 text-[13px]" />
           </div>
 
           {/* Date */}
@@ -135,32 +136,25 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-background h-9 text-[13px]" />
           </div>
 
-          {/* Type */}
+          {/* Location */}
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Type</Label>
-            <Select value={type} onValueChange={setType}>
-              <SelectTrigger className="bg-background h-9 text-[13px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {['Wedding', 'Pre-Wedding', 'Portrait', 'Corporate', 'Other'].map(t => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Location</Label>
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, Country" className="bg-background h-9 text-[13px]" />
           </div>
 
           {/* Cover */}
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Cover Photo</Label>
             <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
-            {event.cover_url && !coverFile && (
+            {event.cover_photo_url && !coverFile && (
               <p className="text-[10px] text-muted-foreground/50">Current cover set. Upload to replace.</p>
             )}
           </div>
 
-          {/* PIN */}
+          {/* Password */}
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery PIN (Optional)</Label>
-            <Input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Password (Optional)</Label>
+            <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
           </div>
 
           {/* Layout with live preview */}
@@ -199,31 +193,20 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
             </div>
           </div>
 
-          {/* Download permissions */}
+          {/* Download & publish permissions */}
           <div className="pt-2 border-t border-border space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Guest Download Permissions</p>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Settings</p>
             <div className="flex items-center justify-between">
-              <Label className="text-[12px] text-foreground/80 font-normal">Allow full gallery download</Label>
-              <Switch checked={allowFullDownload} onCheckedChange={setAllowFullDownload} />
+              <Label className="text-[12px] text-foreground/80 font-normal">Downloads enabled</Label>
+              <Switch checked={downloadsEnabled} onCheckedChange={setDownloadsEnabled} />
             </div>
             <div className="flex items-center justify-between">
-              <Label className="text-[12px] text-foreground/80 font-normal">Allow favorites download</Label>
-              <Switch checked={allowFavoritesDownload} onCheckedChange={setAllowFavoritesDownload} />
-            </div>
-          </div>
-
-          {/* LiveSync™ */}
-          <div className="pt-2 border-t border-border space-y-3">
-            <div className="flex items-center gap-1.5">
-              <Zap className="h-3.5 w-3.5 text-primary" />
-              <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">LiveSync™</p>
+              <Label className="text-[12px] text-foreground/80 font-normal">Watermark enabled</Label>
+              <Switch checked={watermarkEnabled} onCheckedChange={setWatermarkEnabled} />
             </div>
             <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-[12px] text-foreground/80 font-normal">Enable LiveSync™</Label>
-                <p className="text-[9px] text-muted-foreground/50 mt-0.5">Guests see photos as they're captured in real-time</p>
-              </div>
-              <Switch checked={livesyncEnabled} onCheckedChange={setLivesyncEnabled} />
+              <Label className="text-[12px] text-foreground/80 font-normal">Published</Label>
+              <Switch checked={isPublished} onCheckedChange={setIsPublished} />
             </div>
           </div>
 

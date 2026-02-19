@@ -18,21 +18,24 @@ import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 
 interface Photo {
   id: string;
-  url: string;
-  is_favorite: boolean;
-  file_name: string | null;
+  storage_path: string;
+  filename: string | null;
 }
 
 interface Event {
   id: string;
-  name: string;
-  event_date: string;
-  cover_url: string | null;
-  photo_count: number;
-  gallery_pin: string | null;
-  allow_full_download: boolean;
-  allow_favorites_download: boolean;
-  gallery_layout: string;
+  title: string;
+  slug: string;
+  date: string;
+  cover_photo_url: string | null;
+  gallery_password: string | null;
+  downloads_enabled: boolean;
+  layout: string;
+}
+
+// Adapt to grid component shape
+function toGridPhoto(p: Photo, isFav: boolean) {
+  return { id: p.id, url: p.storage_path, is_favorite: isFav, file_name: p.filename };
 }
 
 const GRID_CLASSES: Record<string, string> = {
@@ -65,7 +68,16 @@ const PublicGallery = () => {
 
   const fetchGallery = useCallback(async (pin?: string) => {
     if (!id) return;
-    const { data: eventData } = await supabase.from('events').select('*').eq('id', id).maybeSingle();
+    // Try to find by slug first, then by id
+    let eventData: any = null;
+    const { data: bySlug } = await (supabase.from('events').select('*') as any).eq('slug', id).maybeSingle();
+    if (bySlug) {
+      eventData = bySlug;
+    } else {
+      const { data: byId } = await supabase.from('events').select('*').eq('id', id).maybeSingle();
+      eventData = byId;
+    }
+
     if (!eventData) {
       setNotFound(true);
       setLoading(false);
@@ -74,10 +86,10 @@ const PublicGallery = () => {
 
     const ev = eventData as unknown as Event;
 
-    // Check PIN
-    if (ev.gallery_pin) {
+    // Check password
+    if (ev.gallery_password) {
       const providedPin = pin || searchParams.get('pin');
-      if (!providedPin || providedPin !== ev.gallery_pin) {
+      if (!providedPin || providedPin !== ev.gallery_password) {
         setPinRequired(true);
         setLoading(false);
         return;
@@ -87,8 +99,8 @@ const PublicGallery = () => {
     setPinRequired(false);
     setEvent(ev);
 
-    const { data: photoData } = await supabase.from('photos').select('*').eq('event_id', id).order('created_at', { ascending: false });
-    if (photoData) setPhotos(photoData as Photo[]);
+    const { data: photoData } = await (supabase.from('photos').select('*') as any).eq('event_id', ev.id).order('sort_order', { ascending: true });
+    if (photoData) setPhotos(photoData as unknown as Photo[]);
     setLoading(false);
   }, [id, searchParams]);
 
@@ -98,21 +110,24 @@ const PublicGallery = () => {
     e.preventDefault();
     setPinError(false);
     setLoading(true);
-    // Re-fetch with pin
     (async () => {
       if (!id) return;
-      const { data: eventData } = await supabase.from('events').select('*').eq('id', id).maybeSingle();
+      let eventData: any = null;
+      const { data: bySlug } = await (supabase.from('events').select('*') as any).eq('slug', id).maybeSingle();
+      if (bySlug) eventData = bySlug;
+      else {
+        const { data: byId } = await supabase.from('events').select('*').eq('id', id).maybeSingle();
+        eventData = byId;
+      }
       if (!eventData) { setNotFound(true); setLoading(false); return; }
       const ev = eventData as unknown as Event;
-      if (ev.gallery_pin && pinInput !== ev.gallery_pin) {
-        setPinError(true);
-        setLoading(false);
-        return;
+      if (ev.gallery_password && pinInput !== ev.gallery_password) {
+        setPinError(true); setLoading(false); return;
       }
       setPinRequired(false);
       setEvent(ev);
-      const { data: photoData } = await supabase.from('photos').select('*').eq('event_id', id).order('created_at', { ascending: false });
-      if (photoData) setPhotos(photoData as Photo[]);
+      const { data: photoData } = await (supabase.from('photos').select('*') as any).eq('event_id', ev.id).order('sort_order', { ascending: true });
+      if (photoData) setPhotos(photoData as unknown as Photo[]);
       setLoading(false);
     })();
   };
@@ -122,15 +137,15 @@ const PublicGallery = () => {
     setDownloading(true);
     try {
       const zip = new JSZip();
-      const folder = zip.folder(event?.name ?? label);
+      const folder = zip.folder(event?.title ?? label);
       for (let i = 0; i < targetPhotos.length; i++) {
         setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
-        const res = await fetch(targetPhotos[i].url);
+        const res = await fetch(targetPhotos[i].storage_path);
         const blob = await res.blob();
-        folder?.file(targetPhotos[i].file_name ?? `photo-${i + 1}.jpg`, blob);
+        folder?.file(targetPhotos[i].filename ?? `photo-${i + 1}.jpg`, blob);
       }
       const content = await zip.generateAsync({ type: 'blob' });
-      saveAs(content, `${event?.name ?? label}.zip`);
+      saveAs(content, `${event?.title ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
     } catch (_err) { toast({ title: 'Download failed' }); }
     finally { setDownloading(false); setDownloadProgress(''); }
@@ -165,19 +180,12 @@ const PublicGallery = () => {
               <Lock className="h-5 w-5 text-primary" />
             </div>
             <h1 className="font-serif text-2xl font-semibold text-foreground">Protected Gallery</h1>
-            <p className="text-[11px] text-muted-foreground/60">Enter the PIN to view this gallery.</p>
+            <p className="text-[11px] text-muted-foreground/60">Enter the password to view this gallery.</p>
           </div>
           <form onSubmit={handlePinSubmit} className="space-y-3">
-            <Input
-              value={pinInput}
-              onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
-              placeholder="Enter PIN"
-              className="bg-background border-border h-10 text-center text-[14px] tracking-[0.2em]"
-              autoFocus
-            />
-            {pinError && (
-              <p className="text-[10px] text-destructive">Incorrect PIN. Please try again.</p>
-            )}
+            <Input value={pinInput} onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
+              placeholder="Enter password" className="bg-background border-border h-10 text-center text-[14px] tracking-[0.2em]" autoFocus />
+            {pinError && <p className="text-[10px] text-destructive">Incorrect password. Please try again.</p>}
             <Button type="submit" className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium">
               View Gallery
             </Button>
@@ -189,12 +197,12 @@ const PublicGallery = () => {
 
   if (!event) return null;
 
-  const canDownloadAll = event.allow_full_download;
-  const canDownloadFavs = event.allow_favorites_download;
-  const canDownloadAnything = canDownloadAll || canDownloadFavs;
+  const canDownloadAll = event.downloads_enabled;
+  const canDownloadAnything = canDownloadAll;
   const displayPhotos = filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
-  const layout = event.gallery_layout || 'masonry';
+  const layout = event.layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
+  const gridPhotos = displayPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
 
   const getItemClass = (l: string) => {
     switch (l) {
@@ -216,9 +224,9 @@ const PublicGallery = () => {
   return (
     <div className="min-h-[100dvh] bg-background">
       {/* Cover */}
-      {event.cover_url && (
+      {event.cover_photo_url && (
         <div className="relative h-40 sm:h-56 overflow-hidden">
-          <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
+          <img src={event.cover_photo_url} alt={event.title} className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/70 to-transparent" />
         </div>
       )}
@@ -227,9 +235,9 @@ const PublicGallery = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-5 gap-2">
           <div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground leading-tight">{event.name}</h1>
+            <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground leading-tight">{event.title}</h1>
             <p className="text-[11px] text-muted-foreground/60 tracking-wide mt-1">
-              {format(new Date(event.event_date), 'MMMM d, yyyy')} · {event.photo_count} photos
+              {format(new Date(event.date), 'MMMM d, yyyy')} · {photos.length} photos
             </p>
           </div>
           {favoriteCount > 0 && (
@@ -243,18 +251,14 @@ const PublicGallery = () => {
         {/* Utility bar */}
         <div className="flex items-center justify-between mb-4 border-b border-border">
           <div className="flex items-center">
-            <button
-              onClick={() => setFilter('all')}
+            <button onClick={() => setFilter('all')}
               className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
                 filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
-              }`}
-            >All Photos</button>
-            <button
-              onClick={() => setFilter('favorites')}
+              }`}>All Photos</button>
+            <button onClick={() => setFilter('favorites')}
               className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
                 filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
-              }`}
-            >
+              }`}>
               <Heart className="h-3 w-3" /> Favorites
               {favoriteCount > 0 && (
                 <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favoriteCount}</span>
@@ -276,7 +280,7 @@ const PublicGallery = () => {
                     <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
                   </DropdownMenuItem>
                 )}
-                {canDownloadFavs && favoriteCount > 0 && (
+                {favoriteCount > 0 && (
                   <DropdownMenuItem onClick={() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites')} className="text-[12px] gap-2">
                     <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
                   </DropdownMenuItem>
@@ -299,13 +303,13 @@ const PublicGallery = () => {
           </div>
         ) : ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
           layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => setSharePhoto(p)} />
+            <EditorialCollageGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => setSharePhoto(p)} />
+            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'cinematic' ? (
-            <CinematicMasonryGrid photos={displayPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => setSharePhoto(p)} />
+            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : (
-            <HighlightMosaicGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => setSharePhoto(p)} />
+            <HighlightMosaicGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           )
         ) : (
           <div className={gridClass}>
@@ -313,31 +317,20 @@ const PublicGallery = () => {
               const fav = isFavorite(photo.id);
               return (
                 <div key={photo.id} className={`group ${getItemClass(layout)}`}>
-                  <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
-                  {/* Always-visible heart — top right */}
-                  <button
-                    onClick={() => {
-                      toggleFavorite(photo.id);
-                      if (!fav) {
-                        toast({ title: 'Added to Favorites', description: 'Photo saved to your selections.' });
-                      }
-                    }}
-                    className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125"
-                  >
-                    <Heart
-                      className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
-                      fill={fav ? 'hsl(var(--primary))' : 'none'}
-                    />
+                  <img src={photo.storage_path} alt="" className={getImgClass(layout)} loading="lazy" />
+                  <button onClick={() => { toggleFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to your selections.' }); }}
+                    className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
+                    <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
+                      fill={fav ? 'hsl(var(--primary))' : 'none'} />
                   </button>
                   <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
-                  {/* Action overlay */}
                   <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                     <button onClick={() => setSharePhoto(photo)}
                       className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                       <Share2 className="h-3 w-3" />
                     </button>
                     {canDownloadAnything && (
-                      <a href={photo.url} download={photo.file_name ?? true}
+                      <a href={photo.storage_path} download={photo.filename ?? true}
                         className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                         <Download className="h-3 w-3" />
                       </a>
@@ -351,20 +344,12 @@ const PublicGallery = () => {
 
         {/* Footer branding */}
         <div className="mt-12 pb-8 text-center">
-          <p className="text-[9px] text-muted-foreground/30 tracking-[0.15em] uppercase">
-            Powered by MirrorAI
-          </p>
+          <p className="text-[9px] text-muted-foreground/30 tracking-[0.15em] uppercase">Powered by MirrorAI</p>
         </div>
 
         {sharePhoto && (
-          <PhotoShareSheet
-            open={!!sharePhoto}
-            onOpenChange={() => setSharePhoto(null)}
-            photoUrl={sharePhoto.url}
-            photoName={sharePhoto.file_name}
-            eventName={event.name}
-            canDownload={canDownloadAnything}
-          />
+          <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
+            photoUrl={sharePhoto.storage_path} photoName={sharePhoto.filename} eventName={event.title} canDownload={canDownloadAnything} />
         )}
       </div>
     </div>
