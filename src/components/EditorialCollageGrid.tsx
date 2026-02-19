@@ -16,6 +16,8 @@ interface EditorialCollageGridProps {
   isOwner?: boolean;
   onDelete?: (photo: Photo) => void;
   onShare?: (photo: Photo) => void;
+  onDownload?: (photo: Photo) => void;
+  watermarkText?: string | null;
 }
 
 const COLLAGE_PATTERN: { ratio: string; span: string }[] = [
@@ -42,6 +44,8 @@ export function EditorialCollageGrid({
   isOwner = false,
   onDelete,
   onShare,
+  onDownload,
+  watermarkText,
 }: EditorialCollageGridProps) {
   if (photos.length === 0) return null;
 
@@ -53,6 +57,13 @@ export function EditorialCollageGrid({
     const fav = isFavorite(photo.id);
     return (
       <>
+        {watermarkText && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-[5]">
+            <span className="font-serif text-foreground/10 text-lg sm:text-2xl rotate-[-25deg] whitespace-nowrap tracking-[0.15em]">
+              {watermarkText}
+            </span>
+          </div>
+        )}
         {/* Always-visible heart */}
         <button
           onClick={() => toggleFavorite(photo.id)}
@@ -74,13 +85,12 @@ export function EditorialCollageGrid({
             </button>
           )}
           {canDownload && (
-            <a
-              href={photo.url}
-              download={photo.file_name ?? true}
+            <button
+              onClick={() => onDownload ? onDownload(photo) : undefined}
               className="rounded-full bg-card/70 backdrop-blur-sm p-1.5 text-foreground/80 hover:bg-card/90 transition"
             >
               <Download className="h-3.5 w-3.5" />
-            </a>
+            </button>
           )}
           {isOwner && onDelete && (
             <button

@@ -16,17 +16,27 @@ interface Props {
   isOwner?: boolean;
   onDelete?: (photo: Photo) => void;
   onShare?: (photo: Photo) => void;
+  onDownload?: (photo: Photo) => void;
+  watermarkText?: string | null;
 }
 
 function PhotoOverlay({
-  photo, isFav, toggleFavorite, canDownload, isOwner, onDelete, onShare,
+  photo, isFav, toggleFavorite, canDownload, isOwner, onDelete, onShare, onDownload, watermarkText,
 }: {
   photo: Photo; isFav: boolean; toggleFavorite: (id: string) => void;
   canDownload: boolean; isOwner: boolean; onDelete?: (p: Photo) => void;
-  onShare?: (p: Photo) => void;
+  onShare?: (p: Photo) => void; onDownload?: (p: Photo) => void;
+  watermarkText?: string | null;
 }) {
   return (
     <>
+      {watermarkText && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-[5]">
+          <span className="font-serif text-foreground/10 text-lg sm:text-2xl rotate-[-25deg] whitespace-nowrap tracking-[0.15em]">
+            {watermarkText}
+          </span>
+        </div>
+      )}
       {/* Always-visible heart */}
       <button
         onClick={() => toggleFavorite(photo.id)}
@@ -46,10 +56,10 @@ function PhotoOverlay({
           </button>
         )}
         {canDownload && (
-          <a href={photo.url} download={photo.file_name ?? true}
+          <button onClick={() => onDownload ? onDownload(photo) : undefined}
             className="rounded-full bg-card/70 backdrop-blur-sm p-1.5 text-foreground/80 hover:bg-card/90 transition">
             <Download className="h-3.5 w-3.5" />
-          </a>
+          </button>
         )}
         {isOwner && onDelete && (
           <button onClick={() => onDelete(photo)}
@@ -65,7 +75,7 @@ function PhotoOverlay({
 /* ═══════════════════════════════════════════
    1. Pixieset Editorial Layout
    ═══════════════════════════════════════════ */
-export function PixiesetEditorialGrid({ photos, eventName, isFavorite, toggleFavorite, canDownload = false, isOwner = false, onDelete, onShare }: Props) {
+export function PixiesetEditorialGrid({ photos, eventName, isFavorite, toggleFavorite, canDownload = false, isOwner = false, onDelete, onShare, onDownload, watermarkText }: Props) {
   if (photos.length === 0) return null;
   const hero = photos[0];
   const rest = photos.slice(1);
@@ -91,7 +101,7 @@ export function PixiesetEditorialGrid({ photos, eventName, isFavorite, toggleFav
             </h2>
           </div>
         )}
-        <PhotoOverlay photo={hero} isFav={isFavorite(hero.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} />
+        <PhotoOverlay photo={hero} isFav={isFavorite(hero.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} onDownload={onDownload} watermarkText={watermarkText} />
       </div>
 
       <div className="mt-3 space-y-[6px]">
@@ -104,7 +114,7 @@ export function PixiesetEditorialGrid({ photos, eventName, isFavorite, toggleFav
               return (
                 <div key={photo.id} className={`group relative overflow-hidden ${aspect}`}>
                   <img src={photo.url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-                  <PhotoOverlay photo={photo} isFav={isFavorite(photo.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} />
+                  <PhotoOverlay photo={photo} isFav={isFavorite(photo.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} onDownload={onDownload} watermarkText={watermarkText} />
                 </div>
               );
             })}
@@ -118,7 +128,7 @@ export function PixiesetEditorialGrid({ photos, eventName, isFavorite, toggleFav
 /* ═══════════════════════════════════════════
    2. Pic-Time Cinematic Masonry
    ═══════════════════════════════════════════ */
-export function CinematicMasonryGrid({ photos, isFavorite, toggleFavorite, canDownload = false, isOwner = false, onDelete, onShare }: Props) {
+export function CinematicMasonryGrid({ photos, isFavorite, toggleFavorite, canDownload = false, isOwner = false, onDelete, onShare, onDownload, watermarkText }: Props) {
   if (photos.length === 0) return null;
 
   return (
@@ -134,7 +144,7 @@ export function CinematicMasonryGrid({ photos, isFavorite, toggleFavorite, canDo
             {isFeature && (
               <div className="absolute inset-0 shadow-[inset_0_0_40px_rgba(0,0,0,0.12)] pointer-events-none" />
             )}
-            <PhotoOverlay photo={photo} isFav={isFavorite(photo.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} />
+            <PhotoOverlay photo={photo} isFav={isFavorite(photo.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} onDownload={onDownload} watermarkText={watermarkText} />
           </div>
         );
       })}
@@ -145,7 +155,7 @@ export function CinematicMasonryGrid({ photos, isFavorite, toggleFavorite, canDo
 /* ═══════════════════════════════════════════
    3. Highlight Mosaic Layout
    ═══════════════════════════════════════════ */
-export function HighlightMosaicGrid({ photos, eventName, isFavorite, toggleFavorite, canDownload = false, isOwner = false, onDelete, onShare }: Props) {
+export function HighlightMosaicGrid({ photos, eventName, isFavorite, toggleFavorite, canDownload = false, isOwner = false, onDelete, onShare, onDownload, watermarkText }: Props) {
   if (photos.length === 0) return null;
 
   const banner = photos[0];
@@ -171,7 +181,7 @@ export function HighlightMosaicGrid({ photos, eventName, isFavorite, toggleFavor
             </h2>
           </div>
         )}
-        <PhotoOverlay photo={banner} isFav={isFavorite(banner.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} />
+        <PhotoOverlay photo={banner} isFav={isFavorite(banner.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} onDownload={onDownload} watermarkText={watermarkText} />
       </div>
 
       {mosaicPhotos.length > 0 && (
@@ -181,7 +191,7 @@ export function HighlightMosaicGrid({ photos, eventName, isFavorite, toggleFavor
             return (
               <div key={photo.id} className={`group relative overflow-hidden ${pattern}`}>
                 <img src={photo.url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-                <PhotoOverlay photo={photo} isFav={isFavorite(photo.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} />
+                <PhotoOverlay photo={photo} isFav={isFavorite(photo.id)} toggleFavorite={toggleFavorite} canDownload={canDownload} isOwner={isOwner} onDelete={onDelete} onShare={onShare} onDownload={onDownload} watermarkText={watermarkText} />
               </div>
             );
           })}

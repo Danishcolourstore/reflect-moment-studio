@@ -30,6 +30,9 @@ interface Event {
   cover_photo_url: string | null;
   gallery_password: string | null;
   downloads_enabled: boolean;
+  download_resolution: string;
+  watermark_enabled: boolean;
+  photographer_id: string;
   layout: string;
   is_published: boolean;
 }
@@ -60,6 +63,7 @@ const PublicGallery = () => {
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
+  const [watermarkText, setWatermarkText] = useState<string | null>(null);
 
   const { sessionId } = useGuestSession(event?.id);
   const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
@@ -86,13 +90,22 @@ const PublicGallery = () => {
     if (ev.gallery_password) {
       const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
       if (unlocked !== 'true') {
-        // Send back to cover page for password entry
         navigate(`/gallery/${ev.slug}`, { replace: true });
         return;
       }
     }
 
     setEvent(ev);
+
+    // Fetch watermark text if enabled
+    if (ev.watermark_enabled && ev.photographer_id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('studio_name')
+        .eq('id', ev.photographer_id)
+        .maybeSingle();
+      if (profile) setWatermarkText((profile as any).studio_name);
+    }
 
     const { data: photoData } = await (supabase.from('photos').select('*') as any)
       .eq('event_id', ev.id)
@@ -103,17 +116,46 @@ const PublicGallery = () => {
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
 
+  // Determine the storage bucket based on download_resolution
+  const getDownloadBucket = () => {
+    if (!event) return 'gallery-photos';
+    return event.download_resolution === 'full' ? 'photos-original' : 'photos-web';
+  };
+
+  // Generate signed URL and trigger download
+  const handleDownloadPhoto = async (photo: Photo) => {
+    if (!event?.downloads_enabled) return;
+    const bucket = getDownloadBucket();
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(photo.storage_path, 60);
+    if (error || !data?.signedUrl) {
+      toast({ title: 'Download failed', description: 'Could not generate download link.' });
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = data.signedUrl;
+    a.download = photo.filename ?? 'photo.jpg';
+    a.click();
+  };
+
+  // ZIP download with signed URLs
   const buildZip = async (targetPhotos: Photo[], label: string) => {
     if (targetPhotos.length === 0) { toast({ title: 'No photos to download' }); return; }
+    if (!event?.downloads_enabled) return;
     setDownloading(true);
+    const bucket = getDownloadBucket();
     try {
       const zip = new JSZip();
       const folder = zip.folder(event?.title ?? label);
       for (let i = 0; i < targetPhotos.length; i++) {
         setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
-        const res = await fetch(targetPhotos[i].storage_path);
+        const p = targetPhotos[i];
+        const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(p.storage_path, 120);
+        if (!signed?.signedUrl) continue;
+        const res = await fetch(signed.signedUrl);
         const blob = await res.blob();
-        folder?.file(targetPhotos[i].filename ?? `photo-${i + 1}.jpg`, blob);
+        folder?.file(p.filename ?? `photo-${i + 1}.jpg`, blob);
       }
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${event?.title ?? label}.zip`);
@@ -143,12 +185,12 @@ const PublicGallery = () => {
 
   if (!event) return null;
 
-  const canDownloadAll = event.downloads_enabled;
-  const canDownloadAnything = canDownloadAll;
+  const canDownload = event.downloads_enabled;
   const displayPhotos = filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
   const layout = event.layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
   const gridPhotos = displayPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
+  const showWatermark = event.watermark_enabled && !!watermarkText;
 
   const getItemClass = (l: string) => {
     switch (l) {
@@ -212,7 +254,7 @@ const PublicGallery = () => {
             </button>
           </div>
 
-          {canDownloadAnything && photos.length > 0 && (
+          {canDownload && photos.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" disabled={downloading}
@@ -221,11 +263,9 @@ const PublicGallery = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[180px]">
-                {canDownloadAll && (
-                  <DropdownMenuItem onClick={() => buildZip(photos, 'gallery')} className="text-[12px] gap-2">
-                    <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem onClick={() => buildZip(photos, 'gallery')} className="text-[12px] gap-2">
+                  <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
+                </DropdownMenuItem>
                 {favoriteCount > 0 && (
                   <DropdownMenuItem onClick={() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites')} className="text-[12px] gap-2">
                     <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
@@ -249,13 +289,13 @@ const PublicGallery = () => {
           </div>
         ) : ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
           layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <EditorialCollageGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) handleDownloadPhoto(orig); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) handleDownloadPhoto(orig); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'cinematic' ? (
-            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) handleDownloadPhoto(orig); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : (
-            <HighlightMosaicGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <HighlightMosaicGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) handleDownloadPhoto(orig); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           )
         ) : (
           <div className={gridClass}>
@@ -264,6 +304,13 @@ const PublicGallery = () => {
               return (
                 <div key={photo.id} className={`group ${getItemClass(layout)}`}>
                   <img src={photo.storage_path} alt="" className={getImgClass(layout)} loading="lazy" />
+                  {showWatermark && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+                      <span className="font-serif text-foreground/10 text-lg sm:text-2xl rotate-[-25deg] whitespace-nowrap tracking-[0.15em]">
+                        {watermarkText}
+                      </span>
+                    </div>
+                  )}
                   <button onClick={() => { toggleFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to your selections.' }); }}
                     className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
                     <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
@@ -275,11 +322,11 @@ const PublicGallery = () => {
                       className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                       <Share2 className="h-3 w-3" />
                     </button>
-                    {canDownloadAnything && (
-                      <a href={photo.storage_path} download={photo.filename ?? true}
+                    {canDownload && (
+                      <button onClick={() => handleDownloadPhoto(photo)}
                         className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                         <Download className="h-3 w-3" />
-                      </a>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -295,7 +342,7 @@ const PublicGallery = () => {
 
         {sharePhoto && (
           <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
-            photoUrl={sharePhoto.storage_path} photoName={sharePhoto.filename} eventName={event.title} canDownload={canDownloadAnything} />
+            photoUrl={sharePhoto.storage_path} photoName={sharePhoto.filename} eventName={event.title} canDownload={canDownload} />
         )}
       </div>
     </div>
