@@ -6,7 +6,7 @@ import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 import { Button } from '@/components/ui/button';
 import {
   Heart, Download, Trash2, Share2, Upload, Search,
-  Image as ImageIcon, PackageOpen, Loader2, FolderDown,
+  Image as ImageIcon, PackageOpen, Loader2, FolderDown, Settings,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -16,6 +16,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { usePhotoUpload } from '@/hooks/use-photo-upload';
+import { EventSettingsModal } from '@/components/EventSettingsModal';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -31,6 +32,7 @@ interface Event {
   id: string;
   name: string;
   event_date: string;
+  event_type: string;
   cover_url: string | null;
   photo_count: number;
   gallery_pin: string | null;
@@ -57,6 +59,7 @@ const EventGallery = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [shareOpen, setShareOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [filter, setFilter] = useState<GalleryFilter>('all');
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
@@ -233,6 +236,9 @@ const EventGallery = () => {
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
                 <Share2 className="mr-1 h-3 w-3" />Share
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
+                <Settings className="mr-1 h-3 w-3" />Settings
               </Button>
             </>
           )}
@@ -423,7 +429,15 @@ const EventGallery = () => {
       )}
 
       {event && (
-        <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventId={event.id} eventName={event.name} pin={event.gallery_pin} />
+        <>
+          <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventId={event.id} eventName={event.name} pin={event.gallery_pin} />
+          <EventSettingsModal
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+            event={event}
+            onUpdated={() => { fetchEvent(); fetchPhotos(); }}
+          />
+        </>
       )}
     </DashboardLayout>
   );
