@@ -30,12 +30,6 @@ const Dashboard = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const [shareEvent, setShareEvent] = useState<Event | null>(null);
 
-  const greeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Good Morning';
-    if (h < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  };
 
   const fetchEvents = async () => {
     const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false });
@@ -57,7 +51,7 @@ const Dashboard = () => {
     <DashboardLayout>
       {/* Greeting — editorial, understated */}
       <div className="mb-6">
-        <h1 className="font-serif text-[24px] font-semibold text-foreground tracking-tight">{greeting()}, {studioName}</h1>
+        <h1 className="font-serif text-[24px] font-semibold text-foreground tracking-tight">Studio Overview</h1>
         <p className="mt-0.5 text-[11px] text-muted-foreground/50">Your studio at a glance</p>
       </div>
 
