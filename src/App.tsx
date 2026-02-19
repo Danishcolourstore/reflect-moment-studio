@@ -50,9 +50,9 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => (
   <Routes>
     {/* Auth routes */}
-    <Route path="/login" element={<AuthRoute><Auth initialView="login" /></AuthRoute>} />
-    <Route path="/register" element={<AuthRoute><Auth initialView="signup" /></AuthRoute>} />
-    <Route path="/forgot-password" element={<AuthRoute><Auth initialView="forgot" /></AuthRoute>} />
+    <Route path="/login" element={<AuthRoute><Auth key="login" initialView="login" /></AuthRoute>} />
+    <Route path="/register" element={<AuthRoute><Auth key="signup" initialView="signup" /></AuthRoute>} />
+    <Route path="/forgot-password" element={<AuthRoute><Auth key="forgot" initialView="forgot" /></AuthRoute>} />
     <Route path="/reset-password" element={<ResetPassword />} />
 
     {/* Photographer dashboard routes — all require auth */}
