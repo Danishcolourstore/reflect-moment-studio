@@ -61,8 +61,8 @@ const PublicGallery = () => {
   const [downloadProgress, setDownloadProgress] = useState('');
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
 
-  const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id);
-  useGuestSession(event?.id);
+  const { sessionId } = useGuestSession(event?.id);
+  const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
 
   const fetchGallery = useCallback(async () => {
     if (!slug) return;
