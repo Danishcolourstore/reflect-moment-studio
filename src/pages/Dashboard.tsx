@@ -14,10 +14,15 @@ import { useToast } from '@/hooks/use-toast';
 interface Event {
   id: string;
   title: string;
+  slug: string;
   date: string;
+  location: string | null;
+  layout: string;
+  is_published: boolean;
   cover_photo_url: string | null;
   gallery_password: string | null;
-  slug: string;
+  created_at: string;
+  photo_count: number;
 }
 
 const Dashboard = () => {
@@ -30,8 +35,17 @@ const Dashboard = () => {
 
   const fetchEvents = async () => {
     if (!user) return;
-    const { data } = await (supabase.from('events').select('*') as any).eq('photographer_id', user.id).order('created_at', { ascending: false });
-    if (data) setEvents(data as unknown as Event[]);
+    const { data } = await (supabase
+      .from('events')
+      .select('id, title, slug, date, location, layout, is_published, cover_photo_url, gallery_password, created_at, photos(count)') as any)
+      .order('date', { ascending: false });
+    if (data) {
+      const mapped = (data as any[]).map((e: any) => ({
+        ...e,
+        photo_count: e.photos?.[0]?.count ?? 0,
+      }));
+      setEvents(mapped as Event[]);
+    }
   };
 
   useEffect(() => { fetchEvents(); }, [user]);
@@ -85,7 +99,7 @@ const Dashboard = () => {
               id={event.id}
               name={event.title}
               date={event.date}
-              photoCount={0}
+              photoCount={event.photo_count}
               coverUrl={event.cover_photo_url}
               onShare={() => setShareEvent(event)}
               onEdit={() => navigate(`/dashboard/events/${event.id}`)}
@@ -96,12 +110,12 @@ const Dashboard = () => {
         </div>
       )}
 
-      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={fetchEvents} />
+      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(eventId) => navigate(`/dashboard/events/${eventId}`)} />
       {shareEvent && (
         <ShareModal
           open={!!shareEvent}
           onOpenChange={() => setShareEvent(null)}
-          eventId={shareEvent.id}
+          eventSlug={shareEvent.slug}
           eventName={shareEvent.title}
           pin={shareEvent.gallery_password}
         />

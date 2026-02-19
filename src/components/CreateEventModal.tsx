@@ -24,7 +24,7 @@ const LAYOUT_OPTIONS = [
 interface CreateEventModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: () => void;
+  onCreated: (eventId: string) => void;
 }
 
 export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventModalProps) {
@@ -41,7 +41,9 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const [loading, setLoading] = useState(false);
 
   const generateSlug = (name: string) => {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40);
+    const rand = Math.random().toString(36).substring(2, 6);
+    return `${base}-${rand}`;
   };
 
   const handleTitleChange = (val: string) => {
@@ -68,17 +70,19 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       }
     }
 
-    const { error } = await supabase.from('events').insert({
+    const finalSlug = slug || generateSlug(title);
+
+    const { data: inserted, error } = await (supabase.from('events').insert({
       photographer_id: user.id,
       title,
-      slug: slug || generateSlug(title),
+      slug: finalSlug,
       date: date,
       location: location || null,
       cover_photo_url: coverUrl,
       gallery_password: password || null,
       layout: galleryLayout,
       downloads_enabled: downloadsEnabled,
-    } as any);
+    } as any).select('id').single() as any);
 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -87,7 +91,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       setTitle(''); setDate(''); setLocation(''); setSlug(''); setPassword(''); setCoverFile(null);
       setGalleryLayout('classic'); setDownloadsEnabled(true);
       onOpenChange(false);
-      onCreated();
+      onCreated(inserted.id);
     }
     setLoading(false);
   };
