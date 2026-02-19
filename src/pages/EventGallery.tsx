@@ -91,13 +91,19 @@ const EventGallery = () => {
 
   useEffect(() => { fetchEvent(); fetchPhotos(); }, [fetchEvent, fetchPhotos]);
 
-  // Refresh photos when upload completes
+  // Refresh photos & show success toast when upload completes
   useEffect(() => {
     if (upload.isDone) {
       fetchPhotos();
       fetchEvent();
+      if (upload.successCount > 0 && upload.failedFiles.length === 0) {
+        toast({
+          title: 'Upload Complete',
+          description: `${upload.successCount} photo${upload.successCount > 1 ? 's' : ''} added to gallery.`,
+        });
+      }
     }
-  }, [upload.isDone, fetchPhotos, fetchEvent]);
+  }, [upload.isDone, upload.successCount, upload.failedFiles.length, fetchPhotos, fetchEvent, toast]);
 
   const handleFiles = useCallback((files: FileList | File[]) => {
     const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
@@ -371,33 +377,39 @@ const EventGallery = () => {
         )}
       </div>
 
-      {/* Drag & Drop upload zone (owner only, when no photos or explicit) */}
-      {isOwner && photos.length === 0 && !upload.isUploading && (
+      {/* Drag & Drop upload zone (owner only) */}
+      {isOwner && photos.length === 0 && (
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={`mb-5 flex flex-col items-center justify-center border border-dashed py-16 transition-colors cursor-pointer ${
             isDragging ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/40'
-          }`}
-          onClick={() => fileInputRef.current?.click()}
+          } ${upload.isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+          onClick={() => !upload.isUploading && fileInputRef.current?.click()}
         >
           <Upload className="h-6 w-6 text-muted-foreground/25 mb-3" />
-          <p className="text-[12px] text-muted-foreground/50 font-medium">Drop photos here to upload</p>
-          <p className="mt-1 text-[10px] text-muted-foreground/35">or</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-2.5 text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
-            onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-          >
-            Select Photos
-          </Button>
+          <p className="text-[12px] text-muted-foreground/50 font-medium">
+            {upload.isUploading ? 'Upload in progress…' : 'Drop photos here to upload'}
+          </p>
+          {!upload.isUploading && (
+            <>
+              <p className="mt-1 text-[10px] text-muted-foreground/35">or</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2.5 text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+              >
+                Select Photos
+              </Button>
+            </>
+          )}
         </div>
       )}
 
       {/* Inline drop zone when photos exist */}
-      {isOwner && photos.length > 0 && (
+      {isOwner && photos.length > 0 && !upload.isUploading && (
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
