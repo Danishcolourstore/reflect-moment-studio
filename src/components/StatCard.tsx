@@ -6,12 +6,12 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon }: StatCardProps) {
   return (
-    <div className="rounded-lg border border-border bg-card p-5 shadow-sm animate-fade-in">
+    <div className="border border-border bg-card px-4 py-4 animate-fade-in">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
-        <span className="text-muted-foreground/50">{icon}</span>
+        <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-medium">{label}</p>
+        <span className="text-muted-foreground/30">{icon}</span>
       </div>
-      <p className="mt-3 font-serif text-3xl font-semibold text-foreground">{value}</p>
+      <p className="mt-2 font-serif text-2xl font-semibold text-foreground">{value}</p>
     </div>
   );
 }
