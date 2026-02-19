@@ -84,7 +84,8 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
 
     if (coverFile) {
       const ext = coverFile.name.split('.').pop();
-      const path = `${event.id}/${Date.now()}.${ext}`;
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const path = `${userId}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from('event-covers').upload(path, coverFile);
       if (!uploadError) {
         const { data: { publicUrl } } = supabase.storage.from('event-covers').getPublicUrl(path);
