@@ -25,6 +25,7 @@ import { AiCullingPanel, PresetApplyPanel } from '@/components/LiveIntelligenceP
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 
 interface Photo {
   id: string;
@@ -76,7 +77,7 @@ const EventGallery = () => {
   const upload = usePhotoUpload(id, user?.id);
   const liveSync = useLiveSync(event?.livesync_enabled ?? false);
   const [liveFeedMode, setLiveFeedMode] = useState(false);
-
+  const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
   const fetchEvent = useCallback(async () => {
     if (!id) return;
     const { data } = await supabase.from('events').select('*').eq('id', id).single();
@@ -473,13 +474,13 @@ const EventGallery = () => {
       ) : displayPhotos.length > 0 ? (
         ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
           layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} />
+            <EditorialCollageGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} onShare={(p) => setSharePhoto(p)} />
           ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} />
+            <PixiesetEditorialGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} onShare={(p) => setSharePhoto(p)} />
           ) : layout === 'cinematic' ? (
-            <CinematicMasonryGrid photos={displayPhotos} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} />
+            <CinematicMasonryGrid photos={displayPhotos} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} onShare={(p) => setSharePhoto(p)} />
           ) : (
-            <HighlightMosaicGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} />
+            <HighlightMosaicGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} onShare={(p) => setSharePhoto(p)} />
           )
         ) : (
           <div className={gridClass}>
@@ -505,6 +506,10 @@ const EventGallery = () => {
                   </button>
                   <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
                   <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    <button onClick={() => setSharePhoto(photo)}
+                      className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                      <Share2 className="h-3 w-3" />
+                    </button>
                     {canDownloadAnything && (
                       <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                         <Download className="h-3 w-3" />
@@ -542,6 +547,16 @@ const EventGallery = () => {
             event={event}
             onUpdated={() => { fetchEvent(); fetchPhotos(); }}
           />
+          {sharePhoto && (
+            <PhotoShareSheet
+              open={!!sharePhoto}
+              onOpenChange={() => setSharePhoto(null)}
+              photoUrl={sharePhoto.url}
+              photoName={sharePhoto.file_name}
+              eventName={event.name}
+              canDownload={canDownloadAnything}
+            />
+          )}
         </>
       )}
     </DashboardLayout>
