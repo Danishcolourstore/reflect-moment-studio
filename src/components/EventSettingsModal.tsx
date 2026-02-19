@@ -32,13 +32,13 @@ const PREVIEW_HEIGHTS: Record<string, number[]> = {
 
 interface EventData {
   id: string;
-  title: string;
+  name: string;
   slug: string;
-  date: string;
+  event_date: string;
   location: string | null;
-  cover_photo_url: string | null;
-  gallery_password: string | null;
-  layout: string;
+  cover_url: string | null;
+  gallery_pin: string | null;
+  gallery_layout: string;
   downloads_enabled: boolean;
   download_resolution: string;
   watermark_enabled: boolean;
@@ -54,12 +54,12 @@ interface EventSettingsModalProps {
 
 export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: EventSettingsModalProps) {
   const { toast } = useToast();
-  const [title, setTitle] = useState(event.title);
-  const [date, setDate] = useState(event.date);
+  const [title, setTitle] = useState(event.name);
+  const [date, setDate] = useState(event.event_date);
   const [location, setLocation] = useState(event.location ?? '');
-  const [password, setPassword] = useState(event.gallery_password ?? '');
+  const [password, setPassword] = useState(event.gallery_pin ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [galleryLayout, setGalleryLayout] = useState(event.layout);
+  const [galleryLayout, setGalleryLayout] = useState(event.gallery_layout);
   const [downloadsEnabled, setDownloadsEnabled] = useState(event.downloads_enabled);
   const [watermarkEnabled, setWatermarkEnabled] = useState(event.watermark_enabled);
   const [isPublished, setIsPublished] = useState(event.is_published);
@@ -67,11 +67,11 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
 
   // Sync when event changes
   useEffect(() => {
-    setTitle(event.title);
-    setDate(event.date);
+    setTitle(event.name);
+    setDate(event.event_date);
     setLocation(event.location ?? '');
-    setPassword(event.gallery_password ?? '');
-    setGalleryLayout(event.layout);
+    setPassword(event.gallery_pin ?? '');
+    setGalleryLayout(event.gallery_layout);
     setDownloadsEnabled(event.downloads_enabled);
     setWatermarkEnabled(event.watermark_enabled);
     setIsPublished(event.is_published);
@@ -80,7 +80,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const handleSave = async () => {
     setSaving(true);
 
-    let coverUrl = event.cover_photo_url;
+    let coverUrl = event.cover_url;
 
     if (coverFile) {
       const ext = coverFile.name.split('.').pop();
@@ -93,12 +93,12 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     }
 
     const { error } = await supabase.from('events').update({
-      title,
-      date,
+      name: title,
+      event_date: date,
       location: location || null,
-      cover_photo_url: coverUrl,
-      gallery_password: password || null,
-      layout: galleryLayout,
+      cover_url: coverUrl,
+      gallery_pin: password || null,
+      gallery_layout: galleryLayout,
       downloads_enabled: downloadsEnabled,
       watermark_enabled: watermarkEnabled,
       is_published: isPublished,
@@ -146,7 +146,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Cover Photo</Label>
             <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
-            {event.cover_photo_url && !coverFile && (
+            {event.cover_url && !coverFile && (
               <p className="text-[10px] text-muted-foreground/50">Current cover set. Upload to replace.</p>
             )}
           </div>

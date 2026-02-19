@@ -26,23 +26,23 @@ import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 
 interface Photo {
   id: string;
-  storage_path: string;
-  filename: string | null;
+  url: string;
+  file_name: string | null;
 }
 
 interface Event {
   id: string;
-  title: string;
+  name: string;
   slug: string;
-  date: string;
+  event_date: string;
   location: string | null;
-  cover_photo_url: string | null;
-  gallery_password: string | null;
-  photographer_id: string;
+  cover_url: string | null;
+  gallery_pin: string | null;
+  user_id: string;
   downloads_enabled: boolean;
   download_resolution: string;
   watermark_enabled: boolean;
-  layout: string;
+  gallery_layout: string;
   is_published: boolean;
 }
 
@@ -58,7 +58,7 @@ const GRID_CLASSES: Record<string, string> = {
 
 // Adapt Photo to the shape grid components expect
 function toGridPhoto(p: Photo, isFav: boolean) {
-  return { id: p.id, url: p.storage_path, is_favorite: isFav, file_name: p.filename };
+  return { id: p.id, url: p.url, is_favorite: isFav, file_name: p.file_name };
 }
 
 const EventGallery = () => {
@@ -86,7 +86,7 @@ const EventGallery = () => {
     const { data } = await supabase.from('events').select('*').eq('id', id).single();
     if (data) {
       const evt = data as unknown as Event;
-      if (evt.photographer_id !== user.id) {
+      if (evt.user_id !== user.id) {
         navigate('/dashboard');
         return;
       }
@@ -96,7 +96,7 @@ const EventGallery = () => {
 
   const fetchPhotos = useCallback(async () => {
     if (!id) return;
-    const { data } = await (supabase.from('photos').select('*') as any).eq('event_id', id).order('sort_order', { ascending: true });
+    const { data } = await (supabase.from('photos').select('*') as any).eq('event_id', id).order('sort_order', { ascending: true, nullsFirst: false });
     if (data) setPhotos(data as unknown as Photo[]);
   }, [id]);
 
@@ -154,17 +154,17 @@ const EventGallery = () => {
     setDownloading(true);
     try {
       const zip = new JSZip();
-      const folder = zip.folder(event?.title ?? label);
+      const folder = zip.folder(event?.name ?? label);
       for (let i = 0; i < targetPhotos.length; i++) {
         setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
         const p = targetPhotos[i];
-        const res = await fetch(p.storage_path);
+        const res = await fetch(p.url);
         const blob = await res.blob();
-        const fileName = p.filename ?? `photo-${i + 1}.jpg`;
+        const fileName = p.file_name ?? `photo-${i + 1}.jpg`;
         folder?.file(fileName, blob);
       }
       const content = await zip.generateAsync({ type: 'blob' });
-      saveAs(content, `${event?.title ?? label}.zip`);
+      saveAs(content, `${event?.name ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
     } catch (_err) {
       toast({ title: 'Download failed', description: 'Please try again.' });
@@ -186,7 +186,7 @@ const EventGallery = () => {
     );
   }
 
-  const isOwner = user?.id === event.photographer_id;
+  const isOwner = user?.id === event.user_id;
   const canDownloadAll = isOwner || event.downloads_enabled;
   const canDownloadAnything = canDownloadAll;
 
@@ -194,7 +194,7 @@ const EventGallery = () => {
     ? photos.filter((p) => isFavorite(p.id))
     : photos;
 
-  const layout = event.layout || 'classic';
+  const layout = event.gallery_layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
 
   const getItemClass = (layout: string) => {
@@ -225,9 +225,9 @@ const EventGallery = () => {
         onChange={(e) => e.target.files && handleFiles(e.target.files)} />
 
       {/* Cover banner */}
-      {event.cover_photo_url && (
+      {event.cover_url && (
         <div className="relative -mx-5 -mt-6 mb-5 h-32 sm:h-40 overflow-hidden sm:-mx-8 lg:-mx-10">
-          <img src={event.cover_photo_url} alt={event.title} className="h-full w-full object-cover" />
+          <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         </div>
       )}
@@ -235,9 +235,9 @@ const EventGallery = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-5 gap-2">
         <div>
-          <h1 className="font-serif text-xl sm:text-[22px] font-semibold text-foreground leading-tight">{event.title}</h1>
+          <h1 className="font-serif text-xl sm:text-[22px] font-semibold text-foreground leading-tight">{event.name}</h1>
           <p className="text-[11px] text-muted-foreground/60 tracking-wide mt-0.5">
-            {format(new Date(event.date), 'MMMM d, yyyy')} · {photos.length} photos
+            {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
             {favStats.totalFavs > 0 && (
               <> · <Heart className="inline h-3 w-3 text-primary" fill="hsl(var(--primary))" /> {favStats.totalFavs} favorites from {favStats.uniqueGuests} guest{favStats.uniqueGuests !== 1 ? 's' : ''}</>
             )}
@@ -352,13 +352,13 @@ const EventGallery = () => {
       ) : displayPhotos.length > 0 ? (
         ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
           layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
+            <EditorialCollageGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
+            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'cinematic' ? (
             <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
           ) : (
-            <HighlightMosaicGrid photos={gridPhotos} eventName={event.title} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
+            <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
           )
         ) : (
           <div className={gridClass}>
@@ -366,7 +366,7 @@ const EventGallery = () => {
               const fav = isFavorite(photo.id);
               return (
                 <div key={photo.id} className={`group ${getItemClass(layout)}`}>
-                  <img src={photo.storage_path} alt="" className={getImgClass(layout)} loading="lazy" />
+                  <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
                   <button onClick={() => { toggleGuestFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to selections.' }); }}
                     className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
                     <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
@@ -379,7 +379,7 @@ const EventGallery = () => {
                       <Share2 className="h-3 w-3" />
                     </button>
                     {canDownloadAnything && (
-                      <a href={photo.storage_path} download={photo.filename ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                      <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                         <Download className="h-3 w-3" />
                       </a>
                     )}
@@ -406,11 +406,11 @@ const EventGallery = () => {
 
       {event && (
         <>
-          <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventSlug={event.slug} eventName={event.title} pin={event.gallery_password} />
+          <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventSlug={event.slug} eventName={event.name} pin={event.gallery_pin} />
           <EventSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} event={event} onUpdated={() => { fetchEvent(); fetchPhotos(); }} />
           {sharePhoto && (
             <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
-              photoUrl={sharePhoto.storage_path} photoName={sharePhoto.filename} eventName={event.title} canDownload={canDownloadAnything} />
+              photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownloadAnything} />
           )}
         </>
       )}

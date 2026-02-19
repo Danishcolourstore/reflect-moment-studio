@@ -61,9 +61,9 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
             } = supabase.storage.from('gallery-photos').getPublicUrl(path);
             const { error: insertError } = await supabase.from('photos').insert({
               event_id: eventId,
-              photographer_id: userId,
-              storage_path: publicUrl,
-              filename: file.name,
+              user_id: userId,
+              url: publicUrl,
+              file_name: file.name,
             } as any);
             if (insertError) throw insertError;
           }),
