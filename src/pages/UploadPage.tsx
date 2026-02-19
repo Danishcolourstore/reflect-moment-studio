@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload } from 'lucide-react';
+import { Upload, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -43,7 +43,6 @@ const UploadPage = () => {
       }
     }
 
-    // Update count
     const { count: total } = await supabase.from('photos').select('*', { count: 'exact', head: true }).eq('event_id', selectedEvent);
     if (total !== null) {
       await supabase.from('events').update({ photo_count: total }).eq('id', selectedEvent);
@@ -56,28 +55,33 @@ const UploadPage = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-3xl font-semibold text-foreground mb-8">Upload Photos</h1>
+      <h1 className="font-serif text-xl font-semibold text-foreground mb-6">Upload Photos</h1>
 
-      <div className="max-w-xl mx-auto space-y-6">
-        <div className="space-y-2">
-          <label className="text-xs uppercase tracking-wider text-muted-foreground">Select Event</label>
+      <div className="max-w-lg mx-auto space-y-5">
+        <div className="space-y-1.5">
+          <label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Select Event</label>
           <Select value={selectedEvent} onValueChange={setSelectedEvent}>
-            <SelectTrigger className="bg-card"><SelectValue placeholder="Choose an event..." /></SelectTrigger>
+            <SelectTrigger className="bg-card border-border h-9 text-[13px]"><SelectValue placeholder="Choose an event..." /></SelectTrigger>
             <SelectContent>
               {events.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
 
-        <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gold/40 bg-muted/30 p-16 transition-colors hover:border-gold/70">
-          <Upload className="h-10 w-10 text-gold/60 mb-3" />
-          <p className="text-sm text-muted-foreground font-medium">{uploading ? 'Uploading...' : 'Drag photos here or click to upload'}</p>
-          <p className="mt-1 text-xs text-muted-foreground/60">JPG, PNG, WEBP up to 20MB each</p>
+        <label className={`flex cursor-pointer flex-col items-center justify-center border border-dashed py-14 transition-colors ${
+          selectedEvent ? 'border-gold/40 hover:border-gold/70 hover:bg-secondary/30' : 'border-border opacity-50 cursor-not-allowed'
+        }`}>
+          <Upload className="h-7 w-7 text-muted-foreground/30 mb-2.5" />
+          <p className="text-[12px] text-muted-foreground/60 font-medium">{uploading ? 'Uploading...' : 'Drag photos here or click to upload'}</p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground/40">JPG, PNG, WEBP up to 20MB each</p>
           <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => e.target.files && handleUpload(e.target.files)} disabled={uploading || !selectedEvent} />
         </label>
 
         {uploadCount > 0 && (
-          <p className="text-center text-sm text-gold">{uploadCount} photos uploaded successfully</p>
+          <div className="flex items-center justify-center gap-1.5 text-gold">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            <p className="text-[12px] font-medium">{uploadCount} photos uploaded</p>
+          </div>
         )}
       </div>
     </DashboardLayout>

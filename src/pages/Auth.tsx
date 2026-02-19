@@ -46,42 +46,44 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-sm space-y-8">
+        {/* Logo block */}
         <div className="text-center">
-          <h1 className="font-serif text-4xl font-semibold text-gold">MirrorAI</h1>
-          <p className="mt-2 text-sm text-muted-foreground tracking-wide">Reflections of Your Moments</p>
+          <h1 className="font-serif text-3xl font-semibold text-gold tracking-tight">MirrorAI</h1>
+          <p className="mt-1 text-[10px] text-muted-foreground/60 tracking-[0.2em] uppercase">Reflections of Your Moments</p>
         </div>
 
-        <div className="bg-card rounded-lg border border-border p-8 shadow-sm">
-          <h2 className="font-serif text-2xl font-semibold text-foreground mb-6">
+        {/* Auth card — flat, editorial */}
+        <div className="bg-card border border-border p-7">
+          <h2 className="font-serif text-xl font-semibold text-foreground mb-5">
             {isLogin ? 'Welcome Back' : 'Create Your Studio'}
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Studio Name</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Studio Name</Label>
                 <Input
                   value={studioName}
                   onChange={(e) => setStudioName(e.target.value)}
                   placeholder="Your Studio Name"
-                  className="bg-background"
+                  className="bg-background h-9 text-[13px]"
                 />
               </div>
             )}
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Email</Label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="bg-background"
+                className="bg-background h-9 text-[13px]"
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Password</Label>
               <Input
                 type="password"
                 value={password}
@@ -89,19 +91,19 @@ const Auth = () => {
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="bg-background"
+                className="bg-background h-9 text-[13px]"
               />
             </div>
 
-            <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground" disabled={loading}>
+            <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-9 text-[12px] tracking-wide uppercase font-medium" disabled={loading}>
               {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-5 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-gold hover:text-gold-hover transition-colors"
+              className="text-[11px] text-gold hover:text-gold-hover transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>

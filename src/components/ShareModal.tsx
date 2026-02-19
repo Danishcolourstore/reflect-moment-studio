@@ -25,34 +25,34 @@ export function ShareModal({ open, onOpenChange, eventId, eventName, pin }: Shar
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-card">
+      <DialogContent className="sm:max-w-[400px] bg-card border-border p-6">
         <DialogHeader>
-          <DialogTitle className="font-serif text-2xl">Share Gallery</DialogTitle>
+          <DialogTitle className="font-serif text-xl font-semibold">Share Gallery</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wider text-muted-foreground">Gallery Link</label>
-            <div className="flex gap-2">
-              <Input value={galleryUrl} readOnly className="bg-background text-sm" />
-              <Button variant="outline" size="icon" onClick={() => copy(galleryUrl)}>
-                <Copy className="h-4 w-4" />
+        <div className="space-y-3.5 mt-1">
+          <div className="space-y-1.5">
+            <label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Link</label>
+            <div className="flex gap-1.5">
+              <Input value={galleryUrl} readOnly className="bg-background h-9 text-[12px] font-mono" />
+              <Button variant="outline" size="icon" onClick={() => copy(galleryUrl)} className="h-9 w-9 shrink-0">
+                <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
           {pin && (
-            <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-muted-foreground">Link with PIN</label>
-              <div className="flex gap-2">
-                <Input value={`${galleryUrl}?pin=${pin}`} readOnly className="bg-background text-sm" />
-                <Button variant="outline" size="icon" onClick={() => copy(`${galleryUrl}?pin=${pin}`)}>
-                  <Copy className="h-4 w-4" />
+            <div className="space-y-1.5">
+              <label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Link with PIN</label>
+              <div className="flex gap-1.5">
+                <Input value={`${galleryUrl}?pin=${pin}`} readOnly className="bg-background h-9 text-[12px] font-mono" />
+                <Button variant="outline" size="icon" onClick={() => copy(`${galleryUrl}?pin=${pin}`)} className="h-9 w-9 shrink-0">
+                  <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>
           )}
-          <Button asChild className="w-full bg-[hsl(142,70%,40%)] hover:bg-[hsl(142,70%,35%)] text-primary-foreground">
+          <Button asChild className="w-full bg-[hsl(142,70%,40%)] hover:bg-[hsl(142,70%,35%)] text-primary-foreground h-9 text-[12px] tracking-wide uppercase font-medium">
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-              <MessageCircle className="mr-2 h-4 w-4" />
+              <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
               Share on WhatsApp
             </a>
           </Button>

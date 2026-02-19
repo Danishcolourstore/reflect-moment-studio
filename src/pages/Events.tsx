@@ -40,19 +40,22 @@ const Events = () => {
 
   return (
     <DashboardLayout>
-      <div className="text-center mb-6">
-        <h1 className="font-serif text-3xl font-semibold text-foreground tracking-tight">MirrorAI</h1>
-        <p className="mt-0.5 text-[11px] text-muted-foreground tracking-[0.15em] uppercase">Reflections of Your Moments</p>
+      {/* Centered header — Pic-Time collection page style */}
+      <div className="text-center mb-5 pt-2">
+        <h1 className="font-serif text-[26px] font-semibold text-foreground tracking-tight">MirrorAI</h1>
+        <p className="text-[10px] text-muted-foreground/60 tracking-[0.2em] uppercase mt-0.5">Reflections of Your Moments</p>
       </div>
 
-      {/* Pic-Time style underline tabs */}
-      <div className="flex items-center justify-center gap-6 mb-6 border-b border-border">
+      {/* Underline category tabs — Pic-Time style */}
+      <div className="flex items-center justify-center gap-5 sm:gap-7 mb-5 border-b border-border overflow-x-auto">
         {tabs.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-2.5 text-[11px] uppercase tracking-[0.1em] transition-colors border-b-2 -mb-px ${
-              activeTab === tab ? 'border-foreground text-foreground font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'
+            className={`pb-2.5 text-[10px] uppercase tracking-[0.12em] transition-colors border-b-[1.5px] -mb-px whitespace-nowrap ${
+              activeTab === tab
+                ? 'border-foreground text-foreground font-medium'
+                : 'border-transparent text-muted-foreground/60 hover:text-foreground'
             }`}
           >
             {tab}
@@ -60,45 +63,68 @@ const Events = () => {
         ))}
       </div>
 
-      <div className="flex justify-end mb-4">
-        <Button onClick={() => setCreateOpen(true)} size="sm" className="bg-primary hover:bg-gold-hover text-primary-foreground text-xs h-8">
-          <Plus className="mr-1.5 h-3.5 w-3.5" />New Event
+      {/* New event — right-aligned, ghost */}
+      <div className="flex justify-end mb-3">
+        <Button
+          onClick={() => setCreateOpen(true)}
+          variant="ghost"
+          size="sm"
+          className="text-gold hover:bg-gold/10 text-[11px] h-7 px-3 uppercase tracking-[0.06em] font-medium"
+        >
+          <Plus className="mr-1 h-3 w-3" />New Event
         </Button>
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-center text-muted-foreground py-12">No events found.</p>
+        <div className="py-20 text-center">
+          <Image className="mx-auto h-10 w-10 text-muted-foreground/15" />
+          <p className="mt-3 font-serif text-sm text-muted-foreground">No events found</p>
+        </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        /* Tight album grid — square covers, minimal gap, Pixieset style */
+        <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map(event => (
             <div
               key={event.id}
               className="group cursor-pointer animate-fade-in"
               onClick={() => navigate(`/events/${event.id}`)}
             >
-              <div className="relative aspect-square overflow-hidden bg-secondary/50">
+              <div className="relative aspect-square overflow-hidden bg-secondary">
                 {event.cover_url ? (
-                  <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+                  <img
+                    src={event.cover_url}
+                    alt={event.name}
+                    className="h-full w-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.02]"
+                    loading="lazy"
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center">
-                    <Image className="h-12 w-12 text-muted-foreground/15" />
+                    <Image className="h-8 w-8 text-muted-foreground/12" />
                   </div>
                 )}
-                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  <div className="absolute bottom-3 left-3 right-3 flex gap-1.5">
-                    <button className="rounded-full bg-card/90 backdrop-blur-sm px-3 py-1.5 text-[11px] font-medium text-foreground" onClick={(e) => { e.stopPropagation(); navigate(`/events/${event.id}`); }}>
+                {/* Hover overlay — bottom gradient, subtle pill buttons */}
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/55 via-foreground/0 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <div className="absolute bottom-2.5 left-2.5 flex gap-1">
+                    <button
+                      className="rounded-full bg-card/90 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium text-foreground transition hover:bg-card"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/events/${event.id}`); }}
+                    >
                       View
                     </button>
-                    <button className="rounded-full bg-card/90 backdrop-blur-sm px-3 py-1.5 text-[11px] font-medium text-foreground" onClick={(e) => { e.stopPropagation(); setShareEvent(event); }}>
+                    <button
+                      className="rounded-full bg-card/90 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium text-foreground transition hover:bg-card"
+                      onClick={(e) => { e.stopPropagation(); setShareEvent(event); }}
+                    >
                       Share
                     </button>
                   </div>
                 </div>
               </div>
-              <div className="mt-2 px-0.5">
-                <h3 className="font-serif text-[15px] font-medium text-foreground leading-tight truncate">{event.name}</h3>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {format(new Date(event.event_date), 'MMM d, yyyy')} · {event.photo_count} photos
+              {/* Minimal metadata — name + single line */}
+              <div className="mt-1.5 px-px">
+                <h3 className="font-serif text-[13px] font-medium text-foreground leading-snug truncate">{event.name}</h3>
+                <p className="text-[10px] text-muted-foreground/60 mt-px">
+                  {format(new Date(event.event_date), 'MMM yyyy')}{event.photo_count > 0 ? ` · ${event.photo_count}` : ''}
                 </p>
               </div>
             </div>

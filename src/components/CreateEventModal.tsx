@@ -63,23 +63,23 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-card">
+      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6">
         <DialogHeader>
-          <DialogTitle className="font-serif text-2xl">Create New Event</DialogTitle>
+          <DialogTitle className="font-serif text-xl font-semibold">Create New Event</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Event Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Aisha & Rahul Wedding" className="bg-background" />
+        <form onSubmit={handleSubmit} className="space-y-3.5 mt-1">
+          <div className="space-y-1.5">
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Aisha & Rahul Wedding" className="bg-background h-9 text-[13px]" />
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Event Date</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-background" />
+          <div className="space-y-1.5">
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Date</Label>
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-background h-9 text-[13px]" />
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Event Type</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Type</Label>
             <Select value={type} onValueChange={setType}>
-              <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="bg-background h-9 text-[13px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {['Wedding', 'Pre-Wedding', 'Portrait', 'Corporate', 'Other'].map(t => (
                   <SelectItem key={t} value={t}>{t}</SelectItem>
@@ -87,15 +87,15 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Cover Photo</Label>
-            <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background" />
+          <div className="space-y-1.5">
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Cover Photo</Label>
+            <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Gallery PIN (Optional)</Label>
-            <Input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background" />
+          <div className="space-y-1.5">
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery PIN (Optional)</Label>
+            <Input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
           </div>
-          <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground" disabled={loading}>
+          <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-9 text-[12px] tracking-wide uppercase font-medium mt-1" disabled={loading}>
             {loading ? 'Creating...' : 'Create Event'}
           </Button>
         </form>
