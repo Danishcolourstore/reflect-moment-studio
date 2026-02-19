@@ -77,7 +77,8 @@ const ResetPassword = () => {
       }
     } else {
       setSuccess(true);
-      await supabase.auth.signOut();
+      toast({ title: 'Password updated', description: 'Redirecting to your dashboard…' });
+      setTimeout(() => navigate('/dashboard'), 1500);
     }
     setLoading(false);
   };
