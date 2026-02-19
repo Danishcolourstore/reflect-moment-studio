@@ -1,0 +1,105 @@
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
+
+interface CreateEventModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: () => void;
+}
+
+export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventModalProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [name, setName] = useState('');
+  const [date, setDate] = useState('');
+  const [type, setType] = useState('Wedding');
+  const [pin, setPin] = useState('');
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setLoading(true);
+
+    let coverUrl: string | null = null;
+
+    if (coverFile) {
+      const ext = coverFile.name.split('.').pop();
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('event-covers').upload(path, coverFile);
+      if (!uploadError) {
+        const { data: { publicUrl } } = supabase.storage.from('event-covers').getPublicUrl(path);
+        coverUrl = publicUrl;
+      }
+    }
+
+    const { error } = await supabase.from('events').insert({
+      user_id: user.id,
+      name,
+      event_date: date,
+      event_type: type,
+      cover_url: coverUrl,
+      gallery_pin: pin || null,
+    });
+
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Event created' });
+      setName(''); setDate(''); setType('Wedding'); setPin(''); setCoverFile(null);
+      onOpenChange(false);
+      onCreated();
+    }
+    setLoading(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-card">
+        <DialogHeader>
+          <DialogTitle className="font-serif text-2xl">Create New Event</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Event Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Aisha & Rahul Wedding" className="bg-background" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Event Date</Label>
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-background" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Event Type</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {['Wedding', 'Pre-Wedding', 'Portrait', 'Corporate', 'Other'].map(t => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Cover Photo</Label>
+            <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Gallery PIN (Optional)</Label>
+            <Input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background" />
+          </div>
+          <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground" disabled={loading}>
+            {loading ? 'Creating...' : 'Create Event'}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
