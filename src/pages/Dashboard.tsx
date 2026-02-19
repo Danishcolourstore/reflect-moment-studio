@@ -23,7 +23,7 @@ interface Event {
 }
 
 const Dashboard = () => {
-  const { studioName } = useAuth();
+  const { studioName, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
@@ -32,11 +32,12 @@ const Dashboard = () => {
 
 
   const fetchEvents = async () => {
-    const { data } = await supabase.from('events').select('*').order('created_at', { ascending: false });
+    if (!user) return;
+    const { data } = await supabase.from('events').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
     if (data) setEvents(data as Event[]);
   };
 
-  useEffect(() => { fetchEvents(); }, []);
+  useEffect(() => { fetchEvents(); }, [user]);
 
   const deleteEvent = async (id: string) => {
     const { error } = await supabase.from('events').delete().eq('id', id);

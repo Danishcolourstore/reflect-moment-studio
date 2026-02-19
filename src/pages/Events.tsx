@@ -6,6 +6,7 @@ import { ShareModal } from '@/components/ShareModal';
 import { Button } from '@/components/ui/button';
 import { Plus, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -22,6 +23,7 @@ interface Event {
 const tabs = ['All', 'Wedding', 'Pre-Wedding', 'Engagement', 'Portrait', 'Family'];
 
 const Events = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
@@ -30,11 +32,12 @@ const Events = () => {
   const [shareEvent, setShareEvent] = useState<Event | null>(null);
 
   const fetchEvents = async () => {
-    const { data } = await supabase.from('events').select('*').order('event_date', { ascending: false });
+    if (!user) return;
+    const { data } = await supabase.from('events').select('*').eq('user_id', user.id).order('event_date', { ascending: false });
     if (data) setEvents(data as Event[]);
   };
 
-  useEffect(() => { fetchEvents(); }, []);
+  useEffect(() => { fetchEvents(); }, [user]);
 
   const filtered = activeTab === 'All' ? events : events.filter(e => e.event_type === activeTab);
 
