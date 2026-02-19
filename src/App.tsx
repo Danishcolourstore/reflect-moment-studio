@@ -13,6 +13,7 @@ import Analytics from "./pages/Analytics";
 import StudioSettings from "./pages/StudioSettings";
 import Billing from "./pages/Billing";
 import ResetPassword from "./pages/ResetPassword";
+import PublicGallery from "./pages/PublicGallery";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
     <Route path="/reset-password" element={<ResetPassword />} />
+    <Route path="/gallery/:id" element={<PublicGallery />} />
     <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
     <Route path="/events/:id" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
