@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Copy, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface ShareModalProps {
   open: boolean;
@@ -15,13 +16,14 @@ interface ShareModalProps {
 export function ShareModal({ open, onOpenChange, eventId, eventName, pin }: ShareModalProps) {
   const { toast } = useToast();
   const galleryUrl = `${window.location.origin}/gallery/${eventId}`;
+  const fullUrl = pin ? `${galleryUrl}?pin=${pin}` : galleryUrl;
 
   const copy = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: 'Copied to clipboard' });
   };
 
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`View the gallery for ${eventName}: ${galleryUrl}${pin ? ` (PIN: ${pin})` : ''}`)}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`View the gallery for ${eventName}: ${fullUrl}`)}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -29,7 +31,20 @@ export function ShareModal({ open, onOpenChange, eventId, eventName, pin }: Shar
         <DialogHeader>
           <DialogTitle className="font-serif text-xl font-semibold">Share Gallery</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3.5 mt-1">
+        <div className="space-y-4 mt-1">
+          {/* QR Code */}
+          <div className="flex justify-center py-3">
+            <div className="bg-white p-3 rounded">
+              <QRCodeSVG
+                value={fullUrl}
+                size={140}
+                level="M"
+                bgColor="#ffffff"
+                fgColor="#1a1612"
+              />
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Link</label>
             <div className="flex gap-1.5">
