@@ -94,9 +94,9 @@ const Dashboard = () => {
               photoCount={event.photo_count}
               coverUrl={event.cover_url}
               onShare={() => setShareEvent(event)}
-              onEdit={() => navigate(`/events/${event.id}`)}
+              onEdit={() => navigate(`/dashboard/events/${event.id}`)}
               onDelete={() => deleteEvent(event.id)}
-              onClick={() => navigate(`/events/${event.id}`)}
+              onClick={() => navigate(`/dashboard/events/${event.id}`)}
             />
           ))}
         </div>

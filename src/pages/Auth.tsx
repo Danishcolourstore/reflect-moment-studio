@@ -15,8 +15,12 @@ const passwordRules = [
   { label: 'One number', test: (p: string) => /\d/.test(p) },
 ];
 
-const Auth = () => {
-  const [view, setView] = useState<AuthView>('landing');
+interface AuthProps {
+  initialView?: AuthView;
+}
+
+const Auth = ({ initialView }: AuthProps) => {
+  const [view, setView] = useState<AuthView>(initialView || 'landing');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [studioName, setStudioName] = useState('');
@@ -47,7 +51,13 @@ const Auth = () => {
         }
         toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
       } else {
-        navigate('/');
+        const redirect = sessionStorage.getItem("redirectAfterLogin");
+        if (redirect) {
+          sessionStorage.removeItem("redirectAfterLogin");
+          navigate(redirect);
+        } else {
+          navigate('/dashboard');
+        }
       }
     } else {
       // Signup — enforce password strength
@@ -79,7 +89,7 @@ const Auth = () => {
         toast({ title: 'Account exists', description: 'An account with this email already exists. Please sign in.', variant: 'destructive' });
       } else if (data?.session) {
         toast({ title: 'Welcome to MirrorAI', description: 'Your studio has been created.' });
-        navigate('/');
+        navigate('/dashboard');
       } else {
         toast({ title: 'Check your email', description: 'We sent you a confirmation link to verify your address.' });
       }
@@ -119,13 +129,13 @@ const Auth = () => {
 
           <div className="space-y-3">
             <Button
-              onClick={() => setView('login')}
+              onClick={() => navigate('/login')}
               className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-11 text-[11px] tracking-[0.14em] uppercase font-medium transition-all duration-200"
             >
               Sign In
             </Button>
             <Button
-              onClick={() => setView('signup')}
+              onClick={() => navigate('/register')}
               variant="outline"
               className="w-full border-border hover:bg-muted/50 text-foreground h-11 text-[11px] tracking-[0.14em] uppercase font-medium transition-all duration-200"
             >
@@ -157,7 +167,7 @@ const Auth = () => {
           <div className="bg-card border border-border p-8">
             <div className="flex items-center gap-2.5 mb-6">
               <button
-                onClick={() => setView('login')}
+                onClick={() => navigate('/login')}
                 className="text-muted-foreground/40 hover:text-foreground transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -178,7 +188,7 @@ const Auth = () => {
                   <span className="text-foreground/80 font-medium">{email}</span>
                 </p>
                 <button
-                  onClick={() => { setView('login'); setResetSent(false); }}
+                  onClick={() => { navigate('/login'); setResetSent(false); }}
                   className="text-[11px] text-primary hover:text-primary/80 transition-colors mt-2"
                 >
                   Back to Sign In
@@ -213,7 +223,7 @@ const Auth = () => {
                 </form>
                 <div className="mt-6 text-center">
                   <button
-                    onClick={() => setView('login')}
+                    onClick={() => navigate('/login')}
                     className="text-[11px] text-primary hover:text-primary/80 transition-colors"
                   >
                     Back to Sign In
@@ -245,7 +255,7 @@ const Auth = () => {
         <div className="bg-card border border-border p-8">
           <div className="flex items-center gap-2.5 mb-6">
             <button
-              onClick={() => setView('landing')}
+              onClick={() => navigate('/login')}
               className="text-muted-foreground/40 hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -312,7 +322,7 @@ const Auth = () => {
                 <div className="text-right">
                   <button
                     type="button"
-                    onClick={() => { setView('forgot'); setResetSent(false); }}
+                    onClick={() => { navigate('/forgot-password'); setResetSent(false); }}
                     className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors"
                   >
                     Forgot password?
@@ -353,7 +363,7 @@ const Auth = () => {
 
           <div className="mt-6 text-center">
             <button
-              onClick={() => { setView(isLogin ? 'signup' : 'login'); setPassword(''); setShowPassword(false); }}
+              onClick={() => { navigate(isLogin ? '/register' : '/login'); setPassword(''); setShowPassword(false); }}
               className="text-[11px] text-primary hover:text-primary/80 transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}

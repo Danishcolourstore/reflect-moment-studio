@@ -3,12 +3,12 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
 
 const navItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Events', url: '/events', icon: CalendarDays },
-  { title: 'Upload', url: '/upload', icon: Upload },
-  { title: 'Analytics', url: '/analytics', icon: BarChart3 },
-  { title: 'Studio Settings', url: '/settings', icon: Settings },
-  { title: 'Plan & Billing', url: '/billing', icon: CreditCard },
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'Events', url: '/dashboard/events', icon: CalendarDays },
+  { title: 'Upload', url: '/dashboard/upload', icon: Upload },
+  { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart3 },
+  { title: 'Studio Settings', url: '/dashboard/settings', icon: Settings },
+  { title: 'Plan & Billing', url: '/dashboard/billing', icon: CreditCard },
 ];
 
 export function AppSidebar() {
@@ -30,7 +30,7 @@ export function AppSidebar() {
           <NavLink
             key={item.url}
             to={item.url}
-            end={item.url === '/'}
+            end={item.url === '/dashboard'}
             className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-sidebar-foreground/50 transition-colors hover:text-sidebar-foreground rounded-sm"
             activeClassName="text-sidebar-foreground bg-sidebar-accent"
           >

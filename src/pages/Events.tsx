@@ -90,7 +90,7 @@ const Events = () => {
             <div
               key={event.id}
               className="group cursor-pointer animate-fade-in"
-              onClick={() => navigate(`/events/${event.id}`)}
+              onClick={() => navigate(`/dashboard/events/${event.id}`)}
             >
               <div className="relative aspect-square overflow-hidden bg-secondary">
                 {event.cover_url ? (
@@ -110,7 +110,7 @@ const Events = () => {
                   <div className="absolute bottom-2.5 left-2.5 flex gap-1">
                     <button
                       className="rounded-full bg-card/90 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium text-foreground transition hover:bg-card"
-                      onClick={(e) => { e.stopPropagation(); navigate(`/events/${event.id}`); }}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/events/${event.id}`); }}
                     >
                       View
                     </button>
