@@ -14,6 +14,7 @@ import StudioSettings from "./pages/StudioSettings";
 import Billing from "./pages/Billing";
 import ResetPassword from "./pages/ResetPassword";
 import PublicGallery from "./pages/PublicGallery";
+import GalleryCover from "./pages/GalleryCover";
 import NotFound from "./pages/NotFound";
 import { GalleryShell } from "./components/GalleryShell";
 
@@ -65,8 +66,8 @@ const AppRoutes = () => (
     <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
 
     {/* Guest gallery routes — completely public, no auth */}
-    <Route path="/gallery/:id" element={<GalleryShell><PublicGallery /></GalleryShell>} />
-    <Route path="/gallery/:id/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
+    <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
+    <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
 
     {/* Legacy redirects */}
     <Route path="/" element={<Navigate to="/dashboard" replace />} />
