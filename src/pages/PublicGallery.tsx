@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
+import { useGuestSession } from '@/hooks/use-guest-session';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Heart, Download, FolderDown, Loader2, PackageOpen, Lock, Share2 } from 'lucide-react';
+import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -31,9 +31,9 @@ interface Event {
   gallery_password: string | null;
   downloads_enabled: boolean;
   layout: string;
+  is_published: boolean;
 }
 
-// Adapt to grid component shape
 function toGridPhoto(p: Photo, isFav: boolean) {
   return { id: p.id, url: p.storage_path, is_favorite: isFav, file_name: p.filename };
 }
@@ -48,89 +48,60 @@ const GRID_CLASSES: Record<string, string> = {
 type GalleryFilter = 'all' | 'favorites';
 
 const PublicGallery = () => {
-  const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [pinRequired, setPinRequired] = useState(false);
-  const [pinInput, setPinInput] = useState('');
-  const [pinError, setPinError] = useState(false);
   const [filter, setFilter] = useState<GalleryFilter>('all');
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
 
-  const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(id);
+  const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id);
+  useGuestSession(event?.id);
 
-  const fetchGallery = useCallback(async (pin?: string) => {
-    if (!id) return;
-    // Try to find by slug first, then by id
-    let eventData: any = null;
-    const { data: bySlug } = await (supabase.from('events').select('*') as any).eq('slug', id).maybeSingle();
-    if (bySlug) {
-      eventData = bySlug;
-    } else {
-      const { data: byId } = await supabase.from('events').select('*').eq('id', id).maybeSingle();
-      eventData = byId;
-    }
+  const fetchGallery = useCallback(async () => {
+    if (!slug) return;
 
-    if (!eventData) {
+    const { data } = await (supabase
+      .from('events')
+      .select('*') as any)
+      .eq('slug', slug)
+      .eq('is_published', true)
+      .maybeSingle();
+
+    if (!data) {
       setNotFound(true);
       setLoading(false);
       return;
     }
 
-    const ev = eventData as unknown as Event;
+    const ev = data as unknown as Event;
 
-    // Check password
+    // Re-check password unlock
     if (ev.gallery_password) {
-      const providedPin = pin || searchParams.get('pin');
-      if (!providedPin || providedPin !== ev.gallery_password) {
-        setPinRequired(true);
-        setLoading(false);
+      const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
+      if (unlocked !== 'true') {
+        // Send back to cover page for password entry
+        navigate(`/gallery/${ev.slug}`, { replace: true });
         return;
       }
     }
 
-    setPinRequired(false);
     setEvent(ev);
 
-    const { data: photoData } = await (supabase.from('photos').select('*') as any).eq('event_id', ev.id).order('sort_order', { ascending: true });
+    const { data: photoData } = await (supabase.from('photos').select('*') as any)
+      .eq('event_id', ev.id)
+      .order('sort_order', { ascending: true });
     if (photoData) setPhotos(photoData as unknown as Photo[]);
     setLoading(false);
-  }, [id, searchParams]);
+  }, [slug, navigate]);
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
-
-  const handlePinSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPinError(false);
-    setLoading(true);
-    (async () => {
-      if (!id) return;
-      let eventData: any = null;
-      const { data: bySlug } = await (supabase.from('events').select('*') as any).eq('slug', id).maybeSingle();
-      if (bySlug) eventData = bySlug;
-      else {
-        const { data: byId } = await supabase.from('events').select('*').eq('id', id).maybeSingle();
-        eventData = byId;
-      }
-      if (!eventData) { setNotFound(true); setLoading(false); return; }
-      const ev = eventData as unknown as Event;
-      if (ev.gallery_password && pinInput !== ev.gallery_password) {
-        setPinError(true); setLoading(false); return;
-      }
-      setPinRequired(false);
-      setEvent(ev);
-      const { data: photoData } = await (supabase.from('photos').select('*') as any).eq('event_id', ev.id).order('sort_order', { ascending: true });
-      if (photoData) setPhotos(photoData as unknown as Photo[]);
-      setLoading(false);
-    })();
-  };
 
   const buildZip = async (targetPhotos: Photo[], label: string) => {
     if (targetPhotos.length === 0) { toast({ title: 'No photos to download' }); return; }
@@ -166,31 +137,6 @@ const PublicGallery = () => {
       <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-4 text-center">
         <h1 className="font-serif text-4xl font-semibold text-primary mb-2">Gallery Not Found</h1>
         <p className="text-[12px] text-muted-foreground/50">This gallery link is invalid or has been removed.</p>
-      </div>
-    );
-  }
-
-  /* ── PIN Gate ── */
-  if (pinRequired) {
-    return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4">
-        <div className="w-full max-w-xs text-center space-y-8">
-          <div className="space-y-3">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <Lock className="h-5 w-5 text-primary" />
-            </div>
-            <h1 className="font-serif text-2xl font-semibold text-foreground">Protected Gallery</h1>
-            <p className="text-[11px] text-muted-foreground/60">Enter the password to view this gallery.</p>
-          </div>
-          <form onSubmit={handlePinSubmit} className="space-y-3">
-            <Input value={pinInput} onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
-              placeholder="Enter password" className="bg-background border-border h-10 text-center text-[14px] tracking-[0.2em]" autoFocus />
-            {pinError && <p className="text-[10px] text-destructive">Incorrect password. Please try again.</p>}
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium">
-              View Gallery
-            </Button>
-          </form>
-        </div>
       </div>
     );
   }
