@@ -68,6 +68,84 @@ export type Database = {
         }
         Relationships: []
       }
+      favorites: {
+        Row: {
+          created_at: string
+          event_id: string
+          guest_session_id: string
+          id: string
+          photo_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          guest_session_id: string
+          id?: string
+          photo_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          guest_session_id?: string
+          id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_guest_session_id_fkey"
+            columns: ["guest_session_id"]
+            isOneToOne: false
+            referencedRelation: "guest_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_sessions: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          last_seen_at: string
+          session_token: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          last_seen_at?: string
+          session_token: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          last_seen_at?: string
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photos: {
         Row: {
           created_at: string
