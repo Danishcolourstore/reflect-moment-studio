@@ -19,7 +19,7 @@ export function useGuestFavorites(eventId: string | undefined) {
       } else {
         setFavoriteIds(new Set());
       }
-    } catch {
+    } catch (_err) {
       setFavoriteIds(new Set());
     }
   }, [eventId]);
