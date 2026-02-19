@@ -1,6 +1,7 @@
 import { Camera, Cloud, Users, Radio, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { LivePhoto } from '@/hooks/use-livesync';
+import { PhotoAiBadges, SocialShareOverlay } from '@/components/LiveIntelligencePanel';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useEffect, useState } from 'react';
 
@@ -97,7 +98,13 @@ export function LiveSyncStatusBar({ isLive, cameraConnected, syncing, guestViewe
   );
 }
 
-export function LiveFeedGrid({ photos }: { photos: LivePhoto[] }) {
+export function LiveFeedGrid({
+  photos,
+  onSharePhoto,
+}: {
+  photos: LivePhoto[];
+  onSharePhoto?: (photoId: string) => void;
+}) {
   if (photos.length === 0) return null;
 
   return (
@@ -112,37 +119,58 @@ export function LiveFeedGrid({ photos }: { photos: LivePhoto[] }) {
       </div>
 
       <div className="columns-2 sm:columns-3 lg:columns-4 gap-[6px]">
-        {photos.map((photo) => (
-          <div
-            key={photo.id}
-            className="relative mb-[6px] break-inside-avoid animate-fade-in group"
-          >
-            <img
-              src={photo.url}
-              alt=""
-              className="w-full block"
-              loading="lazy"
-            />
+        {photos.map((photo) => {
+          const isRejected = photo.aiVerdict === 'rejected-blur' || photo.aiVerdict === 'rejected-duplicate';
 
-            {/* LIVE badge */}
-            {photo.isNew && (
-              <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-destructive/90 text-destructive-foreground px-2 py-0.5 backdrop-blur-sm">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive-foreground opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive-foreground" />
-                </span>
-                <span className="text-[9px] uppercase tracking-[0.12em] font-semibold">LIVE</span>
+          return (
+            <div
+              key={photo.id}
+              className={`relative mb-[6px] break-inside-avoid animate-fade-in group ${
+                isRejected ? 'opacity-40' : ''
+              }`}
+            >
+              {/* Preset colour enhancement simulation */}
+              <div className="relative overflow-hidden">
+                <img
+                  src={photo.url}
+                  alt=""
+                  className={`w-full block transition-all duration-700 ${
+                    photo.presetApplied
+                      ? 'saturate-[1.15] contrast-[1.05] brightness-[1.02]'
+                      : ''
+                  }`}
+                  loading="lazy"
+                />
               </div>
-            )}
 
-            {/* Timestamp */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/40 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <span className="text-[9px] text-card tracking-wide">
-                Captured <RelativeTime date={photo.timestamp} />
-              </span>
+              {/* LIVE badge — only on new, non-rejected photos */}
+              {photo.isNew && !isRejected && (
+                <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-destructive/90 text-destructive-foreground px-2 py-0.5 backdrop-blur-sm">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive-foreground opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive-foreground" />
+                  </span>
+                  <span className="text-[9px] uppercase tracking-[0.12em] font-semibold">LIVE</span>
+                </div>
+              )}
+
+              {/* AI verdict & preset badges */}
+              <PhotoAiBadges photo={photo} />
+
+              {/* Social share overlay */}
+              {!isRejected && onSharePhoto && (
+                <SocialShareOverlay photo={photo} onShare={onSharePhoto} />
+              )}
+
+              {/* Timestamp */}
+              <div className="absolute bottom-0 right-0 left-0 bg-gradient-to-t from-foreground/40 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                <span className="text-[9px] text-card tracking-wide">
+                  Captured <RelativeTime date={photo.timestamp} />
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
