@@ -6,7 +6,7 @@ import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 import { Button } from '@/components/ui/button';
 import {
   Heart, Download, Trash2, Share2, Upload,
-  PackageOpen, Loader2, FolderDown, Settings, Radio,
+  PackageOpen, Loader2, FolderDown, Settings, Radio, Users,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -292,6 +292,40 @@ const EventGallery = () => {
         </>
       )}
 
+      {/* Guest Selections Panel (photographer view) */}
+      {isOwner && favoriteCount > 0 && (
+        <div className="mb-5 border border-border bg-card/50 p-4 animate-fade-in">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-serif text-sm font-medium text-foreground">Guest Selections</h3>
+              <p className="text-[10px] text-muted-foreground/50">Photos favorited by guests</p>
+            </div>
+            <div className="ml-auto flex items-center gap-1.5">
+              <Heart className="h-3.5 w-3.5 text-primary" fill="hsl(var(--primary))" />
+              <span className="text-sm font-medium text-foreground">{favoriteCount}</span>
+              <span className="text-[10px] text-muted-foreground/50">total</span>
+            </div>
+          </div>
+          {/* Top selected preview */}
+          {photos.filter(p => isFavorite(p.id)).length > 0 && (
+            <div className="flex gap-1 overflow-x-auto pb-1">
+              {photos.filter(p => isFavorite(p.id)).slice(0, 8).map(p => (
+                <img key={p.id} src={p.url} alt="" className="h-14 w-14 object-cover flex-shrink-0 opacity-90 hover:opacity-100 transition-opacity" />
+              ))}
+              {photos.filter(p => isFavorite(p.id)).length > 8 && (
+                <div className="h-14 w-14 flex-shrink-0 bg-muted/50 flex items-center justify-center">
+                  <span className="text-[10px] text-muted-foreground/60">+{photos.filter(p => isFavorite(p.id)).length - 8}</span>
+                </div>
+              )}
+            </div>
+          )}
+          <p className="mt-2 text-[9px] text-muted-foreground/40 italic">Guest names will appear here in a future update.</p>
+        </div>
+      )}
+
       {/* Gallery utility bar */}
       <div className="flex items-center justify-between mb-4 border-b border-border">
         <div className="flex items-center gap-0">
@@ -454,35 +488,33 @@ const EventGallery = () => {
               return (
                 <div key={photo.id} className={`group ${getItemClass(layout)}`}>
                   <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
-                  {fav && (
-                    <button
-                      onClick={() => toggleGuestFavorite(photo.id)}
-                      className="absolute top-1.5 right-1.5 rounded-full bg-destructive/80 text-destructive-foreground p-1 backdrop-blur-sm transition hover:bg-destructive/90 z-10"
-                    >
-                      <Heart className="h-3 w-3" fill="currentColor" />
-                    </button>
-                  )}
-                  <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/15">
-                    <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      {!fav && (
-                        <button
-                          onClick={() => toggleGuestFavorite(photo.id)}
-                          className="rounded-full bg-card/70 text-foreground/80 hover:bg-card/90 backdrop-blur-sm p-1 transition"
-                        >
-                          <Heart className="h-3 w-3" />
-                        </button>
-                      )}
-                      {canDownloadAnything && (
-                        <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
-                          <Download className="h-3 w-3" />
-                        </a>
-                      )}
-                      {isOwner && (
-                        <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-destructive hover:bg-card/90 transition">
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
+                  {/* Always-visible heart — top right */}
+                  <button
+                    onClick={() => {
+                      toggleGuestFavorite(photo.id);
+                      if (!fav) {
+                        toast({ title: 'Added to Favorites', description: 'Photo saved to selections.' });
+                      }
+                    }}
+                    className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125"
+                  >
+                    <Heart
+                      className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
+                      fill={fav ? 'hsl(var(--primary))' : 'none'}
+                    />
+                  </button>
+                  <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
+                  <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    {canDownloadAnything && (
+                      <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                        <Download className="h-3 w-3" />
+                      </a>
+                    )}
+                    {isOwner && (
+                      <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-destructive hover:bg-card/90 transition">
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
