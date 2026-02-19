@@ -21,6 +21,7 @@ import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
 import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
 import { useLiveSync } from '@/hooks/use-livesync';
 import { LiveSyncStatusBar, LiveFeedGrid } from '@/components/LiveSyncPanel';
+import { AiCullingPanel, PresetApplyPanel } from '@/components/LiveIntelligencePanel';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -271,6 +272,20 @@ const EventGallery = () => {
         />
       )}
 
+      {/* Live Intelligence™ Panels */}
+      {event.livesync_enabled && isOwner && liveSync.isLive && (
+        <>
+          <AiCullingPanel stats={liveSync.aiStats} isLive={liveSync.isLive} />
+          <PresetApplyPanel
+            isLive={liveSync.isLive}
+            enabled={liveSync.presetApplyEnabled}
+            activePreset={liveSync.activePreset}
+            onToggle={liveSync.setPresetApplyEnabled}
+            onPresetChange={liveSync.setActivePreset}
+          />
+        </>
+      )}
+
       {/* Gallery utility bar */}
       <div className="flex items-center justify-between mb-4 border-b border-border">
         <div className="flex items-center gap-0">
@@ -399,7 +414,7 @@ const EventGallery = () => {
 
       {/* LiveSync™ Live Feed */}
       {liveFeedMode && liveSync.isLive && (
-        <LiveFeedGrid photos={liveSync.livePhotos} />
+        <LiveFeedGrid photos={liveSync.livePhotos} onSharePhoto={liveSync.addShareCount} />
       )}
 
       {/* Photo Grid — dynamic layout */}
