@@ -9,6 +9,7 @@ import { Heart, Download, FolderDown, Loader2, PackageOpen, Lock } from 'lucide-
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -285,6 +286,14 @@ const PublicGallery = () => {
           <div className="py-24 text-center">
             <p className="font-serif text-sm text-muted-foreground/50">No photos in this gallery yet</p>
           </div>
+        ) : layout === 'editorial-collage' ? (
+          <EditorialCollageGrid
+            photos={displayPhotos}
+            eventName={event.name}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
+            canDownload={canDownloadAnything}
+          />
         ) : (
           <div className={gridClass}>
             {displayPhotos.map(photo => {

@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { usePhotoUpload } from '@/hooks/use-photo-upload';
 import { EventSettingsModal } from '@/components/EventSettingsModal';
+import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -372,50 +373,58 @@ const EventGallery = () => {
           <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo to add it here</p>
         </div>
       ) : displayPhotos.length > 0 ? (
-        <div className={gridClass}>
-          {displayPhotos.map(photo => {
-            const fav = isFavorite(photo.id);
-            return (
-              <div key={photo.id} className={`group ${getItemClass(layout)}`}>
-                <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
-
-                {/* Persistent heart badge when favorited */}
-                {fav && (
-                  <button
-                    onClick={() => toggleGuestFavorite(photo.id)}
-                    className="absolute top-1.5 right-1.5 rounded-full bg-destructive/80 text-destructive-foreground p-1 backdrop-blur-sm transition hover:bg-destructive/90 z-10"
-                  >
-                    <Heart className="h-3 w-3" fill="currentColor" />
-                  </button>
-                )}
-
-                {/* Hover overlay */}
-                <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/15">
-                  <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                    {!fav && (
-                      <button
-                        onClick={() => toggleGuestFavorite(photo.id)}
-                        className="rounded-full bg-card/70 text-foreground/80 hover:bg-card/90 backdrop-blur-sm p-1 transition"
-                      >
-                        <Heart className="h-3 w-3" />
-                      </button>
-                    )}
-                    {canDownloadAnything && (
-                      <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
-                        <Download className="h-3 w-3" />
-                      </a>
-                    )}
-                    {isOwner && (
-                      <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-destructive hover:bg-card/90 transition">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
+        layout === 'editorial-collage' ? (
+          <EditorialCollageGrid
+            photos={displayPhotos}
+            eventName={event.name}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleGuestFavorite}
+            canDownload={canDownloadAnything}
+            isOwner={isOwner}
+            onDelete={deletePhoto}
+          />
+        ) : (
+          <div className={gridClass}>
+            {displayPhotos.map(photo => {
+              const fav = isFavorite(photo.id);
+              return (
+                <div key={photo.id} className={`group ${getItemClass(layout)}`}>
+                  <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
+                  {fav && (
+                    <button
+                      onClick={() => toggleGuestFavorite(photo.id)}
+                      className="absolute top-1.5 right-1.5 rounded-full bg-destructive/80 text-destructive-foreground p-1 backdrop-blur-sm transition hover:bg-destructive/90 z-10"
+                    >
+                      <Heart className="h-3 w-3" fill="currentColor" />
+                    </button>
+                  )}
+                  <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/15">
+                    <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                      {!fav && (
+                        <button
+                          onClick={() => toggleGuestFavorite(photo.id)}
+                          className="rounded-full bg-card/70 text-foreground/80 hover:bg-card/90 backdrop-blur-sm p-1 transition"
+                        >
+                          <Heart className="h-3 w-3" />
+                        </button>
+                      )}
+                      {canDownloadAnything && (
+                        <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                          <Download className="h-3 w-3" />
+                        </a>
+                      )}
+                      {isOwner && (
+                        <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-destructive hover:bg-card/90 transition">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )
       ) : null}
 
       {/* Mobile sticky upload button */}

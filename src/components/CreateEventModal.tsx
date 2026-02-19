@@ -8,13 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper } from 'lucide-react';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd } from 'lucide-react';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic Square', icon: Grid2X2 },
   { value: 'masonry', label: 'Masonry', icon: LayoutGrid },
   { value: 'justified', label: 'Justified', icon: AlignJustify },
   { value: 'editorial', label: 'Editorial', icon: Newspaper },
+  { value: 'editorial-collage', label: 'Collage', icon: GalleryHorizontalEnd },
 ] as const;
 
 interface CreateEventModalProps {
@@ -115,7 +116,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
           {/* Gallery layout preset */}
           <div className="space-y-2">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Layout</Label>
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-5 gap-1.5">
               {LAYOUT_OPTIONS.map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}
