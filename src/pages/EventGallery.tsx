@@ -35,9 +35,18 @@ interface Event {
   user_id: string;
   allow_full_download: boolean;
   allow_favorites_download: boolean;
+  gallery_layout: string;
 }
 
 type GalleryFilter = 'all' | 'favorites';
+
+/* ── Layout grid class helpers ── */
+const GRID_CLASSES: Record<string, string> = {
+  classic: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-[3px]',
+  masonry: 'columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-[3px]',
+  justified: 'flex flex-wrap gap-[3px]',
+  editorial: 'columns-1 sm:columns-2 lg:columns-3 gap-4',
+};
 
 const EventGallery = () => {
   const { id } = useParams<{ id: string }>();
@@ -150,6 +159,36 @@ const EventGallery = () => {
     ? photos.filter((p) => isFavorite(p.id))
     : photos;
 
+  const layout = event.gallery_layout || 'masonry';
+  const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
+
+  /* Per-layout item classes */
+  const getItemClass = (layout: string) => {
+    switch (layout) {
+      case 'classic':
+        return 'relative aspect-square overflow-hidden';
+      case 'justified':
+        return 'relative h-[200px] sm:h-[240px] flex-grow';
+      case 'editorial':
+        return 'relative mb-4 break-inside-avoid';
+      default: // masonry
+        return 'relative mb-[3px] break-inside-avoid';
+    }
+  };
+
+  const getImgClass = (layout: string) => {
+    switch (layout) {
+      case 'classic':
+        return 'h-full w-full object-cover';
+      case 'justified':
+        return 'h-full w-auto object-cover';
+      case 'editorial':
+        return 'w-full block';
+      default:
+        return 'w-full block';
+    }
+  };
+
   return (
     <DashboardLayout>
       {/* Cover banner */}
@@ -213,7 +252,6 @@ const EventGallery = () => {
           </button>
         </div>
 
-        {/* Bulk download dropdown */}
         {canDownloadAnything && photos.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -263,7 +301,7 @@ const EventGallery = () => {
         </label>
       )}
 
-      {/* Photo Grid */}
+      {/* Photo Grid — dynamic layout */}
       {displayPhotos.length === 0 ? (
         <div className="py-24 text-center">
           {filter === 'favorites' ? (
@@ -280,12 +318,12 @@ const EventGallery = () => {
           )}
         </div>
       ) : (
-        <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-[3px]">
+        <div className={gridClass}>
           {displayPhotos.map(photo => {
             const fav = isFavorite(photo.id);
             return (
-              <div key={photo.id} className="group relative mb-[3px] break-inside-avoid">
-                <img src={photo.url} alt="" className="w-full block" loading="lazy" />
+              <div key={photo.id} className={`group ${getItemClass(layout)}`}>
+                <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
 
                 {/* Persistent heart badge when favorited */}
                 {fav && (

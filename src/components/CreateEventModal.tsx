@@ -8,6 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper } from 'lucide-react';
+
+const LAYOUT_OPTIONS = [
+  { value: 'classic', label: 'Classic Square', icon: Grid2X2 },
+  { value: 'masonry', label: 'Masonry', icon: LayoutGrid },
+  { value: 'justified', label: 'Justified', icon: AlignJustify },
+  { value: 'editorial', label: 'Editorial', icon: Newspaper },
+] as const;
 
 interface CreateEventModalProps {
   open: boolean;
@@ -23,6 +31,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const [type, setType] = useState('Wedding');
   const [pin, setPin] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [galleryLayout, setGalleryLayout] = useState('masonry');
   const [allowFullDownload, setAllowFullDownload] = useState(true);
   const [allowFavoritesDownload, setAllowFavoritesDownload] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -51,6 +60,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       event_type: type,
       cover_url: coverUrl,
       gallery_pin: pin || null,
+      gallery_layout: galleryLayout,
       allow_full_download: allowFullDownload,
       allow_favorites_download: allowFavoritesDownload,
     });
@@ -60,7 +70,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
     } else {
       toast({ title: 'Event created' });
       setName(''); setDate(''); setType('Wedding'); setPin(''); setCoverFile(null);
-      setAllowFullDownload(true); setAllowFavoritesDownload(true);
+      setGalleryLayout('masonry'); setAllowFullDownload(true); setAllowFavoritesDownload(true);
       onOpenChange(false);
       onCreated();
     }
@@ -69,7 +79,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6">
+      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl font-semibold">Create New Event</DialogTitle>
         </DialogHeader>
@@ -100,6 +110,28 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery PIN (Optional)</Label>
             <Input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
+          </div>
+
+          {/* Gallery layout preset */}
+          <div className="space-y-2">
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Layout</Label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {LAYOUT_OPTIONS.map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setGalleryLayout(value)}
+                  className={`flex flex-col items-center gap-1 py-2.5 px-1 border transition-colors text-center ${
+                    galleryLayout === value
+                      ? 'border-foreground bg-foreground/5 text-foreground'
+                      : 'border-border text-muted-foreground/60 hover:border-foreground/30'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-[9px] uppercase tracking-wider leading-none">{label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Download permissions */}

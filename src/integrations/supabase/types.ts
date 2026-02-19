@@ -22,6 +22,7 @@ export type Database = {
           created_at: string
           event_date: string
           event_type: string
+          gallery_layout: string
           gallery_pin: string | null
           id: string
           name: string
@@ -37,6 +38,7 @@ export type Database = {
           created_at?: string
           event_date?: string
           event_type?: string
+          gallery_layout?: string
           gallery_pin?: string | null
           id?: string
           name: string
@@ -52,6 +54,7 @@ export type Database = {
           created_at?: string
           event_date?: string
           event_type?: string
+          gallery_layout?: string
           gallery_pin?: string | null
           id?: string
           name?: string
