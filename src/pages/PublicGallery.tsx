@@ -223,11 +223,19 @@ const PublicGallery = () => {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {/* Header */}
-        <div className="mb-5">
-          <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground leading-tight">{event.name}</h1>
-          <p className="text-[11px] text-muted-foreground/60 tracking-wide mt-1">
-            {format(new Date(event.event_date), 'MMMM d, yyyy')} · {event.photo_count} photos
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-5 gap-2">
+          <div>
+            <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground leading-tight">{event.name}</h1>
+            <p className="text-[11px] text-muted-foreground/60 tracking-wide mt-1">
+              {format(new Date(event.event_date), 'MMMM d, yyyy')} · {event.photo_count} photos
+            </p>
+          </div>
+          {favoriteCount > 0 && (
+            <div className="flex items-center gap-1.5 text-[12px] text-primary font-medium">
+              <Heart className="h-3.5 w-3.5" fill="hsl(var(--primary))" />
+              <span>{favoriteCount} Selected</span>
+            </div>
+          )}
         </div>
 
         {/* Utility bar */}
@@ -304,28 +312,31 @@ const PublicGallery = () => {
               return (
                 <div key={photo.id} className={`group ${getItemClass(layout)}`}>
                   <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
-                  {fav && (
-                    <button onClick={() => toggleFavorite(photo.id)}
-                      className="absolute top-1.5 right-1.5 rounded-full bg-destructive/80 text-destructive-foreground p-1 backdrop-blur-sm transition hover:bg-destructive/90 z-10">
-                      <Heart className="h-3 w-3" fill="currentColor" />
-                    </button>
-                  )}
-                  <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/15">
+                  {/* Always-visible heart — top right */}
+                  <button
+                    onClick={() => {
+                      toggleFavorite(photo.id);
+                      if (!fav) {
+                        toast({ title: 'Added to Favorites', description: 'Photo saved to your selections.' });
+                      }
+                    }}
+                    className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125"
+                  >
+                    <Heart
+                      className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
+                      fill={fav ? 'hsl(var(--primary))' : 'none'}
+                    />
+                  </button>
+                  <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
+                  {/* Download overlay */}
+                  {canDownloadAnything && (
                     <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      {!fav && (
-                        <button onClick={() => toggleFavorite(photo.id)}
-                          className="rounded-full bg-card/70 text-foreground/80 hover:bg-card/90 backdrop-blur-sm p-1 transition">
-                          <Heart className="h-3 w-3" />
-                        </button>
-                      )}
-                      {canDownloadAnything && (
-                        <a href={photo.url} download={photo.file_name ?? true}
-                          className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
-                          <Download className="h-3 w-3" />
-                        </a>
-                      )}
+                      <a href={photo.url} download={photo.file_name ?? true}
+                        className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                        <Download className="h-3 w-3" />
+                      </a>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             })}
