@@ -36,8 +36,14 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         let msg = error.message;
-        if (msg.toLowerCase().includes('invalid login')) {
+        if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials')) {
           msg = 'Incorrect email or password. Please try again.';
+        } else if (msg.toLowerCase().includes('email not confirmed')) {
+          msg = 'Please verify your email address before signing in.';
+        } else if (msg.toLowerCase().includes('user not found')) {
+          msg = 'No account found with this email. Please sign up first.';
+        } else if (msg.toLowerCase().includes('valid email')) {
+          msg = 'Please enter a valid email address.';
         }
         toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
       } else {
@@ -56,7 +62,6 @@ const Auth = () => {
         password,
         options: {
           data: { studio_name: studioName || 'My Studio' },
-          emailRedirectTo: window.location.origin,
         },
       });
 
@@ -64,11 +69,17 @@ const Auth = () => {
         let msg = error.message;
         if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
           msg = 'An account with this email already exists. Please sign in instead.';
+        } else if (msg.toLowerCase().includes('valid email')) {
+          msg = 'Please enter a valid email address.';
+        } else if (msg.toLowerCase().includes('password')) {
+          msg = 'Password does not meet the requirements.';
         }
         toast({ title: 'Signup failed', description: msg, variant: 'destructive' });
       } else if (data?.user?.identities?.length === 0) {
-        // Supabase returns a fake user with no identities for duplicate emails when email confirmations are on
         toast({ title: 'Account exists', description: 'An account with this email already exists. Please sign in.', variant: 'destructive' });
+      } else if (data?.session) {
+        toast({ title: 'Welcome to MirrorAI', description: 'Your studio has been created.' });
+        navigate('/');
       } else {
         toast({ title: 'Check your email', description: 'We sent you a confirmation link to verify your address.' });
       }
