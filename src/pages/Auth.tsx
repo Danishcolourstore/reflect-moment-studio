@@ -24,6 +24,7 @@ const Auth = ({ initialView }: AuthProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [studioName, setStudioName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -60,7 +61,6 @@ const Auth = ({ initialView }: AuthProps) => {
         }
       }
     } else {
-      // Signup — enforce password strength
       if (!allPasswordRulesPass) {
         toast({ title: 'Weak password', description: 'Please meet all password requirements.', variant: 'destructive' });
         setLoading(false);
@@ -71,7 +71,7 @@ const Auth = ({ initialView }: AuthProps) => {
         email,
         password,
         options: {
-          data: { studio_name: studioName || 'My Studio' },
+          data: { studio_name: studioName || 'My Studio', full_name: fullName || '' },
         },
       });
 
@@ -267,17 +267,30 @@ const Auth = ({ initialView }: AuthProps) => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <div className="space-y-1.5">
-                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">
-                  Studio Name
-                </Label>
-                <Input
-                  value={studioName}
-                  onChange={(e) => setStudioName(e.target.value)}
-                  placeholder="Your Studio Name"
-                  className="bg-background border-border h-10 text-[13px]"
-                />
-              </div>
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">
+                    Full Name
+                  </Label>
+                  <Input
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Your Name"
+                    className="bg-background border-border h-10 text-[13px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">
+                    Studio Name
+                  </Label>
+                  <Input
+                    value={studioName}
+                    onChange={(e) => setStudioName(e.target.value)}
+                    placeholder="Your Studio Name"
+                    className="bg-background border-border h-10 text-[13px]"
+                  />
+                </div>
+              </>
             )}
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">
@@ -330,7 +343,6 @@ const Auth = ({ initialView }: AuthProps) => {
                 </div>
               )}
 
-              {/* Password strength indicators for signup */}
               {!isLogin && password.length > 0 && (
                 <div className="space-y-1 pt-1">
                   {passwordRules.map((rule) => {

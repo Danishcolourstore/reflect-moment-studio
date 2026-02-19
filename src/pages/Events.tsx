@@ -12,15 +12,15 @@ import { format } from 'date-fns';
 
 interface Event {
   id: string;
-  name: string;
-  event_date: string;
-  event_type: string;
-  cover_url: string | null;
-  photo_count: number;
-  gallery_pin: string | null;
+  title: string;
+  slug: string;
+  date: string;
+  cover_photo_url: string | null;
+  gallery_password: string | null;
+  location: string | null;
 }
 
-const tabs = ['All', 'Wedding', 'Pre-Wedding', 'Engagement', 'Portrait', 'Family'];
+const tabs = ['All'];
 
 const Events = () => {
   const { user } = useAuth();
@@ -33,13 +33,13 @@ const Events = () => {
 
   const fetchEvents = async () => {
     if (!user) return;
-    const { data } = await supabase.from('events').select('*').eq('user_id', user.id).order('event_date', { ascending: false });
-    if (data) setEvents(data as Event[]);
+    const { data } = await (supabase.from('events').select('*') as any).eq('photographer_id', user.id).order('date', { ascending: false });
+    if (data) setEvents(data as unknown as Event[]);
   };
 
   useEffect(() => { fetchEvents(); }, [user]);
 
-  const filtered = activeTab === 'All' ? events : events.filter(e => e.event_type === activeTab);
+  const filtered = events;
 
   return (
     <DashboardLayout>
@@ -93,10 +93,10 @@ const Events = () => {
               onClick={() => navigate(`/dashboard/events/${event.id}`)}
             >
               <div className="relative aspect-square overflow-hidden bg-secondary">
-                {event.cover_url ? (
+                {event.cover_photo_url ? (
                   <img
-                    src={event.cover_url}
-                    alt={event.name}
+                    src={event.cover_photo_url}
+                    alt={event.title}
                     className="h-full w-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.02]"
                     loading="lazy"
                   />
@@ -125,9 +125,9 @@ const Events = () => {
               </div>
               {/* Minimal metadata — name + single line */}
               <div className="mt-1.5 px-px">
-                <h3 className="font-serif text-[13px] font-medium text-foreground leading-snug truncate">{event.name}</h3>
+                <h3 className="font-serif text-[13px] font-medium text-foreground leading-snug truncate">{event.title}</h3>
                 <p className="text-[10px] text-muted-foreground/60 mt-px">
-                  {format(new Date(event.event_date), 'MMM yyyy')}{event.photo_count > 0 ? ` · ${event.photo_count}` : ''}
+                  {format(new Date(event.date), 'MMM yyyy')}
                 </p>
               </div>
             </div>
@@ -137,7 +137,7 @@ const Events = () => {
 
       <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={fetchEvents} />
       {shareEvent && (
-        <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventId={shareEvent.id} eventName={shareEvent.name} pin={shareEvent.gallery_pin} />
+        <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventId={shareEvent.id} eventName={shareEvent.title} pin={shareEvent.gallery_password} />
       )}
     </DashboardLayout>
   );

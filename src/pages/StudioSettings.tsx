@@ -15,15 +15,15 @@ const StudioSettings = () => {
 
   useEffect(() => {
     if (user) {
-      supabase.from('profiles').select('studio_name').eq('user_id', user.id).single()
-        .then(({ data }) => { if (data) setStudioName(data.studio_name); });
+      (supabase.from('profiles').select('studio_name') as any).eq('id', user.id).single()
+        .then(({ data }: any) => { if (data) setStudioName(data.studio_name); });
     }
   }, [user]);
 
   const save = async () => {
     if (!user) return;
     setLoading(true);
-    const { error } = await supabase.from('profiles').update({ studio_name: studioName }).eq('user_id', user.id);
+    const { error } = await (supabase.from('profiles').update({ studio_name: studioName }) as any).eq('id', user.id);
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
     else toast({ title: 'Settings saved' });
     setLoading(false);

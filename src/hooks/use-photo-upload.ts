@@ -2,19 +2,12 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface UploadState {
-  /** Currently uploading */
   isUploading: boolean;
-  /** Total files in this batch */
   totalFiles: number;
-  /** Number completed (success + fail) */
   completedFiles: number;
-  /** Number successfully uploaded */
   successCount: number;
-  /** Files that failed */
   failedFiles: File[];
-  /** Upload finished (success or partial) */
   isDone: boolean;
-  /** Overall percentage 0-100 */
   percent: number;
 }
 
@@ -50,7 +43,6 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
       let success = 0;
       const failed: File[] = [];
 
-      // Process in parallel batches of 4 for speed
       const BATCH_SIZE = 4;
       for (let i = 0; i < files.length; i += BATCH_SIZE) {
         if (abortRef.current) break;
@@ -69,10 +61,10 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
             } = supabase.storage.from('gallery-photos').getPublicUrl(path);
             const { error: insertError } = await supabase.from('photos').insert({
               event_id: eventId,
-              user_id: userId,
-              url: publicUrl,
-              file_name: file.name,
-            });
+              photographer_id: userId,
+              storage_path: publicUrl,
+              filename: file.name,
+            } as any);
             if (insertError) throw insertError;
           }),
         );
@@ -93,15 +85,6 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
           failedFiles: [...failed],
           percent: Math.round((completed / files.length) * 100),
         }));
-      }
-
-      // Update photo count on event
-      const { count } = await supabase
-        .from('photos')
-        .select('*', { count: 'exact', head: true })
-        .eq('event_id', eventId);
-      if (count !== null) {
-        await supabase.from('events').update({ photo_count: count }).eq('id', eventId);
       }
 
       setState((prev) => ({

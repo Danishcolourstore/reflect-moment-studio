@@ -13,13 +13,11 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Event {
   id: string;
-  name: string;
-  event_date: string;
-  event_type: string;
-  cover_url: string | null;
-  photo_count: number;
-  views: number;
-  gallery_pin: string | null;
+  title: string;
+  date: string;
+  cover_photo_url: string | null;
+  gallery_password: string | null;
+  slug: string;
 }
 
 const Dashboard = () => {
@@ -30,11 +28,10 @@ const Dashboard = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const [shareEvent, setShareEvent] = useState<Event | null>(null);
 
-
   const fetchEvents = async () => {
     if (!user) return;
-    const { data } = await supabase.from('events').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-    if (data) setEvents(data as Event[]);
+    const { data } = await (supabase.from('events').select('*') as any).eq('photographer_id', user.id).order('created_at', { ascending: false });
+    if (data) setEvents(data as unknown as Event[]);
   };
 
   useEffect(() => { fetchEvents(); }, [user]);
@@ -44,9 +41,6 @@ const Dashboard = () => {
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
     else fetchEvents();
   };
-
-  const totalPhotos = events.reduce((s, e) => s + e.photo_count, 0);
-  const totalViews = events.reduce((s, e) => s + e.views, 0);
 
   return (
     <DashboardLayout>
@@ -59,9 +53,9 @@ const Dashboard = () => {
       {/* Stats strip — flush grid, luxury feel */}
       <div className="grid grid-cols-2 sm:grid-cols-4 border border-border divide-x divide-y sm:divide-y-0 divide-border overflow-hidden mb-10">
         <StatCard label="Events" value={events.length} icon={<CalendarDays className="h-4 w-4" />} />
-        <StatCard label="Photos" value={totalPhotos} icon={<Image className="h-4 w-4" />} />
+        <StatCard label="Photos" value="—" icon={<Image className="h-4 w-4" />} />
         <StatCard label="Storage" value="—" icon={<HardDrive className="h-4 w-4" />} />
-        <StatCard label="Views" value={totalViews} icon={<Eye className="h-4 w-4" />} />
+        <StatCard label="Views" value="—" icon={<Eye className="h-4 w-4" />} />
       </div>
 
       {/* Recent events header */}
@@ -89,10 +83,10 @@ const Dashboard = () => {
             <EventCard
               key={event.id}
               id={event.id}
-              name={event.name}
-              date={event.event_date}
-              photoCount={event.photo_count}
-              coverUrl={event.cover_url}
+              name={event.title}
+              date={event.date}
+              photoCount={0}
+              coverUrl={event.cover_photo_url}
               onShare={() => setShareEvent(event)}
               onEdit={() => navigate(`/dashboard/events/${event.id}`)}
               onDelete={() => deleteEvent(event.id)}
@@ -108,8 +102,8 @@ const Dashboard = () => {
           open={!!shareEvent}
           onOpenChange={() => setShareEvent(null)}
           eventId={shareEvent.id}
-          eventName={shareEvent.name}
-          pin={shareEvent.gallery_pin}
+          eventName={shareEvent.title}
+          pin={shareEvent.gallery_password}
         />
       )}
     </DashboardLayout>

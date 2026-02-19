@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (user) {
-      supabase.from('profiles').select('studio_name').eq('user_id', user.id).single()
+      (supabase.from('profiles').select('studio_name') as any).eq('id', user.id).single()
         .then(({ data }) => {
           if (data?.studio_name) setStudioName(data.studio_name);
         });

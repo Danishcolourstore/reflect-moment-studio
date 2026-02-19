@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SimpleEvent {
   id: string;
-  name: string;
+  title: string;
 }
 
 const UploadPage = () => {
@@ -20,9 +20,10 @@ const UploadPage = () => {
   const [uploadCount, setUploadCount] = useState(0);
 
   useEffect(() => {
-    supabase.from('events').select('id, name').order('created_at', { ascending: false })
-      .then(({ data }) => { if (data) setEvents(data); });
-  }, []);
+    if (!user) return;
+    (supabase.from('events').select('id, title') as any).eq('photographer_id', user.id).order('created_at', { ascending: false })
+      .then(({ data }: any) => { if (data) setEvents(data as SimpleEvent[]); });
+  }, [user]);
 
   const handleUpload = async (files: FileList) => {
     if (!user || !selectedEvent) {
@@ -38,14 +39,14 @@ const UploadPage = () => {
       const { error } = await supabase.storage.from('gallery-photos').upload(path, file);
       if (!error) {
         const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(path);
-        await supabase.from('photos').insert({ event_id: selectedEvent, user_id: user.id, url: publicUrl, file_name: file.name });
+        await supabase.from('photos').insert({
+          event_id: selectedEvent,
+          photographer_id: user.id,
+          storage_path: publicUrl,
+          filename: file.name,
+        } as any);
         count++;
       }
-    }
-
-    const { count: total } = await supabase.from('photos').select('*', { count: 'exact', head: true }).eq('event_id', selectedEvent);
-    if (total !== null) {
-      await supabase.from('events').update({ photo_count: total }).eq('id', selectedEvent);
     }
 
     setUploadCount(count);
@@ -63,7 +64,7 @@ const UploadPage = () => {
           <Select value={selectedEvent} onValueChange={setSelectedEvent}>
             <SelectTrigger className="bg-card border-border h-9 text-[13px]"><SelectValue placeholder="Choose an event..." /></SelectTrigger>
             <SelectContent>
-              {events.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+              {events.map(e => <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
