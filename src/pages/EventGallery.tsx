@@ -18,6 +18,7 @@ import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { usePhotoUpload } from '@/hooks/use-photo-upload';
 import { EventSettingsModal } from '@/components/EventSettingsModal';
 import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
+import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -373,16 +374,16 @@ const EventGallery = () => {
           <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo to add it here</p>
         </div>
       ) : displayPhotos.length > 0 ? (
-        layout === 'editorial-collage' ? (
-          <EditorialCollageGrid
-            photos={displayPhotos}
-            eventName={event.name}
-            isFavorite={isFavorite}
-            toggleFavorite={toggleGuestFavorite}
-            canDownload={canDownloadAnything}
-            isOwner={isOwner}
-            onDelete={deletePhoto}
-          />
+        ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
+          layout === 'editorial-collage' ? (
+            <EditorialCollageGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} />
+          ) : layout === 'pixieset' ? (
+            <PixiesetEditorialGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} />
+          ) : layout === 'cinematic' ? (
+            <CinematicMasonryGrid photos={displayPhotos} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} />
+          ) : (
+            <HighlightMosaicGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={deletePhoto} />
+          )
         ) : (
           <div className={gridClass}>
             {displayPhotos.map(photo => {

@@ -7,14 +7,17 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Loader2 } from 'lucide-react';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2 } from 'lucide-react';
 
 const LAYOUT_OPTIONS = [
-  { value: 'classic', label: 'Classic Square', icon: Grid2X2 },
+  { value: 'classic', label: 'Classic', icon: Grid2X2 },
   { value: 'masonry', label: 'Masonry', icon: LayoutGrid },
   { value: 'justified', label: 'Justified', icon: AlignJustify },
   { value: 'editorial', label: 'Editorial', icon: Newspaper },
   { value: 'editorial-collage', label: 'Collage', icon: GalleryHorizontalEnd },
+  { value: 'pixieset', label: 'Pixieset', icon: Sparkles },
+  { value: 'cinematic', label: 'Cinematic', icon: Clapperboard },
+  { value: 'mosaic', label: 'Mosaic', icon: LayoutDashboard },
 ] as const;
 
 const PREVIEW_HEIGHTS: Record<string, number[]> = {
@@ -23,6 +26,9 @@ const PREVIEW_HEIGHTS: Record<string, number[]> = {
   justified:  [2, 3, 2, 3, 2, 3],
   editorial:  [4, 3, 5, 3, 4, 3],
   'editorial-collage': [5, 2, 3, 1, 4, 2],
+  pixieset:   [5, 3, 3, 4, 3, 4],
+  cinematic:  [4, 2, 5, 2, 4, 3],
+  mosaic:     [5, 1, 3, 2, 4, 1],
 };
 
 interface EventData {
@@ -156,7 +162,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
           {/* Layout with live preview */}
           <div className="space-y-2">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Layout</Label>
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-4 gap-1.5">
               {LAYOUT_OPTIONS.map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}
