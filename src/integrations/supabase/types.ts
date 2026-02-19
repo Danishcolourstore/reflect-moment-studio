@@ -25,6 +25,7 @@ export type Database = {
           gallery_layout: string
           gallery_pin: string | null
           id: string
+          livesync_enabled: boolean
           name: string
           photo_count: number
           updated_at: string
@@ -41,6 +42,7 @@ export type Database = {
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string
+          livesync_enabled?: boolean
           name: string
           photo_count?: number
           updated_at?: string
@@ -57,6 +59,7 @@ export type Database = {
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string
+          livesync_enabled?: boolean
           name?: string
           photo_count?: number
           updated_at?: string
