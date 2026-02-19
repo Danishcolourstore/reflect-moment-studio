@@ -5,7 +5,7 @@ import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, Download, FolderDown, Loader2, PackageOpen, Lock } from 'lucide-react';
+import { Heart, Download, FolderDown, Loader2, PackageOpen, Lock, Share2 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -14,6 +14,7 @@ import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 
 interface Photo {
   id: string;
@@ -58,6 +59,7 @@ const PublicGallery = () => {
   const [filter, setFilter] = useState<GalleryFilter>('all');
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
+  const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
 
   const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(id);
 
@@ -297,13 +299,13 @@ const PublicGallery = () => {
           </div>
         ) : ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
           layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} />
+            <EditorialCollageGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => setSharePhoto(p)} />
           ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} />
+            <PixiesetEditorialGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => setSharePhoto(p)} />
           ) : layout === 'cinematic' ? (
-            <CinematicMasonryGrid photos={displayPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} />
+            <CinematicMasonryGrid photos={displayPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => setSharePhoto(p)} />
           ) : (
-            <HighlightMosaicGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} />
+            <HighlightMosaicGrid photos={displayPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownloadAnything} onShare={(p) => setSharePhoto(p)} />
           )
         ) : (
           <div className={gridClass}>
@@ -328,15 +330,19 @@ const PublicGallery = () => {
                     />
                   </button>
                   <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
-                  {/* Download overlay */}
-                  {canDownloadAnything && (
-                    <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  {/* Action overlay */}
+                  <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    <button onClick={() => setSharePhoto(photo)}
+                      className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                      <Share2 className="h-3 w-3" />
+                    </button>
+                    {canDownloadAnything && (
                       <a href={photo.url} download={photo.file_name ?? true}
                         className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                         <Download className="h-3 w-3" />
                       </a>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -349,6 +355,17 @@ const PublicGallery = () => {
             Powered by MirrorAI
           </p>
         </div>
+
+        {sharePhoto && (
+          <PhotoShareSheet
+            open={!!sharePhoto}
+            onOpenChange={() => setSharePhoto(null)}
+            photoUrl={sharePhoto.url}
+            photoName={sharePhoto.file_name}
+            eventName={event.name}
+            canDownload={canDownloadAnything}
+          />
+        )}
       </div>
     </div>
   );
