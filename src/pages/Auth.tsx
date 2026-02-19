@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
 
-type AuthView = 'landing' | 'login' | 'signup';
+type AuthView = 'landing' | 'login' | 'signup' | 'forgot';
 
 const Auth = () => {
   const [view, setView] = useState<AuthView>('landing');
@@ -15,6 +15,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [studioName, setStudioName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -43,6 +44,21 @@ const Auth = () => {
       } else {
         toast({ title: 'Check your email', description: 'We sent you a confirmation link.' });
       }
+    }
+    setLoading(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      setResetSent(true);
     }
     setLoading(false);
   };
@@ -83,6 +99,92 @@ const Auth = () => {
           <p className="text-[9px] text-muted-foreground/30 tracking-[0.08em] uppercase">
             Gallery delivery for photographers
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Forgot Password Screen ── */
+  if (view === 'forgot') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm space-y-10">
+          <div className="text-center space-y-2">
+            <h1 className="font-serif text-3xl font-semibold text-primary tracking-tight">MirrorAI</h1>
+            <div className="w-6 h-px bg-primary/30 mx-auto" />
+            <p className="text-[9px] text-muted-foreground/50 tracking-[0.2em] uppercase font-medium">
+              Reflections of Your Moments
+            </p>
+          </div>
+
+          <div className="bg-card border border-border p-8">
+            <div className="flex items-center gap-2.5 mb-6">
+              <button
+                onClick={() => setView('login')}
+                className="text-muted-foreground/40 hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+              <h2 className="font-serif text-xl font-semibold text-foreground">Reset Password</h2>
+            </div>
+
+            {resetSent ? (
+              <div className="text-center py-4 space-y-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="font-serif text-sm text-foreground font-medium">Check your email</p>
+                <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+                  We sent a password reset link to<br />
+                  <span className="text-foreground/80 font-medium">{email}</span>
+                </p>
+                <button
+                  onClick={() => { setView('login'); setResetSent(false); }}
+                  className="text-[11px] text-primary hover:text-primary/80 transition-colors mt-2"
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-[11px] text-muted-foreground/60 mb-4 leading-relaxed">
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">
+                      Email
+                    </Label>
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      required
+                      className="bg-background border-border h-10 text-[13px]"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium transition-all duration-200"
+                    disabled={loading}
+                  >
+                    {loading ? 'Please wait…' : 'Send Reset Link'}
+                  </Button>
+                </form>
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={() => setView('login')}
+                    className="text-[11px] text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -156,7 +258,18 @@ const Auth = () => {
                 required
                 minLength={6}
                 className="bg-background border-border h-10 text-[13px]"
-              />
+            />
+            {isLogin && (
+              <div className="text-right -mt-1">
+                <button
+                  type="button"
+                  onClick={() => { setView('forgot'); setResetSent(false); }}
+                  className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
             </div>
 
             <Button
