@@ -73,14 +73,14 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
     const finalSlug = slug || generateSlug(title);
 
     const { data: inserted, error } = await (supabase.from('events').insert({
-      photographer_id: user.id,
-      title,
+      user_id: user.id,
+      name: title,
       slug: finalSlug,
-      date: date,
+      event_date: date,
       location: location || null,
-      cover_photo_url: coverUrl,
-      gallery_password: password || null,
-      layout: galleryLayout,
+      cover_url: coverUrl,
+      gallery_pin: password || null,
+      gallery_layout: galleryLayout,
       downloads_enabled: downloadsEnabled,
     } as any).select('id').single() as any);
 

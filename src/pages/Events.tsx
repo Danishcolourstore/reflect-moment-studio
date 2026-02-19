@@ -12,11 +12,11 @@ import { format } from 'date-fns';
 
 interface Event {
   id: string;
-  title: string;
+  name: string;
   slug: string;
-  date: string;
-  cover_photo_url: string | null;
-  gallery_password: string | null;
+  event_date: string;
+  cover_url: string | null;
+  gallery_pin: string | null;
   location: string | null;
 }
 
@@ -35,8 +35,8 @@ const Events = () => {
     if (!user) return;
     const { data } = await (supabase
       .from('events')
-      .select('id, title, slug, date, location, cover_photo_url, gallery_password, created_at') as any)
-      .order('date', { ascending: false });
+      .select('id, name, slug, event_date, location, cover_url, gallery_pin, created_at') as any)
+      .order('event_date', { ascending: false });
     if (data) setEvents(data as unknown as Event[]);
   };
 
@@ -96,10 +96,10 @@ const Events = () => {
               onClick={() => navigate(`/dashboard/events/${event.id}`)}
             >
               <div className="relative aspect-square overflow-hidden bg-secondary">
-                {event.cover_photo_url ? (
+                {event.cover_url ? (
                   <img
-                    src={event.cover_photo_url}
-                    alt={event.title}
+                    src={event.cover_url}
+                    alt={event.name}
                     className="h-full w-full object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.02]"
                     loading="lazy"
                   />
@@ -128,9 +128,9 @@ const Events = () => {
               </div>
               {/* Minimal metadata — name + single line */}
               <div className="mt-1.5 px-px">
-                <h3 className="font-serif text-[13px] font-medium text-foreground leading-snug truncate">{event.title}</h3>
+                <h3 className="font-serif text-[13px] font-medium text-foreground leading-snug truncate">{event.name}</h3>
                 <p className="text-[10px] text-muted-foreground/60 mt-px">
-                  {format(new Date(event.date), 'MMM yyyy')}
+                  {format(new Date(event.event_date), 'MMM yyyy')}
                 </p>
               </div>
             </div>
@@ -140,7 +140,7 @@ const Events = () => {
 
       <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
       {shareEvent && (
-        <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.title} pin={shareEvent.gallery_password} />
+        <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.name} pin={shareEvent.gallery_pin} />
       )}
     </DashboardLayout>
   );

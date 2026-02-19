@@ -20,51 +20,69 @@ export type Database = {
           allow_full_download: boolean
           cover_url: string | null
           created_at: string
+          download_resolution: string
+          downloads_enabled: boolean
           event_date: string
           event_type: string
           gallery_layout: string
           gallery_pin: string | null
           id: string
+          is_published: boolean
           livesync_enabled: boolean
+          location: string | null
           name: string
           photo_count: number
+          slug: string
           updated_at: string
           user_id: string
           views: number
+          watermark_enabled: boolean
         }
         Insert: {
           allow_favorites_download?: boolean
           allow_full_download?: boolean
           cover_url?: string | null
           created_at?: string
+          download_resolution?: string
+          downloads_enabled?: boolean
           event_date?: string
           event_type?: string
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string
+          is_published?: boolean
           livesync_enabled?: boolean
+          location?: string | null
           name: string
           photo_count?: number
+          slug: string
           updated_at?: string
           user_id: string
           views?: number
+          watermark_enabled?: boolean
         }
         Update: {
           allow_favorites_download?: boolean
           allow_full_download?: boolean
           cover_url?: string | null
           created_at?: string
+          download_resolution?: string
+          downloads_enabled?: boolean
           event_date?: string
           event_type?: string
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string
+          is_published?: boolean
           livesync_enabled?: boolean
+          location?: string | null
           name?: string
           photo_count?: number
+          slug?: string
           updated_at?: string
           user_id?: string
           views?: number
+          watermark_enabled?: boolean
         }
         Relationships: []
       }
@@ -153,6 +171,7 @@ export type Database = {
           file_name: string | null
           id: string
           is_favorite: boolean
+          sort_order: number | null
           url: string
           user_id: string
         }
@@ -162,6 +181,7 @@ export type Database = {
           file_name?: string | null
           id?: string
           is_favorite?: boolean
+          sort_order?: number | null
           url: string
           user_id: string
         }
@@ -171,6 +191,7 @@ export type Database = {
           file_name?: string | null
           id?: string
           is_favorite?: boolean
+          sort_order?: number | null
           url?: string
           user_id?: string
         }

@@ -9,13 +9,13 @@ import { useGuestSession } from '@/hooks/use-guest-session';
 
 interface Event {
   id: string;
-  title: string;
+  name: string;
   slug: string;
-  date: string;
-  cover_photo_url: string | null;
-  gallery_password: string | null;
+  event_date: string;
+  cover_url: string | null;
+  gallery_pin: string | null;
   is_published: boolean;
-  layout: string;
+  gallery_layout: string;
   downloads_enabled: boolean;
 }
 
@@ -52,7 +52,7 @@ const GalleryCover = () => {
     setEvent(ev);
 
     // Check password gate
-    if (ev.gallery_password) {
+    if (ev.gallery_pin) {
       const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
       if (unlocked === 'true') {
         setPinRequired(false);
@@ -69,7 +69,7 @@ const GalleryCover = () => {
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!event) return;
-    if (pinInput === event.gallery_password) {
+    if (pinInput === event.gallery_pin) {
       sessionStorage.setItem(`unlocked_${event.id}`, 'true');
       setPinRequired(false);
       setPinError(false);
@@ -132,18 +132,18 @@ const GalleryCover = () => {
   /* ── Cover Page ── */
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4">
-      {event.cover_photo_url ? (
+      {event.cover_url ? (
         <div className="relative w-full max-w-2xl aspect-[3/2] overflow-hidden mb-8">
-          <img src={event.cover_photo_url} alt={event.title} className="h-full w-full object-cover" />
+          <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
         </div>
       ) : (
         <div className="w-full max-w-2xl aspect-[3/2] bg-secondary flex items-center justify-center mb-8">
           <Image className="h-12 w-12 text-muted-foreground/15" />
         </div>
       )}
-      <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-foreground text-center">{event.title}</h1>
+      <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-foreground text-center">{event.name}</h1>
       <p className="text-[12px] text-muted-foreground/60 tracking-wide mt-2">
-        {format(new Date(event.date), 'MMMM d, yyyy')}
+        {format(new Date(event.event_date), 'MMMM d, yyyy')}
       </p>
       <Button onClick={enterGallery}
         className="mt-8 bg-primary hover:bg-primary/85 text-primary-foreground h-10 px-8 text-[11px] tracking-[0.12em] uppercase font-medium">

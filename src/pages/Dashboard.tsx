@@ -13,14 +13,14 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Event {
   id: string;
-  title: string;
+  name: string;
   slug: string;
-  date: string;
+  event_date: string;
   location: string | null;
-  layout: string;
+  gallery_layout: string;
   is_published: boolean;
-  cover_photo_url: string | null;
-  gallery_password: string | null;
+  cover_url: string | null;
+  gallery_pin: string | null;
   created_at: string;
   photo_count: number;
 }
@@ -37,8 +37,8 @@ const Dashboard = () => {
     if (!user) return;
     const { data } = await (supabase
       .from('events')
-      .select('id, title, slug, date, location, layout, is_published, cover_photo_url, gallery_password, created_at, photos(count)') as any)
-      .order('date', { ascending: false });
+      .select('id, name, slug, event_date, location, gallery_layout, is_published, cover_url, gallery_pin, created_at, photos(count)') as any)
+      .order('event_date', { ascending: false });
     if (data) {
       const mapped = (data as any[]).map((e: any) => ({
         ...e,
@@ -97,10 +97,10 @@ const Dashboard = () => {
             <EventCard
               key={event.id}
               id={event.id}
-              name={event.title}
-              date={event.date}
+              name={event.name}
+              date={event.event_date}
               photoCount={event.photo_count}
-              coverUrl={event.cover_photo_url}
+              coverUrl={event.cover_url}
               onShare={() => setShareEvent(event)}
               onEdit={() => navigate(`/dashboard/events/${event.id}`)}
               onDelete={() => deleteEvent(event.id)}
@@ -116,8 +116,8 @@ const Dashboard = () => {
           open={!!shareEvent}
           onOpenChange={() => setShareEvent(null)}
           eventSlug={shareEvent.slug}
-          eventName={shareEvent.title}
-          pin={shareEvent.gallery_password}
+          eventName={shareEvent.name}
+          pin={shareEvent.gallery_pin}
         />
       )}
     </DashboardLayout>
