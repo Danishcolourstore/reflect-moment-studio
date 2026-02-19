@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ShareModal } from '@/components/ShareModal';
+import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 import { Button } from '@/components/ui/button';
 import {
   Heart, Download, Trash2, Share2, Upload, Search,
@@ -14,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
+import { usePhotoUpload } from '@/hooks/use-photo-upload';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -55,12 +57,14 @@ const EventGallery = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [shareOpen, setShareOpen] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [filter, setFilter] = useState<GalleryFilter>('all');
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { favoriteCount, toggleFavorite: toggleGuestFavorite, isFavorite } = useGuestFavorites(id);
+  const upload = usePhotoUpload(id, user?.id);
 
   const fetchEvent = useCallback(async () => {
     if (!id) return;
@@ -76,27 +80,33 @@ const EventGallery = () => {
 
   useEffect(() => { fetchEvent(); fetchPhotos(); }, [fetchEvent, fetchPhotos]);
 
-  const handleUpload = async (files: FileList) => {
-    if (!user || !id) return;
-    setUploading(true);
-    for (const file of Array.from(files)) {
-      const ext = file.name.split('.').pop();
-      const path = `${user.id}/${id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from('gallery-photos').upload(path, file);
-      if (!uploadError) {
-        const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(path);
-        await supabase.from('photos').insert({ event_id: id, user_id: user.id, url: publicUrl, file_name: file.name });
-      }
+  // Refresh photos when upload completes
+  useEffect(() => {
+    if (upload.isDone) {
+      fetchPhotos();
+      fetchEvent();
     }
-    const { count } = await supabase.from('photos').select('*', { count: 'exact', head: true }).eq('event_id', id);
-    if (count !== null) {
-      await supabase.from('events').update({ photo_count: count }).eq('id', id);
-    }
-    fetchPhotos();
-    fetchEvent();
-    setUploading(false);
-    toast({ title: 'Photos uploaded' });
-  };
+  }, [upload.isDone, fetchPhotos, fetchEvent]);
+
+  const handleFiles = useCallback((files: FileList | File[]) => {
+    const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (arr.length > 0) upload.uploadFiles(arr);
+  }, [upload]);
+
+  /* ── Drag & Drop ── */
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+  }, [handleFiles]);
 
   const deletePhoto = async (photo: Photo) => {
     await supabase.from('photos').delete().eq('id', photo.id);
@@ -165,32 +175,34 @@ const EventGallery = () => {
   /* Per-layout item classes */
   const getItemClass = (layout: string) => {
     switch (layout) {
-      case 'classic':
-        return 'relative aspect-square overflow-hidden';
-      case 'justified':
-        return 'relative h-[200px] sm:h-[240px] flex-grow';
-      case 'editorial':
-        return 'relative mb-4 break-inside-avoid';
-      default: // masonry
-        return 'relative mb-[3px] break-inside-avoid';
+      case 'classic': return 'relative aspect-square overflow-hidden';
+      case 'justified': return 'relative h-[200px] sm:h-[240px] flex-grow';
+      case 'editorial': return 'relative mb-4 break-inside-avoid';
+      default: return 'relative mb-[3px] break-inside-avoid';
     }
   };
 
   const getImgClass = (layout: string) => {
     switch (layout) {
-      case 'classic':
-        return 'h-full w-full object-cover';
-      case 'justified':
-        return 'h-full w-auto object-cover';
-      case 'editorial':
-        return 'w-full block';
-      default:
-        return 'w-full block';
+      case 'classic': return 'h-full w-full object-cover';
+      case 'justified': return 'h-full w-auto object-cover';
+      case 'editorial': return 'w-full block';
+      default: return 'w-full block';
     }
   };
 
   return (
     <DashboardLayout>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => e.target.files && handleFiles(e.target.files)}
+      />
+
       {/* Cover banner */}
       {event.cover_url && (
         <div className="relative -mx-5 -mt-6 mb-5 h-32 sm:h-40 overflow-hidden sm:-mx-8 lg:-mx-10">
@@ -199,7 +211,7 @@ const EventGallery = () => {
         </div>
       )}
 
-      {/* Header */}
+      {/* Header with persistent Upload button */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-5 gap-2">
         <div>
           <h1 className="font-serif text-xl sm:text-[22px] font-semibold text-foreground leading-tight">{event.name}</h1>
@@ -210,16 +222,29 @@ const EventGallery = () => {
         <div className="flex items-center gap-1">
           {isOwner && (
             <>
-              <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-gold hover:bg-gold/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
-                <Share2 className="mr-1 h-3 w-3" />Share
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={upload.isUploading}
+                variant="ghost"
+                size="sm"
+                className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]"
+              >
+                <Upload className="mr-1 h-3 w-3" />Upload
               </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground/60 hover:bg-muted text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
-                <Search className="mr-1 h-3 w-3" />Face Search
+              <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
+                <Share2 className="mr-1 h-3 w-3" />Share
               </Button>
             </>
           )}
         </div>
       </div>
+
+      {/* Upload Progress Panel */}
+      <UploadProgressPanel
+        {...upload}
+        onRetry={upload.retry}
+        onDismiss={upload.dismiss}
+      />
 
       {/* Gallery utility bar */}
       <div className="flex items-center justify-between mb-4 border-b border-border">
@@ -259,7 +284,7 @@ const EventGallery = () => {
                 variant="ghost"
                 size="sm"
                 disabled={downloading}
-                className="text-gold hover:bg-gold/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px"
+                className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px"
               >
                 {downloading ? (
                   <>
@@ -292,32 +317,55 @@ const EventGallery = () => {
         )}
       </div>
 
-      {/* Upload strip */}
-      {isOwner && (
-        <label className="mb-5 flex cursor-pointer items-center justify-center gap-2 border border-dashed border-border py-3 px-5 transition-colors hover:border-gold/50 hover:bg-secondary/30">
-          <Upload className="h-3.5 w-3.5 text-muted-foreground/40" />
-          <p className="text-[11px] text-muted-foreground/50">{uploading ? 'Uploading...' : 'Drop photos here or click to upload'}</p>
-          <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => e.target.files && handleUpload(e.target.files)} disabled={uploading} />
-        </label>
+      {/* Drag & Drop upload zone (owner only, when no photos or explicit) */}
+      {isOwner && photos.length === 0 && !upload.isUploading && (
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`mb-5 flex flex-col items-center justify-center border border-dashed py-16 transition-colors cursor-pointer ${
+            isDragging ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/40'
+          }`}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="h-6 w-6 text-muted-foreground/25 mb-3" />
+          <p className="text-[12px] text-muted-foreground/50 font-medium">Drop photos here to upload</p>
+          <p className="mt-1 text-[10px] text-muted-foreground/35">or</p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2.5 text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
+            onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+          >
+            Select Photos
+          </Button>
+        </div>
+      )}
+
+      {/* Inline drop zone when photos exist */}
+      {isOwner && photos.length > 0 && (
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`mb-5 flex items-center justify-center gap-2 border border-dashed py-3 px-5 transition-colors cursor-pointer ${
+            isDragging ? 'border-primary bg-primary/5' : 'border-border/50 hover:border-primary/30'
+          }`}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="h-3.5 w-3.5 text-muted-foreground/30" />
+          <p className="text-[11px] text-muted-foreground/40">Drop photos here or click to upload more</p>
+        </div>
       )}
 
       {/* Photo Grid — dynamic layout */}
-      {displayPhotos.length === 0 ? (
+      {displayPhotos.length === 0 && photos.length > 0 && filter === 'favorites' ? (
         <div className="py-24 text-center">
-          {filter === 'favorites' ? (
-            <>
-              <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
-              <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
-              <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo to add it here</p>
-            </>
-          ) : (
-            <>
-              <ImageIcon className="mx-auto h-8 w-8 text-muted-foreground/12" />
-              <p className="mt-2 font-serif text-sm text-muted-foreground/50">No photos yet</p>
-            </>
-          )}
+          <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
+          <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
+          <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo to add it here</p>
         </div>
-      ) : (
+      ) : displayPhotos.length > 0 ? (
         <div className={gridClass}>
           {displayPhotos.map(photo => {
             const fav = isFavorite(photo.id);
@@ -362,6 +410,16 @@ const EventGallery = () => {
             );
           })}
         </div>
+      ) : null}
+
+      {/* Mobile sticky upload button */}
+      {isOwner && !upload.isUploading && !upload.isDone && (
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="fixed bottom-20 right-4 z-40 sm:hidden bg-primary text-primary-foreground rounded-full w-12 h-12 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+        >
+          <Upload className="h-5 w-5" />
+        </button>
       )}
 
       {event && (
