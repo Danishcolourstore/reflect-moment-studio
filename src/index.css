@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -18,11 +18,11 @@
     --primary: 35 32% 41%;
     --primary-foreground: 30 33% 97%;
 
-    --secondary: 30 20% 91%;
+    --secondary: 30 15% 93%;
     --secondary-foreground: 24 25% 8%;
 
-    --muted: 30 20% 91%;
-    --muted-foreground: 27 16% 36%;
+    --muted: 30 15% 93%;
+    --muted-foreground: 27 12% 46%;
 
     --accent: 29 42% 59%;
     --accent-foreground: 0 0% 100%;
@@ -30,11 +30,11 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 24% 88%;
-    --input: 30 24% 88%;
+    --border: 30 18% 90%;
+    --input: 30 18% 90%;
     --ring: 29 42% 59%;
 
-    --radius: 0.5rem;
+    --radius: 0.375rem;
 
     --sidebar-background: 24 22% 9%;
     --sidebar-foreground: 30 33% 94%;
@@ -89,9 +89,27 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Cormorant Garamond', serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* Pixieset-style scrollbar — thin, unobtrusive */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.3);
   }
 }

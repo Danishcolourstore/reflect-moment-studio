@@ -86,74 +86,87 @@ const EventGallery = () => {
     fetchEvent();
   };
 
-  if (!event) return <DashboardLayout><p className="text-muted-foreground">Loading...</p></DashboardLayout>;
+  if (!event) {
+    return (
+      <DashboardLayout>
+        <div className="py-20 text-center">
+          <p className="text-[11px] text-muted-foreground/50 uppercase tracking-widest">Loading gallery...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const isOwner = user?.id === event.user_id;
 
   return (
     <DashboardLayout>
-      {/* Minimal banner — Pic-Time style thin strip */}
+      {/* Cover banner — slim Pic-Time strip */}
       {event.cover_url && (
-        <div className="relative -mx-4 -mt-8 mb-6 h-36 sm:h-44 overflow-hidden sm:-mx-6 lg:-mx-8">
+        <div className="relative -mx-5 -mt-6 mb-5 h-32 sm:h-40 overflow-hidden sm:-mx-8 lg:-mx-10">
           <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         </div>
       )}
 
-      {/* Header — clean, minimal chrome */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-6 gap-3">
+      {/* Header — clean typography, minimal actions */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-5 gap-2">
         <div>
-          <h1 className="font-serif text-2xl font-semibold text-foreground leading-tight">{event.name}</h1>
-          <p className="mt-0.5 text-[12px] text-muted-foreground tracking-wide">
+          <h1 className="font-serif text-xl sm:text-[22px] font-semibold text-foreground leading-tight">{event.name}</h1>
+          <p className="text-[11px] text-muted-foreground/60 tracking-wide mt-0.5">
             {format(new Date(event.event_date), 'MMMM d, yyyy')} · {event.photo_count} photos
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {isOwner && (
-            <>
-              <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-gold hover:bg-gold/10 text-xs h-8">
-                <Share2 className="mr-1.5 h-3.5 w-3.5" />Share
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:bg-muted text-xs h-8">
-                <Search className="mr-1.5 h-3.5 w-3.5" />Face Search
-              </Button>
-            </>
-          )}
-        </div>
+        {isOwner && (
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-gold hover:bg-gold/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
+              <Share2 className="mr-1 h-3 w-3" />Share
+            </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground/60 hover:bg-muted text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
+              <Search className="mr-1 h-3 w-3" />Face Search
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Upload zone — compact */}
+      {/* Upload strip — inline, minimal */}
       {isOwner && (
-        <label className="mb-6 flex cursor-pointer items-center justify-center gap-2 border border-dashed border-gold/30 bg-transparent py-4 px-6 transition-colors hover:border-gold/60 hover:bg-muted/20">
-          <Upload className="h-4 w-4 text-gold/50" />
-          <p className="text-xs text-muted-foreground">{uploading ? 'Uploading...' : 'Drop photos here or click to upload'}</p>
+        <label className="mb-5 flex cursor-pointer items-center justify-center gap-2 border border-dashed border-border py-3 px-5 transition-colors hover:border-gold/50 hover:bg-secondary/30">
+          <Upload className="h-3.5 w-3.5 text-muted-foreground/40" />
+          <p className="text-[11px] text-muted-foreground/50">{uploading ? 'Uploading...' : 'Drop photos here or click to upload'}</p>
           <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => e.target.files && handleUpload(e.target.files)} disabled={uploading} />
         </label>
       )}
 
-      {/* Photo Grid — tight justified masonry, no borders, no rounded corners */}
+      {/* Photo Grid — high-density masonry, Pixieset proofing style */}
       {photos.length === 0 ? (
-        <div className="py-20 text-center">
-          <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground/15" />
-          <p className="mt-3 font-serif text-base text-muted-foreground">No photos yet</p>
+        <div className="py-24 text-center">
+          <ImageIcon className="mx-auto h-8 w-8 text-muted-foreground/12" />
+          <p className="mt-2 font-serif text-sm text-muted-foreground/50">No photos yet</p>
         </div>
       ) : (
-        <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-1">
+        <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-[3px]">
           {photos.map(photo => (
-            <div key={photo.id} className="group relative mb-1 break-inside-avoid">
+            <div key={photo.id} className="group relative mb-[3px] break-inside-avoid">
               <img src={photo.url} alt="" className="w-full block" loading="lazy" />
-              {/* Minimal hover — small icons bottom-right, Pixieset style */}
-              <div className="absolute inset-0 bg-foreground/0 transition-colors duration-200 group-hover:bg-foreground/20">
-                <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                  <button onClick={() => toggleFavorite(photo)} className={`rounded-full p-1.5 backdrop-blur-sm ${photo.is_favorite ? 'bg-destructive/90 text-destructive-foreground' : 'bg-card/80 text-foreground'}`}>
-                    <Heart className="h-3.5 w-3.5" fill={photo.is_favorite ? 'currentColor' : 'none'} />
+              {/* Hover — subtle darken + bottom-right icons only */}
+              <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/15">
+                <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  <button
+                    onClick={() => toggleFavorite(photo)}
+                    className={`rounded-full p-1 backdrop-blur-sm transition ${
+                      photo.is_favorite
+                        ? 'bg-destructive/80 text-destructive-foreground'
+                        : 'bg-card/70 text-foreground/80 hover:bg-card/90'
+                    }`}
+                  >
+                    <Heart className="h-3 w-3" fill={photo.is_favorite ? 'currentColor' : 'none'} />
                   </button>
-                  <a href={photo.url} download className="rounded-full bg-card/80 backdrop-blur-sm p-1.5 text-foreground">
-                    <Download className="h-3.5 w-3.5" />
+                  <a href={photo.url} download className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                    <Download className="h-3 w-3" />
                   </a>
                   {isOwner && (
-                    <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/80 backdrop-blur-sm p-1.5 text-destructive">
-                      <Trash2 className="h-3.5 w-3.5" />
+                    <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-destructive hover:bg-card/90 transition">
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   )}
                 </div>

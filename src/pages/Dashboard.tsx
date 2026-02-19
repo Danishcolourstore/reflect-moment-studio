@@ -55,32 +55,40 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="font-serif text-2xl font-semibold text-foreground">{greeting()}, {studioName}</h1>
+      {/* Greeting — editorial, understated */}
+      <div className="mb-5">
+        <h1 className="font-serif text-[22px] font-semibold text-foreground">{greeting()}, {studioName}</h1>
       </div>
 
-      <div className="grid grid-cols-2 gap-px sm:grid-cols-4 mb-10 border border-border overflow-hidden">
-        <StatCard label="Total Events" value={events.length} icon={<CalendarDays className="h-5 w-5" />} />
-        <StatCard label="Total Photos" value={totalPhotos} icon={<Image className="h-5 w-5" />} />
-        <StatCard label="Storage Used" value="—" icon={<HardDrive className="h-5 w-5" />} />
-        <StatCard label="Gallery Views" value={totalViews} icon={<Eye className="h-5 w-5" />} />
+      {/* Stats strip — flush grid, Pixieset dashboard style */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 border border-border divide-x divide-border overflow-hidden mb-8">
+        <StatCard label="Events" value={events.length} icon={<CalendarDays className="h-4 w-4" />} />
+        <StatCard label="Photos" value={totalPhotos} icon={<Image className="h-4 w-4" />} />
+        <StatCard label="Storage" value="—" icon={<HardDrive className="h-4 w-4" />} />
+        <StatCard label="Views" value={totalViews} icon={<Eye className="h-4 w-4" />} />
       </div>
 
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-serif text-xl font-semibold text-foreground">Recent Events</h2>
-        <Button onClick={() => setCreateOpen(true)} size="sm" className="bg-primary hover:bg-gold-hover text-primary-foreground text-xs h-8">
-          <Plus className="mr-1.5 h-3.5 w-3.5" />New Event
+      {/* Recent events header */}
+      <div className="flex items-baseline justify-between mb-4">
+        <h2 className="font-serif text-lg font-medium text-foreground">Recent Events</h2>
+        <Button
+          onClick={() => setCreateOpen(true)}
+          variant="ghost"
+          size="sm"
+          className="text-gold hover:bg-gold/10 text-[11px] h-7 px-3 uppercase tracking-[0.06em] font-medium"
+        >
+          <Plus className="mr-1 h-3 w-3" />New Event
         </Button>
       </div>
 
       {events.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-12 text-center">
-          <Image className="mx-auto h-12 w-12 text-muted-foreground/30" />
-          <p className="mt-4 font-serif text-lg text-muted-foreground">No events yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Create your first event to get started.</p>
+        <div className="border border-dashed border-border py-16 text-center">
+          <Image className="mx-auto h-10 w-10 text-muted-foreground/20" />
+          <p className="mt-3 font-serif text-sm text-muted-foreground">No events yet</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground/60">Create your first event to get started.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
           {events.slice(0, 6).map((event) => (
             <EventCard
               key={event.id}
