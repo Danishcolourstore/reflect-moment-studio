@@ -74,9 +74,10 @@ const EventGallery = () => {
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [favStats, setFavStats] = useState<{ totalFavs: number; uniqueGuests: number }>({ totalFavs: 0, uniqueGuests: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { favoriteCount, toggleFavorite: toggleGuestFavorite, isFavorite } = useGuestFavorites(id);
+  const { favoriteCount, toggleFavorite: toggleGuestFavorite, isFavorite } = useGuestFavorites(id, null);
   const upload = usePhotoUpload(id, user?.id);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
 
@@ -99,7 +100,20 @@ const EventGallery = () => {
     if (data) setPhotos(data as unknown as Photo[]);
   }, [id]);
 
-  useEffect(() => { fetchEvent(); fetchPhotos(); }, [fetchEvent, fetchPhotos]);
+  const fetchFavStats = useCallback(async () => {
+    if (!id) return;
+    const { data } = await (supabase
+      .from('favorites' as any)
+      .select('id, guest_session_id') as any)
+      .eq('event_id', id);
+    if (data) {
+      const rows = data as any[];
+      const uniqueGuests = new Set(rows.map((r: any) => r.guest_session_id)).size;
+      setFavStats({ totalFavs: rows.length, uniqueGuests });
+    }
+  }, [id]);
+
+  useEffect(() => { fetchEvent(); fetchPhotos(); fetchFavStats(); }, [fetchEvent, fetchPhotos, fetchFavStats]);
 
   // Refresh photos & show success toast when upload completes
   useEffect(() => {
@@ -224,6 +238,9 @@ const EventGallery = () => {
           <h1 className="font-serif text-xl sm:text-[22px] font-semibold text-foreground leading-tight">{event.title}</h1>
           <p className="text-[11px] text-muted-foreground/60 tracking-wide mt-0.5">
             {format(new Date(event.date), 'MMMM d, yyyy')} · {photos.length} photos
+            {favStats.totalFavs > 0 && (
+              <> · <Heart className="inline h-3 w-3 text-primary" fill="hsl(var(--primary))" /> {favStats.totalFavs} favorites from {favStats.uniqueGuests} guest{favStats.uniqueGuests !== 1 ? 's' : ''}</>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-1">
