@@ -5,9 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Check, X } from 'lucide-react';
 
 type AuthView = 'landing' | 'login' | 'signup' | 'forgot';
+
+const passwordRules = [
+  { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
+  { label: 'One uppercase letter', test: (p: string) => /[A-Z]/.test(p) },
+  { label: 'One number', test: (p: string) => /\d/.test(p) },
+];
 
 const Auth = () => {
   const [view, setView] = useState<AuthView>('landing');
@@ -16,8 +22,11 @@ const Auth = () => {
   const [studioName, setStudioName] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const allPasswordRulesPass = passwordRules.every((r) => r.test(password));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,12 +35,23 @@ const Auth = () => {
     if (view === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        let msg = error.message;
+        if (msg.toLowerCase().includes('invalid login')) {
+          msg = 'Incorrect email or password. Please try again.';
+        }
+        toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
       } else {
         navigate('/');
       }
     } else {
-      const { error } = await supabase.auth.signUp({
+      // Signup — enforce password strength
+      if (!allPasswordRulesPass) {
+        toast({ title: 'Weak password', description: 'Please meet all password requirements.', variant: 'destructive' });
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -39,10 +59,18 @@ const Auth = () => {
           emailRedirectTo: window.location.origin,
         },
       });
+
       if (error) {
-        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        let msg = error.message;
+        if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
+          msg = 'An account with this email already exists. Please sign in instead.';
+        }
+        toast({ title: 'Signup failed', description: msg, variant: 'destructive' });
+      } else if (data?.user?.identities?.length === 0) {
+        // Supabase returns a fake user with no identities for duplicate emails when email confirmations are on
+        toast({ title: 'Account exists', description: 'An account with this email already exists. Please sign in.', variant: 'destructive' });
       } else {
-        toast({ title: 'Check your email', description: 'We sent you a confirmation link.' });
+        toast({ title: 'Check your email', description: 'We sent you a confirmation link to verify your address.' });
       }
     }
     setLoading(false);
@@ -66,9 +94,8 @@ const Auth = () => {
   /* ── Landing Screen ── */
   if (view === 'landing') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-4">
         <div className="w-full max-w-xs text-center space-y-14">
-          {/* Brand mark */}
           <div className="space-y-3">
             <h1 className="font-serif text-5xl font-semibold text-primary tracking-tight leading-none">
               MirrorAI
@@ -79,7 +106,6 @@ const Auth = () => {
             </p>
           </div>
 
-          {/* CTA buttons */}
           <div className="space-y-3">
             <Button
               onClick={() => setView('login')}
@@ -107,7 +133,7 @@ const Auth = () => {
   /* ── Forgot Password Screen ── */
   if (view === 'forgot') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm space-y-10">
           <div className="text-center space-y-2">
             <h1 className="font-serif text-3xl font-semibold text-primary tracking-tight">MirrorAI</h1>
@@ -194,7 +220,7 @@ const Auth = () => {
   const isLogin = view === 'login';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 pb-safe">
       <div className="w-full max-w-sm space-y-10">
         {/* Logo */}
         <div className="text-center space-y-2">
@@ -205,7 +231,6 @@ const Auth = () => {
           </p>
         </div>
 
-        {/* Auth card — borderless, editorial */}
         <div className="bg-card border border-border p-8">
           <div className="flex items-center gap-2.5 mb-6">
             <button
@@ -243,6 +268,7 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
+                autoComplete="email"
                 className="bg-background border-border h-10 text-[13px]"
               />
             </div>
@@ -250,32 +276,65 @@ const Auth = () => {
               <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">
                 Password
               </Label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={6}
-                className="bg-background border-border h-10 text-[13px]"
-            />
-            {isLogin && (
-              <div className="text-right -mt-1">
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  minLength={isLogin ? 6 : 8}
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
+                  className="bg-background border-border h-10 text-[13px] pr-10"
+                />
                 <button
                   type="button"
-                  onClick={() => { setView('forgot'); setResetSent(false); }}
-                  className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors"
+                  tabIndex={-1}
                 >
-                  Forgot password?
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-            )}
+
+              {isLogin && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => { setView('forgot'); setResetSent(false); }}
+                    className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+
+              {/* Password strength indicators for signup */}
+              {!isLogin && password.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  {passwordRules.map((rule) => {
+                    const passes = rule.test(password);
+                    return (
+                      <div key={rule.label} className="flex items-center gap-1.5">
+                        {passes ? (
+                          <Check className="h-3 w-3 text-primary" />
+                        ) : (
+                          <X className="h-3 w-3 text-muted-foreground/30" />
+                        )}
+                        <span className={`text-[10px] ${passes ? 'text-primary' : 'text-muted-foreground/40'}`}>
+                          {rule.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium mt-2 transition-all duration-200"
-              disabled={loading}
+              disabled={loading || (!isLogin && !allPasswordRulesPass && password.length > 0)}
             >
               {loading ? 'Please wait…' : isLogin ? 'Sign In' : 'Create Account'}
             </Button>
@@ -283,7 +342,7 @@ const Auth = () => {
 
           <div className="mt-6 text-center">
             <button
-              onClick={() => setView(isLogin ? 'signup' : 'login')}
+              onClick={() => { setView(isLogin ? 'signup' : 'login'); setPassword(''); setShowPassword(false); }}
               className="text-[11px] text-primary hover:text-primary/80 transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
