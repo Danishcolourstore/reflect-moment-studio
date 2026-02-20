@@ -36,6 +36,7 @@ const Events = () => {
     const { data } = await (supabase
       .from('events')
       .select('id, name, slug, event_date, location, cover_url, gallery_pin, created_at') as any)
+      .eq('user_id', user.id)
       .order('event_date', { ascending: false });
     if (data) setEvents(data as unknown as Event[]);
   };
