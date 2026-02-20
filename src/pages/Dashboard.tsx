@@ -38,6 +38,7 @@ const Dashboard = () => {
     const { data } = await (supabase
       .from('events')
       .select('id, name, slug, event_date, location, gallery_layout, is_published, cover_url, gallery_pin, created_at, photos(count)') as any)
+      .eq('user_id', user.id)
       .order('event_date', { ascending: false });
     if (data) {
       const mapped = (data as any[]).map((e: any) => ({

@@ -64,10 +64,11 @@ const Auth = ({ initialView }: AuthProps) => {
 
   const redirectAfterAuth = useCallback(() => {
     const redirect = sessionStorage.getItem('redirectAfterLogin');
-    if (redirect) {
+    if (redirect && redirect.startsWith('/dashboard')) {
       sessionStorage.removeItem('redirectAfterLogin');
       navigate(redirect);
     } else {
+      sessionStorage.removeItem('redirectAfterLogin');
       navigate('/dashboard');
     }
   }, [navigate]);
