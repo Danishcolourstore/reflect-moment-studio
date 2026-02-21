@@ -12,14 +12,30 @@ export default function AdminLayout() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (loading) return;
-    if (!user) { navigate('/login'); return; }
+    if (loading) {
+      console.log('[AdminLayout] Auth still loading, waiting...');
+      return;
+    }
+    if (!user) {
+      console.log('[AdminLayout] No user, redirecting to /login');
+      navigate('/login');
+      return;
+    }
 
-    (supabase.from('user_roles' as any).select('role').eq('user_id', user.id).eq('role', 'admin') as any)
-      .then(({ data }: any) => {
+    console.log('[AdminLayout] Checking admin role for user:', user.id, user.email);
+
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .then(({ data, error }) => {
+        console.log('[AdminLayout] user_roles query result:', { data, error });
         if (data && data.length > 0) {
+          console.log('[AdminLayout] Admin role confirmed');
           setAuthorized(true);
         } else {
+          console.log('[AdminLayout] No admin role found, redirecting to /dashboard');
           navigate('/dashboard');
         }
         setChecking(false);
