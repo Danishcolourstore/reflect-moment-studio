@@ -1,4 +1,4 @@
-import { Image, Share2, Pencil, Trash2 } from 'lucide-react';
+import { Image, Share2, Pencil, Trash2, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface EventCardProps {
@@ -7,13 +7,14 @@ interface EventCardProps {
   date: string;
   photoCount: number;
   coverUrl: string | null;
+  favCount?: number;
   onShare: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onClick: () => void;
 }
 
-export function EventCard({ name, date, photoCount, coverUrl, onShare, onEdit, onDelete, onClick }: EventCardProps) {
+export function EventCard({ name, date, photoCount, coverUrl, favCount, onShare, onEdit, onDelete, onClick }: EventCardProps) {
   return (
     <div className="group cursor-pointer animate-fade-in" onClick={onClick}>
       {/* Square cover — Pixieset album grid style */}
@@ -58,8 +59,13 @@ export function EventCard({ name, date, photoCount, coverUrl, onShare, onEdit, o
       {/* Minimal metadata strip */}
       <div className="mt-2 px-px">
         <h3 className="font-serif text-sm font-medium text-foreground leading-snug truncate">{name}</h3>
-        <p className="text-[10px] text-muted-foreground/70 mt-px">
+        <p className="text-[10px] text-muted-foreground/70 mt-px flex items-center gap-1">
           {format(new Date(date), 'MMM d, yyyy')}{photoCount > 0 ? ` · ${photoCount}` : ''}
+          {(favCount ?? 0) > 0 && (
+            <span className="inline-flex items-center gap-0.5 ml-1">
+              <Heart className="h-2.5 w-2.5 text-primary" fill="hsl(var(--primary))" />{favCount}
+            </span>
+          )}
         </p>
       </div>
     </div>
