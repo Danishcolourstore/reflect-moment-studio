@@ -30,42 +30,56 @@ export function GuestFavoritesTab({ eventId, eventName }: GuestFavoritesTabProps
 
   const fetchFavoritedPhotos = useCallback(async () => {
     setLoading(true);
-    // Get all favorites for this event grouped by photo_id
-    const { data: favRows } = await (supabase
-      .from('favorites' as any)
-      .select('photo_id') as any)
-      .eq('event_id', eventId);
+    try {
+      // Query favorites with a join to photos to get photo data in one query
+      const { data: favRows, error } = await supabase
+        .from('favorites')
+        .select('photo_id, photos(id, url, file_name)')
+        .eq('event_id', eventId);
 
-    if (!favRows || (favRows as any[]).length === 0) {
-      setPhotos([]);
-      setLoading(false);
-      return;
-    }
+      if (error) {
+        console.error('Favorites query error:', error);
+        setPhotos([]);
+        setLoading(false);
+        return;
+      }
 
-    // Count favorites per photo
-    const countMap = new Map<string, number>();
-    for (const row of favRows as any[]) {
-      countMap.set(row.photo_id, (countMap.get(row.photo_id) ?? 0) + 1);
-    }
+      if (!favRows || favRows.length === 0) {
+        setPhotos([]);
+        setLoading(false);
+        return;
+      }
 
-    const photoIds = Array.from(countMap.keys());
+      // Count favorites per photo
+      const countMap = new Map<string, number>();
+      const photoMap = new Map<string, { id: string; url: string; file_name: string | null }>();
 
-    // Fetch photo details
-    const { data: photoRows } = await (supabase
-      .from('photos')
-      .select('id, url, file_name') as any)
-      .in('id', photoIds);
+      for (const row of favRows as any[]) {
+        const photoId = row.photo_id;
+        countMap.set(photoId, (countMap.get(photoId) ?? 0) + 1);
+        if (row.photos && !photoMap.has(photoId)) {
+          photoMap.set(photoId, {
+            id: row.photos.id,
+            url: row.photos.url,
+            file_name: row.photos.file_name,
+          });
+        }
+      }
 
-    if (photoRows) {
-      const mapped: FavoritedPhoto[] = (photoRows as any[]).map((p: any) => ({
-        id: p.id,
-        url: p.url,
-        file_name: p.file_name,
-        fav_count: countMap.get(p.id) ?? 0,
-      }));
+      const mapped: FavoritedPhoto[] = [];
+      for (const [photoId, count] of countMap) {
+        const photo = photoMap.get(photoId);
+        if (photo) {
+          mapped.push({ ...photo, fav_count: count });
+        }
+      }
+
       // Sort by most favorited first
       mapped.sort((a, b) => b.fav_count - a.fav_count);
       setPhotos(mapped);
+    } catch (err) {
+      console.error('Failed to fetch favorites:', err);
+      setPhotos([]);
     }
     setLoading(false);
   }, [eventId]);
@@ -92,7 +106,9 @@ export function GuestFavoritesTab({ eventId, eventName }: GuestFavoritesTabProps
 
   const downloadSinglePhoto = async (photo: FavoritedPhoto) => {
     try {
-      const res = await fetch(photo.url);
+      const { data: signed } = await supabase.storage.from('gallery-photos').createSignedUrl(photo.url, 60);
+      if (!signed?.signedUrl) { toast({ title: 'Download failed' }); return; }
+      const res = await fetch(signed.signedUrl);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -120,7 +136,9 @@ export function GuestFavoritesTab({ eventId, eventName }: GuestFavoritesTabProps
       for (let i = 0; i < selectedPhotos.length; i++) {
         setDownloadProgress(`${i + 1} / ${selectedPhotos.length}`);
         const p = selectedPhotos[i];
-        const res = await fetch(p.url);
+        const { data: signed } = await supabase.storage.from('gallery-photos').createSignedUrl(p.url, 120);
+        if (!signed?.signedUrl) continue;
+        const res = await fetch(signed.signedUrl);
         const blob = await res.blob();
         folder?.file(p.file_name ?? `photo-${i + 1}.jpg`, blob);
       }
@@ -133,6 +151,39 @@ export function GuestFavoritesTab({ eventId, eventName }: GuestFavoritesTabProps
       setDownloading(false);
       setDownloadProgress('');
     }
+  };
+
+  const downloadAllFavorites = async () => {
+    if (photos.length === 0) return;
+    setSelected(new Set(photos.map(p => p.id)));
+    // Small delay so state updates before triggering
+    setTimeout(() => {
+      const doDownload = async () => {
+        setDownloading(true);
+        try {
+          const zip = new JSZip();
+          const folder = zip.folder(`${eventName} - Guest Favorites`);
+          for (let i = 0; i < photos.length; i++) {
+            setDownloadProgress(`${i + 1} / ${photos.length}`);
+            const p = photos[i];
+            const { data: signed } = await supabase.storage.from('gallery-photos').createSignedUrl(p.url, 120);
+            if (!signed?.signedUrl) continue;
+            const res = await fetch(signed.signedUrl);
+            const blob = await res.blob();
+            folder?.file(p.file_name ?? `photo-${i + 1}.jpg`, blob);
+          }
+          const content = await zip.generateAsync({ type: 'blob' });
+          saveAs(content, `${eventName} - Guest Favorites.zip`);
+          toast({ title: `${photos.length} photos downloaded` });
+        } catch {
+          toast({ title: 'Download failed', variant: 'destructive' });
+        } finally {
+          setDownloading(false);
+          setDownloadProgress('');
+        }
+      };
+      doDownload();
+    }, 0);
   };
 
   if (loading) {
@@ -174,21 +225,32 @@ export function GuestFavoritesTab({ eventId, eventName }: GuestFavoritesTabProps
           )}
         </div>
 
-        {selected.size > 0 && (
+        <div className="flex items-center gap-2">
+          {selected.size > 0 && (
+            <Button
+              onClick={downloadSelectedAsZip}
+              disabled={downloading}
+              variant="ghost"
+              size="sm"
+              className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]"
+            >
+              {downloading ? (
+                <><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>
+              ) : (
+                <><PackageOpen className="mr-1 h-3 w-3" />Download Selected ({selected.size})</>
+              )}
+            </Button>
+          )}
           <Button
-            onClick={downloadSelectedAsZip}
+            onClick={downloadAllFavorites}
             disabled={downloading}
             variant="ghost"
             size="sm"
             className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]"
           >
-            {downloading ? (
-              <><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>
-            ) : (
-              <><PackageOpen className="mr-1 h-3 w-3" />Download Selected as ZIP</>
-            )}
+            <PackageOpen className="mr-1 h-3 w-3" />Download All Favorites
           </Button>
-        )}
+        </div>
       </div>
 
       {/* Photo grid */}
