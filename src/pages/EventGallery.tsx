@@ -26,6 +26,8 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 import { GuestSelectionsViewer } from '@/components/GuestSelectionsViewer';
+import { GuestFavoritesTab } from '@/components/GuestFavoritesTab';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 interface Photo {
   id: string;
@@ -341,150 +343,242 @@ const EventGallery = () => {
         </div>
       )}
 
-      {/* Gallery utility bar */}
-      <div className="flex items-center justify-between mb-4 border-b border-border">
-        <div className="flex items-center gap-0">
-          <button onClick={() => setFilter('all')}
-            className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
-              filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
-            }`}>All Photos</button>
-          <button onClick={() => setFilter('favorites')}
-            className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
-              filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
-            }`}>
-            <Heart className="h-3 w-3" /> Favorites
-            {favoriteCount > 0 && (
-              <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favoriteCount}</span>
-            )}
-          </button>
-        </div>
-
-        {canDownloadAnything && photos.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" disabled={downloading}
-                className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
-                {downloading ? (<><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>) : (<><FolderDown className="mr-1 h-3 w-3" />Download</>)}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[180px]">
-              {canDownloadAll && (
-                <DropdownMenuItem onClick={downloadAll} className="text-[12px] gap-2">
-                  <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
-                </DropdownMenuItem>
+      {/* Tabs: Photos | Guest Favorites */}
+      {isOwner ? (
+        <Tabs defaultValue="photos" className="w-full">
+          <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start h-auto p-0 gap-0">
+            <TabsTrigger value="photos"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/50 data-[state=active]:text-foreground">
+              All Photos
+            </TabsTrigger>
+            <TabsTrigger value="favorites"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/50 data-[state=active]:text-foreground flex items-center gap-1.5">
+              <Heart className="h-3 w-3" /> Guest Favorites
+              {favStats.totalFavs > 0 && (
+                <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favStats.totalFavs}</span>
               )}
-              {favoriteCount > 0 && (
-                <DropdownMenuItem onClick={downloadFavorites} className="text-[12px] gap-2">
-                  <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Drag & Drop upload zone (owner only) */}
-      {isOwner && photos.length === 0 && (
-        <div
-          onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
-          className={`mb-5 flex flex-col items-center justify-center border border-dashed py-16 transition-colors cursor-pointer ${
-            isDragging ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/40'
-          } ${upload.isUploading ? 'opacity-50 pointer-events-none' : ''}`}
-          onClick={() => !upload.isUploading && fileInputRef.current?.click()}>
-          <Upload className="h-6 w-6 text-muted-foreground/25 mb-3" />
-          <p className="text-[12px] text-muted-foreground/50 font-medium">
-            {upload.isUploading ? 'Upload in progress…' : 'Drop photos here to upload'}
-          </p>
-          {!upload.isUploading && !zipUpload.isUploading && !zipUpload.isExtracting && (
-            <>
-              <p className="mt-1 text-[10px] text-muted-foreground/35">or</p>
-              <div className="flex gap-2 mt-2.5">
-                <Button variant="outline" size="sm"
-                  className="text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
-                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
-                  Select Photos
-                </Button>
-                <Button variant="outline" size="sm"
-                  className="text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
-                  onClick={(e) => { e.stopPropagation(); zipInputRef.current?.click(); }}>
-                  <FileArchive className="mr-1 h-3 w-3" /> Upload ZIP
-                </Button>
+          <TabsContent value="photos" className="mt-4">
+            {/* Owner filter bar */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-0">
+                <button onClick={() => setFilter('all')}
+                  className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
+                    filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
+                  }`}>All</button>
+                <button onClick={() => setFilter('favorites')}
+                  className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
+                    filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
+                  }`}>
+                  <Heart className="h-3 w-3" /> My Favorites
+                  {favoriteCount > 0 && (
+                    <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favoriteCount}</span>
+                  )}
+                </button>
               </div>
-            </>
-          )}
-        </div>
-      )}
 
-      {/* Inline drop zone when photos exist */}
-      {isOwner && photos.length > 0 && !upload.isUploading && (
-        <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
-          className={`mb-5 flex items-center justify-center gap-2 border border-dashed py-3 px-5 transition-colors cursor-pointer ${
-            isDragging ? 'border-primary bg-primary/5' : 'border-border/50 hover:border-primary/30'
-          }`} onClick={() => fileInputRef.current?.click()}>
-          <Upload className="h-3.5 w-3.5 text-muted-foreground/30" />
-          <p className="text-[11px] text-muted-foreground/40">Drop photos here or click to upload more</p>
-        </div>
-      )}
+              {canDownloadAnything && photos.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" disabled={downloading}
+                      className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
+                      {downloading ? (<><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>) : (<><FolderDown className="mr-1 h-3 w-3" />Download</>)}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-[180px]">
+                    {canDownloadAll && (
+                      <DropdownMenuItem onClick={downloadAll} className="text-[12px] gap-2">
+                        <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
+                      </DropdownMenuItem>
+                    )}
+                    {favoriteCount > 0 && (
+                      <DropdownMenuItem onClick={downloadFavorites} className="text-[12px] gap-2">
+                        <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
 
-      {/* Photo Grid — dynamic layout */}
-      {displayPhotos.length === 0 && photos.length > 0 && filter === 'favorites' ? (
-        <div className="py-24 text-center">
-          <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
-          <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
-          <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo to add it here</p>
-        </div>
-      ) : displayPhotos.length > 0 ? (
-        ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
-          layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
-          ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
-          ) : layout === 'cinematic' ? (
-            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
-          ) : (
-            <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
-          )
-        ) : (
-          <div className={gridClass}>
-            {displayPhotos.map(photo => {
-              const fav = isFavorite(photo.id);
-              return (
-                <div key={photo.id} className={`group ${getItemClass(layout)}`}>
-                  <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
-                  <button onClick={() => { toggleGuestFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to selections.' }); }}
-                    className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
-                    <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
-                      fill={fav ? 'hsl(var(--primary))' : 'none'} />
-                  </button>
-                  <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
-                  <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                    <button onClick={() => setSharePhoto(photo)}
-                      className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
-                      <Share2 className="h-3 w-3" />
-                    </button>
-                    {canDownloadAnything && (
-                      <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
-                        <Download className="h-3 w-3" />
-                      </a>
-                    )}
-                    {isOwner && (
-                      <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-destructive hover:bg-card/90 transition">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
+            {/* Drag & Drop upload zone (owner only, empty state) */}
+            {photos.length === 0 && (
+              <div
+                onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
+                className={`mb-5 flex flex-col items-center justify-center border border-dashed py-16 transition-colors cursor-pointer ${
+                  isDragging ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/40'
+                } ${upload.isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                onClick={() => !upload.isUploading && fileInputRef.current?.click()}>
+                <Upload className="h-6 w-6 text-muted-foreground/25 mb-3" />
+                <p className="text-[12px] text-muted-foreground/50 font-medium">
+                  {upload.isUploading ? 'Upload in progress…' : 'Drop photos here to upload'}
+                </p>
+                {!upload.isUploading && !zipUpload.isUploading && !zipUpload.isExtracting && (
+                  <>
+                    <p className="mt-1 text-[10px] text-muted-foreground/35">or</p>
+                    <div className="flex gap-2 mt-2.5">
+                      <Button variant="outline" size="sm"
+                        className="text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
+                        onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                        Select Photos
+                      </Button>
+                      <Button variant="outline" size="sm"
+                        className="text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
+                        onClick={(e) => { e.stopPropagation(); zipInputRef.current?.click(); }}>
+                        <FileArchive className="mr-1 h-3 w-3" /> Upload ZIP
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Inline drop zone when photos exist */}
+            {photos.length > 0 && !upload.isUploading && (
+              <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
+                className={`mb-5 flex items-center justify-center gap-2 border border-dashed py-3 px-5 transition-colors cursor-pointer ${
+                  isDragging ? 'border-primary bg-primary/5' : 'border-border/50 hover:border-primary/30'
+                }`} onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-3.5 w-3.5 text-muted-foreground/30" />
+                <p className="text-[11px] text-muted-foreground/40">Drop photos here or click to upload more</p>
+              </div>
+            )}
+
+            {/* Photo Grid */}
+            {displayPhotos.length === 0 && photos.length > 0 && filter === 'favorites' ? (
+              <div className="py-24 text-center">
+                <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
+                <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
+                <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo to add it here</p>
+              </div>
+            ) : displayPhotos.length > 0 ? (
+              ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
+                layout === 'editorial-collage' ? (
+                  <EditorialCollageGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
+                ) : layout === 'pixieset' ? (
+                  <PixiesetEditorialGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
+                ) : layout === 'cinematic' ? (
+                  <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
+                ) : (
+                  <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
+                )
+              ) : (
+                <div className={gridClass}>
+                  {displayPhotos.map(photo => {
+                    const fav = isFavorite(photo.id);
+                    return (
+                      <div key={photo.id} className={`group ${getItemClass(layout)}`}>
+                        <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
+                        <button onClick={() => { toggleGuestFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to selections.' }); }}
+                          className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
+                          <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
+                            fill={fav ? 'hsl(var(--primary))' : 'none'} />
+                        </button>
+                        <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
+                        <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                          <button onClick={() => setSharePhoto(photo)}
+                            className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                            <Share2 className="h-3 w-3" />
+                          </button>
+                          {canDownloadAnything && (
+                            <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                              <Download className="h-3 w-3" />
+                            </a>
+                          )}
+                          {isOwner && (
+                            <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-destructive hover:bg-card/90 transition">
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-        )
-      ) : null}
+              )
+            ) : null}
 
-      {/* Guest Selections */}
-      {isOwner && event && (
-        <div className="mt-8 border-t border-border pt-6">
-          <GuestSelectionsViewer eventId={event.id} />
-        </div>
+            {/* Guest Selections */}
+            {event && (
+              <div className="mt-8 border-t border-border pt-6">
+                <GuestSelectionsViewer eventId={event.id} />
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="favorites" className="mt-4">
+            <GuestFavoritesTab eventId={event.id} eventName={event.name} />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <>
+          {/* Non-owner view: just show the gallery without tabs */}
+          <div className="flex items-center justify-between mb-4 border-b border-border">
+            <div className="flex items-center gap-0">
+              <button onClick={() => setFilter('all')}
+                className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
+                  filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
+                }`}>All Photos</button>
+              <button onClick={() => setFilter('favorites')}
+                className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
+                  filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
+                }`}>
+                <Heart className="h-3 w-3" /> Favorites
+                {favoriteCount > 0 && (
+                  <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favoriteCount}</span>
+                )}
+              </button>
+            </div>
+            {canDownloadAnything && photos.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" disabled={downloading}
+                    className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
+                    {downloading ? (<><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>) : (<><FolderDown className="mr-1 h-3 w-3" />Download</>)}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[180px]">
+                  {canDownloadAll && (
+                    <DropdownMenuItem onClick={downloadAll} className="text-[12px] gap-2">
+                      <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
+                    </DropdownMenuItem>
+                  )}
+                  {favoriteCount > 0 && (
+                    <DropdownMenuItem onClick={downloadFavorites} className="text-[12px] gap-2">
+                      <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
+          {displayPhotos.length === 0 && photos.length > 0 && filter === 'favorites' ? (
+            <div className="py-24 text-center">
+              <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
+              <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
+            </div>
+          ) : displayPhotos.length > 0 ? (
+            <div className={gridClass}>
+              {displayPhotos.map(photo => {
+                const fav = isFavorite(photo.id);
+                return (
+                  <div key={photo.id} className={`group ${getItemClass(layout)}`}>
+                    <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
+                    <button onClick={() => toggleGuestFavorite(photo.id)}
+                      className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
+                      <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
+                        fill={fav ? 'hsl(var(--primary))' : 'none'} />
+                    </button>
+                    <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </>
       )}
 
       {/* Mobile sticky upload button */}

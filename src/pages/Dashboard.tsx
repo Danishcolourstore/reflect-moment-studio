@@ -23,6 +23,7 @@ interface Event {
   gallery_pin: string | null;
   created_at: string;
   photo_count: number;
+  fav_count: number;
 }
 
 const Dashboard = () => {
@@ -41,11 +42,31 @@ const Dashboard = () => {
       .eq('user_id', user.id)
       .order('event_date', { ascending: false });
     if (data) {
-      const mapped = (data as any[]).map((e: any) => ({
+      const eventList = (data as any[]).map((e: any) => ({
         ...e,
         photo_count: e.photos?.[0]?.count ?? 0,
+        fav_count: 0,
       }));
-      setEvents(mapped as Event[]);
+
+      // Fetch favorite counts for all events
+      const eventIds = eventList.map((e: any) => e.id);
+      if (eventIds.length > 0) {
+        const { data: favData } = await (supabase
+          .from('favorites' as any)
+          .select('event_id') as any)
+          .in('event_id', eventIds);
+        if (favData) {
+          const countMap = new Map<string, number>();
+          for (const row of favData as any[]) {
+            countMap.set(row.event_id, (countMap.get(row.event_id) ?? 0) + 1);
+          }
+          for (const evt of eventList) {
+            evt.fav_count = countMap.get(evt.id) ?? 0;
+          }
+        }
+      }
+
+      setEvents(eventList as Event[]);
     }
   };
 
@@ -102,6 +123,7 @@ const Dashboard = () => {
               date={event.event_date}
               photoCount={event.photo_count}
               coverUrl={event.cover_url}
+              favCount={event.fav_count}
               onShare={() => setShareEvent(event)}
               onEdit={() => navigate(`/dashboard/events/${event.id}`)}
               onDelete={() => deleteEvent(event.id)}
