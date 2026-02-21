@@ -78,7 +78,8 @@ export function EventCard({ name, slug, date, photoCount, coverUrl, favCount, on
       <div className="mt-2 px-px">
         <h3 className="font-serif text-sm font-medium text-foreground leading-snug truncate">{name}</h3>
         <p className="text-[10px] text-muted-foreground/70 mt-px flex items-center gap-1">
-          {format(new Date(date), 'MMM d, yyyy')}{photoCount > 0 ? ` · ${photoCount}` : ''}
+          {format(new Date(date), 'MMM d, yyyy')}
+          {photoCount > 0 && <span className="ml-0.5">· {photoCount} photos</span>}
           {(favCount ?? 0) > 0 && (
             <span className="inline-flex items-center gap-0.5 ml-1">
               <Heart className="h-2.5 w-2.5 text-primary" fill="hsl(var(--primary))" />{favCount}

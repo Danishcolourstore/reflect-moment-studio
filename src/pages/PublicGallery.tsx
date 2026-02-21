@@ -7,7 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Play } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Play, Camera, Link2 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -84,6 +85,7 @@ const PublicGallery = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [slideshowOpen, setSlideshowOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
 
   const { sessionId } = useGuestSession(event?.id);
   const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
@@ -115,6 +117,9 @@ const PublicGallery = () => {
     }
 
     setEvent(ev);
+
+    // Set dynamic page title
+    document.title = `${ev.name} — MirrorAI`;
 
     if (ev.watermark_enabled && ev.user_id) {
       const { data: profile } = await (supabase
@@ -229,10 +234,14 @@ const PublicGallery = () => {
     }
   };
 
-  // Apply filters
+  // Apply filters and sorting
   let filteredPhotos = filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
   if (sectionFilter) {
     filteredPhotos = filteredPhotos.filter(p => p.section === sectionFilter);
+  }
+  // Sort: latest first reverses the default sort_order ascending
+  if (sortOrder === 'latest') {
+    filteredPhotos = [...filteredPhotos].reverse();
   }
   const displayPhotos = filteredPhotos;
 
@@ -276,20 +285,32 @@ const PublicGallery = () => {
         <div className="relative h-[60vh] sm:h-[65vh] overflow-hidden">
           <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          <div className="absolute bottom-0 inset-x-0 px-6 sm:px-10 pb-10 sm:pb-14">
-            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-medium text-white leading-[1.1] tracking-tight">{event.name}</h1>
-            <p className="text-[13px] sm:text-[14px] text-white/50 tracking-wide mt-3 font-sans">
-              {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
-            </p>
+           <div className="absolute bottom-0 inset-x-0 px-6 sm:px-10 pb-10 sm:pb-14 flex items-end justify-between">
+            <div>
+              <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-medium text-white leading-[1.1] tracking-tight">{event.name}</h1>
+              <p className="text-[13px] sm:text-[14px] text-white/50 tracking-wide mt-3 font-sans">
+                {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
+              </p>
+            </div>
+            <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: 'Link copied!' }); }}
+              className="shrink-0 min-w-[44px] min-h-[44px] rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/25 transition-all duration-200 mb-1">
+              <Link2 className="h-5 w-5" />
+            </button>
           </div>
         </div>
       ) : (
         <div className="relative h-[35vh] sm:h-[40vh] flex items-end" style={{ backgroundColor: '#1C1612' }}>
-          <div className="px-6 sm:px-10 pb-10 sm:pb-14">
-            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-medium text-white leading-[1.1] tracking-tight">{event.name}</h1>
-            <p className="text-[13px] sm:text-[14px] text-white/40 tracking-wide mt-3 font-sans">
-              {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
-            </p>
+          <div className="px-6 sm:px-10 pb-10 sm:pb-14 flex items-end justify-between w-full">
+            <div>
+              <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-medium text-white leading-[1.1] tracking-tight">{event.name}</h1>
+              <p className="text-[13px] sm:text-[14px] text-white/40 tracking-wide mt-3 font-sans">
+                {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
+              </p>
+            </div>
+            <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: 'Link copied!' }); }}
+              className="shrink-0 min-w-[44px] min-h-[44px] rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/25 transition-all duration-200 mb-1">
+              <Link2 className="h-5 w-5" />
+            </button>
           </div>
         </div>
       )}
@@ -353,7 +374,18 @@ const PublicGallery = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            {/* Sort dropdown */}
+            <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as 'latest' | 'oldest')}>
+              <SelectTrigger className="h-8 min-h-[44px] sm:min-h-0 w-[130px] text-[10px] uppercase tracking-[0.06em] border-border/50 rounded-full bg-transparent">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="latest" className="text-[11px]">Latest First</SelectItem>
+                <SelectItem value="oldest" className="text-[11px]">Oldest First</SelectItem>
+              </SelectContent>
+            </Select>
+
             {canDownload && photos.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -395,9 +427,15 @@ const PublicGallery = () => {
             <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
             <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo</p>
           </div>
+        ) : displayPhotos.length === 0 && photos.length === 0 ? (
+          <div className="py-32 text-center">
+            <Camera className="mx-auto h-10 w-10 text-muted-foreground/15" />
+            <p className="mt-4 font-display text-xl text-muted-foreground/50 italic">Photos coming soon</p>
+            <p className="mt-1.5 text-[11px] text-muted-foreground/35 tracking-wide">Check back shortly</p>
+          </div>
         ) : displayPhotos.length === 0 ? (
           <div className="py-24 text-center">
-            <p className="font-serif text-sm text-muted-foreground/50">No photos in this gallery yet</p>
+            <p className="font-serif text-sm text-muted-foreground/50">No photos match this filter</p>
           </div>
         ) : ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
           layout === 'editorial-collage' ? (
