@@ -35,6 +35,7 @@ export type Database = {
           name: string
           photo_count: number
           selection_mode_enabled: boolean
+          selection_token: string | null
           slug: string
           updated_at: string
           user_id: string
@@ -61,6 +62,7 @@ export type Database = {
           name: string
           photo_count?: number
           selection_mode_enabled?: boolean
+          selection_token?: string | null
           slug: string
           updated_at?: string
           user_id: string
@@ -87,6 +89,7 @@ export type Database = {
           name?: string
           photo_count?: number
           selection_mode_enabled?: boolean
+          selection_token?: string | null
           slug?: string
           updated_at?: string
           user_id?: string

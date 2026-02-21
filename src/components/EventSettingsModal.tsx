@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink } from 'lucide-react';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink, RefreshCw, Link2 } from 'lucide-react';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -44,6 +44,7 @@ interface EventData {
   watermark_enabled: boolean;
   is_published: boolean;
   selection_mode_enabled?: boolean;
+  selection_token?: string | null;
 }
 
 interface EventSettingsModalProps {
@@ -65,6 +66,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [watermarkEnabled, setWatermarkEnabled] = useState(event.watermark_enabled);
   const [isPublished, setIsPublished] = useState(event.is_published);
   const [selectionModeEnabled, setSelectionModeEnabled] = useState(event.selection_mode_enabled ?? false);
+  const [selectionToken, setSelectionToken] = useState(event.selection_token ?? null);
   const [saving, setSaving] = useState(false);
 
   // Sync when event changes
@@ -78,6 +80,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setWatermarkEnabled(event.watermark_enabled);
     setIsPublished(event.is_published);
     setSelectionModeEnabled(event.selection_mode_enabled ?? false);
+    setSelectionToken(event.selection_token ?? null);
   }, [event]);
 
   const handleSave = async () => {
@@ -234,6 +237,54 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
               </div>
               <Switch checked={selectionModeEnabled} onCheckedChange={setSelectionModeEnabled} />
             </div>
+          </div>
+
+          {/* Client Proofing — Selection Link */}
+          <div className="pt-2 border-t border-border space-y-3">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium flex items-center gap-1.5">
+              <Link2 className="h-3 w-3" /> Client Proofing
+            </p>
+            {selectionToken ? (
+              <div className="space-y-2">
+                <div className="flex gap-1.5">
+                  <Input
+                    value={`${window.location.origin}/event/${event.slug}/gallery?mode=select&token=${selectionToken}`}
+                    readOnly
+                    className="bg-background h-9 text-[10px] font-mono"
+                  />
+                  <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/event/${event.slug}/gallery?mode=select&token=${selectionToken}`);
+                    toast({ title: 'Link copied!' });
+                  }}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                <Button variant="outline" size="sm" className="text-[10px] h-7 uppercase tracking-[0.06em]" onClick={async () => {
+                  const newToken = crypto.randomUUID();
+                  const { error } = await supabase.from('events').update({ selection_token: newToken } as any).eq('id', event.id);
+                  if (!error) {
+                    setSelectionToken(newToken);
+                    toast({ title: 'Link regenerated', description: 'Old selection link is now invalid.' });
+                  }
+                }}>
+                  <RefreshCw className="mr-1 h-3 w-3" /> Regenerate Link
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-[11px] text-muted-foreground/50">No selection link generated yet.</p>
+                <Button variant="outline" size="sm" className="text-[10px] h-8 uppercase tracking-[0.06em]" onClick={async () => {
+                  const newToken = crypto.randomUUID();
+                  const { error } = await supabase.from('events').update({ selection_token: newToken } as any).eq('id', event.id);
+                  if (!error) {
+                    setSelectionToken(newToken);
+                    toast({ title: 'Selection link generated' });
+                  }
+                }}>
+                  Generate Selection Link
+                </Button>
+              </div>
+            )}
           </div>
 
           <Button

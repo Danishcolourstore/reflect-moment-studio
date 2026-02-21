@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { useGuestSession } from '@/hooks/use-guest-session';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Play, Camera, Link2 } from 'lucide-react';
+import { Download, FolderDown, Loader2, PackageOpen, Share2, Play, Camera, Link2, Heart, X } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -44,6 +44,7 @@ interface Event {
   download_requires_password: boolean;
   download_password: string | null;
   selection_mode_enabled: boolean;
+  selection_token: string | null;
 }
 
 function toGridPhoto(p: Photo, isFav: boolean) {
@@ -63,6 +64,7 @@ type GalleryFilter = 'all' | 'favorites';
 
 const PublicGallery = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -86,6 +88,10 @@ const PublicGallery = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [slideshowOpen, setSlideshowOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
+
+  // Selection mode state
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectionBannerDismissed, setSelectionBannerDismissed] = useState(false);
 
   const { sessionId } = useGuestSession(event?.id);
   const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
@@ -121,6 +127,28 @@ const PublicGallery = () => {
     // Set dynamic page title
     document.title = `${ev.name} — MirrorAI`;
 
+    // Check selection mode via URL params
+    const mode = searchParams.get('mode');
+    const token = searchParams.get('token');
+    if (mode === 'select' && token) {
+      if (token === ev.selection_token) {
+        setSelectionMode(true);
+        localStorage.setItem(`selection_token_${ev.id}`, token);
+      } else {
+        // Check localStorage for previously verified token
+        const storedToken = localStorage.getItem(`selection_token_${ev.id}`);
+        if (storedToken === ev.selection_token) {
+          setSelectionMode(true);
+        }
+      }
+    } else {
+      // No URL params — check localStorage
+      const storedToken = localStorage.getItem(`selection_token_${ev.id}`);
+      if (storedToken && storedToken === ev.selection_token) {
+        setSelectionMode(true);
+      }
+    }
+
     if (ev.watermark_enabled && ev.user_id) {
       const { data: profile } = await (supabase
         .from('profiles')
@@ -135,7 +163,7 @@ const PublicGallery = () => {
       .order('sort_order', { ascending: true, nullsFirst: false });
     if (photoData) setPhotos(photoData as unknown as Photo[]);
     setLoading(false);
-  }, [slug, navigate]);
+  }, [slug, navigate, searchParams]);
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
 
@@ -235,11 +263,10 @@ const PublicGallery = () => {
   };
 
   // Apply filters and sorting
-  let filteredPhotos = filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
+  let filteredPhotos = selectionMode && filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
   if (sectionFilter) {
     filteredPhotos = filteredPhotos.filter(p => p.section === sectionFilter);
   }
-  // Sort: latest first reverses the default sort_order ascending
   if (sortOrder === 'latest') {
     filteredPhotos = [...filteredPhotos].reverse();
   }
@@ -250,7 +277,6 @@ const PublicGallery = () => {
   const gridPhotos = displayPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
   const showWatermark = event.watermark_enabled && !!watermarkText;
 
-  // Determine which sections exist in photos
   const availableSections = SECTIONS.filter(s => photos.some(p => p.section === s));
 
   const openLightbox = (photoId: string) => {
@@ -280,6 +306,18 @@ const PublicGallery = () => {
 
   return (
     <div className="min-h-[100dvh]" style={{ backgroundColor: '#FAFAF8' }}>
+      {/* Selection mode banner */}
+      {selectionMode && !selectionBannerDismissed && (
+        <div className="sticky top-0 z-50 bg-foreground/95 backdrop-blur-md text-background px-5 py-3 flex items-center justify-between">
+          <p className="font-display italic text-[13px] sm:text-[14px] tracking-wide">
+            You're in selection mode — heart your favourite photos
+          </p>
+          <button onClick={() => setSelectionBannerDismissed(true)} className="text-background/60 hover:text-background transition-colors p-1">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* Hero cover — tall, cinematic */}
       {event.cover_url ? (
         <div className="relative h-[60vh] sm:h-[65vh] overflow-hidden">
@@ -319,7 +357,7 @@ const PublicGallery = () => {
         {/* Actions row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
           <div className="flex items-center gap-3">
-            {favoriteCount > 0 && (
+            {selectionMode && favoriteCount > 0 && (
               <div className="flex items-center gap-1.5 text-[12px] text-primary font-medium">
                 <Heart className="h-3.5 w-3.5" fill="hsl(var(--primary))" />
                 <span>{favoriteCount} Selected</span>
@@ -336,7 +374,7 @@ const PublicGallery = () => {
           </div>
         </div>
 
-        {/* Section pills — elegant thin outlined */}
+        {/* Section pills */}
         {availableSections.length > 0 && (
           <div className="flex items-center gap-2.5 mb-6 overflow-x-auto pb-1 scrollbar-hide">
             <button onClick={() => setSectionFilter(null)}
@@ -363,15 +401,17 @@ const PublicGallery = () => {
               className={`min-h-[44px] px-3 py-2.5 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
                 filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground'
               }`}>All Photos</button>
-            <button onClick={() => { setFilter('favorites'); }}
-              className={`min-h-[44px] px-3 py-2.5 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
-                filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground'
-              }`}>
-              <Heart className="h-3 w-3" /> Favorites
-              {favoriteCount > 0 && (
-                <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favoriteCount}</span>
-              )}
-            </button>
+            {selectionMode && (
+              <button onClick={() => { setFilter('favorites'); }}
+                className={`min-h-[44px] px-3 py-2.5 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
+                  filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground'
+                }`}>
+                <Heart className="h-3 w-3" /> Selections
+                {favoriteCount > 0 && (
+                  <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favoriteCount}</span>
+                )}
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -398,9 +438,9 @@ const PublicGallery = () => {
                   <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos, 'gallery'))} className="text-[12px] gap-2 min-h-[44px]">
                     <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
                   </DropdownMenuItem>
-                  {favoriteCount > 0 && (
-                    <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites'))} className="text-[12px] gap-2 min-h-[44px]">
-                      <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
+                  {selectionMode && favoriteCount > 0 && (
+                    <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'selections'))} className="text-[12px] gap-2 min-h-[44px]">
+                      <Heart className="h-3.5 w-3.5" /> Selections ({favoriteCount})
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
@@ -424,7 +464,7 @@ const PublicGallery = () => {
         {displayPhotos.length === 0 && photos.length > 0 && filter === 'favorites' ? (
           <div className="py-24 text-center">
             <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
-            <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
+            <p className="mt-2 font-serif text-sm text-muted-foreground/50">No selections yet</p>
             <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo</p>
           </div>
         ) : displayPhotos.length === 0 && photos.length === 0 ? (
@@ -439,13 +479,13 @@ const PublicGallery = () => {
           </div>
         ) : ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
           layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <EditorialCollageGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={selectionMode ? toggleFavorite : undefined} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={selectionMode ? toggleFavorite : undefined} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'cinematic' ? (
-            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={selectionMode ? toggleFavorite : undefined} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : (
-            <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={selectionMode ? toggleFavorite : undefined} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           )
         ) : (
           <div className={gridClass}>
@@ -462,11 +502,14 @@ const PublicGallery = () => {
                       </span>
                     </div>
                   )}
-                  <button onClick={(e) => { e.stopPropagation(); toggleFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to your selections.' }); }}
-                    className="absolute top-1.5 right-1.5 z-10 min-w-[44px] min-h-[44px] rounded-full bg-card/60 backdrop-blur-sm flex items-center justify-center transition-all duration-200 hover:bg-card/80 active:scale-125">
-                    <Heart className={`h-4 w-4 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
-                      fill={fav ? 'hsl(var(--primary))' : 'none'} />
-                  </button>
+                  {/* Heart button — only in selection mode */}
+                  {selectionMode && (
+                    <button onClick={(e) => { e.stopPropagation(); toggleFavorite(photo.id); if (!fav) toast({ title: 'Added to Selections', description: 'Photo saved to your selections.' }); }}
+                      className="absolute top-1.5 right-1.5 z-10 min-w-[44px] min-h-[44px] rounded-full bg-card/60 backdrop-blur-sm flex items-center justify-center transition-all duration-200 hover:bg-card/80 active:scale-125">
+                      <Heart className={`h-4 w-4 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
+                        fill={fav ? 'hsl(var(--primary))' : 'none'} />
+                    </button>
+                  )}
                   <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
                   <div className="absolute bottom-1.5 right-1.5 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                     <button onClick={(e) => { e.stopPropagation(); setSharePhoto(photo); }}
@@ -491,15 +534,15 @@ const PublicGallery = () => {
           <p className="text-[9px] text-muted-foreground/30 tracking-[0.15em] uppercase">Powered by MirrorAI</p>
         </div>
 
-        {/* Lightbox */}
+        {/* Lightbox — hearts only in selection mode */}
         <PhotoLightbox
           photos={displayPhotos}
           currentIndex={lightboxIndex}
           open={lightboxOpen}
           onClose={() => setLightboxOpen(false)}
           onIndexChange={setLightboxIndex}
-          isFavorite={isFavorite}
-          toggleFavorite={toggleFavorite}
+          isFavorite={selectionMode ? isFavorite : undefined}
+          toggleFavorite={selectionMode ? toggleFavorite : undefined}
           canDownload={canDownload}
           onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
           onShare={(p) => setSharePhoto(p as Photo)}

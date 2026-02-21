@@ -1,0 +1,1 @@
+ALTER TABLE public.events ADD COLUMN selection_token text DEFAULT NULL;

@@ -52,6 +52,7 @@ interface Event {
   gallery_layout: string;
   is_published: boolean;
   selection_mode_enabled: boolean;
+  selection_token: string | null;
 }
 
 type GalleryFilter = 'all' | 'favorites';
@@ -355,7 +356,7 @@ const EventGallery = () => {
             </TabsTrigger>
             <TabsTrigger value="favorites"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/50 data-[state=active]:text-foreground flex items-center gap-1.5">
-              <Heart className="h-3 w-3" /> Guest Favorites
+              <Heart className="h-3 w-3" /> Client Selections
               {favStats.totalFavs > 0 && (
                 <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favStats.totalFavs}</span>
               )}
