@@ -21,7 +21,7 @@ const UploadPage = () => {
 
   useEffect(() => {
     if (!user) return;
-    (supabase.from('events').select('id, name') as any).order('created_at', { ascending: false })
+    (supabase.from('events').select('id, name') as any).eq('user_id', user.id).order('created_at', { ascending: false })
       .then(({ data }: any) => { if (data) setEvents(data as SimpleEvent[]); });
   }, [user]);
 
