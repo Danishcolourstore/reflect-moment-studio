@@ -5,6 +5,7 @@ import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { useGuestSession } from '@/hooks/use-guest-session';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -35,6 +36,8 @@ interface Event {
   user_id: string;
   gallery_layout: string;
   is_published: boolean;
+  download_requires_password: boolean;
+  download_password: string | null;
 }
 
 function toGridPhoto(p: Photo, isFav: boolean) {
@@ -64,6 +67,11 @@ const PublicGallery = () => {
   const [downloadProgress, setDownloadProgress] = useState('');
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
   const [watermarkText, setWatermarkText] = useState<string | null>(null);
+  const [downloadUnlocked, setDownloadUnlocked] = useState(false);
+  const [downloadPwPrompt, setDownloadPwPrompt] = useState(false);
+  const [downloadPwInput, setDownloadPwInput] = useState('');
+  const [downloadPwError, setDownloadPwError] = useState(false);
+  const [pendingDownloadAction, setPendingDownloadAction] = useState<(() => void) | null>(null);
 
   const { sessionId } = useGuestSession(event?.id);
   const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
@@ -186,6 +194,30 @@ const PublicGallery = () => {
   if (!event) return null;
 
   const canDownload = event.downloads_enabled;
+
+  // Download password gate
+  const guardedDownload = (action: () => void) => {
+    if (!canDownload) return;
+    if (event.download_requires_password && !downloadUnlocked) {
+      setPendingDownloadAction(() => action);
+      setDownloadPwPrompt(true);
+      return;
+    }
+    action();
+  };
+
+  const handleDownloadPwSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (downloadPwInput === event.download_password) {
+      setDownloadUnlocked(true);
+      setDownloadPwPrompt(false);
+      setDownloadPwError(false);
+      setDownloadPwInput('');
+      if (pendingDownloadAction) { pendingDownloadAction(); setPendingDownloadAction(null); }
+    } else {
+      setDownloadPwError(true);
+    }
+  };
   const displayPhotos = filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
   const layout = event.gallery_layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
@@ -263,11 +295,11 @@ const PublicGallery = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[180px]">
-                <DropdownMenuItem onClick={() => buildZip(photos, 'gallery')} className="text-[12px] gap-2">
+                <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos, 'gallery'))} className="text-[12px] gap-2">
                   <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
                 </DropdownMenuItem>
                 {favoriteCount > 0 && (
-                  <DropdownMenuItem onClick={() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites')} className="text-[12px] gap-2">
+                  <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites'))} className="text-[12px] gap-2">
                     <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
                   </DropdownMenuItem>
                 )}
@@ -323,7 +355,7 @@ const PublicGallery = () => {
                       <Share2 className="h-3 w-3" />
                     </button>
                     {canDownload && (
-                      <button onClick={() => handleDownloadPhoto(photo)}
+                      <button onClick={() => guardedDownload(() => handleDownloadPhoto(photo))}
                         className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                         <Download className="h-3 w-3" />
                       </button>
@@ -343,6 +375,25 @@ const PublicGallery = () => {
         {sharePhoto && (
           <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
             photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownload} />
+        )}
+
+        {/* Download password prompt */}
+        {downloadPwPrompt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
+            <div className="w-full max-w-xs bg-card border border-border p-6 space-y-4">
+              <h3 className="font-serif text-lg font-semibold text-foreground text-center">Download Password</h3>
+              <p className="text-[11px] text-muted-foreground/60 text-center">Enter the password to download photos.</p>
+              <form onSubmit={handleDownloadPwSubmit} className="space-y-3">
+                <Input value={downloadPwInput} onChange={(e) => { setDownloadPwInput(e.target.value); setDownloadPwError(false); }}
+                  placeholder="Enter password" className="bg-background border-border h-10 text-center text-[14px]" autoFocus />
+                {downloadPwError && <p className="text-[10px] text-destructive text-center">Incorrect password.</p>}
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" className="flex-1 h-9 text-[11px]" onClick={() => { setDownloadPwPrompt(false); setDownloadPwInput(''); setDownloadPwError(false); setPendingDownloadAction(null); }}>Cancel</Button>
+                  <Button type="submit" className="flex-1 h-9 text-[11px] bg-primary text-primary-foreground">Confirm</Button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
       </div>
     </div>
