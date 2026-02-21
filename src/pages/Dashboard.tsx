@@ -33,6 +33,9 @@ const Dashboard = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [shareEvent, setShareEvent] = useState<Event | null>(null);
+  const [totalPhotos, setTotalPhotos] = useState(0);
+  const [totalViews, setTotalViews] = useState(0);
+  const [totalStorageMB, setTotalStorageMB] = useState<string>('0 MB');
 
   const fetchEvents = async () => {
     if (!user) return;
@@ -70,7 +73,36 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => { fetchEvents(); }, [user]);
+  const fetchStats = async () => {
+    if (!user) return;
+    // Total photos across all events
+    const { count: photoCount } = await supabase
+      .from('photos')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+    setTotalPhotos(photoCount ?? 0);
+
+    // Total views across all events
+    const { data: viewData } = await (supabase
+      .from('events')
+      .select('views') as any)
+      .eq('user_id', user.id);
+    if (viewData) {
+      const sum = (viewData as any[]).reduce((acc: number, e: any) => acc + (e.views ?? 0), 0);
+      setTotalViews(sum);
+    }
+
+    // Storage estimate: count photos * ~2MB average (or use storage API)
+    // We'll estimate from photo count since storage list is slow
+    const estimated = (photoCount ?? 0) * 2;
+    if (estimated >= 1024) {
+      setTotalStorageMB(`${(estimated / 1024).toFixed(1)} GB`);
+    } else {
+      setTotalStorageMB(`${estimated} MB`);
+    }
+  };
+
+  useEffect(() => { fetchEvents(); fetchStats(); }, [user]);
 
   const deleteEvent = async (id: string) => {
     const { error } = await supabase.from('events').delete().eq('id', id);
@@ -89,9 +121,9 @@ const Dashboard = () => {
       {/* Stats strip — flush grid, luxury feel */}
       <div className="grid grid-cols-2 sm:grid-cols-4 border border-border divide-x divide-y sm:divide-y-0 divide-border overflow-hidden mb-10">
         <StatCard label="Events" value={events.length} icon={<CalendarDays className="h-4 w-4" />} />
-        <StatCard label="Photos" value="—" icon={<Image className="h-4 w-4" />} />
-        <StatCard label="Storage" value="—" icon={<HardDrive className="h-4 w-4" />} />
-        <StatCard label="Views" value="—" icon={<Eye className="h-4 w-4" />} />
+        <StatCard label="Photos" value={totalPhotos} icon={<Image className="h-4 w-4" />} />
+        <StatCard label="Storage" value={totalStorageMB} icon={<HardDrive className="h-4 w-4" />} />
+        <StatCard label="Views" value={totalViews} icon={<Eye className="h-4 w-4" />} />
       </div>
 
       {/* Recent events header */}
