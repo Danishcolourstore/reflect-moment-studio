@@ -75,14 +75,15 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     if (!user) return;
-    // Total photos across all events
+
+    // Photos: count all photos owned by this photographer
     const { count: photoCount } = await supabase
       .from('photos')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id);
     setTotalPhotos(photoCount ?? 0);
 
-    // Total views across all events
+    // Views: sum the `views` column from the photographer's events
     const { data: viewData } = await (supabase
       .from('events')
       .select('views') as any)
@@ -92,13 +93,14 @@ const Dashboard = () => {
       setTotalViews(sum);
     }
 
-    // Storage estimate: count photos * ~2MB average (or use storage API)
-    // We'll estimate from photo count since storage list is slow
+    // TODO: Storage — the `photos` table does not have a `file_size` column yet.
+    // Once added, replace the estimate below with: SELECT SUM(file_size) FROM photos WHERE user_id = auth.uid()
+    // For now, estimate ~2 MB per photo as a rough placeholder.
     const estimated = (photoCount ?? 0) * 2;
     if (estimated >= 1024) {
-      setTotalStorageMB(`${(estimated / 1024).toFixed(1)} GB`);
+      setTotalStorageMB(`~${(estimated / 1024).toFixed(1)} GB`);
     } else {
-      setTotalStorageMB(`${estimated} MB`);
+      setTotalStorageMB(`~${estimated} MB`);
     }
   };
 
