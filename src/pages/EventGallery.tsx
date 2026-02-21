@@ -4,9 +4,10 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { ShareModal } from '@/components/ShareModal';
 import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import {
-  Heart, Download, Trash2, Share2, Upload,
-  PackageOpen, Loader2, FolderDown, Settings,
+  Heart, Download, Trash2, Share2, Upload, X,
+  PackageOpen, Loader2, FolderDown, Settings, FileArchive,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -17,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { usePhotoUpload } from '@/hooks/use-photo-upload';
 import { EventSettingsModal } from '@/components/EventSettingsModal';
+import { useZipUpload } from '@/hooks/use-zip-upload';
 import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
 import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
 import { format } from 'date-fns';
@@ -78,9 +80,11 @@ const EventGallery = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [favStats, setFavStats] = useState<{ totalFavs: number; uniqueGuests: number }>({ totalFavs: 0, uniqueGuests: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const zipInputRef = useRef<HTMLInputElement>(null);
 
   const { favoriteCount, toggleFavorite: toggleGuestFavorite, isFavorite } = useGuestFavorites(id, null);
   const upload = usePhotoUpload(id, user?.id);
+  const zipUpload = useZipUpload(id, user?.id);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
 
   const fetchEvent = useCallback(async () => {
@@ -130,6 +134,29 @@ const EventGallery = () => {
       }
     }
   }, [upload.isDone, upload.successCount, upload.failedFiles.length, fetchPhotos, fetchEvent, toast]);
+
+  // Refresh when ZIP upload completes
+  useEffect(() => {
+    if (zipUpload.isDone) {
+      fetchPhotos();
+      fetchEvent();
+      if (zipUpload.successCount > 0) {
+        toast({
+          title: zipUpload.failedCount > 0 ? 'ZIP Upload Finished' : 'ZIP Upload Complete',
+          description: zipUpload.failedCount > 0
+            ? `${zipUpload.successCount} photos uploaded, ${zipUpload.failedCount} failed.`
+            : `Successfully uploaded ${zipUpload.successCount} photos!`,
+        });
+      }
+    }
+  }, [zipUpload.isDone, zipUpload.successCount, zipUpload.failedCount, fetchPhotos, fetchEvent, toast]);
+
+  // Show ZIP error toast
+  useEffect(() => {
+    if (zipUpload.error) {
+      toast({ title: 'ZIP Upload Error', description: zipUpload.error, variant: 'destructive' });
+    }
+  }, [zipUpload.error, toast]);
 
   const handleFiles = useCallback((files: FileList | File[]) => {
     const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
@@ -222,9 +249,11 @@ const EventGallery = () => {
 
   return (
     <DashboardLayout>
-      {/* Hidden file input */}
+      {/* Hidden file inputs */}
       <input ref={fileInputRef} type="file" multiple accept="image/*" className="hidden"
         onChange={(e) => e.target.files && handleFiles(e.target.files)} />
+      <input ref={zipInputRef} type="file" accept=".zip" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) zipUpload.uploadZip(f); e.target.value = ''; }} />
 
       {/* Cover banner */}
       {event.cover_url && (
@@ -248,9 +277,13 @@ const EventGallery = () => {
         <div className="flex items-center gap-1">
           {isOwner && (
             <>
-              <Button onClick={() => fileInputRef.current?.click()} disabled={upload.isUploading}
+              <Button onClick={() => fileInputRef.current?.click()} disabled={upload.isUploading || zipUpload.isUploading || zipUpload.isExtracting}
                 variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
                 <Upload className="mr-1 h-3 w-3" />Upload
+              </Button>
+              <Button onClick={() => zipInputRef.current?.click()} disabled={upload.isUploading || zipUpload.isUploading || zipUpload.isExtracting}
+                variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
+                <FileArchive className="mr-1 h-3 w-3" />Upload ZIP
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
                 <Share2 className="mr-1 h-3 w-3" />Share
@@ -263,8 +296,50 @@ const EventGallery = () => {
         </div>
       </div>
 
-      {/* Upload Progress Panel */}
+      {/* Upload Progress Panels */}
       <UploadProgressPanel {...upload} onRetry={upload.retry} onDismiss={upload.dismiss} />
+
+      {/* ZIP Upload Progress */}
+      {(zipUpload.isExtracting || zipUpload.isUploading || zipUpload.isDone) && (
+        <div className="mb-5">
+          <div className="border border-border bg-card px-5 py-4 space-y-3">
+            <div className="flex items-center justify-between">
+              {zipUpload.isExtracting ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                  <p className="text-[12px] text-foreground font-medium">Extracting images from ZIP…</p>
+                </div>
+              ) : zipUpload.isUploading ? (
+                <p className="text-[12px] text-foreground font-medium">
+                  Uploading {zipUpload.completedFiles} of {zipUpload.totalFiles} photos…
+                  <span className="ml-2 text-muted-foreground/50 font-normal">
+                    {zipUpload.totalFiles - zipUpload.completedFiles} remaining
+                  </span>
+                </p>
+              ) : zipUpload.isDone && zipUpload.failedCount === 0 ? (
+                <div className="flex items-center gap-2 text-primary">
+                  <FileArchive className="h-4 w-4" />
+                  <p className="text-[12px] font-medium">Successfully uploaded {zipUpload.successCount} photos!</p>
+                </div>
+              ) : zipUpload.isDone && zipUpload.failedCount > 0 ? (
+                <p className="text-[12px] text-foreground font-medium">
+                  {zipUpload.successCount} uploaded, {zipUpload.failedCount} failed
+                </p>
+              ) : null}
+
+              {zipUpload.isDone && (
+                <button onClick={zipUpload.dismiss} className="text-muted-foreground/40 hover:text-foreground transition-colors p-1">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {zipUpload.isUploading && (
+              <Progress value={zipUpload.percent} className="h-1" />
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Gallery utility bar */}
       <div className="flex items-center justify-between mb-4 border-b border-border">
@@ -320,14 +395,21 @@ const EventGallery = () => {
           <p className="text-[12px] text-muted-foreground/50 font-medium">
             {upload.isUploading ? 'Upload in progress…' : 'Drop photos here to upload'}
           </p>
-          {!upload.isUploading && (
+          {!upload.isUploading && !zipUpload.isUploading && !zipUpload.isExtracting && (
             <>
               <p className="mt-1 text-[10px] text-muted-foreground/35">or</p>
-              <Button variant="outline" size="sm"
-                className="mt-2.5 text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
-                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
-                Select Photos
-              </Button>
+              <div className="flex gap-2 mt-2.5">
+                <Button variant="outline" size="sm"
+                  className="text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
+                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                  Select Photos
+                </Button>
+                <Button variant="outline" size="sm"
+                  className="text-[10px] h-7 px-4 uppercase tracking-[0.08em] border-border"
+                  onClick={(e) => { e.stopPropagation(); zipInputRef.current?.click(); }}>
+                  <FileArchive className="mr-1 h-3 w-3" /> Upload ZIP
+                </Button>
+              </div>
             </>
           )}
         </div>
