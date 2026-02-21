@@ -90,7 +90,7 @@ const PublicGallery = () => {
     if (ev.gallery_pin) {
       const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
       if (unlocked !== 'true') {
-        navigate(`/gallery/${ev.slug}`, { replace: true });
+        navigate(`/event/${ev.slug}`, { replace: true });
         return;
       }
     }

@@ -126,6 +126,9 @@ const AppRoutes = () => (
     <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
 
     {/* Guest gallery routes — completely public, no auth */}
+    <Route path="/event/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
+    <Route path="/event/:slug/gallery" element={<GalleryShell><PublicGallery /></GalleryShell>} />
+    {/* Legacy gallery redirects */}
     <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
     <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
 

@@ -15,7 +15,7 @@ interface ShareModalProps {
 
 export function ShareModal({ open, onOpenChange, eventSlug, eventName, pin }: ShareModalProps) {
   const { toast } = useToast();
-  const galleryUrl = `${window.location.origin}/gallery/${eventSlug}`;
+  const galleryUrl = `${window.location.origin}/event/${eventSlug}`;
   const fullUrl = pin ? `${galleryUrl}?pin=${pin}` : galleryUrl;
 
   const copy = (text: string) => {
