@@ -36,6 +36,18 @@ export function PhotoLightbox({
     if (currentIndex > 0) onIndexChange(currentIndex - 1);
   }, [currentIndex, onIndexChange]);
 
+  // Preload next 2 images for instant swiping
+  useEffect(() => {
+    if (!open) return;
+    for (let i = 1; i <= 2; i++) {
+      const next = photos[currentIndex + i];
+      if (next?.url) {
+        const img = new Image();
+        img.src = next.url;
+      }
+    }
+  }, [currentIndex, photos, open]);
+
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {

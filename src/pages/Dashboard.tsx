@@ -126,7 +126,7 @@ const Dashboard = () => {
 
       {/* Stats strip — flush grid, luxury feel */}
       <div className="grid grid-cols-2 sm:grid-cols-4 border border-border divide-x divide-y sm:divide-y-0 divide-border overflow-hidden mb-10">
-        <StatCard label="Events" value={events.length} icon={<CalendarDays className="h-4 w-4" />} />
+        <StatCard label="Events" value={events.length || 0} icon={<CalendarDays className="h-4 w-4" />} />
         <StatCard label="Photos" value={totalPhotos} icon={<Image className="h-4 w-4" />} />
         <StatCard label="Storage" value={totalStorageMB} icon={<HardDrive className="h-4 w-4" />} />
         <StatCard label="Views" value={totalViews} icon={<Eye className="h-4 w-4" />} />
