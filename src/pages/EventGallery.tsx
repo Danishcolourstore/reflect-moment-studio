@@ -27,12 +27,14 @@ import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 import { GuestSelectionsViewer } from '@/components/GuestSelectionsViewer';
 import { GuestFavoritesTab } from '@/components/GuestFavoritesTab';
+import { PhotoSectionSelect } from '@/components/PhotoSectionSelect';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 interface Photo {
   id: string;
   url: string;
   file_name: string | null;
+  section: string | null;
 }
 
 interface Event {
@@ -493,6 +495,14 @@ const EventGallery = () => {
                             </button>
                           )}
                         </div>
+                        {isOwner && (
+                          <div className="absolute bottom-1.5 left-1.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                            onClick={(e) => e.stopPropagation()}>
+                            <PhotoSectionSelect photoId={photo.id} currentSection={photo.section} onUpdate={(s) => {
+                              setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, section: s } : p));
+                            }} />
+                          </div>
+                        )}
                       </div>
                     );
                   })}
