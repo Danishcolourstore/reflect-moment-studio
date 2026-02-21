@@ -127,27 +127,30 @@ const PublicGallery = () => {
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
 
-  // Determine the storage bucket based on download_resolution
-  const getDownloadBucket = () => {
-    if (!event) return 'gallery-photos';
-    return event.download_resolution === 'full' ? 'photos-original' : 'photos-web';
-  };
-
-  // Generate signed URL and trigger download
+  // Generate signed URL and trigger a real file download via fetch + blob
   const handleDownloadPhoto = async (photo: Photo) => {
     if (!event?.downloads_enabled) return;
-    const bucket = getDownloadBucket();
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .createSignedUrl(photo.url, 60);
-    if (error || !data?.signedUrl) {
-      toast({ title: 'Download failed', description: 'Could not generate download link.' });
-      return;
+    try {
+      const { data, error } = await supabase.storage
+        .from('gallery-photos')
+        .createSignedUrl(photo.url, 60);
+      if (error || !data?.signedUrl) {
+        toast({ title: 'Download failed', description: 'Could not generate download link.' });
+        return;
+      }
+      const res = await fetch(data.signedUrl);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = photo.file_name ?? 'photo.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      toast({ title: 'Download failed', description: 'Could not download photo.' });
     }
-    const a = document.createElement('a');
-    a.href = data.signedUrl;
-    a.download = photo.file_name ?? 'photo.jpg';
-    a.click();
   };
 
   // ZIP download with signed URLs
@@ -155,14 +158,13 @@ const PublicGallery = () => {
     if (targetPhotos.length === 0) { toast({ title: 'No photos to download' }); return; }
     if (!event?.downloads_enabled) return;
     setDownloading(true);
-    const bucket = getDownloadBucket();
     try {
       const zip = new JSZip();
       const folder = zip.folder(event?.name ?? label);
       for (let i = 0; i < targetPhotos.length; i++) {
         setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
         const p = targetPhotos[i];
-        const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(p.url, 120);
+        const { data: signed } = await supabase.storage.from('gallery-photos').createSignedUrl(p.url, 120);
         if (!signed?.signedUrl) continue;
         const res = await fetch(signed.signedUrl);
         const blob = await res.blob();
