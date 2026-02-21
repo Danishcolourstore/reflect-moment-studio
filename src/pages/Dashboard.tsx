@@ -120,6 +120,7 @@ const Dashboard = () => {
               key={event.id}
               id={event.id}
               name={event.name}
+              slug={event.slug}
               date={event.event_date}
               photoCount={event.photo_count}
               coverUrl={event.cover_url}

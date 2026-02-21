@@ -17,6 +17,7 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 import { GuestSelectionMode } from '@/components/GuestSelectionMode';
+import { PhotoLightbox } from '@/components/PhotoLightbox';
 
 interface Photo {
   id: string;
@@ -75,6 +76,8 @@ const PublicGallery = () => {
   const [downloadPwError, setDownloadPwError] = useState(false);
   const [pendingDownloadAction, setPendingDownloadAction] = useState<(() => void) | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const { sessionId } = useGuestSession(event?.id);
   const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
@@ -223,11 +226,20 @@ const PublicGallery = () => {
       setDownloadPwError(true);
     }
   };
+
   const displayPhotos = filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
   const layout = event.gallery_layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
   const gridPhotos = displayPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
   const showWatermark = event.watermark_enabled && !!watermarkText;
+
+  const openLightbox = (photoId: string) => {
+    const idx = displayPhotos.findIndex(p => p.id === photoId);
+    if (idx >= 0) {
+      setLightboxIndex(idx);
+      setLightboxOpen(true);
+    }
+  };
 
   const getItemClass = (l: string) => {
     switch (l) {
@@ -291,33 +303,35 @@ const PublicGallery = () => {
             </button>
           </div>
 
-          {event.selection_mode_enabled && photos.length > 0 && !selectionMode && (
-            <Button variant="ghost" size="sm" onClick={() => setSelectionMode(true)}
-              className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
-              <CheckSquare className="mr-1 h-3 w-3" /> Select Photos
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {event.selection_mode_enabled && photos.length > 0 && !selectionMode && (
+              <Button variant="ghost" size="sm" onClick={() => setSelectionMode(true)}
+                className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
+                <CheckSquare className="mr-1 h-3 w-3" /> Select Photos
+              </Button>
+            )}
 
-          {canDownload && photos.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" disabled={downloading}
-                  className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
-                  {downloading ? (<><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>) : (<><FolderDown className="mr-1 h-3 w-3" />Download</>)}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[180px]">
-                <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos, 'gallery'))} className="text-[12px] gap-2">
-                  <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
-                </DropdownMenuItem>
-                {favoriteCount > 0 && (
-                  <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites'))} className="text-[12px] gap-2">
-                    <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
+            {canDownload && photos.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" disabled={downloading}
+                    className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
+                    {downloading ? (<><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>) : (<><FolderDown className="mr-1 h-3 w-3" />Download</>)}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[180px]">
+                  <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos, 'gallery'))} className="text-[12px] gap-2">
+                    <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
                   </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                  {favoriteCount > 0 && (
+                    <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites'))} className="text-[12px] gap-2">
+                      <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
 
         {/* Photo grid */}
@@ -335,20 +349,21 @@ const PublicGallery = () => {
           </div>
         ) : ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
           layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) handleDownloadPhoto(orig); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <EditorialCollageGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) handleDownloadPhoto(orig); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : layout === 'cinematic' ? (
-            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) handleDownloadPhoto(orig); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           ) : (
-            <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) handleDownloadPhoto(orig); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
+            <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
           )
         ) : (
           <div className={gridClass}>
-            {displayPhotos.map(photo => {
+            {displayPhotos.map((photo, idx) => {
               const fav = isFavorite(photo.id);
               return (
-                <div key={photo.id} className={`group ${getItemClass(layout)}`}>
+                <div key={photo.id} className={`group cursor-pointer ${getItemClass(layout)}`}
+                  onClick={() => openLightbox(photo.id)}>
                   <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
                   {showWatermark && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
@@ -357,19 +372,19 @@ const PublicGallery = () => {
                       </span>
                     </div>
                   )}
-                  <button onClick={() => { toggleFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to your selections.' }); }}
+                  <button onClick={(e) => { e.stopPropagation(); toggleFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to your selections.' }); }}
                     className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
                     <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
                       fill={fav ? 'hsl(var(--primary))' : 'none'} />
                   </button>
                   <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
                   <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                    <button onClick={() => setSharePhoto(photo)}
+                    <button onClick={(e) => { e.stopPropagation(); setSharePhoto(photo); }}
                       className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                       <Share2 className="h-3 w-3" />
                     </button>
                     {canDownload && (
-                      <button onClick={() => guardedDownload(() => handleDownloadPhoto(photo))}
+                      <button onClick={(e) => { e.stopPropagation(); guardedDownload(() => handleDownloadPhoto(photo)); }}
                         className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                         <Download className="h-3 w-3" />
                       </button>
@@ -385,6 +400,20 @@ const PublicGallery = () => {
         <div className="mt-12 pb-8 text-center">
           <p className="text-[9px] text-muted-foreground/30 tracking-[0.15em] uppercase">Powered by MirrorAI</p>
         </div>
+
+        {/* Lightbox */}
+        <PhotoLightbox
+          photos={displayPhotos}
+          currentIndex={lightboxIndex}
+          open={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+          onIndexChange={setLightboxIndex}
+          isFavorite={isFavorite}
+          toggleFavorite={toggleFavorite}
+          canDownload={canDownload}
+          onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
+          onShare={(p) => setSharePhoto(p as Photo)}
+        />
 
         {sharePhoto && (
           <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
