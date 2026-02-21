@@ -13,6 +13,7 @@ interface Photographer {
   suspended: boolean;
   created_at: string;
   event_count: number;
+  photo_count: number;
 }
 
 export default function AdminPhotographers() {
@@ -31,10 +32,17 @@ export default function AdminPhotographers() {
       countMap[e.user_id] = (countMap[e.user_id] || 0) + 1;
     });
 
+    const { data: photos } = await (supabase.from('photos').select('user_id') as any);
+    const photoCountMap: Record<string, number> = {};
+    (photos || []).forEach((p: any) => {
+      photoCountMap[p.user_id] = (photoCountMap[p.user_id] || 0) + 1;
+    });
+
     setPhotographers(
       (data as any[]).map((p: any) => ({
         ...p,
         event_count: countMap[p.user_id] || 0,
+        photo_count: photoCountMap[p.user_id] || 0,
       }))
     );
   };
@@ -62,6 +70,7 @@ export default function AdminPhotographers() {
               <th className="text-left px-4 py-2.5 font-medium">Email</th>
               <th className="text-left px-4 py-2.5 font-medium">Plan</th>
               <th className="text-left px-4 py-2.5 font-medium">Events</th>
+              <th className="text-left px-4 py-2.5 font-medium">Photos</th>
               <th className="text-left px-4 py-2.5 font-medium">Joined</th>
               <th className="text-left px-4 py-2.5 font-medium">Status</th>
               <th className="text-right px-4 py-2.5 font-medium">Actions</th>
@@ -83,6 +92,7 @@ export default function AdminPhotographers() {
                   </select>
                 </td>
                 <td className="px-4 py-2.5">{p.event_count}</td>
+                <td className="px-4 py-2.5">{p.photo_count}</td>
                 <td className="px-4 py-2.5 text-muted-foreground">
                   {format(new Date(p.created_at), 'MMM d, yyyy')}
                 </td>

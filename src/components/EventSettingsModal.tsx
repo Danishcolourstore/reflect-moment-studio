@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2 } from 'lucide-react';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink } from 'lucide-react';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -125,6 +125,20 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
         </DialogHeader>
 
         <div className="space-y-3.5 mt-1">
+          {/* Gallery Link */}
+          <div className="space-y-1.5">
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Link</Label>
+            <div className="flex gap-1.5">
+              <Input value={`${window.location.origin}/event/${event.slug}`} readOnly className="bg-background h-9 text-[12px] font-mono" />
+              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/event/${event.slug}`); toast({ title: 'Gallery link copied' }); }}>
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" asChild>
+                <a href={`/event/${event.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
+              </Button>
+            </div>
+          </div>
+
           {/* Title */}
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Title</Label>
