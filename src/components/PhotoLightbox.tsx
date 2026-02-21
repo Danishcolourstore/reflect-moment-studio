@@ -25,6 +25,8 @@ export function PhotoLightbox({
   isFavorite, toggleFavorite, canDownload, onDownload, onShare,
 }: PhotoLightboxProps) {
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchDelta, setTouchDelta] = useState(0);
+  const [swiping, setSwiping] = useState(false);
 
   const goNext = useCallback(() => {
     if (currentIndex < photos.length - 1) onIndexChange(currentIndex + 1);
@@ -55,45 +57,54 @@ export function PhotoLightbox({
   if (!photo) return null;
   const fav = isFavorite?.(photo.id) ?? false;
 
-  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+    setTouchDelta(0);
+    setSwiping(true);
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStart === null) return;
-    const diff = e.changedTouches[0].clientX - touchStart;
-    if (Math.abs(diff) > 60) {
-      if (diff < 0) goNext();
+    setTouchDelta(e.touches[0].clientX - touchStart);
+  };
+  const handleTouchEnd = () => {
+    if (touchStart === null) return;
+    if (Math.abs(touchDelta) > 60) {
+      if (touchDelta < 0) goNext();
       else goPrev();
     }
     setTouchStart(null);
+    setTouchDelta(0);
+    setSwiping(false);
   };
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col"
-      onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      {/* Top bar: close + counter */}
+      onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+      {/* Top bar: counter + close */}
       <div className="flex items-center justify-between px-4 py-3 shrink-0">
         <span className="text-white/50 text-[12px] tracking-wider font-medium">
           {currentIndex + 1} / {photos.length}
         </span>
         <button onClick={onClose}
-          className="rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/80 hover:text-white hover:bg-white/20 transition">
+          className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition">
           <X className="h-5 w-5" />
         </button>
       </div>
 
       {/* Image area */}
       <div className="flex-1 relative flex items-center justify-center min-h-0">
-        {/* Prev */}
+        {/* Prev arrow */}
         {currentIndex > 0 && (
           <button onClick={goPrev}
-            className="absolute left-2 sm:left-4 z-10 rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/70 hover:text-white hover:bg-white/20 transition">
+            className="absolute left-1 sm:left-4 z-10 min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition">
             <ChevronLeft className="h-6 w-6" />
           </button>
         )}
 
-        {/* Next */}
+        {/* Next arrow */}
         {currentIndex < photos.length - 1 && (
           <button onClick={goNext}
-            className="absolute right-2 sm:right-4 z-10 rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/70 hover:text-white hover:bg-white/20 transition">
+            className="absolute right-1 sm:right-4 z-10 min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition">
             <ChevronRight className="h-6 w-6" />
           </button>
         )}
@@ -101,28 +112,29 @@ export function PhotoLightbox({
         <img
           src={photo.url}
           alt=""
-          className="max-h-full max-w-[95vw] object-contain select-none"
+          className="max-h-full max-w-[95vw] object-contain select-none transition-transform duration-150"
+          style={swiping && touchDelta !== 0 ? { transform: `translateX(${touchDelta * 0.4}px)` } : undefined}
           draggable={false}
         />
       </div>
 
-      {/* Bottom toolbar */}
-      <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-4">
+      {/* Bottom toolbar — thumb-reachable on mobile */}
+      <div className="shrink-0 flex items-center justify-center gap-4 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         {toggleFavorite && (
           <button onClick={() => toggleFavorite(photo.id)}
-            className="rounded-full bg-white/10 backdrop-blur-sm p-2.5 text-white/80 hover:bg-white/20 transition active:scale-110">
+            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/80 hover:bg-white/20 transition active:scale-110">
             <Heart className={`h-5 w-5 ${fav ? 'text-red-400' : ''}`} fill={fav ? 'currentColor' : 'none'} />
           </button>
         )}
         {canDownload && onDownload && (
           <button onClick={() => onDownload(photo)}
-            className="rounded-full bg-white/10 backdrop-blur-sm p-2.5 text-white/80 hover:bg-white/20 transition">
+            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/80 hover:bg-white/20 transition">
             <Download className="h-5 w-5" />
           </button>
         )}
         {onShare && (
           <button onClick={() => onShare(photo)}
-            className="rounded-full bg-white/10 backdrop-blur-sm p-2.5 text-white/80 hover:bg-white/20 transition">
+            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/80 hover:bg-white/20 transition">
             <Share2 className="h-5 w-5" />
           </button>
         )}

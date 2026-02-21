@@ -6,7 +6,8 @@ import { useGuestSession } from '@/hooks/use-guest-session';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Play } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -16,13 +17,14 @@ import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
-import { GuestSelectionMode } from '@/components/GuestSelectionMode';
 import { PhotoLightbox } from '@/components/PhotoLightbox';
+import { PhotoSlideshow } from '@/components/PhotoSlideshow';
 
 interface Photo {
   id: string;
   url: string;
   file_name: string | null;
+  section: string | null;
 }
 
 interface Event {
@@ -54,6 +56,8 @@ const GRID_CLASSES: Record<string, string> = {
   editorial: 'columns-1 sm:columns-2 lg:columns-3 gap-4',
 };
 
+const SECTIONS = ['Highlights', 'Ceremony', 'Reception', 'Family', 'Getting Ready'] as const;
+
 type GalleryFilter = 'all' | 'favorites';
 
 const PublicGallery = () => {
@@ -66,8 +70,10 @@ const PublicGallery = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [filter, setFilter] = useState<GalleryFilter>('all');
+  const [sectionFilter, setSectionFilter] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
+  const [zipPercent, setZipPercent] = useState(0);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
   const [watermarkText, setWatermarkText] = useState<string | null>(null);
   const [downloadUnlocked, setDownloadUnlocked] = useState(false);
@@ -77,6 +83,7 @@ const PublicGallery = () => {
   const [pendingDownloadAction, setPendingDownloadAction] = useState<(() => void) | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [slideshowOpen, setSlideshowOpen] = useState(false);
 
   const { sessionId } = useGuestSession(event?.id);
   const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
@@ -99,7 +106,6 @@ const PublicGallery = () => {
 
     const ev = data as unknown as Event;
 
-    // Re-check password unlock
     if (ev.gallery_pin) {
       const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
       if (unlocked !== 'true') {
@@ -110,7 +116,6 @@ const PublicGallery = () => {
 
     setEvent(ev);
 
-    // Fetch watermark text if enabled
     if (ev.watermark_enabled && ev.user_id) {
       const { data: profile } = await (supabase
         .from('profiles')
@@ -129,7 +134,6 @@ const PublicGallery = () => {
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
 
-  // Generate signed URL and trigger a real file download via fetch + blob
   const handleDownloadPhoto = async (photo: Photo) => {
     if (!event?.downloads_enabled) return;
     try {
@@ -155,16 +159,18 @@ const PublicGallery = () => {
     }
   };
 
-  // ZIP download with signed URLs
   const buildZip = async (targetPhotos: Photo[], label: string) => {
     if (targetPhotos.length === 0) { toast({ title: 'No photos to download' }); return; }
     if (!event?.downloads_enabled) return;
     setDownloading(true);
+    setZipPercent(0);
     try {
       const zip = new JSZip();
       const folder = zip.folder(event?.name ?? label);
       for (let i = 0; i < targetPhotos.length; i++) {
+        const pct = Math.round(((i + 1) / targetPhotos.length) * 100);
         setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
+        setZipPercent(pct);
         const p = targetPhotos[i];
         const { data: signed } = await supabase.storage.from('gallery-photos').createSignedUrl(p.url, 120);
         if (!signed?.signedUrl) continue;
@@ -176,10 +182,9 @@ const PublicGallery = () => {
       saveAs(content, `${event?.name ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
     } catch (_err) { toast({ title: 'Download failed' }); }
-    finally { setDownloading(false); setDownloadProgress(''); }
+    finally { setDownloading(false); setDownloadProgress(''); setZipPercent(0); }
   };
 
-  /* ── Loading ── */
   if (loading) {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background">
@@ -188,7 +193,6 @@ const PublicGallery = () => {
     );
   }
 
-  /* ── Not Found ── */
   if (notFound) {
     return (
       <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-4 text-center">
@@ -202,7 +206,6 @@ const PublicGallery = () => {
 
   const canDownload = event.downloads_enabled;
 
-  // Download password gate
   const guardedDownload = (action: () => void) => {
     if (!canDownload) return;
     if (event.download_requires_password && !downloadUnlocked) {
@@ -226,11 +229,20 @@ const PublicGallery = () => {
     }
   };
 
-  const displayPhotos = filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
+  // Apply filters
+  let filteredPhotos = filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
+  if (sectionFilter) {
+    filteredPhotos = filteredPhotos.filter(p => p.section === sectionFilter);
+  }
+  const displayPhotos = filteredPhotos;
+
   const layout = event.gallery_layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
   const gridPhotos = displayPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
   const showWatermark = event.watermark_enabled && !!watermarkText;
+
+  // Determine which sections exist in photos
+  const availableSections = SECTIONS.filter(s => photos.some(p => p.section === s));
 
   const openLightbox = (photoId: string) => {
     const idx = displayPhotos.findIndex(p => p.id === photoId);
@@ -276,23 +288,51 @@ const PublicGallery = () => {
               {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
             </p>
           </div>
-          {favoriteCount > 0 && (
-            <div className="flex items-center gap-1.5 text-[12px] text-primary font-medium">
-              <Heart className="h-3.5 w-3.5" fill="hsl(var(--primary))" />
-              <span>{favoriteCount} Selected</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {favoriteCount > 0 && (
+              <div className="flex items-center gap-1.5 text-[12px] text-primary font-medium">
+                <Heart className="h-3.5 w-3.5" fill="hsl(var(--primary))" />
+                <span>{favoriteCount} Selected</span>
+              </div>
+            )}
+            {photos.length > 1 && (
+              <Button variant="outline" size="sm" onClick={() => setSlideshowOpen(true)}
+                className="min-h-[44px] sm:min-h-0 sm:h-7 px-3 text-[10px] uppercase tracking-[0.06em] border-border">
+                <Play className="mr-1 h-3 w-3" /> Slideshow
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Section pills */}
+        {availableSections.length > 0 && (
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+            <button onClick={() => setSectionFilter(null)}
+              className={`shrink-0 min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-full text-[11px] tracking-wide transition-colors border ${
+                !sectionFilter
+                  ? 'bg-foreground text-background border-foreground'
+                  : 'bg-transparent text-muted-foreground border-border hover:border-foreground/30'
+              }`}>All</button>
+            {availableSections.map(s => (
+              <button key={s} onClick={() => setSectionFilter(s === sectionFilter ? null : s)}
+                className={`shrink-0 min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-full text-[11px] tracking-wide transition-colors border ${
+                  sectionFilter === s
+                    ? 'bg-foreground text-background border-foreground'
+                    : 'bg-transparent text-muted-foreground border-border hover:border-foreground/30'
+                }`}>{s}</button>
+            ))}
+          </div>
+        )}
 
         {/* Utility bar */}
         <div className="flex items-center justify-between mb-4 border-b border-border">
           <div className="flex items-center">
-            <button onClick={() => setFilter('all')}
-              className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
+            <button onClick={() => { setFilter('all'); }}
+              className={`min-h-[44px] px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
                 filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
               }`}>All Photos</button>
-            <button onClick={() => setFilter('favorites')}
-              className={`px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
+            <button onClick={() => { setFilter('favorites'); }}
+              className={`min-h-[44px] px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
                 filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
               }`}>
               <Heart className="h-3 w-3" /> Favorites
@@ -307,16 +347,16 @@ const PublicGallery = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" disabled={downloading}
-                    className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
+                    className="min-h-[44px] sm:min-h-0 text-primary hover:bg-primary/10 text-[10px] sm:h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
                     {downloading ? (<><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>) : (<><FolderDown className="mr-1 h-3 w-3" />Download</>)}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-[180px]">
-                  <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos, 'gallery'))} className="text-[12px] gap-2">
+                  <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos, 'gallery'))} className="text-[12px] gap-2 min-h-[44px]">
                     <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
                   </DropdownMenuItem>
                   {favoriteCount > 0 && (
-                    <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites'))} className="text-[12px] gap-2">
+                    <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites'))} className="text-[12px] gap-2 min-h-[44px]">
                       <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
                     </DropdownMenuItem>
                   )}
@@ -325,6 +365,17 @@ const PublicGallery = () => {
             )}
           </div>
         </div>
+
+        {/* ZIP Progress bar */}
+        {downloading && (
+          <div className="mb-4 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>Preparing download…</span>
+              <span>{downloadProgress}</span>
+            </div>
+            <Progress value={zipPercent} className="h-1.5" />
+          </div>
+        )}
 
         {/* Photo grid */}
         {displayPhotos.length === 0 && photos.length > 0 && filter === 'favorites' ? (
@@ -349,7 +400,7 @@ const PublicGallery = () => {
           )
         ) : (
           <div className={gridClass}>
-            {displayPhotos.map((photo, idx) => {
+            {displayPhotos.map((photo) => {
               const fav = isFavorite(photo.id);
               return (
                 <div key={photo.id} className={`group cursor-pointer ${getItemClass(layout)}`}
@@ -363,20 +414,20 @@ const PublicGallery = () => {
                     </div>
                   )}
                   <button onClick={(e) => { e.stopPropagation(); toggleFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to your selections.' }); }}
-                    className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
-                    <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
+                    className="absolute top-1.5 right-1.5 z-10 min-w-[44px] min-h-[44px] rounded-full bg-card/60 backdrop-blur-sm flex items-center justify-center transition-all duration-200 hover:bg-card/80 active:scale-125">
+                    <Heart className={`h-4 w-4 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
                       fill={fav ? 'hsl(var(--primary))' : 'none'} />
                   </button>
                   <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
-                  <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  <div className="absolute bottom-1.5 right-1.5 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                     <button onClick={(e) => { e.stopPropagation(); setSharePhoto(photo); }}
-                      className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
-                      <Share2 className="h-3 w-3" />
+                      className="min-w-[36px] min-h-[36px] rounded-full bg-card/70 backdrop-blur-sm flex items-center justify-center text-foreground/80 hover:bg-card/90 transition">
+                      <Share2 className="h-3.5 w-3.5" />
                     </button>
                     {canDownload && (
                       <button onClick={(e) => { e.stopPropagation(); guardedDownload(() => handleDownloadPhoto(photo)); }}
-                        className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
-                        <Download className="h-3 w-3" />
+                        className="min-w-[36px] min-h-[36px] rounded-full bg-card/70 backdrop-blur-sm flex items-center justify-center text-foreground/80 hover:bg-card/90 transition">
+                        <Download className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>
@@ -405,6 +456,13 @@ const PublicGallery = () => {
           onShare={(p) => setSharePhoto(p as Photo)}
         />
 
+        {/* Slideshow */}
+        <PhotoSlideshow
+          photos={displayPhotos}
+          open={slideshowOpen}
+          onClose={() => setSlideshowOpen(false)}
+        />
+
         {sharePhoto && (
           <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
             photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownload} />
@@ -421,8 +479,8 @@ const PublicGallery = () => {
                   placeholder="Enter password" className="bg-background border-border h-10 text-center text-[14px]" autoFocus />
                 {downloadPwError && <p className="text-[10px] text-destructive text-center">Incorrect password.</p>}
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" className="flex-1 h-9 text-[11px]" onClick={() => { setDownloadPwPrompt(false); setDownloadPwInput(''); setDownloadPwError(false); setPendingDownloadAction(null); }}>Cancel</Button>
-                  <Button type="submit" className="flex-1 h-9 text-[11px] bg-primary text-primary-foreground">Confirm</Button>
+                  <Button type="button" variant="outline" className="flex-1 h-10 min-h-[44px] text-[11px]" onClick={() => { setDownloadPwPrompt(false); setDownloadPwInput(''); setDownloadPwError(false); setPendingDownloadAction(null); }}>Cancel</Button>
+                  <Button type="submit" className="flex-1 h-10 min-h-[44px] text-[11px] bg-primary text-primary-foreground">Confirm</Button>
                 </div>
               </form>
             </div>

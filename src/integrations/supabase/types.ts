@@ -248,6 +248,7 @@ export type Database = {
           file_name: string | null
           id: string
           is_favorite: boolean
+          section: string | null
           sort_order: number | null
           url: string
           user_id: string
@@ -258,6 +259,7 @@ export type Database = {
           file_name?: string | null
           id?: string
           is_favorite?: boolean
+          section?: string | null
           sort_order?: number | null
           url: string
           user_id: string
@@ -268,6 +270,7 @@ export type Database = {
           file_name?: string | null
           id?: string
           is_favorite?: boolean
+          section?: string | null
           sort_order?: number | null
           url?: string
           user_id?: string
