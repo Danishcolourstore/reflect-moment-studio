@@ -80,7 +80,7 @@ const GalleryCover = () => {
 
   const enterGallery = () => {
     if (!event) return;
-    navigate(`/gallery/${event.slug}/view`);
+    navigate(`/event/${event.slug}/gallery`);
   };
 
   /* ── Loading ── */
