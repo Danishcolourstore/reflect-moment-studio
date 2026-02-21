@@ -14,13 +14,15 @@ export default function AdminDashboard() {
     Promise.all([
       (supabase.from('profiles').select('id', { count: 'exact', head: true }) as any),
       (supabase.from('events').select('id', { count: 'exact', head: true }) as any),
-      (supabase.from('photos').select('id', { count: 'exact', head: true }) as any),
+      (supabase.from('photos').select('id, file_size') as any),
     ]).then(([p, e, ph]) => {
-      const photoCount = (ph as any).count ?? 0;
-      const estimated = photoCount * 2;
-      const storageLabel = estimated >= 1024
-        ? `${(estimated / 1024).toFixed(1)} GB`
-        : `${estimated} MB`;
+      const photos = ((ph as any).data ?? []) as any[];
+      const photoCount = photos.length;
+      const totalBytes = photos.reduce((acc: number, row: any) => acc + (row.file_size ?? 0), 0);
+      const totalMB = totalBytes / (1024 * 1024);
+      const storageLabel = totalMB >= 1024
+        ? `${(totalMB / 1024).toFixed(1)} GB`
+        : totalMB > 0 ? `${Math.round(totalMB)} MB` : `~${photoCount * 2} MB`;
 
       setStats({
         photographers: (p as any).count ?? 0,

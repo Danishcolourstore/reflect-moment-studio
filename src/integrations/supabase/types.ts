@@ -249,6 +249,7 @@ export type Database = {
           created_at: string
           event_id: string
           file_name: string | null
+          file_size: number | null
           id: string
           is_favorite: boolean
           section: string | null
@@ -260,6 +261,7 @@ export type Database = {
           created_at?: string
           event_id: string
           file_name?: string | null
+          file_size?: number | null
           id?: string
           is_favorite?: boolean
           section?: string | null
@@ -271,6 +273,7 @@ export type Database = {
           created_at?: string
           event_id?: string
           file_name?: string | null
+          file_size?: number | null
           id?: string
           is_favorite?: boolean
           section?: string | null
