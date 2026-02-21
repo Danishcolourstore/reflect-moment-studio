@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { Search, Camera, CalendarDays } from 'lucide-react';
 
 interface Photographer {
   id: string;
@@ -19,6 +23,8 @@ interface Photographer {
 export default function AdminPhotographers() {
   const { toast } = useToast();
   const [photographers, setPhotographers] = useState<Photographer[]>([]);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'suspended'>('all');
 
   const load = async () => {
     const { data } = await (supabase
@@ -59,55 +65,107 @@ export default function AdminPhotographers() {
     }
   };
 
+  // Filter and search
+  const filtered = photographers.filter(p => {
+    const matchesSearch = !search || 
+      p.studio_name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.email || '').toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && !p.suspended) ||
+      (statusFilter === 'suspended' && p.suspended);
+    return matchesSearch && matchesStatus;
+  });
+
+  const getInitial = (name: string) => (name?.charAt(0) || '?').toUpperCase();
+
   return (
     <div>
-      <h1 className="text-xl font-bold mb-6">Photographers</h1>
-      <div className="border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-[13px]">
-          <thead className="bg-secondary/50">
-            <tr>
-              <th className="text-left px-4 py-2.5 font-medium">Studio</th>
-              <th className="text-left px-4 py-2.5 font-medium">Email</th>
-              <th className="text-left px-4 py-2.5 font-medium">Plan</th>
-              <th className="text-left px-4 py-2.5 font-medium">Events</th>
-              <th className="text-left px-4 py-2.5 font-medium">Photos</th>
-              <th className="text-left px-4 py-2.5 font-medium">Joined</th>
-              <th className="text-left px-4 py-2.5 font-medium">Status</th>
-              <th className="text-right px-4 py-2.5 font-medium">Actions</th>
+      <div className="mb-8">
+        <h1 className="font-display italic text-[24px] font-medium text-foreground tracking-tight">Photographers</h1>
+        <div className="w-10 h-[1.5px] bg-primary mt-2" />
+      </div>
+
+      {/* Search and filter bar */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or email…"
+            className="pl-9 h-9 bg-card border-border text-[12px]"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+          <SelectTrigger className="w-full sm:w-[140px] h-9 text-[11px] border-border bg-card">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all" className="text-[12px]">All</SelectItem>
+            <SelectItem value="active" className="text-[12px]">Active</SelectItem>
+            <SelectItem value="suspended" className="text-[12px]">Suspended</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <p className="text-[11px] text-muted-foreground/50 mb-4">{filtered.length} photographer{filtered.length !== 1 ? 's' : ''}</p>
+
+      {/* Desktop table */}
+      <div className="hidden md:block border border-border overflow-hidden bg-card">
+        <table className="w-full text-[12px]">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left px-4 py-3 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Photographer</th>
+              <th className="text-left px-4 py-3 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Email</th>
+              <th className="text-left px-4 py-3 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Events</th>
+              <th className="text-left px-4 py-3 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Photos</th>
+              <th className="text-left px-4 py-3 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Joined</th>
+              <th className="text-left px-4 py-3 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Plan</th>
+              <th className="text-left px-4 py-3 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Status</th>
+              <th className="text-right px-4 py-3 text-[9px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
-            {photographers.map((p) => (
-              <tr key={p.id}>
-                <td className="px-4 py-2.5">{p.studio_name}</td>
-                <td className="px-4 py-2.5 text-muted-foreground">{p.email || '—'}</td>
-                <td className="px-4 py-2.5">
+          <tbody>
+            {filtered.map((p) => (
+              <tr key={p.id} className="border-b border-border/50 last:border-0 hover:bg-foreground/[0.02] transition-colors">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-foreground/10 flex items-center justify-center text-[11px] font-medium text-foreground/70 shrink-0">
+                      {getInitial(p.studio_name)}
+                    </div>
+                    <span className="font-medium text-foreground">{p.studio_name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-muted-foreground/70">{p.email || '—'}</td>
+                <td className="px-4 py-3 text-foreground">{p.event_count}</td>
+                <td className="px-4 py-3 text-foreground">{p.photo_count}</td>
+                <td className="px-4 py-3 text-muted-foreground/70">
+                  {format(new Date(p.created_at), 'MMM d, yyyy')}
+                </td>
+                <td className="px-4 py-3">
                   <select
                     value={p.plan}
                     onChange={(e) => updateProfile(p.user_id, { plan: e.target.value })}
-                    className="bg-transparent border border-border rounded px-1.5 py-0.5 text-[12px]"
+                    className="bg-transparent border border-border rounded px-1.5 py-0.5 text-[11px] text-foreground"
                   >
                     <option value="free">Free</option>
                     <option value="pro">Pro</option>
                   </select>
                 </td>
-                <td className="px-4 py-2.5">{p.event_count}</td>
-                <td className="px-4 py-2.5">{p.photo_count}</td>
-                <td className="px-4 py-2.5 text-muted-foreground">
-                  {format(new Date(p.created_at), 'MMM d, yyyy')}
-                </td>
-                <td className="px-4 py-2.5">
+                <td className="px-4 py-3">
                   {p.suspended ? (
-                    <span className="text-destructive text-[11px] font-medium">Suspended</span>
+                    <Badge variant="destructive" className="text-[9px] px-2 py-0.5">Suspended</Badge>
                   ) : (
-                    <span className="text-green-600 dark:text-green-400 text-[11px] font-medium">Active</span>
+                    <Badge className="bg-emerald-500/15 text-emerald-700 border-0 text-[9px] px-2 py-0.5 hover:bg-emerald-500/15">Active</Badge>
                   )}
                 </td>
-                <td className="px-4 py-2.5 text-right">
+                <td className="px-4 py-3 text-right">
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="text-[11px] h-7"
+                    variant={p.suspended ? 'outline' : 'ghost'}
+                    className={`text-[10px] h-7 px-3 uppercase tracking-[0.04em] ${
+                      p.suspended ? 'border-border' : 'text-destructive hover:bg-destructive/10'
+                    }`}
                     onClick={() => updateProfile(p.user_id, { suspended: !p.suspended })}
                   >
                     {p.suspended ? 'Unsuspend' : 'Suspend'}
@@ -117,6 +175,59 @@ export default function AdminPhotographers() {
             ))}
           </tbody>
         </table>
+        {filtered.length === 0 && (
+          <div className="py-12 text-center text-[12px] text-muted-foreground/50">No photographers found</div>
+        )}
+      </div>
+
+      {/* Mobile card view */}
+      <div className="md:hidden space-y-3">
+        {filtered.map((p) => (
+          <div key={p.id} className="border border-border bg-card p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-foreground/10 flex items-center justify-center text-[14px] font-medium text-foreground/70 shrink-0">
+                {getInitial(p.studio_name)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-[13px] text-foreground truncate">{p.studio_name}</p>
+                <p className="text-[11px] text-muted-foreground/60 truncate">{p.email || '—'}</p>
+              </div>
+              {p.suspended ? (
+                <Badge variant="destructive" className="text-[9px] px-2 py-0.5 shrink-0">Suspended</Badge>
+              ) : (
+                <Badge className="bg-emerald-500/15 text-emerald-700 border-0 text-[9px] px-2 py-0.5 shrink-0 hover:bg-emerald-500/15">Active</Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-4 text-[11px] text-muted-foreground/60">
+              <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" /> {p.event_count} events</span>
+              <span className="flex items-center gap-1"><Camera className="h-3 w-3" /> {p.photo_count} photos</span>
+              <span>Joined {format(new Date(p.created_at), 'MMM yyyy')}</span>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <select
+                value={p.plan}
+                onChange={(e) => updateProfile(p.user_id, { plan: e.target.value })}
+                className="bg-transparent border border-border rounded px-2 py-1 text-[11px] text-foreground"
+              >
+                <option value="free">Free</option>
+                <option value="pro">Pro</option>
+              </select>
+              <Button
+                size="sm"
+                variant={p.suspended ? 'outline' : 'ghost'}
+                className={`text-[10px] h-8 min-h-[44px] px-4 uppercase tracking-[0.04em] ${
+                  p.suspended ? 'border-border' : 'text-destructive hover:bg-destructive/10'
+                }`}
+                onClick={() => updateProfile(p.user_id, { suspended: !p.suspended })}
+              >
+                {p.suspended ? 'Unsuspend' : 'Suspend'}
+              </Button>
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="py-12 text-center text-[12px] text-muted-foreground/50">No photographers found</div>
+        )}
       </div>
     </div>
   );
