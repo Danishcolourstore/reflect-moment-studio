@@ -7,3 +7,6 @@ additional_redirect_urls = [
   "https://046b0b4a-a0ce-426a-85c8-d3989700a2de.lovableproject.com/reset-password",
   "https://id-preview--046b0b4a-a0ce-426a-85c8-d3989700a2de.lovable.app/reset-password"
 ]
+
+[functions.upload-to-r2]
+verify_jwt = false

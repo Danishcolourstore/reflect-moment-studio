@@ -21,6 +21,33 @@ const INITIAL: UploadState = {
   percent: 0,
 };
 
+async function uploadToR2(file: File, eventId: string): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('event_id', eventId);
+  formData.append('file_name', file.name);
+
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  const res = await fetch(
+    `https://${projectId}.supabase.co/functions/v1/upload-to-r2`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Upload failed' }));
+    throw new Error(err.error || 'Upload failed');
+  }
+}
+
 export function usePhotoUpload(eventId: string | undefined, userId: string | undefined) {
   const [state, setState] = useState<UploadState>(INITIAL);
   const abortRef = useRef(false);
@@ -49,24 +76,7 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
         const batch = files.slice(i, i + BATCH_SIZE);
 
         const results = await Promise.allSettled(
-          batch.map(async (file) => {
-            const ext = file.name.split('.').pop();
-            const path = `${userId}/${eventId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-            const { error: uploadError } = await supabase.storage
-              .from('gallery-photos')
-              .upload(path, file);
-            if (uploadError) throw uploadError;
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from('gallery-photos').getPublicUrl(path);
-            const { error: insertError } = await supabase.from('photos').insert({
-              event_id: eventId,
-              user_id: userId,
-              url: publicUrl,
-              file_name: file.name,
-            } as any);
-            if (insertError) throw insertError;
-          }),
+          batch.map((file) => uploadToR2(file, eventId)),
         );
 
         results.forEach((r, idx) => {

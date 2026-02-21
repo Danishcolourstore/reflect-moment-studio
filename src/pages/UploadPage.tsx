@@ -33,19 +33,33 @@ const UploadPage = () => {
     setUploading(true);
     let count = 0;
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({ title: 'Not authenticated', variant: 'destructive' });
+      setUploading(false);
+      return;
+    }
+
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+
     for (const file of Array.from(files)) {
-      const ext = file.name.split('.').pop();
-      const path = `${user.id}/${selectedEvent}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from('gallery-photos').upload(path, file);
-      if (!error) {
-        const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(path);
-        await supabase.from('photos').insert({
-          event_id: selectedEvent,
-          user_id: user.id,
-          url: publicUrl,
-          file_name: file.name,
-        } as any);
-        count++;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('event_id', selectedEvent);
+      formData.append('file_name', file.name);
+
+      try {
+        const res = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/upload-to-r2`,
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${session.access_token}` },
+            body: formData,
+          }
+        );
+        if (res.ok) count++;
+      } catch {
+        // skip failed
       }
     }
 
