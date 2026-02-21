@@ -66,16 +66,37 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const [checked, setChecked] = useState(false);
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setRedirectTo('/admin');
+        } else {
+          const redirect = sessionStorage.getItem("redirectAfterLogin");
+          if (redirect && redirect.startsWith('/dashboard')) {
+            sessionStorage.removeItem("redirectAfterLogin");
+            setRedirectTo(redirect);
+          } else {
+            sessionStorage.removeItem("redirectAfterLogin");
+            setRedirectTo('/dashboard');
+          }
+        }
+        setChecked(true);
+      });
+  }, [user, loading]);
+
   if (loading) return null;
-  if (user) {
-    const redirect = sessionStorage.getItem("redirectAfterLogin");
-    if (redirect && redirect.startsWith('/dashboard')) {
-      sessionStorage.removeItem("redirectAfterLogin");
-      return <Navigate to={redirect} replace />;
-    }
-    sessionStorage.removeItem("redirectAfterLogin");
-    return <Navigate to="/dashboard" replace />;
-  }
+  if (!user) return <>{children}</>;
+  if (!checked) return null;
+  if (redirectTo) return <Navigate to={redirectTo} replace />;
   return <>{children}</>;
 }
 
