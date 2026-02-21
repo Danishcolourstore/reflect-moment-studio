@@ -20,6 +20,7 @@ import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 import { PhotoLightbox } from '@/components/PhotoLightbox';
 import { PhotoSlideshow } from '@/components/PhotoSlideshow';
+import { HighlightReel } from '@/components/HighlightReel';
 
 interface Photo {
   id: string;
@@ -87,6 +88,7 @@ const PublicGallery = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [slideshowOpen, setSlideshowOpen] = useState(false);
+  const [highlightReelOpen, setHighlightReelOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
 
   // Selection mode state
@@ -365,6 +367,12 @@ const PublicGallery = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {selectionMode && favoriteCount > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setHighlightReelOpen(true)}
+                className="min-h-[44px] sm:min-h-0 sm:h-8 px-4 text-[10px] uppercase tracking-[0.08em] border-primary/30 text-primary rounded-full bg-primary/5 hover:bg-primary/10">
+                ✨ Highlight Reel
+              </Button>
+            )}
             {photos.length > 1 && (
               <Button variant="outline" size="sm" onClick={() => setSlideshowOpen(true)}
                 className="min-h-[44px] sm:min-h-0 sm:h-8 px-4 text-[10px] uppercase tracking-[0.08em] border-border rounded-full">
@@ -553,6 +561,13 @@ const PublicGallery = () => {
           photos={displayPhotos}
           open={slideshowOpen}
           onClose={() => setSlideshowOpen(false)}
+        />
+
+        {/* Highlight Reel */}
+        <HighlightReel
+          photos={photos.filter(p => isFavorite(p.id))}
+          open={highlightReelOpen}
+          onClose={() => setHighlightReelOpen(false)}
         />
 
         {sharePhoto && (
