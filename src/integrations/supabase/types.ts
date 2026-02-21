@@ -20,6 +20,8 @@ export type Database = {
           allow_full_download: boolean
           cover_url: string | null
           created_at: string
+          download_password: string | null
+          download_requires_password: boolean
           download_resolution: string
           downloads_enabled: boolean
           event_date: string
@@ -43,6 +45,8 @@ export type Database = {
           allow_full_download?: boolean
           cover_url?: string | null
           created_at?: string
+          download_password?: string | null
+          download_requires_password?: boolean
           download_resolution?: string
           downloads_enabled?: boolean
           event_date?: string
@@ -66,6 +70,8 @@ export type Database = {
           allow_full_download?: boolean
           cover_url?: string | null
           created_at?: string
+          download_password?: string | null
+          download_requires_password?: boolean
           download_resolution?: string
           downloads_enabled?: boolean
           event_date?: string
