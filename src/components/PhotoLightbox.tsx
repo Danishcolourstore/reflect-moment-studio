@@ -67,64 +67,66 @@ export function PhotoLightbox({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
+    <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col"
       onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      {/* Close */}
-      <button onClick={onClose}
-        className="absolute top-4 right-4 z-10 rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/80 hover:text-white hover:bg-white/20 transition">
-        <X className="h-5 w-5" />
-      </button>
-
-      {/* Counter */}
-      <div className="absolute top-4 left-4 z-10 text-white/50 text-[11px] tracking-wider">
-        {currentIndex + 1} / {photos.length}
+      {/* Top bar: close + counter */}
+      <div className="flex items-center justify-between px-4 py-3 shrink-0">
+        <span className="text-white/50 text-[12px] tracking-wider font-medium">
+          {currentIndex + 1} / {photos.length}
+        </span>
+        <button onClick={onClose}
+          className="rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/80 hover:text-white hover:bg-white/20 transition">
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
-      {/* Action buttons */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+      {/* Image area */}
+      <div className="flex-1 relative flex items-center justify-center min-h-0">
+        {/* Prev */}
+        {currentIndex > 0 && (
+          <button onClick={goPrev}
+            className="absolute left-2 sm:left-4 z-10 rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/70 hover:text-white hover:bg-white/20 transition">
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+        )}
+
+        {/* Next */}
+        {currentIndex < photos.length - 1 && (
+          <button onClick={goNext}
+            className="absolute right-2 sm:right-4 z-10 rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/70 hover:text-white hover:bg-white/20 transition">
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        )}
+
+        <img
+          src={photo.url}
+          alt=""
+          className="max-h-full max-w-[95vw] object-contain select-none"
+          draggable={false}
+        />
+      </div>
+
+      {/* Bottom toolbar */}
+      <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-4">
         {toggleFavorite && (
           <button onClick={() => toggleFavorite(photo.id)}
-            className="rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/80 hover:bg-white/20 transition active:scale-110">
-            <Heart className={`h-4 w-4 ${fav ? 'text-red-400' : ''}`} fill={fav ? 'currentColor' : 'none'} />
+            className="rounded-full bg-white/10 backdrop-blur-sm p-2.5 text-white/80 hover:bg-white/20 transition active:scale-110">
+            <Heart className={`h-5 w-5 ${fav ? 'text-red-400' : ''}`} fill={fav ? 'currentColor' : 'none'} />
           </button>
         )}
         {canDownload && onDownload && (
           <button onClick={() => onDownload(photo)}
-            className="rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/80 hover:bg-white/20 transition">
-            <Download className="h-4 w-4" />
+            className="rounded-full bg-white/10 backdrop-blur-sm p-2.5 text-white/80 hover:bg-white/20 transition">
+            <Download className="h-5 w-5" />
           </button>
         )}
         {onShare && (
           <button onClick={() => onShare(photo)}
-            className="rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/80 hover:bg-white/20 transition">
-            <Share2 className="h-4 w-4" />
+            className="rounded-full bg-white/10 backdrop-blur-sm p-2.5 text-white/80 hover:bg-white/20 transition">
+            <Share2 className="h-5 w-5" />
           </button>
         )}
       </div>
-
-      {/* Prev */}
-      {currentIndex > 0 && (
-        <button onClick={goPrev}
-          className="absolute left-2 sm:left-4 z-10 rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/70 hover:text-white hover:bg-white/20 transition">
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-      )}
-
-      {/* Next */}
-      {currentIndex < photos.length - 1 && (
-        <button onClick={goNext}
-          className="absolute right-2 sm:right-4 z-10 rounded-full bg-white/10 backdrop-blur-sm p-2 text-white/70 hover:text-white hover:bg-white/20 transition">
-          <ChevronRight className="h-6 w-6" />
-        </button>
-      )}
-
-      {/* Image */}
-      <img
-        src={photo.url}
-        alt=""
-        className="max-h-[90vh] max-w-[95vw] object-contain select-none"
-        draggable={false}
-      />
     </div>
   );
 }
