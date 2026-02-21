@@ -50,9 +50,9 @@ function toGridPhoto(p: Photo, isFav: boolean) {
 }
 
 const GRID_CLASSES: Record<string, string> = {
-  classic: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-[3px]',
-  masonry: 'columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-[3px]',
-  justified: 'flex flex-wrap gap-[3px]',
+  classic: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2',
+  masonry: 'columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-2',
+  justified: 'flex flex-wrap gap-2',
   editorial: 'columns-1 sm:columns-2 lg:columns-3 gap-4',
 };
 
@@ -270,70 +270,81 @@ const PublicGallery = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      {/* Cover */}
-      {event.cover_url && (
-        <div className="relative h-40 sm:h-56 overflow-hidden">
+    <div className="min-h-[100dvh]" style={{ backgroundColor: '#FAFAF8' }}>
+      {/* Hero cover — tall, cinematic */}
+      {event.cover_url ? (
+        <div className="relative h-[60vh] sm:h-[65vh] overflow-hidden">
           <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/70 to-transparent" />
-        </div>
-      )}
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-5 gap-2">
-          <div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground leading-tight">{event.name}</h1>
-            <p className="text-[11px] text-muted-foreground/60 tracking-wide mt-1">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          <div className="absolute bottom-0 inset-x-0 px-6 sm:px-10 pb-10 sm:pb-14">
+            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-medium text-white leading-[1.1] tracking-tight">{event.name}</h1>
+            <p className="text-[13px] sm:text-[14px] text-white/50 tracking-wide mt-3 font-sans">
               {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
             </p>
           </div>
-          <div className="flex items-center gap-2">
+        </div>
+      ) : (
+        <div className="relative h-[35vh] sm:h-[40vh] flex items-end" style={{ backgroundColor: '#1C1612' }}>
+          <div className="px-6 sm:px-10 pb-10 sm:pb-14">
+            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-medium text-white leading-[1.1] tracking-tight">{event.name}</h1>
+            <p className="text-[13px] sm:text-[14px] text-white/40 tracking-wide mt-3 font-sans">
+              {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+        {/* Actions row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+          <div className="flex items-center gap-3">
             {favoriteCount > 0 && (
               <div className="flex items-center gap-1.5 text-[12px] text-primary font-medium">
                 <Heart className="h-3.5 w-3.5" fill="hsl(var(--primary))" />
                 <span>{favoriteCount} Selected</span>
               </div>
             )}
+          </div>
+          <div className="flex items-center gap-2">
             {photos.length > 1 && (
               <Button variant="outline" size="sm" onClick={() => setSlideshowOpen(true)}
-                className="min-h-[44px] sm:min-h-0 sm:h-7 px-3 text-[10px] uppercase tracking-[0.06em] border-border">
-                <Play className="mr-1 h-3 w-3" /> Slideshow
+                className="min-h-[44px] sm:min-h-0 sm:h-8 px-4 text-[10px] uppercase tracking-[0.08em] border-border rounded-full">
+                <Play className="mr-1.5 h-3 w-3" /> Slideshow
               </Button>
             )}
           </div>
         </div>
 
-        {/* Section pills */}
+        {/* Section pills — elegant thin outlined */}
         {availableSections.length > 0 && (
-          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex items-center gap-2.5 mb-6 overflow-x-auto pb-1 scrollbar-hide">
             <button onClick={() => setSectionFilter(null)}
-              className={`shrink-0 min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-full text-[11px] tracking-wide transition-colors border ${
+              className={`shrink-0 min-h-[44px] sm:min-h-[36px] px-4 py-1.5 rounded-full text-[11px] tracking-[0.06em] transition-all duration-200 border ${
                 !sectionFilter
-                  ? 'bg-foreground text-background border-foreground'
-                  : 'bg-transparent text-muted-foreground border-border hover:border-foreground/30'
+                  ? 'bg-foreground text-background border-foreground shadow-sm'
+                  : 'bg-transparent text-muted-foreground/70 border-border/60 hover:border-foreground/40 hover:text-foreground/80'
               }`}>All</button>
             {availableSections.map(s => (
               <button key={s} onClick={() => setSectionFilter(s === sectionFilter ? null : s)}
-                className={`shrink-0 min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-full text-[11px] tracking-wide transition-colors border ${
+                className={`shrink-0 min-h-[44px] sm:min-h-[36px] px-4 py-1.5 rounded-full text-[11px] tracking-[0.06em] transition-all duration-200 border ${
                   sectionFilter === s
-                    ? 'bg-foreground text-background border-foreground'
-                    : 'bg-transparent text-muted-foreground border-border hover:border-foreground/30'
+                    ? 'bg-foreground text-background border-foreground shadow-sm'
+                    : 'bg-transparent text-muted-foreground/70 border-border/60 hover:border-foreground/40 hover:text-foreground/80'
                 }`}>{s}</button>
             ))}
           </div>
         )}
 
         {/* Utility bar */}
-        <div className="flex items-center justify-between mb-4 border-b border-border">
+        <div className="flex items-center justify-between mb-6 border-b border-border/50 pb-px">
           <div className="flex items-center">
             <button onClick={() => { setFilter('all'); }}
-              className={`min-h-[44px] px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
-                filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
+              className={`min-h-[44px] px-3 py-2.5 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
+                filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground'
               }`}>All Photos</button>
             <button onClick={() => { setFilter('favorites'); }}
-              className={`min-h-[44px] px-3 py-2 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
-                filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground'
+              className={`min-h-[44px] px-3 py-2.5 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
+                filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground'
               }`}>
               <Heart className="h-3 w-3" /> Favorites
               {favoriteCount > 0 && (
@@ -403,7 +414,7 @@ const PublicGallery = () => {
             {displayPhotos.map((photo) => {
               const fav = isFavorite(photo.id);
               return (
-                <div key={photo.id} className={`group cursor-pointer ${getItemClass(layout)}`}
+                <div key={photo.id} className={`group cursor-pointer rounded shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden ${getItemClass(layout)}`}
                   onClick={() => openLightbox(photo.id)}>
                   <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
                   {showWatermark && (

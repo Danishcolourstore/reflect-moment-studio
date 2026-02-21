@@ -76,32 +76,35 @@ const Dashboard = () => {
   const fetchStats = async () => {
     if (!user) return;
 
-    // Photos: count all photos owned by this photographer
-    const { count: photoCount } = await supabase
+    // Photos: count all photos belonging to this photographer's events
+    const { count: photoCount, error: photoErr } = await supabase
       .from('photos')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id);
+    console.log('[Dashboard Stats] Photos query:', { photoCount, photoErr });
     setTotalPhotos(photoCount ?? 0);
 
     // Views: sum the `views` column from the photographer's events
-    const { data: viewData } = await (supabase
+    const { data: viewData, error: viewErr } = await (supabase
       .from('events')
       .select('views') as any)
       .eq('user_id', user.id);
+    console.log('[Dashboard Stats] Views query:', { viewData, viewErr });
     if (viewData) {
       const sum = (viewData as any[]).reduce((acc: number, e: any) => acc + (e.views ?? 0), 0);
+      console.log('[Dashboard Stats] Views sum:', sum);
       setTotalViews(sum);
     }
 
     // TODO: Storage — the `photos` table does not have a `file_size` column yet.
-    // Once added, replace the estimate below with: SELECT SUM(file_size) FROM photos WHERE user_id = auth.uid()
+    // Once added, replace with: SELECT SUM(file_size) FROM photos WHERE user_id = auth.uid()
     // For now, estimate ~2 MB per photo as a rough placeholder.
     const estimated = (photoCount ?? 0) * 2;
-    if (estimated >= 1024) {
-      setTotalStorageMB(`~${(estimated / 1024).toFixed(1)} GB`);
-    } else {
-      setTotalStorageMB(`~${estimated} MB`);
-    }
+    const storageLabel = estimated >= 1024
+      ? `~${(estimated / 1024).toFixed(1)} GB`
+      : `~${estimated} MB`;
+    console.log('[Dashboard Stats] Storage estimate:', storageLabel);
+    setTotalStorageMB(storageLabel);
   };
 
   useEffect(() => { fetchEvents(); fetchStats(); }, [user]);
@@ -114,10 +117,11 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      {/* Greeting — editorial, understated */}
-      <div className="mb-6">
-        <h1 className="font-serif text-[24px] font-semibold text-foreground tracking-tight">Studio Overview</h1>
-        <p className="mt-0.5 text-[11px] text-muted-foreground/50">Your studio at a glance</p>
+      {/* Greeting — premium editorial */}
+      <div className="mb-8">
+        <h1 className="font-display italic text-[28px] font-medium text-foreground tracking-tight">MirrorAI</h1>
+        <div className="w-12 h-[1.5px] bg-gold mt-2 mb-3" />
+        <p className="text-[11px] text-muted-foreground/50 uppercase tracking-[0.12em]">Studio Overview</p>
       </div>
 
       {/* Stats strip — flush grid, luxury feel */}

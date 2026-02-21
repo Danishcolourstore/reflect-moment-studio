@@ -78,34 +78,32 @@ export function PhotoLightbox({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col"
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col"
       onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
-      {/* Top bar: counter + close */}
-      <div className="flex items-center justify-between px-4 py-3 shrink-0">
-        <span className="text-white/50 text-[12px] tracking-wider font-medium">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 py-4 shrink-0">
+        <span className="text-white/40 text-[13px] tracking-[0.1em] font-sans font-light">
           {currentIndex + 1} / {photos.length}
         </span>
         <button onClick={onClose}
-          className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition">
+          className="min-w-[48px] min-h-[48px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-all duration-200">
           <X className="h-5 w-5" />
         </button>
       </div>
 
       {/* Image area */}
       <div className="flex-1 relative flex items-center justify-center min-h-0">
-        {/* Prev arrow */}
         {currentIndex > 0 && (
           <button onClick={goPrev}
-            className="absolute left-1 sm:left-4 z-10 min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition">
-            <ChevronLeft className="h-6 w-6" />
+            className="absolute left-2 sm:left-6 z-10 min-w-[48px] min-h-[48px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 transition-all duration-200">
+            <ChevronLeft className="h-7 w-7" />
           </button>
         )}
 
-        {/* Next arrow */}
         {currentIndex < photos.length - 1 && (
           <button onClick={goNext}
-            className="absolute right-1 sm:right-4 z-10 min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition">
-            <ChevronRight className="h-6 w-6" />
+            className="absolute right-2 sm:right-6 z-10 min-w-[48px] min-h-[48px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 transition-all duration-200">
+            <ChevronRight className="h-7 w-7" />
           </button>
         )}
 
@@ -118,24 +116,24 @@ export function PhotoLightbox({
         />
       </div>
 
-      {/* Bottom toolbar — thumb-reachable on mobile */}
-      <div className="shrink-0 flex items-center justify-center gap-4 px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      {/* Bottom toolbar — larger, more refined */}
+      <div className="shrink-0 flex items-center justify-center gap-5 px-6 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         {toggleFavorite && (
           <button onClick={() => toggleFavorite(photo.id)}
-            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/80 hover:bg-white/20 transition active:scale-110">
-            <Heart className={`h-5 w-5 ${fav ? 'text-red-400' : ''}`} fill={fav ? 'currentColor' : 'none'} />
+            className="min-w-[52px] min-h-[52px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/15 transition-all duration-200 active:scale-105">
+            <Heart className={`h-6 w-6 ${fav ? 'text-red-400' : ''}`} fill={fav ? 'currentColor' : 'none'} />
           </button>
         )}
         {canDownload && onDownload && (
           <button onClick={() => onDownload(photo)}
-            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/80 hover:bg-white/20 transition">
-            <Download className="h-5 w-5" />
+            className="min-w-[52px] min-h-[52px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/15 transition-all duration-200">
+            <Download className="h-6 w-6" />
           </button>
         )}
         {onShare && (
           <button onClick={() => onShare(photo)}
-            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/80 hover:bg-white/20 transition">
-            <Share2 className="h-5 w-5" />
+            className="min-w-[52px] min-h-[52px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/15 transition-all duration-200">
+            <Share2 className="h-6 w-6" />
           </button>
         )}
       </div>
