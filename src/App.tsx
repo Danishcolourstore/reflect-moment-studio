@@ -17,19 +17,50 @@ import PublicGallery from "./pages/PublicGallery";
 import GalleryCover from "./pages/GalleryCover";
 import NotFound from "./pages/NotFound";
 import { GalleryShell } from "./components/GalleryShell";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminPhotographers from "./pages/admin/AdminPhotographers";
+import AdminEvents from "./pages/admin/AdminEvents";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const [suspended, setSuspended] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    (supabase.from('profiles').select('suspended') as any)
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }: any) => {
+        setSuspended(data?.suspended ?? false);
+      });
+  }, [user]);
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground font-serif text-lg">Loading...</p></div>;
   if (!user) {
-    // Store intended destination so we can redirect after login
     sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
     return <Navigate to="/login" replace />;
   }
+
+  if (suspended === null) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground text-sm">Loading...</p></div>;
+
+  if (suspended) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center max-w-sm">
+          <h1 className="text-xl font-bold text-foreground mb-2">Account Suspended</h1>
+          <p className="text-sm text-muted-foreground mb-4">Your account has been suspended. Please contact support for assistance.</p>
+          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')} className="text-sm underline text-muted-foreground hover:text-foreground">Sign out</button>
+        </div>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }
 
@@ -38,10 +69,11 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   if (loading) return null;
   if (user) {
     const redirect = sessionStorage.getItem("redirectAfterLogin");
-    if (redirect) {
+    if (redirect && redirect.startsWith('/dashboard')) {
       sessionStorage.removeItem("redirectAfterLogin");
       return <Navigate to={redirect} replace />;
     }
+    sessionStorage.removeItem("redirectAfterLogin");
     return <Navigate to="/dashboard" replace />;
   }
   return <>{children}</>;
@@ -54,6 +86,13 @@ const AppRoutes = () => (
     <Route path="/register" element={<AuthRoute><Auth key="signup" initialView="signup" /></AuthRoute>} />
     <Route path="/forgot-password" element={<AuthRoute><Auth key="forgot" initialView="forgot" /></AuthRoute>} />
     <Route path="/reset-password" element={<ResetPassword />} />
+
+    {/* Super Admin routes — completely separate layout */}
+    <Route path="/admin" element={<AdminLayout />}>
+      <Route index element={<AdminDashboard />} />
+      <Route path="photographers" element={<AdminPhotographers />} />
+      <Route path="events" element={<AdminEvents />} />
+    </Route>
 
     {/* Photographer dashboard routes — all require auth */}
     <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -82,7 +121,6 @@ const AppRoutes = () => (
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
