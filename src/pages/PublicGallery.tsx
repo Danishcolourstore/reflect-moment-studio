@@ -6,7 +6,7 @@ import { useGuestSession } from '@/hooks/use-guest-session';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2 } from 'lucide-react';
+import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2, CheckSquare } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
+import { GuestSelectionMode } from '@/components/GuestSelectionMode';
 
 interface Photo {
   id: string;
@@ -38,6 +39,7 @@ interface Event {
   is_published: boolean;
   download_requires_password: boolean;
   download_password: string | null;
+  selection_mode_enabled: boolean;
 }
 
 function toGridPhoto(p: Photo, isFav: boolean) {
@@ -72,6 +74,7 @@ const PublicGallery = () => {
   const [downloadPwInput, setDownloadPwInput] = useState('');
   const [downloadPwError, setDownloadPwError] = useState(false);
   const [pendingDownloadAction, setPendingDownloadAction] = useState<(() => void) | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
 
   const { sessionId } = useGuestSession(event?.id);
   const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
@@ -286,6 +289,13 @@ const PublicGallery = () => {
             </button>
           </div>
 
+          {event.selection_mode_enabled && photos.length > 0 && !selectionMode && (
+            <Button variant="ghost" size="sm" onClick={() => setSelectionMode(true)}
+              className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
+              <CheckSquare className="mr-1 h-3 w-3" /> Select Photos
+            </Button>
+          )}
+
           {canDownload && photos.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -315,6 +325,8 @@ const PublicGallery = () => {
             <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
             <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo</p>
           </div>
+        ) : selectionMode ? (
+          <GuestSelectionMode eventId={event.id} photos={photos} onClose={() => setSelectionMode(false)} />
         ) : displayPhotos.length === 0 ? (
           <div className="py-24 text-center">
             <p className="font-serif text-sm text-muted-foreground/50">No photos in this gallery yet</p>

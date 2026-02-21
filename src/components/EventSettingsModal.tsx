@@ -43,6 +43,7 @@ interface EventData {
   download_resolution: string;
   watermark_enabled: boolean;
   is_published: boolean;
+  selection_mode_enabled?: boolean;
 }
 
 interface EventSettingsModalProps {
@@ -63,6 +64,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [downloadsEnabled, setDownloadsEnabled] = useState(event.downloads_enabled);
   const [watermarkEnabled, setWatermarkEnabled] = useState(event.watermark_enabled);
   const [isPublished, setIsPublished] = useState(event.is_published);
+  const [selectionModeEnabled, setSelectionModeEnabled] = useState(event.selection_mode_enabled ?? false);
   const [saving, setSaving] = useState(false);
 
   // Sync when event changes
@@ -75,6 +77,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setDownloadsEnabled(event.downloads_enabled);
     setWatermarkEnabled(event.watermark_enabled);
     setIsPublished(event.is_published);
+    setSelectionModeEnabled(event.selection_mode_enabled ?? false);
   }, [event]);
 
   const handleSave = async () => {
@@ -103,6 +106,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
       downloads_enabled: downloadsEnabled,
       watermark_enabled: watermarkEnabled,
       is_published: isPublished,
+      selection_mode_enabled: selectionModeEnabled,
     } as any).eq('id', event.id);
 
     if (error) {
@@ -222,6 +226,13 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
             <div className="flex items-center justify-between">
               <Label className="text-[12px] text-foreground/80 font-normal">Published</Label>
               <Switch checked={isPublished} onCheckedChange={setIsPublished} />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-[12px] text-foreground/80 font-normal">Photo Selection Mode</Label>
+                <p className="text-[10px] text-muted-foreground/50 mt-0.5">Guests can select & submit photos</p>
+              </div>
+              <Switch checked={selectionModeEnabled} onCheckedChange={setSelectionModeEnabled} />
             </div>
           </div>
 
