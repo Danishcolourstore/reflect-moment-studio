@@ -62,13 +62,31 @@ const Auth = ({ initialView }: AuthProps) => {
     return () => clearTimeout(t);
   }, [resendTimer]);
 
-  const redirectAfterAuth = useCallback(() => {
+  const redirectAfterAuth = useCallback(async () => {
+    sessionStorage.removeItem('redirectAfterLogin');
+
+    // Check if user has admin role
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser) {
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', currentUser.id)
+        .eq('role', 'admin');
+
+      console.log('[Auth] Role check for', currentUser.email, ':', roles);
+
+      if (roles && roles.length > 0) {
+        navigate('/admin');
+        return;
+      }
+    }
+
     const redirect = sessionStorage.getItem('redirectAfterLogin');
     if (redirect && redirect.startsWith('/dashboard')) {
       sessionStorage.removeItem('redirectAfterLogin');
       navigate(redirect);
     } else {
-      sessionStorage.removeItem('redirectAfterLogin');
       navigate('/dashboard');
     }
   }, [navigate]);
@@ -101,7 +119,7 @@ const Auth = ({ initialView }: AuthProps) => {
       toast({ title: 'Verification failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Signed in successfully' });
-      redirectAfterAuth();
+      await redirectAfterAuth();
     }
     setOtpLoading(false);
   };
@@ -126,7 +144,7 @@ const Auth = ({ initialView }: AuthProps) => {
         }
         toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
       } else {
-        redirectAfterAuth();
+        await redirectAfterAuth();
       }
     } else {
       if (!allPasswordRulesPass) {
