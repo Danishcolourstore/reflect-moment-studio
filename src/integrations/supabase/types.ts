@@ -34,6 +34,7 @@ export type Database = {
           location: string | null
           name: string
           photo_count: number
+          selection_mode_enabled: boolean
           slug: string
           updated_at: string
           user_id: string
@@ -59,6 +60,7 @@ export type Database = {
           location?: string | null
           name: string
           photo_count?: number
+          selection_mode_enabled?: boolean
           slug: string
           updated_at?: string
           user_id: string
@@ -84,6 +86,7 @@ export type Database = {
           location?: string | null
           name?: string
           photo_count?: number
+          selection_mode_enabled?: boolean
           slug?: string
           updated_at?: string
           user_id?: string
@@ -134,6 +137,74 @@ export type Database = {
             columns: ["photo_id"]
             isOneToOne: false
             referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_selection_photos: {
+        Row: {
+          created_at: string
+          id: string
+          photo_id: string
+          selection_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_id: string
+          selection_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_id?: string
+          selection_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_selection_photos_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_selection_photos_selection_id_fkey"
+            columns: ["selection_id"]
+            isOneToOne: false
+            referencedRelation: "guest_selections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_selections: {
+        Row: {
+          created_at: string
+          event_id: string
+          guest_email: string
+          guest_name: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          guest_email: string
+          guest_name: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          guest_email?: string
+          guest_name?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_selections_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]

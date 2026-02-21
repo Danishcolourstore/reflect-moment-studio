@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
+import { GuestSelectionsViewer } from '@/components/GuestSelectionsViewer';
 
 interface Photo {
   id: string;
@@ -44,6 +45,7 @@ interface Event {
   watermark_enabled: boolean;
   gallery_layout: string;
   is_published: boolean;
+  selection_mode_enabled: boolean;
 }
 
 type GalleryFilter = 'all' | 'favorites';
@@ -395,6 +397,13 @@ const EventGallery = () => {
           </div>
         )
       ) : null}
+
+      {/* Guest Selections */}
+      {isOwner && event && (
+        <div className="mt-8 border-t border-border pt-6">
+          <GuestSelectionsViewer eventId={event.id} />
+        </div>
+      )}
 
       {/* Mobile sticky upload button */}
       {isOwner && !upload.isUploading && !upload.isDone && (
