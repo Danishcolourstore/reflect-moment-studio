@@ -16,6 +16,7 @@ import ResetPassword from "./pages/ResetPassword";
 import PublicGallery from "./pages/PublicGallery";
 import GalleryCover from "./pages/GalleryCover";
 import NotFound from "./pages/NotFound";
+import GuestRegister from "./pages/GuestRegister";
 import { GalleryShell } from "./components/GalleryShell";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -128,6 +129,8 @@ const AppRoutes = () => (
     {/* Guest gallery routes — completely public, no auth */}
     <Route path="/event/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
     <Route path="/event/:slug/gallery" element={<GalleryShell><PublicGallery /></GalleryShell>} />
+    {/* Guest face registration */}
+    <Route path="/gallery/:eventId/register" element={<GuestRegister />} />
     {/* Legacy gallery redirects */}
     <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
     <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
