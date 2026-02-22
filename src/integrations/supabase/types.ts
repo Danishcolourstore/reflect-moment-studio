@@ -335,6 +335,27 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -343,6 +364,7 @@ export type Database = {
           id: string
           mobile: string | null
           plan: string
+          storage_limit_mb: number | null
           studio_name: string
           suspended: boolean
           updated_at: string
@@ -355,6 +377,7 @@ export type Database = {
           id?: string
           mobile?: string | null
           plan?: string
+          storage_limit_mb?: number | null
           studio_name?: string
           suspended?: boolean
           updated_at?: string
@@ -367,6 +390,7 @@ export type Database = {
           id?: string
           mobile?: string | null
           plan?: string
+          storage_limit_mb?: number | null
           studio_name?: string
           suspended?: boolean
           updated_at?: string
