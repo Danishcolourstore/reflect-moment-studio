@@ -26,6 +26,7 @@ export type Database = {
           downloads_enabled: boolean
           event_date: string
           event_type: string
+          face_recognition_enabled: boolean
           gallery_layout: string
           gallery_pin: string | null
           id: string
@@ -53,6 +54,7 @@ export type Database = {
           downloads_enabled?: boolean
           event_date?: string
           event_type?: string
+          face_recognition_enabled?: boolean
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string
@@ -80,6 +82,7 @@ export type Database = {
           downloads_enabled?: boolean
           event_date?: string
           event_type?: string
+          face_recognition_enabled?: boolean
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string

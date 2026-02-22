@@ -45,6 +45,7 @@ interface EventData {
   is_published: boolean;
   selection_mode_enabled?: boolean;
   selection_token?: string | null;
+  face_recognition_enabled?: boolean;
 }
 
 interface EventSettingsModalProps {
@@ -67,6 +68,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [isPublished, setIsPublished] = useState(event.is_published);
   const [selectionModeEnabled, setSelectionModeEnabled] = useState(event.selection_mode_enabled ?? false);
   const [selectionToken, setSelectionToken] = useState(event.selection_token ?? null);
+  const [faceRecognitionEnabled, setFaceRecognitionEnabled] = useState(event.face_recognition_enabled ?? false);
   const [saving, setSaving] = useState(false);
 
   // Sync when event changes
@@ -81,6 +83,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setIsPublished(event.is_published);
     setSelectionModeEnabled(event.selection_mode_enabled ?? false);
     setSelectionToken(event.selection_token ?? null);
+    setFaceRecognitionEnabled(event.face_recognition_enabled ?? false);
   }, [event]);
 
   const handleSave = async () => {
@@ -110,6 +113,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
       watermark_enabled: watermarkEnabled,
       is_published: isPublished,
       selection_mode_enabled: selectionModeEnabled,
+      face_recognition_enabled: faceRecognitionEnabled,
     } as any).eq('id', event.id);
 
     if (error) {
@@ -236,6 +240,13 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
                 <p className="text-[10px] text-muted-foreground/50 mt-0.5">Guests can select & submit photos</p>
               </div>
               <Switch checked={selectionModeEnabled} onCheckedChange={setSelectionModeEnabled} />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-[12px] text-foreground/80 font-normal">Face Recognition</Label>
+                <p className="text-[10px] text-muted-foreground/50 mt-0.5">Guests can find their photos via selfie</p>
+              </div>
+              <Switch checked={faceRecognitionEnabled} onCheckedChange={setFaceRecognitionEnabled} />
             </div>
           </div>
 
