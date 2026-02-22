@@ -13,3 +13,9 @@ verify_jwt = false
 
 [functions.face-recognition]
 verify_jwt = false
+
+[functions.detect-face]
+verify_jwt = false
+
+[functions.notify-guests]
+verify_jwt = false

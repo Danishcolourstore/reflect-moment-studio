@@ -103,6 +103,26 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
         isDone: true,
         percent: 100,
       }));
+
+      // Trigger face matching for registered guests
+      if (success > 0) {
+        try {
+          const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            fetch(`https://${projectId}.supabase.co/functions/v1/notify-guests`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({ event_id: eventId }),
+            }).catch(console.error);
+          }
+        } catch {
+          // non-blocking
+        }
+      }
     },
     [eventId, userId],
   );
