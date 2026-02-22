@@ -42,7 +42,7 @@ export default function AdminDashboard() {
 
   const loadStats = async () => {
     const [profRes, evtRes, photoRes, guestRes, favRes] = await Promise.all([
-      supabase.from('profiles').select('id, studio_name, email, created_at, plan') as any,
+      supabase.from('profiles').select('id, user_id, studio_name, email, created_at, plan') as any,
       supabase.from('events').select('id, name, user_id, created_at, photo_count, views') as any,
       supabase.from('photos').select('id, file_size') as any,
       (supabase.from('guest_sessions').select('id', { count: 'exact', head: true }) as any),

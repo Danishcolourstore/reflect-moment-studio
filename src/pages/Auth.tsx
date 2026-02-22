@@ -63,8 +63,6 @@ const Auth = ({ initialView }: AuthProps) => {
   }, [resendTimer]);
 
   const redirectAfterAuth = useCallback(async () => {
-    sessionStorage.removeItem('redirectAfterLogin');
-
     // Check if user has admin role
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     if (currentUser) {
@@ -74,17 +72,16 @@ const Auth = ({ initialView }: AuthProps) => {
         .eq('user_id', currentUser.id)
         .eq('role', 'admin');
 
-      console.log('[Auth] Role check for', currentUser.email, ':', roles);
-
       if (roles && roles.length > 0) {
+        sessionStorage.removeItem('redirectAfterLogin');
         navigate('/admin');
         return;
       }
     }
 
     const redirect = sessionStorage.getItem('redirectAfterLogin');
+    sessionStorage.removeItem('redirectAfterLogin');
     if (redirect && redirect.startsWith('/dashboard')) {
-      sessionStorage.removeItem('redirectAfterLogin');
       navigate(redirect);
     } else {
       navigate('/dashboard');

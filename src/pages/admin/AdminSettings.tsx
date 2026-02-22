@@ -30,7 +30,10 @@ export default function AdminSettings() {
 
   const saveSetting = async (key: string, value: string) => {
     setSaving(true);
-    const { error } = await (supabase.from('platform_settings').update({ value, updated_at: new Date().toISOString() }) as any).eq('key', key);
+    const { error } = await (supabase.from('platform_settings').upsert(
+      { key, value, updated_at: new Date().toISOString() },
+      { onConflict: 'key' }
+    ) as any);
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
     else toast({ title: 'Saved' });
     setSaving(false);
