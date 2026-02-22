@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, FolderDown, Loader2, PackageOpen, Share2, Play, Camera, Link2, Heart, X } from 'lucide-react';
+import { Download, FolderDown, Loader2, PackageOpen, Share2, Play, Camera, Link2, Heart, X, ScanFace } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -21,6 +21,7 @@ import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 import { PhotoLightbox } from '@/components/PhotoLightbox';
 import { PhotoSlideshow } from '@/components/PhotoSlideshow';
 import { HighlightReel } from '@/components/HighlightReel';
+import { FaceSearchModal } from '@/components/FaceSearchModal';
 
 interface Photo {
   id: string;
@@ -46,6 +47,7 @@ interface Event {
   download_password: string | null;
   selection_mode_enabled: boolean;
   selection_token: string | null;
+  face_recognition_enabled: boolean;
 }
 
 function toGridPhoto(p: Photo, isFav: boolean) {
@@ -61,7 +63,7 @@ const GRID_CLASSES: Record<string, string> = {
 
 const SECTIONS = ['Highlights', 'Ceremony', 'Reception', 'Family', 'Getting Ready'] as const;
 
-type GalleryFilter = 'all' | 'favorites';
+type GalleryFilter = 'all' | 'favorites' | 'my-photos';
 
 const PublicGallery = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -90,6 +92,8 @@ const PublicGallery = () => {
   const [slideshowOpen, setSlideshowOpen] = useState(false);
   const [highlightReelOpen, setHighlightReelOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
+  const [faceSearchOpen, setFaceSearchOpen] = useState(false);
+  const [matchedPhotoIds, setMatchedPhotoIds] = useState<string[]>([]);
 
   // Selection mode state
   const [selectionMode, setSelectionMode] = useState(false);
@@ -265,7 +269,11 @@ const PublicGallery = () => {
   };
 
   // Apply filters and sorting
-  let filteredPhotos = selectionMode && filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
+  let filteredPhotos = filter === 'favorites' && selectionMode
+    ? photos.filter((p) => isFavorite(p.id))
+    : filter === 'my-photos'
+    ? photos.filter((p) => matchedPhotoIds.includes(p.id))
+    : photos;
   if (sectionFilter) {
     filteredPhotos = filteredPhotos.filter(p => p.section === sectionFilter);
   }
@@ -367,6 +375,12 @@ const PublicGallery = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {event.face_recognition_enabled && (
+              <Button variant="outline" size="sm" onClick={() => setFaceSearchOpen(true)}
+                className="min-h-[44px] sm:min-h-0 sm:h-8 px-4 text-[10px] uppercase tracking-[0.08em] border-border rounded-full">
+                <ScanFace className="mr-1.5 h-3.5 w-3.5" /> Find My Photos
+              </Button>
+            )}
             {selectionMode && favoriteCount > 0 && (
               <Button variant="outline" size="sm" onClick={() => setHighlightReelOpen(true)}
                 className="min-h-[44px] sm:min-h-0 sm:h-8 px-4 text-[10px] uppercase tracking-[0.08em] border-primary/30 text-primary rounded-full bg-primary/5 hover:bg-primary/10">
@@ -418,6 +432,15 @@ const PublicGallery = () => {
                 {favoriteCount > 0 && (
                   <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favoriteCount}</span>
                 )}
+              </button>
+            )}
+            {matchedPhotoIds.length > 0 && (
+              <button onClick={() => { setFilter('my-photos'); }}
+                className={`min-h-[44px] px-3 py-2.5 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
+                  filter === 'my-photos' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground'
+                }`}>
+                <ScanFace className="h-3 w-3" /> My Photos
+                <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{matchedPhotoIds.length}</span>
               </button>
             )}
           </div>
@@ -568,6 +591,14 @@ const PublicGallery = () => {
           photos={photos.filter(p => isFavorite(p.id))}
           open={highlightReelOpen}
           onClose={() => setHighlightReelOpen(false)}
+        />
+
+        {/* Face Search Modal */}
+        <FaceSearchModal
+          open={faceSearchOpen}
+          onOpenChange={setFaceSearchOpen}
+          eventId={event.id}
+          onResults={(ids) => { setMatchedPhotoIds(ids); if (ids.length > 0) setFilter('my-photos'); }}
         />
 
         {sharePhoto && (
