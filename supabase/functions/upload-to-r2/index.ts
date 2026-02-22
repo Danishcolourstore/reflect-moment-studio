@@ -87,13 +87,17 @@ Deno.serve(async (req) => {
     const contentType = file.type || `image/${ext === "jpg" ? "jpeg" : ext}`;
     const payloadHash = await sha256(fileBytes.buffer as ArrayBuffer);
 
+    // Path-style: host is just the endpoint, path includes bucket
+    const endpointHost = endpoint.replace("https://", "");
+    const canonicalUri = `/${bucket}/${objectKey}`;
+
     const canonicalHeaders =
-      `content-type:${contentType}\nhost:${bucket}.${endpoint.replace("https://", "")}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
+      `content-type:${contentType}\nhost:${endpointHost}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
     const signedHeaders = "content-type;host;x-amz-content-sha256;x-amz-date";
 
     const canonicalRequest = [
       "PUT",
-      `/${objectKey}`,
+      canonicalUri,
       "",
       canonicalHeaders,
       signedHeaders,
@@ -114,8 +118,8 @@ Deno.serve(async (req) => {
 
     const authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 
-    // Upload to R2
-    const r2Url = `${endpoint}/${bucket}/${objectKey}`;
+    // Upload to R2 (path-style URL)
+    const r2Url = `${endpoint}${canonicalUri}`;
     const r2Response = await fetch(r2Url, {
       method: "PUT",
       headers: {
@@ -123,7 +127,6 @@ Deno.serve(async (req) => {
         "x-amz-content-sha256": payloadHash,
         "x-amz-date": amzDate,
         Authorization: authorization,
-        Host: `${bucket}.${endpoint.replace("https://", "")}`,
       },
       body: fileBytes,
     });
