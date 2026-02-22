@@ -9,6 +9,9 @@ export interface UploadState {
   failedFiles: File[];
   isDone: boolean;
   percent: number;
+  currentFileName: string | null;
+  currentFileIndex: number;
+  errorMessage: string | null;
 }
 
 const INITIAL: UploadState = {
@@ -19,9 +22,14 @@ const INITIAL: UploadState = {
   failedFiles: [],
   isDone: false,
   percent: 0,
+  currentFileName: null,
+  currentFileIndex: 0,
+  errorMessage: null,
 };
 
-async function uploadToR2(file: File, eventId: string): Promise<void> {
+const MAX_RETRIES = 2;
+
+async function uploadToR2(file: File, eventId: string): Promise<string> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
@@ -43,9 +51,27 @@ async function uploadToR2(file: File, eventId: string): Promise<void> {
   );
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Upload failed' }));
-    throw new Error(err.error || 'Upload failed');
+    const err = await res.json().catch(() => ({ error: `Upload failed (${res.status})` }));
+    throw new Error(err.error || `Upload failed (${res.status})`);
   }
+
+  return 'ok';
+}
+
+async function uploadWithRetry(file: File, eventId: string): Promise<void> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await uploadToR2(file, eventId);
+      return;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error('Unknown error');
+      if (attempt < MAX_RETRIES) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError;
 }
 
 export function usePhotoUpload(eventId: string | undefined, userId: string | undefined) {
@@ -65,29 +91,39 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
         failedFiles: [],
         isDone: false,
         percent: 0,
+        currentFileName: files[0]?.name || null,
+        currentFileIndex: 0,
+        errorMessage: null,
       });
 
       let success = 0;
       const failed: File[] = [];
 
-      const BATCH_SIZE = 4;
-      for (let i = 0; i < files.length; i += BATCH_SIZE) {
+      // Sequential upload — one file at a time
+      for (let i = 0; i < files.length; i++) {
         if (abortRef.current) break;
-        const batch = files.slice(i, i + BATCH_SIZE);
+        const file = files[i];
 
-        const results = await Promise.allSettled(
-          batch.map((file) => uploadToR2(file, eventId)),
-        );
+        setState((prev) => ({
+          ...prev,
+          currentFileName: file.name,
+          currentFileIndex: i,
+          errorMessage: null,
+        }));
 
-        results.forEach((r, idx) => {
-          if (r.status === 'fulfilled') {
-            success++;
-          } else {
-            failed.push(batch[idx]);
-          }
-        });
+        try {
+          await uploadWithRetry(file, eventId);
+          success++;
+        } catch (err) {
+          failed.push(file);
+          const msg = err instanceof Error ? err.message : 'Unknown error';
+          setState((prev) => ({
+            ...prev,
+            errorMessage: `Failed: ${file.name} — ${msg}`,
+          }));
+        }
 
-        const completed = Math.min(i + BATCH_SIZE, files.length);
+        const completed = i + 1;
         setState((prev) => ({
           ...prev,
           completedFiles: completed,
@@ -102,6 +138,10 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
         isUploading: false,
         isDone: true,
         percent: 100,
+        currentFileName: null,
+        errorMessage: failed.length > 0
+          ? `${failed.length} photo${failed.length > 1 ? 's' : ''} failed after retries`
+          : null,
       }));
 
       // Trigger face matching for registered guests
