@@ -147,6 +147,47 @@ export type Database = {
           },
         ]
       }
+      guest_registrations: {
+        Row: {
+          created_at: string
+          email: string
+          event_id: string
+          face_token: string
+          guest_name: string
+          id: string
+          matched_photo_ids: string[] | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_id: string
+          face_token: string
+          guest_name: string
+          id?: string
+          matched_photo_ids?: string[] | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_id?: string
+          face_token?: string
+          guest_name?: string
+          id?: string
+          matched_photo_ids?: string[] | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_selection_photos: {
         Row: {
           created_at: string
