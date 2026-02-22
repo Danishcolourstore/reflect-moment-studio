@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -19,11 +19,8 @@ const GuestRegister = () => {
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [cameraActive, setCameraActive] = useState(false);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -44,50 +41,14 @@ const GuestRegister = () => {
       });
   }, [eventId]);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: 640, height: 480 },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setCameraActive(true);
-    } catch {
-      toast({ title: 'Camera access denied', variant: 'destructive' });
-    }
-  };
-
-  const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d')?.drawImage(video, 0, 0);
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const file = new File([blob], 'selfie.jpg', { type: 'image/jpeg' });
-        setSelfieFile(file);
-        setSelfiePreview(URL.createObjectURL(blob));
-      }
-    }, 'image/jpeg', 0.85);
-    stopCamera();
-  };
-
-  const stopCamera = () => {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    setCameraActive(false);
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelfieFile(file);
       setSelfiePreview(URL.createObjectURL(file));
     }
+    // Reset input so same file can be re-selected
+    e.target.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -215,23 +176,12 @@ const GuestRegister = () => {
                   Retake
                 </button>
               </div>
-            ) : cameraActive ? (
-              <div className="relative">
-                <video ref={videoRef} autoPlay playsInline muted className="w-full h-48 object-cover rounded-md border border-[#352f28]" />
-                <button
-                  type="button"
-                  onClick={capturePhoto}
-                  className="absolute bottom-3 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full border-2 border-[hsl(29,42%,59%)] bg-[hsl(29,42%,59%)]/20 flex items-center justify-center"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[hsl(29,42%,59%)]" />
-                </button>
-              </div>
             ) : (
               <div className="flex gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={startCamera}
+                  onClick={() => cameraInputRef.current?.click()}
                   className="flex-1 h-20 flex-col gap-1 border-[#352f28] bg-[#1a1612] text-[#a89a85] hover:bg-[#231f1b] hover:text-[#f5f0e8]"
                 >
                   <Camera className="h-5 w-5" />
@@ -246,12 +196,22 @@ const GuestRegister = () => {
                   <Upload className="h-5 w-5" />
                   <span className="text-[10px] uppercase tracking-wider">Upload Photo</span>
                 </Button>
+                {/* Native camera capture — opens camera app on mobile */}
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                {/* Fallback file picker */}
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={handleFileUpload}
+                  onChange={handleFileSelect}
                 />
               </div>
             )}
@@ -279,7 +239,6 @@ const GuestRegister = () => {
         </div>
       </div>
 
-      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 };
