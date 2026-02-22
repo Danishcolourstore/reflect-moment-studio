@@ -28,9 +28,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Convert selfie to base64
+    // Convert selfie to base64 (chunked to avoid stack overflow on large images)
     const selfieBytes = new Uint8Array(await selfieFile.arrayBuffer());
-    const selfieBase64 = btoa(String.fromCharCode(...selfieBytes));
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < selfieBytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...selfieBytes.slice(i, i + chunkSize));
+    }
+    const selfieBase64 = btoa(binary);
 
     // Call Face++ detect to get face_token
     const body = new FormData();
