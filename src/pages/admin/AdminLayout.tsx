@@ -2,7 +2,19 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { BarChart3, Users, Calendar, LogOut, Menu, X } from 'lucide-react';
+import {
+  BarChart3, Users, Calendar, LogOut, Menu, X,
+  HardDrive, ScanFace, Settings, Shield,
+} from 'lucide-react';
+
+const links = [
+  { to: '/admin', label: 'Overview', icon: BarChart3 },
+  { to: '/admin/photographers', label: 'Photographers', icon: Users },
+  { to: '/admin/events', label: 'Events', icon: Calendar },
+  { to: '/admin/storage', label: 'Storage', icon: HardDrive },
+  { to: '/admin/face-recognition', label: 'Face Recognition', icon: ScanFace },
+  { to: '/admin/settings', label: 'Settings', icon: Settings },
+];
 
 export default function AdminLayout() {
   const { user, loading, signOut } = useAuth();
@@ -33,35 +45,37 @@ export default function AdminLayout() {
 
   if (checking || !authorized) {
     return (
-      <div className="flex h-screen items-center justify-center" style={{ backgroundColor: '#FAFAF8' }}>
+      <div className="flex h-screen items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground/50 uppercase tracking-widest">Checking access…</p>
       </div>
     );
   }
 
-  const links = [
-    { to: '/admin', label: 'Overview', icon: BarChart3 },
-    { to: '/admin/photographers', label: 'Photographers', icon: Users },
-    { to: '/admin/events', label: 'Events', icon: Calendar },
-  ];
+  const isActive = (path: string) =>
+    path === '/admin' ? location.pathname === '/admin' : location.pathname.startsWith(path);
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: '#FAFAF8' }}>
+    <div className="flex min-h-screen bg-background">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-56 border-r border-border bg-card flex-col shrink-0">
-        <div className="p-5 border-b border-border">
-          <h1 className="font-display italic text-[18px] font-medium text-foreground tracking-tight">MirrorAI</h1>
-          <div className="w-8 h-[1.5px] bg-primary mt-1.5 mb-1" />
-          <p className="text-[9px] text-muted-foreground/40 uppercase tracking-[0.12em]">Admin Panel</p>
+      <aside className="hidden md:flex w-60 border-r border-border bg-card flex-col shrink-0 fixed inset-y-0 left-0 z-30">
+        <div className="px-6 pt-7 pb-5">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            <h1 className="font-serif text-[20px] font-semibold text-foreground tracking-tight">MirrorAI</h1>
+          </div>
+          <p className="mt-1 text-[9px] text-muted-foreground/40 uppercase tracking-[0.14em] font-medium ml-7">Platform Admin</p>
         </div>
-        <nav className="flex-1 p-3 space-y-0.5">
+
+        <div className="mx-5 h-px bg-border" />
+
+        <nav className="flex-1 px-3 pt-4 space-y-0.5 overflow-y-auto">
           {links.map((l) => (
             <Link
               key={l.to}
               to={l.to}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded text-[12px] transition-colors ${
-                location.pathname === l.to
-                  ? 'bg-foreground/5 text-foreground font-medium'
+                isActive(l.to)
+                  ? 'bg-primary/10 text-primary font-medium'
                   : 'text-muted-foreground/60 hover:bg-foreground/5 hover:text-foreground'
               }`}
             >
@@ -70,7 +84,9 @@ export default function AdminLayout() {
             </Link>
           ))}
         </nav>
-        <div className="p-3 border-t border-border">
+
+        <div className="mx-5 h-px bg-border" />
+        <div className="px-3 pb-5 pt-3">
           <p className="text-[10px] text-muted-foreground/40 truncate mb-2 px-3">{user?.email}</p>
           <button
             onClick={signOut}
@@ -84,9 +100,9 @@ export default function AdminLayout() {
 
       {/* Mobile header */}
       <div className="md:hidden fixed top-0 inset-x-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="font-display italic text-[16px] font-medium text-foreground">MirrorAI</h1>
-          <p className="text-[8px] text-muted-foreground/40 uppercase tracking-[0.12em]">Admin</p>
+        <div className="flex items-center gap-2">
+          <Shield className="h-4 w-4 text-primary" />
+          <h1 className="font-serif text-[16px] font-semibold text-foreground">MirrorAI Admin</h1>
         </div>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-foreground">
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -103,8 +119,8 @@ export default function AdminLayout() {
                 to={l.to}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] transition-colors ${
-                  location.pathname === l.to
-                    ? 'bg-foreground/5 text-foreground font-medium'
+                  isActive(l.to)
+                    ? 'bg-primary/10 text-primary font-medium'
                     : 'text-muted-foreground hover:bg-foreground/5'
                 }`}
               >
@@ -123,8 +139,10 @@ export default function AdminLayout() {
         </div>
       )}
 
-      <main className="flex-1 p-5 sm:p-8 overflow-auto md:pt-8 pt-20">
-        <Outlet />
+      <main className="flex-1 md:ml-60 overflow-auto pt-16 md:pt-0">
+        <div className="max-w-[1200px] mx-auto px-5 py-6 sm:px-8 lg:px-10">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

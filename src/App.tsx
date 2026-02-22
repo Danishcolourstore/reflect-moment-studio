@@ -22,6 +22,9 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
 import AdminEvents from "./pages/admin/AdminEvents";
+import AdminStorage from "./pages/admin/AdminStorage";
+import AdminFaceRecognition from "./pages/admin/AdminFaceRecognition";
+import AdminSettings from "./pages/admin/AdminSettings";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -114,6 +117,9 @@ const AppRoutes = () => (
       <Route index element={<AdminDashboard />} />
       <Route path="photographers" element={<AdminPhotographers />} />
       <Route path="events" element={<AdminEvents />} />
+      <Route path="storage" element={<AdminStorage />} />
+      <Route path="face-recognition" element={<AdminFaceRecognition />} />
+      <Route path="settings" element={<AdminSettings />} />
     </Route>
 
     {/* Photographer dashboard routes — all require auth */}
