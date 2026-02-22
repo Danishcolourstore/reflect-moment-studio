@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink, RefreshCw, Link2 } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink, RefreshCw, Link2, QrCode, Download } from 'lucide-react';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -147,6 +148,40 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
               <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" asChild>
                 <a href={`/event/${event.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
               </Button>
+            </div>
+          </div>
+
+          {/* QR Code */}
+          <div className="space-y-1.5">
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium flex items-center gap-1.5">
+              <QrCode className="h-3 w-3" /> QR Code
+            </Label>
+            <div className="flex items-center gap-4">
+              <div className="border border-border rounded-md p-2 bg-white">
+                <QRCodeCanvas
+                  id={`qr-${event.id}`}
+                  value={`${window.location.origin}/event/${event.slug}`}
+                  size={96}
+                  level="H"
+                  includeMargin={false}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[11px] text-muted-foreground/50">Print this QR code at the venue so guests can scan to view the gallery.</p>
+                <Button variant="outline" size="sm" className="text-[10px] h-8 uppercase tracking-[0.06em]"
+                  onClick={() => {
+                    const canvas = document.getElementById(`qr-${event.id}`) as HTMLCanvasElement | null;
+                    if (!canvas) return;
+                    const url = canvas.toDataURL('image/png');
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${event.slug}-qrcode.png`;
+                    a.click();
+                    toast({ title: 'QR code downloaded' });
+                  }}>
+                  <Download className="mr-1 h-3 w-3" /> Download PNG
+                </Button>
+              </div>
             </div>
           </div>
 
