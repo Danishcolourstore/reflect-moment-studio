@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // Fetch all photos for the event
     const { data: photos, error: photosError } = await supabase
       .from('photos')
-      .select('id, url')
+      .select('id, url, file_name')
       .eq('event_id', eventId);
 
     if (photosError || !photos || photos.length === 0) {
@@ -111,7 +111,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ matched_photo_ids: matchedPhotoIds }), {
+    // Build matched photos with URLs for the client
+    const matchedPhotos = photos
+      .filter(p => matchedPhotoIds.includes(p.id))
+      .map(p => ({ id: p.id, url: p.url, file_name: p.file_name ?? null }));
+
+    return new Response(JSON.stringify({ matched_photo_ids: matchedPhotoIds, matched_photos: matchedPhotos }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
