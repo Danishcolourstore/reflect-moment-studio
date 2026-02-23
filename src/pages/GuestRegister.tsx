@@ -62,15 +62,22 @@ const GuestRegister = () => {
       const formData = new FormData();
       formData.append('selfie', selfieFile);
 
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/detect-face`,
+        `${supabaseUrl}/functions/v1/detect-face`,
         { method: 'POST', body: formData }
       );
 
       if (!res.ok) {
-        const err = await res.json();
-        toast({ title: err.error || 'Face detection failed', variant: 'destructive' });
+        const errText = await res.text();
+        let errMsg = 'Face detection failed';
+        try {
+          const errJson = JSON.parse(errText);
+          errMsg = errJson.error || errMsg;
+        } catch {
+          // non-JSON error
+        }
+        toast({ title: errMsg, variant: 'destructive' });
         setSubmitting(false);
         return;
       }
