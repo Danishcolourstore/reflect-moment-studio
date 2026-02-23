@@ -36,9 +36,9 @@ export function FaceSearchModal({ open, onOpenChange, eventId, onResults }: Face
       formData.append('selfie', selectedFile);
       formData.append('event_id', eventId);
 
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/face-recognition`,
+        `${supabaseUrl}/functions/v1/face-recognition`,
         { method: 'POST', body: formData }
       );
 
