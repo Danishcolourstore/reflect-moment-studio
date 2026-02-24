@@ -41,14 +41,21 @@ const Auth = ({ initialView }: AuthProps) => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setFormError('');
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setFormError('Sign-in timed out. Please try again.');
+    }, 10000);
     try {
+      setLoading(false); // Reset before redirect to prevent stuck state
       const { error } = await lovable.auth.signInWithOAuth('google', {
         redirect_uri: window.location.origin,
       });
+      clearTimeout(timeoutId);
       if (error) {
         setFormError('Google sign-in failed. Please try again.');
       }
     } catch {
+      clearTimeout(timeoutId);
       setFormError('Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);
@@ -58,14 +65,21 @@ const Auth = ({ initialView }: AuthProps) => {
   const handleAppleSignIn = async () => {
     setLoading(true);
     setFormError('');
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setFormError('Sign-in timed out. Please try again.');
+    }, 10000);
     try {
+      setLoading(false); // Reset before redirect to prevent stuck state
       const { error } = await lovable.auth.signInWithOAuth('apple', {
         redirect_uri: window.location.origin,
       });
+      clearTimeout(timeoutId);
       if (error) {
         setFormError('Apple sign-in failed. Please try again.');
       }
     } catch {
+      clearTimeout(timeoutId);
       setFormError('Apple sign-in failed. Please try again.');
     } finally {
       setLoading(false);
@@ -118,16 +132,22 @@ const Auth = ({ initialView }: AuthProps) => {
     e.preventDefault();
     setLoading(true);
     setFormError('');
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setFormError('Login timed out. Please check your connection and try again.');
+    }, 10000);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      clearTimeout(timeoutId);
       console.log('[Auth] Login result:', { session: !!data?.session, error: error?.message });
       if (error) {
         setFormError(friendlyError(error.message));
       } else if (data?.session) {
         await redirectAfterAuth();
-        return; // navigating away
+        return;
       }
     } catch (err: any) {
+      clearTimeout(timeoutId);
       console.error('[Auth] Login catch:', err);
       setFormError('Network error — check your connection and try again.');
     } finally {
@@ -143,12 +163,17 @@ const Auth = ({ initialView }: AuthProps) => {
     }
     setLoading(true);
     setFormError('');
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setFormError('Signup timed out. Please check your connection and try again.');
+    }, 10000);
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { studio_name: studioName || 'My Studio', full_name: fullName || '' } },
       });
+      clearTimeout(timeoutId);
       console.log('[Auth] Signup result:', { user: !!data?.user, session: !!data?.session, error: error?.message });
       if (error) {
         setFormError(friendlyError(error.message));
@@ -165,6 +190,7 @@ const Auth = ({ initialView }: AuthProps) => {
         toast({ title: 'Check your email', description: 'We sent a confirmation link to verify your address.' });
       }
     } catch (err: any) {
+      clearTimeout(timeoutId);
       console.error('[Auth] Signup catch:', err);
       setFormError('Network error — check your connection and try again.');
     } finally {
