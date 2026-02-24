@@ -12,7 +12,7 @@ import UploadPage from "./pages/UploadPage";
 import Analytics from "./pages/Analytics";
 import StudioSettings from "./pages/StudioSettings";
 import Billing from "./pages/Billing";
-import ResetPassword from "./pages/ResetPassword";
+
 import PublicGallery from "./pages/PublicGallery";
 import GalleryCover from "./pages/GalleryCover";
 import NotFound from "./pages/NotFound";
@@ -105,8 +105,8 @@ const AppRoutes = () => (
     {/* Auth routes */}
     <Route path="/login" element={<AuthRoute><Auth key="login" initialView="login" /></AuthRoute>} />
     <Route path="/register" element={<AuthRoute><Auth key="signup" initialView="signup" /></AuthRoute>} />
-    <Route path="/forgot-password" element={<AuthRoute><Auth key="forgot" initialView="forgot" /></AuthRoute>} />
-    <Route path="/reset-password" element={<ResetPassword />} />
+    <Route path="/forgot-password" element={<Navigate to="/login" replace />} />
+    <Route path="/reset-password" element={<Navigate to="/login" replace />} />
 
     {/* Super Admin routes — completely separate layout */}
     <Route path="/admin" element={<AdminLayout />}>
