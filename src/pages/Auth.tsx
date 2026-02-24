@@ -9,7 +9,7 @@ import { ArrowLeft, Eye, EyeOff, Check, X } from 'lucide-react';
 
 type AuthView = 'landing' | 'login' | 'signup' | 'forgot';
 
-const passwordRules = [
+const PASSWORD_RULES = [
   { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
   { label: 'One uppercase letter', test: (p: string) => /[A-Z]/.test(p) },
   { label: 'One number', test: (p: string) => /\d/.test(p) },
@@ -20,7 +20,7 @@ interface AuthProps {
 }
 
 const Auth = ({ initialView }: AuthProps) => {
-  const [view, setView] = useState<AuthView>(initialView || 'landing');
+  const [view] = useState<AuthView>(initialView || 'landing');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [studioName, setStudioName] = useState('');
@@ -29,22 +29,24 @@ const Auth = ({ initialView }: AuthProps) => {
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [authError, setAuthError] = useState('');
+  const [formError, setFormError] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const allPasswordRulesPass = passwordRules.every((r) => r.test(password));
+  const allRulesPass = PASSWORD_RULES.every((r) => r.test(password));
 
+  const clearError = () => setFormError('');
+
+  /** After successful auth, redirect based on role */
   const redirectAfterAuth = useCallback(async () => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         const { data: roles } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', currentUser.id)
+          .eq('user_id', user.id)
           .eq('role', 'admin');
-
         if (roles && roles.length > 0) {
           navigate('/admin');
           return;
@@ -53,78 +55,71 @@ const Auth = ({ initialView }: AuthProps) => {
     } catch (e) {
       console.error('[Auth] Role check failed:', e);
     }
-
-    const redirect = sessionStorage.getItem('redirectAfterLogin');
+    const saved = sessionStorage.getItem('redirectAfterLogin');
     sessionStorage.removeItem('redirectAfterLogin');
-    if (redirect && redirect.startsWith('/dashboard')) {
-      navigate(redirect);
-    } else {
-      navigate('/dashboard');
-    }
+    navigate(saved?.startsWith('/dashboard') ? saved : '/dashboard');
   }, [navigate]);
 
-  /* ── Sign In ── */
+  /** Friendly error message from Supabase error */
+  const friendlyError = (raw: string): string => {
+    const msg = raw.toLowerCase();
+    if (msg.includes('invalid login') || msg.includes('invalid_credentials'))
+      return 'Incorrect email or password. Please try again.';
+    if (msg.includes('email not confirmed'))
+      return 'Please verify your email address before signing in.';
+    if (msg.includes('user not found'))
+      return 'No account found with this email.';
+    if (msg.includes('already registered') || msg.includes('already been registered'))
+      return 'An account with this email already exists. Please sign in.';
+    if (msg.includes('valid email'))
+      return 'Please enter a valid email address.';
+    if (msg.includes('weak') || msg.includes('password'))
+      return 'Password does not meet the requirements.';
+    return raw;
+  };
+
+  /* ═══════════ HANDLERS ═══════════ */
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setAuthError('');
-
+    setFormError('');
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-      console.log('[Auth] signInWithPassword response:', { data: !!data?.session, error });
-
+      console.log('[Auth] Login result:', { session: !!data?.session, error: error?.message });
       if (error) {
-        const msg = error.message.toLowerCase();
-        if (msg.includes('invalid login') || msg.includes('invalid_credentials')) {
-          setAuthError('Incorrect email or password.');
-        } else if (msg.includes('email not confirmed')) {
-          setAuthError('Please verify your email before signing in.');
-        } else {
-          setAuthError(error.message);
-        }
+        setFormError(friendlyError(error.message));
       } else if (data?.session) {
         await redirectAfterAuth();
-        return;
+        return; // navigating away
       }
     } catch (err: any) {
-      console.error('[Auth] Login network error:', err);
-      setAuthError('Network error — please check your connection and try again.');
+      console.error('[Auth] Login catch:', err);
+      setFormError('Network error — check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  /* ── Sign Up ── */
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!allPasswordRulesPass) {
-      setAuthError('Please meet all password requirements.');
+    if (!allRulesPass) {
+      setFormError('Please meet all password requirements.');
       return;
     }
     setLoading(true);
-    setAuthError('');
-
+    setFormError('');
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: { studio_name: studioName || 'My Studio', full_name: fullName || '' },
-        },
+        options: { data: { studio_name: studioName || 'My Studio', full_name: fullName || '' } },
       });
-
-      console.log('[Auth] signUp response:', { user: !!data?.user, session: !!data?.session, error });
-
+      console.log('[Auth] Signup result:', { user: !!data?.user, session: !!data?.session, error: error?.message });
       if (error) {
-        const msg = error.message.toLowerCase();
-        if (msg.includes('already registered') || msg.includes('already been registered')) {
-          setAuthError('An account with this email already exists. Please sign in.');
-        } else {
-          setAuthError(error.message);
-        }
+        setFormError(friendlyError(error.message));
       } else if (data?.user?.identities?.length === 0) {
-        setAuthError('An account with this email already exists.');
+        setFormError('An account with this email already exists.');
       } else if (data?.session) {
         if (mobile && data.user) {
           await (supabase.from('profiles').update({ mobile } as any) as any).eq('user_id', data.user.id);
@@ -136,116 +131,80 @@ const Auth = ({ initialView }: AuthProps) => {
         toast({ title: 'Check your email', description: 'We sent a confirmation link to verify your address.' });
       }
     } catch (err: any) {
-      console.error('[Auth] Signup network error:', err);
-      setAuthError('Network error — please check your connection and try again.');
+      console.error('[Auth] Signup catch:', err);
+      setFormError('Network error — check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  /* ── Forgot Password ── */
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
-    setAuthError('');
-
+    setFormError('');
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-      if (error) {
-        setAuthError(error.message);
-      } else {
-        setResetSent(true);
-      }
-    } catch (err: any) {
-      setAuthError('Network error — please try again.');
+      if (error) setFormError(error.message);
+      else setResetSent(true);
+    } catch {
+      setFormError('Network error — please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  /* ══════════════════════════════════════════════
-     VIEWS
-     ══════════════════════════════════════════════ */
+  /* ═══════════ VIEWS ═══════════ */
 
-  /* ── Landing ── */
+  // Landing
   if (view === 'landing') {
     return (
       <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-4">
         <div className="w-full max-w-xs text-center space-y-14">
           <div className="space-y-3">
-            <h1 className="font-display italic text-5xl font-semibold text-primary tracking-tight leading-none">
-              MirrorAI
-            </h1>
+            <h1 className="font-display italic text-5xl font-semibold text-primary tracking-tight leading-none">MirrorAI</h1>
             <div className="w-8 h-px bg-primary/30 mx-auto" />
-            <p className="text-[10px] text-muted-foreground/50 tracking-[0.25em] uppercase font-medium">
-              Reflections of Your Moments
-            </p>
+            <p className="text-[10px] text-muted-foreground/50 tracking-[0.25em] uppercase font-medium">Reflections of Your Moments</p>
           </div>
           <div className="space-y-3">
-            <Button
-              onClick={() => navigate('/login')}
-              className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-11 text-[11px] tracking-[0.14em] uppercase font-medium"
-            >
-              Sign In
-            </Button>
-            <Button
-              onClick={() => navigate('/register')}
-              variant="outline"
-              className="w-full border-border hover:bg-muted/50 text-foreground h-11 text-[11px] tracking-[0.14em] uppercase font-medium"
-            >
-              Create Account
-            </Button>
+            <Button onClick={() => navigate('/login')} className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-11 text-[11px] tracking-[0.14em] uppercase font-medium">Sign In</Button>
+            <Button onClick={() => navigate('/register')} variant="outline" className="w-full border-border hover:bg-muted/50 text-foreground h-11 text-[11px] tracking-[0.14em] uppercase font-medium">Create Account</Button>
           </div>
-          <p className="text-[9px] text-muted-foreground/30 tracking-[0.08em] uppercase">
-            Gallery delivery for photographers
-          </p>
+          <p className="text-[9px] text-muted-foreground/30 tracking-[0.08em] uppercase">Gallery delivery for photographers</p>
         </div>
       </div>
     );
   }
 
-  /* ── Forgot Password ── */
+  // Forgot password
   if (view === 'forgot') {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm space-y-10">
-          <Logo />
+          <BrandHeader />
           <div className="bg-card border border-border p-8">
-            <div className="flex items-center gap-2.5 mb-6">
-              <button onClick={() => navigate('/login')} className="text-muted-foreground/40 hover:text-foreground transition-colors">
-                <ArrowLeft className="h-4 w-4" />
-              </button>
-              <h2 className="font-display text-xl font-semibold text-foreground">Reset Password</h2>
-            </div>
-
+            <BackTitle onBack={() => navigate('/login')} title="Reset Password" />
             {resetSent ? (
               <div className="text-center py-4 space-y-3">
                 <p className="font-display text-sm text-foreground font-medium">Check your email</p>
                 <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
                   We sent a reset link to <span className="text-foreground/80 font-medium">{email}</span>
                 </p>
-                <button onClick={() => { navigate('/login'); setResetSent(false); }} className="text-[11px] text-primary hover:text-primary/80 transition-colors mt-2">
-                  Back to Sign In
-                </button>
+                <button onClick={() => navigate('/login')} className="text-[11px] text-primary hover:text-primary/80 transition-colors mt-2">Back to Sign In</button>
               </div>
             ) : (
               <>
-                <p className="text-[11px] text-muted-foreground/60 mb-4 leading-relaxed">
-                  Enter your email and we'll send you a reset link.
-                </p>
-                {authError && <ErrorBanner message={authError} />}
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <Field label="Email">
-                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" className="bg-background border-border h-10 text-[13px]" />
-                  </Field>
-                  <SubmitButton loading={loading} label="Send Reset Link" />
+                <p className="text-[11px] text-muted-foreground/60 mb-4 leading-relaxed">Enter your email and we'll send you a reset link.</p>
+                {formError && <InlineError message={formError} />}
+                <form onSubmit={handleForgot} className="space-y-4">
+                  <FormField label="Email">
+                    <Input type="email" value={email} onChange={(e) => { setEmail(e.target.value); clearError(); }} placeholder="you@example.com" required autoComplete="email" className="bg-background border-border h-10 text-[13px]" />
+                  </FormField>
+                  <ActionButton loading={loading} label="Send Reset Link" />
                 </form>
-                <div className="mt-6 text-center">
-                  <button onClick={() => navigate('/login')} className="text-[11px] text-primary hover:text-primary/80 transition-colors">Back to Sign In</button>
-                </div>
+                <p className="mt-6 text-center"><button onClick={() => navigate('/login')} className="text-[11px] text-primary hover:text-primary/80 transition-colors">Back to Sign In</button></p>
               </>
             )}
           </div>
@@ -254,40 +213,33 @@ const Auth = ({ initialView }: AuthProps) => {
     );
   }
 
-  /* ── Login / Signup ── */
+  // Login / Signup
   const isLogin = view === 'login';
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 pb-safe">
       <div className="w-full max-w-sm space-y-10">
-        <Logo />
+        <BrandHeader />
         <div className="bg-card border border-border p-8">
-          <div className="flex items-center gap-2.5 mb-6">
-            <button onClick={() => navigate('/')} className="text-muted-foreground/40 hover:text-foreground transition-colors">
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <h2 className="font-display text-xl font-semibold text-foreground">
-              {isLogin ? 'Sign In' : 'Create Your Studio'}
-            </h2>
-          </div>
+          <BackTitle onBack={() => navigate('/')} title={isLogin ? 'Sign In' : 'Create Your Studio'} />
 
-          {authError && <ErrorBanner message={authError} />}
+          {formError && <InlineError message={formError} />}
 
           <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
             {!isLogin && (
               <>
-                <Field label="Full Name">
+                <FormField label="Full Name">
                   <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your Name" className="bg-background border-border h-10 text-[13px]" />
-                </Field>
-                <Field label="Studio Name">
+                </FormField>
+                <FormField label="Studio Name">
                   <Input value={studioName} onChange={(e) => setStudioName(e.target.value)} placeholder="Your Studio Name" className="bg-background border-border h-10 text-[13px]" />
-                </Field>
+                </FormField>
               </>
             )}
 
-            <Field label="Email">
-              <Input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setAuthError(''); }} placeholder="you@example.com" required autoComplete="email" className="bg-background border-border h-10 text-[13px]" />
-            </Field>
+            <FormField label="Email">
+              <Input type="email" value={email} onChange={(e) => { setEmail(e.target.value); clearError(); }} placeholder="you@example.com" required autoComplete="email" className="bg-background border-border h-10 text-[13px]" />
+            </FormField>
 
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Password</Label>
@@ -295,7 +247,7 @@ const Auth = ({ initialView }: AuthProps) => {
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
+                  onChange={(e) => { setPassword(e.target.value); clearError(); }}
                   placeholder="••••••••"
                   required
                   minLength={isLogin ? 6 : 8}
@@ -309,20 +261,18 @@ const Auth = ({ initialView }: AuthProps) => {
 
               {isLogin && (
                 <div className="text-right">
-                  <button type="button" onClick={() => { navigate('/forgot-password'); setResetSent(false); }} className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors">
-                    Forgot password?
-                  </button>
+                  <button type="button" onClick={() => navigate('/forgot-password')} className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors">Forgot password?</button>
                 </div>
               )}
 
               {!isLogin && password.length > 0 && (
                 <div className="space-y-1 pt-1">
-                  {passwordRules.map((rule) => {
-                    const passes = rule.test(password);
+                  {PASSWORD_RULES.map((rule) => {
+                    const ok = rule.test(password);
                     return (
                       <div key={rule.label} className="flex items-center gap-1.5">
-                        {passes ? <Check className="h-3 w-3 text-primary" /> : <X className="h-3 w-3 text-muted-foreground/30" />}
-                        <span className={`text-[10px] ${passes ? 'text-primary' : 'text-muted-foreground/40'}`}>{rule.label}</span>
+                        {ok ? <Check className="h-3 w-3 text-primary" /> : <X className="h-3 w-3 text-muted-foreground/30" />}
+                        <span className={`text-[10px] ${ok ? 'text-primary' : 'text-muted-foreground/40'}`}>{rule.label}</span>
                       </div>
                     );
                   })}
@@ -331,31 +281,31 @@ const Auth = ({ initialView }: AuthProps) => {
             </div>
 
             {!isLogin && (
-              <Field label={<>Mobile Number <span className="normal-case text-muted-foreground/40">(optional)</span></>}>
+              <FormField label={<>Mobile <span className="normal-case text-muted-foreground/40">(optional)</span></>}>
                 <Input type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="+91 9876543210" className="bg-background border-border h-10 text-[13px]" />
-              </Field>
+              </FormField>
             )}
 
-            <SubmitButton loading={loading} label={isLogin ? 'Sign In' : 'Create Account'} disabled={!isLogin && !allPasswordRulesPass && password.length > 0} />
+            <ActionButton loading={loading} label={isLogin ? 'Sign In' : 'Create Account'} disabled={!isLogin && !allRulesPass && password.length > 0} />
           </form>
 
-          <div className="mt-6 text-center">
+          <p className="mt-6 text-center">
             <button
-              onClick={() => { navigate(isLogin ? '/register' : '/login'); setPassword(''); setShowPassword(false); setAuthError(''); }}
+              onClick={() => { navigate(isLogin ? '/register' : '/login'); setPassword(''); setShowPassword(false); clearError(); }}
               className="text-[11px] text-primary hover:text-primary/80 transition-colors"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
-          </div>
+          </p>
         </div>
       </div>
     </div>
   );
 };
 
-/* ── Shared sub-components ── */
+/* ═══════════ SHARED SUB-COMPONENTS ═══════════ */
 
-function Logo() {
+function BrandHeader() {
   return (
     <div className="text-center space-y-2">
       <h1 className="font-display italic text-3xl font-semibold text-primary tracking-tight">MirrorAI</h1>
@@ -365,7 +315,18 @@ function Logo() {
   );
 }
 
-function Field({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
+function BackTitle({ onBack, title }: { onBack: () => void; title: string }) {
+  return (
+    <div className="flex items-center gap-2.5 mb-6">
+      <button onClick={onBack} className="text-muted-foreground/40 hover:text-foreground transition-colors">
+        <ArrowLeft className="h-4 w-4" />
+      </button>
+      <h2 className="font-display text-xl font-semibold text-foreground">{title}</h2>
+    </div>
+  );
+}
+
+function FormField({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">{label}</Label>
@@ -374,7 +335,7 @@ function Field({ label, children }: { label: React.ReactNode; children: React.Re
   );
 }
 
-function SubmitButton({ loading, label, disabled }: { loading: boolean; label: string; disabled?: boolean }) {
+function ActionButton({ loading, label, disabled }: { loading: boolean; label: string; disabled?: boolean }) {
   return (
     <Button
       type="submit"
@@ -386,7 +347,7 @@ function SubmitButton({ loading, label, disabled }: { loading: boolean; label: s
   );
 }
 
-function ErrorBanner({ message }: { message: string }) {
+function InlineError({ message }: { message: string }) {
   return (
     <div className="mb-4 px-3 py-2.5 border border-destructive/30 bg-destructive/5 text-[12px] text-destructive leading-relaxed rounded">
       {message}
