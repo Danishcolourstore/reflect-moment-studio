@@ -63,27 +63,36 @@ const Auth = ({ initialView }: AuthProps) => {
   }, [resendTimer]);
 
   const redirectAfterAuth = useCallback(async () => {
-    // Check if user has admin role
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (currentUser) {
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', currentUser.id)
-        .eq('role', 'admin');
+    try {
+      // Check if user has admin role
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
-      if (roles && roles.length > 0) {
-        sessionStorage.removeItem('redirectAfterLogin');
-        navigate('/admin');
-        return;
+      if (currentUser) {
+        const { data: roles, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', currentUser.id)
+          .eq('role', 'admin');
+
+        if (!rolesError && roles && roles.length > 0) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate('/admin');
+          return;
+        }
       }
-    }
 
-    const redirect = sessionStorage.getItem('redirectAfterLogin');
-    sessionStorage.removeItem('redirectAfterLogin');
-    if (redirect && redirect.startsWith('/dashboard')) {
-      navigate(redirect);
-    } else {
+      const redirect = sessionStorage.getItem('redirectAfterLogin');
+      sessionStorage.removeItem('redirectAfterLogin');
+      if (redirect && redirect.startsWith('/dashboard')) {
+        navigate(redirect);
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Unexpected redirect error:', error);
+      sessionStorage.removeItem('redirectAfterLogin');
       navigate('/dashboard');
     }
   }, [navigate]);
@@ -95,30 +104,44 @@ const Auth = ({ initialView }: AuthProps) => {
       toast({ title: 'Invalid number', description: 'Please enter a valid phone number.', variant: 'destructive' });
       return;
     }
+
     setOtpLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone: fullPhone });
-    if (error) {
-      toast({ title: 'Failed to send OTP', description: error.message, variant: 'destructive' });
-    } else {
-      setOtpSent(true);
-      setResendTimer(30);
-      toast({ title: 'OTP sent', description: `Verification code sent to ${fullPhone}` });
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ phone: fullPhone });
+      if (error) {
+        toast({ title: 'Failed to send OTP', description: error.message, variant: 'destructive' });
+      } else {
+        setOtpSent(true);
+        setResendTimer(30);
+        toast({ title: 'OTP sent', description: `Verification code sent to ${fullPhone}` });
+      }
+    } catch (error) {
+      console.error('Unexpected OTP send error:', error);
+      toast({ title: 'Failed to send OTP', description: 'Please try again.', variant: 'destructive' });
+    } finally {
+      setOtpLoading(false);
     }
-    setOtpLoading(false);
   };
 
   /* ── Phone OTP: Verify code ── */
   const verifyOtp = async (otpCode: string) => {
     const fullPhone = `${countryCode}${phoneNumber}`;
     setOtpLoading(true);
-    const { error } = await supabase.auth.verifyOtp({ phone: fullPhone, token: otpCode, type: 'sms' });
-    if (error) {
-      toast({ title: 'Verification failed', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Signed in successfully' });
-      await redirectAfterAuth();
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({ phone: fullPhone, token: otpCode, type: 'sms' });
+      if (error) {
+        toast({ title: 'Verification failed', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Signed in successfully' });
+        await redirectAfterAuth();
+      }
+    } catch (error) {
+      console.error('Unexpected OTP verification error:', error);
+      toast({ title: 'Verification failed', description: 'Please try again.', variant: 'destructive' });
+    } finally {
+      setOtpLoading(false);
     }
-    setOtpLoading(false);
   };
 
   /* ── Email/password submit ── */
@@ -126,77 +149,89 @@ const Auth = ({ initialView }: AuthProps) => {
     e.preventDefault();
     setLoading(true);
 
-    if (view === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        let msg = error.message;
-        if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials')) {
-          msg = 'Incorrect email or password. Please try again.';
-        } else if (msg.toLowerCase().includes('email not confirmed')) {
-          msg = 'Please verify your email address before signing in.';
-        } else if (msg.toLowerCase().includes('user not found')) {
-          msg = 'No account found with this email. Please sign up first.';
-        } else if (msg.toLowerCase().includes('valid email')) {
-          msg = 'Please enter a valid email address.';
+    try {
+      if (view === 'login') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          let msg = error.message;
+          if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials')) {
+            msg = 'Incorrect email or password. Please try again.';
+          } else if (msg.toLowerCase().includes('email not confirmed')) {
+            msg = 'Please verify your email address before signing in.';
+          } else if (msg.toLowerCase().includes('user not found')) {
+            msg = 'No account found with this email. Please sign up first.';
+          } else if (msg.toLowerCase().includes('valid email')) {
+            msg = 'Please enter a valid email address.';
+          }
+          toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
+        } else {
+          await redirectAfterAuth();
         }
-        toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
       } else {
-        await redirectAfterAuth();
-      }
-    } else {
-      if (!allPasswordRulesPass) {
-        toast({ title: 'Weak password', description: 'Please meet all password requirements.', variant: 'destructive' });
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { studio_name: studioName || 'My Studio', full_name: fullName || '' },
-        },
-      });
-
-      if (error) {
-        let msg = error.message;
-        if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
-          msg = 'An account with this email already exists. Please sign in instead.';
-        } else if (msg.toLowerCase().includes('valid email')) {
-          msg = 'Please enter a valid email address.';
-        } else if (msg.toLowerCase().includes('password')) {
-          msg = 'Password does not meet the requirements.';
+        if (!allPasswordRulesPass) {
+          toast({ title: 'Weak password', description: 'Please meet all password requirements.', variant: 'destructive' });
+          return;
         }
-        toast({ title: 'Signup failed', description: msg, variant: 'destructive' });
-      } else if (data?.user?.identities?.length === 0) {
-        toast({ title: 'Account exists', description: 'An account with this email already exists. Please sign in.', variant: 'destructive' });
-      } else if (data?.session) {
-        // Save mobile to profile if provided
-        if (mobile && data.user) {
-          await (supabase.from('profiles').update({ mobile } as any) as any).eq('user_id', data.user.id);
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { studio_name: studioName || 'My Studio', full_name: fullName || '' },
+          },
+        });
+
+        if (error) {
+          let msg = error.message;
+          if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
+            msg = 'An account with this email already exists. Please sign in instead.';
+          } else if (msg.toLowerCase().includes('valid email')) {
+            msg = 'Please enter a valid email address.';
+          } else if (msg.toLowerCase().includes('password')) {
+            msg = 'Password does not meet the requirements.';
+          }
+          toast({ title: 'Signup failed', description: msg, variant: 'destructive' });
+        } else if (data?.user?.identities?.length === 0) {
+          toast({ title: 'Account exists', description: 'An account with this email already exists. Please sign in.', variant: 'destructive' });
+        } else if (data?.session) {
+          // Save mobile to profile if provided
+          if (mobile && data.user) {
+            await (supabase.from('profiles').update({ mobile } as any) as any).eq('user_id', data.user.id);
+          }
+          toast({ title: 'Welcome to MirrorAI', description: 'Your studio has been created.' });
+          navigate('/dashboard');
+        } else {
+          toast({ title: 'Check your email', description: 'We sent you a confirmation link to verify your address.' });
         }
-        toast({ title: 'Welcome to MirrorAI', description: 'Your studio has been created.' });
-        navigate('/dashboard');
-      } else {
-        toast({ title: 'Check your email', description: 'We sent you a confirmation link to verify your address.' });
       }
+    } catch (error) {
+      console.error('Unexpected auth submit error:', error);
+      toast({ title: 'Authentication failed', description: 'An unexpected error occurred. Please try again.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
+
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      setResetSent(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      } else {
+        setResetSent(true);
+      }
+    } catch (error) {
+      console.error('Unexpected forgot password error:', error);
+      toast({ title: 'Error', description: 'Unable to send reset link. Please try again.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   /* ── Landing Screen ── */

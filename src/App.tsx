@@ -36,11 +36,41 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [suspended, setSuspended] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!user) { setSuspended(false); return; }
+    if (!user) {
+      setSuspended(false);
+      return;
+    }
+
     let cancelled = false;
-    supabase.from('profiles').select('suspended').eq('user_id', user.id).single()
-      .then(({ data }: any) => { if (!cancelled) setSuspended(data?.suspended ?? false); });
-    return () => { cancelled = true; };
+    setSuspended(null);
+
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('suspended')
+          .eq('user_id', user.id)
+          .single();
+
+        if (cancelled) return;
+        if (error) {
+          console.error('Failed to check suspension status:', error.message);
+          setSuspended(false);
+          return;
+        }
+
+        setSuspended(data?.suspended ?? false);
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Unexpected suspension check error:', error);
+          setSuspended(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground font-serif text-lg">Loading...</p></div>;
@@ -70,10 +100,27 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading || !user) return;
+
     let cancelled = false;
-    supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin')
-      .then(({ data }) => {
+    setReady(false);
+
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin');
+
         if (cancelled) return;
+
+        if (error) {
+          console.error('Failed to fetch role for redirect:', error.message);
+          setRedirectTo('/dashboard');
+          setReady(true);
+          return;
+        }
+
         if (data && data.length > 0) {
           setRedirectTo('/admin');
         } else {
@@ -81,9 +128,19 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
           sessionStorage.removeItem("redirectAfterLogin");
           setRedirectTo(redirect && redirect.startsWith('/dashboard') ? redirect : '/dashboard');
         }
+
         setReady(true);
-      });
-    return () => { cancelled = true; };
+      } catch (error) {
+        if (cancelled) return;
+        console.error('Unexpected redirect role check error:', error);
+        setRedirectTo('/dashboard');
+        setReady(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user, loading]);
 
   if (loading) return null;
