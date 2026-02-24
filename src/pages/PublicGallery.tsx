@@ -75,6 +75,7 @@ const PublicGallery = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<GalleryFilter>('all');
   const [sectionFilter, setSectionFilter] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -105,71 +106,92 @@ const PublicGallery = () => {
   const fetchGallery = useCallback(async () => {
     if (!slug) return;
 
-    const { data } = await (supabase
-      .from('events')
-      .select('*') as any)
-      .eq('slug', slug)
-      .eq('is_published', true)
-      .maybeSingle();
+    try {
+      const { data, error: eventError } = await (supabase
+        .from('events')
+        .select('*') as any)
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .maybeSingle();
 
-    if (!data) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
-
-    const ev = data as unknown as Event;
-
-    if (ev.gallery_pin) {
-      const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
-      if (unlocked !== 'true') {
-        navigate(`/event/${ev.slug}`, { replace: true });
+      if (eventError) {
+        console.error('Event fetch error:', eventError.message);
+        setError('Failed to load gallery. Please try again.');
+        setLoading(false);
         return;
       }
-    }
 
-    setEvent(ev);
+      if (!data) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
 
-    // Set dynamic page title
-    document.title = `${ev.name} — MirrorAI`;
+      const ev = data as unknown as Event;
 
-    // Check selection mode via URL params
-    const mode = searchParams.get('mode');
-    const token = searchParams.get('token');
-    if (mode === 'select' && token) {
-      if (token === ev.selection_token) {
-        setSelectionMode(true);
-        localStorage.setItem(`selection_token_${ev.id}`, token);
+      if (ev.gallery_pin) {
+        const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
+        if (unlocked !== 'true') {
+          navigate(`/event/${ev.slug}`, { replace: true });
+          return;
+        }
+      }
+
+      setEvent(ev);
+      document.title = `${ev.name} — MirrorAI`;
+
+      // Check selection mode via URL params
+      const mode = searchParams.get('mode');
+      const token = searchParams.get('token');
+      if (mode === 'select' && token) {
+        if (token === ev.selection_token) {
+          setSelectionMode(true);
+          localStorage.setItem(`selection_token_${ev.id}`, token);
+        } else {
+          const storedToken = localStorage.getItem(`selection_token_${ev.id}`);
+          if (storedToken === ev.selection_token) {
+            setSelectionMode(true);
+          }
+        }
       } else {
-        // Check localStorage for previously verified token
         const storedToken = localStorage.getItem(`selection_token_${ev.id}`);
-        if (storedToken === ev.selection_token) {
+        if (storedToken && storedToken === ev.selection_token) {
           setSelectionMode(true);
         }
       }
-    } else {
-      // No URL params — check localStorage
-      const storedToken = localStorage.getItem(`selection_token_${ev.id}`);
-      if (storedToken && storedToken === ev.selection_token) {
-        setSelectionMode(true);
+
+      // Show gallery immediately, load photos in background
+      setLoading(false);
+
+      // Fetch watermark in parallel with photos
+      const watermarkPromise = ev.watermark_enabled && ev.user_id
+        ? (supabase.from('profiles').select('studio_name') as any)
+            .eq('user_id', ev.user_id)
+            .maybeSingle()
+        : Promise.resolve(null);
+
+      const photosPromise = (supabase.from('photos').select('*') as any)
+        .eq('event_id', ev.id)
+        .order('sort_order', { ascending: true, nullsFirst: false });
+
+      const [watermarkResult, photosResult] = await Promise.all([watermarkPromise, photosPromise]);
+
+      if (watermarkResult?.data) {
+        setWatermarkText((watermarkResult.data as any).studio_name);
       }
-    }
 
-    if (ev.watermark_enabled && ev.user_id) {
-      const { data: profile } = await (supabase
-        .from('profiles')
-        .select('studio_name') as any)
-        .eq('user_id', ev.user_id)
-        .maybeSingle();
-      if (profile) setWatermarkText((profile as any).studio_name);
+      if (photosResult.error) {
+        console.error('Photos fetch error:', photosResult.error.message);
+        toast({ title: 'Could not load some photos', description: 'Please refresh to try again.' });
+      } else if (photosResult.data) {
+        setPhotos(photosResult.data as unknown as Photo[]);
+      }
+    } catch (err) {
+      console.error('Gallery loading error:', err);
+      setError('Something went wrong loading this gallery. Please refresh.');
+      setLoading(false);
     }
-
-    const { data: photoData } = await (supabase.from('photos').select('*') as any)
-      .eq('event_id', ev.id)
-      .order('sort_order', { ascending: true, nullsFirst: false });
-    if (photoData) setPhotos(photoData as unknown as Photo[]);
-    setLoading(false);
-  }, [slug, navigate, searchParams]);
+  }, [slug, navigate, searchParams, toast]);
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
 
@@ -219,6 +241,19 @@ const PublicGallery = () => {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <p className="text-[11px] text-muted-foreground/50 uppercase tracking-widest">Loading gallery…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-4 text-center gap-4">
+        <h1 className="font-serif text-3xl font-semibold text-foreground">Something went wrong</h1>
+        <p className="text-[12px] text-muted-foreground/60 max-w-xs">{error}</p>
+        <Button onClick={() => { setError(null); setLoading(true); fetchGallery(); }}
+          className="mt-2 bg-primary hover:bg-primary/85 text-primary-foreground h-10 px-6 text-[11px] tracking-[0.12em] uppercase font-medium">
+          Try Again
+        </Button>
       </div>
     );
   }
