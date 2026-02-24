@@ -231,8 +231,6 @@ const Auth = ({ initialView }: AuthProps) => {
       });
     } finally {
       clearTimeout(timeout);
-      if (!handled) setLoading(false);
-      handled = true;
       setLoading(false);
     }
   };
