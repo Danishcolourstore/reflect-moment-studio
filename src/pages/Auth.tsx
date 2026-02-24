@@ -38,18 +38,11 @@ const Auth = ({ initialView }: AuthProps) => {
 
   const clearError = () => setFormError('');
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     setFormError('');
-    try {
-      const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
-      });
-      if (error) {
-        setFormError('Google sign-in failed. Please try again.');
-      }
-    } catch {
-      setFormError('Google sign-in failed. Please try again.');
-    }
+    lovable.auth.signInWithOAuth('google', {
+      redirect_uri: window.location.origin,
+    });
   };
 
   /** After successful auth, redirect based on role */
@@ -99,36 +92,14 @@ const Auth = ({ initialView }: AuthProps) => {
     e.preventDefault();
     setLoading(true);
     setFormError('');
-    let completed = false;
-    const timeoutId = setTimeout(() => {
-      if (!completed) {
-        setLoading(false);
-        setFormError('Login is taking longer than expected. Please check your connection and try again.');
-      }
-    }, 30000);
     try {
-      // Ping test — verify backend is reachable
-      const { error: pingError } = await supabase.from('profiles').select('id').limit(1);
-      if (pingError) {
-        clearTimeout(timeoutId);
-        completed = true;
-        setFormError('Cannot reach the server. Please check your internet connection.');
-        return;
-      }
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      clearTimeout(timeoutId);
-      completed = true;
-      console.log('[Auth] Login result:', { session: !!data?.session, error: error?.message });
       if (error) {
         setFormError(friendlyError(error.message));
       } else if (data?.session) {
         await redirectAfterAuth();
-        return;
       }
-    } catch (err: any) {
-      clearTimeout(timeoutId);
-      completed = true;
-      console.error('[Auth] Login catch:', err);
+    } catch {
       setFormError('Network error — check your connection and try again.');
     } finally {
       setLoading(false);
@@ -143,22 +114,12 @@ const Auth = ({ initialView }: AuthProps) => {
     }
     setLoading(true);
     setFormError('');
-    let completed = false;
-    const timeoutId = setTimeout(() => {
-      if (!completed) {
-        setLoading(false);
-        setFormError('Signup is taking longer than expected. Please check your connection and try again.');
-      }
-    }, 30000);
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { studio_name: studioName || 'My Studio', full_name: fullName || '' } },
       });
-      clearTimeout(timeoutId);
-      completed = true;
-      console.log('[Auth] Signup result:', { user: !!data?.user, session: !!data?.session, error: error?.message });
       if (error) {
         setFormError(friendlyError(error.message));
       } else if (data?.user?.identities?.length === 0) {
@@ -169,14 +130,10 @@ const Auth = ({ initialView }: AuthProps) => {
         }
         toast({ title: 'Welcome to MirrorAI', description: 'Your studio has been created.' });
         navigate('/dashboard');
-        return;
       } else {
         toast({ title: 'Check your email', description: 'We sent a confirmation link to verify your address.' });
       }
-    } catch (err: any) {
-      clearTimeout(timeoutId);
-      completed = true;
-      console.error('[Auth] Signup catch:', err);
+    } catch {
       setFormError('Network error — check your connection and try again.');
     } finally {
       setLoading(false);
