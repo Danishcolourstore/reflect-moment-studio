@@ -21,3 +21,6 @@ verify_jwt = false
 
 [functions.notify-guests]
 verify_jwt = false
+
+[functions.check-auth-connectivity]
+verify_jwt = false

@@ -6,11 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
-import { ArrowLeft, Eye, EyeOff, Check, X, Phone, Mail } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Check, X, Phone, Mail, Wifi } from 'lucide-react';
 import { OtpInput } from '@/components/OtpInput';
 
 type AuthView = 'landing' | 'login' | 'signup' | 'forgot';
 type LoginMethod = 'email' | 'mobile';
+
+/* ── Clear any stale Supabase auth data on custom domains ── */
+const clearStaleSession = () => {
+  try {
+    const keys = Object.keys(localStorage);
+    for (const key of keys) {
+      if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch { /* ignore */ }
+};
 
 const passwordRules = [
   { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
@@ -52,6 +64,8 @@ const Auth = ({ initialView }: AuthProps) => {
   const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [diagResult, setDiagResult] = useState<string | null>(null);
+  const [diagLoading, setDiagLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -63,6 +77,29 @@ const Auth = ({ initialView }: AuthProps) => {
     const t = setTimeout(() => setResendTimer((v) => v - 1), 1000);
     return () => clearTimeout(t);
   }, [resendTimer]);
+
+  // Clear stale auth tokens on mount (fixes "Failed to fetch" on custom domains)
+  useEffect(() => {
+    clearStaleSession();
+  }, []);
+
+  // Diagnostic connectivity check
+  const runDiagnostic = async () => {
+    setDiagLoading(true);
+    setDiagResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-auth-connectivity');
+      if (error) {
+        setDiagResult(`Edge function error: ${error.message}`);
+      } else {
+        setDiagResult(JSON.stringify(data, null, 2));
+      }
+    } catch (e: any) {
+      setDiagResult(`Network error: ${e.message}`);
+    } finally {
+      setDiagLoading(false);
+    }
+  };
 
   const redirectAfterAuth = useCallback(async () => {
     try {
@@ -650,6 +687,26 @@ const Auth = ({ initialView }: AuthProps) => {
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
           </div>
+
+          {/* Diagnostic tool — temporary */}
+          {isLogin && (
+            <div className="mt-4 border-t border-border pt-4">
+              <button
+                type="button"
+                onClick={runDiagnostic}
+                disabled={diagLoading}
+                className="flex items-center gap-1.5 mx-auto text-[10px] text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+              >
+                <Wifi className="h-3 w-3" />
+                {diagLoading ? 'Testing…' : 'Test Connection'}
+              </button>
+              {diagResult && (
+                <pre className="mt-2 text-[9px] text-muted-foreground/60 bg-muted/30 p-3 rounded overflow-auto max-h-48 whitespace-pre-wrap break-all">
+                  {diagResult}
+                </pre>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
