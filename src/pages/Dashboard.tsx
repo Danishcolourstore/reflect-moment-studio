@@ -96,23 +96,15 @@ const Dashboard = () => {
       setTotalViews(sum);
     }
 
-    // Storage — sum file_size from photos table
-    const { data: sizeData } = await (supabase
-      .from('photos')
-      .select('file_size') as any)
-      .eq('user_id', user.id);
-    if (sizeData) {
-      const totalBytes = (sizeData as any[]).reduce((acc: number, p: any) => acc + (p.file_size ?? 0), 0);
-      const totalMB = totalBytes / (1024 * 1024);
-      const storageLabel = totalMB >= 1024
-        ? `${(totalMB / 1024).toFixed(1)} GB`
-        : `${Math.round(totalMB)} MB`;
-      setTotalStorageMB(storageLabel);
-    } else {
-      // Fallback estimate
-      const estimated = (photoCount ?? 0) * 2;
-      setTotalStorageMB(estimated >= 1024 ? `~${(estimated / 1024).toFixed(1)} GB` : `~${estimated} MB`);
-    }
+    // TODO: Storage — the `photos` table does not have a `file_size` column yet.
+    // Once added, replace with: SELECT SUM(file_size) FROM photos WHERE user_id = auth.uid()
+    // For now, estimate ~2 MB per photo as a rough placeholder.
+    const estimated = (photoCount ?? 0) * 2;
+    const storageLabel = estimated >= 1024
+      ? `~${(estimated / 1024).toFixed(1)} GB`
+      : `~${estimated} MB`;
+    console.log('[Dashboard Stats] Storage estimate:', storageLabel);
+    setTotalStorageMB(storageLabel);
   };
 
   useEffect(() => { fetchEvents(); fetchStats(); }, [user]);

@@ -26,7 +26,6 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 import { GuestSelectionsViewer } from '@/components/GuestSelectionsViewer';
-import { HighlightReel } from '@/components/HighlightReel';
 import { GuestFavoritesTab } from '@/components/GuestFavoritesTab';
 import { PhotoSectionSelect } from '@/components/PhotoSectionSelect';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -53,7 +52,6 @@ interface Event {
   gallery_layout: string;
   is_published: boolean;
   selection_mode_enabled: boolean;
-  selection_token: string | null;
 }
 
 type GalleryFilter = 'all' | 'favorites';
@@ -85,7 +83,6 @@ const EventGallery = () => {
   const [downloadProgress, setDownloadProgress] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [favStats, setFavStats] = useState<{ totalFavs: number; uniqueGuests: number }>({ totalFavs: 0, uniqueGuests: 0 });
-  const [favoritedPhotoIds, setFavoritedPhotoIds] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
 
@@ -93,7 +90,6 @@ const EventGallery = () => {
   const upload = usePhotoUpload(id, user?.id);
   const zipUpload = useZipUpload(id, user?.id);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
-  const [highlightReelOpen, setHighlightReelOpen] = useState(false);
 
   const fetchEvent = useCallback(async () => {
     if (!id || !user) return;
@@ -118,15 +114,12 @@ const EventGallery = () => {
     if (!id) return;
     const { data } = await (supabase
       .from('favorites' as any)
-      .select('id, guest_session_id, photo_id') as any)
+      .select('id, guest_session_id') as any)
       .eq('event_id', id);
     if (data) {
       const rows = data as any[];
       const uniqueGuests = new Set(rows.map((r: any) => r.guest_session_id)).size;
       setFavStats({ totalFavs: rows.length, uniqueGuests });
-      // Build set of favorited photo IDs for highlight reel
-      const favPhotoIds = new Set(rows.map((r: any) => r.photo_id));
-      setFavoritedPhotoIds(favPhotoIds);
     }
   }, [id]);
 
@@ -362,17 +355,11 @@ const EventGallery = () => {
             </TabsTrigger>
             <TabsTrigger value="favorites"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/50 data-[state=active]:text-foreground flex items-center gap-1.5">
-              <Heart className="h-3 w-3" /> Client Selections
+              <Heart className="h-3 w-3" /> Guest Favorites
               {favStats.totalFavs > 0 && (
                 <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favStats.totalFavs}</span>
               )}
             </TabsTrigger>
-            {favStats.totalFavs > 0 && (
-              <button onClick={() => setHighlightReelOpen(true)}
-                className="ml-auto px-4 py-2 text-[10px] uppercase tracking-[0.08em] text-primary hover:text-primary/80 transition flex items-center gap-1.5">
-                ✨ Highlight Reel
-              </button>
-            )}
           </TabsList>
 
           <TabsContent value="photos" className="mt-4">
@@ -622,13 +609,6 @@ const EventGallery = () => {
           )}
         </>
       )}
-
-      {/* Highlight Reel for admin */}
-      <HighlightReel
-        photos={photos.filter(p => favoritedPhotoIds.has(p.id))}
-        open={highlightReelOpen}
-        onClose={() => setHighlightReelOpen(false)}
-      />
     </DashboardLayout>
   );
 };

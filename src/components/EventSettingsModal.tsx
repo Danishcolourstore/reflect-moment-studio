@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,9 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { QRCodeCanvas } from 'qrcode.react';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink, RefreshCw, Link2, QrCode, Download, Users } from 'lucide-react';
-import { RegisteredGuestsTab } from './RegisteredGuestsTab';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink } from 'lucide-react';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -46,8 +44,6 @@ interface EventData {
   watermark_enabled: boolean;
   is_published: boolean;
   selection_mode_enabled?: boolean;
-  selection_token?: string | null;
-  face_recognition_enabled?: boolean;
 }
 
 interface EventSettingsModalProps {
@@ -69,8 +65,6 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [watermarkEnabled, setWatermarkEnabled] = useState(event.watermark_enabled);
   const [isPublished, setIsPublished] = useState(event.is_published);
   const [selectionModeEnabled, setSelectionModeEnabled] = useState(event.selection_mode_enabled ?? false);
-  const [selectionToken, setSelectionToken] = useState(event.selection_token ?? null);
-  const [faceRecognitionEnabled, setFaceRecognitionEnabled] = useState(event.face_recognition_enabled ?? false);
   const [saving, setSaving] = useState(false);
 
   // Sync when event changes
@@ -84,8 +78,6 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setWatermarkEnabled(event.watermark_enabled);
     setIsPublished(event.is_published);
     setSelectionModeEnabled(event.selection_mode_enabled ?? false);
-    setSelectionToken(event.selection_token ?? null);
-    setFaceRecognitionEnabled(event.face_recognition_enabled ?? false);
   }, [event]);
 
   const handleSave = async () => {
@@ -115,7 +107,6 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
       watermark_enabled: watermarkEnabled,
       is_published: isPublished,
       selection_mode_enabled: selectionModeEnabled,
-      face_recognition_enabled: faceRecognitionEnabled,
     } as any).eq('id', event.id);
 
     if (error) {
@@ -149,40 +140,6 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
               <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" asChild>
                 <a href={`/event/${event.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
               </Button>
-            </div>
-          </div>
-
-          {/* QR Code */}
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium flex items-center gap-1.5">
-              <QrCode className="h-3 w-3" /> QR Code
-            </Label>
-            <div className="flex items-center gap-4">
-              <div className="border border-border rounded-md p-2 bg-white">
-                <QRCodeCanvas
-                  id={`qr-${event.id}`}
-                  value={`${window.location.origin}/event/${event.slug}`}
-                  size={96}
-                  level="H"
-                  includeMargin={false}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-[11px] text-muted-foreground/50">Print this QR code at the venue so guests can scan to view the gallery.</p>
-                <Button variant="outline" size="sm" className="text-[10px] h-8 uppercase tracking-[0.06em]"
-                  onClick={() => {
-                    const canvas = document.getElementById(`qr-${event.id}`) as HTMLCanvasElement | null;
-                    if (!canvas) return;
-                    const url = canvas.toDataURL('image/png');
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${event.slug}-qrcode.png`;
-                    a.click();
-                    toast({ title: 'QR code downloaded' });
-                  }}>
-                  <Download className="mr-1 h-3 w-3" /> Download PNG
-                </Button>
-              </div>
             </div>
           </div>
 
@@ -277,113 +234,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
               </div>
               <Switch checked={selectionModeEnabled} onCheckedChange={setSelectionModeEnabled} />
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-[12px] text-foreground/80 font-normal">Face Recognition</Label>
-                <p className="text-[10px] text-muted-foreground/50 mt-0.5">Guests can find their photos via selfie</p>
-              </div>
-              <Switch checked={faceRecognitionEnabled} onCheckedChange={setFaceRecognitionEnabled} />
-            </div>
           </div>
-
-          {/* Client Proofing — Selection Link */}
-          <div className="pt-2 border-t border-border space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium flex items-center gap-1.5">
-              <Link2 className="h-3 w-3" /> Client Proofing
-            </p>
-            {selectionToken ? (
-              <div className="space-y-2">
-                <div className="flex gap-1.5">
-                  <Input
-                    value={`${window.location.origin}/event/${event.slug}/gallery?mode=select&token=${selectionToken}`}
-                    readOnly
-                    className="bg-background h-9 text-[10px] font-mono"
-                  />
-                  <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/event/${event.slug}/gallery?mode=select&token=${selectionToken}`);
-                    toast({ title: 'Link copied!' });
-                  }}>
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                <Button variant="outline" size="sm" className="text-[10px] h-7 uppercase tracking-[0.06em]" onClick={async () => {
-                  const newToken = crypto.randomUUID();
-                  const { error } = await supabase.from('events').update({ selection_token: newToken } as any).eq('id', event.id);
-                  if (!error) {
-                    setSelectionToken(newToken);
-                    toast({ title: 'Link regenerated', description: 'Old selection link is now invalid.' });
-                  }
-                }}>
-                  <RefreshCw className="mr-1 h-3 w-3" /> Regenerate Link
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-[11px] text-muted-foreground/50">No selection link generated yet.</p>
-                <Button variant="outline" size="sm" className="text-[10px] h-8 uppercase tracking-[0.06em]" onClick={async () => {
-                  const newToken = crypto.randomUUID();
-                  const { error } = await supabase.from('events').update({ selection_token: newToken } as any).eq('id', event.id);
-                  if (!error) {
-                    setSelectionToken(newToken);
-                    toast({ title: 'Selection link generated' });
-                  }
-                }}>
-                  Generate Selection Link
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Registered Guests */}
-          {faceRecognitionEnabled && (
-            <div className="pt-2 border-t border-border space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium flex items-center gap-1.5">
-                <Users className="h-3 w-3" /> Registered Guests
-              </p>
-              <div className="space-y-2">
-                <div className="flex gap-1.5">
-                  <Input
-                    value={`${window.location.origin}/gallery/${event.id}/register`}
-                    readOnly
-                    className="bg-background h-9 text-[10px] font-mono"
-                  />
-                  <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/gallery/${event.id}/register`);
-                    toast({ title: 'Registration link copied!' });
-                  }}>
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="border border-border rounded-md p-2 bg-white">
-                    <QRCodeCanvas
-                      id={`qr-reg-${event.id}`}
-                      value={`${window.location.origin}/gallery/${event.id}/register`}
-                      size={72}
-                      level="H"
-                      includeMargin={false}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[11px] text-muted-foreground/50">Registration QR for guests to scan at the venue.</p>
-                    <Button variant="outline" size="sm" className="text-[10px] h-7 uppercase tracking-[0.06em]"
-                      onClick={() => {
-                        const canvas = document.getElementById(`qr-reg-${event.id}`) as HTMLCanvasElement | null;
-                        if (!canvas) return;
-                        const url = canvas.toDataURL('image/png');
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${event.slug}-registration-qr.png`;
-                        a.click();
-                      }}>
-                      <Download className="mr-1 h-3 w-3" /> Download QR
-                    </Button>
-                  </div>
-                </div>
-                <RegisteredGuestsTab eventId={event.id} />
-              </div>
-            </div>
-          )}
 
           <Button
             onClick={handleSave}

@@ -43,30 +43,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data, error } = await supabase.from('profiles').select('studio_name').eq('user_id', user.id).single();
-        if (!cancelled && !error && data?.studio_name) {
-          setStudioName(data.studio_name);
-        }
-      } catch { /* ignore */ }
-    })();
-    return () => { cancelled = true; };
+    if (user) {
+      (supabase.from('profiles').select('studio_name') as any).eq('user_id', user.id).single()
+        .then(({ data }) => {
+          if (data?.studio_name) setStudioName(data.studio_name);
+        });
+    }
   }, [user]);
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error('Sign out error:', err);
-    } finally {
-      setUser(null);
-      setSession(null);
-      setStudioName('My Studio');
-      sessionStorage.removeItem('redirectAfterLogin');
-    }
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setStudioName('My Studio');
+    sessionStorage.removeItem('redirectAfterLogin');
   };
 
   return (

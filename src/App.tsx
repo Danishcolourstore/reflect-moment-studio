@@ -16,40 +16,88 @@ import ResetPassword from "./pages/ResetPassword";
 import PublicGallery from "./pages/PublicGallery";
 import GalleryCover from "./pages/GalleryCover";
 import NotFound from "./pages/NotFound";
-import GuestRegister from "./pages/GuestRegister";
 import { GalleryShell } from "./components/GalleryShell";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
 import AdminEvents from "./pages/admin/AdminEvents";
-import AdminStorage from "./pages/admin/AdminStorage";
-import AdminFaceRecognition from "./pages/admin/AdminFaceRecognition";
-import AdminSettings from "./pages/admin/AdminSettings";
-
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const [suspended, setSuspended] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    (supabase.from('profiles').select('suspended') as any)
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }: any) => {
+        setSuspended(data?.suspended ?? false);
+      });
+  }, [user]);
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground font-serif text-lg">Loading...</p></div>;
   if (!user) {
     sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
     return <Navigate to="/login" replace />;
   }
+
+  if (suspended === null) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground text-sm">Loading...</p></div>;
+
+  if (suspended) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center max-w-sm">
+          <h1 className="text-xl font-bold text-foreground mb-2">Account Suspended</h1>
+          <p className="text-sm text-muted-foreground mb-4">Your account has been suspended. Please contact support for assistance.</p>
+          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')} className="text-sm underline text-muted-foreground hover:text-foreground">Sign out</button>
+        </div>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const [checked, setChecked] = useState(false);
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setRedirectTo('/admin');
+        } else {
+          const redirect = sessionStorage.getItem("redirectAfterLogin");
+          if (redirect && redirect.startsWith('/dashboard')) {
+            sessionStorage.removeItem("redirectAfterLogin");
+            setRedirectTo(redirect);
+          } else {
+            sessionStorage.removeItem("redirectAfterLogin");
+            setRedirectTo('/dashboard');
+          }
+        }
+        setChecked(true);
+      });
+  }, [user, loading]);
 
   if (loading) return null;
   if (!user) return <>{children}</>;
-
-  const redirect = sessionStorage.getItem("redirectAfterLogin");
-  sessionStorage.removeItem("redirectAfterLogin");
-  return <Navigate to={redirect && redirect.startsWith('/dashboard') ? redirect : '/dashboard'} replace />;
+  if (!checked) return null;
+  if (redirectTo) return <Navigate to={redirectTo} replace />;
+  return <>{children}</>;
 }
 
 const AppRoutes = () => (
@@ -65,9 +113,6 @@ const AppRoutes = () => (
       <Route index element={<AdminDashboard />} />
       <Route path="photographers" element={<AdminPhotographers />} />
       <Route path="events" element={<AdminEvents />} />
-      <Route path="storage" element={<AdminStorage />} />
-      <Route path="face-recognition" element={<AdminFaceRecognition />} />
-      <Route path="settings" element={<AdminSettings />} />
     </Route>
 
     {/* Photographer dashboard routes — all require auth */}
@@ -83,8 +128,6 @@ const AppRoutes = () => (
     {/* Guest gallery routes — completely public, no auth */}
     <Route path="/event/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
     <Route path="/event/:slug/gallery" element={<GalleryShell><PublicGallery /></GalleryShell>} />
-    {/* Guest face registration */}
-    <Route path="/gallery/:eventId/register" element={<GuestRegister />} />
     {/* Legacy gallery redirects */}
     <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
     <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />

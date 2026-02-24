@@ -5,24 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { toast as sonnerToast } from 'sonner';
-import { ArrowLeft, Eye, EyeOff, Check, X, Phone, Mail, Wifi } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Check, X, Phone, Mail } from 'lucide-react';
 import { OtpInput } from '@/components/OtpInput';
 
 type AuthView = 'landing' | 'login' | 'signup' | 'forgot';
 type LoginMethod = 'email' | 'mobile';
-
-/* ── Clear any stale Supabase auth data on custom domains ── */
-const clearStaleSession = () => {
-  try {
-    const keys = Object.keys(localStorage);
-    for (const key of keys) {
-      if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-        localStorage.removeItem(key);
-      }
-    }
-  } catch { /* ignore */ }
-};
 
 const passwordRules = [
   { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
@@ -63,9 +50,6 @@ const Auth = ({ initialView }: AuthProps) => {
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [diagResult, setDiagResult] = useState<string | null>(null);
-  const [diagLoading, setDiagLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -78,33 +62,33 @@ const Auth = ({ initialView }: AuthProps) => {
     return () => clearTimeout(t);
   }, [resendTimer]);
 
-  // Clear stale auth tokens on mount (fixes "Failed to fetch" on custom domains)
-  useEffect(() => {
-    clearStaleSession();
-  }, []);
-
-  // Diagnostic connectivity check
-  const runDiagnostic = async () => {
-    setDiagLoading(true);
-    setDiagResult(null);
-    try {
-      const { data, error } = await supabase.functions.invoke('check-auth-connectivity');
-      if (error) {
-        setDiagResult(`Edge function error: ${error.message}`);
-      } else {
-        setDiagResult(JSON.stringify(data, null, 2));
-      }
-    } catch (e: any) {
-      setDiagResult(`Network error: ${e.message}`);
-    } finally {
-      setDiagLoading(false);
-    }
-  };
-
   const redirectAfterAuth = useCallback(async () => {
-    const redirect = sessionStorage.getItem('redirectAfterLogin');
     sessionStorage.removeItem('redirectAfterLogin');
-    navigate(redirect && redirect.startsWith('/dashboard') ? redirect : '/dashboard');
+
+    // Check if user has admin role
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser) {
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', currentUser.id)
+        .eq('role', 'admin');
+
+      console.log('[Auth] Role check for', currentUser.email, ':', roles);
+
+      if (roles && roles.length > 0) {
+        navigate('/admin');
+        return;
+      }
+    }
+
+    const redirect = sessionStorage.getItem('redirectAfterLogin');
+    if (redirect && redirect.startsWith('/dashboard')) {
+      sessionStorage.removeItem('redirectAfterLogin');
+      navigate(redirect);
+    } else {
+      navigate('/dashboard');
+    }
   }, [navigate]);
 
   /* ── Phone OTP: Send code ── */
@@ -114,153 +98,108 @@ const Auth = ({ initialView }: AuthProps) => {
       toast({ title: 'Invalid number', description: 'Please enter a valid phone number.', variant: 'destructive' });
       return;
     }
-
     setOtpLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({ phone: fullPhone });
-      if (error) {
-        toast({ title: 'Failed to send OTP', description: error.message, variant: 'destructive' });
-      } else {
-        setOtpSent(true);
-        setResendTimer(30);
-        toast({ title: 'OTP sent', description: `Verification code sent to ${fullPhone}` });
-      }
-    } catch (error) {
-      console.error('Unexpected OTP send error:', error);
-      toast({ title: 'Failed to send OTP', description: 'Please try again.', variant: 'destructive' });
-    } finally {
-      setOtpLoading(false);
+    const { error } = await supabase.auth.signInWithOtp({ phone: fullPhone });
+    if (error) {
+      toast({ title: 'Failed to send OTP', description: error.message, variant: 'destructive' });
+    } else {
+      setOtpSent(true);
+      setResendTimer(30);
+      toast({ title: 'OTP sent', description: `Verification code sent to ${fullPhone}` });
     }
+    setOtpLoading(false);
   };
 
   /* ── Phone OTP: Verify code ── */
   const verifyOtp = async (otpCode: string) => {
     const fullPhone = `${countryCode}${phoneNumber}`;
     setOtpLoading(true);
-
-    try {
-      const { error } = await supabase.auth.verifyOtp({ phone: fullPhone, token: otpCode, type: 'sms' });
-      if (error) {
-        toast({ title: 'Verification failed', description: error.message, variant: 'destructive' });
-      } else {
-        toast({ title: 'Signed in successfully' });
-        await redirectAfterAuth();
-      }
-    } catch (error) {
-      console.error('Unexpected OTP verification error:', error);
-      toast({ title: 'Verification failed', description: 'Please try again.', variant: 'destructive' });
-    } finally {
-      setOtpLoading(false);
+    const { error } = await supabase.auth.verifyOtp({ phone: fullPhone, token: otpCode, type: 'sms' });
+    if (error) {
+      toast({ title: 'Verification failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Signed in successfully' });
+      await redirectAfterAuth();
     }
+    setOtpLoading(false);
   };
 
   /* ── Email/password submit ── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setAuthError(null);
 
-    // Safety timeout — if auth takes too long, reset and show error
-    const timeout = setTimeout(() => {
-      setLoading(false);
-      setAuthError('The request is taking too long. Please check your connection and try again.');
-      sonnerToast.error('Login timed out');
-    }, 15000);
-
-    try {
-      if (view === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        clearTimeout(timeout);
-        if (error) {
-          let msg = error.message;
-          if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials')) {
-            msg = 'Incorrect email or password. Please try again.';
-          } else if (msg.toLowerCase().includes('email not confirmed')) {
-            msg = 'Please verify your email address before signing in.';
-          } else if (msg.toLowerCase().includes('user not found')) {
-            msg = 'No account found with this email. Please sign up first.';
-          } else if (msg.toLowerCase().includes('valid email')) {
-            msg = 'Please enter a valid email address.';
-          }
-          setAuthError(msg);
-          sonnerToast.error(msg);
-        } else {
-          await redirectAfterAuth();
+    if (view === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        let msg = error.message;
+        if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials')) {
+          msg = 'Incorrect email or password. Please try again.';
+        } else if (msg.toLowerCase().includes('email not confirmed')) {
+          msg = 'Please verify your email address before signing in.';
+        } else if (msg.toLowerCase().includes('user not found')) {
+          msg = 'No account found with this email. Please sign up first.';
+        } else if (msg.toLowerCase().includes('valid email')) {
+          msg = 'Please enter a valid email address.';
         }
+        toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
       } else {
-        if (!allPasswordRulesPass) {
-          clearTimeout(timeout);
-          setAuthError('Please meet all password requirements.');
-          sonnerToast.error('Weak password');
-          setLoading(false);
-          return;
-        }
-
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { studio_name: studioName || 'My Studio', full_name: fullName || '' },
-          },
-        });
-
-        clearTimeout(timeout);
-        if (error) {
-          let msg = error.message;
-          if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
-            msg = 'This email is already registered. Please sign in instead.';
-          } else if (msg.toLowerCase().includes('valid email')) {
-            msg = 'Please enter a valid email address.';
-          } else if (msg.toLowerCase().includes('password')) {
-            msg = 'Password does not meet the requirements.';
-          }
-          setAuthError(msg);
-          sonnerToast.error(msg);
-        } else if (data?.session) {
-          if (mobile && data.user) {
-            await (supabase.from('profiles').update({ mobile } as any) as any).eq('user_id', data.user.id);
-          }
-          sonnerToast.success('Welcome to MirrorAI! Your studio has been created.');
-          navigate('/dashboard');
-        } else {
-          sonnerToast.info('Check your email — we sent you a confirmation link.');
-        }
+        await redirectAfterAuth();
       }
-    } catch (error: any) {
-      clearTimeout(timeout);
-      console.error('Unexpected auth submit error:', error);
-      const isNetwork = error?.message?.toLowerCase()?.includes('failed to fetch') || error?.message?.toLowerCase()?.includes('networkerror');
-      const msg = isNetwork
-        ? 'Could not reach the server. Please check your internet connection.'
-        : 'An unexpected error occurred. Please try again.';
-      setAuthError(msg);
-      sonnerToast.error(msg);
-    } finally {
-      clearTimeout(timeout);
-      setLoading(false);
+    } else {
+      if (!allPasswordRulesPass) {
+        toast({ title: 'Weak password', description: 'Please meet all password requirements.', variant: 'destructive' });
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { studio_name: studioName || 'My Studio', full_name: fullName || '' },
+        },
+      });
+
+      if (error) {
+        let msg = error.message;
+        if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
+          msg = 'An account with this email already exists. Please sign in instead.';
+        } else if (msg.toLowerCase().includes('valid email')) {
+          msg = 'Please enter a valid email address.';
+        } else if (msg.toLowerCase().includes('password')) {
+          msg = 'Password does not meet the requirements.';
+        }
+        toast({ title: 'Signup failed', description: msg, variant: 'destructive' });
+      } else if (data?.user?.identities?.length === 0) {
+        toast({ title: 'Account exists', description: 'An account with this email already exists. Please sign in.', variant: 'destructive' });
+      } else if (data?.session) {
+        // Save mobile to profile if provided
+        if (mobile && data.user) {
+          await (supabase.from('profiles').update({ mobile } as any) as any).eq('user_id', data.user.id);
+        }
+        toast({ title: 'Welcome to MirrorAI', description: 'Your studio has been created.' });
+        navigate('/dashboard');
+      } else {
+        toast({ title: 'Check your email', description: 'We sent you a confirmation link to verify your address.' });
+      }
     }
+    setLoading(false);
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-
     setLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) {
-        toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      } else {
-        setResetSent(true);
-      }
-    } catch (error) {
-      console.error('Unexpected forgot password error:', error);
-      toast({ title: 'Error', description: 'Unable to send reset link. Please try again.', variant: 'destructive' });
-    } finally {
-      setLoading(false);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      setResetSent(true);
     }
+    setLoading(false);
   };
 
   /* ── Landing Screen ── */
@@ -634,12 +573,6 @@ const Auth = ({ initialView }: AuthProps) => {
                 </div>
               )}
 
-              {authError && (
-                <div className="bg-destructive/10 border border-destructive/20 text-destructive text-[12px] px-3 py-2.5 rounded-sm">
-                  {authError}
-                </div>
-              )}
-
               <Button
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium mt-2 transition-all duration-200"
@@ -658,26 +591,6 @@ const Auth = ({ initialView }: AuthProps) => {
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
           </div>
-
-          {/* Diagnostic tool — temporary */}
-          {isLogin && (
-            <div className="mt-4 border-t border-border pt-4">
-              <button
-                type="button"
-                onClick={runDiagnostic}
-                disabled={diagLoading}
-                className="flex items-center gap-1.5 mx-auto text-[10px] text-muted-foreground/40 hover:text-muted-foreground transition-colors"
-              >
-                <Wifi className="h-3 w-3" />
-                {diagLoading ? 'Testing…' : 'Test Connection'}
-              </button>
-              {diagResult && (
-                <pre className="mt-2 text-[9px] text-muted-foreground/60 bg-muted/30 p-3 rounded overflow-auto max-h-48 whitespace-pre-wrap break-all">
-                  {diagResult}
-                </pre>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

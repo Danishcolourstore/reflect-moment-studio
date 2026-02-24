@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Heart, Download, Loader2, PackageOpen, CheckSquare, Square, FileText } from 'lucide-react';
+import { Heart, Download, Loader2, PackageOpen, CheckSquare, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -199,29 +199,17 @@ export function GuestFavoritesTab({ eventId, eventName }: GuestFavoritesTabProps
       <div className="border border-dashed border-border/60 py-20 text-center">
         <Heart className="mx-auto h-8 w-8 text-muted-foreground/15" />
         <p className="mt-4 font-serif text-sm text-muted-foreground/60">
-          No client selections yet
+          Your guests haven't favorited any photos yet
         </p>
         <p className="mt-1 text-[10px] text-muted-foreground/40">
-          Share the selection link with your client to start collecting picks.
+          When guests heart photos in the gallery, they'll appear here.
         </p>
       </div>
     );
   }
 
-  const exportList = () => {
-    const filenames = photos.map(p => p.file_name ?? p.id).join('\n');
-    const blob = new Blob([`Client Selections — ${eventName}\n${'─'.repeat(40)}\n${photos.length} photos selected\n\n${filenames}`], { type: 'text/plain' });
-    saveAs(blob, `${eventName} - Selections.txt`);
-    toast({ title: 'List exported' });
-  };
-
   return (
     <div>
-      {/* Summary bar */}
-      <div className="flex items-center gap-3 mb-4 text-[12px] text-muted-foreground/70">
-        <span className="font-medium text-foreground">{photos.length} photos selected</span>
-      </div>
-
       {/* Toolbar */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -260,15 +248,7 @@ export function GuestFavoritesTab({ eventId, eventName }: GuestFavoritesTabProps
             size="sm"
             className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]"
           >
-            <PackageOpen className="mr-1 h-3 w-3" />Download All
-          </Button>
-          <Button
-            onClick={exportList}
-            variant="ghost"
-            size="sm"
-            className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]"
-          >
-            <FileText className="mr-1 h-3 w-3" />Export List
+            <PackageOpen className="mr-1 h-3 w-3" />Download All Favorites
           </Button>
         </div>
       </div>

@@ -1,1 +1,0 @@
-ALTER TABLE public.photos ADD COLUMN IF NOT EXISTS file_size bigint DEFAULT NULL;

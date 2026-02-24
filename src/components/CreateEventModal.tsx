@@ -82,7 +82,6 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       gallery_pin: password || null,
       gallery_layout: galleryLayout,
       downloads_enabled: downloadsEnabled,
-      is_published: true,
     } as any).select('id').single() as any);
 
     if (error) {

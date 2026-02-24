@@ -9,9 +9,6 @@ export interface UploadState {
   failedFiles: File[];
   isDone: boolean;
   percent: number;
-  currentFileName: string | null;
-  currentFileIndex: number;
-  errorMessage: string | null;
 }
 
 const INITIAL: UploadState = {
@@ -22,57 +19,7 @@ const INITIAL: UploadState = {
   failedFiles: [],
   isDone: false,
   percent: 0,
-  currentFileName: null,
-  currentFileIndex: 0,
-  errorMessage: null,
 };
-
-const MAX_RETRIES = 2;
-
-async function uploadToR2(file: File, eventId: string): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
-
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('event_id', eventId);
-  formData.append('file_name', file.name);
-
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const res = await fetch(
-    `https://${projectId}.supabase.co/functions/v1/upload-to-r2`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: formData,
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: `Upload failed (${res.status})` }));
-    throw new Error(err.error || `Upload failed (${res.status})`);
-  }
-
-  return 'ok';
-}
-
-async function uploadWithRetry(file: File, eventId: string): Promise<void> {
-  let lastError: Error | null = null;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      await uploadToR2(file, eventId);
-      return;
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error('Unknown error');
-      if (attempt < MAX_RETRIES) {
-        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
-      }
-    }
-  }
-  throw lastError;
-}
 
 export function usePhotoUpload(eventId: string | undefined, userId: string | undefined) {
   const [state, setState] = useState<UploadState>(INITIAL);
@@ -91,39 +38,46 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
         failedFiles: [],
         isDone: false,
         percent: 0,
-        currentFileName: files[0]?.name || null,
-        currentFileIndex: 0,
-        errorMessage: null,
       });
 
       let success = 0;
       const failed: File[] = [];
 
-      // Sequential upload — one file at a time
-      for (let i = 0; i < files.length; i++) {
+      const BATCH_SIZE = 4;
+      for (let i = 0; i < files.length; i += BATCH_SIZE) {
         if (abortRef.current) break;
-        const file = files[i];
+        const batch = files.slice(i, i + BATCH_SIZE);
 
-        setState((prev) => ({
-          ...prev,
-          currentFileName: file.name,
-          currentFileIndex: i,
-          errorMessage: null,
-        }));
+        const results = await Promise.allSettled(
+          batch.map(async (file) => {
+            const ext = file.name.split('.').pop();
+            const path = `${userId}/${eventId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            const { error: uploadError } = await supabase.storage
+              .from('gallery-photos')
+              .upload(path, file);
+            if (uploadError) throw uploadError;
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from('gallery-photos').getPublicUrl(path);
+            const { error: insertError } = await supabase.from('photos').insert({
+              event_id: eventId,
+              user_id: userId,
+              url: publicUrl,
+              file_name: file.name,
+            } as any);
+            if (insertError) throw insertError;
+          }),
+        );
 
-        try {
-          await uploadWithRetry(file, eventId);
-          success++;
-        } catch (err) {
-          failed.push(file);
-          const msg = err instanceof Error ? err.message : 'Unknown error';
-          setState((prev) => ({
-            ...prev,
-            errorMessage: `Failed: ${file.name} — ${msg}`,
-          }));
-        }
+        results.forEach((r, idx) => {
+          if (r.status === 'fulfilled') {
+            success++;
+          } else {
+            failed.push(batch[idx]);
+          }
+        });
 
-        const completed = i + 1;
+        const completed = Math.min(i + BATCH_SIZE, files.length);
         setState((prev) => ({
           ...prev,
           completedFiles: completed,
@@ -138,31 +92,7 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
         isUploading: false,
         isDone: true,
         percent: 100,
-        currentFileName: null,
-        errorMessage: failed.length > 0
-          ? `${failed.length} photo${failed.length > 1 ? 's' : ''} failed after retries`
-          : null,
       }));
-
-      // Trigger face matching for registered guests
-      if (success > 0) {
-        try {
-          const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            fetch(`https://${projectId}.supabase.co/functions/v1/notify-guests`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${session.access_token}`,
-              },
-              body: JSON.stringify({ event_id: eventId }),
-            }).catch(console.error);
-          }
-        } catch {
-          // non-blocking
-        }
-      }
     },
     [eventId, userId],
   );
