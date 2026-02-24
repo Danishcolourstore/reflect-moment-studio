@@ -26,21 +26,43 @@ export default function AdminLayout() {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate('/login', { replace: true }); return; }
 
-    supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .then(({ data }) => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin');
+
+        if (cancelled) return;
+
+        if (error) {
+          console.error('Admin role check failed:', error.message);
+          navigate('/dashboard', { replace: true });
+          setChecking(false);
+          return;
+        }
+
         if (data && data.length > 0) {
           setAuthorized(true);
         } else {
-          navigate('/dashboard');
+          navigate('/dashboard', { replace: true });
         }
         setChecking(false);
-      });
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Unexpected admin check error:', err);
+          navigate('/dashboard', { replace: true });
+          setChecking(false);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [user, loading, navigate]);
 
   if (checking || !authorized) {
