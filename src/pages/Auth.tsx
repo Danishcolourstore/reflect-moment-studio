@@ -149,15 +149,22 @@ const Auth = ({ initialView }: AuthProps) => {
     e.preventDefault();
     setLoading(true);
 
+    // Track whether we already showed an error (prevents double-toast from timeout race)
+    let handled = false;
+
     // Safety timeout — if auth takes too long, reset and show error
     const timeout = setTimeout(() => {
-      setLoading(false);
-      toast({ title: 'Login timed out', description: 'The request is taking too long. Please check your connection and try again.', variant: 'destructive' });
+      if (!handled) {
+        handled = true;
+        setLoading(false);
+        toast({ title: 'Login timed out', description: 'The request is taking too long. Please check your connection and try again.', variant: 'destructive' });
+      }
     }, 8000);
 
     try {
       if (view === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (handled) return; // timeout already fired
         if (error) {
           let msg = error.message;
           if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials')) {
@@ -187,6 +194,7 @@ const Auth = ({ initialView }: AuthProps) => {
           },
         });
 
+        if (handled) return; // timeout already fired
         if (error) {
           let msg = error.message;
           if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
@@ -209,11 +217,22 @@ const Auth = ({ initialView }: AuthProps) => {
           toast({ title: 'Check your email', description: 'We sent you a confirmation link to verify your address.' });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (handled) return; // timeout already fired
+      handled = true;
       console.error('Unexpected auth submit error:', error);
-      toast({ title: 'Authentication failed', description: 'An unexpected error occurred. Please try again.', variant: 'destructive' });
+      const isNetwork = error?.message?.toLowerCase()?.includes('failed to fetch') || error?.message?.toLowerCase()?.includes('networkerror');
+      toast({
+        title: isNetwork ? 'Network error' : 'Authentication failed',
+        description: isNetwork
+          ? 'Could not reach the server. Please check your internet connection and try again.'
+          : 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       clearTimeout(timeout);
+      if (!handled) setLoading(false);
+      handled = true;
       setLoading(false);
     }
   };
