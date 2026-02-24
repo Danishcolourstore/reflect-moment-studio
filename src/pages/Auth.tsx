@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { ArrowLeft, Eye, EyeOff, Check, X, Phone, Mail } from 'lucide-react';
 import { OtpInput } from '@/components/OtpInput';
 
@@ -50,6 +51,7 @@ const Auth = ({ initialView }: AuthProps) => {
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -148,23 +150,19 @@ const Auth = ({ initialView }: AuthProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    // Track whether we already showed an error (prevents double-toast from timeout race)
-    let handled = false;
+    setAuthError(null);
 
     // Safety timeout — if auth takes too long, reset and show error
     const timeout = setTimeout(() => {
-      if (!handled) {
-        handled = true;
-        setLoading(false);
-        toast({ title: 'Login timed out', description: 'The request is taking too long. Please check your connection and try again.', variant: 'destructive' });
-      }
-    }, 8000);
+      setLoading(false);
+      setAuthError('The request is taking too long. Please check your connection and try again.');
+      sonnerToast.error('Login timed out');
+    }, 15000);
 
     try {
       if (view === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (handled) return; // timeout already fired
+        clearTimeout(timeout);
         if (error) {
           let msg = error.message;
           if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials')) {
@@ -176,13 +174,17 @@ const Auth = ({ initialView }: AuthProps) => {
           } else if (msg.toLowerCase().includes('valid email')) {
             msg = 'Please enter a valid email address.';
           }
-          toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
+          setAuthError(msg);
+          sonnerToast.error(msg);
         } else {
           await redirectAfterAuth();
         }
       } else {
         if (!allPasswordRulesPass) {
-          toast({ title: 'Weak password', description: 'Please meet all password requirements.', variant: 'destructive' });
+          clearTimeout(timeout);
+          setAuthError('Please meet all password requirements.');
+          sonnerToast.error('Weak password');
+          setLoading(false);
           return;
         }
 
@@ -194,41 +196,37 @@ const Auth = ({ initialView }: AuthProps) => {
           },
         });
 
-        if (handled) return; // timeout already fired
+        clearTimeout(timeout);
         if (error) {
           let msg = error.message;
           if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
-            msg = 'An account with this email already exists. Please sign in instead.';
+            msg = 'This email is already registered. Please sign in instead.';
           } else if (msg.toLowerCase().includes('valid email')) {
             msg = 'Please enter a valid email address.';
           } else if (msg.toLowerCase().includes('password')) {
             msg = 'Password does not meet the requirements.';
           }
-          toast({ title: 'Signup failed', description: msg, variant: 'destructive' });
-        } else if (data?.user?.identities?.length === 0) {
-          toast({ title: 'Account exists', description: 'An account with this email already exists. Please sign in.', variant: 'destructive' });
+          setAuthError(msg);
+          sonnerToast.error(msg);
         } else if (data?.session) {
           if (mobile && data.user) {
             await (supabase.from('profiles').update({ mobile } as any) as any).eq('user_id', data.user.id);
           }
-          toast({ title: 'Welcome to MirrorAI', description: 'Your studio has been created.' });
+          sonnerToast.success('Welcome to MirrorAI! Your studio has been created.');
           navigate('/dashboard');
         } else {
-          toast({ title: 'Check your email', description: 'We sent you a confirmation link to verify your address.' });
+          sonnerToast.info('Check your email — we sent you a confirmation link.');
         }
       }
     } catch (error: any) {
-      if (handled) return; // timeout already fired
-      handled = true;
+      clearTimeout(timeout);
       console.error('Unexpected auth submit error:', error);
       const isNetwork = error?.message?.toLowerCase()?.includes('failed to fetch') || error?.message?.toLowerCase()?.includes('networkerror');
-      toast({
-        title: isNetwork ? 'Network error' : 'Authentication failed',
-        description: isNetwork
-          ? 'Could not reach the server. Please check your internet connection and try again.'
-          : 'An unexpected error occurred. Please try again.',
-        variant: 'destructive',
-      });
+      const msg = isNetwork
+        ? 'Could not reach the server. Please check your internet connection.'
+        : 'An unexpected error occurred. Please try again.';
+      setAuthError(msg);
+      sonnerToast.error(msg);
     } finally {
       clearTimeout(timeout);
       setLoading(false);
@@ -625,6 +623,12 @@ const Auth = ({ initialView }: AuthProps) => {
                     placeholder="+91 9876543210"
                     className="bg-background border-border h-10 text-[13px]"
                   />
+                </div>
+              )}
+
+              {authError && (
+                <div className="bg-destructive/10 border border-destructive/20 text-destructive text-[12px] px-3 py-2.5 rounded-sm">
+                  {authError}
                 </div>
               )}
 
