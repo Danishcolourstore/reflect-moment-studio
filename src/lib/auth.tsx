@@ -27,28 +27,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [studioName, setStudioName] = useState('My Studio');
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // 1. Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        console.log('[Auth] State change:', _event, !!newSession);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setLoading(false);
+      }
+    );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // 2. Then check existing session
+    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      console.log('[Auth] Initial session:', !!existingSession);
+      setSession(existingSession);
+      setUser(existingSession?.user ?? null);
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // Fetch studio name when user changes
   useEffect(() => {
-    if (user) {
-      (supabase.from('profiles').select('studio_name') as any).eq('user_id', user.id).single()
-        .then(({ data }) => {
-          if (data?.studio_name) setStudioName(data.studio_name);
-        });
+    if (!user) {
+      setStudioName('My Studio');
+      return;
     }
+
+    (supabase
+      .from('profiles')
+      .select('studio_name')
+      .eq('user_id', user.id)
+      .single() as any)
+      .then(({ data }: any) => {
+        if (data?.studio_name) setStudioName(data.studio_name);
+      })
+      .catch(() => {});
   }, [user]);
 
   const signOut = async () => {
