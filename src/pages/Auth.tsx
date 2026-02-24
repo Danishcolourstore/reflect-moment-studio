@@ -149,6 +149,12 @@ const Auth = ({ initialView }: AuthProps) => {
     e.preventDefault();
     setLoading(true);
 
+    // Safety timeout — if auth takes too long, reset and show error
+    const timeout = setTimeout(() => {
+      setLoading(false);
+      toast({ title: 'Login timed out', description: 'The request is taking too long. Please check your connection and try again.', variant: 'destructive' });
+    }, 8000);
+
     try {
       if (view === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -194,7 +200,6 @@ const Auth = ({ initialView }: AuthProps) => {
         } else if (data?.user?.identities?.length === 0) {
           toast({ title: 'Account exists', description: 'An account with this email already exists. Please sign in.', variant: 'destructive' });
         } else if (data?.session) {
-          // Save mobile to profile if provided
           if (mobile && data.user) {
             await (supabase.from('profiles').update({ mobile } as any) as any).eq('user_id', data.user.id);
           }
@@ -208,6 +213,7 @@ const Auth = ({ initialView }: AuthProps) => {
       console.error('Unexpected auth submit error:', error);
       toast({ title: 'Authentication failed', description: 'An unexpected error occurred. Please try again.', variant: 'destructive' });
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
