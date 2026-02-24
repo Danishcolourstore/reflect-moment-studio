@@ -35,7 +35,18 @@ const Auth = ({ initialView }: AuthProps) => {
       if (error) {
         setError(error.message);
       } else if (data?.session) {
-        navigate("/dashboard");
+        // Check if user is admin and redirect accordingly
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.session.user.id)
+          .eq("role", "admin");
+        
+        if (roles && roles.length > 0) {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch {
       setError("Something went wrong. Please try again.");
