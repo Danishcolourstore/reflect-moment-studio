@@ -130,21 +130,35 @@ const Auth = ({ initialView }: AuthProps) => {
     setLoading(true);
 
     if (view === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        let msg = error.message;
-        if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials')) {
-          msg = 'Incorrect email or password. Please try again.';
-        } else if (msg.toLowerCase().includes('email not confirmed')) {
-          msg = 'Please verify your email address before signing in.';
-        } else if (msg.toLowerCase().includes('user not found')) {
-          msg = 'No account found with this email. Please sign up first.';
-        } else if (msg.toLowerCase().includes('valid email')) {
-          msg = 'Please enter a valid email address.';
+      try {
+        // Race against a 15-second timeout to prevent infinite loading
+        const result = await Promise.race([
+          supabase.auth.signInWithPassword({ email, password }),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Request timed out. Please check your connection and try again.')), 15000)
+          ),
+        ]);
+        const { error } = result;
+        if (error) {
+          let msg = error.message;
+          if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials')) {
+            msg = 'Incorrect email or password. Please try again.';
+          } else if (msg.toLowerCase().includes('email not confirmed')) {
+            msg = 'Please verify your email address before signing in.';
+          } else if (msg.toLowerCase().includes('user not found')) {
+            msg = 'No account found with this email. Please sign up first.';
+          } else if (msg.toLowerCase().includes('valid email')) {
+            msg = 'Please enter a valid email address.';
+          }
+          toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
+        } else {
+          await redirectAfterAuth();
         }
+      } catch (err: any) {
+        const msg = err?.message?.includes('timed out')
+          ? err.message
+          : 'Network error — please check your connection and try again.';
         toast({ title: 'Sign in failed', description: msg, variant: 'destructive' });
-      } else {
-        await redirectAfterAuth();
       }
     } else {
       if (!allPasswordRulesPass) {

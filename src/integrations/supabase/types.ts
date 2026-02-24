@@ -26,6 +26,7 @@ export type Database = {
           downloads_enabled: boolean
           event_date: string
           event_type: string
+          face_recognition_enabled: boolean
           gallery_layout: string
           gallery_pin: string | null
           id: string
@@ -35,6 +36,7 @@ export type Database = {
           name: string
           photo_count: number
           selection_mode_enabled: boolean
+          selection_token: string | null
           slug: string
           updated_at: string
           user_id: string
@@ -52,6 +54,7 @@ export type Database = {
           downloads_enabled?: boolean
           event_date?: string
           event_type?: string
+          face_recognition_enabled?: boolean
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string
@@ -61,6 +64,7 @@ export type Database = {
           name: string
           photo_count?: number
           selection_mode_enabled?: boolean
+          selection_token?: string | null
           slug: string
           updated_at?: string
           user_id: string
@@ -78,6 +82,7 @@ export type Database = {
           downloads_enabled?: boolean
           event_date?: string
           event_type?: string
+          face_recognition_enabled?: boolean
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string
@@ -87,6 +92,7 @@ export type Database = {
           name?: string
           photo_count?: number
           selection_mode_enabled?: boolean
+          selection_token?: string | null
           slug?: string
           updated_at?: string
           user_id?: string
@@ -137,6 +143,47 @@ export type Database = {
             columns: ["photo_id"]
             isOneToOne: false
             referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_registrations: {
+        Row: {
+          created_at: string
+          email: string
+          event_id: string
+          face_token: string
+          guest_name: string
+          id: string
+          matched_photo_ids: string[] | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_id: string
+          face_token: string
+          guest_name: string
+          id?: string
+          matched_photo_ids?: string[] | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_id?: string
+          face_token?: string
+          guest_name?: string
+          id?: string
+          matched_photo_ids?: string[] | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -246,6 +293,7 @@ export type Database = {
           created_at: string
           event_id: string
           file_name: string | null
+          file_size: number | null
           id: string
           is_favorite: boolean
           section: string | null
@@ -257,6 +305,7 @@ export type Database = {
           created_at?: string
           event_id: string
           file_name?: string | null
+          file_size?: number | null
           id?: string
           is_favorite?: boolean
           section?: string | null
@@ -268,6 +317,7 @@ export type Database = {
           created_at?: string
           event_id?: string
           file_name?: string | null
+          file_size?: number | null
           id?: string
           is_favorite?: boolean
           section?: string | null
@@ -285,6 +335,27 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -293,6 +364,7 @@ export type Database = {
           id: string
           mobile: string | null
           plan: string
+          storage_limit_mb: number | null
           studio_name: string
           suspended: boolean
           updated_at: string
@@ -305,6 +377,7 @@ export type Database = {
           id?: string
           mobile?: string | null
           plan?: string
+          storage_limit_mb?: number | null
           studio_name?: string
           suspended?: boolean
           updated_at?: string
@@ -317,6 +390,7 @@ export type Database = {
           id?: string
           mobile?: string | null
           plan?: string
+          storage_limit_mb?: number | null
           studio_name?: string
           suspended?: boolean
           updated_at?: string
