@@ -102,38 +102,9 @@ const Auth = ({ initialView }: AuthProps) => {
   };
 
   const redirectAfterAuth = useCallback(async () => {
-    try {
-      // Check if user has admin role
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
-
-      if (currentUser) {
-        const { data: roles, error: rolesError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', currentUser.id)
-          .eq('role', 'admin');
-
-        if (!rolesError && roles && roles.length > 0) {
-          sessionStorage.removeItem('redirectAfterLogin');
-          navigate('/admin');
-          return;
-        }
-      }
-
-      const redirect = sessionStorage.getItem('redirectAfterLogin');
-      sessionStorage.removeItem('redirectAfterLogin');
-      if (redirect && redirect.startsWith('/dashboard')) {
-        navigate(redirect);
-      } else {
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      console.error('Unexpected redirect error:', error);
-      sessionStorage.removeItem('redirectAfterLogin');
-      navigate('/dashboard');
-    }
+    const redirect = sessionStorage.getItem('redirectAfterLogin');
+    sessionStorage.removeItem('redirectAfterLogin');
+    navigate(redirect && redirect.startsWith('/dashboard') ? redirect : '/dashboard');
   }, [navigate]);
 
   /* ── Phone OTP: Send code ── */

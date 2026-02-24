@@ -25,128 +25,31 @@ import AdminEvents from "./pages/admin/AdminEvents";
 import AdminStorage from "./pages/admin/AdminStorage";
 import AdminFaceRecognition from "./pages/admin/AdminFaceRecognition";
 import AdminSettings from "./pages/admin/AdminSettings";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+
 
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const [suspended, setSuspended] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (!user) {
-      setSuspended(false);
-      return;
-    }
-
-    let cancelled = false;
-    setSuspended(null);
-
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('suspended')
-          .eq('user_id', user.id)
-          .single();
-
-        if (cancelled) return;
-        if (error) {
-          console.error('Failed to check suspension status:', error.message);
-          setSuspended(false);
-          return;
-        }
-
-        setSuspended(data?.suspended ?? false);
-      } catch (error) {
-        if (!cancelled) {
-          console.error('Unexpected suspension check error:', error);
-          setSuspended(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground font-serif text-lg">Loading...</p></div>;
   if (!user) {
     sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
     return <Navigate to="/login" replace />;
   }
-  if (suspended === null) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground text-sm">Loading...</p></div>;
-  if (suspended) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center max-w-sm">
-          <h1 className="text-xl font-bold text-foreground mb-2">Account Suspended</h1>
-          <p className="text-sm text-muted-foreground mb-4">Your account has been suspended. Please contact support for assistance.</p>
-          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')} className="text-sm underline text-muted-foreground hover:text-foreground">Sign out</button>
-        </div>
-      </div>
-    );
-  }
   return <>{children}</>;
 }
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  const [redirectTo, setRedirectTo] = useState<string>('/dashboard');
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    if (loading || !user) return;
-
-    let cancelled = false;
-    setReady(false);
-
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin');
-
-        if (cancelled) return;
-
-        if (error) {
-          console.error('Failed to fetch role for redirect:', error.message);
-          setRedirectTo('/dashboard');
-          setReady(true);
-          return;
-        }
-
-        if (data && data.length > 0) {
-          setRedirectTo('/admin');
-        } else {
-          const redirect = sessionStorage.getItem("redirectAfterLogin");
-          sessionStorage.removeItem("redirectAfterLogin");
-          setRedirectTo(redirect && redirect.startsWith('/dashboard') ? redirect : '/dashboard');
-        }
-
-        setReady(true);
-      } catch (error) {
-        if (cancelled) return;
-        console.error('Unexpected redirect role check error:', error);
-        setRedirectTo('/dashboard');
-        setReady(true);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user, loading]);
 
   if (loading) return null;
   if (!user) return <>{children}</>;
-  if (!ready) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground font-serif text-lg">Loading...</p></div>;
-  return <Navigate to={redirectTo} replace />;
+
+  const redirect = sessionStorage.getItem("redirectAfterLogin");
+  sessionStorage.removeItem("redirectAfterLogin");
+  return <Navigate to={redirect && redirect.startsWith('/dashboard') ? redirect : '/dashboard'} replace />;
 }
 
 const AppRoutes = () => (
