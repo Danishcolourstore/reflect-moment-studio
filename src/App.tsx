@@ -36,13 +36,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [suspended, setSuspended] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!user) return;
-    (supabase.from('profiles').select('suspended') as any)
-      .eq('user_id', user.id)
-      .single()
-      .then(({ data }: any) => {
-        setSuspended(data?.suspended ?? false);
-      });
+    if (!user) { setSuspended(false); return; }
+    let cancelled = false;
+    supabase.from('profiles').select('suspended').eq('user_id', user.id).single()
+      .then(({ data }: any) => { if (!cancelled) setSuspended(data?.suspended ?? false); });
+    return () => { cancelled = true; };
   }, [user]);
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground font-serif text-lg">Loading...</p></div>;
@@ -50,9 +48,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
     return <Navigate to="/login" replace />;
   }
-
   if (suspended === null) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground text-sm">Loading...</p></div>;
-
   if (suspended) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -64,44 +60,36 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-
   return <>{children}</>;
 }
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  const [checked, setChecked] = useState(false);
-  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+  const [redirectTo, setRedirectTo] = useState<string>('/dashboard');
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (loading || !user) return;
-    supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
+    let cancelled = false;
+    supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin')
       .then(({ data }) => {
+        if (cancelled) return;
         if (data && data.length > 0) {
           setRedirectTo('/admin');
         } else {
           const redirect = sessionStorage.getItem("redirectAfterLogin");
-          if (redirect && redirect.startsWith('/dashboard')) {
-            sessionStorage.removeItem("redirectAfterLogin");
-            setRedirectTo(redirect);
-          } else {
-            sessionStorage.removeItem("redirectAfterLogin");
-            setRedirectTo('/dashboard');
-          }
+          sessionStorage.removeItem("redirectAfterLogin");
+          setRedirectTo(redirect && redirect.startsWith('/dashboard') ? redirect : '/dashboard');
         }
-        setChecked(true);
+        setReady(true);
       });
+    return () => { cancelled = true; };
   }, [user, loading]);
 
   if (loading) return null;
   if (!user) return <>{children}</>;
-  if (!checked) return null;
-  if (redirectTo) return <Navigate to={redirectTo} replace />;
-  return <>{children}</>;
+  if (!ready) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground font-serif text-lg">Loading...</p></div>;
+  return <Navigate to={redirectTo} replace />;
 }
 
 const AppRoutes = () => (
