@@ -52,9 +52,17 @@ export function FaceSearchModal({ open, onOpenChange, eventId, onResults }: Face
       setProgressPercent(30);
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const res = await fetch(
         `${supabaseUrl}/functions/v1/face-recognition`,
-        { method: 'POST', body: formData }
+        {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+        }
       );
 
       setProgressPercent(70);

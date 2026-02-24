@@ -63,9 +63,17 @@ const GuestRegister = () => {
       formData.append('selfie', selfieFile);
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const res = await fetch(
         `${supabaseUrl}/functions/v1/detect-face`,
-        { method: 'POST', body: formData }
+        {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+        }
       );
 
       if (!res.ok) {
