@@ -182,6 +182,21 @@ export type Database = {
           },
         ]
       }
+      connection_test: {
+        Row: {
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       event_analytics: {
         Row: {
           downloads_count: number
