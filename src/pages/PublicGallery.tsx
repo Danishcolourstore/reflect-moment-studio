@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
@@ -11,27 +11,32 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Play, Camera, Link2, Hourglass } from 'lucide-react';
+import {
+  Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Camera,
+  Link2, Search, X, ChevronDown, Grid3X3, Lock, MessageCircle,
+} from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
-import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 import { PhotoLightbox } from '@/components/PhotoLightbox';
 import { PhotoSlideshow } from '@/components/PhotoSlideshow';
+import { OtpInput } from '@/components/OtpInput';
+import { Checkbox } from '@/components/ui/checkbox';
 
+/* ── Interfaces ── */
 interface Photo {
   id: string;
   url: string;
   file_name: string | null;
   section: string | null;
+  created_at: string;
 }
 
-interface Event {
+interface EventData {
   id: string;
   name: string;
   slug: string;
@@ -49,160 +54,287 @@ interface Event {
   selection_mode_enabled: boolean;
 }
 
-function toGridPhoto(p: Photo, isFav: boolean) {
-  return { id: p.id, url: p.url, is_favorite: isFav, file_name: p.file_name };
+interface StudioProfile {
+  studio_name: string;
+  studio_logo_url: string | null;
+  studio_accent_color: string | null;
 }
 
-const GRID_CLASSES: Record<string, string> = {
-  classic: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2',
-  masonry: 'columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-2',
-  justified: 'flex flex-wrap gap-2',
-  editorial: 'columns-1 sm:columns-2 lg:columns-3 gap-4',
-};
+/* ── Ken Burns keyframe (scoped, injected once) ── */
+const kenBurnsStyle = `
+@keyframes kenBurns {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+`;
 
-const SECTIONS = ['Highlights', 'Ceremony', 'Reception', 'Family', 'Getting Ready'] as const;
+/* ── PIN Gate Component ── */
+function PinGate({ event, studioProfile, onUnlock }: {
+  event: EventData;
+  studioProfile: StudioProfile | null;
+  onUnlock: () => void;
+}) {
+  const [error, setError] = useState(false);
 
-type GalleryFilter = 'all' | 'favorites';
+  const handleComplete = (otp: string) => {
+    if (otp === event.gallery_pin) {
+      localStorage.setItem(`mirrorai_pin_${event.id}`, otp);
+      onUnlock();
+    } else {
+      setError(true);
+      sonnerToast.error('Wrong PIN. Please try again.');
+    }
+  };
 
+  return (
+    <div className="fixed inset-0 z-[200] bg-background flex items-center justify-center px-4">
+      <div className="w-full max-w-sm bg-card border border-border rounded-lg p-8 text-center space-y-6 shadow-lg">
+        {studioProfile?.studio_logo_url ? (
+          <img src={studioProfile.studio_logo_url} alt="" className="h-12 mx-auto object-contain" />
+        ) : (
+          <h2 className="font-display text-xl italic text-foreground">MirrorAI</h2>
+        )}
+        <h1 className="font-serif text-2xl font-semibold text-foreground">{event.name}</h1>
+        <p className="text-sm text-muted-foreground">Enter the 4-digit PIN to view this gallery.</p>
+        <OtpInput length={4} onComplete={handleComplete} />
+        {error && <p className="text-xs text-destructive">Incorrect PIN</p>}
+        <Button onClick={() => {}} className="w-full" disabled>
+          Enter Gallery
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Photo Card Component ── */
+function PhotoCard({
+  photo, layout, isFav, onToggleFavorite, onOpenLightbox, showWatermark,
+  watermarkText, accentColor, selectionMode, isSelected, onToggleSelect,
+  commentCount,
+}: {
+  photo: Photo;
+  layout: string;
+  isFav: boolean;
+  onToggleFavorite: () => void;
+  onOpenLightbox: () => void;
+  showWatermark: boolean;
+  watermarkText: string | null;
+  accentColor: string | null;
+  selectionMode: boolean;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  commentCount: number;
+}) {
+  const aspectClass = layout === 'classic' ? 'aspect-[3/2]' :
+    layout === 'editorial-hero' ? 'aspect-[16/9]' :
+    layout === 'cinematic-wide' ? 'aspect-[21/9]' :
+    layout === 'cinematic-cell' ? 'aspect-[4/3]' : '';
+
+  const isMasonry = layout === 'masonry' || layout === 'editorial-item' || layout === 'timeline';
+  const heartColor = accentColor ? accentColor : 'hsl(var(--primary))';
+
+  return (
+    <div
+      className={`group relative cursor-pointer rounded-xl overflow-hidden ${aspectClass} ${isMasonry ? 'mb-4 break-inside-avoid' : ''}`}
+      onClick={onOpenLightbox}
+    >
+      <img
+        src={photo.url}
+        alt=""
+        className={`${aspectClass ? 'h-full w-full object-cover' : 'w-full h-auto object-cover block'}`}
+        loading="lazy"
+        draggable={false}
+      />
+
+      {/* Hover overlay */}
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 pointer-events-none" />
+
+      {/* Heart button — top right */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+        className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/50"
+        style={isFav ? { opacity: 1 } : undefined}
+      >
+        <Heart
+          className="h-4.5 w-4.5 transition-all duration-200"
+          style={isFav ? { color: heartColor, fill: heartColor } : { color: 'white' }}
+        />
+      </button>
+
+      {/* Selection checkbox — top left */}
+      {selectionMode && (
+        <div
+          className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}
+          style={isSelected ? { opacity: 1 } : undefined}
+        >
+          <Checkbox
+            checked={isSelected}
+            className="h-5 w-5 border-white data-[state=checked]:border-transparent"
+            style={isSelected && accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : undefined}
+          />
+        </div>
+      )}
+
+      {/* Comment badge — bottom left */}
+      {commentCount > 0 && (
+        <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-card/80 backdrop-blur-sm text-foreground text-[10px] font-medium px-2 py-1 rounded-full">
+          <MessageCircle className="h-3 w-3" />
+          {commentCount}
+        </div>
+      )}
+
+      {/* Watermark */}
+      {showWatermark && watermarkText && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+          <span className="font-serif text-white/30 text-lg sm:text-2xl whitespace-nowrap tracking-[0.15em]">
+            {watermarkText}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Main Component ── */
 const PublicGallery = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [event, setEvent] = useState<Event | null>(null);
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [studioProfile, setStudioProfile] = useState<StudioProfile | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [filter, setFilter] = useState<GalleryFilter>('all');
+  const [pinLocked, setPinLocked] = useState(false);
+
+  const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [sectionFilter, setSectionFilter] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'latest' | 'oldest' | 'sneakpeek'>('latest');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
   const [zipPercent, setZipPercent] = useState(0);
-  const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
-  const [watermarkText, setWatermarkText] = useState<string | null>(null);
-  const [watermarkLogoUrl, setWatermarkLogoUrl] = useState<string | null>(null);
   const [downloadUnlocked, setDownloadUnlocked] = useState(false);
   const [downloadPwPrompt, setDownloadPwPrompt] = useState(false);
   const [downloadPwInput, setDownloadPwInput] = useState('');
   const [downloadPwError, setDownloadPwError] = useState(false);
   const [pendingDownloadAction, setPendingDownloadAction] = useState<(() => void) | null>(null);
+
+  const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [slideshowOpen, setSlideshowOpen] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
+
+  const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
+  const [stickyVisible, setStickyVisible] = useState(false);
+
+  const heroRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
 
   const { sessionId } = useGuestSession(event?.id);
   const { favoriteCount, toggleFavorite: rawToggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
   const { trackView, trackFavoriteChange, trackDownload } = useAnalytics(event?.id);
 
-  // Wrap toggleFavorite with analytics + sonner toast
   const toggleFavorite = useCallback((photoId: string) => {
     const wasFav = isFavorite(photoId);
     rawToggleFavorite(photoId);
-    if (!wasFav) {
-      sonnerToast.success('Added to favorites');
-    } else {
-      sonnerToast('Removed from favorites');
-    }
-    // Delay analytics update slightly to allow DB write
+    if (!wasFav) sonnerToast.success('Added to favorites');
+    else sonnerToast('Removed from favorites');
     setTimeout(() => trackFavoriteChange(), 500);
   }, [rawToggleFavorite, isFavorite, trackFavoriteChange]);
 
+  /* ── Data fetching ── */
   const fetchGallery = useCallback(async () => {
     if (!slug) return;
 
-    const { data } = await (supabase
-      .from('events')
-      .select('*') as any)
-      .eq('slug', slug)
-      .eq('is_published', true)
-      .maybeSingle();
+    const { data } = await (supabase.from('events').select('*') as any)
+      .eq('slug', slug).eq('is_published', true).maybeSingle();
 
-    if (!data) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
+    if (!data) { setNotFound(true); setLoading(false); return; }
 
-    const ev = data as unknown as Event;
-
-    if (ev.gallery_pin) {
-      const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
-      if (unlocked !== 'true') {
-        navigate(`/event/${ev.slug}`, { replace: true });
-        return;
-      }
-    }
-
+    const ev = data as unknown as EventData;
     setEvent(ev);
-
-    // Set dynamic page title
     document.title = `${ev.name} — MirrorAI`;
 
-    if (ev.watermark_enabled && ev.user_id) {
-      const { data: profile } = await (supabase
-        .from('profiles')
-        .select('studio_name, studio_logo_url') as any)
-        .eq('user_id', ev.user_id)
-        .maybeSingle();
-      if (profile) {
-        setWatermarkText((profile as any).studio_name);
-        setWatermarkLogoUrl((profile as any).studio_logo_url ?? null);
+    // Check PIN gate
+    if (ev.gallery_pin) {
+      const storedPin = localStorage.getItem(`mirrorai_pin_${ev.id}`);
+      if (storedPin !== ev.gallery_pin) {
+        setPinLocked(true);
       }
     }
 
-    const { data: photoData } = await (supabase.from('photos').select('*') as any)
-      .eq('event_id', ev.id)
-      .order('sort_order', { ascending: true, nullsFirst: false });
+    // Fetch studio profile
+    const { data: profile } = await (supabase.from('profiles')
+      .select('studio_name, studio_logo_url, studio_accent_color') as any)
+      .eq('user_id', ev.user_id).maybeSingle();
+    if (profile) setStudioProfile(profile as unknown as StudioProfile);
+
+    // Fetch photos
+    const { data: photoData } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
+      .eq('event_id', ev.id).order('sort_order', { ascending: true, nullsFirst: false });
     if (photoData) setPhotos(photoData as unknown as Photo[]);
+
+    // Fetch comment counts
+    const { data: comments } = await (supabase.from('photo_comments').select('photo_id') as any)
+      .eq('event_id', ev.id);
+    if (comments) {
+      const counts: Record<string, number> = {};
+      (comments as any[]).forEach((c: any) => {
+        counts[c.photo_id] = (counts[c.photo_id] || 0) + 1;
+      });
+      setCommentCounts(counts);
+    }
+
     setLoading(false);
-  }, [slug, navigate]);
+  }, [slug]);
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
-  
-  // Track view once per session
-  useEffect(() => {
-    if (event?.id) trackView();
-  }, [event?.id, trackView]);
+  useEffect(() => { if (event?.id) trackView(); }, [event?.id, trackView]);
 
+  /* ── Sticky navbar observer ── */
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setStickyVisible(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    const el = heroRef.current;
+    if (el) observer.observe(el);
+    return () => { if (el) observer.unobserve(el); };
+  }, [loading, pinLocked]);
+
+  /* ── Download helpers ── */
   const handleDownloadPhoto = async (photo: Photo) => {
     if (!event?.downloads_enabled) return;
     try {
-      const { data, error } = await supabase.storage
-        .from('gallery-photos')
-        .createSignedUrl(photo.url, 60);
-      if (error || !data?.signedUrl) {
-        toast({ title: 'Download failed', description: 'Could not generate download link.' });
-        return;
-      }
-      const res = await fetch(data.signedUrl);
+      const { data: signed, error } = await supabase.storage.from('gallery-photos').createSignedUrl(photo.url, 60);
+      if (error || !signed?.signedUrl) { toast({ title: 'Download failed' }); return; }
+      const res = await fetch(signed.signedUrl);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = photo.file_name ?? 'photo.jpg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      a.href = blobUrl; a.download = photo.file_name ?? 'photo.jpg';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
       trackDownload();
-    } catch {
-      toast({ title: 'Download failed', description: 'Could not download photo.' });
-    }
+    } catch { toast({ title: 'Download failed' }); }
   };
 
   const buildZip = async (targetPhotos: Photo[], label: string) => {
     if (targetPhotos.length === 0) { toast({ title: 'No photos to download' }); return; }
     if (!event?.downloads_enabled) return;
-    setDownloading(true);
-    setZipPercent(0);
+    setDownloading(true); setZipPercent(0);
     try {
       const zip = new JSZip();
       const folder = zip.folder(event?.name ?? label);
       for (let i = 0; i < targetPhotos.length; i++) {
-        const pct = Math.round(((i + 1) / targetPhotos.length) * 100);
         setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
-        setZipPercent(pct);
+        setZipPercent(Math.round(((i + 1) / targetPhotos.length) * 100));
         const p = targetPhotos[i];
         const { data: signed } = await supabase.storage.from('gallery-photos').createSignedUrl(p.url, 120);
         if (!signed?.signedUrl) continue;
@@ -213,42 +345,12 @@ const PublicGallery = () => {
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${event?.name ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
-    } catch (_err) { toast({ title: 'Download failed' }); }
+    } catch { toast({ title: 'Download failed' }); }
     finally { setDownloading(false); setDownloadProgress(''); setZipPercent(0); }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-[100dvh]" style={{ backgroundColor: '#FAFAF8' }}>
-        <Skeleton className="h-[60vh] w-full rounded-none" />
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-32 mb-8" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-            {[...Array(8)].map((_, i) => (
-              <Skeleton key={i} className="aspect-square" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (notFound) {
-    return (
-      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-4 text-center">
-        <h1 className="font-serif text-4xl font-semibold text-primary mb-2">Gallery Not Found</h1>
-        <p className="text-[12px] text-muted-foreground/50">This gallery link is invalid or has been removed.</p>
-      </div>
-    );
-  }
-
-  if (!event) return null;
-
-  const canDownload = event.downloads_enabled;
-
   const guardedDownload = (action: () => void) => {
-    if (!canDownload) return;
+    if (!event?.downloads_enabled) return;
     if (event.download_requires_password && !downloadUnlocked) {
       setPendingDownloadAction(() => action);
       setDownloadPwPrompt(true);
@@ -259,193 +361,464 @@ const PublicGallery = () => {
 
   const handleDownloadPwSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (downloadPwInput === event.download_password) {
-      setDownloadUnlocked(true);
-      setDownloadPwPrompt(false);
-      setDownloadPwError(false);
-      setDownloadPwInput('');
+    if (downloadPwInput === event?.download_password) {
+      setDownloadUnlocked(true); setDownloadPwPrompt(false);
+      setDownloadPwError(false); setDownloadPwInput('');
       if (pendingDownloadAction) { pendingDownloadAction(); setPendingDownloadAction(null); }
-    } else {
-      setDownloadPwError(true);
-    }
+    } else { setDownloadPwError(true); }
   };
 
-  // Apply filters and sorting
-  let filteredPhotos = filter === 'favorites' ? photos.filter((p) => isFavorite(p.id)) : photos;
-  if (sectionFilter) {
-    filteredPhotos = filteredPhotos.filter(p => p.section === sectionFilter);
-  }
-  // Sort: latest first reverses the default sort_order ascending
-  if (sortOrder === 'latest') {
-    filteredPhotos = [...filteredPhotos].reverse();
-  }
-  const displayPhotos = filteredPhotos;
+  /* ── Derived data ── */
+  const availableSections = useMemo(() => {
+    const secs = new Set(photos.map(p => p.section).filter(Boolean) as string[]);
+    return Array.from(secs);
+  }, [photos]);
 
-  const layout = event.gallery_layout || 'classic';
-  const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
-  const gridPhotos = displayPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
-  const showWatermark = event.watermark_enabled && !!watermarkText;
-
-  // Determine which sections exist in photos
-  const availableSections = SECTIONS.filter(s => photos.some(p => p.section === s));
+  const displayPhotos = useMemo(() => {
+    let filtered = filter === 'favorites' ? photos.filter(p => isFavorite(p.id)) : photos;
+    if (sectionFilter) filtered = filtered.filter(p => p.section === sectionFilter);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(p =>
+        (p.file_name?.toLowerCase().includes(q)) ||
+        (p.section?.toLowerCase().includes(q))
+      );
+    }
+    if (sortOrder === 'latest') filtered = [...filtered].reverse();
+    return filtered;
+  }, [photos, filter, sectionFilter, searchQuery, sortOrder, isFavorite]);
 
   const openLightbox = (photoId: string) => {
     const idx = displayPhotos.findIndex(p => p.id === photoId);
-    if (idx >= 0) {
-      setLightboxIndex(idx);
-      setLightboxOpen(true);
-    }
+    if (idx >= 0) { setLightboxIndex(idx); setLightboxOpen(true); }
   };
 
-  const getItemClass = (l: string) => {
-    switch (l) {
-      case 'classic': return 'relative aspect-square overflow-hidden';
-      case 'justified': return 'relative h-[200px] sm:h-[240px] flex-grow';
-      case 'editorial': return 'relative mb-4 break-inside-avoid';
-      default: return 'relative mb-[3px] break-inside-avoid';
-    }
-  };
-  const getImgClass = (l: string) => {
-    switch (l) {
-      case 'classic': return 'h-full w-full object-cover';
-      case 'justified': return 'h-full w-auto object-cover';
-      case 'editorial': return 'w-full block';
-      default: return 'w-full block';
-    }
+  const toggleSelect = (photoId: string) => {
+    setSelectedPhotos(prev => {
+      const next = new Set(prev);
+      if (next.has(photoId)) next.delete(photoId); else next.add(photoId);
+      return next;
+    });
   };
 
-  return (
-    <div className="min-h-[100dvh]" style={{ backgroundColor: '#FAFAF8' }}>
-      {/* Hero cover — tall, cinematic */}
-      {event.cover_url ? (
-        <div className="relative h-[60vh] sm:h-[65vh] overflow-hidden">
-          <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-           <div className="absolute bottom-0 inset-x-0 px-6 sm:px-10 pb-10 sm:pb-14 flex items-end justify-between">
-            <div>
-              <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-medium text-white leading-[1.1] tracking-tight">{event.name}</h1>
-              <p className="text-[13px] sm:text-[14px] text-white/50 tracking-wide mt-3 font-sans">
-                {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
-              </p>
-            </div>
-            <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: 'Link copied!' }); }}
-              className="shrink-0 min-w-[44px] min-h-[44px] rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/25 transition-all duration-200 mb-1">
-              <Link2 className="h-5 w-5" />
-            </button>
-          </div>
+  const accentColor = studioProfile?.studio_accent_color || null;
+  const canDownload = event?.downloads_enabled ?? false;
+  const showWatermark = event?.watermark_enabled ?? false;
+  const layout = event?.gallery_layout || 'masonry';
+
+  const scrollToGallery = () => {
+    galleryRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  /* ── Loading state ── */
+  if (loading) {
+    return (
+      <div className="min-h-[100dvh] bg-background">
+        <Skeleton className="h-[100vh] w-full rounded-none" />
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-4 text-center">
+        <h1 className="font-serif text-4xl font-semibold text-primary mb-2">Gallery Not Found</h1>
+        <p className="text-xs text-muted-foreground/50">This gallery link is invalid or has been removed.</p>
+      </div>
+    );
+  }
+
+  if (!event) return null;
+
+  /* ── PIN Gate ── */
+  if (pinLocked) {
+    return (
+      <PinGate
+        event={event}
+        studioProfile={studioProfile}
+        onUnlock={() => setPinLocked(false)}
+      />
+    );
+  }
+
+  /* ── Render helpers for layouts ── */
+  const renderPhotoCard = (photo: Photo, layoutType?: string) => (
+    <PhotoCard
+      key={photo.id}
+      photo={photo}
+      layout={layoutType || layout}
+      isFav={isFavorite(photo.id)}
+      onToggleFavorite={() => toggleFavorite(photo.id)}
+      onOpenLightbox={() => openLightbox(photo.id)}
+      showWatermark={showWatermark}
+      watermarkText={studioProfile?.studio_name ?? null}
+      accentColor={accentColor}
+      selectionMode={event.selection_mode_enabled}
+      isSelected={selectedPhotos.has(photo.id)}
+      onToggleSelect={() => toggleSelect(photo.id)}
+      commentCount={commentCounts[photo.id] || 0}
+    />
+  );
+
+  const renderGallery = () => {
+    if (displayPhotos.length === 0 && filter === 'favorites') {
+      return (
+        <div className="py-24 text-center">
+          <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
+          <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
+          <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo</p>
         </div>
-      ) : (
-        <div className="relative h-[35vh] sm:h-[40vh] flex items-end" style={{ backgroundColor: '#1C1612' }}>
-          <div className="px-6 sm:px-10 pb-10 sm:pb-14 flex items-end justify-between w-full">
-            <div>
-              <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-medium text-white leading-[1.1] tracking-tight">{event.name}</h1>
-              <p className="text-[13px] sm:text-[14px] text-white/40 tracking-wide mt-3 font-sans">
-                {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
-              </p>
-            </div>
-            <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast({ title: 'Link copied!' }); }}
-              className="shrink-0 min-w-[44px] min-h-[44px] rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/25 transition-all duration-200 mb-1">
-              <Link2 className="h-5 w-5" />
-            </button>
-          </div>
+      );
+    }
+    if (displayPhotos.length === 0 && photos.length === 0) {
+      return (
+        <div className="py-32 text-center">
+          <Camera className="mx-auto h-10 w-10 text-muted-foreground/15" />
+          <p className="mt-4 font-display text-xl text-muted-foreground/50 italic">Photos coming soon</p>
+          <p className="mt-1.5 text-[11px] text-muted-foreground/35 tracking-wide">Check back shortly</p>
         </div>
-      )}
+      );
+    }
+    if (displayPhotos.length === 0) {
+      return (
+        <div className="py-24 text-center">
+          <p className="font-serif text-sm text-muted-foreground/50">No photos match this filter</p>
+        </div>
+      );
+    }
 
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
-        {/* Actions row */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-          <div className="flex items-center gap-3">
-            {favoriteCount > 0 && (
-              <div className="flex items-center gap-1.5 text-[12px] text-primary font-medium">
-                <Heart className="h-3.5 w-3.5" fill="hsl(var(--primary))" />
-                <span>{favoriteCount} Selected</span>
+    switch (layout) {
+      case 'classic':
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {displayPhotos.map(p => renderPhotoCard(p, 'classic'))}
+          </div>
+        );
+
+      case 'masonry':
+        return (
+          <div style={{ columns: '3 240px', columnGap: '1rem' }}>
+            {displayPhotos.map(p => renderPhotoCard(p, 'masonry'))}
+          </div>
+        );
+
+      case 'justified':
+        return (
+          <div className="space-y-2">
+            {chunkArray(displayPhotos, 4).map((row, ri) => (
+              <div key={ri} className="flex flex-row gap-2" style={{ height: window.innerWidth < 768 ? '160px' : '240px' }}>
+                {row.map(p => (
+                  <div key={p.id} className="relative flex-1 min-w-0 overflow-hidden rounded-xl cursor-pointer group"
+                    onClick={() => openLightbox(p.id)}>
+                    <img src={p.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 pointer-events-none" />
+                    <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+                      className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+                      style={isFavorite(p.id) ? { opacity: 1 } : undefined}>
+                      <Heart className="h-4 w-4" style={isFavorite(p.id) ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : { color: 'white' }} />
+                    </button>
+                    {showWatermark && studioProfile?.studio_name && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+                        <span className="font-serif text-white/30 text-lg whitespace-nowrap tracking-[0.15em]">{studioProfile.studio_name}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        );
+
+      case 'editorial':
+      case 'editorial-collage':
+        return (
+          <div className="space-y-2">
+            {displayPhotos.length > 0 && (
+              <div>{renderPhotoCard(displayPhotos[0], 'editorial-hero')}</div>
+            )}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {displayPhotos.slice(1).map(p => renderPhotoCard(p, 'classic'))}
+            </div>
+          </div>
+        );
+
+      case 'cinematic':
+        return (
+          <div className="space-y-2">
+            {displayPhotos.map((p, i) => {
+              const rowIndex = Math.floor(i / 4);
+              const posInGroup = i % 4;
+              if (posInGroup === 0) {
+                // Wide shot
+                return <div key={p.id}>{renderPhotoCard(p, 'cinematic-wide')}</div>;
+              }
+              // Group of 3
+              if (posInGroup === 1) {
+                const group = displayPhotos.slice(i, i + 3);
+                return (
+                  <div key={`row-${rowIndex}`} className="grid grid-cols-3 gap-2">
+                    {group.map(gp => renderPhotoCard(gp, 'cinematic-cell'))}
+                  </div>
+                );
+              }
+              return null; // handled in group
+            })}
+          </div>
+        );
+
+      case 'collage':
+      case 'mosaic':
+        const first5 = displayPhotos.slice(0, 5);
+        const rest = displayPhotos.slice(5);
+        const positions = [
+          { left: '0%', top: '0%', width: '60%', height: '60%' },
+          { left: '62%', top: '0%', width: '38%', height: '38%' },
+          { left: '62%', top: '40%', width: '38%', height: '60%' },
+          { left: '0%', top: '62%', width: '38%', height: '38%' },
+          { left: '40%', top: '62%', width: '20%', height: '38%' },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="relative w-full" style={{ height: window.innerWidth < 768 ? '400px' : '600px' }}>
+              {first5.map((p, i) => (
+                <div key={p.id} className="absolute overflow-hidden rounded-xl cursor-pointer group"
+                  style={{ ...positions[i] }}
+                  onClick={() => openLightbox(p.id)}>
+                  <img src={p.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 pointer-events-none" />
+                  <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+                    className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    style={isFavorite(p.id) ? { opacity: 1 } : undefined}>
+                    <Heart className="h-4 w-4" style={isFavorite(p.id) ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : { color: 'white' }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            {rest.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {rest.map(p => renderPhotoCard(p, 'classic'))}
               </div>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {photos.length > 1 && (
-              <Button variant="outline" size="sm" onClick={() => setSlideshowOpen(true)}
-                className="min-h-[44px] sm:min-h-0 sm:h-8 px-4 text-[10px] uppercase tracking-[0.08em] border-border rounded-full">
-                <Play className="mr-1.5 h-3 w-3" /> Slideshow
-              </Button>
-            )}
-          </div>
-        </div>
+        );
 
-        {/* Section pills — elegant thin outlined */}
-        {availableSections.length > 0 && (
-          <div className="flex items-center gap-2.5 mb-6 overflow-x-auto pb-1 scrollbar-hide">
-            <button onClick={() => setSectionFilter(null)}
-              className={`shrink-0 min-h-[44px] sm:min-h-[36px] px-4 py-1.5 rounded-full text-[11px] tracking-[0.06em] transition-all duration-200 border ${
-                !sectionFilter
-                  ? 'bg-foreground text-background border-foreground shadow-sm'
-                  : 'bg-transparent text-muted-foreground/70 border-border/60 hover:border-foreground/40 hover:text-foreground/80'
-              }`}>All</button>
-            {availableSections.map(s => (
-              <button key={s} onClick={() => setSectionFilter(s === sectionFilter ? null : s)}
-                className={`shrink-0 min-h-[44px] sm:min-h-[36px] px-4 py-1.5 rounded-full text-[11px] tracking-[0.06em] transition-all duration-200 border ${
-                  sectionFilter === s
-                    ? 'bg-foreground text-background border-foreground shadow-sm'
-                    : 'bg-transparent text-muted-foreground/70 border-border/60 hover:border-foreground/40 hover:text-foreground/80'
-                }`}>{s}</button>
+      case 'timeline':
+        const grouped = groupByDate(displayPhotos);
+        return (
+          <div className="space-y-8">
+            {grouped.map(([date, datePhotos]) => (
+              <div key={date}>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="font-serif text-sm text-muted-foreground whitespace-nowrap">
+                    {format(new Date(date), 'MMMM d, yyyy')}
+                  </span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {datePhotos.map(p => renderPhotoCard(p, 'masonry'))}
+                </div>
+              </div>
             ))}
           </div>
-        )}
+        );
 
-        {/* Utility bar */}
-        <div className="flex items-center justify-between mb-6 border-b border-border/50 pb-px">
-          <div className="flex items-center">
-            <button onClick={() => { setFilter('all'); }}
-              className={`min-h-[44px] px-3 py-2.5 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors ${
-                filter === 'all' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground'
-              }`}>All Photos</button>
-            <button onClick={() => { setFilter('favorites'); }}
-              className={`min-h-[44px] px-3 py-2.5 text-[11px] uppercase tracking-[0.08em] border-b-2 transition-colors flex items-center gap-1.5 ${
-                filter === 'favorites' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground'
-              }`}>
-              <Heart className="h-3 w-3" /> Favorites
-              {favoriteCount > 0 && (
-                <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favoriteCount}</span>
-              )}
-            </button>
+      case 'story':
+        return (
+          <div>
+            {displayPhotos.map((p, i) => (
+              <div key={p.id} className="relative h-screen w-full overflow-hidden cursor-pointer"
+                onClick={() => openLightbox(p.id)}>
+                <img src={p.url} alt="" className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-6 right-6 text-white/50 text-sm font-sans">
+                  {i + 1} / {displayPhotos.length}
+                </div>
+                {p.section && (
+                  <div className="absolute bottom-6 left-6 text-white/70 font-serif text-lg">
+                    {p.section}
+                  </div>
+                )}
+                <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+                  className="absolute top-6 right-6 z-10 min-w-[44px] min-h-[44px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center"
+                  style={isFavorite(p.id) ? { opacity: 1 } : undefined}>
+                  <Heart className="h-5 w-5" style={isFavorite(p.id) ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : { color: 'white' }} />
+                </button>
+              </div>
+            ))}
+          </div>
+        );
+
+      default:
+        // Fallback to masonry
+        return (
+          <div style={{ columns: '3 240px', columnGap: '1rem' }}>
+            {displayPhotos.map(p => renderPhotoCard(p, 'masonry'))}
+          </div>
+        );
+    }
+  };
+
+  const isStoryLayout = layout === 'story';
+
+  return (
+    <div
+      className="min-h-[100dvh] bg-background"
+      style={accentColor ? { '--studio-accent': accentColor } as React.CSSProperties : undefined}
+    >
+      <style>{kenBurnsStyle}</style>
+
+      {/* ── HERO ── */}
+      <div ref={heroRef} className="relative h-screen overflow-hidden">
+        {event.cover_url ? (
+          <img
+            src={event.cover_url}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ animation: 'kenBurns 12s ease-in-out alternate infinite' }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-foreground/90" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
+
+        <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 px-6 text-center">
+          {studioProfile?.studio_logo_url ? (
+            <img src={studioProfile.studio_logo_url} alt="" className="h-12 object-contain mb-6 opacity-80" />
+          ) : studioProfile?.studio_name ? (
+            <p className="font-display text-sm italic text-white/60 mb-6 tracking-wider">{studioProfile.studio_name}</p>
+          ) : null}
+
+          <h1 className="font-serif text-4xl md:text-6xl font-bold text-white leading-tight">{event.name}</h1>
+          <p className="text-muted-foreground text-sm mt-3 tracking-wide">
+            {format(new Date(event.event_date), 'MMMM d, yyyy')}
+          </p>
+        </div>
+
+        <button
+          onClick={scrollToGallery}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/40 hover:text-white/70 transition"
+        >
+          <ChevronDown className="h-8 w-8" />
+        </button>
+      </div>
+
+      {/* ── STICKY NAVBAR ── */}
+      <div
+        className={`sticky top-0 z-50 border-b border-border transition-all duration-300 ${
+          stickyVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
+        }`}
+        style={{ backgroundColor: 'hsl(var(--background) / 0.9)', backdropFilter: 'blur(12px)' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
+          {/* Left: logo or name */}
+          <div className="flex items-center gap-3 min-w-0">
+            {studioProfile?.studio_logo_url ? (
+              <img src={studioProfile.studio_logo_url} alt="" className="h-8 object-contain" />
+            ) : (
+              <span className="text-xs font-medium text-foreground truncate">{studioProfile?.studio_name}</span>
+            )}
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Sort dropdown */}
-            <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as 'latest' | 'oldest')}>
-              <SelectTrigger className="h-8 min-h-[44px] sm:min-h-0 w-[130px] text-[10px] uppercase tracking-[0.06em] border-border/50 rounded-full bg-transparent">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="latest" className="text-[11px]">Latest First</SelectItem>
-                <SelectItem value="oldest" className="text-[11px]">Oldest First</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Center: event name */}
+          <span className="hidden sm:block font-serif text-sm text-foreground truncate max-w-[200px]">{event.name}</span>
 
-            {canDownload && photos.length > 0 && (
+          {/* Right: actions */}
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchOpen(v => !v)}>
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 relative" onClick={() => setFilter(f => f === 'favorites' ? 'all' : 'favorites')}>
+              <Heart className="h-4 w-4" style={filter === 'favorites' ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : undefined} />
+              {favoriteCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[9px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                  {favoriteCount}
+                </span>
+              )}
+            </Button>
+            {canDownload && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" disabled={downloading}
-                    className="min-h-[44px] sm:min-h-0 text-primary hover:bg-primary/10 text-[10px] sm:h-7 px-2.5 uppercase tracking-[0.06em] mb-px">
-                    {downloading ? (<><Loader2 className="mr-1 h-3 w-3 animate-spin" />{downloadProgress}</>) : (<><FolderDown className="mr-1 h-3 w-3" />Download</>)}
+                  <Button variant="ghost" size="icon" className="h-9 w-9" disabled={downloading}>
+                    {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-[180px]">
-                  <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos, 'gallery'))} className="text-[12px] gap-2 min-h-[44px]">
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos, 'gallery'))} className="text-xs gap-2">
                     <PackageOpen className="h-3.5 w-3.5" /> All Photos ({photos.length})
                   </DropdownMenuItem>
                   {favoriteCount > 0 && (
-                    <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites'))} className="text-[12px] gap-2 min-h-[44px]">
+                    <DropdownMenuItem onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites'))} className="text-xs gap-2">
                       <Heart className="h-3.5 w-3.5" /> Favorites ({favoriteCount})
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            <Button variant="ghost" size="icon" className="h-9 w-9"
+              onClick={() => { navigator.clipboard.writeText(window.location.href); sonnerToast.success('Link copied'); }}>
+              <Share2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
+      </div>
 
-        {/* ZIP Progress bar */}
+      {/* ── GALLERY SECTION ── */}
+      <div ref={galleryRef} className={`max-w-7xl mx-auto ${isStoryLayout ? '' : 'px-4 sm:px-6 py-8'}`}>
+
+        {/* Filter / Sort bar */}
+        {!isStoryLayout && (
+          <div className="mb-6 space-y-3">
+            <div className="flex items-center justify-between gap-4">
+              {/* Filter pills */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide min-w-0">
+                <FilterPill active={filter === 'all' && !sectionFilter} onClick={() => { setFilter('all'); setSectionFilter(null); }} accent={accentColor}>
+                  All Photos
+                </FilterPill>
+                {availableSections.map(s => (
+                  <FilterPill key={s} active={sectionFilter === s} onClick={() => { setFilter('all'); setSectionFilter(sectionFilter === s ? null : s); }} accent={accentColor}>
+                    {s}
+                  </FilterPill>
+                ))}
+                <FilterPill active={filter === 'favorites'} onClick={() => { setFilter(f => f === 'favorites' ? 'all' : 'favorites'); setSectionFilter(null); }} accent={accentColor}>
+                  <Heart className="h-3 w-3 mr-1" /> Favorites {favoriteCount > 0 && `(${favoriteCount})`}
+                </FilterPill>
+              </div>
+
+              {/* Sort */}
+              <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as any)}>
+                <SelectTrigger className="h-8 w-[140px] text-xs border-border/50 rounded-full bg-transparent shrink-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="latest" className="text-xs">Latest First</SelectItem>
+                  <SelectItem value="oldest" className="text-xs">Oldest First</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Search bar */}
+            {searchOpen && (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search photos by name or section…"
+                  className="pl-9 pr-9 bg-background"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ZIP Progress */}
         {downloading && (
           <div className="mb-4 space-y-1.5">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
@@ -456,124 +829,96 @@ const PublicGallery = () => {
           </div>
         )}
 
-        {/* Photo grid */}
-        {displayPhotos.length === 0 && photos.length > 0 && filter === 'favorites' ? (
-          <div className="py-24 text-center">
-            <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
-            <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
-            <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo</p>
-          </div>
-        ) : displayPhotos.length === 0 && photos.length === 0 ? (
-          <div className="py-32 text-center">
-            <Camera className="mx-auto h-10 w-10 text-muted-foreground/15" />
-            <p className="mt-4 font-display text-xl text-muted-foreground/50 italic">Photos coming soon</p>
-            <p className="mt-1.5 text-[11px] text-muted-foreground/35 tracking-wide">Check back shortly</p>
-          </div>
-        ) : displayPhotos.length === 0 ? (
-          <div className="py-24 text-center">
-            <p className="font-serif text-sm text-muted-foreground/50">No photos match this filter</p>
-          </div>
-        ) : ['editorial-collage', 'pixieset', 'cinematic', 'mosaic'].includes(layout) ? (
-          layout === 'editorial-collage' ? (
-            <EditorialCollageGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
-          ) : layout === 'pixieset' ? (
-            <PixiesetEditorialGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
-          ) : layout === 'cinematic' ? (
-            <CinematicMasonryGrid photos={gridPhotos} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
-          ) : (
-            <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleFavorite} canDownload={canDownload} onDownload={canDownload ? (p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) guardedDownload(() => handleDownloadPhoto(orig)); } : undefined} watermarkText={showWatermark ? watermarkText : undefined} onShare={(p) => { const orig = photos.find(ph => ph.id === p.id); if (orig) setSharePhoto(orig); }} />
-          )
-        ) : (
-          <div className={gridClass}>
-            {displayPhotos.map((photo) => {
-              const fav = isFavorite(photo.id);
-              return (
-                <div key={photo.id} className={`group cursor-pointer rounded shadow-[0_1px_4px_rgba(0,0,0,0.06)] overflow-hidden ${getItemClass(layout)}`}
-                  onClick={() => openLightbox(photo.id)}>
-                  <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
-                  {showWatermark && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-                      <span className="font-serif text-foreground/10 text-lg sm:text-2xl rotate-[-25deg] whitespace-nowrap tracking-[0.15em]">
-                        {watermarkText}
-                      </span>
-                    </div>
-                  )}
-                  <button onClick={(e) => { e.stopPropagation(); toggleFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to your selections.' }); }}
-                    className="absolute top-1.5 right-1.5 z-10 min-w-[44px] min-h-[44px] rounded-full bg-card/60 backdrop-blur-sm flex items-center justify-center transition-all duration-200 hover:bg-card/80 active:scale-125">
-                    <Heart className={`h-4 w-4 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
-                      fill={fav ? 'hsl(var(--primary))' : 'none'} />
-                  </button>
-                  <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
-                  <div className="absolute bottom-1.5 right-1.5 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                    <button onClick={(e) => { e.stopPropagation(); setSharePhoto(photo); }}
-                      className="min-w-[36px] min-h-[36px] rounded-full bg-card/70 backdrop-blur-sm flex items-center justify-center text-foreground/80 hover:bg-card/90 transition">
-                      <Share2 className="h-3.5 w-3.5" />
-                    </button>
-                    {canDownload && (
-                      <button onClick={(e) => { e.stopPropagation(); guardedDownload(() => handleDownloadPhoto(photo)); }}
-                        className="min-w-[36px] min-h-[36px] rounded-full bg-card/70 backdrop-blur-sm flex items-center justify-center text-foreground/80 hover:bg-card/90 transition">
-                        <Download className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {/* Gallery grid */}
+        {renderGallery()}
 
-        {/* Footer branding */}
+        {/* Footer */}
         <div className="mt-12 pb-8 text-center">
           <p className="text-[9px] text-muted-foreground/30 tracking-[0.15em] uppercase">Powered by MirrorAI</p>
         </div>
-
-        {/* Lightbox */}
-        <PhotoLightbox
-          photos={displayPhotos}
-          currentIndex={lightboxIndex}
-          open={lightboxOpen}
-          onClose={() => setLightboxOpen(false)}
-          onIndexChange={setLightboxIndex}
-          isFavorite={isFavorite}
-          toggleFavorite={toggleFavorite}
-          canDownload={canDownload}
-          onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
-          onShare={(p) => setSharePhoto(p as Photo)}
-        />
-
-        {/* Slideshow */}
-        <PhotoSlideshow
-          photos={displayPhotos}
-          open={slideshowOpen}
-          onClose={() => setSlideshowOpen(false)}
-        />
-
-        {sharePhoto && (
-          <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
-            photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownload} />
-        )}
-
-        {/* Download password prompt */}
-        {downloadPwPrompt && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
-            <div className="w-full max-w-xs bg-card border border-border p-6 space-y-4">
-              <h3 className="font-serif text-lg font-semibold text-foreground text-center">Download Password</h3>
-              <p className="text-[11px] text-muted-foreground/60 text-center">Enter the password to download photos.</p>
-              <form onSubmit={handleDownloadPwSubmit} className="space-y-3">
-                <Input value={downloadPwInput} onChange={(e) => { setDownloadPwInput(e.target.value); setDownloadPwError(false); }}
-                  placeholder="Enter password" className="bg-background border-border h-10 text-center text-[14px]" autoFocus />
-                {downloadPwError && <p className="text-[10px] text-destructive text-center">Incorrect password.</p>}
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" className="flex-1 h-10 min-h-[44px] text-[11px]" onClick={() => { setDownloadPwPrompt(false); setDownloadPwInput(''); setDownloadPwError(false); setPendingDownloadAction(null); }}>Cancel</Button>
-                  <Button type="submit" className="flex-1 h-10 min-h-[44px] text-[11px] bg-primary text-primary-foreground">Confirm</Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* ── Lightbox ── */}
+      <PhotoLightbox
+        photos={displayPhotos}
+        currentIndex={lightboxIndex}
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onIndexChange={setLightboxIndex}
+        isFavorite={isFavorite}
+        toggleFavorite={toggleFavorite}
+        canDownload={canDownload}
+        onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
+        onShare={(p) => setSharePhoto(p as Photo)}
+      />
+
+      <PhotoSlideshow
+        photos={displayPhotos}
+        open={slideshowOpen}
+        onClose={() => setSlideshowOpen(false)}
+      />
+
+      {sharePhoto && (
+        <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
+          photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownload} />
+      )}
+
+      {/* Download password prompt */}
+      {downloadPwPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
+          <div className="w-full max-w-xs bg-card border border-border rounded-lg p-6 space-y-4">
+            <h3 className="font-serif text-lg font-semibold text-foreground text-center">Download Password</h3>
+            <p className="text-[11px] text-muted-foreground/60 text-center">Enter the password to download photos.</p>
+            <form onSubmit={handleDownloadPwSubmit} className="space-y-3">
+              <Input value={downloadPwInput} onChange={(e) => { setDownloadPwInput(e.target.value); setDownloadPwError(false); }}
+                placeholder="Enter password" className="bg-background border-border h-10 text-center" autoFocus />
+              {downloadPwError && <p className="text-[10px] text-destructive text-center">Incorrect password.</p>}
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => { setDownloadPwPrompt(false); setDownloadPwInput(''); setDownloadPwError(false); setPendingDownloadAction(null); }}>Cancel</Button>
+                <Button type="submit" className="flex-1 h-10">Confirm</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+/* ── Filter Pill sub-component ── */
+function FilterPill({ active, onClick, accent, children }: {
+  active: boolean; onClick: () => void; accent: string | null; children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`shrink-0 flex items-center px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border whitespace-nowrap ${
+        active
+          ? 'text-white border-transparent shadow-sm'
+          : 'bg-transparent text-muted-foreground border-border/60 hover:border-foreground/40 hover:text-foreground/80'
+      }`}
+      style={active ? { backgroundColor: accent || 'hsl(var(--primary))' } : undefined}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ── Helpers ── */
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+  return chunks;
+}
+
+function groupByDate(photos: Photo[]): [string, Photo[]][] {
+  const map = new Map<string, Photo[]>();
+  photos.forEach(p => {
+    const date = p.created_at.split('T')[0];
+    if (!map.has(date)) map.set(date, []);
+    map.get(date)!.push(p);
+  });
+  return Array.from(map.entries());
+}
 
 export default PublicGallery;
