@@ -14,7 +14,9 @@ import StudioSettings from "./pages/StudioSettings";
 import Billing from "./pages/Billing";
 
 import PublicGallery from "./pages/PublicGallery";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import GalleryCover from "./pages/GalleryCover";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { GalleryShell } from "./components/GalleryShell";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -105,8 +107,8 @@ const AppRoutes = () => (
     {/* Auth routes */}
     <Route path="/login" element={<AuthRoute><Auth key="login" initialView="login" /></AuthRoute>} />
     <Route path="/register" element={<AuthRoute><Auth key="signup" initialView="signup" /></AuthRoute>} />
-    <Route path="/forgot-password" element={<Navigate to="/login" replace />} />
-    <Route path="/reset-password" element={<Navigate to="/login" replace />} />
+    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    <Route path="/reset-password" element={<ResetPassword />} />
 
     {/* Super Admin routes — completely separate layout */}
     <Route path="/admin" element={<AdminLayout />}>

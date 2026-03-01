@@ -120,7 +120,18 @@ const Auth = ({ initialView }: AuthProps) => {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Password</Label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
+                    className="text-[11px] text-muted-foreground/60 hover:text-foreground transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
