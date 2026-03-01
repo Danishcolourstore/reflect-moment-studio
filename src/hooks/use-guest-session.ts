@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const GUEST_SESSION_KEY = 'mirrorai_guest_session_id';
+
 export function useGuestSession(eventId: string | undefined) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -8,10 +10,18 @@ export function useGuestSession(eventId: string | undefined) {
   useEffect(() => {
     if (!eventId) return;
 
-    const tokenKey = `session_token_${eventId}`;
-    const idKey = `session_id_${eventId}`;
-
     const init = async () => {
+      // Check localStorage for existing guest session id
+      let guestId = localStorage.getItem(GUEST_SESSION_KEY);
+      
+      if (!guestId) {
+        guestId = crypto.randomUUID();
+        localStorage.setItem(GUEST_SESSION_KEY, guestId);
+      }
+
+      const tokenKey = `session_token_${eventId}`;
+      const idKey = `session_id_${eventId}`;
+
       const existingToken = localStorage.getItem(tokenKey);
       const existingId = localStorage.getItem(idKey);
 
