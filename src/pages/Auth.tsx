@@ -80,7 +80,7 @@ const Auth = ({ initialView }: AuthProps) => {
   const isLogin = view === "login";
 
   return (
-    <div className="fixed inset-0 overflow-hidden" style={{ backgroundColor: "#0b0b0b" }}>
+    <div className="fixed inset-0 overflow-hidden w-screen" style={{ backgroundColor: "#0b0b0b" }}>
       {/* Layer 1: Blurred fill */}
       <div
         className="absolute inset-0"
@@ -93,25 +93,25 @@ const Auth = ({ initialView }: AuthProps) => {
           transform: "scale(1.2)",
         }}
       />
-      {/* Layer 2: Full image, no crop */}
+      {/* Layer 2: Full image — cover on mobile, contain on desktop */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage: "url('/images/login-bg.png')",
-          backgroundSize: "contain",
-          backgroundPosition: "center",
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
           backgroundRepeat: "no-repeat",
         }}
       />
 
       {/* Login card */}
-      <div className="absolute inset-0 flex flex-col items-center justify-end pb-0 z-10">
+      <div className="absolute inset-0 flex flex-col items-center justify-end pb-0 z-10 px-4">
         {/* Photographer Dashboard heading — outside card */}
         <h2
-          className="text-[#F5F0E8] text-center mb-6 tracking-wide"
+          className="text-[#F5F0E8] text-center mb-4 sm:mb-6 tracking-wide w-full"
           style={{
             fontFamily: "'Cormorant Garamond', 'Georgia', serif",
-            fontSize: "clamp(1.2rem, 3.5vw, 1.6rem)",
+            fontSize: "clamp(1rem, 3.5vw, 1.6rem)",
             fontWeight: 400,
             letterSpacing: "0.04em",
           }}
@@ -121,7 +121,7 @@ const Auth = ({ initialView }: AuthProps) => {
 
         {/* Card */}
         <div
-          className="w-full max-w-[280px] mx-4 flex flex-col gap-3.5 p-5"
+          className="w-full max-w-[280px] sm:max-w-[280px] flex flex-col gap-3 sm:gap-3.5 p-4 sm:p-5"
           style={{
             background: "rgba(0, 0, 0, 0.55)",
             backdropFilter: "blur(20px)",
@@ -226,7 +226,7 @@ const Auth = ({ initialView }: AuthProps) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-[70%] mx-auto h-8 rounded-md bg-[#1A1A1A] text-[#F5F0E8] text-[12px] font-medium tracking-wide hover:bg-[#252525] border border-white/10 transition-colors disabled:opacity-50"
+              className="w-full sm:w-[70%] mx-auto h-8 rounded-md bg-[#1A1A1A] text-[#F5F0E8] text-[12px] font-medium tracking-wide hover:bg-[#252525] border border-white/10 transition-colors disabled:opacity-50"
               style={{ fontFamily: "'Cormorant Garamond', serif" }}
             >
               {isLogin ? "Sign In" : "Create Account"}
