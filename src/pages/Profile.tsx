@@ -84,9 +84,14 @@ const Profile = () => {
     return { label: 'Strong', color: 'text-green-500' };
   };
 
+  const storage = useStorageUsage();
+
   if (loading) return <DashboardLayout><Skeleton className="h-96" /></DashboardLayout>;
 
   const strength = pwStrength();
+  const storageUsed = storage.data?.used ?? 0;
+  const storageLimit = storage.data?.limit ?? 0;
+  const storagePct = storageLimit > 0 ? Math.min((storageUsed / storageLimit) * 100, 100) : 0;
 
   return (
     <DashboardLayout>
