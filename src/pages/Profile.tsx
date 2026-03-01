@@ -10,9 +10,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { useStorageUsage, formatBytes } from '@/hooks/use-storage-usage';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/lib/auth';
-import { toast } from 'sonner';
 
 const Profile = () => {
   const { user } = useAuth();
