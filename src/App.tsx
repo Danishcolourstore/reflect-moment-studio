@@ -19,10 +19,16 @@ import GalleryCover from "./pages/GalleryCover";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { GalleryShell } from "./components/GalleryShell";
+import AdminGate from "./pages/admin/AdminGate";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
 import AdminEvents from "./pages/admin/AdminEvents";
+import AdminStorage from "./pages/admin/AdminStorage";
+import AdminRevenue from "./pages/admin/AdminRevenue";
+import AdminEmails from "./pages/admin/AdminEmails";
+import AdminActivity from "./pages/admin/AdminActivity";
+import AdminSettings from "./pages/admin/AdminSettings";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -110,11 +116,16 @@ const AppRoutes = () => (
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/reset-password" element={<ResetPassword />} />
 
-    {/* Super Admin routes — completely separate layout */}
-    <Route path="/admin" element={<AdminLayout />}>
+    {/* Super Admin routes — code-gated, no auth required */}
+    <Route path="/admin" element={<AdminGate><AdminLayout /></AdminGate>}>
       <Route index element={<AdminDashboard />} />
       <Route path="photographers" element={<AdminPhotographers />} />
       <Route path="events" element={<AdminEvents />} />
+      <Route path="storage" element={<AdminStorage />} />
+      <Route path="revenue" element={<AdminRevenue />} />
+      <Route path="emails" element={<AdminEmails />} />
+      <Route path="activity" element={<AdminActivity />} />
+      <Route path="settings" element={<AdminSettings />} />
     </Route>
 
     {/* Photographer dashboard routes — all require auth */}
