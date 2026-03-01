@@ -153,6 +153,25 @@ const Profile = () => {
             {pwSaving ? 'Updating...' : 'Save Password'}
           </Button>
         </div>
+
+        {/* Storage Usage */}
+        <div className="bg-card border border-border rounded-xl p-6">
+          <h2 className="font-serif text-lg text-foreground mb-5">Storage Usage</h2>
+          <p className="font-serif text-3xl font-bold text-foreground">{formatBytes(storageUsed)}</p>
+          <p className="text-sm text-muted-foreground mt-1">of {formatBytes(storageLimit)}</p>
+          <Progress value={storagePct} className="mt-3 h-2" />
+          <div className="grid grid-cols-2 gap-4 mt-4 text-[12px]">
+            <div><span className="text-muted-foreground/60">Events:</span> <span className="font-medium">{storage.data?.eventCount ?? 0}</span></div>
+            <div><span className="text-muted-foreground/60">Photos:</span> <span className="font-medium">{storage.data?.photoCount ?? 0}</span></div>
+          </div>
+          {storage.data?.plan !== 'pro' && (
+            <div className="mt-4 bg-secondary rounded-lg p-4">
+              <p className="font-serif text-sm font-semibold text-foreground">Upgrade to Pro</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Get 100 GB storage, unlimited events, and priority support.</p>
+              <Button size="sm" className="mt-3 bg-primary text-primary-foreground text-[10px] uppercase tracking-wider">Upgrade Now</Button>
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
