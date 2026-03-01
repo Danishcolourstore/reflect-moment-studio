@@ -186,8 +186,8 @@ const AppRoutes = () => (
     <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
     <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
 
-    {/* Legacy redirects */}
-    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+    {/* Landing page */}
+    <Route path="/" element={<AuthRoute><LandingPage /></AuthRoute>} />
     <Route path="/auth" element={<Navigate to="/login" replace />} />
     <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
     <Route path="/events/:id" element={<Navigate to="/dashboard/events/:id" replace />} />
