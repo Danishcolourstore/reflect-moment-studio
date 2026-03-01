@@ -2,3 +2,6 @@ project_id = "tiwatanqxacwrnytfcoy"
 
 [functions.invite-client]
 verify_jwt = false
+
+[functions.process-guest-selfie]
+verify_jwt = false

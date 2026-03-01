@@ -1,0 +1,66 @@
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+type Step = 'upload' | 'processing' | 'results' | 'error';
+
+export const useGuestFinder = (eventId: string, qrAccessId: string) => {
+  const [step, setStep] = useState<Step>('upload');
+  const [matchedPhotos, setMatchedPhotos] = useState<any[]>([]);
+
+  const submitSelfie = useCallback(async (file: File) => {
+    if (!eventId || !qrAccessId) return;
+    setStep('processing');
+    try {
+      const fileName = `selfies/${eventId}/${Date.now()}_${file.name}`;
+      await supabase.storage.from('gallery-photos').upload(fileName, file);
+      const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(fileName);
+
+      const { data: selfie, error } = await (supabase
+        .from('guest_selfies' as any)
+        .insert({
+          event_id: eventId,
+          qr_access_id: qrAccessId,
+          image_url: publicUrl,
+        } as any)
+        .select()
+        .single() as any);
+      if (error) throw error;
+
+      await supabase.functions.invoke('process-guest-selfie', {
+        body: { selfieId: selfie.id, eventId },
+      });
+
+      const poll = setInterval(async () => {
+        const { data } = await (supabase
+          .from('guest_selfies' as any)
+          .select('processing_status, match_results')
+          .eq('id', selfie.id)
+          .single() as any);
+        if (data?.processing_status === 'completed') {
+          clearInterval(poll);
+          const matchIds: string[] = (data.match_results as string[]) || [];
+          if (matchIds.length > 0) {
+            const { data: photos } = await supabase
+              .from('photos')
+              .select('*')
+              .in('id', matchIds);
+            setMatchedPhotos(photos || []);
+          }
+          setStep('results');
+        } else if (data?.processing_status === 'failed') {
+          clearInterval(poll);
+          setStep('error');
+        }
+      }, 1500);
+
+      setTimeout(() => {
+        clearInterval(poll);
+        if (step === 'processing') setStep('results');
+      }, 30000);
+    } catch {
+      setStep('error');
+    }
+  }, [eventId, qrAccessId, step]);
+
+  return { step, matchedPhotos, submitSelfie };
+};
