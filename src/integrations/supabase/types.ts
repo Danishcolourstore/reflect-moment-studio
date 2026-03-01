@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      event_analytics: {
+        Row: {
+          downloads_count: number
+          event_id: string
+          favorites_count: number
+          gallery_views: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          downloads_count?: number
+          event_id: string
+          favorites_count?: number
+          gallery_views?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          downloads_count?: number
+          event_id?: string
+          favorites_count?: number
+          gallery_views?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_analytics_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           allow_favorites_download: boolean
@@ -365,6 +400,7 @@ export type Database = {
           mobile: string | null
           plan: string
           storage_limit_mb: number | null
+          studio_logo_url: string | null
           studio_name: string
           suspended: boolean
           updated_at: string
@@ -378,6 +414,7 @@ export type Database = {
           mobile?: string | null
           plan?: string
           storage_limit_mb?: number | null
+          studio_logo_url?: string | null
           studio_name?: string
           suspended?: boolean
           updated_at?: string
@@ -391,6 +428,7 @@ export type Database = {
           mobile?: string | null
           plan?: string
           storage_limit_mb?: number | null
+          studio_logo_url?: string | null
           studio_name?: string
           suspended?: boolean
           updated_at?: string

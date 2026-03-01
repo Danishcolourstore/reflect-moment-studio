@@ -3,12 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { useGuestSession } from '@/hooks/use-guest-session';
+import { useAnalytics } from '@/hooks/use-analytics';
 import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Play, Camera, Link2 } from 'lucide-react';
+import { Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Play, Camera, Link2, Hourglass } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -77,6 +80,7 @@ const PublicGallery = () => {
   const [zipPercent, setZipPercent] = useState(0);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
   const [watermarkText, setWatermarkText] = useState<string | null>(null);
+  const [watermarkLogoUrl, setWatermarkLogoUrl] = useState<string | null>(null);
   const [downloadUnlocked, setDownloadUnlocked] = useState(false);
   const [downloadPwPrompt, setDownloadPwPrompt] = useState(false);
   const [downloadPwInput, setDownloadPwInput] = useState('');
@@ -88,7 +92,21 @@ const PublicGallery = () => {
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>('latest');
 
   const { sessionId } = useGuestSession(event?.id);
-  const { favoriteCount, toggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
+  const { favoriteCount, toggleFavorite: rawToggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
+  const { trackView, trackFavoriteChange, trackDownload } = useAnalytics(event?.id);
+
+  // Wrap toggleFavorite with analytics + sonner toast
+  const toggleFavorite = useCallback((photoId: string) => {
+    const wasFav = isFavorite(photoId);
+    rawToggleFavorite(photoId);
+    if (!wasFav) {
+      sonnerToast.success('Added to favorites');
+    } else {
+      sonnerToast('Removed from favorites');
+    }
+    // Delay analytics update slightly to allow DB write
+    setTimeout(() => trackFavoriteChange(), 500);
+  }, [rawToggleFavorite, isFavorite, trackFavoriteChange]);
 
   const fetchGallery = useCallback(async () => {
     if (!slug) return;
@@ -124,10 +142,13 @@ const PublicGallery = () => {
     if (ev.watermark_enabled && ev.user_id) {
       const { data: profile } = await (supabase
         .from('profiles')
-        .select('studio_name') as any)
+        .select('studio_name, studio_logo_url') as any)
         .eq('user_id', ev.user_id)
         .maybeSingle();
-      if (profile) setWatermarkText((profile as any).studio_name);
+      if (profile) {
+        setWatermarkText((profile as any).studio_name);
+        setWatermarkLogoUrl((profile as any).studio_logo_url ?? null);
+      }
     }
 
     const { data: photoData } = await (supabase.from('photos').select('*') as any)
@@ -138,6 +159,11 @@ const PublicGallery = () => {
   }, [slug, navigate]);
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
+  
+  // Track view once per session
+  useEffect(() => {
+    if (event?.id) trackView();
+  }, [event?.id, trackView]);
 
   const handleDownloadPhoto = async (photo: Photo) => {
     if (!event?.downloads_enabled) return;
@@ -159,6 +185,7 @@ const PublicGallery = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
+      trackDownload();
     } catch {
       toast({ title: 'Download failed', description: 'Could not download photo.' });
     }
@@ -192,8 +219,17 @@ const PublicGallery = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-background">
-        <p className="text-[11px] text-muted-foreground/50 uppercase tracking-widest">Loading gallery…</p>
+      <div className="min-h-[100dvh]" style={{ backgroundColor: '#FAFAF8' }}>
+        <Skeleton className="h-[60vh] w-full rounded-none" />
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-32 mb-8" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} className="aspect-square" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
