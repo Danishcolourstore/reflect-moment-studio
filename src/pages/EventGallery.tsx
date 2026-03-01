@@ -28,7 +28,10 @@ import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 import { GuestSelectionsViewer } from '@/components/GuestSelectionsViewer';
 import { GuestFavoritesTab } from '@/components/GuestFavoritesTab';
 import { PhotoSectionSelect } from '@/components/PhotoSectionSelect';
+import { SelectionsViewer } from '@/components/SelectionsViewer';
+import { CommentsViewer } from '@/components/CommentsViewer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { GripVertical, MessageCircle, CheckSquare } from 'lucide-react';
 
 interface Photo {
   id: string;
