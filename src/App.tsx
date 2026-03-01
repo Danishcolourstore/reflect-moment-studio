@@ -19,6 +19,12 @@ import Notifications from "./pages/Notifications";
 import Onboarding from "./pages/Onboarding";
 
 import PublicGallery from "./pages/PublicGallery";
+import ClientDashboard from "./pages/client/ClientDashboard";
+import ClientEvents from "./pages/client/ClientEvents";
+import ClientEventView from "./pages/client/ClientEventView";
+import ClientFavorites from "./pages/client/ClientFavorites";
+import ClientDownloads from "./pages/client/ClientDownloads";
+import ClientProfile from "./pages/client/ClientProfile";
 import WidgetPage from "./pages/WidgetPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import GalleryCover from "./pages/GalleryCover";
@@ -89,10 +95,12 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .eq('role', 'admin')
       .then(({ data }) => {
-        if (data && data.length > 0) {
+        const roles = (data || []).map((r: any) => r.role);
+        if (roles.includes('admin')) {
           setRedirectTo('/admin');
+        } else if (roles.includes('client')) {
+          setRedirectTo('/client');
         } else {
           const redirect = sessionStorage.getItem("redirectAfterLogin");
           if (redirect && redirect.startsWith('/dashboard')) {
@@ -133,6 +141,14 @@ const AppRoutes = () => (
       <Route path="activity" element={<AdminActivity />} />
       <Route path="settings" element={<AdminSettings />} />
     </Route>
+
+    {/* Client Portal routes — require auth + client role */}
+    <Route path="/client" element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
+    <Route path="/client/events" element={<ProtectedRoute><ClientEvents /></ProtectedRoute>} />
+    <Route path="/client/events/:id" element={<ProtectedRoute><ClientEventView /></ProtectedRoute>} />
+    <Route path="/client/favorites" element={<ProtectedRoute><ClientFavorites /></ProtectedRoute>} />
+    <Route path="/client/downloads" element={<ProtectedRoute><ClientDownloads /></ProtectedRoute>} />
+    <Route path="/client/profile" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
 
     {/* Photographer dashboard routes — all require auth */}
     <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

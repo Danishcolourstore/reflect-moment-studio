@@ -182,6 +182,158 @@ export type Database = {
           },
         ]
       }
+      client_downloads: {
+        Row: {
+          client_id: string
+          downloaded_at: string
+          id: string
+          photo_id: string
+        }
+        Insert: {
+          client_id: string
+          downloaded_at?: string
+          id?: string
+          photo_id: string
+        }
+        Update: {
+          client_id?: string
+          downloaded_at?: string
+          id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_downloads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_downloads_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_events: {
+        Row: {
+          access_level: string
+          client_id: string
+          created_at: string
+          event_id: string
+          id: string
+        }
+        Insert: {
+          access_level?: string
+          client_id: string
+          created_at?: string
+          event_id: string
+          id?: string
+        }
+        Update: {
+          access_level?: string
+          client_id?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_favorites: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          photo_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          photo_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_favorites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_favorites_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          created_at: string
+          email: string
+          event_id: string | null
+          id: string
+          name: string
+          phone: string | null
+          photographer_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_id?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          photographer_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_id?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          photographer_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connection_test: {
         Row: {
           created_at: string | null
@@ -973,7 +1125,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "photographer"
+      app_role: "admin" | "photographer" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1101,7 +1253,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "photographer"],
+      app_role: ["admin", "photographer", "client"],
     },
   },
 } as const

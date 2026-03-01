@@ -35,15 +35,17 @@ const Auth = ({ initialView }: AuthProps) => {
       if (error) {
         setError(error.message);
       } else if (data?.session) {
-        // Check if user is admin and redirect accordingly
+        // Check user role and redirect accordingly
         const { data: roles } = await supabase
           .from("user_roles")
           .select("role")
-          .eq("user_id", data.session.user.id)
-          .eq("role", "admin");
+          .eq("user_id", data.session.user.id);
         
-        if (roles && roles.length > 0) {
+        const roleList = (roles || []).map((r: any) => r.role);
+        if (roleList.includes('admin')) {
           navigate("/admin");
+        } else if (roleList.includes('client')) {
+          navigate("/client");
         } else {
           navigate("/dashboard");
         }
