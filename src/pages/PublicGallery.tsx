@@ -885,6 +885,18 @@ const PublicGallery = () => {
         canDownload={canDownload}
         onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
         onShare={(p) => setSharePhoto(p as Photo)}
+        eventTitle={event.name}
+      />
+
+      {/* Send Favorites Dialog */}
+      <SendFavoritesDialog
+        open={sendFavOpen}
+        onOpenChange={setSendFavOpen}
+        eventId={event.id}
+        eventTitle={event.name}
+        favoritePhotoIds={Array.from(favoriteIds)}
+        favoritePhotos={photos.filter(p => isFavorite(p.id)).map(p => ({ id: p.id, url: p.url }))}
+        sessionId={sessionId}
       />
 
       <PhotoSlideshow
