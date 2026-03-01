@@ -82,19 +82,29 @@ const Dashboard = () => {
 
   const greeting = () => {
     const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (h >= 5 && h < 12) return 'Good morning';
+    if (h >= 12 && h < 17) return 'Good afternoon';
+    if (h >= 17 && h < 22) return 'Good evening';
+    return 'Working late';
   };
 
-  const firstName = profile?.studio_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'there';
+  const displayName = profile?.studio_name || user?.user_metadata?.full_name || 'Creator';
+
+  const contextLine = () => {
+    if (events.length === 0) return 'Capture. Upload. Deliver.';
+    const published = events.filter(e => e.is_published).length;
+    if (totalViews > 0) return 'Clients are viewing your work.';
+    if (published > 0) return 'Your galleries are ready to share.';
+    return 'Your stories are live today.';
+  };
 
   return (
     <DashboardLayout>
       {/* Greeting */}
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl font-bold text-foreground">{greeting()}, {firstName}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+      <div className="mb-10">
+        <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground/50 font-medium">{greeting()}</p>
+        <h1 className="font-serif text-4xl md:text-5xl font-bold text-foreground mt-1 leading-tight tracking-tight">{displayName}</h1>
+        <p className="text-sm text-muted-foreground/60 mt-2 font-light">{loading ? format(new Date(), 'EEEE, MMMM d, yyyy') : contextLine()}</p>
       </div>
 
       {/* Stats */}
