@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Camera,
-  Link2, Search, X, ChevronDown, Grid3X3, Lock, MessageCircle,
+  Link2, Search, X, ChevronDown, Grid3X3, Lock, MessageCircle, Mail,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -26,6 +26,8 @@ import { PhotoLightbox } from '@/components/PhotoLightbox';
 import { PhotoSlideshow } from '@/components/PhotoSlideshow';
 import { OtpInput } from '@/components/OtpInput';
 import { Checkbox } from '@/components/ui/checkbox';
+import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
+import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
 
 /* ── Interfaces ── */
 interface Photo {
