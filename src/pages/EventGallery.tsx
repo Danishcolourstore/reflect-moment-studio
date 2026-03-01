@@ -28,7 +28,10 @@ import { PhotoShareSheet } from '@/components/PhotoShareSheet';
 import { GuestSelectionsViewer } from '@/components/GuestSelectionsViewer';
 import { GuestFavoritesTab } from '@/components/GuestFavoritesTab';
 import { PhotoSectionSelect } from '@/components/PhotoSectionSelect';
+import { SelectionsViewer } from '@/components/SelectionsViewer';
+import { CommentsViewer } from '@/components/CommentsViewer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { GripVertical, MessageCircle, CheckSquare } from 'lucide-react';
 
 interface Photo {
   id: string;
@@ -345,10 +348,10 @@ const EventGallery = () => {
         </div>
       )}
 
-      {/* Tabs: Photos | Guest Favorites */}
+      {/* Tabs: Photos | Guest Favorites | Selections | Comments */}
       {isOwner ? (
         <Tabs defaultValue="photos" className="w-full">
-          <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start h-auto p-0 gap-0">
+          <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start h-auto p-0 gap-0 flex-wrap">
             <TabsTrigger value="photos"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/50 data-[state=active]:text-foreground">
               All Photos
@@ -359,6 +362,14 @@ const EventGallery = () => {
               {favStats.totalFavs > 0 && (
                 <span className="text-[10px] bg-foreground/10 text-foreground/70 rounded-full px-1.5 py-px leading-none">{favStats.totalFavs}</span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="selections"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/50 data-[state=active]:text-foreground flex items-center gap-1.5">
+              <CheckSquare className="h-3 w-3" /> Selections
+            </TabsTrigger>
+            <TabsTrigger value="comments"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-muted-foreground/50 data-[state=active]:text-foreground flex items-center gap-1.5">
+              <MessageCircle className="h-3 w-3" /> Comments
             </TabsTrigger>
           </TabsList>
 
@@ -520,6 +531,14 @@ const EventGallery = () => {
 
           <TabsContent value="favorites" className="mt-4">
             <GuestFavoritesTab eventId={event.id} eventName={event.name} />
+          </TabsContent>
+
+          <TabsContent value="selections" className="mt-4">
+            <SelectionsViewer eventId={event.id} />
+          </TabsContent>
+
+          <TabsContent value="comments" className="mt-4">
+            <CommentsViewer eventId={event.id} />
           </TabsContent>
         </Tabs>
       ) : (

@@ -262,6 +262,7 @@ export type Database = {
           gallery_layout: string
           gallery_pin: string | null
           id: string
+          is_archived: boolean
           is_published: boolean
           livesync_enabled: boolean
           location: string | null
@@ -290,6 +291,7 @@ export type Database = {
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string
+          is_archived?: boolean
           is_published?: boolean
           livesync_enabled?: boolean
           location?: string | null
@@ -318,6 +320,7 @@ export type Database = {
           gallery_layout?: string
           gallery_pin?: string | null
           id?: string
+          is_archived?: boolean
           is_published?: boolean
           livesync_enabled?: boolean
           location?: string | null
@@ -552,6 +555,57 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          id: string
+          is_read: boolean
+          message: string
+          photo_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          photo_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          photo_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photo_comments: {
         Row: {
           comment: string
@@ -714,6 +768,7 @@ export type Database = {
           email: string | null
           id: string
           mobile: string | null
+          onboarding_completed: boolean
           plan: string
           storage_limit_mb: number | null
           studio_accent_color: string | null
@@ -732,6 +787,7 @@ export type Database = {
           email?: string | null
           id?: string
           mobile?: string | null
+          onboarding_completed?: boolean
           plan?: string
           storage_limit_mb?: number | null
           studio_accent_color?: string | null
@@ -750,6 +806,7 @@ export type Database = {
           email?: string | null
           id?: string
           mobile?: string | null
+          onboarding_completed?: boolean
           plan?: string
           storage_limit_mb?: number | null
           studio_accent_color?: string | null

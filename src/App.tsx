@@ -15,6 +15,8 @@ import Billing from "./pages/Billing";
 import Clients from "./pages/Clients";
 import Branding from "./pages/Branding";
 import Profile from "./pages/Profile";
+import Notifications from "./pages/Notifications";
+import Onboarding from "./pages/Onboarding";
 
 import PublicGallery from "./pages/PublicGallery";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
@@ -142,6 +144,8 @@ const AppRoutes = () => (
     <Route path="/dashboard/settings" element={<ProtectedRoute><StudioSettings /></ProtectedRoute>} />
     <Route path="/dashboard/branding" element={<ProtectedRoute><Branding /></ProtectedRoute>} />
     <Route path="/dashboard/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+    <Route path="/dashboard/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+    <Route path="/dashboard/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
     <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
 
     {/* Guest gallery routes — completely public, no auth */}
