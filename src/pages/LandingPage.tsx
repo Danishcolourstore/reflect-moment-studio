@@ -31,7 +31,7 @@ const LandingPage = () => {
           className="font-serif text-[clamp(1rem,2.5vw,1.5rem)] tracking-[0.25em] uppercase text-white/70 mb-14"
           style={{ fontWeight: 400 }}
         >
-          The Art Gallery
+          The Reflection of Now
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-4">
