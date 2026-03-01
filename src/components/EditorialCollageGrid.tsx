@@ -74,7 +74,7 @@ export function EditorialCollageGrid({
             fill={fav ? 'hsl(var(--primary))' : 'none'}
           />
         </button>
-        <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
+        <div className="absolute inset-0 transition-opacity duration-300 group-hover:bg-foreground/8 pointer-events-none" />
         <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           {onShare && (
             <button
@@ -108,8 +108,8 @@ export function EditorialCollageGrid({
   return (
     <div className="space-y-0">
       {/* Hero Banner */}
-      <div className="group relative w-full h-[50vh] sm:h-[60vh] lg:h-[70vh] overflow-hidden mb-3">
-        <img src={heroPhoto.url} alt="" className="h-full w-full object-cover" />
+      <div className="group relative w-full h-[55vh] sm:h-[65vh] lg:h-[75vh] overflow-hidden mb-4">
+        <img src={heroPhoto.url} alt="" className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-[0.92]" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
         {eventName && (
           <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-10 z-10">
@@ -123,12 +123,12 @@ export function EditorialCollageGrid({
 
       {/* Asymmetric Collage Grid */}
       {collagePhotos.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[10px] sm:gap-3 mb-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
           {collagePhotos.map((photo, i) => {
             const pattern = COLLAGE_PATTERN[i % COLLAGE_PATTERN.length];
             return (
-              <div key={photo.id} className={`group relative overflow-hidden ${pattern.span} ${pattern.ratio}`}>
-                <img src={photo.url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+              <div key={photo.id} className={`group relative overflow-hidden rounded-lg ${pattern.span} ${pattern.ratio}`}>
+                <img src={photo.url} alt="" className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-[0.92]" loading="lazy" />
                 {renderOverlay(photo)}
               </div>
             );
@@ -138,10 +138,10 @@ export function EditorialCollageGrid({
 
       {/* Masonry Continuation */}
       {remainingPhotos.length > 0 && (
-        <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-[10px] sm:gap-3">
+        <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-3 sm:gap-4">
           {remainingPhotos.map((photo) => (
-            <div key={photo.id} className="group relative mb-[10px] sm:mb-3 break-inside-avoid">
-              <img src={photo.url} alt="" className="w-full block" loading="lazy" />
+            <div key={photo.id} className="group relative mb-3 sm:mb-4 break-inside-avoid rounded-lg overflow-hidden">
+              <img src={photo.url} alt="" className="w-full block transition-opacity duration-300 group-hover:opacity-[0.92]" loading="lazy" />
               {renderOverlay(photo)}
             </div>
           ))}
