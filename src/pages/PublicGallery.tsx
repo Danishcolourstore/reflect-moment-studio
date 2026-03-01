@@ -894,7 +894,7 @@ const PublicGallery = () => {
         onOpenChange={setSendFavOpen}
         eventId={event.id}
         eventTitle={event.name}
-        favoritePhotoIds={Array.from(favoriteIds)}
+        favoritePhotoIds={photos.filter(p => isFavorite(p.id)).map(p => p.id)}
         favoritePhotos={photos.filter(p => isFavorite(p.id)).map(p => ({ id: p.id, url: p.url }))}
         sessionId={sessionId}
       />
