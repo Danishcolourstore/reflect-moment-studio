@@ -105,7 +105,7 @@ const Auth = ({ initialView }: AuthProps) => {
       />
 
       {/* Login card */}
-      <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 z-10">
+      <div className="absolute inset-0 flex flex-col items-center justify-end pb-0 z-10">
         {/* Photographer Dashboard heading — outside card */}
         <h2
           className="text-[#F5F0E8] text-center mb-6 tracking-wide"
@@ -126,7 +126,7 @@ const Auth = ({ initialView }: AuthProps) => {
             background: "rgba(0, 0, 0, 0.55)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            borderRadius: "16px",
+            borderRadius: "16px 16px 0 0",
             border: "1px solid rgba(255, 255, 255, 0.08)",
             boxShadow: "0 16px 48px rgba(0, 0, 0, 0.4)",
           }}
@@ -167,19 +167,34 @@ const Auth = ({ initialView }: AuthProps) => {
               />
             </div>
 
-            {/* Forgot password */}
-            {isLogin && (
-              <div className="text-right -mt-1">
+            {/* Forgot password + Sign up row */}
+            <div className="flex items-center justify-between -mt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setView(isLogin ? "signup" : "login");
+                  setPassword("");
+                  setError("");
+                }}
+                className="text-[10px] text-[#9A8E82] hover:text-[#F5F0E8] transition-colors"
+              >
+                {isLogin ? (
+                  <>Don't have an account? <span className="underline text-[#C9A96E]">Sign up</span></>
+                ) : (
+                  <>Already have an account? <span className="underline text-[#C9A96E]">Sign in</span></>
+                )}
+              </button>
+              {isLogin && (
                 <button
                   type="button"
                   onClick={() => navigate("/forgot-password")}
-                  className="text-[11px] text-[#C9A96E] hover:text-[#C9A96E]/80 transition-colors"
+                  className="text-[10px] text-[#C9A96E] hover:text-[#C9A96E]/80 transition-colors"
                   style={{ fontFamily: "'Cormorant Garamond', serif" }}
                 >
                   Forgot Password?
                 </button>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Divider */}
             {isLogin && (
@@ -219,23 +234,6 @@ const Auth = ({ initialView }: AuthProps) => {
           </form>
         </div>
 
-        {/* Toggle link — outside card */}
-        <p className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setView(isLogin ? "signup" : "login");
-              setPassword("");
-              setError("");
-            }}
-            className="text-[13px] text-[#9A8E82] hover:text-[#F5F0E8] transition-colors"
-          >
-            {isLogin ? (
-              <>Don't have an account? <span className="underline text-[#C9A96E]">Sign up</span></>
-            ) : (
-              <>Already have an account? <span className="underline text-[#C9A96E]">Sign in</span></>
-            )}
-          </button>
-        </p>
       </div>
     </div>
   );
