@@ -273,6 +273,14 @@ const PublicGallery = () => {
       }
     }
 
+    // Check password gate
+    if ((ev as any).gallery_password) {
+      const storedPw = localStorage.getItem(`mirrorai_gallery_password_${ev.id}`);
+      if (storedPw !== (ev as any).gallery_password) {
+        setPasswordLocked(true);
+      }
+    }
+
     // Fetch studio profile
     const { data: profile } = await (supabase.from('profiles')
       .select('studio_name, studio_logo_url, studio_accent_color') as any)
