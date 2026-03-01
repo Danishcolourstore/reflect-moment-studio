@@ -19,6 +19,7 @@ import Notifications from "./pages/Notifications";
 import Onboarding from "./pages/Onboarding";
 
 import PublicGallery from "./pages/PublicGallery";
+import WidgetPage from "./pages/WidgetPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import GalleryCover from "./pages/GalleryCover";
 import ResetPassword from "./pages/ResetPassword";
@@ -151,6 +152,8 @@ const AppRoutes = () => (
     {/* Guest gallery routes — completely public, no auth */}
     <Route path="/event/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
     <Route path="/event/:slug/gallery" element={<GalleryShell><PublicGallery /></GalleryShell>} />
+    {/* Widget embed route */}
+    <Route path="/widget/:slug" element={<WidgetPage />} />
     {/* Legacy gallery redirects */}
     <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
     <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />

@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Heart, Download, FolderDown, Loader2, PackageOpen, Share2, Camera,
-  Link2, Search, X, ChevronDown, Grid3X3, Lock, MessageCircle,
+  Link2, Search, X, ChevronDown, Grid3X3, Lock, MessageCircle, Mail,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -26,6 +26,8 @@ import { PhotoLightbox } from '@/components/PhotoLightbox';
 import { PhotoSlideshow } from '@/components/PhotoSlideshow';
 import { OtpInput } from '@/components/OtpInput';
 import { Checkbox } from '@/components/ui/checkbox';
+import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
+import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
 
 /* ── Interfaces ── */
 interface Photo {
@@ -52,6 +54,7 @@ interface EventData {
   download_requires_password: boolean;
   download_password: string | null;
   selection_mode_enabled: boolean;
+  gallery_password: string | null;
 }
 
 interface StudioProfile {
@@ -209,7 +212,8 @@ const PublicGallery = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [pinLocked, setPinLocked] = useState(false);
-
+  const [passwordLocked, setPasswordLocked] = useState(false);
+  const [sendFavOpen, setSendFavOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [sectionFilter, setSectionFilter] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest' | 'sneakpeek'>('latest');
@@ -266,6 +270,14 @@ const PublicGallery = () => {
       const storedPin = localStorage.getItem(`mirrorai_pin_${ev.id}`);
       if (storedPin !== ev.gallery_pin) {
         setPinLocked(true);
+      }
+    }
+
+    // Check password gate
+    if ((ev as any).gallery_password) {
+      const storedPw = localStorage.getItem(`mirrorai_gallery_password_${ev.id}`);
+      if (storedPw !== (ev as any).gallery_password) {
+        setPasswordLocked(true);
       }
     }
 
@@ -437,6 +449,19 @@ const PublicGallery = () => {
         event={event}
         studioProfile={studioProfile}
         onUnlock={() => setPinLocked(false)}
+      />
+    );
+  }
+
+  /* ── Password Gate ── */
+  if (passwordLocked && (event as any).gallery_password) {
+    return (
+      <GalleryPasswordGate
+        eventId={event.id}
+        eventTitle={event.name}
+        galleryPassword={(event as any).gallery_password}
+        studioLogoUrl={studioProfile?.studio_logo_url}
+        onUnlock={() => setPasswordLocked(false)}
       />
     );
   }
@@ -728,6 +753,16 @@ const PublicGallery = () => {
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchOpen(v => !v)}>
               <Search className="h-4 w-4" />
             </Button>
+            {favoriteCount > 0 && (
+              <Button variant="outline" size="sm" className="h-9 text-[11px] hidden sm:flex" onClick={() => setSendFavOpen(true)}>
+                <Mail className="h-3.5 w-3.5 mr-1" /> Send Favorites
+              </Button>
+            )}
+            {favoriteCount > 0 && (
+              <Button variant="ghost" size="icon" className="h-9 w-9 sm:hidden" onClick={() => setSendFavOpen(true)}>
+                <Mail className="h-4 w-4" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="h-9 w-9 relative" onClick={() => setFilter(f => f === 'favorites' ? 'all' : 'favorites')}>
               <Heart className="h-4 w-4" style={filter === 'favorites' ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : undefined} />
               {favoriteCount > 0 && (
@@ -850,6 +885,18 @@ const PublicGallery = () => {
         canDownload={canDownload}
         onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
         onShare={(p) => setSharePhoto(p as Photo)}
+        eventTitle={event.name}
+      />
+
+      {/* Send Favorites Dialog */}
+      <SendFavoritesDialog
+        open={sendFavOpen}
+        onOpenChange={setSendFavOpen}
+        eventId={event.id}
+        eventTitle={event.name}
+        favoritePhotoIds={photos.filter(p => isFavorite(p.id)).map(p => p.id)}
+        favoritePhotos={photos.filter(p => isFavorite(p.id)).map(p => ({ id: p.id, url: p.url }))}
+        sessionId={sessionId}
       />
 
       <PhotoSlideshow
