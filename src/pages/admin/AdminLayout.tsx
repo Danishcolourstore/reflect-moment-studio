@@ -1,77 +1,77 @@
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useNavigate, Outlet, Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { BarChart3, Users, Calendar, LogOut } from 'lucide-react';
+import {
+  LayoutDashboard, Users, Camera, HardDrive, DollarSign,
+  Mail, Activity, Settings, LogOut,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+
+const navLinks = [
+  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/admin/photographers', label: 'Photographers', icon: Users },
+  { to: '/admin/events', label: 'Events', icon: Camera },
+  { to: '/admin/storage', label: 'Storage', icon: HardDrive },
+  { to: '/admin/revenue', label: 'Revenue', icon: DollarSign },
+  { to: '/admin/emails', label: 'Bulk Email', icon: Mail },
+  { to: '/admin/activity', label: 'Activity Log', icon: Activity },
+  { to: '/admin/settings', label: 'Settings', icon: Settings },
+];
 
 export default function AdminLayout() {
-  const { user, loading, signOut } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
-  const [authorized, setAuthorized] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const navigate = useNavigate();
+  const [counts, setCounts] = useState({ photographers: 0, events: 0 });
+  const [maintenance, setMaintenance] = useState(false);
 
   useEffect(() => {
-    if (loading) {
-      console.log('[AdminLayout] Auth still loading, waiting...');
-      return;
-    }
-    if (!user) {
-      console.log('[AdminLayout] No user, redirecting to /login');
-      navigate('/login');
-      return;
-    }
+    const settings = JSON.parse(localStorage.getItem('mirrorai_platform_settings') || '{}');
+    setMaintenance(settings.maintenanceMode === true);
 
-    console.log('[AdminLayout] Checking admin role for user:', user.id, user.email);
-
-    supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .then(({ data, error }) => {
-        console.log('[AdminLayout] user_roles query result:', { data, error });
-        if (data && data.length > 0) {
-          console.log('[AdminLayout] Admin role confirmed');
-          setAuthorized(true);
-        } else {
-          console.log('[AdminLayout] No admin role found, redirecting to /dashboard');
-          navigate('/dashboard');
-        }
-        setChecking(false);
+    Promise.all([
+      (supabase.from('profiles').select('id', { count: 'exact', head: true }) as any),
+      (supabase.from('events').select('id', { count: 'exact', head: true }) as any),
+    ]).then(([p, e]) => {
+      setCounts({
+        photographers: (p as any).count ?? 0,
+        events: (e as any).count ?? 0,
       });
-  }, [user, loading, navigate]);
+    });
+  }, []);
 
-  if (checking || !authorized) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Checking access…</p>
-      </div>
-    );
-  }
+  const isActive = (path: string, end?: boolean) => {
+    if (end) return location.pathname === path;
+    return location.pathname.startsWith(path);
+  };
 
-  const links = [
-    { to: '/admin', label: 'Overview', icon: BarChart3 },
-    { to: '/admin/photographers', label: 'Photographers', icon: Users },
-    { to: '/admin/events', label: 'Events', icon: Calendar },
-  ];
+  const currentPage = navLinks.find(l =>
+    l.end ? location.pathname === l.to : location.pathname.startsWith(l.to) && l.to !== '/admin'
+  ) || navLinks[0];
+
+  const handleLogout = () => {
+    localStorage.removeItem('mirrorai_admin_session');
+    navigate('/admin');
+    window.location.reload();
+  };
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="w-56 border-r border-border bg-card flex flex-col shrink-0">
-        <div className="p-4 border-b border-border">
-          <h1 className="text-sm font-bold tracking-tight">Admin Panel</h1>
-          <p className="text-[10px] text-muted-foreground truncate mt-0.5">{user?.email}</p>
+      {/* Sidebar */}
+      <aside className="w-60 border-r border-border bg-card flex flex-col shrink-0">
+        <div className="p-4 border-b border-border flex items-center gap-2">
+          <span className="font-display text-lg italic text-foreground">MirrorAI</span>
+          <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Admin</Badge>
         </div>
         <nav className="flex-1 p-2 space-y-0.5">
-          {links.map((l) => (
+          {navLinks.map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              className={`flex items-center gap-2 px-3 py-2 rounded text-[13px] transition-colors ${
-                location.pathname === l.to
-                  ? 'bg-secondary text-foreground font-medium'
-                  : 'text-muted-foreground hover:bg-secondary/50'
+              className={`flex items-center gap-2.5 px-3 py-2 rounded text-[13px] transition-colors ${
+                isActive(l.to, l.end)
+                  ? 'bg-primary/10 text-primary font-medium border-l-2 border-primary'
+                  : 'text-muted-foreground hover:bg-secondary/50 border-l-2 border-transparent'
               }`}
             >
               <l.icon className="h-4 w-4" />
@@ -79,19 +79,33 @@ export default function AdminLayout() {
             </Link>
           ))}
         </nav>
-        <div className="p-2 border-t border-border">
-          <button
-            onClick={signOut}
-            className="flex items-center gap-2 px-3 py-2 rounded text-[13px] text-muted-foreground hover:bg-secondary/50 w-full"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </button>
-        </div>
       </aside>
-      <main className="flex-1 p-8 overflow-auto">
-        <Outlet />
-      </main>
+
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Maintenance banner */}
+        {maintenance && (
+          <div className="bg-destructive text-destructive-foreground text-center text-xs py-1.5 font-medium">
+            ⚠️ Maintenance mode is active
+          </div>
+        )}
+
+        {/* Top bar */}
+        <header className="h-14 border-b border-border bg-card flex items-center justify-between px-6 shrink-0">
+          <h2 className="font-serif text-lg font-semibold text-foreground">{currentPage.label}</h2>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="text-[10px]">{counts.photographers} Photographers</Badge>
+            <Badge variant="outline" className="text-[10px]">{counts.events} Events</Badge>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={handleLogout}>
+              <LogOut className="h-3.5 w-3.5 mr-1.5" /> Log Out
+            </Button>
+          </div>
+        </header>
+
+        <main className="flex-1 p-6 overflow-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activity_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          performed_by: string
+          target: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          performed_by?: string
+          target?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          performed_by?: string
+          target?: string | null
+        }
+        Relationships: []
+      }
       album_selections: {
         Row: {
           created_at: string
@@ -92,6 +116,33 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      bulk_emails: {
+        Row: {
+          id: string
+          message: string | null
+          recipients_count: number
+          sent_at: string
+          subject: string
+          target: string
+        }
+        Insert: {
+          id?: string
+          message?: string | null
+          recipients_count?: number
+          sent_at?: string
+          subject: string
+          target: string
+        }
+        Update: {
+          id?: string
+          message?: string | null
+          recipients_count?: number
+          sent_at?: string
+          subject?: string
+          target?: string
         }
         Relationships: []
       }
