@@ -33,6 +33,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { GalleryShell } from "./components/GalleryShell";
 import LandingPage from "./pages/LandingPage";
+import GuestFinder from "./pages/GuestFinder";
 import AdminGate from "./pages/admin/AdminGate";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -185,6 +186,9 @@ const AppRoutes = () => (
     {/* Legacy gallery redirects */}
     <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
     <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
+
+    {/* Guest face finder — public */}
+    <Route path="/find/:token" element={<GuestFinder />} />
 
     {/* Landing page */}
     <Route path="/" element={<AuthRoute><LandingPage /></AuthRoute>} />

@@ -411,6 +411,41 @@ export type Database = {
           },
         ]
       }
+      event_qr_access: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          public_token: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          public_token?: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          public_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_qr_access_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_views: {
         Row: {
           event_id: string
@@ -456,6 +491,7 @@ export type Database = {
           gallery_layout: string
           gallery_password: string | null
           gallery_pin: string | null
+          guest_face_enabled: boolean | null
           id: string
           is_archived: boolean
           is_published: boolean
@@ -463,6 +499,8 @@ export type Database = {
           location: string | null
           name: string
           photo_count: number
+          qr_enabled: boolean | null
+          qr_token: string | null
           selection_mode_enabled: boolean
           selection_token: string | null
           slug: string
@@ -486,6 +524,7 @@ export type Database = {
           gallery_layout?: string
           gallery_password?: string | null
           gallery_pin?: string | null
+          guest_face_enabled?: boolean | null
           id?: string
           is_archived?: boolean
           is_published?: boolean
@@ -493,6 +532,8 @@ export type Database = {
           location?: string | null
           name: string
           photo_count?: number
+          qr_enabled?: boolean | null
+          qr_token?: string | null
           selection_mode_enabled?: boolean
           selection_token?: string | null
           slug: string
@@ -516,6 +557,7 @@ export type Database = {
           gallery_layout?: string
           gallery_password?: string | null
           gallery_pin?: string | null
+          guest_face_enabled?: boolean | null
           id?: string
           is_archived?: boolean
           is_published?: boolean
@@ -523,6 +565,8 @@ export type Database = {
           location?: string | null
           name?: string
           photo_count?: number
+          qr_enabled?: boolean | null
+          qr_token?: string | null
           selection_mode_enabled?: boolean
           selection_token?: string | null
           slug?: string
@@ -532,6 +576,47 @@ export type Database = {
           watermark_enabled?: boolean
         }
         Relationships: []
+      }
+      face_indexing_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          event_id: string
+          id: string
+          photos_processed: number | null
+          photos_total: number | null
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          event_id: string
+          id?: string
+          photos_processed?: number | null
+          photos_total?: number | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          photos_processed?: number | null
+          photos_total?: number | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "face_indexing_jobs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       favorites: {
         Row: {
@@ -723,6 +808,51 @@ export type Database = {
           },
         ]
       }
+      guest_selfies: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          image_url: string
+          match_results: Json | null
+          processing_status: string | null
+          qr_access_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          image_url: string
+          match_results?: Json | null
+          processing_status?: string | null
+          qr_access_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          image_url?: string
+          match_results?: Json | null
+          processing_status?: string | null
+          qr_access_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_selfies_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_selfies_qr_access_id_fkey"
+            columns: ["qr_access_id"]
+            isOneToOne: false
+            referencedRelation: "event_qr_access"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_sessions: {
         Row: {
           created_at: string
@@ -844,6 +974,51 @@ export type Database = {
           },
           {
             foreignKeyName: "photo_comments_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_faces: {
+        Row: {
+          azure_face_id: string | null
+          created_at: string | null
+          embedding: Json | null
+          event_id: string
+          id: string
+          indexed_at: string | null
+          photo_id: string
+        }
+        Insert: {
+          azure_face_id?: string | null
+          created_at?: string | null
+          embedding?: Json | null
+          event_id: string
+          id?: string
+          indexed_at?: string | null
+          photo_id: string
+        }
+        Update: {
+          azure_face_id?: string | null
+          created_at?: string | null
+          embedding?: Json | null
+          event_id?: string
+          id?: string
+          indexed_at?: string | null
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_faces_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_faces_photo_id_fkey"
             columns: ["photo_id"]
             isOneToOne: false
             referencedRelation: "photos"

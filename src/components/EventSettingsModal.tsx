@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink } from 'lucide-react';
+import { SmartQRAccess } from '@/components/events/SmartQRAccess';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -235,6 +236,9 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
               <Switch checked={selectionModeEnabled} onCheckedChange={setSelectionModeEnabled} />
             </div>
           </div>
+
+          {/* Smart QR Access */}
+          <SmartQRAccess eventId={event.id} />
 
           <Button
             onClick={handleSave}
