@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +39,8 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const [galleryLayout, setGalleryLayout] = useState('classic');
   const [downloadsEnabled, setDownloadsEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
+  const mutexRef = useRef(false);
+  const lastSubmitRef = useRef(0);
 
   const generateSlug = (name: string) => {
     const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40);
@@ -53,48 +55,73 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // Debounce: ignore if submitted within 1000ms
+    const now = Date.now();
+    if (now - lastSubmitRef.current < 1000) return;
+    lastSubmitRef.current = now;
+
+    // Mutex: prevent concurrent calls
+    if (mutexRef.current) return;
+    mutexRef.current = true;
     setLoading(true);
 
-    let coverUrl: string | null = null;
+    try {
+      const finalSlug = slug || generateSlug(title);
 
-    if (coverFile) {
-      const ext = coverFile.name.split('.').pop();
-      const path = `${user.id}/${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from('event-covers').upload(path, coverFile);
-      if (!uploadError) {
-        const { data: { publicUrl } } = supabase.storage.from('event-covers').getPublicUrl(path);
-        coverUrl = publicUrl;
+      // 1. Check if event with this slug already exists (retry-safe)
+      const { data: existing } = await (supabase.from('events').select('id').eq('slug', finalSlug).eq('user_id', user.id).maybeSingle() as any);
+      if (existing) {
+        toast({ title: 'Event already exists' });
+        onOpenChange(false);
+        onCreated(existing.id);
+        return;
       }
+
+      // 2. Upload cover image sequentially
+      let coverUrl: string | null = null;
+      if (coverFile) {
+        const ext = coverFile.name.split('.').pop();
+        const path = `${user.id}/${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from('event-covers').upload(path, coverFile);
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage.from('event-covers').getPublicUrl(path);
+          coverUrl = publicUrl;
+        }
+      }
+
+      // 3. Create event record
+      const { data: inserted, error } = await (supabase.from('events').insert({
+        user_id: user.id,
+        name: title,
+        slug: finalSlug,
+        event_date: date,
+        location: location || null,
+        cover_url: coverUrl,
+        gallery_pin: password || null,
+        gallery_layout: galleryLayout,
+        downloads_enabled: downloadsEnabled,
+      } as any).select('id').single() as any);
+
+      if (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Event created' });
+        setTitle(''); setDate(''); setLocation(''); setSlug(''); setPassword(''); setCoverFile(null);
+        setGalleryLayout('classic'); setDownloadsEnabled(true);
+        onOpenChange(false);
+        onCreated(inserted.id);
+      }
+    } catch (err: any) {
+      toast({ title: 'Error', description: err?.message || 'Something went wrong', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+      mutexRef.current = false;
     }
-
-    const finalSlug = slug || generateSlug(title);
-
-    const { data: inserted, error } = await (supabase.from('events').insert({
-      user_id: user.id,
-      name: title,
-      slug: finalSlug,
-      event_date: date,
-      location: location || null,
-      cover_url: coverUrl,
-      gallery_pin: password || null,
-      gallery_layout: galleryLayout,
-      downloads_enabled: downloadsEnabled,
-    } as any).select('id').single() as any);
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Event created' });
-      setTitle(''); setDate(''); setLocation(''); setSlug(''); setPassword(''); setCoverFile(null);
-      setGalleryLayout('classic'); setDownloadsEnabled(true);
-      onOpenChange(false);
-      onCreated(inserted.id);
-    }
-    setLoading(false);
-  };
+  }, [user, title, slug, date, location, coverFile, password, galleryLayout, downloadsEnabled, toast, onOpenChange, onCreated]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
