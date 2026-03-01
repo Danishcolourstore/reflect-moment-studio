@@ -36,25 +36,19 @@ export default function AdminGate({ children }: { children: ReactNode }) {
   if (authorized) return <>{children}</>;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-card border border-border rounded-lg p-8 text-center space-y-6 shadow-lg">
-        <h2 className="font-display text-xl italic text-foreground">MirrorAI</h2>
-        <div>
-          <h1 className="font-serif text-2xl font-semibold text-foreground">Admin Access</h1>
-          <p className="text-sm text-muted-foreground mt-1">This area is restricted</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            type="password"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Enter access code"
-            className="bg-background text-center"
-            autoFocus
-          />
-          <Button type="submit" className="w-full">Enter</Button>
-        </form>
-      </div>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 text-center">
+      <h1 className="font-serif text-6xl font-bold text-foreground">404</h1>
+      <p className="text-muted-foreground mt-2 text-sm">Page not found</p>
+      <form onSubmit={handleSubmit} className="mt-8 w-full max-w-[200px]">
+        <Input
+          type="password"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="..."
+          className="bg-background text-center text-xs border-border/40 focus:border-border"
+          autoFocus
+        />
+      </form>
     </div>
   );
 }
