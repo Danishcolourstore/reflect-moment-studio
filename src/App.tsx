@@ -137,8 +137,11 @@ const AppRoutes = () => (
     <Route path="/dashboard/events/:id" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
     <Route path="/dashboard/events/:id/photos" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
     <Route path="/dashboard/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
+    <Route path="/dashboard/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
     <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
     <Route path="/dashboard/settings" element={<ProtectedRoute><StudioSettings /></ProtectedRoute>} />
+    <Route path="/dashboard/branding" element={<ProtectedRoute><Branding /></ProtectedRoute>} />
+    <Route path="/dashboard/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
     <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
 
     {/* Guest gallery routes — completely public, no auth */}
