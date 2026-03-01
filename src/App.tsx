@@ -32,6 +32,7 @@ import GalleryCover from "./pages/GalleryCover";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { GalleryShell } from "./components/GalleryShell";
+import LandingPage from "./pages/LandingPage";
 import AdminGate from "./pages/admin/AdminGate";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
