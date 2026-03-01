@@ -92,12 +92,16 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading || !user) return;
-    supabase
+    const rolePromise = supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
-      .then(({ data }) => {
-        const roles = (data || []).map((r: any) => r.role);
+      .eq('user_id', user.id);
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 5000)
+    );
+    Promise.race([rolePromise, timeout])
+      .then((result: any) => {
+        const roles = ((result?.data) || []).map((r: any) => r.role);
         if (roles.includes('admin')) {
           setRedirectTo('/admin');
         } else if (roles.includes('client')) {
@@ -112,6 +116,12 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
             setRedirectTo('/dashboard');
           }
         }
+        setChecked(true);
+      })
+      .catch(() => {
+        // Timeout or network error — fallback to dashboard
+        sessionStorage.removeItem("redirectAfterLogin");
+        setRedirectTo('/dashboard');
         setChecked(true);
       });
   }, [user, loading]);

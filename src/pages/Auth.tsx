@@ -35,20 +35,24 @@ const Auth = ({ initialView }: AuthProps) => {
       if (error) {
         setError(error.message);
       } else if (data?.session) {
-        // Check user role and redirect accordingly
-        const { data: roles } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.session.user.id);
-        
-        const roleList = (roles || []).map((r: any) => r.role);
-        if (roleList.includes('admin')) {
-          navigate("/admin");
-        } else if (roleList.includes('client')) {
-          navigate("/client");
-        } else {
-          navigate("/dashboard");
+        // Check user role with timeout fallback for slow networks
+        let destination = "/dashboard";
+        try {
+          const rolePromise = supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", data.session.user.id);
+          const timeout = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("timeout")), 5000)
+          );
+          const { data: roles } = await Promise.race([rolePromise, timeout]) as any;
+          const roleList = (roles || []).map((r: any) => r.role);
+          if (roleList.includes('admin')) destination = "/admin";
+          else if (roleList.includes('client')) destination = "/client";
+        } catch {
+          // On timeout or error, default to /dashboard
         }
+        navigate(destination);
       }
     } catch {
       setError("Something went wrong. Please try again.");
