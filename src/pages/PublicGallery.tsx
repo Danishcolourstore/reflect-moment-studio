@@ -212,7 +212,8 @@ const PublicGallery = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [pinLocked, setPinLocked] = useState(false);
-
+  const [passwordLocked, setPasswordLocked] = useState(false);
+  const [sendFavOpen, setSendFavOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [sectionFilter, setSectionFilter] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'latest' | 'oldest' | 'sneakpeek'>('latest');
