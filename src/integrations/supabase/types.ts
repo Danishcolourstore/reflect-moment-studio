@@ -14,123 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      album_selections: {
-        Row: {
-          created_at: string
-          event_id: string
-          guest_session_id: string | null
-          id: string
-          photo_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          guest_session_id?: string | null
-          id?: string
-          photo_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          guest_session_id?: string | null
-          id?: string
-          photo_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "album_selections_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "album_selections_photo_id_fkey"
-            columns: ["photo_id"]
-            isOneToOne: false
-            referencedRelation: "photos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      blog_posts: {
-        Row: {
-          content: string | null
-          cover_url: string | null
-          created_at: string
-          id: string
-          published: boolean | null
-          seo_description: string | null
-          seo_title: string | null
-          slug: string | null
-          title: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          content?: string | null
-          cover_url?: string | null
-          created_at?: string
-          id?: string
-          published?: boolean | null
-          seo_description?: string | null
-          seo_title?: string | null
-          slug?: string | null
-          title?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          content?: string | null
-          cover_url?: string | null
-          created_at?: string
-          id?: string
-          published?: boolean | null
-          seo_description?: string | null
-          seo_title?: string | null
-          slug?: string | null
-          title?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      chapter_photos: {
-        Row: {
-          chapter_id: string
-          id: string
-          photo_id: string
-          sort_order: number | null
-        }
-        Insert: {
-          chapter_id: string
-          id?: string
-          photo_id: string
-          sort_order?: number | null
-        }
-        Update: {
-          chapter_id?: string
-          id?: string
-          photo_id?: string
-          sort_order?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chapter_photos_chapter_id_fkey"
-            columns: ["chapter_id"]
-            isOneToOne: false
-            referencedRelation: "gallery_chapters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chapter_photos_photo_id_fkey"
-            columns: ["photo_id"]
-            isOneToOne: false
-            referencedRelation: "photos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       event_analytics: {
         Row: {
           downloads_count: number
@@ -161,35 +44,6 @@ export type Database = {
             foreignKeyName: "event_analytics_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: true
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      event_views: {
-        Row: {
-          event_id: string
-          guest_session_id: string | null
-          id: string
-          viewed_at: string
-        }
-        Insert: {
-          event_id: string
-          guest_session_id?: string | null
-          id?: string
-          viewed_at?: string
-        }
-        Update: {
-          event_id?: string
-          guest_session_id?: string | null
-          id?: string
-          viewed_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_views_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -324,38 +178,6 @@ export type Database = {
             columns: ["photo_id"]
             isOneToOne: false
             referencedRelation: "photos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      gallery_chapters: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: string
-          sort_order: number | null
-          title: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: string
-          sort_order?: number | null
-          title: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: string
-          sort_order?: number | null
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gallery_chapters_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -501,93 +323,6 @@ export type Database = {
           },
         ]
       }
-      photo_comments: {
-        Row: {
-          comment: string
-          created_at: string
-          event_id: string
-          guest_name: string | null
-          guest_session_id: string | null
-          id: string
-          photo_id: string
-        }
-        Insert: {
-          comment: string
-          created_at?: string
-          event_id: string
-          guest_name?: string | null
-          guest_session_id?: string | null
-          id?: string
-          photo_id: string
-        }
-        Update: {
-          comment?: string
-          created_at?: string
-          event_id?: string
-          guest_name?: string | null
-          guest_session_id?: string | null
-          id?: string
-          photo_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "photo_comments_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "photo_comments_photo_id_fkey"
-            columns: ["photo_id"]
-            isOneToOne: false
-            referencedRelation: "photos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      photo_interactions: {
-        Row: {
-          created_at: string
-          event_id: string
-          guest_session_id: string | null
-          id: string
-          interaction_type: string | null
-          photo_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          guest_session_id?: string | null
-          id?: string
-          interaction_type?: string | null
-          photo_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          guest_session_id?: string | null
-          id?: string
-          interaction_type?: string | null
-          photo_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "photo_interactions_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "photo_interactions_photo_id_fkey"
-            columns: ["photo_id"]
-            isOneToOne: false
-            referencedRelation: "photos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       photos: {
         Row: {
           created_at: string
@@ -665,15 +400,11 @@ export type Database = {
           mobile: string | null
           plan: string
           storage_limit_mb: number | null
-          studio_accent_color: string | null
           studio_logo_url: string | null
           studio_name: string
           suspended: boolean
           updated_at: string
           user_id: string
-          watermark_opacity: number | null
-          watermark_position: string | null
-          watermark_text: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -683,15 +414,11 @@ export type Database = {
           mobile?: string | null
           plan?: string
           storage_limit_mb?: number | null
-          studio_accent_color?: string | null
           studio_logo_url?: string | null
           studio_name?: string
           suspended?: boolean
           updated_at?: string
           user_id: string
-          watermark_opacity?: number | null
-          watermark_position?: string | null
-          watermark_text?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -701,114 +428,11 @@ export type Database = {
           mobile?: string | null
           plan?: string
           storage_limit_mb?: number | null
-          studio_accent_color?: string | null
           studio_logo_url?: string | null
           studio_name?: string
           suspended?: boolean
           updated_at?: string
           user_id?: string
-          watermark_opacity?: number | null
-          watermark_position?: string | null
-          watermark_text?: string | null
-        }
-        Relationships: []
-      }
-      referrals: {
-        Row: {
-          created_at: string
-          id: string
-          referred_email: string | null
-          referrer_id: string
-          reward_granted: boolean | null
-          status: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          referred_email?: string | null
-          referrer_id: string
-          reward_granted?: boolean | null
-          status?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          referred_email?: string | null
-          referrer_id?: string
-          reward_granted?: boolean | null
-          status?: string | null
-        }
-        Relationships: []
-      }
-      sneak_peeks: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: string
-          photo_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: string
-          photo_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: string
-          photo_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sneak_peeks_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sneak_peeks_photo_id_fkey"
-            columns: ["photo_id"]
-            isOneToOne: false
-            referencedRelation: "photos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      studio_profiles: {
-        Row: {
-          bio: string | null
-          cover_url: string | null
-          created_at: string
-          display_name: string | null
-          id: string
-          instagram: string | null
-          user_id: string
-          username: string | null
-          website: string | null
-        }
-        Insert: {
-          bio?: string | null
-          cover_url?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          instagram?: string | null
-          user_id: string
-          username?: string | null
-          website?: string | null
-        }
-        Update: {
-          bio?: string | null
-          cover_url?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          instagram?: string | null
-          user_id?: string
-          username?: string | null
-          website?: string | null
         }
         Relationships: []
       }
