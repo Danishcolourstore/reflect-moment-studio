@@ -15,6 +15,8 @@ import Billing from "./pages/Billing";
 import Clients from "./pages/Clients";
 import Branding from "./pages/Branding";
 import Profile from "./pages/Profile";
+import Notifications from "./pages/Notifications";
+import Onboarding from "./pages/Onboarding";
 
 import PublicGallery from "./pages/PublicGallery";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
