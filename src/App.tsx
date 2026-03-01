@@ -19,6 +19,7 @@ import Notifications from "./pages/Notifications";
 import Onboarding from "./pages/Onboarding";
 
 import PublicGallery from "./pages/PublicGallery";
+import WidgetPage from "./pages/WidgetPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import GalleryCover from "./pages/GalleryCover";
 import ResetPassword from "./pages/ResetPassword";
