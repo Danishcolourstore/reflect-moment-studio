@@ -54,6 +54,7 @@ interface EventData {
   download_requires_password: boolean;
   download_password: string | null;
   selection_mode_enabled: boolean;
+  gallery_password: string | null;
 }
 
 interface StudioProfile {
