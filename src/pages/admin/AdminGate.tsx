@@ -1,54 +1,58 @@
 import { useState, useEffect, ReactNode } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-
-const HARDCODED_CODE = '291294';
-
-function getAccessCode(): string {
-  return localStorage.getItem('mirrorai_admin_code') || HARDCODED_CODE;
-}
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AdminGate({ children }: { children: ReactNode }) {
-  const [authorized, setAuthorized] = useState(false);
-  const [code, setCode] = useState('');
-  const [checking, setChecking] = useState(true);
+  const { user, loading: authLoading } = useAuth();
+  const [status, setStatus] = useState<'checking' | 'admin' | 'denied' | 'unauthenticated'>('checking');
 
   useEffect(() => {
-    const session = localStorage.getItem('mirrorai_admin_session');
-    if (session === 'true_admin') setAuthorized(true);
-    setChecking(false);
-  }, []);
+    if (authLoading) return;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (code === getAccessCode()) {
-      localStorage.setItem('mirrorai_admin_session', 'true_admin');
-      setAuthorized(true);
-    } else {
-      toast.error('Invalid access code');
-      setCode('');
+    if (!user) {
+      setStatus('unauthenticated');
+      return;
     }
-  };
 
-  if (checking) return null;
+    // Check admin role from user_roles table
+    const checkRole = async () => {
+      try {
+        const { data, error } = await (supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin') as any)
+          .maybeSingle();
 
-  if (authorized) return <>{children}</>;
+        if (error || !data) {
+          setStatus('denied');
+        } else {
+          setStatus('admin');
+        }
+      } catch {
+        setStatus('denied');
+      }
+    };
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 text-center">
-      <h1 className="font-serif text-6xl font-bold text-foreground">404</h1>
-      <p className="text-muted-foreground mt-2 text-sm">Page not found</p>
-      <form onSubmit={handleSubmit} className="mt-8 w-full max-w-[200px]">
-        <Input
-          type="password"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="..."
-          className="bg-background text-center text-xs border-border/40 focus:border-border"
-          autoFocus
-        />
-      </form>
-    </div>
-  );
+    checkRole();
+  }, [user, authLoading]);
+
+  if (authLoading || status === 'checking') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground text-sm">Loading...</p>
+      </div>
+    );
+  }
+
+  if (status === 'unauthenticated') {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (status === 'denied') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
 }
