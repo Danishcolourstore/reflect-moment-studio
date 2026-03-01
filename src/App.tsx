@@ -46,6 +46,7 @@ import AdminActivity from "./pages/admin/AdminActivity";
 import AdminSettings from "./pages/admin/AdminSettings";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 const queryClient = new QueryClient();
 
@@ -135,7 +136,9 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const AppRoutes = () => (
+const AppRoutes = () => {
+  useRealtimeSync(true);
+  return (
   <Routes>
     {/* Auth routes */}
     <Route path="/login" element={<AuthRoute><Auth key="login" initialView="login" /></AuthRoute>} />
@@ -202,7 +205,8 @@ const AppRoutes = () => (
 
     <Route path="*" element={<NotFound />} />
   </Routes>
-);
+  );
+};
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
