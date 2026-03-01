@@ -12,6 +12,9 @@ import UploadPage from "./pages/UploadPage";
 import Analytics from "./pages/Analytics";
 import StudioSettings from "./pages/StudioSettings";
 import Billing from "./pages/Billing";
+import Clients from "./pages/Clients";
+import Branding from "./pages/Branding";
+import Profile from "./pages/Profile";
 
 import PublicGallery from "./pages/PublicGallery";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
