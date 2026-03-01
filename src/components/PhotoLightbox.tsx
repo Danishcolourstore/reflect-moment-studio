@@ -239,7 +239,6 @@ export function PhotoLightbox({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
         onMouseEnter={() => setShowZoomControls(true)}
         onMouseLeave={() => { setShowZoomControls(false); handleMouseUp(); }}
         onDoubleClick={handleDoubleClick}
