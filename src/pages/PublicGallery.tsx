@@ -753,6 +753,16 @@ const PublicGallery = () => {
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchOpen(v => !v)}>
               <Search className="h-4 w-4" />
             </Button>
+            {favoriteCount > 0 && (
+              <Button variant="outline" size="sm" className="h-9 text-[11px] hidden sm:flex" onClick={() => setSendFavOpen(true)}>
+                <Mail className="h-3.5 w-3.5 mr-1" /> Send Favorites
+              </Button>
+            )}
+            {favoriteCount > 0 && (
+              <Button variant="ghost" size="icon" className="h-9 w-9 sm:hidden" onClick={() => setSendFavOpen(true)}>
+                <Mail className="h-4 w-4" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="h-9 w-9 relative" onClick={() => setFilter(f => f === 'favorites' ? 'all' : 'favorites')}>
               <Heart className="h-4 w-4" style={filter === 'favorites' ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : undefined} />
               {favoriteCount > 0 && (
