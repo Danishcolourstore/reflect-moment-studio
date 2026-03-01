@@ -56,9 +56,18 @@ const Auth = ({ initialView }: AuthProps) => {
       if (error) {
         setError(error.message);
       } else if (data?.session) {
+        // Ensure profile exists (trigger should handle this, but fallback)
+        const userId = data.session.user.id;
+        const { data: profile } = await (supabase.from('profiles').select('id').eq('user_id', userId).maybeSingle() as any);
+        if (!profile) {
+          await (supabase.from('profiles').insert({ user_id: userId, studio_name: 'My Studio', email } as any) as any);
+        }
+        // Assign default photographer role
+        await (supabase.from('user_roles').insert({ user_id: userId, role: 'photographer' } as any) as any);
         navigate("/dashboard");
       } else {
-        navigate("/login");
+        // Email confirmation required
+        setError("Check your email to confirm your account, then sign in.");
       }
     } catch {
       setError("Something went wrong. Please try again.");

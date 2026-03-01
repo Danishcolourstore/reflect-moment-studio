@@ -11,10 +11,21 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
     if (!eventId || !qrAccessId) return;
     setStep('processing');
     try {
-      const fileName = `selfies/${eventId}/${Date.now()}_${file.name}`;
-      await supabase.storage.from('gallery-photos').upload(fileName, file);
-      const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(fileName);
+      const sessionToken = crypto.randomUUID();
+      const timestamp = Date.now();
+      const fileName = `${eventId}/${sessionToken}/${timestamp}.jpg`;
 
+      // Upload to guest-selfies bucket
+      const { error: uploadError } = await supabase.storage
+        .from('guest-selfies')
+        .upload(fileName, file);
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('guest-selfies')
+        .getPublicUrl(fileName);
+
+      // Insert selfie record — wait for confirmation before processing
       const { data: selfie, error } = await (supabase
         .from('guest_selfies' as any)
         .insert({
@@ -26,6 +37,7 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
         .single() as any);
       if (error) throw error;
 
+      // Now invoke face processing
       await supabase.functions.invoke('process-guest-selfie', {
         body: { selfieId: selfie.id, eventId },
       });

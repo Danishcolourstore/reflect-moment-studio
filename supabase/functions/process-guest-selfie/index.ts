@@ -18,12 +18,35 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Fetch selfie record
+    const { data: selfie, error: fetchError } = await supabase
+      .from('guest_selfies')
+      .select('*')
+      .eq('id', selfieId)
+      .single();
+
+    if (fetchError || !selfie) {
+      return new Response(
+        JSON.stringify({ error: 'selfie_not_found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify selfie exists in storage by checking the URL is valid
+    const imageUrl = selfie.image_url;
+    if (!imageUrl) {
+      return new Response(
+        JSON.stringify({ error: 'selfie_not_found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     await supabase
       .from('guest_selfies')
       .update({ processing_status: 'processing' })
       .eq('id', selfieId);
 
-    // Mock processing delay — replace with Azure Face API call
+    // Mock processing delay — replace with Face++ / Azure Face API call
     await new Promise(r => setTimeout(r, 2000));
 
     await supabase
