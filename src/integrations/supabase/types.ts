@@ -260,6 +260,7 @@ export type Database = {
           event_type: string
           face_recognition_enabled: boolean
           gallery_layout: string
+          gallery_password: string | null
           gallery_pin: string | null
           id: string
           is_archived: boolean
@@ -289,6 +290,7 @@ export type Database = {
           event_type?: string
           face_recognition_enabled?: boolean
           gallery_layout?: string
+          gallery_password?: string | null
           gallery_pin?: string | null
           id?: string
           is_archived?: boolean
@@ -318,6 +320,7 @@ export type Database = {
           event_type?: string
           face_recognition_enabled?: boolean
           gallery_layout?: string
+          gallery_password?: string | null
           gallery_pin?: string | null
           id?: string
           is_archived?: boolean
@@ -385,6 +388,7 @@ export type Database = {
       gallery_chapters: {
         Row: {
           created_at: string
+          description: string | null
           event_id: string
           id: string
           sort_order: number | null
@@ -392,6 +396,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           event_id: string
           id?: string
           sort_order?: number | null
@@ -399,6 +404,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           event_id?: string
           id?: string
           sort_order?: number | null
