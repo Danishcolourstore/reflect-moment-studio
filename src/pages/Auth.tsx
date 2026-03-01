@@ -105,7 +105,7 @@ const Auth = ({ initialView }: AuthProps) => {
       />
 
       {/* Login card */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+      <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 z-10">
         {/* Photographer Dashboard heading — outside card */}
         <h2
           className="text-[#F5F0E8] text-center mb-6 tracking-wide"
@@ -211,7 +211,7 @@ const Auth = ({ initialView }: AuthProps) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-12 rounded-lg bg-[#1A1A1A] text-[#F5F0E8] text-[14px] font-medium tracking-wide hover:bg-[#252525] border border-white/10 transition-colors disabled:opacity-50"
+              className="w-[70%] mx-auto h-9 rounded-lg bg-[#1A1A1A] text-[#F5F0E8] text-[13px] font-medium tracking-wide hover:bg-[#252525] border border-white/10 transition-colors disabled:opacity-50"
               style={{ fontFamily: "'Cormorant Garamond', serif" }}
             >
               {isLogin ? "Sign In" : "Create Account"}
