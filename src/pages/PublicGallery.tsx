@@ -453,6 +453,19 @@ const PublicGallery = () => {
     );
   }
 
+  /* ── Password Gate ── */
+  if (passwordLocked && (event as any).gallery_password) {
+    return (
+      <GalleryPasswordGate
+        eventId={event.id}
+        eventTitle={event.name}
+        galleryPassword={(event as any).gallery_password}
+        studioLogoUrl={studioProfile?.studio_logo_url}
+        onUnlock={() => setPasswordLocked(false)}
+      />
+    );
+  }
+
   /* ── Render helpers for layouts ── */
   const renderPhotoCard = (photo: Photo, layoutType?: string) => (
     <PhotoCard
