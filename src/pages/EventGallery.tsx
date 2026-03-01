@@ -532,6 +532,14 @@ const EventGallery = () => {
           <TabsContent value="favorites" className="mt-4">
             <GuestFavoritesTab eventId={event.id} eventName={event.name} />
           </TabsContent>
+
+          <TabsContent value="selections" className="mt-4">
+            <SelectionsViewer eventId={event.id} />
+          </TabsContent>
+
+          <TabsContent value="comments" className="mt-4">
+            <CommentsViewer eventId={event.id} />
+          </TabsContent>
         </Tabs>
       ) : (
         <>
