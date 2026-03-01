@@ -80,10 +80,7 @@ const Auth = ({ initialView }: AuthProps) => {
   const isLogin = view === "login";
 
   return (
-    <div
-      className="min-h-[100dvh] w-full flex items-center justify-center relative overflow-hidden"
-      style={{ height: "100vh", width: "100%", background: "#0A0A0A" }}
-    >
+    <div className="fixed inset-0 overflow-hidden" style={{ backgroundColor: "#0b0b0b" }}>
       {/* Layer 1: Blurred fill */}
       <div
         className="absolute inset-0"
@@ -91,13 +88,12 @@ const Auth = ({ initialView }: AuthProps) => {
           backgroundImage: "url('/images/login-bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          filter: "blur(40px)",
+          filter: "blur(45px)",
           opacity: 0.35,
-          transform: "scale(1.1)",
+          transform: "scale(1.2)",
         }}
       />
-      {/* Layer 2: Full uncropped image */}
+      {/* Layer 2: Full image, no crop */}
       <div
         className="absolute inset-0"
         style={{
@@ -107,7 +103,9 @@ const Auth = ({ initialView }: AuthProps) => {
           backgroundRepeat: "no-repeat",
         }}
       />
-      {/* Glassmorphism card */}
+
+      {/* Login card */}
+      <div className="absolute inset-0 flex items-center justify-center z-10">
       <div
         className="w-full max-w-[400px] mx-4 flex flex-col gap-5 p-8"
         style={{
@@ -242,6 +240,7 @@ const Auth = ({ initialView }: AuthProps) => {
             )}
           </button>
         </p>
+      </div>
       </div>
     </div>
   );
