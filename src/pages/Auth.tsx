@@ -81,16 +81,32 @@ const Auth = ({ initialView }: AuthProps) => {
 
   return (
     <div
-      className="min-h-[100dvh] w-full flex items-center justify-center"
-      style={{
-        backgroundImage: "url('/images/login-bg.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        height: "100vh",
-        width: "100%",
-      }}
+      className="min-h-[100dvh] w-full flex items-center justify-center relative overflow-hidden"
+      style={{ height: "100vh", width: "100%", background: "#0A0A0A" }}
     >
+      {/* Layer 1: Blurred fill */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: "url('/images/login-bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          filter: "blur(40px)",
+          opacity: 0.35,
+          transform: "scale(1.1)",
+        }}
+      />
+      {/* Layer 2: Full uncropped image */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: "url('/images/login-bg.png')",
+          backgroundSize: "contain",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
       {/* Glassmorphism card */}
       <div
         className="w-full max-w-[400px] mx-4 flex flex-col gap-5 p-8"
