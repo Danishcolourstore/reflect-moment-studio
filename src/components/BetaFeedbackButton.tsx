@@ -17,7 +17,8 @@ export function BetaFeedbackButton() {
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  if (!user) return null;
+  const authPages = ['/', '/login', '/signup', '/reset-password', '/forgot-password'];
+  if (!user || authPages.includes(location.pathname)) return null;
 
   const handleSubmit = async () => {
     if (!message.trim()) { toast.error('Please describe what happened'); return; }
