@@ -34,11 +34,16 @@ export const DEFAULT_LAYOUT_FOR_STYLE: Record<GalleryStyleValue, string> = {
  */
 export const TIMELESS_WEDDING_VARS: React.CSSProperties = {
   // @ts-ignore custom properties
-  '--tw-bg': '#FAF8F5',
+  '--tw-bg': '#F4F1EC',
+  '--tw-bg-alt': '#EFEAE3',
+  '--tw-surface': '#FFFFFF',
   '--tw-text': '#2B2B2B',
-  '--tw-text-secondary': '#8A8A8A',
-  '--tw-divider': '#EAEAEA',
-  '--tw-hero-overlay': 'rgba(0,0,0,0.18)',
+  '--tw-text-secondary': '#7A7A7A',
+  '--tw-text-muted': '#9A948A',
+  '--tw-divider': '#E7E2DA',
+  '--tw-btn-border': '#E7E2DA',
+  '--tw-btn-hover': '#DDD3C6',
+  '--tw-hero-tint': 'rgba(244,241,236,0.25)',
 };
 
 /**

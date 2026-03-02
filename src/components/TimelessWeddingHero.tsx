@@ -7,6 +7,8 @@ interface TimelessWeddingHeroProps {
   subtitle?: string | null;
   buttonLabel?: string | null;
   onScrollToGallery: () => void;
+  studioLogoUrl?: string | null;
+  studioName?: string | null;
 }
 
 export function TimelessWeddingHero({
@@ -16,8 +18,9 @@ export function TimelessWeddingHero({
   subtitle,
   buttonLabel,
   onScrollToGallery,
+  studioLogoUrl,
+  studioName,
 }: TimelessWeddingHeroProps) {
-  // Hide hero entirely if no couple name and no cover
   const hasContent = coupleName || coverUrl;
   if (!hasContent) return null;
 
@@ -27,15 +30,15 @@ export function TimelessWeddingHero({
         month: 'long',
         day: 'numeric',
         year: 'numeric',
-      });
+      }).toUpperCase();
     } catch {
       return eventDate;
     }
   })();
 
   return (
-    <div className="relative h-screen overflow-hidden">
-      {/* Cover image */}
+    <div className="relative w-screen overflow-hidden" style={{ height: '85vh' }}>
+      {/* Cover image — natural, no heavy processing */}
       {coverUrl ? (
         <img
           src={coverUrl}
@@ -43,33 +46,62 @@ export function TimelessWeddingHero({
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0" style={{ backgroundColor: '#2B2B2B' }} />
+        <div className="absolute inset-0" style={{ backgroundColor: '#8A7E6D' }} />
       )}
 
-      {/* Soft neutral overlay */}
+      {/* Warm readability tint — airy, not cinematic */}
       <div
         className="absolute inset-0"
-        style={{ background: 'rgba(0, 0, 0, 0.18)' }}
+        style={{ background: 'rgba(244, 241, 236, 0.25)' }}
       />
 
-      {/* Gradient fade to content */}
+      {/* Gentle bottom gradient for text readability */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to bottom, transparent 50%, #FAF8F5)',
+          background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.25) 100%)',
         }}
       />
 
+      {/* Studio monogram / logo — top center */}
+      {(studioLogoUrl || studioName) && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
+          {studioLogoUrl ? (
+            <img
+              src={studioLogoUrl}
+              alt=""
+              className="h-8 object-contain opacity-80"
+              style={{ filter: 'brightness(10)' }}
+            />
+          ) : studioName ? (
+            <span
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '9px',
+                fontWeight: 300,
+                letterSpacing: '0.3em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.7)',
+              }}
+            >
+              {studioName}
+            </span>
+          ) : null}
+        </div>
+      )}
+
       {/* Center-aligned content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 px-6 text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-end pb-20 px-6 text-center">
         {coupleName && (
           <h1
-            className="text-4xl md:text-6xl leading-tight"
             style={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 600,
-              color: '#2B2B2B',
-              letterSpacing: '-0.01em',
+              fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+              fontWeight: 300,
+              fontSize: '48px',
+              color: '#FFFFFF',
+              letterSpacing: '0.05em',
+              lineHeight: 1.15,
+              textShadow: '0 1px 8px rgba(0,0,0,0.15)',
             }}
           >
             {coupleName}
@@ -77,14 +109,14 @@ export function TimelessWeddingHero({
         )}
 
         <p
-          className="mt-3"
+          className="mt-4"
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: '11px',
-            fontWeight: 500,
-            letterSpacing: '0.18em',
+            fontWeight: 300,
+            letterSpacing: '0.3em',
             textTransform: 'uppercase',
-            color: '#8A8A8A',
+            color: 'rgba(255,255,255,0.8)',
           }}
         >
           {formattedDate}
@@ -96,46 +128,43 @@ export function TimelessWeddingHero({
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '13px',
-              fontWeight: 400,
-              color: '#8A8A8A',
+              fontWeight: 300,
+              color: 'rgba(255,255,255,0.65)',
             }}
           >
             {subtitle}
           </p>
         )}
 
-        {(buttonLabel || true) && (
-          <button
-            onClick={onScrollToGallery}
-            className="mt-8 px-8 py-3 rounded-full transition-all duration-200"
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '11px',
-              fontWeight: 500,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: '#2B2B2B',
-              backgroundColor: 'rgba(43, 43, 43, 0.06)',
-              border: '1px solid rgba(43, 43, 43, 0.15)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(43, 43, 43, 0.12)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(43, 43, 43, 0.06)';
-            }}
-          >
-            {buttonLabel || 'View Gallery'}
-          </button>
-        )}
+        {/* View Gallery — underlined text link */}
+        <button
+          onClick={onScrollToGallery}
+          className="mt-8 transition-opacity duration-200 hover:opacity-70"
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '11px',
+            fontWeight: 300,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: '#FFFFFF',
+            background: 'none',
+            border: 'none',
+            borderBottom: '1px solid rgba(255,255,255,0.5)',
+            paddingBottom: '2px',
+            cursor: 'pointer',
+          }}
+        >
+          {buttonLabel || 'View Gallery'}
+        </button>
       </div>
 
+      {/* Subtle scroll indicator */}
       <button
         onClick={onScrollToGallery}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce transition"
-        style={{ color: 'rgba(43, 43, 43, 0.3)' }}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce transition"
+        style={{ color: 'rgba(255,255,255,0.35)' }}
       >
-        <ChevronDown className="h-8 w-8" />
+        <ChevronDown className="h-6 w-6" />
       </button>
     </div>
   );
