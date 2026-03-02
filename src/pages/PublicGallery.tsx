@@ -28,6 +28,7 @@ import { OtpInput } from '@/components/OtpInput';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
 import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
+import { TimelessWeddingHero } from '@/components/TimelessWeddingHero';
 
 /* ── Interfaces ── */
 interface Photo {
@@ -50,11 +51,15 @@ interface EventData {
   watermark_enabled: boolean;
   user_id: string;
   gallery_layout: string;
+  gallery_style?: string;
   is_published: boolean;
   download_requires_password: boolean;
   download_password: string | null;
   selection_mode_enabled: boolean;
   gallery_password: string | null;
+  hero_couple_name?: string | null;
+  hero_subtitle?: string | null;
+  hero_button_label?: string | null;
 }
 
 interface StudioProfile {
@@ -417,6 +422,8 @@ const PublicGallery = () => {
   const canDownload = event?.downloads_enabled ?? false;
   const showWatermark = event?.watermark_enabled ?? false;
   const layout = event?.gallery_layout || 'masonry';
+  const galleryStyle = (event as any)?.gallery_style || 'vogue-editorial';
+  const isTimeless = galleryStyle === 'timeless-wedding';
 
   const scrollToGallery = () => {
     galleryRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -688,52 +695,74 @@ const PublicGallery = () => {
 
   return (
     <div
-      className="min-h-[100dvh] bg-background"
-      style={accentColor ? { '--studio-accent': accentColor } as React.CSSProperties : undefined}
+      className="min-h-[100dvh]"
+      style={{
+        ...(accentColor ? { '--studio-accent': accentColor } as React.CSSProperties : {}),
+        backgroundColor: isTimeless ? '#FAF8F5' : undefined,
+        color: isTimeless ? '#2B2B2B' : undefined,
+        fontFamily: isTimeless ? 'Inter, sans-serif' : undefined,
+      }}
     >
       <style>{kenBurnsStyle}</style>
 
       {/* ── HERO ── */}
-      <div ref={heroRef} className="relative h-screen overflow-hidden">
-        {event.cover_url ? (
-          <img
-            src={event.cover_url}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{ animation: 'kenBurns 12s ease-in-out alternate infinite' }}
+      {isTimeless ? (
+        <div ref={heroRef}>
+          <TimelessWeddingHero
+            coverUrl={event.cover_url}
+            coupleName={(event as any).hero_couple_name || event.name}
+            eventDate={event.event_date}
+            subtitle={(event as any).hero_subtitle}
+            buttonLabel={(event as any).hero_button_label}
+            onScrollToGallery={scrollToGallery}
           />
-        ) : (
-          <div className="absolute inset-0 bg-foreground/90" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
-
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 px-6 text-center">
-          {studioProfile?.studio_logo_url ? (
-            <img src={studioProfile.studio_logo_url} alt="" className="h-12 object-contain mb-6 opacity-80" />
-          ) : studioProfile?.studio_name ? (
-            <p className="font-display text-sm italic text-white/60 mb-6 tracking-wider">{studioProfile.studio_name}</p>
-          ) : null}
-
-          <h1 className="font-serif text-4xl md:text-6xl font-bold text-white leading-tight">{event.name}</h1>
-          <p className="text-muted-foreground text-sm mt-3 tracking-wide">
-            {format(new Date(event.event_date), 'MMMM d, yyyy')}
-          </p>
         </div>
+      ) : (
+        <div ref={heroRef} className="relative h-screen overflow-hidden">
+          {event.cover_url ? (
+            <img
+              src={event.cover_url}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+              style={{ animation: 'kenBurns 12s ease-in-out alternate infinite' }}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-foreground/90" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
-        <button
-          onClick={scrollToGallery}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/40 hover:text-white/70 transition"
-        >
-          <ChevronDown className="h-8 w-8" />
-        </button>
-      </div>
+          <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 px-6 text-center">
+            {studioProfile?.studio_logo_url ? (
+              <img src={studioProfile.studio_logo_url} alt="" className="h-12 object-contain mb-6 opacity-80" />
+            ) : studioProfile?.studio_name ? (
+              <p className="font-display text-sm italic text-white/60 mb-6 tracking-wider">{studioProfile.studio_name}</p>
+            ) : null}
+
+            <h1 className="font-serif text-4xl md:text-6xl font-bold text-white leading-tight">{event.name}</h1>
+            <p className="text-muted-foreground text-sm mt-3 tracking-wide">
+              {format(new Date(event.event_date), 'MMMM d, yyyy')}
+            </p>
+          </div>
+
+          <button
+            onClick={scrollToGallery}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/40 hover:text-white/70 transition"
+          >
+            <ChevronDown className="h-8 w-8" />
+          </button>
+        </div>
+      )}
 
       {/* ── STICKY NAVBAR ── */}
       <div
-        className={`sticky top-0 z-50 border-b border-border transition-all duration-300 ${
+        className={`sticky top-0 z-50 transition-all duration-300 ${
           stickyVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
         }`}
-        style={{ backgroundColor: 'hsl(var(--background) / 0.9)', backdropFilter: 'blur(12px)' }}
+        style={{
+          backgroundColor: isTimeless ? 'rgba(250, 248, 245, 0.9)' : 'hsl(var(--background) / 0.9)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: isTimeless ? '1px solid #EAEAEA' : '1px solid hsl(var(--border))',
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
           {/* Left: logo or name */}
@@ -869,7 +898,7 @@ const PublicGallery = () => {
 
         {/* Footer */}
         <div className="mt-12 pb-8 text-center">
-          <p className="text-[9px] text-muted-foreground/30 tracking-[0.15em] uppercase">Powered by MirrorAI</p>
+          <p className="text-[9px] tracking-[0.15em] uppercase" style={{ color: isTimeless ? '#8A8A8A' : undefined, opacity: isTimeless ? 0.5 : 0.3 }}>Powered by MirrorAI</p>
         </div>
       </div>
 
