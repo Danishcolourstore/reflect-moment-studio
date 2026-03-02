@@ -1,10 +1,7 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { lovable } from "@/integrations/lovable";
-
-type AuthView = "login" | "signup";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthProps {
   initialView?: "landing" | "login" | "signup" | "forgot";
@@ -12,12 +9,12 @@ interface AuthProps {
 
 const Auth = ({ initialView }: AuthProps) => {
   const navigate = useNavigate();
-  const startView: AuthView = initialView === "signup" ? "signup" : "login";
-  const [view, setView] = useState<AuthView>(startView);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [tab, setTab] = useState<"login" | "signup">(initialView === "signup" ? "signup" : "login");
   const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
@@ -25,75 +22,35 @@ const Auth = ({ initialView }: AuthProps) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  const handleLogin = async () => {
+    setLoading(true);
     setError("");
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        setError(error.message);
-      } else if (data?.session) {
-        let destination = "/dashboard";
-        try {
-          const { data: roles } = (await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", data.session.user.id)) as any;
-          const roleList = (roles || []).map((r: any) => r.role);
-          if (roleList.includes("admin")) destination = "/admin";
-          else if (roleList.includes("client")) destination = "/client";
-        } catch {}
-        navigate(destination);
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
+    setMessage("");
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setError(error.message); }
+    else { navigate("/verify-access"); }
+    setLoading(false);
   };
 
-  const handleSignup = async (e: FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  const handleSignup = async () => {
+    setLoading(true);
     setError("");
-    try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        setError(error.message);
-      } else if (data?.session) {
-        const userId = data.session.user.id;
-        const { data: profile } = await (supabase
-          .from("profiles")
-          .select("id")
-          .eq("user_id", userId)
-          .maybeSingle() as any);
-        if (!profile) {
-          await (supabase.from("profiles").insert({ user_id: userId, studio_name: "My Studio", email } as any) as any);
-        }
-        await (supabase.from("user_roles").insert({ user_id: userId, role: "photographer" } as any) as any);
-        navigate("/dashboard");
-      } else {
-        setError("Check your email to confirm your account, then sign in.");
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
+    setMessage("");
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) { setError(error.message); }
+    else { setMessage("Check your email to confirm signup"); }
+    setLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleForgotPassword = async () => {
     setError("");
-    const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (error) {
-      setError(error.message || "Google sign-in failed.");
-    }
+    setMessage("");
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) { setError(error.message); }
+    else { setMessage("Password reset email sent"); }
   };
 
-  const isLogin = view === "login";
+  const isLogin = tab === "login";
 
   return (
     <div className="fixed inset-0 overflow-hidden w-screen bg-[hsl(20,22%,5%)]">
@@ -201,7 +158,22 @@ const Auth = ({ initialView }: AuthProps) => {
               {error}
             </div>
           )}
-          <form onSubmit={isLogin ? handleLogin : handleSignup} className="flex flex-col gap-4">
+          {message && (
+            <div
+              className="px-4 py-2.5 rounded-lg"
+              style={{
+                border: "1px solid rgba(129,199,132,0.15)",
+                background: "rgba(129,199,132,0.06)",
+                color: "#81C784",
+                fontSize: "11px",
+                lineHeight: "1.5",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              {message}
+            </div>
+          )}
+          <form onSubmit={(e) => { e.preventDefault(); isLogin ? handleLogin() : handleSignup(); }} className="flex flex-col gap-4">
             <div
               className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
               style={{
@@ -263,9 +235,10 @@ const Auth = ({ initialView }: AuthProps) => {
               <button
                 type="button"
                 onClick={() => {
-                  setView(isLogin ? "signup" : "login");
+                  setTab(isLogin ? "signup" : "login");
                   setPassword("");
                   setError("");
+                  setMessage("");
                 }}
                 className="transition-colors"
                 style={{
@@ -298,7 +271,7 @@ const Auth = ({ initialView }: AuthProps) => {
               {isLogin && (
                 <button
                   type="button"
-                  onClick={() => navigate("/forgot-password")}
+                  onClick={handleForgotPassword}
                   className="transition-colors hover:opacity-80"
                   style={{
                     fontFamily: "Inter, sans-serif",
@@ -313,7 +286,7 @@ const Auth = ({ initialView }: AuthProps) => {
             </div>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={loading}
               className="w-full h-12 rounded-xl transition-all duration-200 disabled:opacity-50"
               style={{
                 fontFamily: "Inter, sans-serif",
@@ -325,7 +298,7 @@ const Auth = ({ initialView }: AuthProps) => {
                 color: "#2C2118",
               }}
             >
-              {submitting ? "Please wait..." : isLogin ? "Enter Gallery" : "Create Account"}
+              {loading ? "Please wait..." : isLogin ? "Enter Gallery" : "Create Account"}
             </button>
           </form>
         </div>
