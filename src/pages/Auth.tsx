@@ -1,6 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, Phone } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { lovable } from "@/integrations/lovable";
 
@@ -14,10 +14,8 @@ const Auth = ({ initialView }: AuthProps) => {
   const navigate = useNavigate();
   const startView: AuthView = initialView === "signup" ? "signup" : "login";
   const [view, setView] = useState<AuthView>(startView);
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [mobilePassword, setMobilePassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [revealed, setRevealed] = useState(false);
@@ -32,19 +30,22 @@ const Auth = ({ initialView }: AuthProps) => {
     setSubmitting(true);
     setError("");
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const isEmail = identifier.includes("@");
+      const { data, error } = await supabase.auth.signInWithPassword(
+        isEmail ? { email: identifier, password } : { phone: identifier, password },
+      );
       if (error) {
         setError(error.message);
       } else if (data?.session) {
         let destination = "/dashboard";
         try {
-          const { data: roles } = await supabase
+          const { data: roles } = (await supabase
             .from("user_roles")
             .select("role")
-            .eq("user_id", data.session.user.id) as any;
+            .eq("user_id", data.session.user.id)) as any;
           const roleList = (roles || []).map((r: any) => r.role);
-          if (roleList.includes('admin')) destination = "/admin";
-          else if (roleList.includes('client')) destination = "/client";
+          if (roleList.includes("admin")) destination = "/admin";
+          else if (roleList.includes("client")) destination = "/client";
         } catch {}
         navigate(destination);
       }
@@ -60,24 +61,24 @@ const Auth = ({ initialView }: AuthProps) => {
     setSubmitting(true);
     setError("");
     try {
-      if (!mobile.trim()) {
-        setError("Mobile number is required.");
-        setSubmitting(false);
-        return;
-      }
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const isEmail = identifier.includes("@");
+      const { data, error } = await supabase.auth.signUp(
+        isEmail ? { email: identifier, password } : { phone: identifier, password },
+      );
       if (error) {
         setError(error.message);
       } else if (data?.session) {
         const userId = data.session.user.id;
-        const cleanMobile = mobile.replace(/\s+/g, '');
-        const { data: profile } = await (supabase.from('profiles').select('id').eq('user_id', userId).maybeSingle() as any);
+        const email = isEmail ? identifier : "";
+        const { data: profile } = await (supabase
+          .from("profiles")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle() as any);
         if (!profile) {
-          await (supabase.from('profiles').insert({ user_id: userId, studio_name: 'My Studio', email, mobile: cleanMobile } as any) as any);
-        } else {
-          await (supabase.from('profiles').update({ mobile: cleanMobile } as any).eq('user_id', userId) as any);
+          await (supabase.from("profiles").insert({ user_id: userId, studio_name: "My Studio", email } as any) as any);
         }
-        await (supabase.from('user_roles').insert({ user_id: userId, role: 'photographer' } as any) as any);
+        await (supabase.from("user_roles").insert({ user_id: userId, role: "photographer" } as any) as any);
         navigate("/dashboard");
       } else {
         setError("Check your email to confirm your account, then sign in.");
@@ -99,57 +100,11 @@ const Auth = ({ initialView }: AuthProps) => {
     }
   };
 
-  const handleMobileLogin = async (e: FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError("");
-    try {
-      // Look up email by mobile number from profiles
-      const cleanMobile = mobile.replace(/\s+/g, '');
-      const { data: profiles, error: lookupError } = await (supabase
-        .from('profiles')
-        .select('email')
-        .eq('mobile', cleanMobile) as any)
-        .limit(1);
-
-      if (lookupError || !profiles?.length || !profiles[0].email) {
-        setError("No account found with this mobile number.");
-        setSubmitting(false);
-        return;
-      }
-
-      const foundEmail = profiles[0].email;
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: foundEmail,
-        password: mobilePassword,
-      });
-      if (error) {
-        setError(error.message);
-      } else if (data?.session) {
-        let destination = "/dashboard";
-        try {
-          const { data: roles } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", data.session.user.id) as any;
-          const roleList = (roles || []).map((r: any) => r.role);
-          if (roleList.includes('admin')) destination = "/admin";
-          else if (roleList.includes('client')) destination = "/client";
-        } catch {}
-        navigate(destination);
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const isLogin = view === "login";
 
   return (
     <div className="fixed inset-0 overflow-hidden w-screen bg-[hsl(20,22%,5%)]">
-      {/* Layer 1: Cinematic blur fill — same image, cover + heavy blur */}
+      {/* Layer 1: Cinematic blur fill */}
       <div
         className="absolute inset-0"
         style={{
@@ -161,7 +116,7 @@ const Auth = ({ initialView }: AuthProps) => {
         }}
       />
 
-      {/* Layer 2: Foreground photograph — starts sharp, blurs on reveal */}
+      {/* Layer 2: Foreground photograph */}
       <div className="absolute inset-0 flex items-center justify-center">
         <img
           src="/images/login-bg.png"
@@ -178,10 +133,7 @@ const Auth = ({ initialView }: AuthProps) => {
       </div>
 
       {/* Layer 3: Dark luxury overlay */}
-      <div
-        className="absolute inset-0"
-        style={{ background: "rgba(0,0,0,0.40)" }}
-      />
+      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.40)" }} />
 
       {/* Layer 4: Subtle vignette */}
       <div
@@ -193,16 +145,15 @@ const Auth = ({ initialView }: AuthProps) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
-
-        {/* Auth card — frosted glass */}
+        {/* Auth card */}
         <div
-          className="w-[90%] max-w-[360px] flex flex-col gap-[10px] px-5 py-6"
+          className="w-full max-w-[380px] flex flex-col gap-6 p-9 sm:p-10"
           data-revealed={revealed}
           style={{
             background: "rgba(44, 33, 24, 0.45)",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
-            borderRadius: "14px",
+            borderRadius: "16px",
             border: "1px solid rgba(255, 255, 255, 0.08)",
             boxShadow: "0 32px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
             opacity: revealed ? 1 : 0,
@@ -212,28 +163,28 @@ const Auth = ({ initialView }: AuthProps) => {
           }}
         >
           {/* Brand */}
-          <div className="text-center mb-1">
+          <div className="text-center mb-2">
             <h1
               style={{
                 fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
-                fontSize: "clamp(1.6rem, 4.5vw, 2.2rem)",
+                fontSize: "clamp(2rem, 5vw, 2.8rem)",
                 fontWeight: 300,
-                color: '#FFFFFF',
-                letterSpacing: '0.12em',
+                color: "#FFFFFF",
+                letterSpacing: "0.12em",
                 lineHeight: 1,
               }}
             >
               MirrorAI
             </h1>
             <p
-              className="mt-2"
+              className="mt-3"
               style={{
                 fontFamily: "Inter, sans-serif",
                 fontSize: "9px",
                 fontWeight: 400,
-                color: '#E8E2DA',
-                letterSpacing: '0.35em',
-                textTransform: 'uppercase',
+                color: "#E8E2DA",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase",
                 opacity: 0.5,
               }}
             >
@@ -241,8 +192,8 @@ const Auth = ({ initialView }: AuthProps) => {
             </p>
           </div>
 
-          {/* Subtle separator */}
-          <div className="h-px w-12 mx-auto" style={{ background: 'rgba(255,255,255,0.06)' }} />
+          {/* Separator */}
+          <div className="h-px w-12 mx-auto" style={{ background: "rgba(255,255,255,0.06)" }} />
 
           {/* Card heading */}
           <p
@@ -251,9 +202,9 @@ const Auth = ({ initialView }: AuthProps) => {
               fontFamily: "Inter, sans-serif",
               fontSize: "8px",
               fontWeight: 400,
-              color: 'rgba(232,226,218,0.35)',
-              letterSpacing: '0.3em',
-              textTransform: 'uppercase',
+              color: "rgba(232,226,218,0.35)",
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
             }}
           >
             {isLogin ? "Welcome Back" : "Create Account"}
@@ -263,88 +214,65 @@ const Auth = ({ initialView }: AuthProps) => {
             <div
               className="px-4 py-2.5 rounded-lg"
               style={{
-                border: '1px solid rgba(229,115,115,0.15)',
-                background: 'rgba(229,115,115,0.06)',
-                color: '#E57373',
-                fontSize: '11px',
-                lineHeight: '1.5',
-                fontFamily: 'Inter, sans-serif',
+                border: "1px solid rgba(229,115,115,0.15)",
+                background: "rgba(229,115,115,0.06)",
+                color: "#E57373",
+                fontSize: "11px",
+                lineHeight: "1.5",
+                fontFamily: "Inter, sans-serif",
               }}
             >
               {error}
             </div>
           )}
 
-          <form onSubmit={isLogin ? handleLogin : handleSignup} className="flex flex-col gap-[10px]">
-            {/* Email */}
+          <form onSubmit={isLogin ? handleLogin : handleSignup} className="flex flex-col gap-4">
+            {/* Email or Phone */}
             <div
-              className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
+              className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
               style={{
-                background: 'rgba(26,24,22,0.45)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                background: "rgba(26,24,22,0.45)",
+                border: "1px solid rgba(255,255,255,0.05)",
               }}
             >
-              <Mail className="h-3.5 w-3.5 shrink-0" style={{ color: 'rgba(139,115,85,0.6)' }} />
+              <Mail className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(139,115,85,0.6)" }} />
               <input
-                type="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setError(""); }}
-                placeholder="Email"
+                type="text"
+                value={identifier}
+                onChange={(e) => {
+                  setIdentifier(e.target.value);
+                  setError("");
+                }}
+                placeholder="Email or Phone Number"
                 required
                 autoComplete="email"
                 className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
                 style={{
                   fontFamily: "Inter, sans-serif",
                   fontWeight: 300,
-                  fontSize: '14px',
-                  color: '#E8E2DA',
-                  letterSpacing: '0.03em',
+                  fontSize: "13px",
+                  color: "#E8E2DA",
+                  letterSpacing: "0.03em",
                 }}
               />
             </div>
 
-            {/* Mobile — signup only */}
-            {!isLogin && (
-              <div
-                className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
-                style={{
-                  background: 'rgba(26,24,22,0.45)',
-                  border: '1px solid rgba(255,255,255,0.05)',
-                }}
-              >
-                <Phone className="h-3.5 w-3.5 shrink-0" style={{ color: 'rgba(139,115,85,0.6)' }} />
-                <input
-                  type="tel"
-                  value={mobile}
-                  onChange={(e) => { setMobile(e.target.value); setError(""); }}
-                  placeholder="Mobile Number"
-                  required
-                  autoComplete="tel"
-                  className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
-                  style={{
-                    fontFamily: "Inter, sans-serif",
-                    fontWeight: 300,
-                    fontSize: '14px',
-                    color: '#E8E2DA',
-                    letterSpacing: '0.03em',
-                  }}
-                />
-              </div>
-            )}
-
             {/* Password */}
             <div
-              className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
+              className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
               style={{
-                background: 'rgba(26,24,22,0.45)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                background: "rgba(26,24,22,0.45)",
+                border: "1px solid rgba(255,255,255,0.05)",
               }}
             >
-              <Lock className="h-3.5 w-3.5 shrink-0" style={{ color: 'rgba(139,115,85,0.6)' }} />
+              <Lock className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(139,115,85,0.6)" }} />
               <input
                 type="password"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError("");
+                }}
                 placeholder="Password"
                 required
                 minLength={6}
@@ -353,9 +281,9 @@ const Auth = ({ initialView }: AuthProps) => {
                 style={{
                   fontFamily: "Inter, sans-serif",
                   fontWeight: 300,
-                  fontSize: '14px',
-                  color: '#E8E2DA',
-                  letterSpacing: '0.03em',
+                  fontSize: "13px",
+                  color: "#E8E2DA",
+                  letterSpacing: "0.03em",
                 }}
               />
             </div>
@@ -372,15 +300,29 @@ const Auth = ({ initialView }: AuthProps) => {
                 className="transition-colors"
                 style={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: '10px',
-                  color: 'rgba(232,226,218,0.4)',
-                  letterSpacing: '0.04em',
+                  fontSize: "10px",
+                  color: "rgba(232,226,218,0.4)",
+                  letterSpacing: "0.04em",
                 }}
               >
                 {isLogin ? (
-                  <>No account? <span style={{ color: 'rgba(139,115,85,0.8)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Sign up</span></>
+                  <>
+                    No account?{" "}
+                    <span
+                      style={{ color: "rgba(139,115,85,0.8)", textDecoration: "underline", textUnderlineOffset: "3px" }}
+                    >
+                      Sign up
+                    </span>
+                  </>
                 ) : (
-                  <>Have an account? <span style={{ color: 'rgba(139,115,85,0.8)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Sign in</span></>
+                  <>
+                    Have an account?{" "}
+                    <span
+                      style={{ color: "rgba(139,115,85,0.8)", textDecoration: "underline", textUnderlineOffset: "3px" }}
+                    >
+                      Sign in
+                    </span>
+                  </>
                 )}
               </button>
               {isLogin && (
@@ -390,9 +332,9 @@ const Auth = ({ initialView }: AuthProps) => {
                   className="transition-colors hover:opacity-80"
                   style={{
                     fontFamily: "Inter, sans-serif",
-                    fontSize: '10px',
-                    color: 'rgba(139,115,85,0.6)',
-                    letterSpacing: '0.04em',
+                    fontSize: "10px",
+                    color: "rgba(139,115,85,0.6)",
+                    letterSpacing: "0.04em",
                   }}
                 >
                   Forgot?
@@ -404,112 +346,20 @@ const Auth = ({ initialView }: AuthProps) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-11 rounded-lg transition-all duration-200 disabled:opacity-50"
+              className="w-full h-12 rounded-xl transition-all duration-200 disabled:opacity-50"
               style={{
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 500,
-                fontSize: '13px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                background: 'rgba(232,226,218,0.9)',
-                color: '#2C2118',
+                fontSize: "10px",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                background: "rgba(232,226,218,0.9)",
+                color: "#2C2118",
               }}
             >
-              {isLogin ? "Enter Gallery" : "Create Account"}
+              {submitting ? "Please wait..." : isLogin ? "Enter Gallery" : "Create Account"}
             </button>
-
           </form>
-
-          {/* OR divider — login only */}
-          {isLogin && (
-            <>
-              <div className="flex items-center gap-3 my-1">
-                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
-                <span style={{
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: '8px',
-                  color: 'rgba(232,226,218,0.25)',
-                  letterSpacing: '0.3em',
-                  textTransform: 'uppercase',
-                }}>Or</span>
-                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
-              </div>
-
-              <form onSubmit={handleMobileLogin} className="flex flex-col gap-[10px]">
-                {/* Mobile */}
-                <div
-                  className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
-                  style={{
-                    background: 'rgba(26,24,22,0.45)',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                  }}
-                >
-                  <Phone className="h-3.5 w-3.5 shrink-0" style={{ color: 'rgba(139,115,85,0.6)' }} />
-                  <input
-                    type="tel"
-                    value={mobile}
-                    onChange={(e) => { setMobile(e.target.value); setError(""); }}
-                    placeholder="Mobile Number"
-                    required
-                    autoComplete="tel"
-                    className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
-                    style={{
-                      fontFamily: "Inter, sans-serif",
-                      fontWeight: 300,
-                      fontSize: '14px',
-                      color: '#E8E2DA',
-                      letterSpacing: '0.03em',
-                    }}
-                  />
-                </div>
-
-                {/* Password */}
-                <div
-                  className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
-                  style={{
-                    background: 'rgba(26,24,22,0.45)',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                  }}
-                >
-                  <Lock className="h-3.5 w-3.5 shrink-0" style={{ color: 'rgba(139,115,85,0.6)' }} />
-                  <input
-                    type="password"
-                    value={mobilePassword}
-                    onChange={(e) => { setMobilePassword(e.target.value); setError(""); }}
-                    placeholder="Password"
-                    required
-                    minLength={6}
-                    autoComplete="current-password"
-                    className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
-                    style={{
-                      fontFamily: "Inter, sans-serif",
-                      fontWeight: 300,
-                      fontSize: '14px',
-                      color: '#E8E2DA',
-                      letterSpacing: '0.03em',
-                    }}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full h-11 rounded-lg transition-all duration-200 disabled:opacity-50"
-                  style={{
-                    fontFamily: "Inter, sans-serif",
-                    fontWeight: 500,
-                    fontSize: '13px',
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    background: 'rgba(232,226,218,0.9)',
-                    color: '#2C2118',
-                  }}
-                >
-                  Login
-                </button>
-              </form>
-            </>
-          )}
         </div>
 
         {/* Bottom whisper */}
@@ -517,12 +367,12 @@ const Auth = ({ initialView }: AuthProps) => {
           className="mt-14"
           style={{
             fontFamily: "Inter, sans-serif",
-            fontSize: '7px',
-            letterSpacing: '0.45em',
-            textTransform: 'uppercase',
-            color: 'rgba(232,226,218,0.08)',
+            fontSize: "7px",
+            letterSpacing: "0.45em",
+            textTransform: "uppercase",
+            color: "rgba(232,226,218,0.08)",
             opacity: revealed ? 1 : 0,
-            transition: 'opacity 2s cubic-bezier(0.4,0,0.2,1) 0.5s',
+            transition: "opacity 2s cubic-bezier(0.4,0,0.2,1) 0.5s",
           }}
         >
           Private Photography Platform
@@ -531,5 +381,3 @@ const Auth = ({ initialView }: AuthProps) => {
     </div>
   );
 };
-
-export default Auth;
