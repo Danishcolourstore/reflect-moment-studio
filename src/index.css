@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -58,6 +58,10 @@
 
     --gold: 28 27% 44%;
     --gold-hover: 28 30% 36%;
+
+    /* Editorial overlay */
+    --overlay-tint: 30 20% 69%;
+    --overlay-warm: 20 30% 8%;
   }
 
   .dark {
@@ -90,6 +94,8 @@
     --sidebar-ring: 28 27% 44%;
     --gold: 28 27% 44%;
     --gold-hover: 28 30% 36%;
+    --overlay-tint: 30 20% 69%;
+    --overlay-warm: 20 30% 8%;
   }
 }
 
@@ -116,8 +122,8 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
-    letter-spacing: 0.03em;
+    font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+    letter-spacing: 0.04em;
     font-weight: 400;
   }
 
@@ -142,10 +148,49 @@
   .btn-editorial {
     @apply uppercase tracking-[0.16em] text-[10px] font-medium px-7 py-3.5 rounded-lg transition-all duration-200;
   }
+
+  /* Editorial section heading */
+  .editorial-section-title {
+    font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+    @apply text-lg tracking-wide text-foreground;
+    font-weight: 400;
+  }
+
+  /* Editorial label */
+  .editorial-label {
+    font-family: 'Inter', sans-serif;
+    @apply text-[8px] uppercase tracking-[0.22em] text-muted-foreground/50 font-medium;
+  }
+
+  /* Editorial helper text */
+  .editorial-helper {
+    font-family: 'Inter', sans-serif;
+    @apply text-[10px] text-muted-foreground/50 leading-relaxed mt-1;
+  }
+
+  /* Status chip */
+  .status-chip {
+    font-family: 'Inter', sans-serif;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[8px] uppercase tracking-[0.14em] font-medium border;
+  }
+
+  .status-chip-active {
+    @apply bg-muted-foreground/8 text-muted-foreground border-muted-foreground/15;
+  }
+
+  .status-chip-inactive {
+    @apply bg-secondary/50 text-muted-foreground/40 border-border/30;
+  }
 }
 
 /* Fade-in animation */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ken Burns for gallery hero */
+@keyframes kenBurns {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
 }

@@ -89,34 +89,35 @@ const Events = () => {
   else if (sortBy === 'name') filtered.sort((a, b) => a.name.localeCompare(b.name));
 
   const renderEventCard = (evt: Event) => (
-    <div key={evt.id} className="bg-card border border-border rounded-xl overflow-hidden group relative">
-      <div className="relative aspect-[3/2] bg-secondary overflow-hidden cursor-pointer" onClick={() => navigate(`/dashboard/events/${evt.id}`)}>
+    <div key={evt.id} className="group relative">
+      <div className="relative aspect-[3/2] overflow-hidden rounded-[14px] cursor-pointer" onClick={() => navigate(`/dashboard/events/${evt.id}`)}>
         {evt.cover_url ? (
-          <img src={evt.cover_url} alt={evt.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" />
+          <img src={evt.cover_url} alt={evt.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" loading="lazy" />
         ) : (
-          <div className="flex h-full items-center justify-center"><Camera className="h-8 w-8 text-muted-foreground/15" /></div>
+          <div className="flex h-full items-center justify-center bg-secondary rounded-[14px]"><Camera className="h-8 w-8 text-muted-foreground/10" /></div>
         )}
-        <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
-          <button onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/events/${evt.id}`); }} className="h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center"><Pencil className="h-4 w-4" /></button>
-          <button onClick={(e) => { e.stopPropagation(); window.open(`/event/${evt.slug}`, '_blank'); }} className="h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center"><Eye className="h-4 w-4" /></button>
-          <button onClick={(e) => { e.stopPropagation(); setShareEvent(evt); }} className="h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center"><Share2 className="h-4 w-4" /></button>
-          <button onClick={(e) => { e.stopPropagation(); setDuplicateEvent(evt); }} className="h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center"><Copy className="h-4 w-4" /></button>
+        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(44,33,24,0.6)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
+          <button onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/events/${evt.id}`); }} className="h-9 w-9 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center"><Pencil className="h-4 w-4" /></button>
+          <button onClick={(e) => { e.stopPropagation(); window.open(`/event/${evt.slug}`, '_blank'); }} className="h-9 w-9 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center"><Eye className="h-4 w-4" /></button>
+          <button onClick={(e) => { e.stopPropagation(); setShareEvent(evt); }} className="h-9 w-9 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center"><Share2 className="h-4 w-4" /></button>
+          <button onClick={(e) => { e.stopPropagation(); setDuplicateEvent(evt); }} className="h-9 w-9 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center"><Copy className="h-4 w-4" /></button>
           {!isArchived && (
-            <button onClick={(e) => { e.stopPropagation(); archiveEvent(evt); }} className="h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center"><Archive className="h-4 w-4" /></button>
+            <button onClick={(e) => { e.stopPropagation(); archiveEvent(evt); }} className="h-9 w-9 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center"><Archive className="h-4 w-4" /></button>
           )}
-          <button onClick={(e) => { e.stopPropagation(); setDeleteId(evt.id); }} className="h-9 w-9 rounded-full bg-destructive/90 backdrop-blur-sm flex items-center justify-center text-destructive-foreground"><Trash2 className="h-4 w-4" /></button>
+          <button onClick={(e) => { e.stopPropagation(); setDeleteId(evt.id); }} className="h-9 w-9 rounded-full bg-destructive/80 backdrop-blur-sm flex items-center justify-center text-destructive-foreground"><Trash2 className="h-4 w-4" /></button>
         </div>
-        <Badge className="absolute bottom-2 left-2 bg-card/90 text-foreground text-[10px] backdrop-blur-sm border-0">{evt.photo_count} photos</Badge>
+        <Badge className="absolute bottom-3 left-3 bg-card/80 text-foreground text-[9px] backdrop-blur-sm border-0 tracking-wider uppercase">{evt.photo_count} photos</Badge>
       </div>
-      <div className="p-4">
+      <div className="pt-4 pb-2">
         <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
-            <h3 className="font-serif text-base font-semibold text-foreground truncate">{evt.name}</h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">{format(new Date(evt.event_date), 'MMM d, yyyy')}{evt.location ? ` · ${evt.location}` : ''}</p>
+            <h3 className="font-serif text-lg text-foreground truncate" style={{ fontWeight: 400 }}>{evt.name}</h3>
+            <p className="text-[10px] text-muted-foreground/40 mt-1 tracking-wide uppercase">{format(new Date(evt.event_date), 'MMM d, yyyy')}{evt.location ? ` · ${evt.location}` : ''}</p>
           </div>
           {!isArchived ? (
-            <div className="flex items-center gap-1.5 ml-2 shrink-0">
-              <span className="text-[10px] text-muted-foreground">{evt.is_published ? 'Live' : 'Draft'}</span>
+            <div className="flex items-center gap-2 ml-3 shrink-0 mt-1">
+              <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">{evt.is_published ? 'Live' : 'Draft'}</span>
               <Switch checked={evt.is_published} onCheckedChange={() => togglePublish(evt)} className="scale-75" />
             </div>
           ) : (
@@ -131,29 +132,27 @@ const Events = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-serif text-2xl font-semibold text-foreground">Events</h1>
-        <Button onClick={() => setCreateOpen(true)} className="bg-primary hover:bg-gold-hover text-primary-foreground text-[11px] h-9 uppercase tracking-wider">
+      <div className="flex items-center justify-between mb-10">
+        <h1 className="font-serif text-3xl text-foreground" style={{ fontWeight: 300 }}>Events</h1>
+        <Button onClick={() => setCreateOpen(true)}>
           <Plus className="mr-1.5 h-3.5 w-3.5" /> New Event
         </Button>
       </div>
 
-      {/* Archive tabs */}
-      <Tabs value={archiveTab} onValueChange={(v) => setArchiveTab(v as any)} className="mb-4">
-        <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start h-auto p-0 gap-0">
-          <TabsTrigger value="active" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-[11px] uppercase tracking-[0.08em]">Active</TabsTrigger>
-          <TabsTrigger value="archived" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-[11px] uppercase tracking-[0.08em]">Archived</TabsTrigger>
+      <Tabs value={archiveTab} onValueChange={(v) => setArchiveTab(v as any)} className="mb-6">
+        <TabsList className="bg-transparent border-b border-border/30 rounded-none w-full justify-start h-auto p-0 gap-0">
+          <TabsTrigger value="active" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground/40 data-[state=active]:text-foreground">Active</TabsTrigger>
+          <TabsTrigger value="archived" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground/40 data-[state=active]:text-foreground">Archived</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 mb-8">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events..." className="pl-9 bg-card h-9 text-[13px]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events..." className="pl-9 bg-card/50 h-9 text-[13px] border-border/20" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px] h-9 text-[12px] bg-card"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[140px] h-9 text-[11px] bg-card/50 border-border/20"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="published">Published</SelectItem>
@@ -161,7 +160,7 @@ const Events = () => {
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[150px] h-9 text-[12px] bg-card"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[150px] h-9 text-[11px] bg-card/50 border-border/20"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="newest">Newest First</SelectItem>
             <SelectItem value="oldest">Oldest First</SelectItem>
@@ -170,28 +169,27 @@ const Events = () => {
         </Select>
       </div>
 
-      {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-72 rounded-xl" />)}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-72 rounded-[14px]" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="border border-dashed border-border/60 py-24 text-center rounded-xl">
-          {isArchived ? <Archive className="mx-auto h-12 w-12 text-muted-foreground/15" /> : <Camera className="mx-auto h-12 w-12 text-muted-foreground/15" />}
-          <p className="mt-4 font-serif text-lg text-muted-foreground/60">{isArchived ? 'No archived events' : 'No events yet'}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground/40">{isArchived ? 'Archived events will appear here.' : 'Create your first event to start delivering photos.'}</p>
-          {!isArchived && <Button onClick={() => setCreateOpen(true)} className="mt-5 bg-primary text-primary-foreground text-[11px] uppercase tracking-wider">Create New Event</Button>}
+        <div className="py-28 text-center">
+          {isArchived ? <Archive className="mx-auto h-10 w-10 text-muted-foreground/10" /> : <Camera className="mx-auto h-10 w-10 text-muted-foreground/10" />}
+          <p className="mt-5 font-serif text-lg text-muted-foreground/40">{isArchived ? 'No archived events' : 'No events yet'}</p>
+          <p className="mt-2 text-[10px] text-muted-foreground/30 tracking-wide">{isArchived ? 'Archived events will appear here.' : 'Create your first event to start delivering photos.'}</p>
+          {!isArchived && <Button onClick={() => setCreateOpen(true)} className="mt-6">Create New Event</Button>}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filtered.map(renderEventCard)}
         </div>
       )}
 
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle className="font-serif">Delete Event?</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">This will permanently delete the event and all its photos. This action cannot be undone.</p>
+          <DialogHeader><DialogTitle className="font-serif text-xl" style={{ fontWeight: 400 }}>Delete Event?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground/60 tracking-wide">This will permanently delete the event and all its photos. This action cannot be undone.</p>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
             <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
