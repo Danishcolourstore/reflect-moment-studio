@@ -83,42 +83,162 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 pb-safe">
-      <div className="w-full max-w-sm space-y-10">
-        <div className="text-center space-y-2">
-          <h1 className="font-display italic text-3xl font-semibold text-primary tracking-tight">MirrorAI</h1>
-          <div className="w-6 h-px bg-primary/30 mx-auto" />
-          <p className="text-[9px] text-muted-foreground/50 tracking-[0.2em] uppercase font-medium">Reflections of Your Moments</p>
-        </div>
+    <div className="fixed inset-0 overflow-hidden w-screen bg-[hsl(20,22%,5%)]">
+      {/* Layer 1: Blurred ambient background fill */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: "url('/images/login-bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "blur(60px) saturate(0.4) brightness(0.3)",
+          opacity: 0.6,
+          transform: "scale(1.3)",
+        }}
+      />
+      
+      {/* Layer 2: Contained photograph */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <img
+          src="/images/login-bg.png"
+          alt=""
+          className="max-h-full max-w-full object-contain"
+          style={{ opacity: 0.85 }}
+        />
+      </div>
 
-        <div className="bg-card border border-border p-8">
+      {/* Layer 3: Dark luxury overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(180deg, rgba(26,20,16,0.30) 0%, rgba(26,20,16,0.40) 40%, rgba(26,20,16,0.65) 100%)",
+        }}
+      />
+
+      {/* Layer 4: Subtle vignette */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(ellipse at center, transparent 45%, rgba(10,9,8,0.35) 100%)",
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
+        <div
+          className="w-full max-w-[380px] flex flex-col gap-6 p-9 sm:p-10 animate-[fade-in_1s_ease-out_forwards]"
+          style={{
+            background: "rgba(44, 33, 24, 0.45)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            borderRadius: "16px",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 32px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
+          }}
+        >
+          {/* Brand */}
+          <div className="text-center mb-2">
+            <h1
+              style={{
+                fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                fontSize: "clamp(2rem, 5vw, 2.8rem)",
+                fontWeight: 300,
+                color: '#FFFFFF',
+                letterSpacing: '0.12em',
+                lineHeight: 1,
+              }}
+            >
+              MirrorAI
+            </h1>
+            <p
+              className="mt-3"
+              style={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: "9px",
+                fontWeight: 400,
+                color: '#E8E2DA',
+                letterSpacing: '0.35em',
+                textTransform: 'uppercase',
+                opacity: 0.5,
+              }}
+            >
+              The Art Gallery
+            </p>
+          </div>
+
+          <div className="h-px w-12 mx-auto" style={{ background: 'rgba(255,255,255,0.06)' }} />
+
+          {/* Card content */}
           {pageError ? (
             <div className="text-center py-4 space-y-3">
-              <p className="font-display text-lg font-semibold text-foreground">Link Expired</p>
-              <p className="text-[11px] text-muted-foreground/60 leading-relaxed">This reset link has expired or is invalid.</p>
-              <Button onClick={() => navigate('/login')} className="bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium mt-2">Back to Sign In</Button>
+              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '18px', fontWeight: 400, color: '#E8E2DA' }}>Link Expired</p>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: '11px', color: 'rgba(232,226,218,0.4)', lineHeight: '1.6' }}>This reset link has expired or is invalid.</p>
+              <button
+                onClick={() => navigate('/login')}
+                className="w-full h-12 rounded-xl transition-all duration-200"
+                style={{
+                  fontFamily: "Inter, sans-serif", fontWeight: 500, fontSize: '10px',
+                  letterSpacing: '0.22em', textTransform: 'uppercase',
+                  background: 'rgba(232,226,218,0.9)', color: '#2C2118', marginTop: '8px',
+                }}
+              >
+                Back to Sign In
+              </button>
             </div>
           ) : success ? (
             <div className="text-center py-4 space-y-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto" style={{ background: 'rgba(232,226,218,0.1)' }}>
+                <CheckCircle2 className="h-5 w-5" style={{ color: 'rgba(232,226,218,0.6)' }} />
               </div>
-              <p className="font-display text-sm text-foreground font-medium">Password successfully reset</p>
-              <p className="text-[11px] text-muted-foreground/60">You can now sign in with your new password.</p>
-              <Button onClick={() => navigate('/login')} className="bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium mt-2">Sign In</Button>
+              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '16px', fontWeight: 400, color: '#E8E2DA' }}>Password successfully reset</p>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: '11px', color: 'rgba(232,226,218,0.4)' }}>You can now sign in with your new password.</p>
+              <button
+                onClick={() => navigate('/login')}
+                className="w-full h-12 rounded-xl transition-all duration-200"
+                style={{
+                  fontFamily: "Inter, sans-serif", fontWeight: 500, fontSize: '10px',
+                  letterSpacing: '0.22em', textTransform: 'uppercase',
+                  background: 'rgba(232,226,218,0.9)', color: '#2C2118', marginTop: '8px',
+                }}
+              >
+                Sign In
+              </button>
             </div>
           ) : (
             <>
-              <h2 className="font-display text-xl font-semibold text-foreground mb-2">Set New Password</h2>
-              <p className="text-[11px] text-muted-foreground/60 mb-5 leading-relaxed">Choose a new password for your account.</p>
-              <form onSubmit={handleReset} className="space-y-4">
+              <p
+                className="text-center"
+                style={{
+                  fontFamily: "Inter, sans-serif", fontSize: '8px', fontWeight: 400,
+                  color: 'rgba(232,226,218,0.35)', letterSpacing: '0.3em', textTransform: 'uppercase',
+                }}
+              >
+                Set New Password
+              </p>
+
+              <form onSubmit={handleReset} className="flex flex-col gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">New Password</Label>
+                  <label style={{ fontFamily: "Inter, sans-serif", fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(139,115,85,0.6)' }}>New Password</label>
                   <div className="relative">
-                    <Input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={8} autoComplete="new-password" className="bg-background border-border h-10 text-[13px] pr-10" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors" tabIndex={-1}>
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
+                    <div
+                      className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+                      style={{ background: 'rgba(26,24,22,0.45)', border: '1px solid rgba(255,255,255,0.05)' }}
+                    >
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        minLength={8}
+                        autoComplete="new-password"
+                        className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
+                        style={{ fontFamily: "Inter, sans-serif", fontWeight: 300, fontSize: '13px', color: '#E8E2DA', letterSpacing: '0.03em' }}
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="shrink-0" tabIndex={-1} style={{ color: 'rgba(139,115,85,0.5)' }}>
+                        {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
                   </div>
                   {password.length > 0 && (
                     <div className="space-y-1 pt-1">
@@ -126,28 +246,64 @@ const ResetPassword = () => {
                         const ok = rule.test(password);
                         return (
                           <div key={rule.label} className="flex items-center gap-1.5">
-                            {ok ? <Check className="h-3 w-3 text-primary" /> : <X className="h-3 w-3 text-muted-foreground/30" />}
-                            <span className={`text-[10px] ${ok ? 'text-primary' : 'text-muted-foreground/40'}`}>{rule.label}</span>
+                            {ok ? <Check className="h-3 w-3" style={{ color: 'rgba(232,226,218,0.5)' }} /> : <X className="h-3 w-3" style={{ color: 'rgba(139,115,85,0.3)' }} />}
+                            <span style={{ fontFamily: "Inter, sans-serif", fontSize: '10px', color: ok ? 'rgba(232,226,218,0.5)' : 'rgba(139,115,85,0.3)' }}>{rule.label}</span>
                           </div>
                         );
                       })}
                     </div>
                   )}
                 </div>
+
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60 font-medium">Confirm Password</Label>
-                  <Input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required minLength={8} autoComplete="new-password" className="bg-background border-border h-10 text-[13px]" />
+                  <label style={{ fontFamily: "Inter, sans-serif", fontSize: '8px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(139,115,85,0.6)' }}>Confirm Password</label>
+                  <div
+                    className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+                    style={{ background: 'rgba(26,24,22,0.45)', border: '1px solid rgba(255,255,255,0.05)' }}
+                  >
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
+                      style={{ fontFamily: "Inter, sans-serif", fontWeight: 300, fontSize: '13px', color: '#E8E2DA', letterSpacing: '0.03em' }}
+                    />
+                  </div>
                   {confirmPassword.length > 0 && password !== confirmPassword && (
-                    <p className="text-[10px] text-destructive/70 flex items-center gap-1"><X className="h-3 w-3" /> Passwords do not match</p>
+                    <p className="flex items-center gap-1" style={{ fontSize: '10px', color: '#E57373' }}><X className="h-3 w-3" /> Passwords do not match</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/85 text-primary-foreground h-10 text-[11px] tracking-[0.12em] uppercase font-medium" disabled={loading || !allRulesPass || password !== confirmPassword}>
+
+                <button
+                  type="submit"
+                  disabled={loading || !allRulesPass || password !== confirmPassword}
+                  className="w-full h-12 rounded-xl transition-all duration-200 disabled:opacity-50"
+                  style={{
+                    fontFamily: "Inter, sans-serif", fontWeight: 500, fontSize: '10px',
+                    letterSpacing: '0.22em', textTransform: 'uppercase',
+                    background: 'rgba(232,226,218,0.9)', color: '#2C2118',
+                  }}
+                >
                   {loading ? 'Please wait…' : 'Reset Password'}
-                </Button>
+                </button>
               </form>
             </>
           )}
         </div>
+
+        <p
+          className="mt-14 animate-[fade-in_1.2s_ease-out_0.8s_forwards] opacity-0"
+          style={{
+            fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.45em',
+            textTransform: 'uppercase', color: 'rgba(232,226,218,0.08)',
+          }}
+        >
+          Private Photography Platform
+        </p>
       </div>
     </div>
   );
