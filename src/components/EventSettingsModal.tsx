@@ -206,7 +206,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
           <section className="space-y-4">
             <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Gallery Style</h3>
             <p className="editorial-helper !mt-0">Choose the visual presentation preset for your gallery.</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {GALLERY_STYLES.map((style) => (
                 <button
                   key={style.value}
@@ -231,8 +231,8 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
             </div>
           </section>
 
-          {/* ── Timeless Wedding Hero Fields ── */}
-          {galleryStyle === 'timeless-wedding' && (
+          {/* ── Hero Fields (Timeless Wedding & Andhakar) ── */}
+          {(galleryStyle === 'timeless-wedding' || galleryStyle === 'andhakar') && (
             <>
               <div className="h-px bg-border/30" />
               <section className="space-y-4">

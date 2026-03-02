@@ -29,6 +29,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
 import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
 import { TimelessWeddingHero } from '@/components/TimelessWeddingHero';
+import { AndhakarHero } from '@/components/AndhakarHero';
 import { WebsiteHeader } from '@/components/website/WebsiteHeader';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 import { WebsiteAbout } from '@/components/website/WebsiteAbout';
@@ -447,6 +448,7 @@ const PublicGallery = () => {
   const layout = event?.gallery_layout || 'masonry';
   const galleryStyle = (event as any)?.gallery_style || 'vogue-editorial';
   const isTimeless = galleryStyle === 'timeless-wedding';
+  const isAndhakar = galleryStyle === 'andhakar';
   const websiteTemplate = (event as any)?.website_template || 'editorial-studio';
   const wt = getTemplate(websiteTemplate);
 
@@ -744,8 +746,8 @@ const PublicGallery = () => {
       className="min-h-[100dvh]"
       style={{
         ...(accentColor ? { '--studio-accent': accentColor } as React.CSSProperties : {}),
-        backgroundColor: wt.bg,
-        color: wt.text,
+        backgroundColor: isAndhakar ? '#0D0D0D' : wt.bg,
+        color: isAndhakar ? '#C8C8C8' : wt.text,
         fontFamily: wt.uiFontFamily,
       }}
     >
@@ -762,7 +764,18 @@ const PublicGallery = () => {
       />
 
       {/* ── HERO ── */}
-      {isTimeless ? (
+      {isAndhakar ? (
+        <div ref={heroRef}>
+          <AndhakarHero
+            coverUrl={event.cover_url}
+            coupleName={(event as any).hero_couple_name || event.name}
+            eventDate={event.event_date}
+            subtitle={(event as any).hero_subtitle}
+            buttonLabel={(event as any).hero_button_label}
+            onScrollToGallery={scrollToGallery}
+          />
+        </div>
+      ) : isTimeless ? (
         <div ref={heroRef}>
           <TimelessWeddingHero
             coverUrl={event.cover_url}
@@ -815,9 +828,9 @@ const PublicGallery = () => {
           stickyVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
         }`}
         style={{
-          backgroundColor: wt.navBg,
+          backgroundColor: isAndhakar ? 'rgba(13, 13, 13, 0.92)' : wt.navBg,
           backdropFilter: 'blur(12px)',
-          borderBottom: `1px solid ${wt.navBorder}`,
+          borderBottom: `1px solid ${isAndhakar ? 'rgba(200,200,200,0.1)' : wt.navBorder}`,
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
