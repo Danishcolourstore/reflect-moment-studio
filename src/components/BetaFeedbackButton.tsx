@@ -56,7 +56,7 @@ export function BetaFeedbackButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 lg:bottom-6 right-4 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full bg-card border border-border shadow-lg text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
+        className="fixed bottom-28 lg:bottom-6 right-4 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full bg-card border border-border shadow-lg text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
       >
         <Bug className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Report Issue</span>
