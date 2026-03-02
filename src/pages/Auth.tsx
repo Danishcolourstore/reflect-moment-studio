@@ -87,42 +87,39 @@ const Auth = ({ initialView }: AuthProps) => {
 
   return (
     <div className="fixed inset-0 overflow-hidden w-screen bg-[hsl(20,22%,5%)]">
-      {/* Layer 1: Blurred ambient background fill */}
+      {/* Layer 1: Cinematic blur fill — same image, cover + heavy blur */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage: "url('/images/login-bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "blur(60px) saturate(0.4) brightness(0.3)",
-          opacity: 0.6,
-          transform: "scale(1.3)",
+          filter: "blur(50px) saturate(0.5) brightness(0.35)",
+          transform: "scale(1.25)",
         }}
       />
-      
-      {/* Layer 2: Contained photograph — object-fit: contain */}
+
+      {/* Layer 2: Foreground photograph — object-fit: contain, never crop */}
       <div className="absolute inset-0 flex items-center justify-center">
         <img
           src="/images/login-bg.png"
           alt=""
           className="max-h-full max-w-full object-contain"
-          style={{ opacity: 0.85 }}
+          style={{ opacity: 0.88 }}
         />
       </div>
 
-      {/* Layer 3: Dark luxury overlay — #1A1410 at 40% */}
+      {/* Layer 3: Dark luxury overlay — flat 40% */}
       <div
         className="absolute inset-0"
-        style={{
-          background: "linear-gradient(180deg, rgba(26,20,16,0.30) 0%, rgba(26,20,16,0.40) 40%, rgba(26,20,16,0.65) 100%)",
-        }}
+        style={{ background: "rgba(44,33,24,0.40)" }}
       />
 
       {/* Layer 4: Subtle vignette */}
       <div
         className="absolute inset-0"
         style={{
-          background: "radial-gradient(ellipse at center, transparent 45%, rgba(10,9,8,0.35) 100%)",
+          background: "radial-gradient(ellipse at center, transparent 50%, rgba(10,9,8,0.30) 100%)",
         }}
       />
 
