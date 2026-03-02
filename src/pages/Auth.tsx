@@ -9,7 +9,7 @@ interface AuthProps {
 
 const Auth = ({ initialView }: AuthProps) => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("test@mirror.com");
+  const [email, setEmail] = useState("test@mirroraigallery.com");
   const [password, setPassword] = useState("Test@1234");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -19,7 +19,7 @@ const Auth = ({ initialView }: AuthProps) => {
 
   useEffect(() => {
     // Ensure test account exists (silent, no-op if already created)
-    supabase.auth.signUp({ email: "test@mirror.com", password: "Test@1234" }).catch(() => {});
+    supabase.auth.signUp({ email: "test@mirroraigallery.com", password: "Test@1234" }).catch(() => {});
     const timer = setTimeout(() => setRevealed(true), 2000);
     return () => clearTimeout(timer);
   }, []);
