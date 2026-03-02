@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink } from 'lucide-react';
 import { SmartQRAccess } from '@/components/events/SmartQRAccess';
+import { GALLERY_STYLES, DEFAULT_LAYOUT_FOR_STYLE, type GalleryStyleValue } from '@/lib/gallery-styles';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -40,11 +41,15 @@ interface EventData {
   cover_url: string | null;
   gallery_pin: string | null;
   gallery_layout: string;
+  gallery_style?: string;
   downloads_enabled: boolean;
   download_resolution: string;
   watermark_enabled: boolean;
   is_published: boolean;
   selection_mode_enabled?: boolean;
+  hero_couple_name?: string | null;
+  hero_subtitle?: string | null;
+  hero_button_label?: string | null;
 }
 
 interface EventSettingsModalProps {
@@ -62,10 +67,14 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [password, setPassword] = useState(event.gallery_pin ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [galleryLayout, setGalleryLayout] = useState(event.gallery_layout);
+  const [galleryStyle, setGalleryStyle] = useState<GalleryStyleValue>((event.gallery_style as GalleryStyleValue) || 'vogue-editorial');
   const [downloadsEnabled, setDownloadsEnabled] = useState(event.downloads_enabled);
   const [watermarkEnabled, setWatermarkEnabled] = useState(event.watermark_enabled);
   const [isPublished, setIsPublished] = useState(event.is_published);
   const [selectionModeEnabled, setSelectionModeEnabled] = useState(event.selection_mode_enabled ?? false);
+  const [heroCoupleName, setHeroCoupleName] = useState(event.hero_couple_name ?? '');
+  const [heroSubtitle, setHeroSubtitle] = useState(event.hero_subtitle ?? '');
+  const [heroButtonLabel, setHeroButtonLabel] = useState(event.hero_button_label ?? '');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -74,10 +83,14 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setLocation(event.location ?? '');
     setPassword(event.gallery_pin ?? '');
     setGalleryLayout(event.gallery_layout);
+    setGalleryStyle((event.gallery_style as GalleryStyleValue) || 'vogue-editorial');
     setDownloadsEnabled(event.downloads_enabled);
     setWatermarkEnabled(event.watermark_enabled);
     setIsPublished(event.is_published);
     setSelectionModeEnabled(event.selection_mode_enabled ?? false);
+    setHeroCoupleName(event.hero_couple_name ?? '');
+    setHeroSubtitle(event.hero_subtitle ?? '');
+    setHeroButtonLabel(event.hero_button_label ?? '');
   }, [event]);
 
   const handleSave = async () => {
@@ -95,8 +108,11 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     }
     const { error } = await supabase.from('events').update({
       name: title, event_date: date, location: location || null, cover_url: coverUrl,
-      gallery_pin: password || null, gallery_layout: galleryLayout, downloads_enabled: downloadsEnabled,
-      watermark_enabled: watermarkEnabled, is_published: isPublished, selection_mode_enabled: selectionModeEnabled,
+      gallery_pin: password || null, gallery_layout: galleryLayout, gallery_style: galleryStyle,
+      downloads_enabled: downloadsEnabled, watermark_enabled: watermarkEnabled,
+      is_published: isPublished, selection_mode_enabled: selectionModeEnabled,
+      hero_couple_name: heroCoupleName || null, hero_subtitle: heroSubtitle || null,
+      hero_button_label: heroButtonLabel || null,
     } as any).eq('id', event.id);
     if (error) {
       toast({ title: 'Error saving', description: error.message, variant: 'destructive' });
@@ -156,6 +172,61 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
               {event.cover_url && !coverFile && <p className="editorial-helper">Current cover set. Upload a new image to replace.</p>}
             </div>
           </section>
+
+          <div className="h-px bg-border/30" />
+
+          {/* ── Section: Gallery Style ── */}
+          <section className="space-y-4">
+            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Gallery Style</h3>
+            <p className="editorial-helper !mt-0">Choose the visual presentation preset for your gallery.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {GALLERY_STYLES.map((style) => (
+                <button
+                  key={style.value}
+                  type="button"
+                  onClick={() => {
+                    setGalleryStyle(style.value);
+                    // Set default layout for the style if user hasn't manually changed it
+                    if (galleryLayout === event.gallery_layout) {
+                      setGalleryLayout(DEFAULT_LAYOUT_FOR_STYLE[style.value]);
+                    }
+                  }}
+                  className={`flex flex-col items-start gap-1 p-3.5 rounded-xl border transition-colors text-left ${
+                    galleryStyle === style.value
+                      ? 'border-foreground/30 bg-foreground/5'
+                      : 'border-border/30 hover:border-muted-foreground/20'
+                  }`}
+                >
+                  <span className={`text-[11px] font-medium ${galleryStyle === style.value ? 'text-foreground' : 'text-muted-foreground/70'}`}>{style.label}</span>
+                  <span className="text-[9px] text-muted-foreground/50 leading-snug">{style.description}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* ── Timeless Wedding Hero Fields ── */}
+          {galleryStyle === 'timeless-wedding' && (
+            <>
+              <div className="h-px bg-border/30" />
+              <section className="space-y-4">
+                <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Hero Section</h3>
+                <p className="editorial-helper !mt-0">Optional hero displayed above the gallery grid.</p>
+                <div className="space-y-1.5">
+                  <Label className="editorial-label">Couple Name</Label>
+                  <Input value={heroCoupleName} onChange={(e) => setHeroCoupleName(e.target.value)} placeholder="Sarah & James" className="bg-background h-9 text-[13px]" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="editorial-label">Subtitle / Studio Name</Label>
+                  <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="Photography by Studio Name" className="bg-background h-9 text-[13px]" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="editorial-label">Button Label</Label>
+                  <Input value={heroButtonLabel} onChange={(e) => setHeroButtonLabel(e.target.value)} placeholder="View Gallery" className="bg-background h-9 text-[13px]" />
+                  <p className="editorial-helper">Leave empty to use default "View Gallery".</p>
+                </div>
+              </section>
+            </>
+          )}
 
           <div className="h-px bg-border/30" />
 

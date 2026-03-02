@@ -491,7 +491,11 @@ export type Database = {
           gallery_layout: string
           gallery_password: string | null
           gallery_pin: string | null
+          gallery_style: string
           guest_face_enabled: boolean | null
+          hero_button_label: string | null
+          hero_couple_name: string | null
+          hero_subtitle: string | null
           id: string
           is_archived: boolean
           is_published: boolean
@@ -524,7 +528,11 @@ export type Database = {
           gallery_layout?: string
           gallery_password?: string | null
           gallery_pin?: string | null
+          gallery_style?: string
           guest_face_enabled?: boolean | null
+          hero_button_label?: string | null
+          hero_couple_name?: string | null
+          hero_subtitle?: string | null
           id?: string
           is_archived?: boolean
           is_published?: boolean
@@ -557,7 +565,11 @@ export type Database = {
           gallery_layout?: string
           gallery_password?: string | null
           gallery_pin?: string | null
+          gallery_style?: string
           guest_face_enabled?: boolean | null
+          hero_button_label?: string | null
+          hero_couple_name?: string | null
+          hero_subtitle?: string | null
           id?: string
           is_archived?: boolean
           is_published?: boolean
