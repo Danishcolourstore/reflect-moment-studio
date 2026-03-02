@@ -4,10 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, Instagram, Globe, MessageCircle, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const FONT_STYLES = [
+  { value: 'serif', label: 'Serif (Cormorant Garamond)' },
+  { value: 'sans', label: 'Sans-serif (Inter)' },
+];
 
 const Branding = () => {
   const { user } = useAuth();
@@ -17,6 +23,12 @@ const Branding = () => {
   const [accentColor, setAccentColor] = useState('#b08d57');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [instagram, setInstagram] = useState('');
+  const [website, setWebsite] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [email, setEmail] = useState('');
+  const [footerText, setFooterText] = useState('');
+  const [fontStyle, setFontStyle] = useState('serif');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -27,17 +39,23 @@ const Branding = () => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const { data: profile } = await (supabase.from('profiles').select('studio_name, studio_logo_url, studio_accent_color') as any).eq('user_id', user.id).single();
+      const { data: profile } = await (supabase.from('profiles').select('studio_name, studio_logo_url, studio_accent_color, email') as any).eq('user_id', user.id).single();
       const { data: studio } = await (supabase.from('studio_profiles').select('*') as any).eq('user_id', user.id).single();
       if (profile) {
         setStudioName(profile.studio_name || '');
         setLogoUrl(profile.studio_logo_url || null);
         setAccentColor(profile.studio_accent_color || '#b08d57');
+        setEmail(profile.email || '');
       }
       if (studio) {
         setBio(studio.bio || '');
         setCoverUrl(studio.cover_url || null);
         setTagline(studio.display_name || '');
+        setInstagram(studio.instagram || '');
+        setWebsite(studio.website || '');
+        setWhatsapp(studio.whatsapp || '');
+        setFooterText(studio.footer_text || '');
+        setFontStyle(studio.font_style || 'serif');
       }
       setLoading(false);
     };
@@ -67,7 +85,6 @@ const Branding = () => {
     setCoverUploading(true);
     try {
       const url = await uploadFile(file, `studio-covers/${user.id}/cover.${file.name.split('.').pop()}`);
-      // Upsert studio profile
       const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).single();
       if (existing) {
         await (supabase.from('studio_profiles').update({ cover_url: url } as any) as any).eq('user_id', user.id);
@@ -84,12 +101,12 @@ const Branding = () => {
     if (!user) return;
     setSaving(true);
     await (supabase.from('profiles').update({ studio_name: studioName, studio_accent_color: accentColor } as any) as any).eq('user_id', user.id);
-    // Upsert studio profile
+    const studioData = { bio, display_name: tagline, instagram: instagram || null, website: website || null, whatsapp: whatsapp || null, footer_text: footerText || null, font_style: fontStyle };
     const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).single();
     if (existing) {
-      await (supabase.from('studio_profiles').update({ bio, display_name: tagline } as any) as any).eq('user_id', user.id);
+      await (supabase.from('studio_profiles').update(studioData as any) as any).eq('user_id', user.id);
     } else {
-      await (supabase.from('studio_profiles').insert({ user_id: user.id, bio, display_name: tagline } as any) as any);
+      await (supabase.from('studio_profiles').insert({ user_id: user.id, ...studioData } as any) as any);
     }
     toast.success('Branding saved');
     setSaving(false);
@@ -99,20 +116,46 @@ const Branding = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-2xl font-semibold text-foreground mb-8">Studio Branding</h1>
+      <h1 className="font-serif text-2xl font-semibold text-foreground mb-8">Brand Studio</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Form */}
         <div className="space-y-8">
+          {/* Studio Identity */}
           <div>
             <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium mb-4">STUDIO IDENTITY</p>
             <div className="space-y-4">
               <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Name</label><Input value={studioName} onChange={(e) => setStudioName(e.target.value)} className="mt-1 bg-card" /></div>
-              <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Tagline</label><Input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Reflections of Your Moments" className="mt-1 bg-card" /></div>
-              <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Bio</label><Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="mt-1 bg-card min-h-[120px]" /></div>
+              <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Tagline</label><Input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Reflections of Your Moments" className="mt-1 bg-card" /></div>
+              <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">About / Bio</label><Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="mt-1 bg-card min-h-[100px]" placeholder="Tell your story..." /></div>
+              <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Footer Text</label><Input value={footerText} onChange={(e) => setFooterText(e.target.value)} placeholder="Fine art wedding photography" className="mt-1 bg-card" /></div>
             </div>
           </div>
 
+          {/* Contact & Social */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium mb-4">CONTACT & SOCIAL</p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Instagram className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                <Input value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="@yourstudio" className="bg-card" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                <Input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="www.yourstudio.com" className="bg-card" />
+              </div>
+              <div className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+1234567890" className="bg-card" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hello@studio.com" className="bg-card" />
+              </div>
+            </div>
+          </div>
+
+          {/* Visual Identity */}
           <div>
             <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium mb-4">VISUAL IDENTITY</p>
             <div className="space-y-4">
@@ -160,11 +203,22 @@ const Branding = () => {
 
               {/* Accent color */}
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Accent Color</label>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Brand Accent Color</label>
                 <div className="flex items-center gap-3 mt-2">
                   <input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="h-10 w-10 rounded border border-border cursor-pointer" />
                   <Input value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="w-28 bg-card text-[13px]" />
                 </div>
+              </div>
+
+              {/* Font Style */}
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Font Style</label>
+                <Select value={fontStyle} onValueChange={setFontStyle}>
+                  <SelectTrigger className="mt-1 bg-card"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {FONT_STYLES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -189,12 +243,22 @@ const Branding = () => {
             </div>
             {/* Mock nav */}
             <div className="p-3 flex items-center gap-3 border-t border-border">
-              <span className="text-[11px] font-medium" style={{ color: accentColor }}>All Photos</span>
-              <span className="text-[11px] text-muted-foreground">Ceremony</span>
-              <span className="text-[11px] text-muted-foreground">Reception</span>
-              <div className="ml-auto h-6 w-6 rounded-full flex items-center justify-center" style={{ backgroundColor: accentColor }}>
-                <span className="text-white text-[10px]">♥</span>
+              <span className="text-[11px] font-medium" style={{ color: accentColor }}>Gallery</span>
+              <span className="text-[11px] text-muted-foreground">About</span>
+              <span className="text-[11px] text-muted-foreground">Contact</span>
+              <div className="ml-auto flex items-center gap-2">
+                {instagram && <Instagram className="h-3 w-3 text-muted-foreground/40" />}
+                {website && <Globe className="h-3 w-3 text-muted-foreground/40" />}
+                <div className="h-6 w-6 rounded-full flex items-center justify-center" style={{ backgroundColor: accentColor }}>
+                  <span className="text-white text-[10px]">♥</span>
+                </div>
               </div>
+            </div>
+            {/* Mock footer */}
+            <div className="px-3 py-4 border-t border-border text-center space-y-1">
+              <p className="text-[10px] text-muted-foreground/50">© {new Date().getFullYear()} {studioName || 'Studio'}</p>
+              {footerText && <p className="text-[9px] text-muted-foreground/30">{footerText}</p>}
+              <p className="text-[8px] text-muted-foreground/20 tracking-wider uppercase">Powered by MirrorAI</p>
             </div>
           </div>
         </div>
