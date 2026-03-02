@@ -86,20 +86,20 @@ const Auth = ({ initialView }: AuthProps) => {
   const isLogin = view === "login";
 
   return (
-    <div className="fixed inset-0 overflow-hidden w-screen bg-[#0a0908]">
-      {/* Layer 1: Soft blurred fill for edge bleed */}
+    <div className="fixed inset-0 overflow-hidden w-screen" style={{ backgroundColor: '#0a0908' }}>
+      {/* Layer 1: Soft blurred ambient fill */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage: "url('/images/login-bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "blur(60px) saturate(0.7)",
-          opacity: 0.3,
-          transform: "scale(1.3)",
+          filter: "blur(80px) saturate(0.5) brightness(0.4)",
+          opacity: 0.5,
+          transform: "scale(1.4)",
         }}
       />
-      {/* Layer 2: Full cinematic image */}
+      {/* Layer 2: Full cinematic photograph */}
       <div
         className="absolute inset-0"
         style={{
@@ -109,74 +109,104 @@ const Auth = ({ initialView }: AuthProps) => {
           backgroundRepeat: "no-repeat",
         }}
       />
-      {/* Layer 3: Warm cinematic overlay */}
+      {/* Layer 3: Aged velvet overlay — #1A1410 at 70% */}
       <div
         className="absolute inset-0"
         style={{
-          background: "linear-gradient(180deg, rgba(10,9,8,0.15) 0%, rgba(10,9,8,0.5) 60%, rgba(10,9,8,0.85) 100%)",
+          background: "linear-gradient(180deg, rgba(26,20,16,0.55) 0%, rgba(26,20,16,0.70) 50%, rgba(26,20,16,0.88) 100%)",
+        }}
+      />
+      {/* Layer 4: Subtle vignette */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(ellipse at center, transparent 40%, rgba(10,9,8,0.4) 100%)",
         }}
       />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
-        {/* Brand */}
-        <div className="text-center mb-10 animate-[fade-in_0.6s_ease-out_forwards]">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
+        {/* Brand — generous vertical spacing */}
+        <div className="text-center mb-14 animate-[fade-in_0.8s_ease-out_forwards]">
           <h1
-            className="text-[#F5F0E8] tracking-[0.12em] mb-2"
+            className="mb-3"
             style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2rem, 5vw, 3.2rem)",
+              fontFamily: "'Playfair Display', 'Cormorant Garamond', serif",
+              fontSize: "clamp(2.4rem, 6vw, 3.6rem)",
               fontWeight: 300,
+              color: '#F5F0E8',
+              letterSpacing: '0.14em',
+              lineHeight: 1,
             }}
           >
             MirrorAI
           </h1>
           <p
-            className="text-[#F5F0E8]/40 tracking-[0.25em] uppercase"
             style={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "clamp(0.55rem, 1.5vw, 0.7rem)",
+              fontSize: "clamp(0.5rem, 1.2vw, 0.65rem)",
               fontWeight: 300,
+              color: 'rgba(245,240,232,0.28)',
+              letterSpacing: '0.35em',
+              textTransform: 'uppercase',
             }}
           >
             The Reflection of Now
           </p>
         </div>
 
-        {/* Auth card */}
+        {/* Auth card — frosted, weightless */}
         <div
-          className="w-full max-w-[340px] flex flex-col gap-4 p-6 sm:p-7 animate-[fade-in_0.8s_ease-out_0.2s_forwards] opacity-0"
+          className="w-full max-w-[360px] flex flex-col gap-5 p-8 sm:p-9 animate-[fade-in_1s_ease-out_0.3s_forwards] opacity-0"
           style={{
-            background: "rgba(15, 13, 11, 0.65)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            borderRadius: "16px",
-            border: "1px solid rgba(255, 255, 255, 0.06)",
-            boxShadow: "0 24px 64px rgba(0, 0, 0, 0.5)",
+            background: "rgba(18, 15, 12, 0.55)",
+            backdropFilter: "blur(32px)",
+            WebkitBackdropFilter: "blur(32px)",
+            borderRadius: "14px",
+            border: "1px solid rgba(245, 240, 232, 0.04)",
+            boxShadow: "0 32px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.02)",
           }}
         >
-          {/* Card title */}
+          {/* Card heading */}
           <p
-            className="text-center text-[#F5F0E8]/60 tracking-[0.18em] uppercase mb-1"
+            className="text-center mb-1"
             style={{
               fontFamily: "Inter, sans-serif",
-              fontSize: "10px",
+              fontSize: "9px",
               fontWeight: 400,
+              color: 'rgba(245,240,232,0.40)',
+              letterSpacing: '0.25em',
+              textTransform: 'uppercase',
             }}
           >
             {isLogin ? "Welcome Back" : "Create Account"}
           </p>
 
           {error && (
-            <div className="px-3 py-2 border border-[#E57373]/20 bg-[#E57373]/8 text-[11px] text-[#E57373] leading-relaxed rounded-lg">
+            <div
+              className="px-4 py-2.5 rounded-lg"
+              style={{
+                border: '1px solid rgba(229,115,115,0.15)',
+                background: 'rgba(229,115,115,0.06)',
+                color: '#E57373',
+                fontSize: '11px',
+                lineHeight: '1.5',
+              }}
+            >
               {error}
             </div>
           )}
 
-          <form onSubmit={isLogin ? handleLogin : handleSignup} className="flex flex-col gap-3.5">
+          <form onSubmit={isLogin ? handleLogin : handleSignup} className="flex flex-col gap-4">
             {/* Email */}
-            <div className="flex items-center gap-2.5 bg-[#1a1816]/50 border border-[#ffffff08] rounded-xl px-3.5 h-11 focus-within:border-[#8B7355]/50 transition-colors">
-              <Mail className="h-3.5 w-3.5 text-[#5a5248] shrink-0" />
+            <div
+              className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+              style={{
+                background: 'rgba(26,24,22,0.45)',
+                border: '1px solid rgba(255,255,255,0.04)',
+              }}
+            >
+              <Mail className="h-3.5 w-3.5 shrink-0" style={{ color: '#5a5248' }} />
               <input
                 type="email"
                 value={email}
@@ -184,14 +214,26 @@ const Auth = ({ initialView }: AuthProps) => {
                 placeholder="Email"
                 required
                 autoComplete="email"
-                className="bg-transparent w-full text-[#F5F0E8] text-[13px] placeholder:text-[#4a4038] outline-none tracking-wide"
-                style={{ fontFamily: "Inter, sans-serif", fontWeight: 300 }}
+                className="bg-transparent w-full outline-none placeholder:text-[#3d3630]"
+                style={{
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: 300,
+                  fontSize: '13px',
+                  color: '#F5F0E8',
+                  letterSpacing: '0.03em',
+                }}
               />
             </div>
 
             {/* Password */}
-            <div className="flex items-center gap-2.5 bg-[#1a1816]/50 border border-[#ffffff08] rounded-xl px-3.5 h-11 focus-within:border-[#8B7355]/50 transition-colors">
-              <Lock className="h-3.5 w-3.5 text-[#5a5248] shrink-0" />
+            <div
+              className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+              style={{
+                background: 'rgba(26,24,22,0.45)',
+                border: '1px solid rgba(255,255,255,0.04)',
+              }}
+            >
+              <Lock className="h-3.5 w-3.5 shrink-0" style={{ color: '#5a5248' }} />
               <input
                 type="password"
                 value={password}
@@ -200,13 +242,19 @@ const Auth = ({ initialView }: AuthProps) => {
                 required
                 minLength={6}
                 autoComplete={isLogin ? "current-password" : "new-password"}
-                className="bg-transparent w-full text-[#F5F0E8] text-[13px] placeholder:text-[#4a4038] outline-none tracking-wide"
-                style={{ fontFamily: "Inter, sans-serif", fontWeight: 300 }}
+                className="bg-transparent w-full outline-none placeholder:text-[#3d3630]"
+                style={{
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: 300,
+                  fontSize: '13px',
+                  color: '#F5F0E8',
+                  letterSpacing: '0.03em',
+                }}
               />
             </div>
 
-            {/* Links row */}
-            <div className="flex items-center justify-between">
+            {/* Links */}
+            <div className="flex items-center justify-between pt-0.5">
               <button
                 type="button"
                 onClick={() => {
@@ -214,43 +262,71 @@ const Auth = ({ initialView }: AuthProps) => {
                   setPassword("");
                   setError("");
                 }}
-                className="text-[10px] text-[#9A8E82] hover:text-[#F5F0E8] transition-colors tracking-wide"
-                style={{ fontFamily: "Inter, sans-serif" }}
+                className="transition-colors"
+                style={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: '10px',
+                  color: '#9A8E82',
+                  letterSpacing: '0.04em',
+                }}
               >
                 {isLogin ? (
-                  <>No account? <span className="text-[#8B7355] underline underline-offset-2">Sign up</span></>
+                  <>No account? <span style={{ color: '#8B7355', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Sign up</span></>
                 ) : (
-                  <>Have an account? <span className="text-[#8B7355] underline underline-offset-2">Sign in</span></>
+                  <>Have an account? <span style={{ color: '#8B7355', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Sign in</span></>
                 )}
               </button>
               {isLogin && (
                 <button
                   type="button"
                   onClick={() => navigate("/forgot-password")}
-                  className="text-[10px] text-[#8B7355] hover:text-[#F5F0E8] transition-colors tracking-wide"
-                  style={{ fontFamily: "Inter, sans-serif" }}
+                  className="transition-colors hover:opacity-80"
+                  style={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: '10px',
+                    color: '#8B7355',
+                    letterSpacing: '0.04em',
+                  }}
                 >
                   Forgot?
                 </button>
               )}
             </div>
 
-            {/* Submit */}
+            {/* Submit — cream on dark */}
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-11 rounded-xl bg-[#F5F0E8] text-[#2C2118] text-[11px] font-medium tracking-[0.16em] uppercase hover:bg-[#EDE7DC] transition-all duration-200 disabled:opacity-50"
-              style={{ fontFamily: "Inter, sans-serif" }}
+              className="w-full h-12 rounded-xl transition-all duration-200 disabled:opacity-50"
+              style={{
+                fontFamily: "Inter, sans-serif",
+                fontWeight: 500,
+                fontSize: '11px',
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                background: '#F5F0E8',
+                color: '#2C2118',
+              }}
             >
               {isLogin ? "Enter Studio" : "Create Account"}
             </button>
 
             {/* Divider */}
             {isLogin && (
-              <div className="flex items-center gap-3 my-0.5">
-                <div className="flex-1 h-px bg-white/[0.06]" />
-                <span className="text-[#5a5248] text-[9px] tracking-[0.2em] uppercase" style={{ fontFamily: "Inter, sans-serif" }}>or</span>
-                <div className="flex-1 h-px bg-white/[0.06]" />
+              <div className="flex items-center gap-4 my-1">
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
+                <span
+                  style={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: '8px',
+                    letterSpacing: '0.25em',
+                    textTransform: 'uppercase',
+                    color: '#4a4038',
+                  }}
+                >
+                  or
+                </span>
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
               </div>
             )}
 
@@ -259,7 +335,11 @@ const Auth = ({ initialView }: AuthProps) => {
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
-                className="flex items-center justify-center gap-2.5 w-full h-11 rounded-xl border border-[#ffffff0a] bg-[#1a1816]/40 hover:bg-[#1a1816]/60 transition-colors"
+                className="flex items-center justify-center gap-3 w-full h-12 rounded-xl transition-colors duration-200 hover:brightness-110"
+                style={{
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  background: 'rgba(26,24,22,0.35)',
+                }}
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -267,16 +347,31 @@ const Auth = ({ initialView }: AuthProps) => {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
-                <span className="text-[11px] text-[#F5F0E8]/60 tracking-wide" style={{ fontFamily: "Inter, sans-serif" }}>Continue with Google</span>
+                <span
+                  style={{
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: '11px',
+                    color: 'rgba(245,240,232,0.50)',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  Continue with Google
+                </span>
               </button>
             )}
           </form>
         </div>
 
-        {/* Bottom tagline */}
+        {/* Bottom whisper */}
         <p
-          className="mt-8 text-[#F5F0E8]/15 text-[9px] tracking-[0.3em] uppercase animate-[fade-in_1s_ease-out_0.6s_forwards] opacity-0"
-          style={{ fontFamily: "Inter, sans-serif" }}
+          className="mt-12 animate-[fade-in_1.2s_ease-out_0.8s_forwards] opacity-0"
+          style={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: '8px',
+            letterSpacing: '0.4em',
+            textTransform: 'uppercase',
+            color: 'rgba(245,240,232,0.10)',
+          }}
         >
           Luxury Photography Platform
         </p>

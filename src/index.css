@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,54 +6,54 @@
 
 @layer base {
   :root {
-    /* Warm cream background — #F2EDE6 */
+    /* Canvas — warm cream #F2EDE6 */
     --background: 30 25% 93%;
-    /* Rich warm brown text — #2C2118 */
+    /* Rich warm brown — #2C2118 */
     --foreground: 18 33% 14%;
 
     /* Surface — #F5F0EA */
     --card: 30 28% 94%;
     --card-foreground: 18 33% 14%;
 
-    /* Surface — #F5F0EA */
+    /* Popover — #F5F0EA */
     --popover: 30 28% 94%;
     --popover-foreground: 18 33% 14%;
 
-    /* Button dark — #2C2118 */
+    /* Buttons — #2C2118 */
     --primary: 18 33% 14%;
     --primary-foreground: 30 25% 96%;
 
-    /* Cards muted — #EDE7DC */
+    /* Muted cards — #EDE7DC */
     --secondary: 33 28% 89%;
     --secondary-foreground: 18 33% 14%;
 
     /* Muted surface — #EDE7DC */
     --muted: 33 28% 89%;
-    /* Warm secondary text — #8B7355 */
+    /* Warm secondary — #8B7355 */
     --muted-foreground: 28 27% 44%;
 
-    /* Accent — warm brown */
+    /* Accent surface */
     --accent: 33 28% 89%;
     --accent-foreground: 18 33% 14%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders — warm subtle */
-    --border: 30 20% 86%;
-    --input: 30 20% 86%;
+    /* Borders — warm hairline */
+    --border: 30 18% 87%;
+    --input: 30 18% 87%;
     --ring: 28 27% 44%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
     /* Sidebar — editorial dark */
-    --sidebar-background: 20 20% 8%;
+    --sidebar-background: 20 22% 7%;
     --sidebar-foreground: 30 25% 93%;
     --sidebar-primary: 28 27% 44%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 20 18% 12%;
+    --sidebar-accent: 20 18% 11%;
     --sidebar-accent-foreground: 30 25% 93%;
-    --sidebar-border: 20 12% 16%;
+    --sidebar-border: 20 12% 14%;
     --sidebar-ring: 28 27% 44%;
 
     --gold: 28 27% 44%;
@@ -61,32 +61,32 @@
   }
 
   .dark {
-    --background: 20 20% 8%;
+    --background: 20 22% 7%;
     --foreground: 30 25% 93%;
-    --card: 20 18% 11%;
+    --card: 20 18% 10%;
     --card-foreground: 30 25% 93%;
-    --popover: 20 18% 11%;
+    --popover: 20 18% 10%;
     --popover-foreground: 30 25% 93%;
     --primary: 30 25% 93%;
     --primary-foreground: 20 20% 8%;
-    --secondary: 20 14% 16%;
+    --secondary: 20 14% 14%;
     --secondary-foreground: 30 25% 93%;
-    --muted: 20 14% 16%;
-    --muted-foreground: 28 18% 52%;
-    --accent: 20 14% 16%;
+    --muted: 20 14% 14%;
+    --muted-foreground: 28 18% 50%;
+    --accent: 20 14% 14%;
     --accent-foreground: 30 25% 93%;
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
-    --border: 20 12% 16%;
-    --input: 20 12% 16%;
+    --border: 20 12% 14%;
+    --input: 20 12% 14%;
     --ring: 28 27% 44%;
-    --sidebar-background: 20 22% 5%;
+    --sidebar-background: 20 24% 4%;
     --sidebar-foreground: 30 25% 93%;
     --sidebar-primary: 28 27% 44%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 20 20% 9%;
+    --sidebar-accent: 20 20% 8%;
     --sidebar-accent-foreground: 30 25% 93%;
-    --sidebar-border: 20 12% 12%;
+    --sidebar-border: 20 12% 10%;
     --sidebar-ring: 28 27% 44%;
     --gold: 28 27% 44%;
     --gold-hover: 28 30% 36%;
@@ -99,7 +99,9 @@
   }
 
   html, body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     width: 100%;
@@ -114,14 +116,14 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cormorant Garamond', serif;
-    letter-spacing: 0.02em;
+    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+    letter-spacing: 0.03em;
     font-weight: 400;
   }
 
   /* Editorial thin scrollbar */
   ::-webkit-scrollbar {
-    width: 4px;
+    width: 3px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
@@ -131,13 +133,19 @@
     border-radius: 2px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.25);
+    background: hsl(var(--muted-foreground) / 0.2);
   }
 }
 
 @layer components {
   /* Editorial button base */
   .btn-editorial {
-    @apply uppercase tracking-[0.14em] text-[11px] font-medium px-6 py-3 rounded-lg transition-all duration-200;
+    @apply uppercase tracking-[0.16em] text-[10px] font-medium px-7 py-3.5 rounded-lg transition-all duration-200;
   }
+}
+
+/* Fade-in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
