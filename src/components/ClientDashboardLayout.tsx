@@ -137,7 +137,7 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Main content */}
-      <main className="lg:ml-[240px] pt-16 pb-20 lg:pb-0">
+      <main className="lg:ml-[240px] pt-16 pb-28 lg:pb-0">
         <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
           {children}
         </div>
