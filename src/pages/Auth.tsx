@@ -104,7 +104,6 @@ const Auth = ({ initialView }: AuthProps) => {
 
   return (
     <div className="fixed inset-0 overflow-hidden w-screen bg-[hsl(20,22%,5%)]">
-      {/* Layer 1: Cinematic blur fill */}
       <div
         className="absolute inset-0"
         style={{
@@ -115,8 +114,6 @@ const Auth = ({ initialView }: AuthProps) => {
           transform: "scale(1.25) translateZ(0)",
         }}
       />
-
-      {/* Layer 2: Foreground photograph */}
       <div className="absolute inset-0 flex items-center justify-center">
         <img
           src="/images/login-bg.png"
@@ -131,24 +128,16 @@ const Auth = ({ initialView }: AuthProps) => {
           }}
         />
       </div>
-
-      {/* Layer 3: Dark luxury overlay */}
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.40)" }} />
-
-      {/* Layer 4: Subtle vignette */}
       <div
         className="absolute inset-0"
         style={{
           background: "radial-gradient(ellipse at center, transparent 50%, rgba(10,9,8,0.30) 100%)",
         }}
       />
-
-      {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
-        {/* Auth card */}
         <div
           className="w-full max-w-[380px] flex flex-col gap-6 p-9 sm:p-10"
-          data-revealed={revealed}
           style={{
             background: "rgba(44, 33, 24, 0.45)",
             backdropFilter: "blur(12px)",
@@ -162,7 +151,6 @@ const Auth = ({ initialView }: AuthProps) => {
             willChange: "opacity, transform",
           }}
         >
-          {/* Brand */}
           <div className="text-center mb-2">
             <h1
               style={{
@@ -191,11 +179,7 @@ const Auth = ({ initialView }: AuthProps) => {
               The Art Gallery
             </p>
           </div>
-
-          {/* Separator */}
           <div className="h-px w-12 mx-auto" style={{ background: "rgba(255,255,255,0.06)" }} />
-
-          {/* Card heading */}
           <p
             className="text-center"
             style={{
@@ -209,7 +193,6 @@ const Auth = ({ initialView }: AuthProps) => {
           >
             {isLogin ? "Welcome Back" : "Create Account"}
           </p>
-
           {error && (
             <div
               className="px-4 py-2.5 rounded-lg"
@@ -225,9 +208,7 @@ const Auth = ({ initialView }: AuthProps) => {
               {error}
             </div>
           )}
-
           <form onSubmit={isLogin ? handleLogin : handleSignup} className="flex flex-col gap-4">
-            {/* Email or Phone */}
             <div
               className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
               style={{
@@ -256,8 +237,6 @@ const Auth = ({ initialView }: AuthProps) => {
                 }}
               />
             </div>
-
-            {/* Password */}
             <div
               className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
               style={{
@@ -287,8 +266,6 @@ const Auth = ({ initialView }: AuthProps) => {
                 }}
               />
             </div>
-
-            {/* Links */}
             <div className="flex items-center justify-between pt-0.5">
               <button
                 type="button"
@@ -341,8 +318,6 @@ const Auth = ({ initialView }: AuthProps) => {
                 </button>
               )}
             </div>
-
-            {/* Submit */}
             <button
               type="submit"
               disabled={submitting}
@@ -361,8 +336,6 @@ const Auth = ({ initialView }: AuthProps) => {
             </button>
           </form>
         </div>
-
-        {/* Bottom whisper */}
         <p
           className="mt-14"
           style={{
@@ -381,3 +354,5 @@ const Auth = ({ initialView }: AuthProps) => {
     </div>
   );
 };
+
+export default Auth;
