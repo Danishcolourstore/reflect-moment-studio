@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -18,6 +18,12 @@ const Auth = ({ initialView }: AuthProps) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setRevealed(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -99,8 +105,14 @@ const Auth = ({ initialView }: AuthProps) => {
         }}
       />
 
-      {/* Layer 2: Foreground photograph — object-fit: contain, never crop */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Layer 2: Foreground photograph — starts sharp, blurs on reveal */}
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          filter: revealed ? "blur(18px)" : "blur(0px)",
+          transition: "filter 2.5s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
         <img
           src="/images/login-bg.png"
           alt=""
@@ -128,7 +140,8 @@ const Auth = ({ initialView }: AuthProps) => {
 
         {/* Auth card — frosted glass */}
         <div
-          className="w-full max-w-[380px] flex flex-col gap-6 p-9 sm:p-10 animate-[fade-in_1s_ease-out_forwards]"
+          className="w-full max-w-[380px] flex flex-col gap-6 p-9 sm:p-10"
+          data-revealed={revealed}
           style={{
             background: "rgba(44, 33, 24, 0.45)",
             backdropFilter: "blur(12px)",
@@ -136,6 +149,9 @@ const Auth = ({ initialView }: AuthProps) => {
             borderRadius: "16px",
             border: "1px solid rgba(255, 255, 255, 0.08)",
             boxShadow: "0 32px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
+            opacity: revealed ? 1 : 0,
+            transform: revealed ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
+            transition: "opacity 2.2s cubic-bezier(0.4, 0, 0.2, 1), transform 2.2s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           {/* Brand */}
@@ -321,13 +337,15 @@ const Auth = ({ initialView }: AuthProps) => {
 
         {/* Bottom whisper */}
         <p
-          className="mt-14 animate-[fade-in_1.2s_ease-out_0.8s_forwards] opacity-0"
+          className="mt-14"
           style={{
             fontFamily: "Inter, sans-serif",
             fontSize: '7px',
             letterSpacing: '0.45em',
             textTransform: 'uppercase',
             color: 'rgba(232,226,218,0.08)',
+            opacity: revealed ? 1 : 0,
+            transition: 'opacity 2s cubic-bezier(0.4,0,0.2,1) 0.5s',
           }}
         >
           Private Photography Platform
