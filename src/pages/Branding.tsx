@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ const FONT_STYLES = [
 
 const Branding = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [studioName, setStudioName] = useState('');
   const [tagline, setTagline] = useState('');
   const [bio, setBio] = useState('');
@@ -116,7 +118,12 @@ const Branding = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-2xl font-semibold text-foreground mb-8">Brand Studio</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="font-serif text-2xl font-semibold text-foreground">Brand Studio</h1>
+        <Button onClick={() => navigate('/dashboard/branding/editor')} variant="outline" size="sm" className="text-[11px] uppercase tracking-wider h-9">
+          Mobile Editor
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Form */}
