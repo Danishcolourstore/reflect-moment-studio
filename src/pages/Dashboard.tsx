@@ -103,10 +103,10 @@ const Dashboard = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
-          <EditorialStatCard icon={Camera} label="Events" value={events.length} />
-          <EditorialStatCard icon={Image} label="Photos" value={totalPhotos} />
-          <EditorialStatCard icon={Eye} label="Views" value={totalViews} />
-          <EditorialStatCard icon={Download} label="Downloads" value={totalDownloads} />
+          <EditorialStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
+          <EditorialStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
+          <EditorialStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
+          <EditorialStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/analytics')} />
         </div>
       )}
 
@@ -187,9 +187,15 @@ const Dashboard = () => {
   );
 };
 
-function EditorialStatCard({ icon: Icon, label, value }: { icon: any; label: string; value: number | string }) {
+function EditorialStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
   return (
-    <div className="py-6 px-1">
+    <div
+      className="py-6 px-1 cursor-pointer min-h-[44px] active:scale-[0.97] transition-transform duration-150"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') onClick?.(); }}
+    >
       <div className="flex items-center gap-2 mb-4">
         <Icon className="h-3.5 w-3.5 text-muted-foreground/20" strokeWidth={1.5} />
         <p className="editorial-label">{label}</p>
