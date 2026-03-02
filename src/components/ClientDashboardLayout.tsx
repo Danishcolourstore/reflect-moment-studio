@@ -40,7 +40,9 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [clientName, setClientName] = useState('');
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem('andhakaar-mode') === 'on' || localStorage.getItem('theme') === 'dark';
+  });
   const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
@@ -53,9 +55,12 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
       });
   }, [user]);
 
-  const toggleDark = () => {
-    document.documentElement.classList.toggle('dark');
-    setDark(!dark);
+  const toggleAndhakaar = () => {
+    const next = !dark;
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    setDark(next);
   };
 
   const initials = clientName?.slice(0, 2).toUpperCase() || 'CL';
@@ -113,7 +118,7 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
       <header className="fixed top-0 right-0 left-0 lg:left-[240px] z-20 h-16 bg-card border-b border-border flex items-center justify-between px-5 lg:px-8">
         <h2 className="font-serif text-xl font-semibold text-foreground">{currentTitle}</h2>
         <div className="flex items-center gap-1.5">
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={toggleDark}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={toggleAndhakaar}>
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
           <DropdownMenu>

@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
@@ -59,17 +59,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [dark, setDark] = useState(() => {
+    const ak = localStorage.getItem('andhakaar-mode');
     const saved = localStorage.getItem('theme');
-    if (saved === 'dark') {
+    if (ak === 'on' || saved === 'dark') {
       document.documentElement.classList.add('dark');
       return true;
-    } else if (saved === 'light') {
-      document.documentElement.classList.remove('dark');
-      return false;
     }
-    return document.documentElement.classList.contains('dark');
+    document.documentElement.classList.remove('dark');
+    return false;
   });
   const [moreOpen, setMoreOpen] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const storage = useStorageUsage();
 
   useEffect(() => {
@@ -87,12 +87,26 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       });
   }, [user, location.pathname, navigate]);
 
-  const toggleDark = () => {
+  const toggleAndhakaar = useCallback(() => {
     const next = !dark;
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('theme', next ? 'dark' : 'light');
-    setDark(next);
-  };
+    // Cinematic fade-to-black transition
+    const overlay = overlayRef.current;
+    if (overlay) {
+      overlay.classList.add('active');
+      setTimeout(() => {
+        document.documentElement.classList.toggle('dark', next);
+        localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
+        localStorage.setItem('theme', next ? 'dark' : 'light');
+        setDark(next);
+        setTimeout(() => overlay.classList.remove('active'), 100);
+      }, 400);
+    } else {
+      document.documentElement.classList.toggle('dark', next);
+      localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+      setDark(next);
+    }
+  }, [dark]);
 
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MS';
   const currentTitle = Object.entries(PAGE_TITLES).find(([path]) => {
@@ -112,6 +126,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* ANDHAKAAR cinematic transition overlay */}
+      <div ref={overlayRef} className="andhakaar-overlay" />
       {/* Desktop Sidebar */}
       <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border bg-sidebar">
         {/* Brand */}
@@ -210,9 +226,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 h-14 flex items-center justify-between px-6 lg:px-10 bg-card border-b border-border">
         <h2 className="text-foreground font-serif" style={{ fontWeight: 300, fontSize: '22px', letterSpacing: '0.04em' }}>{currentTitle}</h2>
         <div className="flex items-center gap-2.5">
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/30 hover:text-foreground" onClick={toggleDark}>
-            {dark ? <Sun className="h-4 w-4" strokeWidth={1.3} /> : <Moon className="h-4 w-4" strokeWidth={1.3} />}
-          </Button>
+          <button
+            onClick={toggleAndhakaar}
+            className="flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all duration-300 hover:bg-accent/40"
+          >
+            <Moon className={`h-4 w-4 transition-all duration-300 ${dark ? 'text-foreground andhakaar-glow' : 'text-muted-foreground/30'}`} strokeWidth={1.3} />
+            <span
+              className={`hidden sm:inline transition-all duration-300 ${dark ? 'text-foreground andhakaar-glow' : 'text-foreground'}`}
+              style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase' }}
+            >
+              Andhakaar
+            </span>
+          </button>
           <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
