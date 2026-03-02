@@ -101,39 +101,39 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col bg-sidebar text-sidebar-foreground lg:flex border-r border-sidebar-border">
+      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border" style={{ backgroundColor: '#EFEAE3' }}>
         {/* Brand */}
         <div className="px-7 pt-9 pb-6">
           <h1
-            className="text-sidebar-foreground/90"
+            className="text-foreground"
             style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', serif", fontSize: '1.5rem', fontWeight: 300, letterSpacing: '0.12em' }}
           >
             MirrorAI
           </h1>
-          <p className="text-sidebar-foreground/15 mt-1.5" style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.35em', textTransform: 'uppercase' }}>
+          <p className="text-muted-foreground mt-1.5" style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.35em', textTransform: 'uppercase' }}>
             The Art Gallery
           </p>
         </div>
 
-        <div className="mx-6 h-px bg-sidebar-border/50" />
+        <div className="mx-6 h-px bg-border" />
 
         {/* Profile */}
         <div className="px-6 py-7 flex flex-col items-center text-center">
-          <Avatar className="h-14 w-14 mb-3.5 ring-1 ring-sidebar-border/30">
+          <Avatar className="h-14 w-14 mb-3.5 ring-1 ring-border">
             <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground/50 text-xs" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{initials}</AvatarFallback>
+            <AvatarFallback className="bg-accent text-muted-foreground text-xs" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{initials}</AvatarFallback>
           </Avatar>
-          <p className="text-sm text-sidebar-foreground/65 leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.04em' }}>
+          <p className="text-sm text-foreground leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.04em' }}>
             {user?.user_metadata?.full_name || profile?.email?.split('@')[0] || 'Photographer'}
           </p>
-          <p className="mt-1.5 truncate max-w-full" style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'hsl(var(--sidebar-foreground) / 0.15)' }}>
+          <p className="mt-1.5 truncate max-w-full" style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#9A948A' }}>
             {profile?.studio_name || 'My Studio'}
           </p>
           <Badge variant="secondary"
             className={`mt-3 px-3 py-0.5 ${
               profile?.plan === 'pro'
-                ? 'bg-sidebar-primary/10 text-sidebar-primary border-sidebar-primary/12'
-                : 'bg-sidebar-accent text-sidebar-foreground/30 border-sidebar-border/40'
+                ? 'bg-foreground/8 text-foreground border-foreground/12'
+                : 'bg-accent text-muted-foreground border-border'
             }`}
             style={{ fontSize: '7px', letterSpacing: '0.16em', textTransform: 'uppercase' }}
           >
@@ -141,17 +141,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </Badge>
         </div>
 
-        <div className="mx-6 h-px bg-sidebar-border/50" />
+        <div className="mx-6 h-px bg-border" />
 
         {/* Navigation */}
         <nav className="flex-1 px-4 pt-6 space-y-0.5 overflow-y-auto">
           {NAV_ITEMS.map((item) => (
             <NavLink key={item.url} to={item.url} end={item.end}
-              className="flex items-center gap-3.5 px-4 py-2.5 text-sidebar-foreground/30 transition-all duration-200 hover:text-sidebar-foreground/55 rounded-xl border-l-2 border-transparent"
-              activeClassName="text-sidebar-foreground/80 bg-sidebar-accent/60 border-l-2 !border-sidebar-primary/60"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 400, fontSize: '11px', letterSpacing: '0.06em' }}
+              className="flex items-center gap-3.5 px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-foreground rounded-xl border-l-2 border-transparent"
+              activeClassName="text-foreground bg-accent/60 border-l-2 !border-foreground"
+              style={{ fontFamily: "Inter, sans-serif", fontWeight: 300, fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase' as const }}
             >
-              <item.icon className="h-[14px] w-[14px]" strokeWidth={1.3} />
+              <item.icon className="h-[14px] w-[14px]" strokeWidth={1.3} style={{ color: '#9A948A' }} />
               <span>{item.title}</span>
             </NavLink>
           ))}
@@ -160,49 +160,47 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Upgrade */}
         <div className="px-5 pb-3 pt-4">
           {profile?.plan !== 'pro' ? (
-            <div className="bg-sidebar-accent/40 rounded-xl p-5">
-              <p className="text-[12px] text-sidebar-foreground/55" style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.04em' }}>Upgrade to Pro</p>
-              <p className="mt-1.5" style={{ fontFamily: "Inter, sans-serif", fontSize: '8px', letterSpacing: '0.14em', color: 'hsl(var(--sidebar-foreground) / 0.18)' }}>Unlimited events & storage</p>
-              <Button size="sm" className="mt-3.5 w-full h-8 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/80 rounded-lg" style={{ fontSize: '8px', letterSpacing: '0.2em' }}>
+            <div className="bg-accent/40 rounded-xl p-5">
+              <p className="text-[12px] text-foreground" style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.04em' }}>Upgrade to Pro</p>
+              <p className="mt-1.5" style={{ fontFamily: "Inter, sans-serif", fontSize: '8px', letterSpacing: '0.14em', color: '#9A948A' }}>Unlimited events & storage</p>
+              <Button size="sm" className="mt-3.5 w-full h-8 bg-foreground text-primary-foreground hover:bg-[#1A1A1A] rounded-lg" style={{ fontSize: '8px', letterSpacing: '0.2em' }}>
                 Upgrade
               </Button>
             </div>
           ) : (
             <div className="flex items-center gap-2.5 px-3 py-2.5">
               <div className="h-1.5 w-1.5 rounded-full bg-green-500/50" />
-              <span style={{ fontFamily: "Inter, sans-serif", fontSize: '9px', letterSpacing: '0.12em', color: 'hsl(var(--sidebar-foreground) / 0.3)' }}>Pro Active</span>
+              <span style={{ fontFamily: "Inter, sans-serif", fontSize: '9px', letterSpacing: '0.12em', color: '#7A7A7A' }}>Pro Active</span>
             </div>
           )}
         </div>
 
         {/* Storage */}
         <div className="px-5 pb-6">
-          <p className="mb-2.5" style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'hsl(var(--sidebar-foreground) / 0.15)', fontWeight: 500 }}>Storage</p>
-          <p style={{ fontFamily: "Inter, sans-serif", fontSize: '10px', color: 'hsl(var(--sidebar-foreground) / 0.4)' }}>
-            {formatBytes(storageUsed)} <span style={{ color: 'hsl(var(--sidebar-foreground) / 0.15)' }}>of {formatBytes(storageLimit)}</span>
+          <p className="mb-2.5" style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#9A948A', fontWeight: 300 }}>Storage</p>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: '10px', color: '#7A7A7A' }}>
+            {formatBytes(storageUsed)} <span style={{ color: '#9A948A' }}>of {formatBytes(storageLimit)}</span>
           </p>
-          <div className="mt-2.5 h-[2px] w-full rounded-full bg-sidebar-border/50 overflow-hidden">
-            <div className={`h-full rounded-full transition-all ${storageColor || 'bg-sidebar-primary/40'}`}
+          <div className="mt-2.5 h-[2px] w-full rounded-full bg-border overflow-hidden">
+            <div className={`h-full rounded-full transition-all ${storageColor || 'bg-foreground/30'}`}
               style={{ width: `${storagePct}%` }} />
           </div>
           {storagePct >= 80 && storagePct < 100 && (
             <p className="mt-1.5" style={{ fontSize: '7px', color: 'hsl(45 90% 55% / 0.5)' }}>Almost full</p>
           )}
           {profile?.plan !== 'pro' && (
-            <button onClick={() => navigate('/dashboard/profile')} className="mt-1.5 hover:underline" style={{ fontSize: '7px', color: 'hsl(var(--sidebar-primary) / 0.5)', letterSpacing: '0.08em' }}>Upgrade for more</button>
+            <button onClick={() => navigate('/dashboard/profile')} className="mt-1.5 hover:underline" style={{ fontSize: '7px', color: '#7A7A7A', letterSpacing: '0.08em' }}>Upgrade for more</button>
           )}
         </div>
       </aside>
 
       {/* Floating Header — translucent, minimal */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 h-16 flex items-center justify-between px-6 lg:px-10"
+      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 h-14 flex items-center justify-between px-6 lg:px-10"
         style={{
-          background: 'hsl(var(--background) / 0.92)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid hsl(var(--border) / 0.25)',
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E7E2DA',
         }}>
-        <h2 className="text-lg text-foreground font-serif" style={{ fontWeight: 300, letterSpacing: '0.04em' }}>{currentTitle}</h2>
+        <h2 className="text-foreground font-serif" style={{ fontWeight: 300, fontSize: '22px', letterSpacing: '0.04em' }}>{currentTitle}</h2>
         <div className="flex items-center gap-2.5">
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/30 hover:text-foreground" onClick={toggleDark}>
             {dark ? <Sun className="h-4 w-4" strokeWidth={1.3} /> : <Moon className="h-4 w-4" strokeWidth={1.3} />}
@@ -230,8 +228,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Main content */}
-      <main className="lg:ml-[260px] pt-16 pb-28 lg:pb-0">
-        <div className="mx-auto max-w-[1100px] px-5 py-14 sm:px-8 lg:px-10">
+      <main className="lg:ml-[260px] pt-14 pb-28 lg:pb-0">
+        <div className="mx-auto max-w-[1100px] px-5 py-12 sm:px-8 lg:px-10">
           {children}
         </div>
       </main>
