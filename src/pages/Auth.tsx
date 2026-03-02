@@ -130,6 +130,19 @@ const Auth = ({ initialView }: AuthProps) => {
             >
               The Art Gallery
             </p>
+            <p
+              className="mt-2"
+              style={{
+                fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                fontSize: "11px",
+                fontStyle: "italic",
+                fontWeight: 300,
+                color: "rgba(232,226,218,0.45)",
+                letterSpacing: "0.18em",
+              }}
+            >
+              Mirror never lies
+            </p>
           </div>
           <div className="h-px w-12 mx-auto" style={{ background: "rgba(255,255,255,0.06)" }} />
           <p
