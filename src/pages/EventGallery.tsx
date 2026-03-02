@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ShareModal } from '@/components/ShareModal';
@@ -109,8 +110,15 @@ const EventGallery = () => {
 
   const fetchPhotos = useCallback(async () => {
     if (!id) return;
+    // Try session cache first
+    const cached = getCachedPhotos<Photo[]>(id);
+    if (cached) { setPhotos(cached); return; }
     const { data } = await (supabase.from('photos').select('*') as any).eq('event_id', id).order('sort_order', { ascending: true, nullsFirst: false });
-    if (data) setPhotos(data as unknown as Photo[]);
+    if (data) {
+      const typedPhotos = data as unknown as Photo[];
+      setPhotos(typedPhotos);
+      setCachedPhotos(id, typedPhotos);
+    }
   }, [id]);
 
   const fetchFavStats = useCallback(async () => {
@@ -131,6 +139,7 @@ const EventGallery = () => {
   // Refresh photos & show success toast when upload completes
   useEffect(() => {
     if (upload.isDone) {
+      if (id) invalidatePhotoCache(id);
       fetchPhotos();
       fetchEvent();
       if (upload.successCount > 0 && upload.failedFiles.length === 0) {
@@ -140,11 +149,12 @@ const EventGallery = () => {
         });
       }
     }
-  }, [upload.isDone, upload.successCount, upload.failedFiles.length, fetchPhotos, fetchEvent, toast]);
+  }, [upload.isDone, upload.successCount, upload.failedFiles.length, fetchPhotos, fetchEvent, toast, id]);
 
   // Refresh when ZIP upload completes
   useEffect(() => {
     if (zipUpload.isDone) {
+      if (id) invalidatePhotoCache(id);
       fetchPhotos();
       fetchEvent();
       if (zipUpload.successCount > 0) {
@@ -156,7 +166,7 @@ const EventGallery = () => {
         });
       }
     }
-  }, [zipUpload.isDone, zipUpload.successCount, zipUpload.failedCount, fetchPhotos, fetchEvent, toast]);
+  }, [zipUpload.isDone, zipUpload.successCount, zipUpload.failedCount, fetchPhotos, fetchEvent, toast, id]);
 
   // Show ZIP error toast
   useEffect(() => {
@@ -180,6 +190,7 @@ const EventGallery = () => {
 
   const deletePhoto = async (photo: Photo) => {
     await supabase.from('photos').delete().eq('id', photo.id);
+    if (id) invalidatePhotoCache(id);
     fetchPhotos();
     fetchEvent();
   };
