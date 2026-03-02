@@ -293,15 +293,16 @@ const Auth = ({ initialView }: AuthProps) => {
           className="mt-14"
           style={{
             fontFamily: "Inter, sans-serif",
-            fontSize: "7px",
+            fontSize: "9px",
+            fontWeight: 700,
             letterSpacing: "0.45em",
             textTransform: "uppercase",
-            color: "rgba(232,226,218,0.08)",
+            color: "rgba(255,255,255,0.7)",
             opacity: revealed ? 1 : 0,
             transition: "opacity 2s cubic-bezier(0.4,0,0.2,1) 0.5s",
           }}
         >
-          Private Photography Platform
+          Colour Store Preset Universe
         </p>
       </div>
     </div>

@@ -231,6 +231,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <main className="lg:ml-[260px] pt-14 pb-28 lg:pb-0">
         <div className="mx-auto max-w-[1100px] px-5 py-12 sm:px-8 lg:px-10">
           {children}
+
+          {/* Dashboard footer branding */}
+          <div className="mt-16 pb-8 text-center">
+            <p
+              style={{
+                fontFamily: "Inter, sans-serif",
+                fontSize: "9px",
+                fontWeight: 700,
+                letterSpacing: "0.45em",
+                textTransform: "uppercase",
+                color: "#9A948A",
+              }}
+            >
+              Colour Store Preset Universe
+            </p>
+          </div>
         </div>
       </main>
 
