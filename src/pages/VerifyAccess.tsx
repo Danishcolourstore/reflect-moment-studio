@@ -147,11 +147,30 @@ export default function VerifyAccess() {
         </CardHeader>
         <CardContent className="space-y-6">
           {!isLocked && (
-            <OtpInput
-              length={6}
-              onComplete={handleVerify}
-              disabled={verifying}
-            />
+            <>
+              <div className="flex gap-3">
+                <a href="tel:+919605761589" className="flex-1">
+                  <Button variant="outline" className="w-full text-xs gap-1.5">
+                    <span>📞</span> Call Danish
+                  </Button>
+                </a>
+                <a
+                  href="https://wa.me/919605761589?text=Hi%20Danish%2C%20I%20just%20logged%20into%20MirrorAI%20and%20need%20the%20access%20PIN%20to%20continue."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1"
+                >
+                  <Button variant="outline" className="w-full text-xs gap-1.5">
+                    <span>💬</span> WhatsApp Danish
+                  </Button>
+                </a>
+              </div>
+              <OtpInput
+                length={6}
+                onComplete={handleVerify}
+                disabled={verifying}
+              />
+            </>
           )}
 
           {error && (
