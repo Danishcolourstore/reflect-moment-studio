@@ -9,8 +9,8 @@ interface AuthProps {
 
 const Auth = ({ initialView }: AuthProps) => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("test@mirroraigallery.com");
-  const [password, setPassword] = useState("Test@1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
