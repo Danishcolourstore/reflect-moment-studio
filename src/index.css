@@ -67,39 +67,45 @@
   }
 
   .dark {
-    /* Background: #0a0a0a */
-    --background: 0 0% 4%;
+    /* ANDHAKAAR — Primary background: #0d0d0d */
+    --background: 0 0% 5%;
+    /* Primary text: #f0f0f0 */
     --foreground: 0 0% 94%;
-    /* Card: #1a1a1a */
+    /* Cards: #1a1a1a */
     --card: 0 0% 10%;
     --card-foreground: 0 0% 94%;
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 94%;
-    --primary: 0 0% 94%;
+    /* Buttons bg: #d4d0c8, text: #1a1a1a */
+    --primary: 40 8% 80%;
     --primary-foreground: 0 0% 10%;
-    /* Secondary: #1c1c1c */
-    --secondary: 0 0% 11%;
+    /* Tertiary: #2e2e2e */
+    --secondary: 0 0% 18%;
     --secondary-foreground: 0 0% 94%;
-    --muted: 0 0% 11%;
-    /* Subtext: #888 */
-    --muted-foreground: 0 0% 53%;
-    --accent: 0 0% 14%;
+    --muted: 0 0% 18%;
+    /* Secondary text: #888880 */
+    --muted-foreground: 40 2% 52%;
+    /* Tertiary sections */
+    --accent: 0 0% 18%;
     --accent-foreground: 0 0% 94%;
     --destructive: 13 46% 40%;
     --destructive-foreground: 0 0% 100%;
-    /* Border: #2a2a2a */
+    /* Card borders: #2a2a2a */
     --border: 0 0% 16%;
-    --input: 0 0% 16%;
-    --ring: 0 0% 40%;
-    /* Nav/Header: #0f0f0f */
-    --sidebar-background: 0 0% 6%;
+    --input: 0 0% 10%;
+    /* Button borders: #a0a09a */
+    --ring: 43 2% 61%;
+    /* Navigation: #0d0d0d */
+    --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 94%;
-    --sidebar-primary: 0 0% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    /* Active nav icons: #f0f0f0 */
+    --sidebar-primary: 0 0% 94%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    /* Inactive nav icons: #666660 */
     --sidebar-accent: 0 0% 10%;
     --sidebar-accent-foreground: 0 0% 94%;
     --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 0 0% 40%;
+    --sidebar-ring: 43 2% 61%;
     --gold: 37 7% 57%;
     --gold-hover: 37 10% 50%;
     --overlay-tint: 30 20% 69%;
@@ -205,4 +211,28 @@
 @keyframes kenBurns {
   0% { transform: scale(1); }
   100% { transform: scale(1.08); }
+}
+
+/* ANDHAKAAR cinematic transition overlay */
+.andhakaar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0d0d0d;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.andhakaar-overlay.active {
+  opacity: 1;
+}
+
+/* ANDHAKAAR glow effect */
+.andhakaar-glow {
+  text-shadow: 0 0 12px rgba(255,255,255,0.5);
+}
+
+/* Smooth theme transitions */
+html.theme-transitioning * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
 }
