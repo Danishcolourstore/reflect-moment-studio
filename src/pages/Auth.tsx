@@ -117,33 +117,19 @@ const Auth = ({ initialView }: AuthProps) => {
               MirrorAI
             </h1>
             <p
-              className="mt-3"
+              className="mt-2"
               style={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "9px",
-                fontWeight: 400,
-                color: "#E8E2DA",
-                letterSpacing: "0.35em",
-                textTransform: "uppercase",
-                opacity: 0.5,
+                fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+                fontSize: "13px",
+                fontStyle: "italic",
+                fontWeight: 300,
+                color: "rgba(255,255,255,0.55)",
+                letterSpacing: "0.1em",
               }}
             >
-              The Art Gallery
+              Mirror never lies
             </p>
           </div>
-          <p
-            className="text-center"
-            style={{
-              fontFamily: "Inter, sans-serif",
-              fontSize: "8px",
-              fontWeight: 400,
-              color: "rgba(232,226,218,0.35)",
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-            }}
-          >
-            {isLogin ? "Welcome Back" : "Create Account"}
-          </p>
           {error && (
             <div
               className="px-4 py-2.5 rounded-lg"

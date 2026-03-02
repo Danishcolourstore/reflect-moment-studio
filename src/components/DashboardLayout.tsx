@@ -110,8 +110,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           >
             MirrorAI
           </h1>
-          <p className="text-muted-foreground mt-1.5" style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.35em', textTransform: 'uppercase' }}>
-            The Art Gallery
+          <p className="text-muted-foreground mt-1.5" style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', serif", fontSize: '10px', fontStyle: 'italic', fontWeight: 300, letterSpacing: '0.1em' }}>
+            Mirror never lies
           </p>
         </div>
 
