@@ -58,7 +58,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark') {
+      document.documentElement.classList.add('dark');
+      return true;
+    } else if (saved === 'light') {
+      document.documentElement.classList.remove('dark');
+      return false;
+    }
+    return document.documentElement.classList.contains('dark');
+  });
   const [moreOpen, setMoreOpen] = useState(false);
   const storage = useStorageUsage();
 
@@ -78,8 +88,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   }, [user, location.pathname, navigate]);
 
   const toggleDark = () => {
-    document.documentElement.classList.toggle('dark');
-    setDark(!dark);
+    const next = !dark;
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    setDark(next);
   };
 
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MS';
@@ -101,7 +113,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border" style={{ backgroundColor: '#EFEAE3' }}>
+      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border bg-sidebar">
         {/* Brand */}
         <div className="px-7 pt-9 pb-6">
           <h1
@@ -195,11 +207,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Floating Header — translucent, minimal */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 h-14 flex items-center justify-between px-6 lg:px-10"
-        style={{
-          background: '#FFFFFF',
-          borderBottom: '1px solid #E7E2DA',
-        }}>
+      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 h-14 flex items-center justify-between px-6 lg:px-10 bg-card border-b border-border">
         <h2 className="text-foreground font-serif" style={{ fontWeight: 300, fontSize: '22px', letterSpacing: '0.04em' }}>{currentTitle}</h2>
         <div className="flex items-center gap-2.5">
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/30 hover:text-foreground" onClick={toggleDark}>
