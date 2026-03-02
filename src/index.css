@@ -67,33 +67,39 @@
   }
 
   .dark {
-    --background: 0 0% 7%;
-    --foreground: 37 22% 94%;
+    /* Background: #0a0a0a */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 94%;
+    /* Card: #1a1a1a */
     --card: 0 0% 10%;
-    --card-foreground: 37 22% 94%;
+    --card-foreground: 0 0% 94%;
     --popover: 0 0% 10%;
-    --popover-foreground: 37 22% 94%;
-    --primary: 37 22% 94%;
+    --popover-foreground: 0 0% 94%;
+    --primary: 0 0% 94%;
     --primary-foreground: 0 0% 10%;
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 37 22% 94%;
-    --muted: 0 0% 14%;
-    --muted-foreground: 0 0% 48%;
+    /* Secondary: #1c1c1c */
+    --secondary: 0 0% 11%;
+    --secondary-foreground: 0 0% 94%;
+    --muted: 0 0% 11%;
+    /* Subtext: #888 */
+    --muted-foreground: 0 0% 53%;
     --accent: 0 0% 14%;
-    --accent-foreground: 37 22% 94%;
+    --accent-foreground: 0 0% 94%;
     --destructive: 13 46% 40%;
     --destructive-foreground: 0 0% 100%;
+    /* Border: #2a2a2a */
     --border: 0 0% 16%;
     --input: 0 0% 16%;
-    --ring: 37 7% 57%;
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 37 22% 94%;
-    --sidebar-primary: 37 7% 57%;
+    --ring: 0 0% 40%;
+    /* Nav/Header: #0f0f0f */
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 94%;
+    --sidebar-primary: 0 0% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 37 22% 94%;
+    --sidebar-accent-foreground: 0 0% 94%;
     --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 37 7% 57%;
+    --sidebar-ring: 0 0% 40%;
     --gold: 37 7% 57%;
     --gold-hover: 37 10% 50%;
     --overlay-tint: 30 20% 69%;
