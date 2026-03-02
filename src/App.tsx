@@ -15,6 +15,7 @@ import StudioSettings from "./pages/StudioSettings";
 import Billing from "./pages/Billing";
 import Clients from "./pages/Clients";
 import Branding from "./pages/Branding";
+import BrandEditor from "./pages/BrandEditor";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Onboarding from "./pages/Onboarding";
@@ -176,6 +177,7 @@ const AppRoutes = () => {
     <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
     <Route path="/dashboard/settings" element={<ProtectedRoute><StudioSettings /></ProtectedRoute>} />
     <Route path="/dashboard/branding" element={<ProtectedRoute><Branding /></ProtectedRoute>} />
+    <Route path="/dashboard/branding/editor" element={<ProtectedRoute><BrandEditor /></ProtectedRoute>} />
     <Route path="/dashboard/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
     <Route path="/dashboard/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
     <Route path="/dashboard/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
