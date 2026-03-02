@@ -289,22 +289,24 @@ const Auth = ({ initialView }: AuthProps) => {
             </button>
           </form>
         </div>
-        <p
-          className="mt-14"
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: "9px",
-            fontWeight: 700,
-            letterSpacing: "0.45em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.7)",
-            opacity: revealed ? 1 : 0,
-            transition: "opacity 2s cubic-bezier(0.4,0,0.2,1) 0.5s",
-          }}
-        >
-          Colour Store Preset Universe
-        </p>
       </div>
+
+      {/* Bottom branding — fixed to viewport bottom */}
+      <p
+        className="fixed bottom-5 left-0 right-0 text-center z-10"
+        style={{
+          fontFamily: "Inter, sans-serif",
+          fontSize: "12px",
+          fontWeight: 700,
+          letterSpacing: "0.45em",
+          textTransform: "uppercase",
+          color: "rgba(255,255,255,0.85)",
+          opacity: revealed ? 1 : 0,
+          transition: "opacity 2s cubic-bezier(0.4,0,0.2,1) 0.5s",
+        }}
+      >
+        Colour Store Preset Universe
+      </p>
     </div>
   );
 };
