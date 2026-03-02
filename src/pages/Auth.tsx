@@ -1,6 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Phone } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { lovable } from "@/integrations/lovable";
 
@@ -16,6 +16,8 @@ const Auth = ({ initialView }: AuthProps) => {
   const [view, setView] = useState<AuthView>(startView);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [mobilePassword, setMobilePassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [revealed, setRevealed] = useState(false);
@@ -86,6 +88,52 @@ const Auth = ({ initialView }: AuthProps) => {
     });
     if (error) {
       setError(error.message || "Google sign-in failed.");
+    }
+  };
+
+  const handleMobileLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError("");
+    try {
+      // Look up email by mobile number from profiles
+      const cleanMobile = mobile.replace(/\s+/g, '');
+      const { data: profiles, error: lookupError } = await (supabase
+        .from('profiles')
+        .select('email')
+        .eq('mobile', cleanMobile) as any)
+        .limit(1);
+
+      if (lookupError || !profiles?.length || !profiles[0].email) {
+        setError("No account found with this mobile number.");
+        setSubmitting(false);
+        return;
+      }
+
+      const foundEmail = profiles[0].email;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: foundEmail,
+        password: mobilePassword,
+      });
+      if (error) {
+        setError(error.message);
+      } else if (data?.session) {
+        let destination = "/dashboard";
+        try {
+          const { data: roles } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", data.session.user.id) as any;
+          const roleList = (roles || []).map((r: any) => r.role);
+          if (roleList.includes('admin')) destination = "/admin";
+          else if (roleList.includes('client')) destination = "/client";
+        } catch {}
+        navigate(destination);
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -334,6 +382,97 @@ const Auth = ({ initialView }: AuthProps) => {
             </button>
 
           </form>
+
+          {/* OR divider — login only */}
+          {isLogin && (
+            <>
+              <div className="flex items-center gap-3 my-1">
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                <span style={{
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: '8px',
+                  color: 'rgba(232,226,218,0.25)',
+                  letterSpacing: '0.3em',
+                  textTransform: 'uppercase',
+                }}>Or</span>
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              </div>
+
+              <form onSubmit={handleMobileLogin} className="flex flex-col gap-4">
+                {/* Mobile */}
+                <div
+                  className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+                  style={{
+                    background: 'rgba(26,24,22,0.45)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                  }}
+                >
+                  <Phone className="h-3.5 w-3.5 shrink-0" style={{ color: 'rgba(139,115,85,0.6)' }} />
+                  <input
+                    type="tel"
+                    value={mobile}
+                    onChange={(e) => { setMobile(e.target.value); setError(""); }}
+                    placeholder="Mobile Number"
+                    required
+                    autoComplete="tel"
+                    className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
+                    style={{
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 300,
+                      fontSize: '13px',
+                      color: '#E8E2DA',
+                      letterSpacing: '0.03em',
+                    }}
+                  />
+                </div>
+
+                {/* Password */}
+                <div
+                  className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+                  style={{
+                    background: 'rgba(26,24,22,0.45)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                  }}
+                >
+                  <Lock className="h-3.5 w-3.5 shrink-0" style={{ color: 'rgba(139,115,85,0.6)' }} />
+                  <input
+                    type="password"
+                    value={mobilePassword}
+                    onChange={(e) => { setMobilePassword(e.target.value); setError(""); }}
+                    placeholder="Password"
+                    required
+                    minLength={6}
+                    autoComplete="current-password"
+                    className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
+                    style={{
+                      fontFamily: "Inter, sans-serif",
+                      fontWeight: 300,
+                      fontSize: '13px',
+                      color: '#E8E2DA',
+                      letterSpacing: '0.03em',
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full h-12 rounded-xl transition-all duration-200 disabled:opacity-50"
+                  style={{
+                    fontFamily: "Inter, sans-serif",
+                    fontWeight: 500,
+                    fontSize: '10px',
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    background: 'rgba(232,226,218,0.9)',
+                    color: '#2C2118',
+                  }}
+                >
+                  Login
+                </button>
+              </form>
+            </>
+          )}
         </div>
 
         {/* Bottom whisper */}
