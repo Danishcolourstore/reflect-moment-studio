@@ -1,5 +1,8 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
+import { useInfinitePhotos } from '@/hooks/use-infinite-photos';
+import { ProgressiveImage } from '@/components/ProgressiveImage';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { useGuestSession } from '@/hooks/use-guest-session';
@@ -165,11 +168,10 @@ function PhotoCard({
       style={{ borderRadius: 0, marginBottom: isMasonry ? '2px' : undefined }}
       onClick={onOpenLightbox}
     >
-      <img
+      <ProgressiveImage
         src={photo.url}
         alt=""
         className={`${aspectClass ? 'h-full w-full object-cover' : 'w-full h-auto object-cover block'}`}
-        loading="lazy"
         draggable={false}
       />
 
@@ -318,10 +320,19 @@ const PublicGallery = () => {
       .eq('user_id', ev.user_id).maybeSingle();
     if (studioExt) setStudioExtended(studioExt as unknown as StudioExtended);
 
-    // Fetch photos
-    const { data: photoData } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
-      .eq('event_id', ev.id).order('sort_order', { ascending: true, nullsFirst: false });
-    if (photoData) setPhotos(photoData as unknown as Photo[]);
+    // Fetch photos — use session cache
+    const cached = getCachedPhotos<Photo[]>(ev.id);
+    if (cached) {
+      setPhotos(cached);
+    } else {
+      const { data: photoData } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
+        .eq('event_id', ev.id).order('sort_order', { ascending: true, nullsFirst: false });
+      if (photoData) {
+        const typedPhotos = photoData as unknown as Photo[];
+        setPhotos(typedPhotos);
+        setCachedPhotos(ev.id, typedPhotos);
+      }
+    }
 
     // Fetch comment counts
     const { data: comments } = await (supabase.from('photo_comments').select('photo_id') as any)
@@ -435,6 +446,9 @@ const PublicGallery = () => {
     const idx = displayPhotos.findIndex(p => p.id === photoId);
     if (idx >= 0) { setLightboxIndex(idx); setLightboxOpen(true); }
   };
+
+  // Infinite scroll pagination
+  const { visiblePhotos, hasMore, sentinelRef } = useInfinitePhotos(displayPhotos);
 
   const toggleSelect = (photoId: string) => {
     setSelectedPhotos(prev => {
@@ -569,92 +583,118 @@ const PublicGallery = () => {
       );
     }
 
+    const infiniteSentinel = (
+      <>
+        {hasMore && (
+          <div ref={sentinelRef} className="flex justify-center py-8">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/30" />
+          </div>
+        )}
+        {!hasMore && visiblePhotos.length < displayPhotos.length === false && visiblePhotos.length > 50 && (
+          <p className="text-center text-[10px] text-muted-foreground/30 py-6 uppercase tracking-widest">All {displayPhotos.length} photos loaded</p>
+        )}
+      </>
+    );
+
     switch (layout) {
       case 'classic':
         return (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {displayPhotos.map(p => renderPhotoCard(p, 'classic'))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {visiblePhotos.map(p => renderPhotoCard(p, 'classic'))}
+            </div>
+            {infiniteSentinel}
+          </>
         );
 
       case 'masonry':
         return (
-          <div style={{
-            columns: isTimeless ? '4 200px' : '3 240px',
-            columnGap: isTimeless ? '2px' : '1rem',
-          }}>
-            {displayPhotos.map(p => renderPhotoCard(p, 'masonry'))}
-          </div>
+          <>
+            <div style={{
+              columns: isTimeless ? '4 200px' : '3 240px',
+              columnGap: isTimeless ? '2px' : '1rem',
+            }}>
+              {visiblePhotos.map(p => renderPhotoCard(p, 'masonry'))}
+            </div>
+            {infiniteSentinel}
+          </>
         );
 
       case 'justified':
         return (
-          <div className="space-y-2">
-            {chunkArray(displayPhotos, 4).map((row, ri) => (
-              <div key={ri} className="flex flex-row gap-2" style={{ height: window.innerWidth < 768 ? '160px' : '240px' }}>
-                {row.map(p => (
-                  <div key={p.id} className="relative flex-1 min-w-0 overflow-hidden rounded-xl cursor-pointer group"
-                    onClick={() => openLightbox(p.id)}>
-                    <img src={p.url} alt="" className="h-full w-full object-cover" loading="lazy" />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 pointer-events-none" />
-                    <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
-                      className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
-                      style={isFavorite(p.id) ? { opacity: 1 } : undefined}>
-                      <Heart className="h-4 w-4" style={isFavorite(p.id) ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : { color: 'white' }} />
-                    </button>
-                    {showWatermark && studioProfile?.studio_name && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-                        <span className="font-serif text-white/30 text-lg whitespace-nowrap tracking-[0.15em]">{studioProfile.studio_name}</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="space-y-2">
+              {chunkArray(visiblePhotos, 4).map((row, ri) => (
+                <div key={ri} className="flex flex-row gap-2" style={{ height: window.innerWidth < 768 ? '160px' : '240px' }}>
+                  {row.map(p => (
+                    <div key={p.id} className="relative flex-1 min-w-0 overflow-hidden rounded-xl cursor-pointer group"
+                      onClick={() => openLightbox(p.id)}>
+                      <ProgressiveImage src={p.url} alt="" className="h-full w-full object-cover" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 pointer-events-none" />
+                      <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+                        className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+                        style={isFavorite(p.id) ? { opacity: 1 } : undefined}>
+                        <Heart className="h-4 w-4" style={isFavorite(p.id) ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : { color: 'white' }} />
+                      </button>
+                      {showWatermark && studioProfile?.studio_name && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+                          <span className="font-serif text-white/30 text-lg whitespace-nowrap tracking-[0.15em]">{studioProfile.studio_name}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            {infiniteSentinel}
+          </>
         );
 
       case 'editorial':
       case 'editorial-collage':
         return (
-          <div className="space-y-2">
-            {displayPhotos.length > 0 && (
-              <div>{renderPhotoCard(displayPhotos[0], 'editorial-hero')}</div>
-            )}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {displayPhotos.slice(1).map(p => renderPhotoCard(p, 'classic'))}
+          <>
+            <div className="space-y-2">
+              {visiblePhotos.length > 0 && (
+                <div>{renderPhotoCard(visiblePhotos[0], 'editorial-hero')}</div>
+              )}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {visiblePhotos.slice(1).map(p => renderPhotoCard(p, 'classic'))}
+              </div>
             </div>
-          </div>
+            {infiniteSentinel}
+          </>
         );
 
       case 'cinematic':
         return (
-          <div className="space-y-2">
-            {displayPhotos.map((p, i) => {
-              const rowIndex = Math.floor(i / 4);
-              const posInGroup = i % 4;
-              if (posInGroup === 0) {
-                // Wide shot
-                return <div key={p.id}>{renderPhotoCard(p, 'cinematic-wide')}</div>;
-              }
-              // Group of 3
-              if (posInGroup === 1) {
-                const group = displayPhotos.slice(i, i + 3);
-                return (
-                  <div key={`row-${rowIndex}`} className="grid grid-cols-3 gap-2">
-                    {group.map(gp => renderPhotoCard(gp, 'cinematic-cell'))}
-                  </div>
-                );
-              }
-              return null; // handled in group
-            })}
-          </div>
+          <>
+            <div className="space-y-2">
+              {visiblePhotos.map((p, i) => {
+                const rowIndex = Math.floor(i / 4);
+                const posInGroup = i % 4;
+                if (posInGroup === 0) {
+                  return <div key={p.id}>{renderPhotoCard(p, 'cinematic-wide')}</div>;
+                }
+                if (posInGroup === 1) {
+                  const group = visiblePhotos.slice(i, i + 3);
+                  return (
+                    <div key={`row-${rowIndex}`} className="grid grid-cols-3 gap-2">
+                      {group.map(gp => renderPhotoCard(gp, 'cinematic-cell'))}
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+            {infiniteSentinel}
+          </>
         );
 
       case 'collage':
       case 'mosaic':
-        const first5 = displayPhotos.slice(0, 5);
-        const rest = displayPhotos.slice(5);
+        const first5 = visiblePhotos.slice(0, 5);
+        const rest = visiblePhotos.slice(5);
         const positions = [
           { left: '0%', top: '0%', width: '60%', height: '60%' },
           { left: '62%', top: '0%', width: '38%', height: '38%' },
@@ -663,58 +703,64 @@ const PublicGallery = () => {
           { left: '40%', top: '62%', width: '20%', height: '38%' },
         ];
         return (
-          <div className="space-y-4">
-            <div className="relative w-full" style={{ height: window.innerWidth < 768 ? '400px' : '600px' }}>
-              {first5.map((p, i) => (
-                <div key={p.id} className="absolute overflow-hidden rounded-xl cursor-pointer group"
-                  style={{ ...positions[i] }}
-                  onClick={() => openLightbox(p.id)}>
-                  <img src={p.url} alt="" className="h-full w-full object-cover" loading="lazy" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 pointer-events-none" />
-                  <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
-                    className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
-                    style={isFavorite(p.id) ? { opacity: 1 } : undefined}>
-                    <Heart className="h-4 w-4" style={isFavorite(p.id) ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : { color: 'white' }} />
-                  </button>
-                </div>
-              ))}
-            </div>
-            {rest.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {rest.map(p => renderPhotoCard(p, 'classic'))}
+          <>
+            <div className="space-y-4">
+              <div className="relative w-full" style={{ height: window.innerWidth < 768 ? '400px' : '600px' }}>
+                {first5.map((p, i) => (
+                  <div key={p.id} className="absolute overflow-hidden rounded-xl cursor-pointer group"
+                    style={{ ...positions[i] }}
+                    onClick={() => openLightbox(p.id)}>
+                    <ProgressiveImage src={p.url} alt="" className="h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 pointer-events-none" />
+                    <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+                      className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+                      style={isFavorite(p.id) ? { opacity: 1 } : undefined}>
+                      <Heart className="h-4 w-4" style={isFavorite(p.id) ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : { color: 'white' }} />
+                    </button>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+              {rest.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {rest.map(p => renderPhotoCard(p, 'classic'))}
+                </div>
+              )}
+            </div>
+            {infiniteSentinel}
+          </>
         );
 
       case 'timeline':
-        const grouped = groupByDate(displayPhotos);
+        const grouped = groupByDate(visiblePhotos);
         return (
-          <div className="space-y-8">
-            {grouped.map(([date, datePhotos]) => (
-              <div key={date}>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex-1 h-px bg-border" />
-                  <span className="font-serif text-sm text-muted-foreground whitespace-nowrap">
-                    {format(new Date(date), 'MMMM d, yyyy')}
-                  </span>
-                  <div className="flex-1 h-px bg-border" />
+          <>
+            <div className="space-y-8">
+              {grouped.map(([date, datePhotos]) => (
+                <div key={date}>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="font-serif text-sm text-muted-foreground whitespace-nowrap">
+                      {format(new Date(date), 'MMMM d, yyyy')}
+                    </span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {datePhotos.map(p => renderPhotoCard(p, 'masonry'))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {datePhotos.map(p => renderPhotoCard(p, 'masonry'))}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            {infiniteSentinel}
+          </>
         );
 
       case 'story':
         return (
           <div>
-            {displayPhotos.map((p, i) => (
+            {visiblePhotos.map((p, i) => (
               <div key={p.id} className="relative h-screen w-full overflow-hidden cursor-pointer"
                 onClick={() => openLightbox(p.id)}>
-                <img src={p.url} alt="" className="h-full w-full object-cover" />
+                <ProgressiveImage src={p.url} alt="" className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 <div className="absolute bottom-6 right-6 text-white/50 text-sm font-sans">
                   {i + 1} / {displayPhotos.length}
@@ -731,18 +777,21 @@ const PublicGallery = () => {
                 </button>
               </div>
             ))}
+            {infiniteSentinel}
           </div>
         );
 
       default:
-        // Fallback to masonry
         return (
-          <div style={{
-            columns: isTimeless ? '4 200px' : '3 240px',
-            columnGap: isTimeless ? '2px' : '1rem',
-          }}>
-            {displayPhotos.map(p => renderPhotoCard(p, 'masonry'))}
-          </div>
+          <>
+            <div style={{
+              columns: isTimeless ? '4 200px' : '3 240px',
+              columnGap: isTimeless ? '2px' : '1rem',
+            }}>
+              {visiblePhotos.map(p => renderPhotoCard(p, 'masonry'))}
+            </div>
+            {infiniteSentinel}
+          </>
         );
     }
   };
