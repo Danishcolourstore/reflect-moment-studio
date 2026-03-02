@@ -381,3 +381,5 @@ const Auth = ({ initialView }: AuthProps) => {
     </div>
   );
 };
+
+export default Auth;
