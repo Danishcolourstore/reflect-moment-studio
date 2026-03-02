@@ -38,7 +38,7 @@ const Auth = ({ initialView }: AuthProps) => {
     setMessage("");
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) { setError(error.message); }
-    else { setMessage("Check your email to confirm signup"); }
+    else { navigate("/verify-otp"); }
     setLoading(false);
   };
 
