@@ -35,6 +35,7 @@ import NotFound from "./pages/NotFound";
 import { GalleryShell } from "./components/GalleryShell";
 import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
+import VerifyAccess from "./pages/VerifyAccess";
 import AdminGate from "./pages/admin/AdminGate";
 import AdminPinGate from "./pages/admin/AdminPinGate";
 import AdminPinReset from "./pages/admin/AdminPinReset";
@@ -88,6 +89,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Check PIN verification for photographer routes
+  const pinVerified = sessionStorage.getItem('mirrorai_access_verified') === 'true';
+  if (!pinVerified && location.pathname.startsWith('/dashboard')) {
+    return <Navigate to="/verify-access" replace />;
+  }
+
   return <>{children}</>;
 }
 
@@ -113,21 +120,26 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
         } else if (roles.includes('client')) {
           setRedirectTo('/client');
         } else {
-          const redirect = sessionStorage.getItem("redirectAfterLogin");
-          if (redirect && redirect.startsWith('/dashboard')) {
-            sessionStorage.removeItem("redirectAfterLogin");
-            setRedirectTo(redirect);
+          const pinVerified = sessionStorage.getItem('mirrorai_access_verified') === 'true';
+          if (pinVerified) {
+            const redirect = sessionStorage.getItem("redirectAfterLogin");
+            if (redirect && redirect.startsWith('/dashboard')) {
+              sessionStorage.removeItem("redirectAfterLogin");
+              setRedirectTo(redirect);
+            } else {
+              sessionStorage.removeItem("redirectAfterLogin");
+              setRedirectTo('/dashboard');
+            }
           } else {
-            sessionStorage.removeItem("redirectAfterLogin");
-            setRedirectTo('/dashboard');
+            setRedirectTo('/verify-access');
           }
         }
         setChecked(true);
       })
       .catch(() => {
-        // Timeout or network error — fallback to dashboard
         sessionStorage.removeItem("redirectAfterLogin");
-        setRedirectTo('/dashboard');
+        const pinVerified = sessionStorage.getItem('mirrorai_access_verified') === 'true';
+        setRedirectTo(pinVerified ? '/dashboard' : '/verify-access');
         setChecked(true);
       });
   }, [user, loading]);
@@ -148,6 +160,7 @@ const AppRoutes = () => {
     <Route path="/register" element={<AuthRoute><Auth key="signup" initialView="signup" /></AuthRoute>} />
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/reset-password" element={<ResetPassword />} />
+    <Route path="/verify-access" element={<VerifyAccess />} />
 
     {/* Super Admin routes — PIN gate + role gate */}
     <Route path="/admin/reset-pin" element={<AdminPinReset />} />
