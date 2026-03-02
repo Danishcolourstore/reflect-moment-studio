@@ -74,6 +74,7 @@ const UploadPage = () => {
           onRetrySingle={upload.retrySingle}
           onCancel={upload.cancel}
           onDismiss={upload.dismiss}
+          duplicateCount={upload.duplicateCount}
         />
 
         {upload.isDone && upload.successCount > 0 && upload.failedFiles.length === 0 && (

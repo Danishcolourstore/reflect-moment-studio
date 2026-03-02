@@ -10,6 +10,12 @@ interface UploadProgressPanelProps extends UploadState {
   onCancel: () => void;
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
 function formatEta(seconds: number | null): string {
   if (seconds === null || seconds <= 0) return '';
   if (seconds < 60) return `~${seconds}s remaining`;
@@ -37,6 +43,12 @@ function FileRow({ info, onRetry }: { info: FileUploadInfo; onRetry: (id: string
         {info.status === 'compressing' && (
           <p className="text-[9px] text-muted-foreground/50 mt-0.5">Compressing…</p>
         )}
+        {info.status === 'duplicate' && (
+          <p className="text-[9px] text-amber-500/80 mt-0.5">Duplicate — skipped</p>
+        )}
+        {info.status === 'success' && info.originalSize && info.compressedSize && info.originalSize !== info.compressedSize && (
+          <p className="text-[9px] text-muted-foreground/40 mt-0.5">{formatBytes(info.originalSize)} → {formatBytes(info.compressedSize)}</p>
+        )}
         {info.status === 'failed' && info.error && (
           <p className="text-[9px] text-destructive/80 mt-0.5">{info.error}</p>
         )}
@@ -45,7 +57,8 @@ function FileRow({ info, onRetry }: { info: FileUploadInfo; onRetry: (id: string
         )}
       </div>
       <div className="shrink-0">
-        {info.status === 'success' && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+      {info.status === 'success' && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+        {info.status === 'duplicate' && <AlertCircle className="h-3.5 w-3.5 text-amber-500/70" />}
         {info.status === 'failed' && (
           <Button
             onClick={() => onRetry(info.id)}
@@ -70,6 +83,7 @@ export function UploadProgressPanel({
   completedFiles,
   successCount,
   failedFiles,
+  duplicateCount = 0,
   isDone,
   percent,
   fileInfos,
@@ -105,7 +119,10 @@ export function UploadProgressPanel({
             ) : isDone && !hasFailed ? (
               <div className="flex items-center gap-2 text-primary">
                 <CheckCircle2 className="h-4 w-4" />
-                <p className="text-[12px] font-medium">Upload Complete — {successCount} Photos Added</p>
+                <p className="text-[12px] font-medium">
+                  Upload Complete — {successCount} Photos Added
+                  {duplicateCount > 0 && <span className="text-muted-foreground ml-1">({duplicateCount} duplicates skipped)</span>}
+                </p>
               </div>
             ) : isDone && hasFailed ? (
               <div className="flex items-center gap-2 text-destructive">
