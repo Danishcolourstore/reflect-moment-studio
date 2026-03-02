@@ -101,32 +101,30 @@ const Auth = ({ initialView }: AuthProps) => {
           backgroundSize: "cover",
           backgroundPosition: "center",
           filter: "blur(50px) saturate(0.5) brightness(0.35)",
-          transform: "scale(1.25)",
+          transform: "scale(1.25) translateZ(0)",
         }}
       />
 
-       {/* Layer 2: Foreground photograph — starts sharp, blurs on reveal */}
-      <div
-        className="absolute inset-0 flex items-center justify-center"
-        style={{
-          filter: revealed ? "blur(18px)" : "blur(0px)",
-          transition: "filter 4s cubic-bezier(0.22, 1, 0.36, 1)",
-          transform: "translateZ(0)",
-          willChange: "filter",
-        }}
-      >
+      {/* Layer 2: Foreground photograph — starts sharp, blurs on reveal */}
+      <div className="absolute inset-0 flex items-center justify-center">
         <img
           src="/images/login-bg.png"
           alt=""
           className="max-h-full max-w-full object-contain"
-          style={{ opacity: 0.88 }}
+          style={{
+            opacity: 0.88,
+            filter: revealed ? "blur(18px)" : "blur(0px)",
+            transition: "filter 2.5s ease-in-out 2s",
+            transform: "translateZ(0)",
+            willChange: "filter",
+          }}
         />
       </div>
 
-      {/* Layer 3: Dark luxury overlay — flat 40% */}
+      {/* Layer 3: Dark luxury overlay */}
       <div
         className="absolute inset-0"
-        style={{ background: "rgba(44,33,24,0.40)" }}
+        style={{ background: "rgba(0,0,0,0.40)" }}
       />
 
       {/* Layer 4: Subtle vignette */}
@@ -153,7 +151,7 @@ const Auth = ({ initialView }: AuthProps) => {
             boxShadow: "0 32px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
             opacity: revealed ? 1 : 0,
             transform: revealed ? "translateY(0) scale(1)" : "translateY(40px) scale(0.98)",
-            transition: "opacity 2.2s cubic-bezier(0.22, 1, 0.36, 1) 2.2s, transform 2.2s cubic-bezier(0.22, 1, 0.36, 1) 2.2s",
+            transition: "opacity 2.2s ease-in-out 2s, transform 2.2s ease-in-out 2s",
             willChange: "opacity, transform",
           }}
         >
