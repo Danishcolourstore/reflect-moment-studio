@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Lock, Image } from 'lucide-react';
+import { Lock, Image, RefreshCw, Smartphone, Wifi, MessageCircle, ChevronDown } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { format } from 'date-fns';
 import { useGuestSession } from '@/hooks/use-guest-session';
 
@@ -95,9 +97,79 @@ const GalleryCover = () => {
   /* ── Not Found ── */
   if (notFound) {
     return (
-      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-4 text-center">
-        <h1 className="font-serif text-4xl font-semibold text-primary mb-2">Gallery Not Found</h1>
-        <p className="text-[12px] text-muted-foreground/50">This gallery link is invalid or has been removed.</p>
+      <div className="min-h-[100dvh] bg-background px-4 py-12 flex flex-col items-center">
+        <div className="w-full max-w-sm space-y-6 text-center">
+          <h1 className="font-serif text-4xl font-semibold text-primary mb-2">Gallery Not Found</h1>
+          <p className="text-[12px] text-muted-foreground/50">This gallery link is invalid or has been removed.</p>
+
+          <Button
+            onClick={() => window.location.reload()}
+            className="bg-primary hover:bg-primary/85 text-primary-foreground h-10 px-8 text-[11px] tracking-[0.12em] uppercase font-medium"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" /> Retry Now
+          </Button>
+
+          <Collapsible>
+            <CollapsibleTrigger className="w-full flex items-center justify-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium py-3 hover:text-muted-foreground transition-colors">
+              <span>Can't load the gallery? Try a DNS fix</span>
+              <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-2 rounded-xl border border-border/30 bg-card/50 p-4">
+                <Tabs defaultValue="mobile" className="w-full">
+                  <TabsList className="w-full bg-secondary/50">
+                    <TabsTrigger value="mobile" className="flex-1 gap-1.5 text-[10px] tracking-[0.1em] uppercase">
+                      <Smartphone className="h-3.5 w-3.5" /> Mobile Data
+                    </TabsTrigger>
+                    <TabsTrigger value="wifi" className="flex-1 gap-1.5 text-[10px] tracking-[0.1em] uppercase">
+                      <Wifi className="h-3.5 w-3.5" /> WiFi
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="mobile" className="text-left space-y-2 mt-4">
+                    {[
+                      'Go to Settings',
+                      "Search 'Private DNS'",
+                      'Tap Private DNS',
+                      "Select 'Private DNS provider hostname'",
+                      'Type: dns.google',
+                      'Save and retry',
+                    ].map((step, i) => (
+                      <div key={i} className="flex gap-3 items-start">
+                        <span className="shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-medium flex items-center justify-center">{i + 1}</span>
+                        <p className="text-[12px] text-foreground/80 leading-relaxed">{step}</p>
+                      </div>
+                    ))}
+                  </TabsContent>
+                  <TabsContent value="wifi" className="text-left space-y-2 mt-4">
+                    {[
+                      'Go to Settings → WiFi',
+                      'Long press your connected network',
+                      'Tap Modify Network',
+                      'IP Settings → Select Static',
+                      'DNS 1: 8.8.8.8',
+                      'DNS 2: 8.8.4.4',
+                      'Save and retry',
+                    ].map((step, i) => (
+                      <div key={i} className="flex gap-3 items-start">
+                        <span className="shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-medium flex items-center justify-center">{i + 1}</span>
+                        <p className="text-[12px] text-foreground/80 leading-relaxed">{step}</p>
+                      </div>
+                    ))}
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <a
+            href="https://wa.me/?text=Hi%2C%20I%20am%20unable%20to%20access%20the%20gallery%20link.%20Can%20you%20help%3F"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] font-medium text-muted-foreground/60 hover:text-primary transition-colors"
+          >
+            <MessageCircle className="h-4 w-4" /> Contact Photographer
+          </a>
+        </div>
       </div>
     );
   }
