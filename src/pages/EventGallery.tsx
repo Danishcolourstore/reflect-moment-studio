@@ -304,7 +304,7 @@ const EventGallery = () => {
       </div>
 
       {/* Upload Progress Panels */}
-      <UploadProgressPanel {...upload} onRetry={upload.retry} onDismiss={upload.dismiss} />
+      <UploadProgressPanel {...upload} onRetry={upload.retry} onRetrySingle={upload.retrySingle} onCancel={upload.cancel} onDismiss={upload.dismiss} />
 
       {/* ZIP Upload Progress */}
       {(zipUpload.isExtracting || zipUpload.isUploading || zipUpload.isDone) && (
