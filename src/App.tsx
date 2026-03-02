@@ -35,6 +35,7 @@ import { GalleryShell } from "./components/GalleryShell";
 import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
 import VerifyAccess from "./pages/VerifyAccess";
+import VerifyOTP from "./pages/VerifyOTP";
 import AdminGate from "./pages/admin/AdminGate";
 import AdminPinGate from "./pages/admin/AdminPinGate";
 import AdminPinReset from "./pages/admin/AdminPinReset";
@@ -184,6 +185,7 @@ const AppRoutes = () => {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-access" element={<VerifyAccess />} />
+      <Route path="/verify-otp" element={<VerifyOTP />} />
 
       <Route path="/admin/reset-pin" element={<AdminPinReset />} />
       <Route
