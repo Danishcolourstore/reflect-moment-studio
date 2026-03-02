@@ -193,8 +193,8 @@ const AppRoutes = () => {
     {/* Guest face finder — public */}
     <Route path="/find/:token" element={<GuestFinder />} />
 
-    {/* Landing page */}
-    <Route path="/" element={<AuthRoute><LandingPage /></AuthRoute>} />
+    {/* Root = Login experience (product-first, no marketing landing) */}
+    <Route path="/" element={<AuthRoute><Auth key="landing" initialView="login" /></AuthRoute>} />
     <Route path="/auth" element={<Navigate to="/login" replace />} />
     <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
     <Route path="/events/:id" element={<Navigate to="/dashboard/events/:id" replace />} />
