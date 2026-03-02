@@ -38,6 +38,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_pin_attempts: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          id: string
+          ip_hint: string | null
+          locked_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          id?: string
+          ip_hint?: string | null
+          locked_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          id?: string
+          ip_hint?: string | null
+          locked_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       album_selections: {
         Row: {
           created_at: string
@@ -1349,6 +1376,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_admin_pin: {
+        Args: { new_pin: string; reset_token: string }
+        Returns: Json
+      }
+      verify_admin_pin: { Args: { pin_input: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "photographer" | "client"
