@@ -19,7 +19,6 @@ import BrandEditor from "./pages/BrandEditor";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Onboarding from "./pages/Onboarding";
-
 import PublicGallery from "./pages/PublicGallery";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientEvents from "./pages/client/ClientEvents";
@@ -61,37 +60,53 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    (supabase.from('profiles').select('suspended') as any)
-      .eq('user_id', user.id)
+    (supabase.from("profiles").select("suspended") as any)
+      .eq("user_id", user.id)
       .single()
       .then(({ data }: any) => {
         setSuspended(data?.suspended ?? false);
       });
   }, [user]);
 
-  if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground font-serif text-lg">Loading...</p></div>;
+  if (loading)
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground font-serif text-lg">Loading...</p>
+      </div>
+    );
   if (!user) {
     sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
     return <Navigate to="/login" replace />;
   }
 
-  if (suspended === null) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground text-sm">Loading...</p></div>;
+  if (suspended === null)
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-muted-foreground text-sm">Loading...</p>
+      </div>
+    );
 
   if (suspended) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center max-w-sm">
           <h1 className="text-xl font-bold text-foreground mb-2">Account Suspended</h1>
-          <p className="text-sm text-muted-foreground mb-4">Your account has been suspended. Please contact support for assistance.</p>
-          <button onClick={() => supabase.auth.signOut().then(() => window.location.href = '/login')} className="text-sm underline text-muted-foreground hover:text-foreground">Sign out</button>
+          <p className="text-sm text-muted-foreground mb-4">
+            Your account has been suspended. Please contact support for assistance.
+          </p>
+          <button
+            onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/login"))}
+            className="text-sm underline text-muted-foreground hover:text-foreground"
+          >
+            Sign out
+          </button>
         </div>
       </div>
     );
   }
 
-  // Check PIN verification for photographer routes
-  const pinVerified = sessionStorage.getItem('mirrorai_access_verified') === 'true';
-  if (!pinVerified && location.pathname.startsWith('/dashboard')) {
+  const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
+  if (!pinVerified && location.pathname.startsWith("/dashboard")) {
     return <Navigate to="/verify-access" replace />;
   }
 
@@ -105,41 +120,36 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading || !user) return;
-    const rolePromise = supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id);
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), 5000)
-    );
+    const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
+    const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
     Promise.race([rolePromise, timeout])
       .then((result: any) => {
-        const roles = ((result?.data) || []).map((r: any) => r.role);
-        if (roles.includes('admin')) {
-          setRedirectTo('/admin');
-        } else if (roles.includes('client')) {
-          setRedirectTo('/client');
+        const roles = (result?.data || []).map((r: any) => r.role);
+        if (roles.includes("admin")) {
+          setRedirectTo("/admin");
+        } else if (roles.includes("client")) {
+          setRedirectTo("/client");
         } else {
-          const pinVerified = sessionStorage.getItem('mirrorai_access_verified') === 'true';
+          const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
           if (pinVerified) {
             const redirect = sessionStorage.getItem("redirectAfterLogin");
-            if (redirect && redirect.startsWith('/dashboard')) {
+            if (redirect && redirect.startsWith("/dashboard")) {
               sessionStorage.removeItem("redirectAfterLogin");
               setRedirectTo(redirect);
             } else {
               sessionStorage.removeItem("redirectAfterLogin");
-              setRedirectTo('/dashboard');
+              setRedirectTo("/dashboard");
             }
           } else {
-            setRedirectTo('/verify-access');
+            setRedirectTo("/verify-access");
           }
         }
         setChecked(true);
       })
       .catch(() => {
         sessionStorage.removeItem("redirectAfterLogin");
-        const pinVerified = sessionStorage.getItem('mirrorai_access_verified') === 'true';
-        setRedirectTo(pinVerified ? '/dashboard' : '/verify-access');
+        const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
+        setRedirectTo(pinVerified ? "/dashboard" : "/verify-access");
         setChecked(true);
       });
   }, [user, loading]);
@@ -154,77 +164,267 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => {
   useRealtimeSync(true);
   return (
-  <Routes>
-    {/* Auth routes */}
-    <Route path="/login" element={<AuthRoute><Auth key="login" initialView="login" /></AuthRoute>} />
-    <Route path="/register" element={<AuthRoute><Auth key="signup" initialView="signup" /></AuthRoute>} />
-    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-    <Route path="/reset-password" element={<ResetPassword />} />
-    <Route path="/verify-access" element={<VerifyAccess />} />
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          <AuthRoute>
+            <Auth key="login" initialView="login" />
+          </AuthRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <AuthRoute>
+            <Auth key="signup" initialView="signup" />
+          </AuthRoute>
+        }
+      />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-access" element={<VerifyAccess />} />
 
-    {/* Super Admin routes — PIN gate + role gate */}
-    <Route path="/admin/reset-pin" element={<AdminPinReset />} />
-    <Route path="/admin" element={<AdminPinGate><AdminGate><AdminLayout /></AdminGate></AdminPinGate>}>
-      <Route index element={<AdminDashboard />} />
-      <Route path="photographers" element={<AdminPhotographers />} />
-      <Route path="events" element={<AdminEvents />} />
-      <Route path="storage" element={<AdminStorage />} />
-      <Route path="revenue" element={<AdminRevenue />} />
-      <Route path="emails" element={<AdminEmails />} />
-      <Route path="activity" element={<AdminActivity />} />
-      <Route path="settings" element={<AdminSettings />} />
-    </Route>
+      <Route path="/admin/reset-pin" element={<AdminPinReset />} />
+      <Route
+        path="/admin"
+        element={
+          <AdminPinGate>
+            <AdminGate>
+              <AdminLayout />
+            </AdminGate>
+          </AdminPinGate>
+        }
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="photographers" element={<AdminPhotographers />} />
+        <Route path="events" element={<AdminEvents />} />
+        <Route path="storage" element={<AdminStorage />} />
+        <Route path="revenue" element={<AdminRevenue />} />
+        <Route path="emails" element={<AdminEmails />} />
+        <Route path="activity" element={<AdminActivity />} />
+        <Route path="settings" element={<AdminSettings />} />
+      </Route>
 
-    {/* Client Portal routes — require auth + client role */}
-    <Route path="/client" element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
-    <Route path="/client/events" element={<ProtectedRoute><ClientEvents /></ProtectedRoute>} />
-    <Route path="/client/events/:id" element={<ProtectedRoute><ClientEventView /></ProtectedRoute>} />
-    <Route path="/client/favorites" element={<ProtectedRoute><ClientFavorites /></ProtectedRoute>} />
-    <Route path="/client/downloads" element={<ProtectedRoute><ClientDownloads /></ProtectedRoute>} />
-    <Route path="/client/profile" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
+      <Route
+        path="/client"
+        element={
+          <ProtectedRoute>
+            <ClientDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/client/events"
+        element={
+          <ProtectedRoute>
+            <ClientEvents />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/client/events/:id"
+        element={
+          <ProtectedRoute>
+            <ClientEventView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/client/favorites"
+        element={
+          <ProtectedRoute>
+            <ClientFavorites />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/client/downloads"
+        element={
+          <ProtectedRoute>
+            <ClientDownloads />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/client/profile"
+        element={
+          <ProtectedRoute>
+            <ClientProfile />
+          </ProtectedRoute>
+        }
+      />
 
-    {/* Photographer dashboard routes — all require auth */}
-    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-    <Route path="/dashboard/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-    <Route path="/dashboard/events/:id" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
-    <Route path="/dashboard/events/:id/photos" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
-    <Route path="/dashboard/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
-    <Route path="/dashboard/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-    <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-    <Route path="/dashboard/settings" element={<ProtectedRoute><StudioSettings /></ProtectedRoute>} />
-    <Route path="/dashboard/branding" element={<ProtectedRoute><Branding /></ProtectedRoute>} />
-    <Route path="/dashboard/branding/editor" element={<ProtectedRoute><BrandEditor /></ProtectedRoute>} />
-    <Route path="/dashboard/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-    <Route path="/dashboard/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-    <Route path="/dashboard/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-    <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/events"
+        element={
+          <ProtectedRoute>
+            <Events />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/events/:id"
+        element={
+          <ProtectedRoute>
+            <EventGallery />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/events/:id/photos"
+        element={
+          <ProtectedRoute>
+            <EventGallery />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/upload"
+        element={
+          <ProtectedRoute>
+            <UploadPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/clients"
+        element={
+          <ProtectedRoute>
+            <Clients />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/analytics"
+        element={
+          <ProtectedRoute>
+            <Analytics />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/settings"
+        element={
+          <ProtectedRoute>
+            <StudioSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/branding"
+        element={
+          <ProtectedRoute>
+            <Branding />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/branding/editor"
+        element={
+          <ProtectedRoute>
+            <BrandEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/notifications"
+        element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/onboarding"
+        element={
+          <ProtectedRoute>
+            <Onboarding />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/billing"
+        element={
+          <ProtectedRoute>
+            <Billing />
+          </ProtectedRoute>
+        }
+      />
 
-    {/* Guest gallery routes — completely public, no auth */}
-    <Route path="/event/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
-    <Route path="/event/:slug/gallery" element={<GalleryShell><PublicGallery /></GalleryShell>} />
-    {/* Widget embed route */}
-    <Route path="/widget/:slug" element={<WidgetPage />} />
-    {/* Legacy gallery redirects */}
-    <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
-    <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
+      <Route
+        path="/event/:slug"
+        element={
+          <GalleryShell>
+            <GalleryCover />
+          </GalleryShell>
+        }
+      />
+      <Route
+        path="/event/:slug/gallery"
+        element={
+          <GalleryShell>
+            <PublicGallery />
+          </GalleryShell>
+        }
+      />
+      <Route path="/widget/:slug" element={<WidgetPage />} />
+      <Route
+        path="/gallery/:slug"
+        element={
+          <GalleryShell>
+            <GalleryCover />
+          </GalleryShell>
+        }
+      />
+      <Route
+        path="/gallery/:slug/view"
+        element={
+          <GalleryShell>
+            <PublicGallery />
+          </GalleryShell>
+        }
+      />
 
-    {/* Guest face finder — public */}
-    <Route path="/find/:token" element={<GuestFinder />} />
+      <Route path="/find/:token" element={<GuestFinder />} />
 
-    {/* Root = Login experience (product-first, no marketing landing) */}
-    <Route path="/" element={<AuthRoute><Auth key="landing" initialView="login" /></AuthRoute>} />
-    <Route path="/auth" element={<Navigate to="/login" replace />} />
-    <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
-    <Route path="/events/:id" element={<Navigate to="/dashboard/events/:id" replace />} />
-    <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
-    <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
-    <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
-    <Route path="/upload" element={<Navigate to="/dashboard/upload" replace />} />
+      <Route
+        path="/"
+        element={
+          <AuthRoute>
+            <Auth key="landing" initialView="login" />
+          </AuthRoute>
+        }
+      />
+      <Route path="/auth" element={<Navigate to="/login" replace />} />
+      <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
+      <Route path="/events/:id" element={<Navigate to="/dashboard/events/:id" replace />} />
+      <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
+      <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
+      <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
+      <Route path="/upload" element={<Navigate to="/dashboard/upload" replace />} />
 
-    <Route path="*" element={<NotFound />} />
-  </Routes>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -232,7 +432,6 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
           <AppRoutes />
           <BetaFeedbackButton />
         </AuthProvider>
