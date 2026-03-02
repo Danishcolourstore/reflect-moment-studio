@@ -158,9 +158,11 @@ function PhotoCard({
   const isMasonry = layout === 'masonry' || layout === 'editorial-item' || layout === 'timeline';
   const heartColor = accentColor ? accentColor : 'hsl(var(--primary))';
 
+
   return (
     <div
-      className={`group relative cursor-pointer rounded-xl overflow-hidden ${aspectClass} ${isMasonry ? 'mb-4 break-inside-avoid' : ''}`}
+      className={`group relative cursor-pointer overflow-hidden ${aspectClass} ${isMasonry ? 'break-inside-avoid' : ''}`}
+      style={{ borderRadius: 0, marginBottom: isMasonry ? '2px' : undefined }}
       onClick={onOpenLightbox}
     >
       <img
@@ -577,7 +579,10 @@ const PublicGallery = () => {
 
       case 'masonry':
         return (
-          <div style={{ columns: '3 240px', columnGap: '1rem' }}>
+          <div style={{
+            columns: isTimeless ? '4 200px' : '3 240px',
+            columnGap: isTimeless ? '2px' : '1rem',
+          }}>
             {displayPhotos.map(p => renderPhotoCard(p, 'masonry'))}
           </div>
         );
@@ -732,7 +737,10 @@ const PublicGallery = () => {
       default:
         // Fallback to masonry
         return (
-          <div style={{ columns: '3 240px', columnGap: '1rem' }}>
+          <div style={{
+            columns: isTimeless ? '4 200px' : '3 240px',
+            columnGap: isTimeless ? '2px' : '1rem',
+          }}>
             {displayPhotos.map(p => renderPhotoCard(p, 'masonry'))}
           </div>
         );
@@ -746,8 +754,8 @@ const PublicGallery = () => {
       className="min-h-[100dvh]"
       style={{
         ...(accentColor ? { '--studio-accent': accentColor } as React.CSSProperties : {}),
-        backgroundColor: isAndhakar ? '#0D0D0D' : wt.bg,
-        color: isAndhakar ? '#C8C8C8' : wt.text,
+        backgroundColor: isAndhakar ? '#0D0D0D' : isTimeless ? '#F4F1EC' : wt.bg,
+        color: isAndhakar ? '#C8C8C8' : isTimeless ? '#2B2B2B' : wt.text,
         fontFamily: wt.uiFontFamily,
       }}
     >
@@ -784,6 +792,8 @@ const PublicGallery = () => {
             subtitle={(event as any).hero_subtitle}
             buttonLabel={(event as any).hero_button_label}
             onScrollToGallery={scrollToGallery}
+            studioLogoUrl={studioProfile?.studio_logo_url}
+            studioName={studioProfile?.studio_name}
           />
         </div>
       ) : (
@@ -828,12 +838,13 @@ const PublicGallery = () => {
           stickyVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
         }`}
         style={{
-          backgroundColor: isAndhakar ? 'rgba(13, 13, 13, 0.92)' : wt.navBg,
-          backdropFilter: 'blur(12px)',
-          borderBottom: `1px solid ${isAndhakar ? 'rgba(200,200,200,0.1)' : wt.navBorder}`,
+          backgroundColor: isAndhakar ? 'rgba(13, 13, 13, 0.92)' : isTimeless ? '#FFFFFF' : wt.navBg,
+          backdropFilter: isTimeless ? 'none' : 'blur(12px)',
+          borderBottom: `1px solid ${isAndhakar ? 'rgba(200,200,200,0.1)' : isTimeless ? '#E7E2DA' : wt.navBorder}`,
+          maxHeight: isTimeless ? '44px' : undefined,
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between ${isTimeless ? 'h-11' : 'h-14'}`}>
           {/* Left: logo or name */}
           <div className="flex items-center gap-3 min-w-0">
             {studioProfile?.studio_logo_url ? (
@@ -897,7 +908,7 @@ const PublicGallery = () => {
       </div>
 
       {/* ── GALLERY SECTION ── */}
-      <div ref={galleryRef} className={`max-w-7xl mx-auto ${isStoryLayout ? '' : 'px-4 sm:px-6 py-8'}`}>
+      <div ref={galleryRef} className={`max-w-7xl mx-auto ${isStoryLayout ? '' : isTimeless ? 'px-0 sm:px-0 py-6' : 'px-4 sm:px-6 py-8'}`}>
 
         {/* Filter / Sort bar */}
         {!isStoryLayout && (
