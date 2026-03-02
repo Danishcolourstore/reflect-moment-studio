@@ -188,13 +188,13 @@ const Auth = ({ initialView }: AuthProps) => {
 
         {/* Auth card — frosted glass */}
         <div
-          className="w-full max-w-[380px] flex flex-col gap-6 p-9 sm:p-10"
+          className="w-[90%] max-w-[360px] flex flex-col gap-[10px] px-5 py-6"
           data-revealed={revealed}
           style={{
             background: "rgba(44, 33, 24, 0.45)",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
-            borderRadius: "16px",
+            borderRadius: "14px",
             border: "1px solid rgba(255, 255, 255, 0.08)",
             boxShadow: "0 32px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
             opacity: revealed ? 1 : 0,
@@ -204,11 +204,11 @@ const Auth = ({ initialView }: AuthProps) => {
           }}
         >
           {/* Brand */}
-          <div className="text-center mb-2">
+          <div className="text-center mb-1">
             <h1
               style={{
                 fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
-                fontSize: "clamp(2rem, 5vw, 2.8rem)",
+                fontSize: "clamp(1.6rem, 4.5vw, 2.2rem)",
                 fontWeight: 300,
                 color: '#FFFFFF',
                 letterSpacing: '0.12em',
@@ -218,7 +218,7 @@ const Auth = ({ initialView }: AuthProps) => {
               MirrorAI
             </h1>
             <p
-              className="mt-3"
+              className="mt-2"
               style={{
                 fontFamily: "Inter, sans-serif",
                 fontSize: "9px",
@@ -267,10 +267,10 @@ const Auth = ({ initialView }: AuthProps) => {
             </div>
           )}
 
-          <form onSubmit={isLogin ? handleLogin : handleSignup} className="flex flex-col gap-4">
+          <form onSubmit={isLogin ? handleLogin : handleSignup} className="flex flex-col gap-[10px]">
             {/* Email */}
             <div
-              className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+              className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
               style={{
                 background: 'rgba(26,24,22,0.45)',
                 border: '1px solid rgba(255,255,255,0.05)',
@@ -288,7 +288,7 @@ const Auth = ({ initialView }: AuthProps) => {
                 style={{
                   fontFamily: "Inter, sans-serif",
                   fontWeight: 300,
-                  fontSize: '13px',
+                  fontSize: '14px',
                   color: '#E8E2DA',
                   letterSpacing: '0.03em',
                 }}
@@ -297,7 +297,7 @@ const Auth = ({ initialView }: AuthProps) => {
 
             {/* Password */}
             <div
-              className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+              className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
               style={{
                 background: 'rgba(26,24,22,0.45)',
                 border: '1px solid rgba(255,255,255,0.05)',
@@ -316,7 +316,7 @@ const Auth = ({ initialView }: AuthProps) => {
                 style={{
                   fontFamily: "Inter, sans-serif",
                   fontWeight: 300,
-                  fontSize: '13px',
+                  fontSize: '14px',
                   color: '#E8E2DA',
                   letterSpacing: '0.03em',
                 }}
@@ -367,12 +367,12 @@ const Auth = ({ initialView }: AuthProps) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full h-12 rounded-xl transition-all duration-200 disabled:opacity-50"
+              className="w-full h-11 rounded-lg transition-all duration-200 disabled:opacity-50"
               style={{
                 fontFamily: "Inter, sans-serif",
                 fontWeight: 500,
-                fontSize: '10px',
-                letterSpacing: '0.22em',
+                fontSize: '13px',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 background: 'rgba(232,226,218,0.9)',
                 color: '#2C2118',
@@ -398,10 +398,10 @@ const Auth = ({ initialView }: AuthProps) => {
                 <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
               </div>
 
-              <form onSubmit={handleMobileLogin} className="flex flex-col gap-4">
+              <form onSubmit={handleMobileLogin} className="flex flex-col gap-[10px]">
                 {/* Mobile */}
                 <div
-                  className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+                  className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
                   style={{
                     background: 'rgba(26,24,22,0.45)',
                     border: '1px solid rgba(255,255,255,0.05)',
@@ -419,7 +419,7 @@ const Auth = ({ initialView }: AuthProps) => {
                     style={{
                       fontFamily: "Inter, sans-serif",
                       fontWeight: 300,
-                      fontSize: '13px',
+                      fontSize: '14px',
                       color: '#E8E2DA',
                       letterSpacing: '0.03em',
                     }}
@@ -428,7 +428,7 @@ const Auth = ({ initialView }: AuthProps) => {
 
                 {/* Password */}
                 <div
-                  className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+                  className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
                   style={{
                     background: 'rgba(26,24,22,0.45)',
                     border: '1px solid rgba(255,255,255,0.05)',
@@ -447,7 +447,7 @@ const Auth = ({ initialView }: AuthProps) => {
                     style={{
                       fontFamily: "Inter, sans-serif",
                       fontWeight: 300,
-                      fontSize: '13px',
+                      fontSize: '14px',
                       color: '#E8E2DA',
                       letterSpacing: '0.03em',
                     }}
@@ -457,12 +457,12 @@ const Auth = ({ initialView }: AuthProps) => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full h-12 rounded-xl transition-all duration-200 disabled:opacity-50"
+                  className="w-full h-11 rounded-lg transition-all duration-200 disabled:opacity-50"
                   style={{
                     fontFamily: "Inter, sans-serif",
                     fontWeight: 500,
-                    fontSize: '10px',
-                    letterSpacing: '0.22em',
+                    fontSize: '13px',
+                    letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                     background: 'rgba(232,226,218,0.9)',
                     color: '#2C2118',
