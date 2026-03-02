@@ -1,45 +1,41 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { OtpInput } from "@/components/OtpInput";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ShieldCheck, ShieldAlert, LogOut } from "lucide-react";
+```tsx
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { supabase } from '@/integrations/supabase/client';
+import { OtpInput } from '@/components/OtpInput';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ShieldCheck, ShieldAlert, LogOut } from 'lucide-react';
 
-// ✅ 3 PINs — 2 regular + 1 master (always works)
-const VALID_PINS = ["291219", "010126", "141220"];
-const SESSION_KEY = "mirrorai_access_verified";
+const VALID_PINS = ['291219', '010126', '141220'];
+const SESSION_KEY = 'mirrorai_access_verified';
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_SECONDS = 60;
 
 export default function VerifyAccess() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [pin, setPin] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [verifying, setVerifying] = useState(false);
   const [lockoutEnd, setLockoutEnd] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/login", { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [user, loading, navigate]);
 
-  // Check if already verified
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY) === "true") {
-      const redirect = sessionStorage.getItem("redirectAfterLogin");
-      sessionStorage.removeItem("redirectAfterLogin");
-      navigate(redirect || "/dashboard", { replace: true });
+    if (sessionStorage.getItem(SESSION_KEY) === 'true') {
+      const redirect = sessionStorage.getItem('redirectAfterLogin');
+      sessionStorage.removeItem('redirectAfterLogin');
+      navigate(redirect || '/dashboard', { replace: true });
     }
   }, [navigate]);
 
-  // Lockout countdown
   useEffect(() => {
     if (!lockoutEnd) return;
     const interval = setInterval(() => {
@@ -48,7 +44,7 @@ export default function VerifyAccess() {
         setLockoutEnd(null);
         setCountdown(0);
         setAttempts(0);
-        setError("");
+        setError('');
       } else {
         setCountdown(remaining);
       }
@@ -56,46 +52,41 @@ export default function VerifyAccess() {
     return () => clearInterval(interval);
   }, [lockoutEnd]);
 
-  const handleVerify = useCallback(
-    async (inputPin: string) => {
-      if (verifying || lockoutEnd) return;
-      setVerifying(true);
-      setError("");
+  const handleVerify = useCallback(async (inputPin: string) => {
+    if (verifying || lockoutEnd) return;
+    setVerifying(true);
+    setError('');
 
-      if (VALID_PINS.includes(inputPin)) {
-        // ✅ Correct PIN
-        sessionStorage.setItem(SESSION_KEY, "true");
-        const redirect = sessionStorage.getItem("redirectAfterLogin");
-        sessionStorage.removeItem("redirectAfterLogin");
-        navigate(redirect || "/dashboard", { replace: true });
+    if (VALID_PINS.includes(inputPin)) {
+      sessionStorage.setItem(SESSION_KEY, 'true');
+      const redirect = sessionStorage.getItem('redirectAfterLogin');
+      sessionStorage.removeItem('redirectAfterLogin');
+      navigate(redirect || '/dashboard', { replace: true });
+    } else {
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+
+      if (newAttempts >= MAX_ATTEMPTS) {
+        const end = Date.now() + LOCKOUT_SECONDS * 1000;
+        setLockoutEnd(end);
+        setCountdown(LOCKOUT_SECONDS);
+        setError('Too many incorrect attempts. Access locked.');
       } else {
-        // ❌ Wrong PIN
-        const newAttempts = attempts + 1;
-        setAttempts(newAttempts);
-
-        if (newAttempts >= MAX_ATTEMPTS) {
-          const end = Date.now() + LOCKOUT_SECONDS * 1000;
-          setLockoutEnd(end);
-          setCountdown(LOCKOUT_SECONDS);
-          setError("Too many incorrect attempts. Access locked.");
-        } else {
-          setError(
-            `Incorrect code. ${MAX_ATTEMPTS - newAttempts} attempt${
-              MAX_ATTEMPTS - newAttempts !== 1 ? "s" : ""
-            } remaining.`,
-          );
-        }
+        setError(
+          `Incorrect OTP. ${MAX_ATTEMPTS - newAttempts} attempt${
+            MAX_ATTEMPTS - newAttempts !== 1 ? 's' : ''
+          } remaining.`
+        );
       }
+    }
 
-      setVerifying(false);
-    },
-    [attempts, verifying, lockoutEnd, navigate],
-  );
+    setVerifying(false);
+  }, [attempts, verifying, lockoutEnd, navigate]);
 
   const handleSignOut = async () => {
     sessionStorage.removeItem(SESSION_KEY);
     await supabase.auth.signOut();
-    navigate("/login", { replace: true });
+    navigate('/login', { replace: true });
   };
 
   if (loading) {
@@ -119,9 +110,13 @@ export default function VerifyAccess() {
               <ShieldCheck className="w-5 h-5 text-muted-foreground" />
             )}
           </div>
-          <CardTitle className="text-lg">{isLocked ? "Access Temporarily Locked" : "Owner Verification"}</CardTitle>
-          <CardDescription>
-            {isLocked ? `Try again in ${countdown} seconds` : "Please ask Danish for your access PIN to continue."}
+          <CardTitle className="text-lg">
+            {isLocked ? 'Access Temporarily Locked' : 'Enter Your OTP'}
+          </CardTitle>
+          <CardDescription className="text-center leading-relaxed">
+            {isLocked
+              ? `Try again in ${countdown} seconds`
+              : 'Your OTP has been sent to Danish. Contact Danish to receive your access code.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -134,7 +129,7 @@ export default function VerifyAccess() {
                   </Button>
                 </a>
                 <a
-                  href="https://wa.me/919605761589?text=Hi%20Danish%2C%20I%20just%20logged%20into%20MirrorAI%20and%20need%20the%20access%20PIN%20to%20continue."
+                  href="https://wa.me/919605761589?text=Hi%20Danish%2C%20I%20just%20signed%20up%20on%20MirrorAI%20and%20need%20my%20OTP%20to%20continue."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1"
@@ -144,13 +139,24 @@ export default function VerifyAccess() {
                   </Button>
                 </a>
               </div>
-              <OtpInput length={6} onComplete={handleVerify} disabled={verifying} />
+
+              <OtpInput
+                length={6}
+                onComplete={handleVerify}
+                disabled={verifying}
+              />
             </>
           )}
 
-          {error && <p className="text-center text-sm text-destructive animate-in fade-in duration-300">{error}</p>}
+          {error && (
+            <p className="text-center text-sm text-destructive animate-in fade-in duration-300">
+              {error}
+            </p>
+          )}
 
-          {verifying && <p className="text-center text-xs text-muted-foreground">Verifying...</p>}
+          {verifying && (
+            <p className="text-center text-xs text-muted-foreground">Verifying...</p>
+          )}
 
           <div className="pt-2">
             <button
@@ -166,3 +172,4 @@ export default function VerifyAccess() {
     </div>
   );
 }
+```
