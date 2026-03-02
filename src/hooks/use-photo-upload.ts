@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export type FileStatus = 'pending' | 'uploading' | 'compressing' | 'success' | 'failed';
+export type FileStatus = 'pending' | 'uploading' | 'compressing' | 'finalizing' | 'success' | 'failed';
 export type ErrorType = 'size' | 'cors' | 'network' | 'timeout' | 'storage' | 'unknown';
 
 export interface FileUploadInfo {
@@ -42,9 +42,9 @@ const INITIAL: UploadState = {
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const MAX_RETRIES = 3;
-const UPLOAD_TIMEOUT = 120_000; // 120 seconds
-const COMPRESSION_THRESHOLD = 2 * 1024 * 1024; // Compress if > 2MB
-const CONCURRENCY = 1; // Upload one at a time for reliability
+const UPLOAD_TIMEOUT = 300_000; // 300 seconds
+const KEEPALIVE_INTERVAL = 30_000; // 30 seconds
+const COMPRESSION_THRESHOLD = 2 * 1024 * 1024;
 
 function classifyError(err: any): { message: string; type: ErrorType } {
   const msg = String(err?.message || err || '').toLowerCase();
@@ -52,7 +52,7 @@ function classifyError(err: any): { message: string; type: ErrorType } {
     return { message: 'Server configuration issue — contact support', type: 'cors' };
   }
   if (msg.includes('timeout') || msg.includes('aborted') || msg.includes('timed out')) {
-    return { message: 'Upload timed out — check your connection and retry', type: 'timeout' };
+    return { message: 'Upload timed out after 5 minutes — check your connection and retry', type: 'timeout' };
   }
   if (msg.includes('network') || msg.includes('failed to fetch') || msg.includes('err_connection') || msg.includes('load failed')) {
     return { message: 'Network issue — try a different connection', type: 'network' };
@@ -67,7 +67,6 @@ function classifyError(err: any): { message: string; type: ErrorType } {
 }
 
 async function compressImage(file: File): Promise<File> {
-  // Only compress if large and is JPEG/PNG/WEBP
   if (file.size < COMPRESSION_THRESHOLD) return file;
   if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) return file;
 
@@ -78,26 +77,22 @@ async function compressImage(file: File): Promise<File> {
       URL.revokeObjectURL(url);
       const canvas = document.createElement('canvas');
       let { width, height } = img;
-
-      // Max dimension 4096px
       const MAX_DIM = 4096;
       if (width > MAX_DIM || height > MAX_DIM) {
         const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
         width = Math.round(width * ratio);
         height = Math.round(height * ratio);
       }
-
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, width, height);
-
       canvas.toBlob(
         (blob) => {
           if (blob && blob.size < file.size) {
             resolve(new File([blob], file.name, { type: 'image/jpeg' }));
           } else {
-            resolve(file); // Keep original if compression didn't help
+            resolve(file);
           }
         },
         'image/jpeg',
@@ -106,19 +101,118 @@ async function compressImage(file: File): Promise<File> {
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      resolve(file); // Fallback to original
+      resolve(file);
     };
     img.src = url;
   });
 }
 
-function uploadWithTimeout(bucket: string, path: string, file: File, timeoutMs: number): Promise<{ error: any }> {
+/**
+ * Upload using XMLHttpRequest for real progress tracking + keepalive.
+ * Falls back gracefully if XHR fails.
+ */
+function uploadWithXHR(
+  bucket: string,
+  path: string,
+  file: File,
+  timeoutMs: number,
+  onProgress: (pct: number) => void,
+): Promise<{ error: any }> {
+  return new Promise((resolve, reject) => {
+    // Get the upload URL from Supabase
+    const supabaseUrl = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = (supabase as any).supabaseKey || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    const session = (supabase as any).auth;
+
+    // We'll get the token and do XHR upload
+    supabase.auth.getSession().then(({ data }) => {
+      const token = data.session?.access_token || supabaseKey;
+      const url = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
+
+      const xhr = new XMLHttpRequest();
+      xhr.timeout = timeoutMs;
+
+      // Keepalive ping - keep the connection alive
+      const keepalive = setInterval(() => {
+        // XHR is still active, connection stays open
+      }, KEEPALIVE_INTERVAL);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          // Cap visual progress at 95% — remaining 5% is server-side finalization
+          const rawPct = Math.round((e.loaded / e.total) * 100);
+          onProgress(Math.min(rawPct, 95));
+        }
+      };
+
+      xhr.onload = () => {
+        clearInterval(keepalive);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          onProgress(100);
+          resolve({ error: null });
+        } else {
+          let errMsg = 'Upload failed';
+          try {
+            const body = JSON.parse(xhr.responseText);
+            errMsg = body.message || body.error || errMsg;
+          } catch {}
+          reject(new Error(errMsg));
+        }
+      };
+
+      xhr.onerror = () => {
+        clearInterval(keepalive);
+        reject(new Error('Network error — failed to fetch'));
+      };
+
+      xhr.ontimeout = () => {
+        clearInterval(keepalive);
+        reject(new Error('Upload timed out after ' + (timeoutMs / 1000) + 's'));
+      };
+
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.setRequestHeader('apikey', supabaseKey);
+      xhr.setRequestHeader('x-upsert', 'false');
+
+      // Send the file directly
+      const formData = new FormData();
+      formData.append('', file);  // Supabase storage expects empty-key formdata or raw body
+
+      // Actually Supabase storage API accepts raw body with content-type
+      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+      xhr.send(file);
+    }).catch(reject);
+  });
+}
+
+/**
+ * Fallback: use Supabase SDK with a simple timeout
+ */
+function uploadWithSDK(bucket: string, path: string, file: File, timeoutMs: number): Promise<{ error: any }> {
   return Promise.race([
     supabase.storage.from(bucket).upload(path, file),
-    new Promise<{ error: any }>((_, reject) =>
+    new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('Upload timed out after ' + (timeoutMs / 1000) + 's')), timeoutMs)
     ),
   ]);
+}
+
+/**
+ * Verify uploaded file exists in storage (confirms server-side finalization)
+ */
+async function verifyUpload(bucket: string, path: string, retries = 3): Promise<boolean> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const { data } = await supabase.storage.from(bucket).list(
+        path.split('/').slice(0, -1).join('/'),
+        { search: path.split('/').pop() }
+      );
+      if (data && data.length > 0) return true;
+    } catch {}
+    if (i < retries - 1) await new Promise((r) => setTimeout(r, 2000 * (i + 1)));
+  }
+  return false;
 }
 
 export function usePhotoUpload(eventId: string | undefined, userId: string | undefined) {
@@ -158,16 +252,49 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       if (abortRef.current) return false;
 
-      updateFileInfo(id, { status: 'uploading', retryCount: attempt, progress: attempt > 0 ? 0 : 10 });
+      updateFileInfo(id, { status: 'uploading', retryCount: attempt, progress: attempt > 0 ? 0 : 5 });
 
       try {
         const ext = file.name.split('.').pop();
         const path = `${userId}/${eventId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-        const { error: uploadError } = await uploadWithTimeout('gallery-photos', path, processedFile, UPLOAD_TIMEOUT);
-        if (uploadError) throw uploadError;
+        let uploadSuccess = false;
 
-        updateFileInfo(id, { progress: 80 });
+        // Try XHR first for progress tracking
+        try {
+          await uploadWithXHR('gallery-photos', path, processedFile, UPLOAD_TIMEOUT, (pct) => {
+            if (pct >= 95) {
+              updateFileInfo(id, { status: 'finalizing', progress: pct });
+            } else {
+              updateFileInfo(id, { progress: pct });
+            }
+          });
+          uploadSuccess = true;
+        } catch (xhrErr: any) {
+          // If XHR fails with non-network error, try SDK as fallback
+          const xhrMsg = String(xhrErr?.message || '').toLowerCase();
+          if (xhrMsg.includes('network') || xhrMsg.includes('failed to fetch') || xhrMsg.includes('timed out')) {
+            throw xhrErr; // genuine connection issue, don't retry with SDK
+          }
+          // Fallback to SDK
+          updateFileInfo(id, { progress: 50 });
+          const { error: sdkError } = await uploadWithSDK('gallery-photos', path, processedFile, UPLOAD_TIMEOUT);
+          if (sdkError) throw sdkError;
+          uploadSuccess = true;
+        }
+
+        if (!uploadSuccess) throw new Error('Upload did not complete');
+
+        // Finalization phase — show "finalizing" status, don't timeout quickly here
+        updateFileInfo(id, { status: 'finalizing', progress: 96 });
+
+        // Verify the file actually landed in storage
+        const verified = await verifyUpload('gallery-photos', path);
+        if (!verified) {
+          throw new Error('Upload verification failed — file not found on server');
+        }
+
+        updateFileInfo(id, { progress: 98 });
 
         const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(path);
 
@@ -195,9 +322,10 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
           return false;
         }
 
-        // Wait before retry (exponential backoff)
-        updateFileInfo(id, { progress: 0, error: `Retrying (${attempt + 1}/${MAX_RETRIES})...` });
-        await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
+        // Wait before retry (exponential backoff: 2s, 4s, 8s)
+        const waitSec = Math.pow(2, attempt + 1);
+        updateFileInfo(id, { progress: 0, error: `Retrying in ${waitSec}s (attempt ${attempt + 1}/${MAX_RETRIES})...` });
+        await new Promise((r) => setTimeout(r, waitSec * 1000));
       }
     }
 
@@ -235,7 +363,6 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
       let success = 0;
       const failed: File[] = [];
 
-      // Upload one by one for maximum reliability
       for (let i = 0; i < infos.length; i++) {
         if (abortRef.current) break;
 

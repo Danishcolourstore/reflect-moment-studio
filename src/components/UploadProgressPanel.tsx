@@ -25,11 +25,14 @@ function FileRow({ info, onRetry }: { info: FileUploadInfo; onRetry: (id: string
     <div className="flex items-center gap-3 py-1.5">
       <div className="flex-1 min-w-0">
         <p className="text-[11px] text-foreground/80 truncate">{name}</p>
-        {info.status === 'uploading' && (
+        {(info.status === 'uploading' || info.status === 'finalizing') && (
           <div className="flex items-center gap-2 mt-1">
             <Progress value={info.progress} className="h-0.5 flex-1" />
             <Loader2 className="h-3 w-3 text-muted-foreground/50 animate-spin shrink-0" />
           </div>
+        )}
+        {info.status === 'finalizing' && (
+          <p className="text-[9px] text-primary/60 mt-0.5">Finalizing upload, please wait…</p>
         )}
         {info.status === 'compressing' && (
           <p className="text-[9px] text-muted-foreground/50 mt-0.5">Compressing…</p>
