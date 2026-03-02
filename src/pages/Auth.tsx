@@ -105,12 +105,14 @@ const Auth = ({ initialView }: AuthProps) => {
         }}
       />
 
-      {/* Layer 2: Foreground photograph — starts sharp, blurs on reveal */}
+       {/* Layer 2: Foreground photograph — starts sharp, blurs on reveal */}
       <div
         className="absolute inset-0 flex items-center justify-center"
         style={{
           filter: revealed ? "blur(18px)" : "blur(0px)",
-          transition: "filter 2.5s cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "filter 4s cubic-bezier(0.22, 1, 0.36, 1)",
+          transform: "translateZ(0)",
+          willChange: "filter",
         }}
       >
         <img
@@ -150,8 +152,9 @@ const Auth = ({ initialView }: AuthProps) => {
             border: "1px solid rgba(255, 255, 255, 0.08)",
             boxShadow: "0 32px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
             opacity: revealed ? 1 : 0,
-            transform: revealed ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
-            transition: "opacity 2.2s cubic-bezier(0.4, 0, 0.2, 1), transform 2.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            transform: revealed ? "translateY(0) scale(1)" : "translateY(40px) scale(0.98)",
+            transition: "opacity 2.2s cubic-bezier(0.22, 1, 0.36, 1) 2.2s, transform 2.2s cubic-bezier(0.22, 1, 0.36, 1) 2.2s",
+            willChange: "opacity, transform",
           }}
         >
           {/* Brand */}
