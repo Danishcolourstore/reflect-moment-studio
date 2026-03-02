@@ -183,13 +183,14 @@ const VerifyOTP = () => {
           className="mt-14"
           style={{
             fontFamily: "Inter, sans-serif",
-            fontSize: "7px",
+            fontSize: "9px",
+            fontWeight: 700,
             letterSpacing: "0.45em",
             textTransform: "uppercase",
-            color: "rgba(232,226,218,0.08)",
+            color: "rgba(255,255,255,0.7)",
           }}
         >
-          Private Photography Platform
+          Colour Store Preset Universe
         </p>
       </div>
     </div>

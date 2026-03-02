@@ -295,11 +295,11 @@ const ResetPassword = () => {
         <p
           className="mt-14 animate-[fade-in_1.2s_ease-out_0.8s_forwards] opacity-0"
           style={{
-            fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.45em',
-            textTransform: 'uppercase', color: 'rgba(232,226,218,0.08)',
+            fontFamily: "Inter, sans-serif", fontSize: '9px', fontWeight: 700, letterSpacing: '0.45em',
+            textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)',
           }}
         >
-          Private Photography Platform
+          Colour Store Preset Universe
         </p>
       </div>
     </div>
