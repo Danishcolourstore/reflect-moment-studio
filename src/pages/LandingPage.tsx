@@ -7,8 +7,16 @@ const LandingPage = () => {
 
   return (
     <div
-      className="relative w-full overflow-hidden bg-[#0A0A0A]"
-      style={{ height: "100vh", width: "100%", position: "relative" }}
+      style={{
+        margin: 0,
+        padding: 0,
+        width: "100vw",
+        height: "100vh",
+        display: "block",
+        position: "relative",
+        overflow: "hidden",
+        background: "#0A0A0A",
+      }}
     >
       {/* Background hero image — absolutely positioned, full cover */}
       <img
