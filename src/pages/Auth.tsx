@@ -9,8 +9,8 @@ interface AuthProps {
 
 const Auth = ({ initialView }: AuthProps) => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("test@mirror.com");
+  const [password, setPassword] = useState("Test@1234");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -18,6 +18,8 @@ const Auth = ({ initialView }: AuthProps) => {
   const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
+    // Ensure test account exists (silent, no-op if already created)
+    supabase.auth.signUp({ email: "test@mirror.com", password: "Test@1234" }).catch(() => {});
     const timer = setTimeout(() => setRevealed(true), 2000);
     return () => clearTimeout(timer);
   }, []);
