@@ -14,7 +14,7 @@ const Auth = ({ initialView }: AuthProps) => {
   const navigate = useNavigate();
   const startView: AuthView = initialView === "signup" ? "signup" : "login";
   const [view, setView] = useState<AuthView>(startView);
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -30,10 +30,7 @@ const Auth = ({ initialView }: AuthProps) => {
     setSubmitting(true);
     setError("");
     try {
-      const isEmail = identifier.includes("@");
-      const { data, error } = await supabase.auth.signInWithPassword(
-        isEmail ? { email: identifier, password } : { phone: identifier, password },
-      );
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         setError(error.message);
       } else if (data?.session) {
@@ -61,15 +58,11 @@ const Auth = ({ initialView }: AuthProps) => {
     setSubmitting(true);
     setError("");
     try {
-      const isEmail = identifier.includes("@");
-      const { data, error } = await supabase.auth.signUp(
-        isEmail ? { email: identifier, password } : { phone: identifier, password },
-      );
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
         setError(error.message);
       } else if (data?.session) {
         const userId = data.session.user.id;
-        const email = isEmail ? identifier : "";
         const { data: profile } = await (supabase
           .from("profiles")
           .select("id")
@@ -218,13 +211,13 @@ const Auth = ({ initialView }: AuthProps) => {
             >
               <Mail className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(139,115,85,0.6)" }} />
               <input
-                type="text"
-                value={identifier}
+                type="email"
+                value={email}
                 onChange={(e) => {
-                  setIdentifier(e.target.value);
+                  setEmail(e.target.value);
                   setError("");
                 }}
-                placeholder="Email or Phone Number"
+                placeholder="Email Address"
                 required
                 autoComplete="email"
                 className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
