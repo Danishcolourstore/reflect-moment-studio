@@ -60,14 +60,22 @@ const Auth = ({ initialView }: AuthProps) => {
     setSubmitting(true);
     setError("");
     try {
+      if (!mobile.trim()) {
+        setError("Mobile number is required.");
+        setSubmitting(false);
+        return;
+      }
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
         setError(error.message);
       } else if (data?.session) {
         const userId = data.session.user.id;
+        const cleanMobile = mobile.replace(/\s+/g, '');
         const { data: profile } = await (supabase.from('profiles').select('id').eq('user_id', userId).maybeSingle() as any);
         if (!profile) {
-          await (supabase.from('profiles').insert({ user_id: userId, studio_name: 'My Studio', email } as any) as any);
+          await (supabase.from('profiles').insert({ user_id: userId, studio_name: 'My Studio', email, mobile: cleanMobile } as any) as any);
+        } else {
+          await (supabase.from('profiles').update({ mobile: cleanMobile } as any).eq('user_id', userId) as any);
         }
         await (supabase.from('user_roles').insert({ user_id: userId, role: 'photographer' } as any) as any);
         navigate("/dashboard");
@@ -294,6 +302,35 @@ const Auth = ({ initialView }: AuthProps) => {
                 }}
               />
             </div>
+
+            {/* Mobile — signup only */}
+            {!isLogin && (
+              <div
+                className="flex items-center gap-3 px-3.5 h-11 rounded-lg transition-colors duration-200"
+                style={{
+                  background: 'rgba(26,24,22,0.45)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                }}
+              >
+                <Phone className="h-3.5 w-3.5 shrink-0" style={{ color: 'rgba(139,115,85,0.6)' }} />
+                <input
+                  type="tel"
+                  value={mobile}
+                  onChange={(e) => { setMobile(e.target.value); setError(""); }}
+                  placeholder="Mobile Number"
+                  required
+                  autoComplete="tel"
+                  className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
+                  style={{
+                    fontFamily: "Inter, sans-serif",
+                    fontWeight: 300,
+                    fontSize: '14px',
+                    color: '#E8E2DA',
+                    letterSpacing: '0.03em',
+                  }}
+                />
+              </div>
+            )}
 
             {/* Password */}
             <div
