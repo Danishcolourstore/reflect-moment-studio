@@ -36,6 +36,8 @@ import { GalleryShell } from "./components/GalleryShell";
 import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
 import AdminGate from "./pages/admin/AdminGate";
+import AdminPinGate from "./pages/admin/AdminPinGate";
+import AdminPinReset from "./pages/admin/AdminPinReset";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
@@ -147,8 +149,9 @@ const AppRoutes = () => {
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/reset-password" element={<ResetPassword />} />
 
-    {/* Super Admin routes — code-gated, no auth required */}
-    <Route path="/admin" element={<AdminGate><AdminLayout /></AdminGate>}>
+    {/* Super Admin routes — PIN gate + role gate */}
+    <Route path="/admin/reset-pin" element={<AdminPinReset />} />
+    <Route path="/admin" element={<AdminPinGate><AdminGate><AdminLayout /></AdminGate></AdminPinGate>}>
       <Route index element={<AdminDashboard />} />
       <Route path="photographers" element={<AdminPhotographers />} />
       <Route path="events" element={<AdminEvents />} />
