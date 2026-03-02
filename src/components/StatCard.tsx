@@ -6,19 +6,14 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon }: StatCardProps) {
   return (
-    <div className="bg-card rounded-[14px] px-7 py-7 border border-border/20">
-      <div className="flex items-center justify-between mb-4">
-        <p
-          className="text-[8px] uppercase tracking-[0.22em] text-muted-foreground/45 font-medium"
-          style={{ fontFamily: "Inter, sans-serif" }}
-        >
-          {label}
-        </p>
-        <span className="text-muted-foreground/12">{icon}</span>
+    <div className="py-7 px-2">
+      <div className="flex items-center gap-2 mb-5">
+        <span className="text-muted-foreground/15">{icon}</span>
+        <p className="editorial-label">{label}</p>
       </div>
       <p
-        className="text-[36px] text-foreground leading-none tracking-tight"
-        style={{ fontFamily: "'Playfair Display', serif", fontWeight: 300 }}
+        className="text-[40px] text-foreground leading-none tracking-tight font-serif"
+        style={{ fontWeight: 300 }}
       >
         {value}
       </p>

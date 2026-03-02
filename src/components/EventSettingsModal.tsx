@@ -68,7 +68,6 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [selectionModeEnabled, setSelectionModeEnabled] = useState(event.selection_mode_enabled ?? false);
   const [saving, setSaving] = useState(false);
 
-  // Sync when event changes
   useEffect(() => {
     setTitle(event.name);
     setDate(event.event_date);
@@ -83,9 +82,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
 
   const handleSave = async () => {
     setSaving(true);
-
     let coverUrl = event.cover_url;
-
     if (coverFile) {
       const ext = coverFile.name.split('.').pop();
       const userId = (await supabase.auth.getUser()).data.user?.id;
@@ -96,20 +93,11 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
         coverUrl = publicUrl;
       }
     }
-
     const { error } = await supabase.from('events').update({
-      name: title,
-      event_date: date,
-      location: location || null,
-      cover_url: coverUrl,
-      gallery_pin: password || null,
-      gallery_layout: galleryLayout,
-      downloads_enabled: downloadsEnabled,
-      watermark_enabled: watermarkEnabled,
-      is_published: isPublished,
-      selection_mode_enabled: selectionModeEnabled,
+      name: title, event_date: date, location: location || null, cover_url: coverUrl,
+      gallery_pin: password || null, gallery_layout: galleryLayout, downloads_enabled: downloadsEnabled,
+      watermark_enabled: watermarkEnabled, is_published: isPublished, selection_mode_enabled: selectionModeEnabled,
     } as any).eq('id', event.id);
-
     if (error) {
       toast({ title: 'Error saving', description: error.message, variant: 'destructive' });
     } else {
@@ -124,132 +112,137 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[460px] bg-card border-border p-6 max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-serif text-xl font-semibold">Event Settings</DialogTitle>
+      <DialogContent className="sm:max-w-[500px] bg-card border-border/20 p-0 max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="px-8 pt-8 pb-2">
+          <DialogTitle className="font-serif text-2xl" style={{ fontWeight: 300 }}>Event Settings</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3.5 mt-1">
-          {/* Gallery Link */}
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Link</Label>
-            <div className="flex gap-1.5">
-              <Input value={`${window.location.origin}/event/${event.slug}`} readOnly className="bg-background h-9 text-[12px] font-mono" />
-              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/event/${event.slug}`); toast({ title: 'Gallery link copied' }); }}>
-                <Copy className="h-3.5 w-3.5" />
-              </Button>
-              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" asChild>
-                <a href={`/event/${event.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
-              </Button>
+        <div className="px-8 pb-8 space-y-8">
+
+          {/* ── Section 1: Basic Info ── */}
+          <section className="space-y-4">
+            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Basic Info</h3>
+            <div className="space-y-1.5">
+              <Label className="editorial-label">Gallery Link</Label>
+              <div className="flex gap-1.5">
+                <Input value={`${window.location.origin}/event/${event.slug}`} readOnly className="bg-background h-9 text-[12px] font-mono" />
+                <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/event/${event.slug}`); toast({ title: 'Gallery link copied' }); }}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" asChild>
+                  <a href={`/event/${event.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
+                </Button>
+              </div>
+              <p className="editorial-helper">Share this URL with your clients to give them access.</p>
             </div>
-          </div>
+            <div className="space-y-1.5">
+              <Label className="editorial-label">Event Title</Label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-background h-9 text-[13px]" />
+              <p className="editorial-helper">The title displayed on your gallery page.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="editorial-label">Event Date</Label>
+                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-background h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="editorial-label">Location</Label>
+                <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, Country" className="bg-background h-9 text-[13px]" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="editorial-label">Cover Photo</Label>
+              <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
+              {event.cover_url && !coverFile && <p className="editorial-helper">Current cover set. Upload a new image to replace.</p>}
+            </div>
+          </section>
 
-          {/* Title */}
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Title</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-background h-9 text-[13px]" />
-          </div>
+          <div className="h-px bg-border/30" />
 
-          {/* Date */}
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Date</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-background h-9 text-[13px]" />
-          </div>
-
-          {/* Location */}
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Location</Label>
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, Country" className="bg-background h-9 text-[13px]" />
-          </div>
-
-          {/* Cover */}
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Cover Photo</Label>
-            <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
-            {event.cover_url && !coverFile && (
-              <p className="text-[10px] text-muted-foreground/50">Current cover set. Upload to replace.</p>
-            )}
-          </div>
-
-          {/* Password */}
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Password (Optional)</Label>
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
-          </div>
-
-          {/* Layout with live preview */}
-          <div className="space-y-2">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Layout</Label>
-            <div className="grid grid-cols-4 gap-1.5">
+          {/* ── Section 2: Gallery Layout ── */}
+          <section className="space-y-4">
+            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Gallery Layout</h3>
+            <p className="editorial-helper !mt-0">Choose how your photos are presented to guests.</p>
+            <div className="grid grid-cols-4 gap-2">
               {LAYOUT_OPTIONS.map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setGalleryLayout(value)}
-                  className={`flex flex-col items-center gap-1 py-2.5 px-1 border transition-colors text-center ${
+                <button key={value} type="button" onClick={() => setGalleryLayout(value)}
+                  className={`flex flex-col items-center gap-1.5 py-3 px-1.5 rounded-xl border transition-colors text-center ${
                     galleryLayout === value
-                      ? 'border-foreground bg-foreground/5 text-foreground'
-                      : 'border-border text-muted-foreground/60 hover:border-foreground/30'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-[9px] uppercase tracking-wider leading-none">{label}</span>
+                      ? 'border-foreground/30 bg-foreground/5 text-foreground'
+                      : 'border-border/30 text-muted-foreground/50 hover:border-muted-foreground/20'
+                  }`}>
+                  <Icon className="h-4 w-4" strokeWidth={1.5} />
+                  <span className="text-[8px] uppercase tracking-[0.12em] leading-none">{label}</span>
                 </button>
               ))}
             </div>
-
-            {/* Mini live preview */}
-            <div className="border border-border bg-background p-2.5 mt-1.5">
-              <p className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground/50 mb-1.5">Preview</p>
+            <div className="border border-border/20 bg-background/50 p-3 rounded-xl">
+              <p className="editorial-label mb-2">Preview</p>
               <div className="flex gap-[2px] items-end h-12">
                 {previewBars.map((h, i) => (
-                  <div
-                    key={`${galleryLayout}-${i}`}
-                    className="flex-1 bg-muted-foreground/15 transition-all duration-300"
-                    style={{ height: `${(h / 5) * 100}%` }}
-                  />
+                  <div key={`${galleryLayout}-${i}`} className="flex-1 bg-muted-foreground/12 rounded-sm transition-all duration-300" style={{ height: `${(h / 5) * 100}%` }} />
                 ))}
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Download & publish permissions */}
-          <div className="pt-2 border-t border-border space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Settings</p>
-            <div className="flex items-center justify-between">
-              <Label className="text-[12px] text-foreground/80 font-normal">Downloads enabled</Label>
-              <Switch checked={downloadsEnabled} onCheckedChange={setDownloadsEnabled} />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label className="text-[12px] text-foreground/80 font-normal">Watermark enabled</Label>
-              <Switch checked={watermarkEnabled} onCheckedChange={setWatermarkEnabled} />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label className="text-[12px] text-foreground/80 font-normal">Published</Label>
+          <div className="h-px bg-border/30" />
+
+          {/* ── Section 3: Access & Security ── */}
+          <section className="space-y-4">
+            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Access & Security</h3>
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <Label className="text-[12px] text-foreground/70 font-normal">Published</Label>
+                <p className="editorial-helper !mt-0.5">Make this gallery visible to anyone with the link.</p>
+              </div>
               <Switch checked={isPublished} onCheckedChange={setIsPublished} />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="space-y-1.5">
+              <Label className="editorial-label">Gallery Password</Label>
+              <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
+              <p className="editorial-helper">Optional. Guests will need to enter this PIN to view photos.</p>
+            </div>
+          </section>
+
+          <div className="h-px bg-border/30" />
+
+          {/* ── Section 4: Downloads & Protection ── */}
+          <section className="space-y-4">
+            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Downloads & Protection</h3>
+            <div className="flex items-center justify-between py-1">
               <div>
-                <Label className="text-[12px] text-foreground/80 font-normal">Photo Selection Mode</Label>
-                <p className="text-[10px] text-muted-foreground/50 mt-0.5">Guests can select & submit photos</p>
+                <Label className="text-[12px] text-foreground/70 font-normal">Downloads Enabled</Label>
+                <p className="editorial-helper !mt-0.5">Allow guests to download photos from this gallery.</p>
+              </div>
+              <Switch checked={downloadsEnabled} onCheckedChange={setDownloadsEnabled} />
+            </div>
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <Label className="text-[12px] text-foreground/70 font-normal">Watermark Enabled</Label>
+                <p className="editorial-helper !mt-0.5">Display your studio name as a watermark on gallery images.</p>
+              </div>
+              <Switch checked={watermarkEnabled} onCheckedChange={setWatermarkEnabled} />
+            </div>
+          </section>
+
+          <div className="h-px bg-border/30" />
+
+          {/* ── Section 5: Guest & AI Features ── */}
+          <section className="space-y-4">
+            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Guest & AI Features</h3>
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <Label className="text-[12px] text-foreground/70 font-normal">Photo Selection Mode</Label>
+                <p className="editorial-helper !mt-0.5">Allow guests to curate and submit their favorite photo selections.</p>
               </div>
               <Switch checked={selectionModeEnabled} onCheckedChange={setSelectionModeEnabled} />
             </div>
-          </div>
+            <SmartQRAccess eventId={event.id} />
+          </section>
 
-          {/* Smart QR Access */}
-          <SmartQRAccess eventId={event.id} />
-
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-9 text-[12px] tracking-wide uppercase font-medium mt-1"
-          >
-            {saving ? (
-              <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Saving...</>
-            ) : (
-              'Save Settings'
-            )}
+          <Button onClick={handleSave} disabled={saving} className="w-full h-11 mt-2">
+            {saving ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Saving...</> : 'Save Settings'}
           </Button>
         </div>
       </DialogContent>
