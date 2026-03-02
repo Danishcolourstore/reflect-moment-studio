@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink } from 'lucide-react';
 import { SmartQRAccess } from '@/components/events/SmartQRAccess';
 import { GALLERY_STYLES, DEFAULT_LAYOUT_FOR_STYLE, type GalleryStyleValue } from '@/lib/gallery-styles';
+import { WEBSITE_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -50,6 +51,7 @@ interface EventData {
   hero_couple_name?: string | null;
   hero_subtitle?: string | null;
   hero_button_label?: string | null;
+  website_template?: string;
 }
 
 interface EventSettingsModalProps {
@@ -75,6 +77,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [heroCoupleName, setHeroCoupleName] = useState(event.hero_couple_name ?? '');
   const [heroSubtitle, setHeroSubtitle] = useState(event.hero_subtitle ?? '');
   const [heroButtonLabel, setHeroButtonLabel] = useState(event.hero_button_label ?? '');
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>((event.website_template as WebsiteTemplateValue) || 'editorial-studio');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -91,6 +94,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setHeroCoupleName(event.hero_couple_name ?? '');
     setHeroSubtitle(event.hero_subtitle ?? '');
     setHeroButtonLabel(event.hero_button_label ?? '');
+    setWebsiteTemplate((event.website_template as WebsiteTemplateValue) || 'editorial-studio');
   }, [event]);
 
   const handleSave = async () => {
@@ -112,7 +116,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
       downloads_enabled: downloadsEnabled, watermark_enabled: watermarkEnabled,
       is_published: isPublished, selection_mode_enabled: selectionModeEnabled,
       hero_couple_name: heroCoupleName || null, hero_subtitle: heroSubtitle || null,
-      hero_button_label: heroButtonLabel || null,
+      hero_button_label: heroButtonLabel || null, website_template: websiteTemplate,
     } as any).eq('id', event.id);
     if (error) {
       toast({ title: 'Error saving', description: error.message, variant: 'destructive' });
@@ -175,7 +179,30 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
 
           <div className="h-px bg-border/30" />
 
-          {/* ── Section: Gallery Style ── */}
+          {/* ── Section: Website Template ── */}
+          <section className="space-y-4">
+            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Website Template</h3>
+            <p className="editorial-helper !mt-0">Choose how guests experience your gallery — like visiting your own website.</p>
+            <div className="grid grid-cols-1 gap-2">
+              {WEBSITE_TEMPLATES.map((tmpl) => (
+                <button
+                  key={tmpl.value}
+                  type="button"
+                  onClick={() => setWebsiteTemplate(tmpl.value)}
+                  className={`flex flex-col items-start gap-1 p-3.5 rounded-xl border transition-colors text-left ${
+                    websiteTemplate === tmpl.value
+                      ? 'border-foreground/30 bg-foreground/5'
+                      : 'border-border/30 hover:border-muted-foreground/20'
+                  }`}
+                >
+                  <span className={`text-[11px] font-medium ${websiteTemplate === tmpl.value ? 'text-foreground' : 'text-muted-foreground/70'}`}>{tmpl.label}</span>
+                  <span className="text-[9px] text-muted-foreground/50 leading-snug">{tmpl.description}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <div className="h-px bg-border/30" />
           <section className="space-y-4">
             <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Gallery Style</h3>
             <p className="editorial-helper !mt-0">Choose the visual presentation preset for your gallery.</p>

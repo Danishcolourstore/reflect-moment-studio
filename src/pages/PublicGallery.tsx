@@ -29,6 +29,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
 import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
 import { TimelessWeddingHero } from '@/components/TimelessWeddingHero';
+import { WebsiteHeader } from '@/components/website/WebsiteHeader';
+import { WebsiteFooter } from '@/components/website/WebsiteFooter';
+import { WebsiteAbout } from '@/components/website/WebsiteAbout';
+import { WebsiteContact } from '@/components/website/WebsiteContact';
+import { getTemplate } from '@/lib/website-templates';
 
 /* ── Interfaces ── */
 interface Photo {
@@ -66,6 +71,17 @@ interface StudioProfile {
   studio_name: string;
   studio_logo_url: string | null;
   studio_accent_color: string | null;
+}
+
+interface StudioExtended {
+  bio: string | null;
+  display_name: string | null;
+  instagram: string | null;
+  website: string | null;
+  whatsapp: string | null;
+  footer_text: string | null;
+  cover_url: string | null;
+  font_style: string | null;
 }
 
 /* ── Ken Burns keyframe (scoped, injected once) ── */
@@ -212,6 +228,7 @@ const PublicGallery = () => {
 
   const [event, setEvent] = useState<EventData | null>(null);
   const [studioProfile, setStudioProfile] = useState<StudioProfile | null>(null);
+  const [studioExtended, setStudioExtended] = useState<StudioExtended | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -288,9 +305,15 @@ const PublicGallery = () => {
 
     // Fetch studio profile
     const { data: profile } = await (supabase.from('profiles')
-      .select('studio_name, studio_logo_url, studio_accent_color') as any)
+      .select('studio_name, studio_logo_url, studio_accent_color, email') as any)
       .eq('user_id', ev.user_id).maybeSingle();
     if (profile) setStudioProfile(profile as unknown as StudioProfile);
+
+    // Fetch extended studio profile
+    const { data: studioExt } = await (supabase.from('studio_profiles')
+      .select('bio, display_name, instagram, website, whatsapp, footer_text, cover_url, font_style') as any)
+      .eq('user_id', ev.user_id).maybeSingle();
+    if (studioExt) setStudioExtended(studioExt as unknown as StudioExtended);
 
     // Fetch photos
     const { data: photoData } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
@@ -424,6 +447,29 @@ const PublicGallery = () => {
   const layout = event?.gallery_layout || 'masonry';
   const galleryStyle = (event as any)?.gallery_style || 'vogue-editorial';
   const isTimeless = galleryStyle === 'timeless-wedding';
+  const websiteTemplate = (event as any)?.website_template || 'editorial-studio';
+  const wt = getTemplate(websiteTemplate);
+
+  // Build combined branding object for website components
+  const combinedBranding = studioProfile ? {
+    ...studioProfile,
+    bio: studioExtended?.bio || null,
+    display_name: studioExtended?.display_name || null,
+    instagram: studioExtended?.instagram || null,
+    website: studioExtended?.website || null,
+    whatsapp: studioExtended?.whatsapp || null,
+    footer_text: studioExtended?.footer_text || null,
+    cover_url: studioExtended?.cover_url || null,
+    email: (studioProfile as any)?.email || null,
+  } : null;
+
+  const hasAbout = !!studioExtended?.bio;
+  const hasContact = !!(studioExtended?.whatsapp || studioExtended?.website || (studioProfile as any)?.email);
+
+  const aboutRef = useRef<HTMLDivElement>(null);
+  const contactRef = useRef<HTMLDivElement>(null);
+  const scrollToAbout = hasAbout ? () => aboutRef.current?.scrollIntoView({ behavior: 'smooth' }) : undefined;
+  const scrollToContact = hasContact ? () => contactRef.current?.scrollIntoView({ behavior: 'smooth' }) : undefined;
 
   const scrollToGallery = () => {
     galleryRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -698,12 +744,22 @@ const PublicGallery = () => {
       className="min-h-[100dvh]"
       style={{
         ...(accentColor ? { '--studio-accent': accentColor } as React.CSSProperties : {}),
-        backgroundColor: isTimeless ? '#FAF8F5' : undefined,
-        color: isTimeless ? '#2B2B2B' : undefined,
-        fontFamily: isTimeless ? 'Inter, sans-serif' : undefined,
+        backgroundColor: wt.bg,
+        color: wt.text,
+        fontFamily: wt.uiFontFamily,
       }}
     >
       <style>{kenBurnsStyle}</style>
+
+      {/* ── WEBSITE HEADER ── */}
+      <WebsiteHeader
+        template={websiteTemplate}
+        branding={combinedBranding}
+        eventName={event.name}
+        onScrollToGallery={scrollToGallery}
+        onScrollToAbout={scrollToAbout}
+        onScrollToContact={scrollToContact}
+      />
 
       {/* ── HERO ── */}
       {isTimeless ? (
@@ -759,9 +815,9 @@ const PublicGallery = () => {
           stickyVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
         }`}
         style={{
-          backgroundColor: isTimeless ? 'rgba(250, 248, 245, 0.9)' : 'hsl(var(--background) / 0.9)',
+          backgroundColor: wt.navBg,
           backdropFilter: 'blur(12px)',
-          borderBottom: isTimeless ? '1px solid #EAEAEA' : '1px solid hsl(var(--border))',
+          borderBottom: `1px solid ${wt.navBorder}`,
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
@@ -896,11 +952,24 @@ const PublicGallery = () => {
         {/* Gallery grid */}
         {renderGallery()}
 
-        {/* Footer */}
-        <div className="mt-12 pb-8 text-center">
-          <p className="text-[9px] tracking-[0.15em] uppercase" style={{ color: isTimeless ? '#8A8A8A' : undefined, opacity: isTimeless ? 0.5 : 0.3 }}>Powered by MirrorAI</p>
-        </div>
       </div>
+
+      {/* ── ABOUT SECTION ── */}
+      {hasAbout && (
+        <div ref={aboutRef}>
+          <WebsiteAbout template={websiteTemplate} branding={combinedBranding} id="about" />
+        </div>
+      )}
+
+      {/* ── CONTACT SECTION ── */}
+      {hasContact && (
+        <div ref={contactRef}>
+          <WebsiteContact template={websiteTemplate} branding={combinedBranding} id="contact" />
+        </div>
+      )}
+
+      {/* ── WEBSITE FOOTER ── */}
+      <WebsiteFooter template={websiteTemplate} branding={combinedBranding} />
 
       {/* ── Lightbox ── */}
       <PhotoLightbox
