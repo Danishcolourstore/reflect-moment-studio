@@ -296,8 +296,8 @@ const Auth = ({ initialView }: AuthProps) => {
         className="fixed bottom-5 left-0 right-0 text-center z-10"
         style={{
           fontFamily: "Inter, sans-serif",
-          fontSize: "12px",
-          fontWeight: 700,
+          fontSize: "6px",
+          fontWeight: 500,
           letterSpacing: "0.45em",
           textTransform: "uppercase",
           color: "rgba(255,255,255,0.85)",
