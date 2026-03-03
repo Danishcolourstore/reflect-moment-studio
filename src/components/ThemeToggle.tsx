@@ -72,13 +72,13 @@ export function ThemeToggle() {
     ? 'hsl(24, 48%, 24%)'
     : theme === 'blanc'
       ? 'hsl(0, 0%, 82%)'
-      : 'hsl(24, 48%, 24%)';
+      : 'hsl(30, 18%, 82%)';
 
   const circleBg = theme === 'dark'
     ? 'hsl(26, 68%, 10%)'
     : theme === 'blanc'
       ? 'hsl(0, 0%, 100%)'
-      : 'hsl(36, 56%, 90%)';
+      : 'hsl(25, 27%, 95%)';
 
   const circlePos = theme === 'light' ? '3px' : theme === 'dark' ? '22px' : '41px';
 
