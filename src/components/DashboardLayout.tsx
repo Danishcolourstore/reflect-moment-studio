@@ -1,12 +1,13 @@
-import { ReactNode, useState, useEffect, useCallback, useRef } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutGrid, Camera, Upload, Users, BarChart2, Palette, User,
-  LogOut, Moon, Sun, Bell, ChevronRight, Menu,
+  LogOut, Bell, ChevronRight, Menu,
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -58,18 +59,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [dark, setDark] = useState(() => {
-    const ak = localStorage.getItem('andhakaar-mode');
-    const saved = localStorage.getItem('theme');
-    if (ak === 'on' || saved === 'dark') {
-      document.documentElement.classList.add('dark');
-      return true;
-    }
-    document.documentElement.classList.remove('dark');
-    return false;
-  });
   const [moreOpen, setMoreOpen] = useState(false);
-  const overlayRef = useRef<HTMLDivElement>(null);
   const storage = useStorageUsage();
 
   useEffect(() => {
@@ -87,25 +77,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       });
   }, [user, location.pathname, navigate]);
 
-  const toggleAndhakaar = useCallback(() => {
-    const next = !dark;
-    const overlay = overlayRef.current;
-    if (overlay) {
-      overlay.classList.add('active');
-      setTimeout(() => {
-        document.documentElement.classList.toggle('dark', next);
-        localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
-        localStorage.setItem('theme', next ? 'dark' : 'light');
-        setDark(next);
-        setTimeout(() => overlay.classList.remove('active'), 100);
-      }, 400);
-    } else {
-      document.documentElement.classList.toggle('dark', next);
-      localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
-      localStorage.setItem('theme', next ? 'dark' : 'light');
-      setDark(next);
-    }
-  }, [dark]);
+
 
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MS';
 
@@ -121,7 +93,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div ref={overlayRef} className="andhakaar-overlay" />
+      
 
       {/* Desktop Sidebar */}
       <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border bg-background">
@@ -206,32 +178,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <h2 className="text-foreground font-serif lg:hidden" style={{ fontWeight: 700, fontSize: '28px', letterSpacing: '-0.5px' }}>MirrorAI</h2>
         <div className="hidden lg:block" />
         <div className="flex items-center gap-3">
-          {/* Pill dark mode toggle */}
-          <button
-            onClick={toggleAndhakaar}
-            className="relative flex items-center justify-center rounded-full transition-all duration-300"
-            style={{
-              width: '48px',
-              height: '26px',
-              backgroundColor: dark ? 'hsl(var(--gold))' : 'hsl(var(--border))',
-            }}
-            aria-label="Toggle dark mode"
-          >
-            <div
-              className="absolute flex items-center justify-center rounded-full bg-card shadow-sm transition-all duration-300"
-              style={{
-                width: '20px',
-                height: '20px',
-                left: dark ? '25px' : '3px',
-              }}
-            >
-              {dark ? (
-                <Moon className="h-3 w-3 text-primary" strokeWidth={2} />
-              ) : (
-                <Sun className="h-3 w-3 text-primary" strokeWidth={2} />
-              )}
-            </div>
-          </button>
+          <ThemeToggle />
           <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
