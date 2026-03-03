@@ -64,7 +64,7 @@
     --overlay-warm: 30 25% 92%;
   }
 
-  .dark {
+  [data-theme="dark"] {
     /* Body bg — darkest espresso #2A1708 */
     --background: 26 68% 10%;
     /* Text — warm torn paper #F2E8D9 */
@@ -190,8 +190,8 @@
   ::-webkit-scrollbar-thumb:hover { background: hsl(var(--gold-hover)); }
   * { scrollbar-color: hsl(30 18% 82%) hsl(var(--background)); scrollbar-width: thin; }
 
-  .dark ::-webkit-scrollbar-track { background: hsl(26 68% 10%); }
-  .dark * { scrollbar-color: hsl(24 48% 24%) hsl(26 68% 10%); }
+  [data-theme="dark"] ::-webkit-scrollbar-track { background: hsl(26 68% 10%); }
+  [data-theme="dark"] * { scrollbar-color: hsl(24 48% 24%) hsl(26 68% 10%); }
 
   /* Blanc scrollbar */
   [data-theme="blanc"] ::-webkit-scrollbar-thumb { background: hsl(0 0% 82%); }
@@ -292,29 +292,29 @@ html.theme-transitioning *::after {
 }
 
 /* Dark mode card glow */
-.dark .dark-card-glow {
+[data-theme="dark"] .dark-card-glow {
   box-shadow: 0 4px 24px rgba(42,23,8,0.6), inset 0 1px 0 rgba(242,232,217,0.04);
 }
 
-.dark .dark-card-glow:hover {
+[data-theme="dark"] .dark-card-glow:hover {
   border-color: hsl(37 51% 76% / 0.3);
 }
 
 /* Dark mode gold glow on text */
-.dark .dark-gold-glow {
+[data-theme="dark"] .dark-gold-glow {
   text-shadow: 0 0 20px hsl(37 51% 76% / 0.3);
 }
 
 /* Dark mode stat card gradient */
-.dark .dark-stat-gradient {
+[data-theme="dark"] .dark-stat-gradient {
   background: linear-gradient(135deg, hsl(26 59% 15%) 0%, hsl(25 48% 20%) 100%);
 }
 
 /* Dark mode ambient bg */
-.dark .dark-ambient-bg {
+[data-theme="dark"] .dark-ambient-bg {
   position: relative;
 }
-.dark .dark-ambient-bg::before {
+[data-theme="dark"] .dark-ambient-bg::before {
   content: '';
   position: fixed;
   inset: 0;
@@ -324,13 +324,13 @@ html.theme-transitioning *::after {
 }
 
 /* Dark mode image filter */
-.dark img:not(.no-dark-filter) {
+[data-theme="dark"] img:not(.no-dark-filter) {
   filter: brightness(0.92) saturate(0.95);
   transition: filter 0.3s ease;
 }
 
 /* Bottom nav dark glow */
-.dark .dark-nav-glow {
+[data-theme="dark"] .dark-nav-glow {
   filter: drop-shadow(0 0 6px hsl(37 51% 76% / 0.5));
 }
 

@@ -3,12 +3,8 @@ import App from "./App.tsx";
 import "./index.css";
 
 // Apply saved theme immediately to prevent flash
-const savedTheme = localStorage.getItem('mirrorai_theme');
-if (savedTheme === 'dark' || localStorage.getItem('andhakaar-mode') === 'on') {
-  document.documentElement.classList.add('dark');
-} else if (savedTheme === 'blanc') {
-  document.documentElement.setAttribute('data-theme', 'blanc');
-}
+const savedTheme = localStorage.getItem('mirrorai_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
 
 // Register service worker
 if ('serviceWorker' in navigator) {

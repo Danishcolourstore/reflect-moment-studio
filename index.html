@@ -39,8 +39,7 @@
   <script>
     (function(){
       var t = localStorage.getItem('mirrorai_theme') || 'light';
-      if (t === 'dark') document.documentElement.classList.add('dark');
-      else if (t === 'blanc') document.documentElement.setAttribute('data-theme', 'blanc');
+      document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
