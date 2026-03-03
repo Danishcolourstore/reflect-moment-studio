@@ -24,16 +24,30 @@ export default function VerifyAccess() {
   useEffect(() => {
     if (!loading && !user) {
       navigate("/login", { replace: true });
+      return;
     }
-  }, [user, loading, navigate]);
+    if (!user) return;
 
-  useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY) === "true") {
-      const redirect = sessionStorage.getItem("redirectAfterLogin");
-      sessionStorage.removeItem("redirectAfterLogin");
-      navigate(redirect || "/dashboard", { replace: true });
-    }
-  }, [navigate]);
+    // Check if user is admin/super_admin — bypass OTP entirely
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        const roles = (data || []).map((r: any) => r.role);
+        if (roles.includes("super_admin") || roles.includes("admin")) {
+          sessionStorage.setItem(SESSION_KEY, "true");
+          navigate("/admin", { replace: true });
+          return;
+        }
+        // For non-admins, check if already verified
+        if (sessionStorage.getItem(SESSION_KEY) === "true") {
+          const redirect = sessionStorage.getItem("redirectAfterLogin");
+          sessionStorage.removeItem("redirectAfterLogin");
+          navigate(redirect || "/dashboard", { replace: true });
+        }
+      });
+  }, [user, loading, navigate]);
 
   useEffect(() => {
     if (!lockoutEnd) return;
