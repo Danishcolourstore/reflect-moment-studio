@@ -41,7 +41,7 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [clientName, setClientName] = useState('');
   const [dark, setDark] = useState(() => {
-    return localStorage.getItem('andhakaar-mode') === 'on' || localStorage.getItem('theme') === 'dark';
+    return localStorage.getItem('mirrorai_theme') === 'dark';
   });
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -57,9 +57,11 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
 
   const toggleAndhakaar = () => {
     const next = !dark;
-    document.documentElement.classList.toggle('dark', next);
+    const theme = next ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('mirrorai_theme', theme);
     localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
-    localStorage.setItem('theme', next ? 'dark' : 'light');
+    localStorage.setItem('theme', theme);
     setDark(next);
   };
 
