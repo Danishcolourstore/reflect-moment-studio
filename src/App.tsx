@@ -31,6 +31,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import GalleryCover from "./pages/GalleryCover";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { GalleryShell } from "./components/GalleryShell";
 import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
@@ -262,7 +263,7 @@ const AppRoutes = () => {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <ErrorBoundary><Dashboard /></ErrorBoundary>
           </ProtectedRoute>
         }
       />
@@ -270,7 +271,7 @@ const AppRoutes = () => {
         path="/dashboard/events"
         element={
           <ProtectedRoute>
-            <Events />
+            <ErrorBoundary><Events /></ErrorBoundary>
           </ProtectedRoute>
         }
       />
@@ -294,7 +295,7 @@ const AppRoutes = () => {
         path="/dashboard/upload"
         element={
           <ProtectedRoute>
-            <UploadPage />
+            <ErrorBoundary><UploadPage /></ErrorBoundary>
           </ProtectedRoute>
         }
       />
@@ -302,7 +303,7 @@ const AppRoutes = () => {
         path="/dashboard/clients"
         element={
           <ProtectedRoute>
-            <Clients />
+            <ErrorBoundary><Clients /></ErrorBoundary>
           </ProtectedRoute>
         }
       />
@@ -310,7 +311,7 @@ const AppRoutes = () => {
         path="/dashboard/analytics"
         element={
           <ProtectedRoute>
-            <Analytics />
+            <ErrorBoundary><Analytics /></ErrorBoundary>
           </ProtectedRoute>
         }
       />
@@ -318,7 +319,7 @@ const AppRoutes = () => {
         path="/dashboard/settings"
         element={
           <ProtectedRoute>
-            <StudioSettings />
+            <ErrorBoundary><StudioSettings /></ErrorBoundary>
           </ProtectedRoute>
         }
       />
