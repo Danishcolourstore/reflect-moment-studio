@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Bodoni+Moda:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -105,6 +105,42 @@
     --overlay-tint: 30 32% 42%;
     --overlay-warm: 26 68% 10%;
   }
+
+  /* ═══ BLANC THEME — ZARA editorial ═══ */
+  [data-theme="blanc"] {
+    --background: 0 0% 96%;
+    --foreground: 0 0% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 0 0% 4%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 4%;
+    --muted: 0 0% 91%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 0 0% 4%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 14 44% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 82%;
+    --input: 0 0% 94%;
+    --ring: 0 0% 4%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 4%;
+    --sidebar-primary: 0 0% 4%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 0 0% 4%;
+    --gold: 0 0% 4%;
+    --gold-hover: 0 0% 20%;
+    --accent-subtle: 0 0% 92%;
+    --overlay-tint: 0 0% 42%;
+    --overlay-warm: 0 0% 96%;
+  }
 }
 
 @layer base {
@@ -156,6 +192,41 @@
 
   .dark ::-webkit-scrollbar-track { background: hsl(26 68% 10%); }
   .dark * { scrollbar-color: hsl(24 48% 24%) hsl(26 68% 10%); }
+
+  /* Blanc scrollbar */
+  [data-theme="blanc"] ::-webkit-scrollbar-thumb { background: hsl(0 0% 82%); }
+  [data-theme="blanc"] * { scrollbar-color: hsl(0 0% 82%) hsl(0 0% 96%); }
+
+  /* Blanc typography overrides — Bodoni Moda */
+  [data-theme="blanc"] h1,
+  [data-theme="blanc"] h2,
+  [data-theme="blanc"] h3,
+  [data-theme="blanc"] h4,
+  [data-theme="blanc"] h5,
+  [data-theme="blanc"] h6 {
+    font-family: 'Bodoni Moda', serif;
+    letter-spacing: -1px;
+    font-weight: 700;
+  }
+
+  [data-theme="blanc"] h1 { font-size: 48px; font-weight: 700; letter-spacing: -2px; }
+  [data-theme="blanc"] h2 { font-size: 36px; font-weight: 700; letter-spacing: -1px; }
+  [data-theme="blanc"] h3 { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+
+  [data-theme="blanc"] .editorial-label {
+    letter-spacing: 2px;
+  }
+
+  [data-theme="blanc"] .editorial-section-title {
+    font-family: 'Bodoni Moda', serif;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+
+  [data-theme="blanc"] ::selection {
+    background: hsl(0 0% 4%);
+    color: hsl(0 0% 100%);
+  }
 }
 
 @layer components {
