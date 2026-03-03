@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Image, Eye, Download, Plus, Upload, Share2, Clock } from 'lucide-react';
+import { Camera, Image, Eye, Download, Plus, Upload, Share2, Settings, Pencil } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { CreateEventModal } from '@/components/CreateEventModal';
 import { ShareModal } from '@/components/ShareModal';
@@ -71,10 +71,10 @@ const Dashboard = () => {
 
   const greeting = () => {
     const h = new Date().getHours();
-    if (h >= 5 && h < 12) return 'Good morning';
-    if (h >= 12 && h < 17) return 'Good afternoon';
-    if (h >= 17 && h < 22) return 'Good evening';
-    return 'Working late';
+    if (h >= 5 && h < 12) return 'Good Morning';
+    if (h >= 12 && h < 17) return 'Good Afternoon';
+    if (h >= 17 && h < 22) return 'Good Evening';
+    return 'Working Late';
   };
 
   const displayName = profile?.studio_name || user?.user_metadata?.full_name || 'Creator';
@@ -89,24 +89,63 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      {/* Greeting — editorial spacing */}
-      <div className="mb-14">
-        <p className="editorial-label">{greeting()}</p>
-        <h1 className="font-serif text-4xl md:text-5xl text-foreground mt-2 leading-tight tracking-tight" style={{ fontWeight: 300 }}>{displayName}</h1>
-        <p className="text-sm text-muted-foreground/50 mt-3 font-light tracking-wide">{loading ? format(new Date(), 'EEEE, MMMM d, yyyy') : contextLine()}</p>
+      {/* Greeting — large editorial Creator heading */}
+      <div className="mb-12">
+        <p
+          className="text-muted-foreground/50 mb-2"
+          style={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: '13px',
+            fontWeight: 400,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {greeting()}
+        </p>
+        <div className="flex items-end gap-4">
+          <h1
+            className="text-foreground leading-[1.05]"
+            style={{
+              fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+              fontSize: 'clamp(48px, 10vw, 64px)',
+              fontWeight: 300,
+              letterSpacing: '0.02em',
+            }}
+          >
+            {displayName}
+          </h1>
+          <button
+            onClick={() => navigate('/dashboard/profile')}
+            className="mb-3 h-11 w-11 rounded-full bg-foreground text-primary-foreground flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-transform"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+        </div>
+        <p
+          className="text-muted-foreground/60 mt-3"
+          style={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: '14px',
+            fontWeight: 300,
+            letterSpacing: '0.04em',
+          }}
+        >
+          {loading ? format(new Date(), 'EEEE, MMMM d, yyyy') : contextLine()}
+        </p>
       </div>
 
-      {/* Stats — open editorial layout, no heavy borders */}
+      {/* Stats — 2x2 grid with large 72px numbers */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28" />)}
+        <div className="grid grid-cols-2 gap-4 mb-14">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-36 rounded-2xl" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
-          <EditorialStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
-          <EditorialStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
-          <EditorialStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
-          <EditorialStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/analytics')} />
+        <div className="grid grid-cols-2 gap-4 mb-14">
+          <DashStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
+          <DashStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
+          <DashStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
+          <DashStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/analytics')} />
         </div>
       )}
 
@@ -130,21 +169,18 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {events.map((evt) => (
               <div key={evt.id} className="group cursor-pointer" onClick={() => navigate(`/dashboard/events/${evt.id}`)}>
-                {/* Image container — no border */}
-                <div className="relative aspect-[3/2] overflow-hidden rounded-[14px]">
+                <div className="relative aspect-[3/2] overflow-hidden rounded-2xl">
                   {evt.cover_url ? (
                     <img src={evt.cover_url} alt={evt.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" loading="lazy" />
                   ) : (
                     <div className="flex h-full items-center justify-center bg-secondary"><Camera className="h-8 w-8 text-muted-foreground/10" /></div>
                   )}
-                  {/* Hover caption overlay */}
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[rgba(44,33,24,0.7)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <Badge className="absolute bottom-3 left-3 bg-card/80 text-foreground text-[9px] backdrop-blur-sm border-0 tracking-wider uppercase">{evt.photo_count} photos</Badge>
                   <Badge className={`absolute bottom-3 right-3 text-[9px] border-0 backdrop-blur-sm tracking-wider uppercase ${evt.is_published ? 'bg-muted-foreground/15 text-card' : 'bg-card/80 text-muted-foreground'}`}>
                     {evt.is_published ? 'Live' : 'Draft'}
                   </Badge>
                 </div>
-                {/* Text below — editorial whitespace */}
                 <div className="pt-4 pb-2">
                   <h3 className="font-serif text-lg text-foreground truncate" style={{ fontWeight: 400 }}>{evt.name}</h3>
                   <p className="text-[10px] text-muted-foreground/40 mt-1 tracking-wide uppercase">{format(new Date(evt.event_date), 'MMM d, yyyy')}{evt.location ? ` · ${evt.location}` : ''}</p>
@@ -155,7 +191,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Quick Actions — editorial, minimal */}
+      {/* Quick Actions */}
       <div className="mb-14">
         <h2 className="font-serif text-2xl text-foreground mb-8" style={{ fontWeight: 300 }}>Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -181,33 +217,61 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Floating Settings FAB */}
+      <button
+        onClick={() => navigate('/dashboard/settings')}
+        className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 z-20 h-14 w-14 rounded-full bg-foreground text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+      >
+        <Settings className="h-5 w-5" />
+      </button>
+
       <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
       {shareEvent && <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.name} pin={shareEvent.gallery_pin} />}
     </DashboardLayout>
   );
 };
 
-function EditorialStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
+function DashStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
   return (
     <div
-      className="py-6 px-1 cursor-pointer min-h-[44px] active:scale-[0.97] transition-transform duration-150"
+      className="bg-secondary/60 rounded-2xl p-6 cursor-pointer min-h-[44px] active:scale-[0.97] transition-transform duration-150"
       onClick={onClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick?.(); }}
     >
-      <div className="flex items-center gap-2 mb-4">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground/20" strokeWidth={1.5} />
-        <p className="editorial-label">{label}</p>
+      <div className="flex items-center gap-2 mb-5">
+        <Icon className="h-4 w-4 text-muted-foreground/30" strokeWidth={1.5} />
+        <p
+          className="text-muted-foreground/60"
+          style={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: '13px',
+            fontWeight: 400,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {label}
+        </p>
       </div>
-      <p className="font-serif text-[42px] text-foreground leading-none tracking-tight" style={{ fontWeight: 300 }}>{value}</p>
+      <p
+        className="text-foreground leading-none tracking-tight"
+        style={{
+          fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+          fontSize: '72px',
+          fontWeight: 700,
+        }}
+      >
+        {value}
+      </p>
     </div>
   );
 }
 
 function QuickAction({ icon: Icon, title, desc, btnText, onClick }: { icon: any; title: string; desc: string; btnText: string; onClick: () => void }) {
   return (
-    <div className="bg-card/50 rounded-[14px] p-8 flex flex-col items-center text-center border border-border/15">
+    <div className="bg-secondary/40 rounded-2xl p-8 flex flex-col items-center text-center border border-border/10">
       <Icon className="h-7 w-7 text-muted-foreground/20 mb-4" strokeWidth={1.2} />
       <h3 className="font-serif text-lg text-foreground" style={{ fontWeight: 400 }}>{title}</h3>
       <p className="text-[11px] text-muted-foreground/40 mt-2 tracking-wide">{desc}</p>

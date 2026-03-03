@@ -283,27 +283,30 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </main>
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around py-2.5 lg:hidden safe-area-pb"
+      {/* Mobile bottom nav — 80px bar with gold active underline */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden safe-area-pb"
         style={{
-          background: 'hsl(var(--background) / 0.95)',
+          height: '80px',
+          background: 'hsl(var(--background) / 0.97)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderTop: '1px solid hsl(var(--border) / 0.2)',
+          borderTop: '1px solid hsl(var(--border) / 0.15)',
         }}>
         {MOBILE_NAV.map((item) => (
           <NavLink key={item.url} to={item.url} end={item.end}
-            className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-muted-foreground/30 transition-colors"
-            activeClassName="text-foreground">
-            <item.icon className="h-[17px] w-[17px]" strokeWidth={1.3} />
-            <span style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase' }}>{item.title}</span>
+            className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground/40 transition-colors relative"
+            activeClassName="text-foreground [&>.nav-underline]:opacity-100"
+          >
+            <item.icon className="h-[20px] w-[20px]" strokeWidth={1.3} />
+            <span style={{ fontFamily: "Inter, sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{item.title}</span>
+            <div className="nav-underline absolute bottom-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-gold opacity-0 transition-opacity" />
           </NavLink>
         ))}
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
-            <button className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-muted-foreground/30">
-              <Menu className="h-[17px] w-[17px]" strokeWidth={1.3} />
-              <span style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase' }}>More</span>
+            <button className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground/40">
+              <Menu className="h-[20px] w-[20px]" strokeWidth={1.3} />
+              <span style={{ fontFamily: "Inter, sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>More</span>
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl">
