@@ -53,7 +53,7 @@ export function ThemeToggle() {
         style={{
           width: '56px',
           height: '28px',
-          backgroundColor: dark ? 'hsl(24, 48%, 24%)' : 'hsl(41, 50%, 72%)',
+          backgroundColor: dark ? 'hsl(24, 48%, 24%)' : 'hsl(24, 48%, 24%)',
           boxShadow: dark
             ? '0 0 12px hsla(37, 51%, 76%, 0.3)'
             : '0 2px 8px hsla(24, 48%, 24%, 0.15)',
