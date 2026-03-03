@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AuthProps {
@@ -15,18 +15,18 @@ const Auth = ({ initialView }: AuthProps) => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState<"login" | "signup">(initialView === "signup" ? "signup" : "login");
-  const [revealed, setRevealed] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setRevealed(true), 2000);
-    return () => clearTimeout(timer);
+    setTimeout(() => setMounted(true), 50);
   }, []);
 
   const handleLogin = async () => {
     setLoading(true);
     setError("");
     setMessage("");
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); }
     else { navigate("/verify-access"); }
     setLoading(false);
@@ -36,7 +36,7 @@ const Auth = ({ initialView }: AuthProps) => {
     setLoading(true);
     setError("");
     setMessage("");
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) { setError(error.message); }
     else { navigate("/verify-otp"); }
     setLoading(false);
@@ -45,6 +45,7 @@ const Auth = ({ initialView }: AuthProps) => {
   const handleForgotPassword = async () => {
     setError("");
     setMessage("");
+    if (!email) { setError("Enter your email first"); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) { setError(error.message); }
     else { setMessage("Password reset email sent"); }
@@ -53,254 +54,302 @@ const Auth = ({ initialView }: AuthProps) => {
   const isLogin = tab === "login";
 
   return (
-    <div className="fixed inset-0 overflow-hidden w-screen bg-[hsl(20,22%,5%)]">
+    <div
+      className="flex flex-col items-center justify-center min-h-screen"
+      style={{ background: "var(--bg-primary)", padding: "24px 20px" }}
+    >
+      {/* Card */}
       <div
-        className="absolute inset-0"
         style={{
-          backgroundImage: "url('/images/login-bg.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "blur(50px) saturate(0.5) brightness(0.35)",
-          transform: "scale(1.25) translateZ(0)",
+          background: "var(--card-bg)",
+          border: "1px solid var(--border)",
+          borderRadius: 24,
+          padding: "40px 32px",
+          width: "100%",
+          maxWidth: 400,
+          boxShadow: "var(--card-shadow)",
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? "translateY(0)" : "translateY(20px)",
+          transition: "opacity 0.5s ease, transform 0.5s ease",
         }}
-      />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <img
-          src="/images/login-bg.png"
-          alt=""
-          className="max-h-full max-w-full object-contain"
+      >
+        {/* Logo */}
+        <h1
           style={{
-            opacity: 0.88,
-            filter: revealed ? "blur(18px)" : "blur(0px)",
-            transition: "filter 2.5s ease-in-out 2s",
-            transform: "translateZ(0)",
-            willChange: "filter",
-          }}
-        />
-      </div>
-      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.40)" }} />
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "radial-gradient(ellipse at center, transparent 50%, rgba(10,9,8,0.30) 100%)",
-        }}
-      />
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
-        <div
-          className="w-full max-w-[380px] flex flex-col gap-6 p-9 sm:p-10"
-          style={{
-            background: "rgba(44, 33, 24, 0.45)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            borderRadius: "16px",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            boxShadow: "0 32px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.03)",
-            opacity: revealed ? 1 : 0,
-            transform: revealed ? "translateY(0) scale(1)" : "translateY(40px) scale(0.98)",
-            transition: "opacity 2.2s ease-in-out 2s, transform 2.2s ease-in-out 2s",
-            willChange: "opacity, transform",
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 32,
+            fontWeight: 400,
+            fontStyle: "italic",
+            color: "var(--text-primary)",
+            textAlign: "center",
+            margin: 0,
+            letterSpacing: "1px",
+            lineHeight: 1.2,
           }}
         >
-          <div className="text-center mb-2">
-            <h1
-              style={{
-                fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
-                fontSize: "clamp(2rem, 5vw, 2.8rem)",
-                fontWeight: 300,
-                color: "#FFFFFF",
-                letterSpacing: "0.12em",
-                lineHeight: 1,
-              }}
-            >
-              MirrorAI
-            </h1>
-            <p
-              className="mt-2"
-              style={{
-                fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
-                fontSize: "13px",
-                fontStyle: "italic",
-                fontWeight: 300,
-                color: "rgba(255,255,255,0.55)",
-                letterSpacing: "0.1em",
-              }}
-            >
-              Mirror never lies
-            </p>
+          MirrorAI
+        </h1>
+
+        {/* Tagline */}
+        <p
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 14,
+            fontStyle: "italic",
+            fontWeight: 300,
+            color: "var(--text-muted)",
+            textAlign: "center",
+            marginTop: 4,
+            letterSpacing: "0.05em",
+          }}
+        >
+          Mirror never lies
+        </p>
+
+        {/* Admin Access label */}
+        <p
+          style={{
+            fontFamily: "Jost, sans-serif",
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: "3px",
+            textTransform: "uppercase",
+            color: "var(--text-muted)",
+            textAlign: "center",
+            marginTop: 16,
+          }}
+        >
+          {isLogin ? "Sign In" : "Create Account"}
+        </p>
+
+        {/* Error */}
+        {error && (
+          <div
+            style={{
+              marginTop: 20,
+              padding: "10px 16px",
+              borderRadius: 10,
+              border: "1px solid var(--danger)",
+              background: "var(--bg-tertiary)",
+              fontFamily: "Jost, sans-serif",
+              fontSize: 13,
+              color: "var(--danger)",
+              textAlign: "center",
+              animation: "slideUp 0.3s ease",
+            }}
+          >
+            {error}
           </div>
-          {error && (
-            <div
-              className="px-4 py-2.5 rounded-lg"
+        )}
+
+        {/* Success */}
+        {message && (
+          <div
+            style={{
+              marginTop: 20,
+              padding: "10px 16px",
+              borderRadius: 10,
+              border: "1px solid var(--success)",
+              background: "var(--bg-tertiary)",
+              fontFamily: "Jost, sans-serif",
+              fontSize: 13,
+              color: "var(--success)",
+              textAlign: "center",
+              animation: "slideUp 0.3s ease",
+            }}
+          >
+            {message}
+          </div>
+        )}
+
+        <form
+          onSubmit={(e) => { e.preventDefault(); isLogin ? handleLogin() : handleSignup(); }}
+          className="flex flex-col"
+          style={{ marginTop: 24, gap: 16 }}
+        >
+          {/* Email */}
+          <div>
+            <label
               style={{
-                border: "1px solid rgba(229,115,115,0.15)",
-                background: "rgba(229,115,115,0.06)",
-                color: "#E57373",
-                fontSize: "11px",
-                lineHeight: "1.5",
-                fontFamily: "Inter, sans-serif",
+                fontFamily: "Jost, sans-serif",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "2px",
+                textTransform: "uppercase",
+                color: "var(--text-muted)",
+                display: "block",
+                marginBottom: 6,
               }}
             >
-              {error}
-            </div>
-          )}
-          {message && (
+              Email
+            </label>
             <div
-              className="px-4 py-2.5 rounded-lg"
+              className="flex items-center gap-3 transition-all duration-200"
               style={{
-                border: "1px solid rgba(129,199,132,0.15)",
-                background: "rgba(129,199,132,0.06)",
-                color: "#81C784",
-                fontSize: "11px",
-                lineHeight: "1.5",
-                fontFamily: "Inter, sans-serif",
+                height: 48,
+                paddingLeft: 14,
+                paddingRight: 14,
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border)",
+                borderRadius: 10,
               }}
             >
-              {message}
-            </div>
-          )}
-          <form onSubmit={(e) => { e.preventDefault(); isLogin ? handleLogin() : handleSignup(); }} className="flex flex-col gap-4">
-            <div
-              className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
-              style={{
-                background: "rgba(26,24,22,0.45)",
-                border: "1px solid rgba(255,255,255,0.05)",
-              }}
-            >
-              <Mail className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(139,115,85,0.6)" }} />
+              <Mail style={{ width: 16, height: 16, color: "var(--text-muted)", flexShrink: 0 }} />
               <input
                 type="email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError("");
-                }}
-                placeholder="Email Address"
+                onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                placeholder="your@email.com"
                 required
                 autoComplete="email"
-                className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
+                className="bg-transparent w-full outline-none"
                 style={{
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "Jost, sans-serif",
                   fontWeight: 300,
-                  fontSize: "13px",
-                  color: "#E8E2DA",
-                  letterSpacing: "0.03em",
+                  fontSize: 14,
+                  color: "var(--text-primary)",
+                  letterSpacing: "0.02em",
+                  border: "none",
                 }}
               />
             </div>
-            <div
-              className="flex items-center gap-3 px-4 h-12 rounded-xl transition-colors duration-200"
+          </div>
+
+          {/* Password */}
+          <div>
+            <label
               style={{
-                background: "rgba(26,24,22,0.45)",
-                border: "1px solid rgba(255,255,255,0.05)",
+                fontFamily: "Jost, sans-serif",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "2px",
+                textTransform: "uppercase",
+                color: "var(--text-muted)",
+                display: "block",
+                marginBottom: 6,
               }}
             >
-              <Lock className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(139,115,85,0.6)" }} />
+              Password
+            </label>
+            <div
+              className="flex items-center gap-3 transition-all duration-200"
+              style={{
+                height: 48,
+                paddingLeft: 14,
+                paddingRight: 14,
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border)",
+                borderRadius: 10,
+              }}
+            >
+              <Lock style={{ width: 16, height: 16, color: "var(--text-muted)", flexShrink: 0 }} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError("");
-                }}
-                placeholder="Password"
+                onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                placeholder="••••••"
                 required
                 minLength={6}
                 autoComplete={isLogin ? "current-password" : "new-password"}
-                className="bg-transparent w-full outline-none placeholder:text-[rgba(139,115,85,0.3)]"
+                className="bg-transparent w-full outline-none"
                 style={{
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "Jost, sans-serif",
                   fontWeight: 300,
-                  fontSize: "13px",
-                  color: "#E8E2DA",
-                  letterSpacing: "0.03em",
+                  fontSize: 14,
+                  color: "var(--text-primary)",
+                  letterSpacing: "0.1em",
+                  border: "none",
                 }}
               />
-            </div>
-            <div className="flex items-center justify-between pt-0.5">
               <button
                 type="button"
-                onClick={() => {
-                  setTab(isLogin ? "signup" : "login");
-                  setPassword("");
-                  setError("");
-                  setMessage("");
-                }}
-                className="transition-colors"
-                style={{
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "10px",
-                  color: "rgba(232,226,218,0.4)",
-                  letterSpacing: "0.04em",
-                }}
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flexShrink: 0 }}
               >
-                {isLogin ? (
-                  <>
-                    No account?{" "}
-                    <span
-                      style={{ color: "rgba(139,115,85,0.8)", textDecoration: "underline", textUnderlineOffset: "3px" }}
-                    >
-                      Sign up
-                    </span>
-                  </>
+                {showPassword ? (
+                  <EyeOff style={{ width: 16, height: 16, color: "var(--text-muted)" }} />
                 ) : (
-                  <>
-                    Have an account?{" "}
-                    <span
-                      style={{ color: "rgba(139,115,85,0.8)", textDecoration: "underline", textUnderlineOffset: "3px" }}
-                    >
-                      Sign in
-                    </span>
-                  </>
+                  <Eye style={{ width: 16, height: 16, color: "var(--text-muted)" }} />
                 )}
               </button>
-              {isLogin && (
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="transition-colors hover:opacity-80"
-                  style={{
-                    fontFamily: "Inter, sans-serif",
-                    fontSize: "10px",
-                    color: "rgba(139,115,85,0.6)",
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  Forgot?
-                </button>
-              )}
             </div>
+          </div>
+
+          {/* Links row */}
+          <div className="flex items-center justify-between" style={{ marginTop: -4 }}>
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 rounded-xl transition-all duration-200 disabled:opacity-50"
+              type="button"
+              onClick={() => { setTab(isLogin ? "signup" : "login"); setPassword(""); setError(""); setMessage(""); }}
               style={{
-                fontFamily: "Inter, sans-serif",
-                fontWeight: 500,
-                fontSize: "10px",
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                background: "rgba(232,226,218,0.9)",
-                color: "#2C2118",
+                background: "none",
+                border: "none",
+                fontFamily: "Jost, sans-serif",
+                fontSize: 11,
+                color: "var(--text-muted)",
+                cursor: "pointer",
+                letterSpacing: "0.03em",
               }}
             >
-              {loading ? "Please wait..." : isLogin ? "Enter Gallery" : "Create Account"}
+              {isLogin ? (
+                <>No account? <span style={{ color: "var(--accent)", textDecoration: "underline", textUnderlineOffset: 3 }}>Sign up</span></>
+              ) : (
+                <>Have an account? <span style={{ color: "var(--accent)", textDecoration: "underline", textUnderlineOffset: 3 }}>Sign in</span></>
+              )}
             </button>
-          </form>
-        </div>
+            {isLogin && (
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontFamily: "Jost, sans-serif",
+                  fontSize: 11,
+                  color: "var(--text-muted)",
+                  cursor: "pointer",
+                }}
+              >
+                Forgot?
+              </button>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full transition-all duration-200 hover:opacity-90 disabled:opacity-50"
+            style={{
+              marginTop: 4,
+              height: 52,
+              background: "var(--accent)",
+              border: "none",
+              borderRadius: 8,
+              fontFamily: "Jost, sans-serif",
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              color: "var(--bg-primary)",
+              cursor: "pointer",
+            }}
+          >
+            {loading ? "Please wait..." : isLogin ? "Enter Gallery" : "Create Account"}
+          </button>
+        </form>
       </div>
 
-      {/* Bottom branding — fixed to viewport bottom */}
+      {/* Bottom branding */}
       <p
-        className="fixed bottom-5 left-0 right-0 text-center z-10"
         style={{
-          fontFamily: "Inter, sans-serif",
-          fontSize: "6px",
-          fontWeight: 500,
+          marginTop: 48,
+          fontFamily: "Jost, sans-serif",
+          fontSize: 9,
+          fontWeight: 700,
           letterSpacing: "0.45em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.85)",
-          opacity: revealed ? 1 : 0,
-          transition: "opacity 2s cubic-bezier(0.4,0,0.2,1) 0.5s",
+          color: "var(--text-muted)",
+          opacity: 0.6,
         }}
       >
         Colour Store Preset Universe
