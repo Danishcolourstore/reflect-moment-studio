@@ -122,19 +122,14 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
-    // Admin by email — no role lookup needed
-    if (user.email === 'danishsubair@gmail.com') {
-      setRedirectTo('/admin');
-      setChecked(true);
-      return;
-    }
-
     const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
     const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
     Promise.race([rolePromise, timeout])
       .then((result: any) => {
         const roles = (result?.data || []).map((r: any) => r.role);
-        if (roles.includes("client")) {
+        if (roles.includes("admin")) {
+          setRedirectTo("/admin");
+        } else if (roles.includes("client")) {
           setRedirectTo("/client");
         } else {
           const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
