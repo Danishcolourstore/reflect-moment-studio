@@ -37,8 +37,6 @@ import GuestFinder from "./pages/GuestFinder";
 import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
 import AdminGate from "./pages/admin/AdminGate";
-import AdminPinGate from "./pages/admin/AdminPinGate";
-import AdminPinReset from "./pages/admin/AdminPinReset";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
@@ -121,14 +119,20 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading || !user) return;
+
+    // Admin by email — no role lookup needed
+    if (user.email === 'danishsubair@gmail.com') {
+      setRedirectTo('/admin');
+      setChecked(true);
+      return;
+    }
+
     const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
     const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
     Promise.race([rolePromise, timeout])
       .then((result: any) => {
         const roles = (result?.data || []).map((r: any) => r.role);
-        if (roles.includes("admin")) {
-          setRedirectTo("/admin");
-        } else if (roles.includes("client")) {
+        if (roles.includes("client")) {
           setRedirectTo("/client");
         } else {
           const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
@@ -187,15 +191,12 @@ const AppRoutes = () => {
       <Route path="/verify-access" element={<VerifyAccess />} />
       <Route path="/verify-otp" element={<VerifyOTP />} />
 
-      <Route path="/admin/reset-pin" element={<AdminPinReset />} />
       <Route
         path="/admin"
         element={
-          <AdminPinGate>
-            <AdminGate>
-              <AdminLayout />
-            </AdminGate>
-          </AdminPinGate>
+          <AdminGate>
+            <AdminLayout />
+          </AdminGate>
         }
       >
         <Route index element={<AdminDashboard />} />
