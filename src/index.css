@@ -62,6 +62,22 @@
     --accent-subtle: 25 27% 95%;
     --overlay-tint: 22 10% 50%;
     --overlay-warm: 30 25% 92%;
+
+    /* Named theme vars for pages */
+    --bg-primary: #F0EBE3;
+    --bg-secondary: #EDE7DE;
+    --bg-tertiary: #E5DDD3;
+    --text-primary: #2C2420;
+    --text-secondary: #4A3F38;
+    --text-muted: #8C7D74;
+    --card-bg: #F7F3EF;
+    --card-shadow: 0 2px 16px rgba(44,36,32,0.07);
+    --accent-named: #9C8878;
+    --accent-hover: #8A7668;
+    --accent-light: #F7F3EF;
+    --danger: #B86B58;
+    --success: #6B8C6B;
+    --accent-focus-ring: rgba(156,136,120,0.15);
   }
 
   [data-theme="dark"] {
@@ -104,6 +120,22 @@
     --accent-subtle: 25 48% 20%;
     --overlay-tint: 30 32% 42%;
     --overlay-warm: 26 68% 10%;
+
+    /* Named theme vars for pages */
+    --bg-primary: #2A1708;
+    --bg-secondary: #3E2410;
+    --bg-tertiary: #4A2E1A;
+    --text-primary: #F2E8D9;
+    --text-secondary: #DEC9A8;
+    --text-muted: #8C6A48;
+    --card-bg: #3E2410;
+    --card-shadow: 0 4px 32px rgba(0,0,0,0.6);
+    --accent-named: #DEC9A8;
+    --accent-hover: #EAD9C0;
+    --accent-light: #4A2E1A;
+    --danger: #C4745A;
+    --success: #7A9E7A;
+    --accent-focus-ring: rgba(222,201,168,0.2);
   }
 
   /* ═══ BLANC THEME — ZARA editorial ═══ */
@@ -140,6 +172,22 @@
     --accent-subtle: 0 0% 92%;
     --overlay-tint: 0 0% 42%;
     --overlay-warm: 0 0% 96%;
+
+    /* Named theme vars for pages */
+    --bg-primary: #F5F5F5;
+    --bg-secondary: #EFEFEF;
+    --bg-tertiary: #E8E8E8;
+    --text-primary: #0A0A0A;
+    --text-secondary: #1A1A1A;
+    --text-muted: #6B6B6B;
+    --card-bg: #FFFFFF;
+    --card-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    --accent-named: #0A0A0A;
+    --accent-hover: #333333;
+    --accent-light: #EBEBEB;
+    --danger: #C4745A;
+    --success: #5A8C6A;
+    --accent-focus-ring: rgba(10,10,10,0.12);
   }
 }
 
@@ -352,4 +400,32 @@ html.theme-transitioning *::after {
 
 .toggle-icon-animate {
   animation: toggle-icon-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.otp-shake {
+  animation: shake 0.4s ease;
+}
+
+.otp-digit-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.otp-digit-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-focus-ring) !important;
+  background: var(--card-bg) !important;
 }
