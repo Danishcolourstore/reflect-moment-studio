@@ -6,110 +6,102 @@
 
 @layer base {
   :root {
-    /* Canvas — warm cream #F5F0EA */
-    --background: 34 27% 94%;
-    /* Primary text — #1A1410 */
-    --foreground: 24 25% 8%;
+    /* Page bg — warm off-white #F7F4F0 */
+    --background: 30 25% 95%;
+    /* Text — #1C1815 */
+    --foreground: 22 18% 10%;
 
-    /* Surface — #EDE8E0 */
-    --card: 34 26% 90%;
-    --card-foreground: 24 25% 8%;
+    /* Cards — #FFFFFF */
+    --card: 0 0% 100%;
+    --card-foreground: 22 18% 10%;
 
-    /* Popover — #EDE8E0 */
-    --popover: 34 26% 90%;
-    --popover-foreground: 24 25% 8%;
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 22 18% 10%;
 
-    /* Buttons / Primary — gold #C4A882 */
+    /* Primary — gold #C4A882 */
     --primary: 34 35% 64%;
-    --primary-foreground: 24 25% 8%;
+    --primary-foreground: 22 18% 10%;
 
-    /* Secondary — #E4DDD3 */
-    --secondary: 30 24% 86%;
-    --secondary-foreground: 24 25% 8%;
+    /* Secondary — #F0E8DC accent tint */
+    --secondary: 32 38% 90%;
+    --secondary-foreground: 22 18% 10%;
 
-    /* Muted surface — #E4DDD3 */
-    --muted: 30 24% 86%;
-    /* Muted text — #8A7D6E */
-    --muted-foreground: 27 12% 48%;
+    /* Muted — #EAE4DC */
+    --muted: 30 26% 89%;
+    /* Muted text — #9E9089 */
+    --muted-foreground: 20 11% 58%;
 
-    /* Accent — gold #C4A882 */
+    /* Accent — gold */
     --accent: 34 35% 64%;
-    --accent-foreground: 24 25% 8%;
+    --accent-foreground: 22 18% 10%;
 
-    /* Error — #C4745A */
-    --destructive: 13 46% 56%;
-    --destructive-foreground: 34 27% 94%;
+    /* Destructive — #C0614A */
+    --destructive: 10 50% 52%;
+    --destructive-foreground: 30 25% 95%;
 
-    /* Borders — #D4CCB8 */
-    --border: 37 22% 78%;
-    --input: 30 24% 86%;
-    /* Focus ring — gold */
+    /* Borders — #EAE4DC */
+    --border: 30 26% 89%;
+    --input: 30 20% 88%;
     --ring: 34 35% 64%;
 
     --radius: 0.75rem;
 
-    /* Sidebar — warm #EDE8E0 */
-    --sidebar-background: 34 26% 90%;
-    --sidebar-foreground: 24 25% 8%;
-    --sidebar-primary: 24 25% 8%;
-    --sidebar-primary-foreground: 34 27% 94%;
-    --sidebar-accent: 30 24% 86%;
-    --sidebar-accent-foreground: 24 25% 8%;
-    --sidebar-border: 37 22% 78%;
+    /* Sidebar */
+    --sidebar-background: 30 25% 95%;
+    --sidebar-foreground: 22 18% 10%;
+    --sidebar-primary: 22 18% 10%;
+    --sidebar-primary-foreground: 30 25% 95%;
+    --sidebar-accent: 32 38% 90%;
+    --sidebar-accent-foreground: 22 18% 10%;
+    --sidebar-border: 30 26% 89%;
     --sidebar-ring: 34 35% 64%;
 
-    /* Gold accent tokens */
     --gold: 34 35% 64%;
     --gold-hover: 34 38% 57%;
-
-    /* Accent subtle — #E8DDD0 */
-    --accent-subtle: 30 30% 86%;
-
-    /* Editorial overlay */
+    --accent-subtle: 32 38% 90%;
     --overlay-tint: 30 20% 69%;
     --overlay-warm: 20 30% 8%;
   }
 
   .dark {
-    /* ANDHAKAAR — Primary background: #1A1410 */
-    --background: 24 25% 8%;
-    /* Primary text: #F0EAE2 */
-    --foreground: 30 24% 92%;
-    /* Cards: #242018 */
-    --card: 30 18% 12%;
-    --card-foreground: 30 24% 92%;
-    --popover: 30 18% 12%;
-    --popover-foreground: 30 24% 92%;
-    /* Primary — gold stays identical */
+    /* Dark bg — #17120F */
+    --background: 18 22% 8%;
+    /* Text — #F2EDE8 */
+    --foreground: 25 22% 93%;
+    /* Cards — #211C18 */
+    --card: 20 18% 11%;
+    --card-foreground: 25 22% 93%;
+    --popover: 20 18% 11%;
+    --popover-foreground: 25 22% 93%;
+    /* Gold stays identical */
     --primary: 34 35% 64%;
-    --primary-foreground: 24 25% 8%;
-    /* Tertiary: #2E2820 */
-    --secondary: 30 18% 15%;
-    --secondary-foreground: 30 24% 92%;
-    --muted: 30 18% 15%;
-    /* Secondary text: #8A7D6E */
-    --muted-foreground: 27 12% 48%;
-    /* Accent — gold */
+    --primary-foreground: 22 18% 10%;
+    /* Secondary — #2A2420 */
+    --secondary: 20 16% 15%;
+    --secondary-foreground: 25 22% 93%;
+    --muted: 20 16% 15%;
+    /* Muted text — #8A7D72 */
+    --muted-foreground: 22 11% 50%;
     --accent: 34 35% 64%;
-    --accent-foreground: 24 25% 8%;
-    --destructive: 13 46% 45%;
-    --destructive-foreground: 30 24% 92%;
-    /* Card borders: #3A3228 */
-    --border: 27 15% 19%;
-    --input: 30 18% 12%;
+    --accent-foreground: 22 18% 10%;
+    --destructive: 10 50% 45%;
+    --destructive-foreground: 25 22% 93%;
+    /* Borders — #332C26 */
+    --border: 22 16% 17%;
+    --input: 20 18% 11%;
     --ring: 34 35% 64%;
-    /* Sidebar dark */
-    --sidebar-background: 24 25% 8%;
-    --sidebar-foreground: 30 24% 92%;
-    --sidebar-primary: 30 24% 92%;
-    --sidebar-primary-foreground: 24 25% 8%;
-    --sidebar-accent: 30 18% 12%;
-    --sidebar-accent-foreground: 30 24% 92%;
-    --sidebar-border: 27 15% 19%;
+    --sidebar-background: 18 22% 8%;
+    --sidebar-foreground: 25 22% 93%;
+    --sidebar-primary: 25 22% 93%;
+    --sidebar-primary-foreground: 18 22% 8%;
+    --sidebar-accent: 20 18% 11%;
+    --sidebar-accent-foreground: 25 22% 93%;
+    --sidebar-border: 22 16% 17%;
     --sidebar-ring: 34 35% 64%;
     --gold: 34 35% 64%;
     --gold-hover: 34 38% 57%;
-    --accent-subtle: 30 18% 15%;
+    --accent-subtle: 20 16% 15%;
     --overlay-tint: 30 20% 69%;
     --overlay-warm: 20 30% 8%;
   }
@@ -156,55 +148,35 @@
     color: hsl(var(--foreground));
   }
 
-  /* Editorial thin scrollbar */
-  ::-webkit-scrollbar {
-    width: 4px;
-  }
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--card));
-  }
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--gold));
-    border-radius: 2px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--gold-hover));
-  }
-
-  /* Firefox scrollbar */
-  * {
-    scrollbar-color: hsl(var(--gold)) hsl(var(--card));
-    scrollbar-width: thin;
-  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: hsl(var(--muted)); }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--gold)); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--gold-hover)); }
+  * { scrollbar-color: hsl(var(--gold)) hsl(var(--muted)); scrollbar-width: thin; }
 }
 
 @layer components {
-  /* Editorial label — Jost caps */
   .editorial-label {
     font-family: 'Jost', sans-serif;
-    @apply text-[12px] uppercase tracking-[2px] text-muted-foreground font-semibold;
+    @apply text-[11px] uppercase tracking-[2px] text-muted-foreground font-semibold;
   }
 
-  /* Editorial section heading */
   .editorial-section-title {
     font-family: 'Cormorant Garamond', serif;
-    @apply text-[36px] text-foreground;
-    font-weight: 400;
+    @apply text-[24px] text-foreground;
+    font-weight: 500;
   }
 
-  /* Editorial helper text */
   .editorial-helper {
     font-family: 'Jost', sans-serif;
     @apply text-[12px] text-muted-foreground leading-relaxed mt-1;
   }
 
-  /* Button base */
   .btn-editorial {
     font-family: 'Jost', sans-serif;
-    @apply uppercase tracking-[1.5px] text-[13px] font-semibold px-6 py-3 rounded-full transition-all duration-200;
+    @apply uppercase tracking-[1.5px] text-[12px] font-semibold px-6 py-3 rounded-lg transition-all duration-200;
   }
 
-  /* Status chip */
   .status-chip {
     font-family: 'Jost', sans-serif;
     @apply inline-flex items-center px-3 py-0.5 rounded-full text-[10px] uppercase tracking-[1.5px] font-semibold border;
@@ -218,31 +190,27 @@
     @apply bg-secondary text-muted-foreground border-border;
   }
 
-  /* Caption / Meta text */
   .caption-text {
     font-family: 'Jost', sans-serif;
     @apply text-[12px] text-muted-foreground;
   }
 }
 
-/* Fade-in animation */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Ken Burns for gallery hero */
 @keyframes kenBurns {
   0% { transform: scale(1); }
   100% { transform: scale(1.08); }
 }
 
-/* ANDHAKAAR cinematic transition overlay */
 .andhakaar-overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: hsl(24 25% 8%);
+  background: hsl(18 22% 8%);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
@@ -251,12 +219,10 @@
   opacity: 1;
 }
 
-/* ANDHAKAAR glow effect */
 .andhakaar-glow {
   text-shadow: 0 0 12px hsl(34 35% 64% / 0.5);
 }
 
-/* Smooth theme transitions */
 html.theme-transitioning * {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
 }

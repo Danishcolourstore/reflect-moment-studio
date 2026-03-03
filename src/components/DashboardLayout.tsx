@@ -4,7 +4,7 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  LayoutDashboard, Camera, Upload, Users, BarChart2, Palette, User,
+  LayoutGrid, Camera, Upload, Users, BarChart2, Palette, User,
   LogOut, Moon, Sun, Bell, ChevronRight, Menu,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,7 +20,7 @@ import { NotificationBell } from '@/components/NotificationBell';
 import { useStorageUsage, formatBytes, PLAN_LIMITS } from '@/hooks/use-storage-usage';
 
 const NAV_ITEMS = [
-  { title: 'Overview', url: '/dashboard', icon: LayoutDashboard, end: true },
+  { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
   { title: 'Upload', url: '/dashboard/upload', icon: Upload },
   { title: 'Clients', url: '/dashboard/clients', icon: Users },
@@ -89,7 +89,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const toggleAndhakaar = useCallback(() => {
     const next = !dark;
-    // Cinematic fade-to-black transition
     const overlay = overlayRef.current;
     if (overlay) {
       overlay.classList.add('active');
@@ -109,10 +108,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   }, [dark]);
 
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MS';
-  const currentTitle = Object.entries(PAGE_TITLES).find(([path]) => {
-    if (path === '/dashboard') return location.pathname === '/dashboard';
-    return location.pathname.startsWith(path);
-  })?.[1] || 'Dashboard';
 
   const handleSignOut = async () => {
     await signOut();
@@ -122,48 +117,39 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const storageUsed = storage.data?.used ?? 0;
   const storageLimit = storage.data?.limit ?? PLAN_LIMITS.free;
   const storagePct = Math.min((storageUsed / storageLimit) * 100, 100);
-  const storageColor = storagePct >= 100 ? 'bg-destructive' : storagePct >= 80 ? 'bg-yellow-500' : '';
+  const storageColor = storagePct >= 100 ? 'bg-destructive' : storagePct >= 80 ? 'bg-gold-hover' : '';
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ANDHAKAAR cinematic transition overlay */}
       <div ref={overlayRef} className="andhakaar-overlay" />
+
       {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border bg-sidebar">
-        {/* Brand */}
+      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border bg-background">
         <div className="px-7 pt-9 pb-6">
-          <h1
-            className="text-foreground"
-            style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', serif", fontSize: '1.5rem', fontWeight: 300, letterSpacing: '0.12em' }}
-          >
+          <h1 className="text-foreground font-serif" style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.5px' }}>
             MirrorAI
           </h1>
-          <p className="text-muted-foreground mt-1.5" style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', serif", fontSize: '10px', fontStyle: 'italic', fontWeight: 300, letterSpacing: '0.1em' }}>
+          <p className="text-muted-foreground mt-1.5 font-serif" style={{ fontSize: '11px', fontStyle: 'italic', fontWeight: 300 }}>
             Mirror never lies
           </p>
         </div>
 
         <div className="mx-6 h-px bg-border" />
 
-        {/* Profile */}
         <div className="px-6 py-7 flex flex-col items-center text-center">
           <Avatar className="h-14 w-14 mb-3.5 ring-1 ring-border">
             <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-accent text-muted-foreground text-xs" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{initials}</AvatarFallback>
+            <AvatarFallback className="bg-muted text-muted-foreground text-xs font-sans font-semibold" style={{ letterSpacing: '1px' }}>{initials}</AvatarFallback>
           </Avatar>
-          <p className="text-sm text-foreground leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.04em' }}>
+          <p className="text-sm text-foreground leading-tight font-serif" style={{ letterSpacing: '0.04em' }}>
             {user?.user_metadata?.full_name || profile?.email?.split('@')[0] || 'Photographer'}
           </p>
-          <p className="mt-1.5 truncate max-w-full" style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#9A948A' }}>
+          <p className="mt-1.5 truncate max-w-full font-sans text-muted-foreground" style={{ fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 600 }}>
             {profile?.studio_name || 'My Studio'}
           </p>
           <Badge variant="secondary"
-            className={`mt-3 px-3 py-0.5 ${
-              profile?.plan === 'pro'
-                ? 'bg-foreground/8 text-foreground border-foreground/12'
-                : 'bg-accent text-muted-foreground border-border'
-            }`}
-            style={{ fontSize: '7px', letterSpacing: '0.16em', textTransform: 'uppercase' }}
+            className={`mt-3 px-3 py-0.5 font-sans ${profile?.plan === 'pro' ? 'bg-primary/15 text-primary border-primary/20' : 'bg-muted text-muted-foreground border-border'}`}
+            style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600 }}
           >
             {profile?.plan === 'pro' ? 'Pro' : 'Free'}
           </Badge>
@@ -171,80 +157,88 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         <div className="mx-6 h-px bg-border" />
 
-        {/* Navigation */}
         <nav className="flex-1 px-4 pt-6 space-y-0.5 overflow-y-auto">
           {NAV_ITEMS.map((item) => (
             <NavLink key={item.url} to={item.url} end={item.end}
-              className="flex items-center gap-3.5 px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-foreground rounded-xl border-l-2 border-transparent"
-              activeClassName="text-foreground bg-accent/60 border-l-2 !border-foreground"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 300, fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase' as const }}
+              className="flex items-center gap-3.5 px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-foreground rounded-xl border-l-2 border-transparent font-sans"
+              activeClassName="text-foreground bg-muted border-l-2 !border-primary"
+              style={{ fontWeight: 500, fontSize: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' as const }}
             >
-              <item.icon className="h-[14px] w-[14px]" strokeWidth={1.3} style={{ color: '#9A948A' }} />
+              <item.icon className="h-[15px] w-[15px] text-muted-foreground" strokeWidth={1.5} />
               <span>{item.title}</span>
             </NavLink>
           ))}
         </nav>
 
-        {/* Upgrade */}
         <div className="px-5 pb-3 pt-4">
           {profile?.plan !== 'pro' ? (
-            <div className="bg-accent/40 rounded-xl p-5">
-              <p className="text-[12px] text-foreground" style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: '0.04em' }}>Upgrade to Pro</p>
-              <p className="mt-1.5" style={{ fontFamily: "Inter, sans-serif", fontSize: '8px', letterSpacing: '0.14em', color: '#9A948A' }}>Unlimited events & storage</p>
-              <Button size="sm" className="mt-3.5 w-full h-8 bg-foreground text-primary-foreground hover:bg-[#1A1A1A] rounded-lg" style={{ fontSize: '8px', letterSpacing: '0.2em' }}>
+            <div className="bg-secondary rounded-xl p-5">
+              <p className="text-[13px] text-foreground font-serif" style={{ fontWeight: 500 }}>Upgrade to Pro</p>
+              <p className="mt-1.5 font-sans text-muted-foreground" style={{ fontSize: '10px', letterSpacing: '1px' }}>Unlimited events & storage</p>
+              <Button size="sm" className="mt-3.5 w-full h-9" style={{ fontSize: '10px', letterSpacing: '1.5px' }}>
                 Upgrade
               </Button>
             </div>
           ) : (
             <div className="flex items-center gap-2.5 px-3 py-2.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-green-500/50" />
-              <span style={{ fontFamily: "Inter, sans-serif", fontSize: '9px', letterSpacing: '0.12em', color: '#7A7A7A' }}>Pro Active</span>
+              <div className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+              <span className="font-sans text-muted-foreground" style={{ fontSize: '10px', letterSpacing: '1px' }}>Pro Active</span>
             </div>
           )}
         </div>
 
-        {/* Storage */}
         <div className="px-5 pb-6">
-          <p className="mb-2.5" style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#9A948A', fontWeight: 300 }}>Storage</p>
-          <p style={{ fontFamily: "Inter, sans-serif", fontSize: '10px', color: '#7A7A7A' }}>
-            {formatBytes(storageUsed)} <span style={{ color: '#9A948A' }}>of {formatBytes(storageLimit)}</span>
+          <p className="mb-2.5 font-sans text-muted-foreground" style={{ fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 600 }}>Storage</p>
+          <p className="font-sans text-muted-foreground" style={{ fontSize: '11px' }}>
+            {formatBytes(storageUsed)} <span className="text-muted-foreground/60">of {formatBytes(storageLimit)}</span>
           </p>
           <div className="mt-2.5 h-[2px] w-full rounded-full bg-border overflow-hidden">
-            <div className={`h-full rounded-full transition-all ${storageColor || 'bg-foreground/30'}`}
-              style={{ width: `${storagePct}%` }} />
+            <div className={`h-full rounded-full transition-all ${storageColor || 'bg-primary/40'}`} style={{ width: `${storagePct}%` }} />
           </div>
-          {storagePct >= 80 && storagePct < 100 && (
-            <p className="mt-1.5" style={{ fontSize: '7px', color: 'hsl(45 90% 55% / 0.5)' }}>Almost full</p>
-          )}
           {profile?.plan !== 'pro' && (
-            <button onClick={() => navigate('/dashboard/profile')} className="mt-1.5 hover:underline" style={{ fontSize: '7px', color: '#7A7A7A', letterSpacing: '0.08em' }}>Upgrade for more</button>
+            <button onClick={() => navigate('/dashboard/profile')} className="mt-1.5 hover:underline font-sans text-muted-foreground" style={{ fontSize: '9px', letterSpacing: '0.5px' }}>Upgrade for more</button>
           )}
         </div>
       </aside>
 
-      {/* Floating Header — translucent, minimal */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 h-14 flex items-center justify-between px-6 lg:px-10 bg-card border-b border-border">
-        <h2 className="text-foreground font-serif" style={{ fontWeight: 300, fontSize: '22px', letterSpacing: '0.04em' }}>{currentTitle}</h2>
-        <div className="flex items-center gap-2.5">
+      {/* Fixed Header — 64px */}
+      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 flex items-center justify-between px-5 lg:px-10 bg-background border-b border-border" style={{ height: '64px' }}>
+        <h2 className="text-foreground font-serif lg:hidden" style={{ fontWeight: 700, fontSize: '28px', letterSpacing: '-0.5px' }}>MirrorAI</h2>
+        <div className="hidden lg:block" />
+        <div className="flex items-center gap-3">
+          {/* Pill dark mode toggle */}
           <button
             onClick={toggleAndhakaar}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all duration-300 hover:bg-accent/40"
+            className="relative flex items-center justify-center rounded-full transition-all duration-300"
+            style={{
+              width: '48px',
+              height: '26px',
+              backgroundColor: dark ? 'hsl(var(--gold))' : 'hsl(var(--border))',
+            }}
+            aria-label="Toggle dark mode"
           >
-            <Moon className={`h-4 w-4 transition-all duration-300 ${dark ? 'text-foreground andhakaar-glow' : 'text-muted-foreground/30'}`} strokeWidth={1.3} />
-            <span
-              className={`hidden sm:inline transition-all duration-300 ${dark ? 'text-foreground andhakaar-glow' : 'text-foreground'}`}
-              style={{ fontFamily: "Inter, sans-serif", fontSize: '7px', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase' }}
+            <div
+              className="absolute flex items-center justify-center rounded-full bg-card shadow-sm transition-all duration-300"
+              style={{
+                width: '20px',
+                height: '20px',
+                left: dark ? '25px' : '3px',
+              }}
             >
-              Andhakaar
-            </span>
+              {dark ? (
+                <Moon className="h-3 w-3 text-primary" strokeWidth={2} />
+              ) : (
+                <Sun className="h-3 w-3 text-primary" strokeWidth={2} />
+              )}
+            </div>
           </button>
           <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="ml-1">
-                <Avatar className="h-8 w-8 ring-1 ring-border/20">
+              <button className="ml-0.5">
+                <Avatar className="h-9 w-9 ring-1 ring-border">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="text-[9px] bg-secondary text-muted-foreground/50">{initials}</AvatarFallback>
+                  <AvatarFallback className="font-sans text-muted-foreground bg-muted" style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px' }}>{initials}</AvatarFallback>
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
@@ -261,52 +255,35 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Main content */}
-      <main className="lg:ml-[260px] pt-14 pb-28 lg:pb-0">
-        <div className="mx-auto max-w-[1100px] px-5 py-12 sm:px-8 lg:px-10">
+      <main className="lg:ml-[260px] pb-24 lg:pb-0" style={{ paddingTop: '64px' }}>
+        <div className="mx-auto max-w-[1100px] px-5 py-8 sm:px-8 lg:px-10">
           {children}
 
-          {/* Dashboard footer branding */}
           <div className="mt-16 pb-8 text-center">
-            <p
-              style={{
-                fontFamily: "Inter, sans-serif",
-                fontSize: "9px",
-                fontWeight: 700,
-                letterSpacing: "0.45em",
-                textTransform: "uppercase",
-                color: "#9A948A",
-              }}
-            >
+            <p className="font-sans text-muted-foreground" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase' }}>
               Colour Store Preset Universe
             </p>
           </div>
         </div>
       </main>
 
-      {/* Mobile bottom nav — 80px bar with gold active underline */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden safe-area-pb"
-        style={{
-          height: '80px',
-          background: 'hsl(var(--background) / 0.97)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderTop: '1px solid hsl(var(--border) / 0.15)',
-        }}>
+      {/* Mobile bottom nav — 72px, Pixiset style */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border" style={{ height: '72px', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {MOBILE_NAV.map((item) => (
           <NavLink key={item.url} to={item.url} end={item.end}
-            className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground/40 transition-colors relative"
-            activeClassName="text-foreground [&>.nav-underline]:opacity-100"
+            className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors relative pt-0.5"
+            activeClassName="text-foreground [&>.nav-top-bar]:opacity-100"
           >
-            <item.icon className="h-[20px] w-[20px]" strokeWidth={1.3} />
-            <span style={{ fontFamily: "Inter, sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{item.title}</span>
-            <div className="nav-underline absolute bottom-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-gold opacity-0 transition-opacity" />
+            <div className="nav-top-bar absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 bg-primary opacity-0 transition-opacity" />
+            <item.icon className="h-6 w-6" strokeWidth={1.5} />
+            <span className="font-sans" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase' }}>{item.title}</span>
           </NavLink>
         ))}
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
-            <button className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground/40">
-              <Menu className="h-[20px] w-[20px]" strokeWidth={1.3} />
-              <span style={{ fontFamily: "Inter, sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>More</span>
+            <button className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground pt-0.5">
+              <Menu className="h-6 w-6" strokeWidth={1.5} />
+              <span className="font-sans" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase' }}>More</span>
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl">
@@ -314,17 +291,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               {MORE_NAV.map((item) => (
                 <button key={item.url}
                   onClick={() => { navigate(item.url); setMoreOpen(false); }}
-                  className="flex items-center gap-3.5 w-full px-5 py-4 text-foreground hover:bg-secondary/50 rounded-xl transition-colors"
-                  style={{ fontFamily: "Inter, sans-serif", fontSize: '12px', letterSpacing: '0.04em' }}
+                  className="flex items-center gap-3.5 w-full px-5 py-4 text-foreground hover:bg-secondary rounded-xl transition-colors font-sans"
+                  style={{ fontSize: '13px', letterSpacing: '0.5px' }}
                 >
-                  <item.icon className="h-4 w-4 text-muted-foreground/30" strokeWidth={1.3} />
+                  <item.icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
                   {item.title}
-                  <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground/15" />
+                  <ChevronRight className="ml-auto h-4 w-4 text-primary/40" />
                 </button>
               ))}
               <button onClick={handleSignOut}
-                className="flex items-center gap-3.5 w-full px-5 py-4 text-destructive hover:bg-destructive/5 rounded-xl transition-colors mt-4"
-                style={{ fontFamily: "Inter, sans-serif", fontSize: '12px', letterSpacing: '0.04em' }}
+                className="flex items-center gap-3.5 w-full px-5 py-4 text-destructive hover:bg-destructive/5 rounded-xl transition-colors mt-4 font-sans"
+                style={{ fontSize: '13px', letterSpacing: '0.5px' }}
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out
