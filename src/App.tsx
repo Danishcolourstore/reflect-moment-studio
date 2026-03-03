@@ -129,6 +129,8 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
       .then((result: any) => {
         const roles = (result?.data || []).map((r: any) => r.role);
         if (roles.includes("super_admin") || roles.includes("admin")) {
+          // Admin roles bypass OTP verification entirely
+          sessionStorage.setItem("mirrorai_access_verified", "true");
           setRedirectTo("/admin");
         } else if (roles.includes("client")) {
           setRedirectTo("/client");
