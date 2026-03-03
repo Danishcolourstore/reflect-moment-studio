@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Image, Eye, Download, Plus, Upload, Share2, Settings, Pencil } from 'lucide-react';
+import { Camera, Image, Eye, Download, Plus, Upload, Clock, ChevronRight } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { CreateEventModal } from '@/components/CreateEventModal';
 import { ShareModal } from '@/components/ShareModal';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -53,9 +52,6 @@ const Dashboard = () => {
         const ids = (evtIds as any[]).map((e: any) => e.id);
         const { data: analytics } = await (supabase.from('event_analytics').select('downloads_count') as any).in('event_id', ids);
         if (analytics) setTotalDownloads((analytics as any[]).reduce((s: number, a: any) => s + (a.downloads_count ?? 0), 0));
-      }
-      if (evtIds && (evtIds as any[]).length > 0) {
-        const ids = (evtIds as any[]).map((e: any) => e.id);
         const { data: views } = await (supabase.from('event_views').select('id, viewed_at, event_id') as any).in('event_id', ids).order('viewed_at', { ascending: false }).limit(5);
         const { data: comments } = await (supabase.from('photo_comments').select('id, created_at, guest_name') as any).in('event_id', ids).order('created_at', { ascending: false }).limit(5);
         const items: ActivityItem[] = [];
@@ -80,7 +76,7 @@ const Dashboard = () => {
   const displayName = profile?.studio_name || user?.user_metadata?.full_name || 'Creator';
 
   const contextLine = () => {
-    if (events.length === 0) return 'Capture. Upload. Deliver.';
+    if (events.length === 0) return 'Create your first event to get started.';
     const published = events.filter(e => e.is_published).length;
     if (totalViews > 0) return 'Clients are viewing your work.';
     if (published > 0) return 'Your galleries are ready to share.';
@@ -89,141 +85,72 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      {/* Greeting — large editorial Creator heading */}
-      <div className="mb-12">
-        <p
-          className="text-muted-foreground/50 mb-2"
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: '13px',
-            fontWeight: 400,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-          }}
-        >
+      {/* Greeting */}
+      <div className="mb-8" style={{ padding: '8px 0 0' }}>
+        <p className="font-sans text-muted-foreground" style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '3px', textTransform: 'uppercase' }}>
           {greeting()}
         </p>
-        <div className="flex items-end gap-4">
-          <h1
-            className="text-foreground leading-[1.05]"
-            style={{
-              fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
-              fontSize: 'clamp(48px, 10vw, 64px)',
-              fontWeight: 300,
-              letterSpacing: '0.02em',
-            }}
-          >
-            {displayName}
-          </h1>
-          <button
-            onClick={() => navigate('/dashboard/profile')}
-            className="mb-3 h-11 w-11 rounded-full bg-foreground text-primary-foreground flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-transform"
-          >
-            <Pencil className="h-4 w-4" />
-          </button>
-        </div>
-        <p
-          className="text-muted-foreground/60 mt-3"
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: '14px',
-            fontWeight: 300,
-            letterSpacing: '0.04em',
-          }}
+        <h1
+          className="text-foreground font-serif mt-2"
+          style={{ fontSize: '52px', fontWeight: 300, fontStyle: 'italic', letterSpacing: '-0.5px', lineHeight: 1.1 }}
         >
+          {displayName}
+        </h1>
+        <p className="font-sans text-muted-foreground mt-3" style={{ fontSize: '14px', fontWeight: 400 }}>
           {loading ? format(new Date(), 'EEEE, MMMM d, yyyy') : contextLine()}
         </p>
       </div>
 
-      {/* Stats — 2x2 grid with large 72px numbers */}
+      {/* Quick Actions Row */}
+      <div className="flex gap-3 mb-8">
+        <Button onClick={() => setCreateOpen(true)} className="flex-1 h-11 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
+          <Plus className="h-4 w-4" /> New Event
+        </Button>
+        <Button variant="outline" onClick={() => navigate('/dashboard/upload')} className="flex-1 h-11 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
+          <Upload className="h-4 w-4" /> Upload Photos
+        </Button>
+      </div>
+
+      {/* Stats 2×2 Grid */}
       {loading ? (
-        <div className="grid grid-cols-2 gap-4 mb-14">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-36 rounded-2xl" />)}
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 mb-14">
-          <DashStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
-          <DashStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
-          <DashStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
-          <DashStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/analytics')} />
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          <PixisetStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
+          <PixisetStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
+          <PixisetStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
+          <PixisetStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/analytics')} />
         </div>
       )}
 
-      {/* Recent Events */}
-      <div className="mb-14">
-        <div className="flex items-baseline justify-between mb-8">
-          <h2 className="font-serif text-2xl text-foreground" style={{ fontWeight: 300 }}>Recent Events</h2>
-          <button onClick={() => navigate('/dashboard/events')} className="text-[9px] text-muted-foreground/40 hover:text-muted-foreground uppercase tracking-[0.2em] transition-colors">View All</button>
-        </div>
+      {/* Recent Activity */}
+      <div className="mb-8">
+        <h2 className="font-serif text-foreground mb-5" style={{ fontSize: '24px', fontWeight: 500 }}>Recent Activity</h2>
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-64" />)}
-          </div>
-        ) : events.length === 0 ? (
-          <div className="py-24 text-center">
-            <Camera className="mx-auto h-10 w-10 text-muted-foreground/10" />
-            <p className="mt-5 font-serif text-lg text-muted-foreground/40">No events yet</p>
-            <p className="mt-2 text-[10px] text-muted-foreground/30 tracking-wide">Create your first event to start delivering photos.</p>
+          <Skeleton className="h-48 rounded-2xl" />
+        ) : activity.length === 0 ? (
+          <div className="bg-card border border-border rounded-2xl p-10 text-center" style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}>
+            <Clock className="mx-auto h-8 w-8 text-primary mb-4" strokeWidth={1.5} />
+            <p className="font-serif text-muted-foreground" style={{ fontSize: '20px', fontStyle: 'italic', fontWeight: 400 }}>No recent activity yet</p>
+            <p className="font-sans text-muted-foreground mt-2" style={{ fontSize: '13px' }}>Upload photos or create an event to get started</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {events.map((evt) => (
-              <div key={evt.id} className="group cursor-pointer" onClick={() => navigate(`/dashboard/events/${evt.id}`)}>
-                <div className="relative aspect-[3/2] overflow-hidden rounded-2xl">
-                  {evt.cover_url ? (
-                    <img src={evt.cover_url} alt={evt.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" loading="lazy" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center bg-secondary"><Camera className="h-8 w-8 text-muted-foreground/10" /></div>
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[rgba(44,33,24,0.7)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <Badge className="absolute bottom-3 left-3 bg-card/80 text-foreground text-[9px] backdrop-blur-sm border-0 tracking-wider uppercase">{evt.photo_count} photos</Badge>
-                  <Badge className={`absolute bottom-3 right-3 text-[9px] border-0 backdrop-blur-sm tracking-wider uppercase ${evt.is_published ? 'bg-muted-foreground/15 text-card' : 'bg-card/80 text-muted-foreground'}`}>
-                    {evt.is_published ? 'Live' : 'Draft'}
-                  </Badge>
+          <div className="bg-card border border-border rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}>
+            {activity.map((item, i) => (
+              <div key={item.id} className={`flex items-center gap-4 px-5 py-4 ${i < activity.length - 1 ? 'border-b border-border' : ''}`}>
+                <div className="h-2 w-2 rounded-full bg-primary/40 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-serif text-foreground truncate" style={{ fontSize: '16px', fontWeight: 400 }}>{item.description}</p>
+                  <p className="font-sans text-muted-foreground mt-0.5" style={{ fontSize: '12px' }}>{formatDistanceToNow(new Date(item.time), { addSuffix: true })}</p>
                 </div>
-                <div className="pt-4 pb-2">
-                  <h3 className="font-serif text-lg text-foreground truncate" style={{ fontWeight: 400 }}>{evt.name}</h3>
-                  <p className="text-[10px] text-muted-foreground/40 mt-1 tracking-wide uppercase">{format(new Date(evt.event_date), 'MMM d, yyyy')}{evt.location ? ` · ${evt.location}` : ''}</p>
-                </div>
+                <ChevronRight className="h-4 w-4 text-primary/40 shrink-0" />
               </div>
             ))}
           </div>
         )}
       </div>
-
-      {/* Quick Actions */}
-      <div className="mb-14">
-        <h2 className="font-serif text-2xl text-foreground mb-8" style={{ fontWeight: 300 }}>Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <QuickAction icon={Plus} title="Create New Event" desc="Create a new photo gallery for your client" btnText="Create Event" onClick={() => setCreateOpen(true)} />
-          <QuickAction icon={Upload} title="Upload Photos" desc="Add photos to an existing event" btnText="Upload Now" onClick={() => navigate('/dashboard/upload')} />
-          <QuickAction icon={Share2} title="Share Gallery" desc="Send your gallery link to clients" btnText="View Events" onClick={() => navigate('/dashboard/events')} />
-        </div>
-      </div>
-
-      {/* Activity Feed */}
-      {activity.length > 0 && (
-        <div>
-          <h2 className="font-serif text-2xl text-foreground mb-8" style={{ fontWeight: 300 }}>Recent Activity</h2>
-          <div className="space-y-0">
-            {activity.map((item) => (
-              <div key={item.id} className="flex items-start gap-4 py-4 border-b border-border/30 last:border-0">
-                <div className="mt-2 h-1.5 w-1.5 rounded-full bg-muted-foreground/25 shrink-0" />
-                <p className="text-[13px] text-foreground/70 flex-1 tracking-wide">{item.description}</p>
-                <span className="text-[10px] text-muted-foreground/35 shrink-0 tracking-wide">{formatDistanceToNow(new Date(item.time), { addSuffix: true })}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Floating Settings FAB */}
-      <button
-        onClick={() => navigate('/dashboard/settings')}
-        className="fixed bottom-24 right-5 lg:bottom-8 lg:right-8 z-20 h-14 w-14 rounded-full bg-foreground text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-      >
-        <Settings className="h-5 w-5" />
-      </button>
 
       <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
       {shareEvent && <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.name} pin={shareEvent.gallery_pin} />}
@@ -231,51 +158,25 @@ const Dashboard = () => {
   );
 };
 
-function DashStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
+function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
   return (
     <div
-      className="bg-secondary/60 rounded-2xl p-6 cursor-pointer min-h-[44px] active:scale-[0.97] transition-transform duration-150"
+      className="bg-card border border-border rounded-2xl p-5 cursor-pointer active:scale-[0.97] transition-transform duration-150 hover:border-primary/30"
+      style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}
       onClick={onClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick?.(); }}
     >
-      <div className="flex items-center gap-2 mb-5">
-        <Icon className="h-4 w-4 text-muted-foreground/30" strokeWidth={1.5} />
-        <p
-          className="text-muted-foreground/60"
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: '13px',
-            fontWeight: 400,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-          }}
-        >
+      <div className="flex items-center gap-2 mb-4">
+        <Icon className="h-[18px] w-[18px] text-primary" strokeWidth={1.5} />
+        <p className="font-sans text-muted-foreground" style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
           {label}
         </p>
       </div>
-      <p
-        className="text-foreground leading-none tracking-tight"
-        style={{
-          fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
-          fontSize: '72px',
-          fontWeight: 700,
-        }}
-      >
+      <p className="text-foreground font-serif leading-none" style={{ fontSize: '64px', fontWeight: 300 }}>
         {value}
       </p>
-    </div>
-  );
-}
-
-function QuickAction({ icon: Icon, title, desc, btnText, onClick }: { icon: any; title: string; desc: string; btnText: string; onClick: () => void }) {
-  return (
-    <div className="bg-secondary/40 rounded-2xl p-8 flex flex-col items-center text-center border border-border/10">
-      <Icon className="h-7 w-7 text-muted-foreground/20 mb-4" strokeWidth={1.2} />
-      <h3 className="font-serif text-lg text-foreground" style={{ fontWeight: 400 }}>{title}</h3>
-      <p className="text-[11px] text-muted-foreground/40 mt-2 tracking-wide">{desc}</p>
-      <Button size="sm" className="mt-5" onClick={onClick}>{btnText}</Button>
     </div>
   );
 }
