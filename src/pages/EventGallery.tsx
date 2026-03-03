@@ -54,8 +54,13 @@ interface Event {
   download_resolution: string;
   watermark_enabled: boolean;
   gallery_layout: string;
+  gallery_style: string;
   is_published: boolean;
   selection_mode_enabled: boolean;
+  hero_couple_name: string | null;
+  hero_subtitle: string | null;
+  hero_button_label: string | null;
+  website_template: string | null;
 }
 
 type GalleryFilter = 'all' | 'favorites';
@@ -79,6 +84,8 @@ const EventGallery = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [event, setEvent] = useState<Event | null>(null);
+  const [eventLoading, setEventLoading] = useState(true);
+  const [eventError, setEventError] = useState<string | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [shareOpen, setShareOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -97,14 +104,26 @@ const EventGallery = () => {
 
   const fetchEvent = useCallback(async () => {
     if (!id || !user) return;
-    const { data } = await supabase.from('events').select('*').eq('id', id).single();
-    if (data) {
-      const evt = data as unknown as Event;
-      if (evt.user_id !== user.id) {
-        navigate('/dashboard');
+    setEventLoading(true);
+    setEventError(null);
+    try {
+      const { data, error } = await supabase.from('events').select('*').eq('id', id).single();
+      if (error) {
+        setEventError('Could not load event settings. Please try refreshing.');
         return;
       }
-      setEvent(evt);
+      if (data) {
+        const evt = data as unknown as Event;
+        if (evt.user_id !== user.id) {
+          navigate('/dashboard');
+          return;
+        }
+        setEvent(evt);
+      }
+    } catch {
+      setEventError('Could not load event settings. Please try refreshing.');
+    } finally {
+      setEventLoading(false);
     }
   }, [id, user, navigate]);
 
@@ -223,11 +242,23 @@ const EventGallery = () => {
   const downloadAll = () => buildZip(photos, 'gallery');
   const downloadFavorites = () => buildZip(photos.filter((p) => isFavorite(p.id)), 'favorites');
 
-  if (!event) {
+  if (eventLoading || !event) {
     return (
       <DashboardLayout>
-        <div className="py-20 text-center">
+        <div className="py-20 text-center space-y-3">
+          <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground/30" />
           <p className="text-[11px] text-muted-foreground/50 uppercase tracking-widest">Loading gallery...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (eventError) {
+    return (
+      <DashboardLayout>
+        <div className="py-20 text-center space-y-3">
+          <p className="text-sm text-destructive">{eventError}</p>
+          <Button variant="outline" size="sm" onClick={fetchEvent}>Try Again</Button>
         </div>
       </DashboardLayout>
     );
