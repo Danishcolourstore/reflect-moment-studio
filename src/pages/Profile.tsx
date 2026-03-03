@@ -77,8 +77,8 @@ const Profile = () => {
   const pwStrength = () => {
     if (newPw.length === 0) return null;
     if (newPw.length < 6) return { label: 'Weak', color: 'text-destructive' };
-    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: 'Fair', color: 'text-yellow-500' };
-    return { label: 'Strong', color: 'text-green-500' };
+    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: 'Fair', color: 'text-primary' };
+    return { label: 'Strong', color: 'text-primary' };
   };
 
   const storage = useStorageUsage();
@@ -143,7 +143,7 @@ const Profile = () => {
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Confirm New Password</label>
               <Input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} className="mt-1 bg-background" />
               {confirmPw && confirmPw !== newPw && <p className="text-[10px] text-destructive mt-1">Passwords do not match</p>}
-              {confirmPw && confirmPw === newPw && newPw.length >= 6 && <p className="text-[10px] text-green-500 mt-1">Passwords match</p>}
+              {confirmPw && confirmPw === newPw && newPw.length >= 6 && <p className="text-[10px] text-primary mt-1">Passwords match</p>}
             </div>
           </div>
           <Button onClick={savePassword} disabled={pwSaving || !newPw || newPw !== confirmPw} className="mt-5 bg-primary text-primary-foreground text-[11px] uppercase tracking-wider">
