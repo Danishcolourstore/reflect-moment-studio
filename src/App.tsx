@@ -48,6 +48,7 @@ import AdminRevenue from "./pages/admin/AdminRevenue";
 import AdminEmails from "./pages/admin/AdminEmails";
 import AdminActivity from "./pages/admin/AdminActivity";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminUsers from "./pages/admin/AdminUsers";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
@@ -127,7 +128,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
     Promise.race([rolePromise, timeout])
       .then((result: any) => {
         const roles = (result?.data || []).map((r: any) => r.role);
-        if (roles.includes("admin")) {
+        if (roles.includes("super_admin") || roles.includes("admin")) {
           setRedirectTo("/admin");
         } else if (roles.includes("client")) {
           setRedirectTo("/client");
@@ -197,6 +198,7 @@ const AppRoutes = () => {
         }
       >
         <Route index element={<AdminDashboard />} />
+        <Route path="users" element={<AdminUsers />} />
         <Route path="photographers" element={<AdminPhotographers />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="storage" element={<AdminStorage />} />

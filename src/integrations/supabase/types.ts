@@ -1277,6 +1277,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string | null
+          force_logout_requested: boolean
           id: string
           mobile: string | null
           onboarding_completed: boolean
@@ -1296,6 +1297,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          force_logout_requested?: boolean
           id?: string
           mobile?: string | null
           onboarding_completed?: boolean
@@ -1315,6 +1317,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          force_logout_requested?: boolean
           id?: string
           mobile?: string | null
           onboarding_completed?: boolean
@@ -1477,7 +1480,7 @@ export type Database = {
       verify_admin_pin: { Args: { pin_input: string }; Returns: Json }
     }
     Enums: {
-      app_role: "admin" | "photographer" | "client"
+      app_role: "admin" | "photographer" | "client" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1605,7 +1608,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "photographer", "client"],
+      app_role: ["admin", "photographer", "client", "super_admin"],
     },
   },
 } as const
