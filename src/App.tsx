@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
 import Auth from "./pages/Auth";
+import Culling from "./pages/Culling";
 import Dashboard from "./pages/Dashboard";
 import Events from "./pages/Events";
 import EventGallery from "./pages/EventGallery";
@@ -368,6 +369,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Billing />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/culling"
+        element={
+          <ProtectedRoute>
+            <ErrorBoundary><Culling /></ErrorBoundary>
           </ProtectedRoute>
         }
       />
