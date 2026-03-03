@@ -174,7 +174,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Fixed Header — 64px */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 flex items-center justify-between px-5 lg:px-10 bg-background border-b border-border" style={{ height: '64px' }}>
+      <header className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] lg:left-auto lg:translate-x-0 lg:right-0 lg:max-w-none lg:left-[260px] z-20 flex items-center justify-between px-5 lg:px-10 bg-background border-b border-border" style={{ height: '64px' }}>
         <h2 className="text-foreground font-serif lg:hidden" style={{ fontWeight: 700, fontSize: '28px', letterSpacing: '-0.5px' }}>MirrorAI</h2>
         <div className="hidden lg:block" />
         <div className="flex items-center gap-3">
@@ -215,7 +215,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </main>
 
       {/* Mobile bottom nav — 72px, Pixiset style */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border" style={{ height: '72px', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 flex items-stretch lg:hidden bg-card border-t border-border w-full max-w-[480px]" style={{ height: '72px', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {MOBILE_NAV.map((item) => (
           <NavLink key={item.url} to={item.url} end={item.end}
             className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors relative pt-0.5"
