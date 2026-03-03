@@ -18,8 +18,6 @@ const Auth = ({ initialView }: AuthProps) => {
   const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
-    // Ensure test account exists (silent, no-op if already created)
-    supabase.auth.signUp({ email: "test@mirroraigallery.com", password: "Test@1234" }).catch(() => {});
     const timer = setTimeout(() => setRevealed(true), 2000);
     return () => clearTimeout(timer);
   }, []);

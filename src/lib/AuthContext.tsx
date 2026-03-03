@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     sessionStorage.removeItem("redirectAfterLogin");
+    sessionStorage.removeItem("mirrorai_access_verified");
   };
 
   return (
