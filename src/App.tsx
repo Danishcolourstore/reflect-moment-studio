@@ -34,7 +34,6 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { GalleryShell } from "./components/GalleryShell";
-import CheetahLanding from "./components/CheetahLanding";
 import LoginPage from "./pages/LoginPage";
 import GuestFinder from "./pages/GuestFinder";
 import VerifyAccess from "./pages/VerifyAccess";
@@ -417,7 +416,7 @@ const AppRoutes = () => {
 
       <Route path="/find/:token" element={<GuestFinder />} />
 
-      <Route path="/" element={<CheetahLanding />} />
+      <Route path="/" element={<AuthRoute><LoginPage /></AuthRoute>} />
       <Route path="/auth" element={<Navigate to="/login" replace />} />
       <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
       <Route path="/events/:id" element={<Navigate to="/dashboard/events/:id" replace />} />
