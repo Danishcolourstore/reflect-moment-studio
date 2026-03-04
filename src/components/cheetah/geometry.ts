@@ -1,108 +1,113 @@
-import * as THREE from 'three';
+/**
+ * Generate ~4000 points distributed across the cheetah body volume.
+ * Returns Float32Arrays for positions (xyz) and colors (rgb).
+ * Cyan on top/back, magenta on belly/legs, interpolated.
+ */
 
-const CYAN = new THREE.Color(0x00ffff);
-const MAGENTA = new THREE.Color(0xff00ff);
-
-function lerp3(a: number[], b: number[], t: number): number[] {
-  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+function randRange(min: number, max: number): number {
+  return min + Math.random() * (max - min);
 }
 
-export function createCheetahGeometry(): THREE.BufferGeometry {
-  const pos: number[] = [];
-  const col: number[] = [];
-  const idx: number[] = [];
+function ellipsoidSample(cx: number, cy: number, cz: number, rx: number, ry: number, rz: number): [number, number, number] {
+  const u = Math.random() * Math.PI * 2;
+  const v = Math.acos(2 * Math.random() - 1);
+  const r = Math.cbrt(Math.random());
+  return [
+    cx + rx * r * Math.sin(v) * Math.cos(u),
+    cy + ry * r * Math.sin(v) * Math.sin(u),
+    cz + rz * r * Math.cos(v),
+  ];
+}
 
-  const bodyProfile = [
-    { x: -1.8, y: 0.7, rx: 0.03, ry: 0.03 },
-    { x: -1.5, y: 0.74, rx: 0.09, ry: 0.07 },
-    { x: -1.1, y: 0.80, rx: 0.17, ry: 0.14 },
-    { x: -0.7, y: 0.86, rx: 0.21, ry: 0.18 },
-    { x: -0.3, y: 0.83, rx: 0.19, ry: 0.17 },
-    { x: 0.1, y: 0.79, rx: 0.17, ry: 0.15 },
-    { x: 0.4, y: 0.81, rx: 0.19, ry: 0.17 },
-    { x: 0.7, y: 0.86, rx: 0.22, ry: 0.20 },
-    { x: 1.0, y: 0.94, rx: 0.14, ry: 0.12 },
-    { x: 1.2, y: 1.02, rx: 0.10, ry: 0.09 },
-    { x: 1.4, y: 1.09, rx: 0.14, ry: 0.12 },
-    { x: 1.55, y: 1.11, rx: 0.12, ry: 0.10 },
-    { x: 1.7, y: 1.07, rx: 0.06, ry: 0.05 },
+interface BodyRegion {
+  cx: number; cy: number; cz: number;
+  rx: number; ry: number; rz: number;
+  count: number;
+  colorBias: number; // 0=magenta, 1=cyan
+}
+
+export function generateCheetahPoints(totalTarget = 4000): { positions: Float32Array; colors: Float32Array } {
+  const regions: BodyRegion[] = [
+    // Torso (main body) — largest region
+    { cx: 0, cy: 0.85, cz: 0, rx: 0.7, ry: 0.22, rz: 0.18, count: Math.floor(totalTarget * 0.30), colorBias: 0.6 },
+    // Chest/front torso
+    { cx: 0.55, cy: 0.88, cz: 0, rx: 0.25, ry: 0.20, rz: 0.16, count: Math.floor(totalTarget * 0.08), colorBias: 0.7 },
+    // Rear torso
+    { cx: -0.5, cy: 0.82, cz: 0, rx: 0.25, ry: 0.20, rz: 0.17, count: Math.floor(totalTarget * 0.08), colorBias: 0.5 },
+    // Neck
+    { cx: 0.85, cy: 0.98, cz: 0, rx: 0.18, ry: 0.14, rz: 0.10, count: Math.floor(totalTarget * 0.07), colorBias: 0.8 },
+    // Head
+    { cx: 1.15, cy: 1.08, cz: 0, rx: 0.14, ry: 0.12, rz: 0.10, count: Math.floor(totalTarget * 0.08), colorBias: 0.9 },
+    // Snout
+    { cx: 1.35, cy: 1.05, cz: 0, rx: 0.08, ry: 0.06, rz: 0.06, count: Math.floor(totalTarget * 0.03), colorBias: 0.9 },
+    // Front-left leg
+    { cx: 0.45, cy: 0.42, cz: 0.10, rx: 0.06, ry: 0.30, rz: 0.05, count: Math.floor(totalTarget * 0.05), colorBias: 0.2 },
+    // Front-right leg
+    { cx: 0.45, cy: 0.42, cz: -0.10, rx: 0.06, ry: 0.30, rz: 0.05, count: Math.floor(totalTarget * 0.05), colorBias: 0.2 },
+    // Rear-left leg
+    { cx: -0.45, cy: 0.40, cz: 0.12, rx: 0.07, ry: 0.32, rz: 0.06, count: Math.floor(totalTarget * 0.05), colorBias: 0.15 },
+    // Rear-right leg
+    { cx: -0.45, cy: 0.40, cz: -0.12, rx: 0.07, ry: 0.32, rz: 0.06, count: Math.floor(totalTarget * 0.05), colorBias: 0.15 },
+    // Tail
+    { cx: -1.0, cy: 0.82, cz: 0, rx: 0.04, ry: 0.04, rz: 0.03, count: Math.floor(totalTarget * 0.03), colorBias: 0.5 },
+    { cx: -1.3, cy: 0.90, cz: 0, rx: 0.04, ry: 0.03, rz: 0.03, count: Math.floor(totalTarget * 0.03), colorBias: 0.4 },
+    { cx: -1.55, cy: 1.00, cz: 0, rx: 0.03, ry: 0.03, rz: 0.02, count: Math.floor(totalTarget * 0.03), colorBias: 0.3 },
+    { cx: -1.75, cy: 1.08, cz: 0, rx: 0.025, ry: 0.025, rz: 0.02, count: Math.floor(totalTarget * 0.02), colorBias: 0.3 },
+    // Ears
+    { cx: 1.12, cy: 1.28, cz: 0.08, rx: 0.03, ry: 0.05, rz: 0.02, count: Math.floor(totalTarget * 0.015), colorBias: 1.0 },
+    { cx: 1.12, cy: 1.28, cz: -0.08, rx: 0.03, ry: 0.05, rz: 0.02, count: Math.floor(totalTarget * 0.015), colorBias: 1.0 },
+    // Shoulder hump
+    { cx: 0.3, cy: 0.95, cz: 0, rx: 0.15, ry: 0.08, rz: 0.14, count: Math.floor(totalTarget * 0.04), colorBias: 0.85 },
   ];
 
-  const R = 10;
-  bodyProfile.forEach((s, i) => {
-    for (let j = 0; j < R; j++) {
-      const a = (j / R) * Math.PI * 2;
-      pos.push(s.x, s.y + Math.sin(a) * s.ry, Math.cos(a) * s.rx);
-      const t = (Math.sin(a) + 1) / 2;
-      const c = lerp3([MAGENTA.r, MAGENTA.g, MAGENTA.b], [CYAN.r, CYAN.g, CYAN.b], t);
-      col.push(c[0], c[1], c[2]);
-    }
-    if (i > 0) {
-      const c0 = i * R, p0 = (i - 1) * R;
-      for (let j = 0; j < R; j++) {
-        const n = (j + 1) % R;
-        idx.push(p0 + j, c0 + j, c0 + n, p0 + j, c0 + n, p0 + n);
-      }
-    }
-  });
+  // Calculate total and pad to target
+  let totalCount = regions.reduce((s, r) => s + r.count, 0);
+  if (totalCount < totalTarget) {
+    regions[0].count += totalTarget - totalCount;
+  }
+  totalCount = totalTarget;
 
-  // Legs
-  const S = 6;
-  const legs: [number, number, number][] = [[-0.7, 0.69, 0.15], [-0.7, 0.69, -0.15], [0.7, 0.67, 0.16], [0.7, 0.67, -0.16]];
-  legs.forEach(([lx, ly, lz]) => {
-    const base = pos.length / 3;
-    for (let r = 0; r < 5; r++) {
-      const t = r / 4;
-      const y = ly * (1 - t);
-      const rad = 0.04 * (1 - t * 0.3);
-      for (let s = 0; s < S; s++) {
-        const a = (s / S) * Math.PI * 2;
-        pos.push(lx + Math.cos(a) * rad, y, lz + Math.sin(a) * rad);
-        const c = lerp3([MAGENTA.r, MAGENTA.g, MAGENTA.b], [CYAN.r, CYAN.g, CYAN.b], 0.3 + t * 0.15);
-        col.push(c[0], c[1], c[2]);
-      }
-      if (r > 0) {
-        const c0 = base + r * S, p0 = base + (r - 1) * S;
-        for (let s = 0; s < S; s++) {
-          const n = (s + 1) % S;
-          idx.push(p0 + s, c0 + s, c0 + n, p0 + s, c0 + n, p0 + n);
-        }
-      }
-    }
-  });
+  const positions = new Float32Array(totalCount * 3);
+  const colors = new Float32Array(totalCount * 3);
 
-  // Tail
-  {
-    const base = pos.length / 3;
-    const tailPts: [number, number][] = [[-1.8, 0.7], [-2.1, 0.82], [-2.35, 0.96], [-2.5, 1.05], [-2.65, 1.10]];
-    tailPts.forEach(([tx, ty], i) => {
-      const r = 0.025 * (1 - i * 0.12);
-      for (let s = 0; s < S; s++) {
-        const a = (s / S) * Math.PI * 2;
-        pos.push(tx, ty + Math.sin(a) * r, Math.cos(a) * r);
-        col.push(CYAN.r * 0.6, CYAN.g * 0.6, CYAN.b * 0.6);
-      }
-      if (i > 0) {
-        const c0 = base + i * S, p0 = base + (i - 1) * S;
-        for (let s = 0; s < S; s++) {
-          const n = (s + 1) % S;
-          idx.push(p0 + s, c0 + s, c0 + n, p0 + s, c0 + n, p0 + n);
-        }
-      }
-    });
+  let idx = 0;
+  for (const region of regions) {
+    for (let i = 0; i < region.count; i++) {
+      const [x, y, z] = ellipsoidSample(region.cx, region.cy, region.cz, region.rx, region.ry, region.rz);
+      positions[idx * 3] = x;
+      positions[idx * 3 + 1] = y;
+      positions[idx * 3 + 2] = z;
+
+      // Color: lerp cyan (0,1,1) ↔ magenta (1,0,1) based on height + region bias
+      const heightFactor = Math.max(0, Math.min(1, (y - 0.1) / 1.2));
+      const t = Math.max(0, Math.min(1, heightFactor * 0.4 + region.colorBias * 0.6));
+      // t=1 → cyan, t=0 → magenta
+      colors[idx * 3] = 1 - t;       // R
+      colors[idx * 3 + 1] = t;       // G
+      colors[idx * 3 + 2] = 1;       // B (always 1)
+
+      idx++;
+    }
   }
 
-  // Ears
-  const eb = pos.length / 3;
-  pos.push(1.38, 1.23, 0.08, 1.43, 1.37, 0.11, 1.48, 1.23, 0.09);
-  pos.push(1.38, 1.23, -0.08, 1.43, 1.37, -0.11, 1.48, 1.23, -0.09);
-  for (let i = 0; i < 6; i++) col.push(0, 1, 1);
-  idx.push(eb, eb + 1, eb + 2, eb + 3, eb + 4, eb + 5);
+  return { positions, colors };
+}
 
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  geo.setIndex(idx);
-  geo.computeVertexNormals();
-  return geo;
+/** Generate the glow sprite texture as a data URL */
+export function createGlowTexture(): string {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+  const center = size / 2;
+  const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.15, 'rgba(200,255,255,0.8)');
+  gradient.addColorStop(0.4, 'rgba(100,200,255,0.3)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  return canvas.toDataURL();
 }
