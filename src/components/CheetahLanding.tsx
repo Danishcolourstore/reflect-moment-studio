@@ -22,7 +22,7 @@ const CheetahLanding = () => {
       setCheetahVisible(true);
       startRef.current = performance.now();
 
-      const runDuration = 4500;
+      const runDuration = 6300;
 
       const tick = (now: number) => {
         const elapsed = now - startRef.current;
@@ -115,7 +115,11 @@ const CheetahLanding = () => {
             display: "block",
             pointerEvents: "none",
             userSelect: "none",
-            background: "transparent",
+            background: "none",
+            border: "none",
+            boxShadow: "none",
+            outline: "none",
+            transform: "scaleX(-1)",
           }}
         />
       </div>
