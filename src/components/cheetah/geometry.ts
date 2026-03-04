@@ -1,7 +1,7 @@
 /**
  * Generate ~4000 points distributed across the cheetah body volume.
  * Returns Float32Arrays for positions (xyz) and colors (rgb).
- * Cyan on top/back, magenta on belly/legs, interpolated.
+ * Cyan on top/back, magenta on belly/legs, interpolated between.
  */
 
 function randRange(min: number, max: number): number {
