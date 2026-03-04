@@ -20,7 +20,7 @@ const CheetahLanding = () => {
   const [phase, setPhase] = useState<"cinematic" | "running" | "flash" | "done">("cinematic");
   const [cheetahProgress, setCheetahProgress] = useState(-120);
   const [particles, setParticles] = useState<Particle[]>([]);
-  const [flashOpacity, setFlashOpacity] = useState(0);
+  const [fadeOpacity, setFadeOpacity] = useState(0);
   const animRef = useRef<number>(0);
   const startTimeRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
@@ -31,8 +31,8 @@ const CheetahLanding = () => {
   }, [navigate]);
 
   useEffect(() => {
-    // Timeline: 0-1s cinematic, 1-6s run, 6-6.5s flash, then navigate
-    const cinematicTimer = setTimeout(() => setPhase("running"), 1000);
+    // Timeline: 0-1.5s cinematic, 1.5-7.5s run, 7.5-8.5s fade, then navigate
+    const cinematicTimer = setTimeout(() => setPhase("running"), 1500);
 
     return () => {
       clearTimeout(cinematicTimer);
@@ -45,7 +45,7 @@ const CheetahLanding = () => {
     if (phase !== "running") return;
 
     startTimeRef.current = performance.now();
-    const runDuration = 5000; // 5 seconds for the run
+    const runDuration = 6000; // 6 seconds for the run
 
     const easeOutPower3 = (t: number) => 1 - Math.pow(1 - t, 3);
 
@@ -102,14 +102,14 @@ const CheetahLanding = () => {
     return () => cancelAnimationFrame(animRef.current);
   }, [phase]);
 
-  // Flash transition
+  // Dark fade transition (no white flash)
   useEffect(() => {
     if (phase !== "flash") return;
 
-    setFlashOpacity(1);
+    setFadeOpacity(1);
     const navTimer = setTimeout(() => {
       navigate("/login", { replace: true });
-    }, 500);
+    }, 700);
 
     return () => clearTimeout(navTimer);
   }, [phase, navigate]);
@@ -176,34 +176,7 @@ const CheetahLanding = () => {
         }}
       />
 
-      {/* Ambient particles during cinematic phase */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          opacity: cinematicOpacity,
-          transition: "opacity 0.8s ease",
-          pointerEvents: "none",
-        }}
-      >
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={`ambient-${i}`}
-            style={{
-              position: "absolute",
-              left: `${15 + i * 12}%`,
-              top: `${55 + (i % 3) * 8}%`,
-              width: 3,
-              height: 3,
-              borderRadius: "50%",
-              background: "rgba(212,175,55,0.5)",
-              boxShadow: "0 0 8px rgba(212,175,55,0.3)",
-              animation: `cinematic-float ${2 + i * 0.3}s ease-in-out infinite alternate`,
-              animationDelay: `${i * 0.2}s`,
-            }}
-          />
-        ))}
-      </div>
+
 
       {/* Mirror floor surface */}
       <div
@@ -360,14 +333,14 @@ const CheetahLanding = () => {
         </div>
       </div>
 
-      {/* ===== FLASH TRANSITION ===== */}
+      {/* Dark fade transition */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "radial-gradient(ellipse at 80% 65%, rgba(212,175,55,0.9), rgba(255,255,255,0.95) 60%, #fff 100%)",
-          opacity: flashOpacity,
-          transition: "opacity 0.4s ease-in",
+          background: "#050505",
+          opacity: fadeOpacity,
+          transition: "opacity 0.6s ease-in",
           pointerEvents: "none",
           zIndex: 50,
         }}
