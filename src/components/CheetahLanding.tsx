@@ -380,7 +380,8 @@ const CheetahLanding = () => {
         <div
           style={{
             position: "absolute",
-            bottom: "28%",
+            top: "50%",
+            marginTop: -45,
             left: `${((cheetahProgress + 120) / 240) * 100 - 12}%`,
             width: 280,
             height: 90,
@@ -396,41 +397,22 @@ const CheetahLanding = () => {
       <div
         style={{
           position: "absolute",
-          bottom: "28%",
+          top: "50%",
           left: 0,
           width: "100%",
-          transform: `translateX(${cheetahProgress}%)`,
+          transform: `translateX(${cheetahProgress}%) translateY(-50%)`,
           willChange: "transform",
           opacity: cheetahVisible ? 1 : 0,
           transition: "opacity 0.4s ease-out",
         }}
       >
-        <div style={{ position: "relative" }}>
-          {/* Motion blur wrapper */}
-          <div
-            style={{
-              filter: motionBlur > 0
-                ? `blur(${motionBlur}px)`
-                : "none",
-              position: "relative",
-            }}
-          >
-            <img
-              src="/images/cheetah.png"
-              alt=""
-              draggable={false}
-              style={{
-                width: "min(500px, 65vw)",
-                height: "auto",
-                objectFit: "contain",
-                display: "block",
-                pointerEvents: "none",
-                userSelect: "none",
-              }}
-            />
-          </div>
-
-          {/* Mirror reflection */}
+        <div
+          style={{
+            filter: motionBlur > 0
+              ? `blur(${motionBlur}px)`
+              : "none",
+          }}
+        >
           <img
             src="/images/cheetah.png"
             alt=""
@@ -442,13 +424,6 @@ const CheetahLanding = () => {
               display: "block",
               pointerEvents: "none",
               userSelect: "none",
-              transform: "scaleY(-1) translateY(-6px)",
-              opacity: 0.18,
-              filter: "blur(4px)",
-              maskImage:
-                "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 55%)",
-              WebkitMaskImage:
-                "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 55%)",
             }}
           />
         </div>
