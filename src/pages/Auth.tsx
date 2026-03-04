@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import CheetahIntro from "@/components/CheetahIntro";
 
 interface AuthProps {
   initialView?: "landing" | "login" | "signup" | "forgot";
@@ -17,10 +18,23 @@ const Auth = ({ initialView }: AuthProps) => {
   const [tab, setTab] = useState<"login" | "signup">(initialView === "signup" ? "signup" : "login");
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => {
+    // Only show intro once per session
+    if (sessionStorage.getItem("mirrorai_intro_seen")) return false;
+    return initialView === "login";
+  });
 
-  useEffect(() => {
+  const handleIntroComplete = useCallback(() => {
+    sessionStorage.setItem("mirrorai_intro_seen", "true");
+    setShowIntro(false);
     setTimeout(() => setMounted(true), 50);
   }, []);
+
+  useEffect(() => {
+    if (!showIntro) {
+      setTimeout(() => setMounted(true), 50);
+    }
+  }, [showIntro]);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -54,6 +68,8 @@ const Auth = ({ initialView }: AuthProps) => {
   const isLogin = tab === "login";
 
   return (
+    <>
+      {showIntro && <CheetahIntro onComplete={handleIntroComplete} />}
     <div
       className="flex flex-col items-center justify-center min-h-screen"
       style={{ background: "var(--bg-primary)", padding: "24px 20px" }}
@@ -365,6 +381,7 @@ const Auth = ({ initialView }: AuthProps) => {
         Colour Store Preset Universe
       </p>
     </div>
+    </>
   );
 };
 
