@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
+/* ─── Particle type ─── */
 interface Particle {
   id: number;
   x: number;
@@ -11,18 +12,23 @@ interface Particle {
   maxLife: number;
   size: number;
   hue: number;
+  brightness: number;
 }
 
-let particleId = 0;
+let pid = 0;
+
+/* ─── Easing: power3.out → 1 - (1-t)^3 ─── */
+const power3Out = (t: number) => 1 - Math.pow(1 - t, 3);
 
 const CheetahLanding = () => {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<"cinematic" | "running" | "flash" | "done">("cinematic");
+  const [phase, setPhase] = useState<"cinematic" | "running" | "burst" | "done">("cinematic");
   const [cheetahProgress, setCheetahProgress] = useState(-120);
   const [particles, setParticles] = useState<Particle[]>([]);
-  const [fadeOpacity, setFadeOpacity] = useState(0);
-  const animRef = useRef<number>(0);
-  const startTimeRef = useRef<number>(0);
+  const [burstOpacity, setBurstOpacity] = useState(0);
+  const [fadeOut, setFadeOut] = useState(false);
+  const animRef = useRef(0);
+  const startRef = useRef(0);
   const particlesRef = useRef<Particle[]>([]);
 
   const skipIntro = useCallback(() => {
@@ -30,49 +36,50 @@ const CheetahLanding = () => {
     navigate("/login", { replace: true });
   }, [navigate]);
 
+  /* Phase 1 → cinematic dark intro (1s) */
   useEffect(() => {
-    // Timeline: 0-1.5s cinematic, 1.5-7.5s run, 7.5-8.5s fade, then navigate
-    const cinematicTimer = setTimeout(() => setPhase("running"), 1500);
-
+    const t = setTimeout(() => setPhase("running"), 1000);
     return () => {
-      clearTimeout(cinematicTimer);
+      clearTimeout(t);
       cancelAnimationFrame(animRef.current);
     };
   }, []);
 
-  // Main animation loop
+  /* Phase 2 → cheetah run (5s) with particle system */
   useEffect(() => {
     if (phase !== "running") return;
 
-    startTimeRef.current = performance.now();
-    const runDuration = 6000; // 6 seconds for the run
-
-    const easeOutPower3 = (t: number) => 1 - Math.pow(1 - t, 3);
+    startRef.current = performance.now();
+    const duration = 5000;
 
     const tick = (now: number) => {
-      const elapsed = now - startTimeRef.current;
-      const t = Math.min(elapsed / runDuration, 1);
-      const eased = easeOutPower3(t);
+      const elapsed = now - startRef.current;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = power3Out(t);
 
-      // -120% to 120% = 240% range
+      // -120% → +120% = 240% range
       const progress = -120 + eased * 240;
       setCheetahProgress(progress);
 
-      // Spawn particles behind cheetah
-      if (t < 0.95) {
-        const cheetahScreenX = ((progress + 120) / 240) * 100;
-        const spawnCount = Math.floor(Math.random() * 3) + 1;
-        for (let i = 0; i < spawnCount; i++) {
+      // Cheetah screen position as percentage
+      const cheetahScreenX = ((progress + 120) / 240) * 100;
+
+      // Spawn particles behind cheetah (only while on screen)
+      if (t < 0.92 && cheetahScreenX > 2 && cheetahScreenX < 98) {
+        const speed = Math.max(0.2, 1 - t * 0.6); // particles slow as cheetah slows
+        const count = Math.floor(Math.random() * 4) + 2;
+        for (let i = 0; i < count; i++) {
           particlesRef.current.push({
-            id: particleId++,
-            x: cheetahScreenX - 2 - Math.random() * 8,
-            y: 62 + Math.random() * 6,
-            vx: -(Math.random() * 0.3 + 0.1),
-            vy: -(Math.random() * 0.4 + 0.1),
+            id: pid++,
+            x: cheetahScreenX - 3 - Math.random() * 6,
+            y: 60 + Math.random() * 5,
+            vx: -(Math.random() * 0.5 + 0.15) * speed,
+            vy: -(Math.random() * 0.35 + 0.05),
             life: 1,
-            maxLife: 0.8 + Math.random() * 1.2,
-            size: 2 + Math.random() * 4,
-            hue: 40 + Math.random() * 15,
+            maxLife: 0.6 + Math.random() * 1.0,
+            size: 1.5 + Math.random() * 3.5,
+            hue: 38 + Math.random() * 18,
+            brightness: 50 + Math.random() * 20,
           });
         }
       }
@@ -83,15 +90,14 @@ const CheetahLanding = () => {
           ...p,
           x: p.x + p.vx * 0.16,
           y: p.y + p.vy * 0.16,
-          life: p.life - (0.016 / p.maxLife),
+          life: p.life - 0.016 / p.maxLife,
         }))
         .filter((p) => p.life > 0);
 
       setParticles([...particlesRef.current]);
 
       if (t >= 1) {
-        // Trigger flash
-        setPhase("flash");
+        setPhase("burst");
         return;
       }
 
@@ -102,20 +108,30 @@ const CheetahLanding = () => {
     return () => cancelAnimationFrame(animRef.current);
   }, [phase]);
 
-  // Dark fade transition (no white flash)
+  /* Phase 3 → gold energy burst + dark fade → navigate */
   useEffect(() => {
-    if (phase !== "flash") return;
+    if (phase !== "burst") return;
 
-    setFadeOpacity(1);
+    // Gold burst flash (brief)
+    setBurstOpacity(1);
+    const burstFade = setTimeout(() => setBurstOpacity(0), 400);
+
+    // Dark fade overlay
+    const fadeTimer = setTimeout(() => setFadeOut(true), 200);
+
+    // Navigate after fade completes
     const navTimer = setTimeout(() => {
       navigate("/login", { replace: true });
-    }, 700);
+    }, 1000);
 
-    return () => clearTimeout(navTimer);
+    return () => {
+      clearTimeout(burstFade);
+      clearTimeout(fadeTimer);
+      clearTimeout(navTimer);
+    };
   }, [phase, navigate]);
 
-  // Cinematic glow pulse
-  const cinematicOpacity = phase === "cinematic" ? 1 : 0;
+  const cinematicVisible = phase === "cinematic";
 
   return (
     <div
@@ -128,7 +144,7 @@ const CheetahLanding = () => {
         overflow: "hidden",
       }}
     >
-      {/* Skip Intro */}
+      {/* ───── SKIP INTRO ───── */}
       <button
         onClick={skipIntro}
         style={{
@@ -136,8 +152,8 @@ const CheetahLanding = () => {
           top: 24,
           right: 28,
           zIndex: 100,
-          background: "rgba(255,255,255,0.06)",
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.08)",
           borderRadius: 8,
           padding: "8px 20px",
           fontFamily: "Jost, sans-serif",
@@ -145,7 +161,7 @@ const CheetahLanding = () => {
           fontWeight: 500,
           letterSpacing: "1.5px",
           textTransform: "uppercase" as const,
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(255,255,255,0.4)",
           cursor: "pointer",
           backdropFilter: "blur(8px)",
           transition: "all 0.2s ease",
@@ -155,28 +171,29 @@ const CheetahLanding = () => {
           e.currentTarget.style.borderColor = "rgba(212,175,55,0.3)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.color = "rgba(255,255,255,0.5)";
-          e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+          e.currentTarget.style.color = "rgba(255,255,255,0.4)";
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
         }}
       >
         Skip Intro
       </button>
 
-      {/* ===== LAYER 1: BACKGROUND ===== */}
+      {/* ═══════════════════════════════════════════
+          LAYER 1 — BACKGROUND
+          ═══════════════════════════════════════════ */}
 
       {/* Cinematic intro glow */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "radial-gradient(ellipse at 30% 65%, rgba(212,175,55,0.06), transparent 60%)",
-          opacity: cinematicOpacity,
+          background:
+            "radial-gradient(ellipse at 30% 65%, rgba(212,175,55,0.05), transparent 55%)",
+          opacity: cinematicVisible ? 1 : 0,
           transition: "opacity 1.5s ease-out",
           pointerEvents: "none",
         }}
       />
-
-
 
       {/* Mirror floor surface */}
       <div
@@ -187,7 +204,7 @@ const CheetahLanding = () => {
           right: 0,
           height: "35%",
           background:
-            "linear-gradient(to bottom, transparent 0%, rgba(212,175,55,0.015) 40%, rgba(212,175,55,0.04) 100%)",
+            "linear-gradient(to bottom, transparent 0%, rgba(212,175,55,0.012) 40%, rgba(212,175,55,0.035) 100%)",
           pointerEvents: "none",
         }}
       />
@@ -201,44 +218,48 @@ const CheetahLanding = () => {
           right: 0,
           height: 1,
           background:
-            "linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.1) 25%, rgba(212,175,55,0.2) 50%, rgba(212,175,55,0.1) 75%, transparent 100%)",
+            "linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.08) 25%, rgba(212,175,55,0.18) 50%, rgba(212,175,55,0.08) 75%, transparent 100%)",
         }}
       />
 
-      {/* ===== LAYER 2: SPEED EFFECTS & PARTICLES ===== */}
+      {/* ═══════════════════════════════════════════
+          LAYER 2 — SPEED EFFECTS & PARTICLES
+          ═══════════════════════════════════════════ */}
 
       {/* Speed streaks */}
       {phase === "running" && (
         <div
           style={{
             position: "absolute",
-            bottom: "38%",
+            bottom: "36%",
             left: 0,
             right: 0,
-            height: 140,
+            height: 120,
             pointerEvents: "none",
             overflow: "hidden",
           }}
         >
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={`streak-${i}`}
-              style={{
-                position: "absolute",
-                top: 10 + i * 16,
-                height: 1,
-                background: `linear-gradient(90deg, transparent, rgba(212,175,55,${0.04 + i * 0.02}), transparent)`,
-                width: "50%",
-                left: `${cheetahProgress + 50 - 55}%`,
-                opacity: Math.max(0, 1 - Math.abs(cheetahProgress - 0) / 100),
-                transition: "opacity 0.3s",
-              }}
-            />
-          ))}
+          {[...Array(10)].map((_, i) => {
+            const cheetahScreenX = ((cheetahProgress + 120) / 240) * 100;
+            return (
+              <div
+                key={`streak-${i}`}
+                style={{
+                  position: "absolute",
+                  top: 6 + i * 11,
+                  height: 1,
+                  background: `linear-gradient(90deg, transparent, rgba(212,175,55,${0.03 + i * 0.015}), transparent)`,
+                  width: `${20 + i * 3}%`,
+                  left: `${cheetahScreenX - 25 - i * 3}%`,
+                  opacity: Math.max(0, 1 - Math.abs(cheetahProgress) / 140),
+                }}
+              />
+            );
+          })}
         </div>
       )}
 
-      {/* Dynamic particles */}
+      {/* Dynamic particles (trail behind cheetah only) */}
       {particles.map((p) => (
         <div
           key={p.id}
@@ -249,10 +270,10 @@ const CheetahLanding = () => {
             width: p.size,
             height: p.size,
             borderRadius: "50%",
-            background: `hsl(${p.hue}, 80%, 55%)`,
-            boxShadow: `0 0 ${p.size * 2}px hsla(${p.hue}, 80%, 55%, 0.6)`,
-            opacity: Math.max(0, p.life),
-            transform: `scale(${0.5 + p.life * 0.5})`,
+            background: `hsl(${p.hue}, 85%, ${p.brightness}%)`,
+            boxShadow: `0 0 ${p.size * 2.5}px hsla(${p.hue}, 85%, ${p.brightness}%, 0.7)`,
+            opacity: Math.max(0, p.life * p.life),
+            transform: `scale(${0.3 + p.life * 0.7})`,
             pointerEvents: "none",
           }}
         />
@@ -263,18 +284,21 @@ const CheetahLanding = () => {
         <div
           style={{
             position: "absolute",
-            bottom: "30%",
-            left: `${((cheetahProgress + 120) / 240) * 100 - 15}%`,
-            width: 300,
-            height: 100,
-            background: "radial-gradient(ellipse, rgba(212,175,55,0.08), transparent 70%)",
+            bottom: "28%",
+            left: `${((cheetahProgress + 120) / 240) * 100 - 12}%`,
+            width: 280,
+            height: 90,
+            background:
+              "radial-gradient(ellipse, rgba(212,175,55,0.07), transparent 70%)",
             pointerEvents: "none",
-            filter: "blur(10px)",
+            filter: "blur(12px)",
           }}
         />
       )}
 
-      {/* ===== LAYER 3: CHEETAH ===== */}
+      {/* ═══════════════════════════════════════════
+          LAYER 3 — CHEETAH
+          ═══════════════════════════════════════════ */}
       <div
         style={{
           position: "absolute",
@@ -286,14 +310,16 @@ const CheetahLanding = () => {
         }}
       >
         <div style={{ position: "relative" }}>
-          {/* Motion blur effect */}
+          {/* Motion blur wrapper */}
           <div
             style={{
-              filter: phase === "running" ? "blur(0.5px)" : "none",
+              filter:
+                phase === "running"
+                  ? `blur(${Math.max(0, 0.8 - Math.abs(cheetahProgress) * 0.004)}px)`
+                  : "none",
               position: "relative",
             }}
           >
-            {/* Main cheetah */}
             <img
               src="/images/cheetah.png"
               alt=""
@@ -325,33 +351,44 @@ const CheetahLanding = () => {
               opacity: 0.18,
               filter: "blur(4px)",
               maskImage:
-                "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 60%)",
+                "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 55%)",
               WebkitMaskImage:
-                "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 60%)",
+                "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 55%)",
             }}
           />
         </div>
       </div>
 
-      {/* Dark fade transition */}
+      {/* ═══════════════════════════════════════════
+          TRANSITION LAYERS
+          ═══════════════════════════════════════════ */}
+
+      {/* Gold energy burst (brief radial flash) */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(ellipse at 85% 60%, rgba(212,175,55,0.5), rgba(212,175,55,0.1) 40%, transparent 70%)",
+          opacity: burstOpacity,
+          transition: "opacity 0.35s ease-out",
+          pointerEvents: "none",
+          zIndex: 40,
+        }}
+      />
+
+      {/* Dark fade overlay (smooth transition to login) */}
       <div
         style={{
           position: "absolute",
           inset: 0,
           background: "#050505",
-          opacity: fadeOpacity,
+          opacity: fadeOut ? 1 : 0,
           transition: "opacity 0.6s ease-in",
           pointerEvents: "none",
           zIndex: 50,
         }}
       />
-
-      <style>{`
-        @keyframes cinematic-float {
-          0%   { opacity: 0.2; transform: translateY(0); }
-          100% { opacity: 0.6; transform: translateY(-12px); }
-        }
-      `}</style>
     </div>
   );
 };
