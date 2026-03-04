@@ -275,8 +275,41 @@ const Auth = ({ initialView }: AuthProps) => {
             </div>
           </div>
 
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full transition-all duration-200 disabled:opacity-50"
+            style={{
+              marginTop: 16,
+              height: 48,
+              background: "#111111",
+              border: "none",
+              borderRadius: 8,
+              fontFamily: "Jost, sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: "1.5px",
+              textTransform: "uppercase",
+              color: "#ffffff",
+              cursor: "pointer",
+              boxShadow: "none",
+              transition: "background 0.2s ease, box-shadow 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#000000";
+              e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.25)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#111111";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
+          </button>
+
           {/* Links row */}
-          <div className="flex items-center justify-between" style={{ marginTop: -4 }}>
+          <div className="flex items-center justify-between" style={{ marginTop: 12 }}>
             <button
               type="button"
               onClick={() => { setTab(isLogin ? "signup" : "login"); setPassword(""); setError(""); setMessage(""); }}
@@ -313,29 +346,6 @@ const Auth = ({ initialView }: AuthProps) => {
               </button>
             )}
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full transition-all duration-200 hover:opacity-90 disabled:opacity-50"
-            style={{
-              marginTop: 4,
-              height: 52,
-              background: "var(--accent)",
-              border: "none",
-              borderRadius: 8,
-              fontFamily: "Jost, sans-serif",
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: "2px",
-              textTransform: "uppercase",
-              color: "var(--bg-primary)",
-              cursor: "pointer",
-            }}
-          >
-            {loading ? "Please wait..." : isLogin ? "Enter Gallery" : "Create Account"}
-          </button>
         </form>
       </div>
 
