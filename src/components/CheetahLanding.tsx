@@ -97,9 +97,8 @@ const CheetahLanding = () => {
         style={{
           position: "absolute",
           top: "50%",
-          left: 0,
-          width: "100%",
-          transform: `translateX(${cheetahProgress}%) translateY(-50%)`,
+          left: "50%",
+          transform: `translate(${cheetahProgress}%, -50%)`,
           willChange: "transform",
           opacity: cheetahVisible ? 1 : 0,
           transition: "opacity 0.4s ease-out",
@@ -110,12 +109,13 @@ const CheetahLanding = () => {
           alt=""
           draggable={false}
           style={{
-            width: "min(500px, 65vw)",
+            width: "min(600px, 70vw)",
             height: "auto",
             objectFit: "contain",
             display: "block",
             pointerEvents: "none",
             userSelect: "none",
+            background: "transparent",
           }}
         />
       </div>
