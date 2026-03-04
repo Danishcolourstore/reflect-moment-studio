@@ -34,7 +34,8 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { GalleryShell } from "./components/GalleryShell";
-import LandingPage from "./pages/LandingPage";
+import CheetahLanding from "./components/CheetahLanding";
+import LoginPage from "./pages/LoginPage";
 import GuestFinder from "./pages/GuestFinder";
 import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
@@ -174,7 +175,7 @@ const AppRoutes = () => {
         path="/login"
         element={
           <AuthRoute>
-            <Auth key="login" initialView="login" />
+            <LoginPage />
           </AuthRoute>
         }
       />
@@ -420,7 +421,7 @@ const AppRoutes = () => {
         path="/"
         element={
           <AuthRoute>
-            <LandingPage />
+            <CheetahLanding />
           </AuthRoute>
         }
       />
