@@ -417,14 +417,7 @@ const AppRoutes = () => {
 
       <Route path="/find/:token" element={<GuestFinder />} />
 
-      <Route
-        path="/"
-        element={
-          <AuthRoute>
-            <CheetahLanding />
-          </AuthRoute>
-        }
-      />
+      <Route path="/" element={<CheetahLanding />} />
       <Route path="/auth" element={<Navigate to="/login" replace />} />
       <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
       <Route path="/events/:id" element={<Navigate to="/dashboard/events/:id" replace />} />
