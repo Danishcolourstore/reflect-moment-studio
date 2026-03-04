@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { format, subDays } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Users, Calendar, Image, HardDrive } from 'lucide-react';
@@ -18,6 +19,7 @@ export default function AdminDashboard() {
   const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
+    // Stats
     Promise.all([
       (supabase.from('profiles').select('id', { count: 'exact', head: true }) as any),
       (supabase.from('events').select('id', { count: 'exact', head: true }) as any),
@@ -33,9 +35,11 @@ export default function AdminDashboard() {
       });
     });
 
+    // Recent profiles
     (supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(10) as any)
       .then(({ data }: any) => setRecentProfiles(data || []));
 
+    // Recent events with photographer names
     (supabase.from('events').select('*').order('created_at', { ascending: false }).limit(10) as any)
       .then(async ({ data }: any) => {
         if (!data) return;
@@ -45,6 +49,7 @@ export default function AdminDashboard() {
         setRecentEvents(data.map((e: any) => ({ ...e, photographer: nameMap[e.user_id] || 'Unknown' })));
       });
 
+    // Chart data - last 30 days
     const buildChart = async () => {
       const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
       const { data: profileData } = await (supabase.from('profiles').select('created_at').gte('created_at', thirtyDaysAgo) as any);
@@ -80,53 +85,53 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6 md:space-y-8">
-      <h1 className="font-serif text-xl md:text-2xl font-semibold text-foreground">Platform Overview</h1>
+    <div className="space-y-8">
+      <h1 className="font-serif text-2xl font-semibold text-foreground">Platform Overview</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((c) => (
           <Card key={c.label}>
-            <CardContent className="p-4 md:p-5">
+            <CardContent className="p-5">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] md:text-[11px] uppercase tracking-wider text-muted-foreground leading-tight">{c.label}</p>
-                <c.icon className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{c.label}</p>
+                <c.icon className="h-4 w-4 text-muted-foreground/50" />
               </div>
-              <p className="font-serif text-2xl md:text-4xl font-semibold text-foreground">{c.value}</p>
+              <p className="font-serif text-4xl font-semibold text-foreground">{c.value}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Recent tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Signups */}
         <Card>
           <CardContent className="p-0">
             <div className="p-4 border-b border-border">
               <h3 className="font-serif text-base font-semibold">Recent Signups</h3>
             </div>
-            <div className="overflow-x-auto -mx-[1px]">
-              <table className="w-full text-[11px] md:text-[12px] min-w-[400px]">
+            <div className="overflow-auto">
+              <table className="w-full text-[12px]">
                 <thead className="bg-secondary/30">
                   <tr>
-                    <th className="text-left px-3 md:px-4 py-2 font-medium">Name</th>
-                    <th className="text-left px-3 md:px-4 py-2 font-medium hidden sm:table-cell">Email</th>
-                    <th className="text-left px-3 md:px-4 py-2 font-medium">Plan</th>
-                    <th className="text-left px-3 md:px-4 py-2 font-medium">Joined</th>
+                    <th className="text-left px-4 py-2 font-medium">Name</th>
+                    <th className="text-left px-4 py-2 font-medium">Email</th>
+                    <th className="text-left px-4 py-2 font-medium">Plan</th>
+                    <th className="text-left px-4 py-2 font-medium">Joined</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {recentProfiles.map((p: any) => (
                     <tr key={p.id}>
-                      <td className="px-3 md:px-4 py-2.5 font-medium truncate max-w-[120px]">{p.studio_name}</td>
-                      <td className="px-3 md:px-4 py-2.5 text-muted-foreground hidden sm:table-cell truncate max-w-[150px]">{p.email || '—'}</td>
-                      <td className="px-3 md:px-4 py-2.5">
+                      <td className="px-4 py-2 font-medium">{p.studio_name}</td>
+                      <td className="px-4 py-2 text-muted-foreground">{p.email || '—'}</td>
+                      <td className="px-4 py-2">
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${p.plan === 'pro' ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
                           {p.plan}
                         </span>
                       </td>
-                      <td className="px-3 md:px-4 py-2.5 text-muted-foreground whitespace-nowrap">{format(new Date(p.created_at), 'MMM d')}</td>
+                      <td className="px-4 py-2 text-muted-foreground">{format(new Date(p.created_at), 'MMM d, yyyy')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -141,29 +146,29 @@ export default function AdminDashboard() {
             <div className="p-4 border-b border-border">
               <h3 className="font-serif text-base font-semibold">Recent Events</h3>
             </div>
-            <div className="overflow-x-auto -mx-[1px]">
-              <table className="w-full text-[11px] md:text-[12px] min-w-[400px]">
+            <div className="overflow-auto">
+              <table className="w-full text-[12px]">
                 <thead className="bg-secondary/30">
                   <tr>
-                    <th className="text-left px-3 md:px-4 py-2 font-medium">Event</th>
-                    <th className="text-left px-3 md:px-4 py-2 font-medium hidden sm:table-cell">Photographer</th>
-                    <th className="text-left px-3 md:px-4 py-2 font-medium">Photos</th>
-                    <th className="text-left px-3 md:px-4 py-2 font-medium">Status</th>
-                    <th className="text-left px-3 md:px-4 py-2 font-medium hidden md:table-cell">Created</th>
+                    <th className="text-left px-4 py-2 font-medium">Event</th>
+                    <th className="text-left px-4 py-2 font-medium">Photographer</th>
+                    <th className="text-left px-4 py-2 font-medium">Photos</th>
+                    <th className="text-left px-4 py-2 font-medium">Status</th>
+                    <th className="text-left px-4 py-2 font-medium">Created</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {recentEvents.map((e: any) => (
                     <tr key={e.id}>
-                      <td className="px-3 md:px-4 py-2.5 font-medium truncate max-w-[120px]">{e.name}</td>
-                      <td className="px-3 md:px-4 py-2.5 text-muted-foreground hidden sm:table-cell truncate max-w-[120px]">{e.photographer}</td>
-                      <td className="px-3 md:px-4 py-2.5">{e.photo_count}</td>
-                      <td className="px-3 md:px-4 py-2.5">
+                      <td className="px-4 py-2 font-medium">{e.name}</td>
+                      <td className="px-4 py-2 text-muted-foreground">{e.photographer}</td>
+                      <td className="px-4 py-2">{e.photo_count}</td>
+                      <td className="px-4 py-2">
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${e.is_published ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
                           {e.is_published ? 'Published' : 'Draft'}
                         </span>
                       </td>
-                      <td className="px-3 md:px-4 py-2.5 text-muted-foreground hidden md:table-cell whitespace-nowrap">{format(new Date(e.created_at), 'MMM d')}</td>
+                      <td className="px-4 py-2 text-muted-foreground">{format(new Date(e.created_at), 'MMM d, yyyy')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -175,14 +180,14 @@ export default function AdminDashboard() {
 
       {/* Activity Chart */}
       <Card>
-        <CardContent className="p-4 md:p-5">
+        <CardContent className="p-5">
           <h3 className="font-serif text-base font-semibold mb-4">Platform Activity (Last 30 Days)</h3>
-          <div className="h-48 md:h-64">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ left: -20, right: 8, top: 4, bottom: 0 }}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" tick={{ fontSize: 9 }} stroke="hsl(var(--muted-foreground))" interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 9 }} stroke="hsl(var(--muted-foreground))" width={30} />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
                 <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }} />
                 <Line type="monotone" dataKey="Signups" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="Events" stroke="hsl(var(--muted-foreground))" strokeWidth={2} dot={false} />

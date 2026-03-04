@@ -77,8 +77,8 @@ const Profile = () => {
   const pwStrength = () => {
     if (newPw.length === 0) return null;
     if (newPw.length < 6) return { label: 'Weak', color: 'text-destructive' };
-    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: 'Fair', color: 'text-primary' };
-    return { label: 'Strong', color: 'text-primary' };
+    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: 'Fair', color: 'text-yellow-500' };
+    return { label: 'Strong', color: 'text-green-500' };
   };
 
   const storage = useStorageUsage();
@@ -143,7 +143,7 @@ const Profile = () => {
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Confirm New Password</label>
               <Input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} className="mt-1 bg-background" />
               {confirmPw && confirmPw !== newPw && <p className="text-[10px] text-destructive mt-1">Passwords do not match</p>}
-              {confirmPw && confirmPw === newPw && newPw.length >= 6 && <p className="text-[10px] text-primary mt-1">Passwords match</p>}
+              {confirmPw && confirmPw === newPw && newPw.length >= 6 && <p className="text-[10px] text-green-500 mt-1">Passwords match</p>}
             </div>
           </div>
           <Button onClick={savePassword} disabled={pwSaving || !newPw || newPw !== confirmPw} className="mt-5 bg-primary text-primary-foreground text-[11px] uppercase tracking-wider">
@@ -154,7 +154,7 @@ const Profile = () => {
         {/* ANDHAKAAR Appearance */}
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center gap-3 mb-1">
-            <Moon className={`h-5 w-5 transition-all duration-300 ${document.documentElement.getAttribute('data-theme') === 'dark' ? 'text-foreground andhakaar-glow' : 'text-muted-foreground'}`} strokeWidth={1.3} />
+            <Moon className={`h-5 w-5 transition-all duration-300 ${document.documentElement.classList.contains('dark') ? 'text-foreground andhakaar-glow' : 'text-muted-foreground'}`} strokeWidth={1.3} />
             <h2 className="font-serif text-lg text-foreground" style={{ fontWeight: 700 }}>ANDHAKAAR</h2>
           </div>
           <p className="text-muted-foreground mb-5" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '13px', fontStyle: 'italic', letterSpacing: '0.04em' }}>
@@ -167,24 +167,24 @@ const Profile = () => {
             </div>
             <button
               onClick={() => {
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                const next = isDark ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                localStorage.setItem('mirrorai_theme', next);
-                localStorage.setItem('andhakaar-mode', next === 'dark' ? 'on' : 'off');
-                localStorage.setItem('theme', next);
-                toast.success(next === 'dark' ? 'Andhakaar activated' : 'Light mode restored');
+                const isDark = document.documentElement.classList.contains('dark');
+                const next = !isDark;
+                document.documentElement.classList.toggle('dark', next);
+                localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
+                localStorage.setItem('theme', next ? 'dark' : 'light');
+                toast.success(next ? 'Andhakaar activated' : 'Light mode restored');
+                // Force re-render
                 window.dispatchEvent(new Event('storage'));
               }}
               className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-300 ${
-                document.documentElement.getAttribute('data-theme') === 'dark'
+                document.documentElement.classList.contains('dark')
                   ? 'border-[hsl(37,7%,57%)] bg-foreground'
                   : 'border-border bg-input'
               }`}
             >
               <span
                 className={`pointer-events-none block h-5 w-5 rounded-full shadow-lg ring-0 transition-transform duration-300 ${
-                  document.documentElement.getAttribute('data-theme') === 'dark'
+                  document.documentElement.classList.contains('dark')
                     ? 'translate-x-7 bg-[#0d0d0d]'
                     : 'translate-x-0.5 bg-background'
                 }`}

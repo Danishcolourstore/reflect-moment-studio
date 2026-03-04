@@ -159,12 +159,12 @@ const Analytics = () => {
 
 function AnalyticStat({ icon: Icon, label, value }: { icon: any; label: string; value: number | string }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-5" style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}>
-      <div className="flex items-center gap-2 mb-3">
-        <Icon className="h-[18px] w-[18px] text-primary" strokeWidth={1.5} />
-        <p className="font-sans text-muted-foreground" style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>{label}</p>
+    <div className="bg-card border border-border rounded-xl p-5">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground/60 font-medium">{label}</p>
+        <Icon className="h-4 w-4 text-muted-foreground/20" />
       </div>
-      <p className="text-foreground font-serif leading-none" style={{ fontSize: '48px', fontWeight: 300 }}>{value}</p>
+      <p className="font-serif text-3xl font-bold text-foreground leading-none tracking-tight">{value}</p>
     </div>
   );
 }

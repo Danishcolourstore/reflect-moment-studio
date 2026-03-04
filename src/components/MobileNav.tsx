@@ -1,11 +1,10 @@
-import { LayoutDashboard, CalendarDays, Upload, Sparkles, Users, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Upload, BarChart3, Settings } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 
 const items = [
   { title: 'Home', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Events', url: '/dashboard/events', icon: CalendarDays },
   { title: 'Upload', url: '/dashboard/upload', icon: Upload },
-  { title: 'Culling', url: '/culling', icon: Sparkles },
   { title: 'Stats', url: '/dashboard/analytics', icon: BarChart3 },
   { title: 'More', url: '/dashboard/settings', icon: Settings },
 ];

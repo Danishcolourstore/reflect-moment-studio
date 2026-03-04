@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
 import Auth from "./pages/Auth";
-import Culling from "./pages/Culling";
 import Dashboard from "./pages/Dashboard";
 import Events from "./pages/Events";
 import EventGallery from "./pages/EventGallery";
@@ -32,9 +31,8 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import GalleryCover from "./pages/GalleryCover";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import ErrorBoundary from "./components/ErrorBoundary";
 import { GalleryShell } from "./components/GalleryShell";
-import LoginPage from "./pages/LoginPage";
+import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
 import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
@@ -48,7 +46,6 @@ import AdminRevenue from "./pages/admin/AdminRevenue";
 import AdminEmails from "./pages/admin/AdminEmails";
 import AdminActivity from "./pages/admin/AdminActivity";
 import AdminSettings from "./pages/admin/AdminSettings";
-import AdminUsers from "./pages/admin/AdminUsers";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
@@ -123,16 +120,19 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
+    // Admin by email — no role lookup needed
+    if (user.email === 'danishsubair@gmail.com') {
+      setRedirectTo('/admin');
+      setChecked(true);
+      return;
+    }
+
     const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
     const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
     Promise.race([rolePromise, timeout])
       .then((result: any) => {
         const roles = (result?.data || []).map((r: any) => r.role);
-        if (roles.includes("super_admin") || roles.includes("admin")) {
-          // Admin roles bypass OTP verification entirely
-          sessionStorage.setItem("mirrorai_access_verified", "true");
-          setRedirectTo("/admin");
-        } else if (roles.includes("client")) {
+        if (roles.includes("client")) {
           setRedirectTo("/client");
         } else {
           const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
@@ -174,7 +174,7 @@ const AppRoutes = () => {
         path="/login"
         element={
           <AuthRoute>
-            <LoginPage />
+            <Auth key="login" initialView="login" />
           </AuthRoute>
         }
       />
@@ -200,7 +200,6 @@ const AppRoutes = () => {
         }
       >
         <Route index element={<AdminDashboard />} />
-        <Route path="users" element={<AdminUsers />} />
         <Route path="photographers" element={<AdminPhotographers />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="storage" element={<AdminStorage />} />
@@ -263,7 +262,7 @@ const AppRoutes = () => {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <ErrorBoundary><Dashboard /></ErrorBoundary>
+            <Dashboard />
           </ProtectedRoute>
         }
       />
@@ -271,7 +270,7 @@ const AppRoutes = () => {
         path="/dashboard/events"
         element={
           <ProtectedRoute>
-            <ErrorBoundary><Events /></ErrorBoundary>
+            <Events />
           </ProtectedRoute>
         }
       />
@@ -295,7 +294,7 @@ const AppRoutes = () => {
         path="/dashboard/upload"
         element={
           <ProtectedRoute>
-            <ErrorBoundary><UploadPage /></ErrorBoundary>
+            <UploadPage />
           </ProtectedRoute>
         }
       />
@@ -303,7 +302,7 @@ const AppRoutes = () => {
         path="/dashboard/clients"
         element={
           <ProtectedRoute>
-            <ErrorBoundary><Clients /></ErrorBoundary>
+            <Clients />
           </ProtectedRoute>
         }
       />
@@ -311,7 +310,7 @@ const AppRoutes = () => {
         path="/dashboard/analytics"
         element={
           <ProtectedRoute>
-            <ErrorBoundary><Analytics /></ErrorBoundary>
+            <Analytics />
           </ProtectedRoute>
         }
       />
@@ -319,7 +318,7 @@ const AppRoutes = () => {
         path="/dashboard/settings"
         element={
           <ProtectedRoute>
-            <ErrorBoundary><StudioSettings /></ErrorBoundary>
+            <StudioSettings />
           </ProtectedRoute>
         }
       />
@@ -371,14 +370,6 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/culling"
-        element={
-          <ProtectedRoute>
-            <ErrorBoundary><Culling /></ErrorBoundary>
-          </ProtectedRoute>
-        }
-      />
 
       <Route
         path="/event/:slug"
@@ -416,7 +407,14 @@ const AppRoutes = () => {
 
       <Route path="/find/:token" element={<GuestFinder />} />
 
-      <Route path="/" element={<AuthRoute><LoginPage /></AuthRoute>} />
+      <Route
+        path="/"
+        element={
+          <AuthRoute>
+            <Auth key="landing" initialView="login" />
+          </AuthRoute>
+        }
+      />
       <Route path="/auth" element={<Navigate to="/login" replace />} />
       <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
       <Route path="/events/:id" element={<Navigate to="/dashboard/events/:id" replace />} />
