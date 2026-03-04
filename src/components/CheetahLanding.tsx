@@ -1,465 +1,558 @@
-import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { createCheetahGeometry } from './cheetah/geometry';
+import { useRef, useMemo, useEffect, useState, useCallback } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
+import { generateCheetahPoints, createGlowTexture } from "./cheetah/geometry";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
-// Phase timings in seconds
-const T = { WALK: 3, SPRINT: 7, FAST: 11, SLOW: 14, STOP: 17, PULSE: 19, DISSOLVE: 22, FORM: 25, DONE: 28 };
-const PARTICLES = 3000;
+/* ── Timeline Constants (seconds) ── */
+const T = {
+  VOID_END: 2,
+  WALK_END: 5,
+  SPRINT_END: 9,
+  HIGHSPEED_END: 12,
+  DECEL_END: 14.5,
+  STOP_END: 17,
+  TURN_END: 20.5,
+  DISSOLVE_END: 23.5,
+  STREAM_END: 26,
+  FORM_END: 28.5,
+  TOTAL: 30,
+};
 
-function Scene({ onLoginReady }: { onLoginReady: () => void }) {
-  const { camera } = useThree();
-  const cheetahRef = useRef<THREE.Group>(null!);
-  const reflRef = useRef<THREE.Group>(null!);
-  const ptsRef = useRef<THREE.Points>(null!);
-  const pulseRef = useRef<THREE.Mesh>(null!);
-  const clock = useRef(0);
-  const loginFired = useRef(false);
+const POINT_COUNT = 4000;
+const PARTICLE_COUNT = 4000;
 
-  const geo = useMemo(() => createCheetahGeometry(), []);
-  const verts = useMemo(() => new Float32Array(geo.getAttribute('position').array), [geo]);
-  const vertCols = useMemo(() => new Float32Array(geo.getAttribute('color').array), [geo]);
+/* ── Glow texture loader ── */
+function useGlowTexture() {
+  return useMemo(() => {
+    const dataUrl = createGlowTexture();
+    const tex = new THREE.TextureLoader().load(dataUrl);
+    return tex;
+  }, []);
+}
 
-  const [pGeo, dissolveVel, cardTargets] = useMemo(() => {
-    const g = new THREE.BufferGeometry();
-    const p = new Float32Array(PARTICLES * 3);
-    const c = new Float32Array(PARTICLES * 3);
-    for (let i = 0; i < PARTICLES; i++) {
-      p[i * 3] = 0; p[i * 3 + 1] = -10; p[i * 3 + 2] = 0;
-      c[i * 3] = 0; c[i * 3 + 1] = 1; c[i * 3 + 2] = 1;
+/* ── Diagonal background drift lines ── */
+function DriftLines() {
+  const groupRef = useRef<THREE.Group>(null);
+  const linesData = useMemo(() => {
+    const arr: { x: number; y: number; z: number; angle: number; color: number }[] = [];
+    for (let i = 0; i < 25; i++) {
+      arr.push({
+        x: (Math.random() - 0.5) * 30,
+        y: (Math.random() - 0.5) * 15,
+        z: -15 - Math.random() * 25,
+        angle: -30 + Math.random() * 10,
+        color: i % 2 === 0 ? 0x003344 : 0x220033,
+      });
     }
-    g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
-    g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
-
-    const vel = new Float32Array(PARTICLES * 3);
-    const tgt = new Float32Array(PARTICLES * 3);
-    for (let i = 0; i < PARTICLES; i++) {
-      vel[i * 3] = (Math.random() - 0.5) * 3;
-      vel[i * 3 + 1] = (Math.random() - 0.5) * 3;
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 3;
-
-      const hw = 0.7, hh = 0.5, cy = 0.7;
-      const onEdge = Math.random() < 0.35;
-      if (onEdge) {
-        const side = Math.floor(Math.random() * 4);
-        if (side === 0) { tgt[i * 3] = (Math.random() - 0.5) * hw * 2; tgt[i * 3 + 1] = cy + hh; }
-        else if (side === 1) { tgt[i * 3] = (Math.random() - 0.5) * hw * 2; tgt[i * 3 + 1] = cy - hh; }
-        else if (side === 2) { tgt[i * 3] = -hw; tgt[i * 3 + 1] = cy + (Math.random() - 0.5) * hh * 2; }
-        else { tgt[i * 3] = hw; tgt[i * 3 + 1] = cy + (Math.random() - 0.5) * hh * 2; }
-      } else {
-        tgt[i * 3] = (Math.random() - 0.5) * hw * 1.8;
-        tgt[i * 3 + 1] = cy + (Math.random() - 0.5) * hh * 1.8;
-      }
-      tgt[i * 3 + 2] = (Math.random() - 0.5) * 0.05;
-    }
-
-    return [g, vel, tgt] as const;
+    return arr;
   }, []);
 
-  useFrame((_, delta) => {
-    clock.current += delta;
-    const t = clock.current;
-
-    const ch = cheetahRef.current;
-    const refl = reflRef.current;
-    const pts = ptsRef.current;
-    const pulse = pulseRef.current;
-    if (!ch || !refl || !pts || !pulse) return;
-
-    // Camera push forward
-    camera.position.set(0, 1.2, Math.max(6 - t * 0.06, 3.2));
-    camera.lookAt(0, 0.7, 0);
-
-    let cx = -10, vis = false, opacity = 1;
-    let trailActive = false;
-
-    if (t < T.WALK) {
-      vis = false;
-    } else if (t < T.SPRINT) {
-      const p = (t - T.WALK) / (T.SPRINT - T.WALK);
-      cx = THREE.MathUtils.lerp(-7, -1, p);
-      vis = true;
-    } else if (t < T.FAST) {
-      const p = (t - T.SPRINT) / (T.FAST - T.SPRINT);
-      cx = THREE.MathUtils.lerp(-1, 3, p);
-      vis = true; trailActive = true;
-    } else if (t < T.SLOW) {
-      const p = (t - T.FAST) / (T.SLOW - T.FAST);
-      cx = THREE.MathUtils.lerp(3, 1, p);
-      vis = true; trailActive = true;
-    } else if (t < T.STOP) {
-      const p = (t - T.SLOW) / (T.STOP - T.SLOW);
-      cx = THREE.MathUtils.lerp(1, 0, p);
-      vis = true; trailActive = true;
-    } else if (t < T.PULSE) {
-      cx = 0; vis = true;
-    } else if (t < T.DISSOLVE) {
-      cx = 0; vis = true;
-      opacity = 0.5 + Math.sin(t * 25) * 0.5;
-      const rp = (t - T.PULSE) / (T.DISSOLVE - T.PULSE);
-      ch.rotation.y = rp * Math.PI * 0.4;
-      refl.rotation.y = ch.rotation.y;
-      const pulseT = Math.min(rp * 2, 1);
-      pulse.visible = pulseT < 1;
-      pulse.scale.setScalar(pulseT * 3);
-      (pulse.material as THREE.MeshBasicMaterial).opacity = (1 - pulseT) * 0.8;
-    } else if (t < T.FORM) {
-      const dp = (t - T.DISSOLVE) / (T.FORM - T.DISSOLVE);
-      vis = dp < 0.2;
-      opacity = Math.max(0, 1 - dp * 5);
-      cx = 0;
-    } else {
-      vis = false;
-      if (!loginFired.current) {
-        loginFired.current = true;
-        onLoginReady();
-      }
-    }
-
-    ch.visible = vis;
-    refl.visible = vis;
-    ch.position.x = cx;
-    refl.position.x = cx;
-
-    // Running bob
-    if (vis && t > T.WALK && t < T.STOP) {
-      ch.position.y = Math.sin(t * 10) * 0.025;
-      refl.position.y = -ch.position.y;
-    }
-
-    // Update cheetah opacity
-    ch.traverse(obj => {
-      if ((obj as THREE.Mesh).isMesh) {
-        const mat = (obj as THREE.Mesh).material as THREE.MeshBasicMaterial;
-        if (mat.wireframe) mat.opacity = opacity * 0.85;
-        else mat.opacity = opacity * 0.25;
-      }
+  const lineObjects = useMemo(() => {
+    return linesData.map((l) => {
+      const geo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-8, 0, 0),
+        new THREE.Vector3(8, 0, 0),
+      ]);
+      const mat = new THREE.LineBasicMaterial({ color: l.color, transparent: true, opacity: 0.3 });
+      const line = new THREE.Line(geo, mat);
+      line.position.set(l.x, l.y, l.z);
+      line.rotation.z = (l.angle * Math.PI) / 180;
+      return line;
     });
-    refl.traverse(obj => {
-      if ((obj as THREE.Mesh).isMesh) {
-        const mat = (obj as THREE.Mesh).material as THREE.MeshBasicMaterial;
-        if (mat.wireframe) mat.opacity = opacity * 0.12;
-        else mat.opacity = opacity * 0.06;
-      }
+  }, [linesData]);
+
+  useFrame(() => {
+    lineObjects.forEach((line) => {
+      line.position.x += 0.003;
+      if (line.position.x > 20) line.position.x = -20;
     });
-
-    // Pulse visibility
-    if (t < T.PULSE || t >= T.DISSOLVE) pulse.visible = false;
-
-    // Particles
-    const pa = pts.geometry.getAttribute('position').array as Float32Array;
-    const ca = pts.geometry.getAttribute('color').array as Float32Array;
-    const nv = verts.length / 3;
-
-    if (trailActive) {
-      for (let i = 0; i < PARTICLES; i++) {
-        if (pa[i * 3 + 1] < -5) {
-          pa[i * 3] = cx + (Math.random() - 0.5) * 2;
-          pa[i * 3 + 1] = 0.2 + Math.random() * 1.2;
-          pa[i * 3 + 2] = (Math.random() - 0.5) * 0.6;
-          const isCyan = Math.random() > 0.5;
-          ca[i * 3] = isCyan ? 0 : 1;
-          ca[i * 3 + 1] = isCyan ? 1 : 0;
-          ca[i * 3 + 2] = 1;
-        } else {
-          pa[i * 3] -= 0.04;
-          pa[i * 3 + 1] -= 0.003;
-          if (Math.abs(pa[i * 3] - cx) > 4) pa[i * 3 + 1] = -10;
-        }
-      }
-    } else if (t >= T.DISSOLVE && t < T.FORM) {
-      const dp = (t - T.DISSOLVE) / (T.FORM - T.DISSOLVE);
-      for (let i = 0; i < PARTICLES; i++) {
-        const vi = i % nv;
-        pa[i * 3] = verts[vi * 3] + dissolveVel[i * 3] * dp * 2;
-        pa[i * 3 + 1] = verts[vi * 3 + 1] + dissolveVel[i * 3 + 1] * dp * 2;
-        pa[i * 3 + 2] = verts[vi * 3 + 2] + dissolveVel[i * 3 + 2] * dp * 2;
-        ca[i * 3] = vertCols[vi * 3];
-        ca[i * 3 + 1] = vertCols[vi * 3 + 1];
-        ca[i * 3 + 2] = vertCols[vi * 3 + 2];
-      }
-    } else if (t >= T.FORM) {
-      for (let i = 0; i < PARTICLES; i++) {
-        pa[i * 3] += (cardTargets[i * 3] - pa[i * 3]) * 0.04;
-        pa[i * 3 + 1] += (cardTargets[i * 3 + 1] - pa[i * 3 + 1]) * 0.04;
-        pa[i * 3 + 2] += (cardTargets[i * 3 + 2] - pa[i * 3 + 2]) * 0.04;
-        ca[i * 3] += (0 - ca[i * 3]) * 0.03;
-        ca[i * 3 + 1] += (1 - ca[i * 3 + 1]) * 0.03;
-        ca[i * 3 + 2] += (1 - ca[i * 3 + 2]) * 0.03;
-      }
-      if (t > T.DONE + 2) {
-        for (let i = 0; i < PARTICLES; i++) {
-          pa[i * 3 + 1] += (Math.random() - 0.5) * 0.015;
-          pa[i * 3] += (Math.random() - 0.5) * 0.015;
-        }
-      }
-    } else {
-      for (let i = 0; i < PARTICLES; i++) {
-        if (pa[i * 3 + 1] > -5) pa[i * 3 + 1] -= 0.01;
-      }
-    }
-
-    (pts.geometry.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true;
-    (pts.geometry.getAttribute('color') as THREE.BufferAttribute).needsUpdate = true;
   });
 
   return (
+    <group ref={groupRef}>
+      {lineObjects.map((obj, i) => (
+        <primitive key={i} object={obj} />
+      ))}
+    </group>
+  );
+}
+
+/* ── Reflective Floor ── */
+function Floor() {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+      <planeGeometry args={[60, 60]} />
+      <meshStandardMaterial color={0x050505} metalness={0.95} roughness={0.15} transparent opacity={0.6} />
+    </mesh>
+  );
+}
+
+/* ── Energy pulse sphere ── */
+function EnergySphere({ progress, position }: { progress: number; position: [number, number, number] }) {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame(() => {
+    if (!ref.current) return;
+    const s = 0.1 + progress * 5.9;
+    ref.current.scale.set(s, s, s);
+    const mat = ref.current.material as THREE.MeshBasicMaterial;
+    if (mat) {
+      mat.opacity = progress < 0.5 ? progress * 1.6 : Math.max(0, 1.6 - progress * 1.6);
+    }
+  });
+
+  return (
+    <mesh ref={ref} position={position}>
+      <sphereGeometry args={[1, 16, 16]} />
+      <meshBasicMaterial color={0x00ffff} wireframe transparent opacity={0} blending={THREE.AdditiveBlending} />
+    </mesh>
+  );
+}
+
+/* ── Main Animated Scene ── */
+function AnimatedScene({ onPhaseChange, onTimeUpdate }: { onPhaseChange: (p: string) => void; onTimeUpdate: (t: number) => void }) {
+  const { camera } = useThree();
+  const clockRef = useRef(0);
+  const glowTex = useGlowTexture();
+
+  const { positions: basePositions, colors: baseColors } = useMemo(() => generateCheetahPoints(POINT_COUNT), []);
+  const origPositions = useRef(new Float32Array(basePositions));
+
+  // Materials — each created fresh, never shared
+  const cheetahMat = useMemo(
+    () => new THREE.PointsMaterial({
+      size: 0.04, sizeAttenuation: true, vertexColors: true, transparent: true, opacity: 1,
+      blending: THREE.AdditiveBlending, depthWrite: false, map: glowTex,
+    }), [glowTex]
+  );
+
+  const reflMat = useMemo(
+    () => new THREE.PointsMaterial({
+      size: 0.03, sizeAttenuation: true, vertexColors: true, transparent: true, opacity: 0.15,
+      blending: THREE.AdditiveBlending, depthWrite: false, map: glowTex,
+    }), [glowTex]
+  );
+
+  const trailMat = useMemo(
+    () => new THREE.PointsMaterial({
+      size: 0.025, sizeAttenuation: true, vertexColors: true, transparent: true, opacity: 0.7,
+      blending: THREE.AdditiveBlending, depthWrite: false, map: glowTex,
+    }), [glowTex]
+  );
+
+  const dissolveMat = useMemo(
+    () => new THREE.PointsMaterial({
+      size: 0.035, sizeAttenuation: true, vertexColors: true, transparent: true, opacity: 1,
+      blending: THREE.AdditiveBlending, depthWrite: false, map: glowTex,
+    }), [glowTex]
+  );
+
+  // Refs
+  const cheetahRef = useRef<THREE.Points>(null);
+  const reflRef = useRef<THREE.Points>(null);
+  const trailRef = useRef<THREE.Points>(null);
+  const dissolveRef = useRef<THREE.Points>(null);
+
+  // Buffers for trail
+  const trailPositions = useRef(new Float32Array(1500 * 3));
+  const trailColors = useRef(new Float32Array(1500 * 3));
+  const trailIdx = useRef(0);
+
+  // Dissolve buffers
+  const dissolvePositions = useRef(new Float32Array(PARTICLE_COUNT * 3));
+  const dissolveVelocities = useRef(new Float32Array(PARTICLE_COUNT * 3));
+  const dissolveColors = useRef(new Float32Array(PARTICLE_COUNT * 3));
+  const dissolveInitialized = useRef(false);
+
+  // Energy sphere
+  const energyProgress = useRef(0);
+  const energyVisible = useRef(false);
+  const cheetahWorldX = useRef(0);
+
+  useFrame((_, delta) => {
+    clockRef.current += delta;
+    const t = clockRef.current;
+    onTimeUpdate(t);
+
+    const cam = camera as THREE.PerspectiveCamera;
+
+    // Camera
+    let targetZ = 11;
+    if (t >= T.VOID_END && t < T.WALK_END) targetZ = THREE.MathUtils.lerp(11, 9, (t - T.VOID_END) / (T.WALK_END - T.VOID_END));
+    else if (t >= T.WALK_END && t < T.SPRINT_END) targetZ = THREE.MathUtils.lerp(9, 7.5, (t - T.WALK_END) / (T.SPRINT_END - T.WALK_END));
+    else if (t >= T.SPRINT_END && t < T.HIGHSPEED_END) targetZ = THREE.MathUtils.lerp(7.5, 6, (t - T.SPRINT_END) / (T.HIGHSPEED_END - T.SPRINT_END));
+    else if (t >= T.HIGHSPEED_END) targetZ = 6;
+
+    cam.position.x += (0 - cam.position.x) * 0.02;
+    cam.position.y += (2.2 - cam.position.y) * 0.02;
+    cam.position.z += (targetZ - cam.position.z) * 0.02;
+    cam.lookAt(0, 1.2, 0);
+
+    // Phase label
+    if (t < T.VOID_END) onPhaseChange("ESTABLISHING");
+    else if (t < T.WALK_END) onPhaseChange("CHEETAH ENTERS");
+    else if (t < T.SPRINT_END) onPhaseChange("RUNNING");
+    else if (t < T.HIGHSPEED_END) onPhaseChange("HIGH SPEED");
+    else if (t < T.DECEL_END) onPhaseChange("SLOWING");
+    else if (t < T.STOP_END) onPhaseChange("STOPPED");
+    else if (t < T.TURN_END) onPhaseChange("THE MOMENT");
+    else if (t < T.DISSOLVE_END) onPhaseChange("DISSOLVE");
+    else if (t < T.STREAM_END) onPhaseChange("CONVERGENCE");
+    else if (t < T.FORM_END) onPhaseChange("UI FORMATION");
+    else onPhaseChange("MIRRORAI");
+
+    const cheetah = cheetahRef.current;
+    const refl = reflRef.current;
+    const trail = trailRef.current;
+    const dissolve = dissolveRef.current;
+    if (!cheetah || !refl) return;
+
+    const posAttr = cheetah.geometry.getAttribute("position") as THREE.BufferAttribute;
+    const reflPosAttr = refl.geometry.getAttribute("position") as THREE.BufferAttribute;
+    if (!posAttr || !reflPosAttr) return;
+
+    if (t < T.VOID_END) {
+      cheetah.visible = false;
+      refl.visible = false;
+      if (trail) trail.visible = false;
+      energyVisible.current = false;
+    } else if (t < T.TURN_END) {
+      cheetah.visible = true;
+      refl.visible = true;
+      energyVisible.current = false;
+
+      let cx = 0;
+      let scaleX = 1;
+
+      if (t < T.WALK_END) {
+        const p = (t - T.VOID_END) / (T.WALK_END - T.VOID_END);
+        cx = THREE.MathUtils.lerp(-10, -1, p);
+        cheetahMat.opacity = Math.min(1, p * 2);
+      } else if (t < T.SPRINT_END) {
+        const p = (t - T.WALK_END) / (T.SPRINT_END - T.WALK_END);
+        cx = THREE.MathUtils.lerp(-1, 2, p);
+      } else if (t < T.HIGHSPEED_END) {
+        const p = (t - T.SPRINT_END) / (T.HIGHSPEED_END - T.SPRINT_END);
+        cx = THREE.MathUtils.lerp(2, 4, p);
+        scaleX = THREE.MathUtils.lerp(1, 1.8, p);
+      } else if (t < T.DECEL_END) {
+        const p = (t - T.HIGHSPEED_END) / (T.DECEL_END - T.HIGHSPEED_END);
+        cx = THREE.MathUtils.lerp(4, 1.5, p);
+        scaleX = THREE.MathUtils.lerp(1.8, 1, p);
+      } else if (t < T.STOP_END) {
+        cx = 1.5;
+      } else {
+        // Turn & pulse
+        cx = 1.5;
+        const turnP = (t - T.STOP_END) / (T.TURN_END - T.STOP_END);
+        cheetah.rotation.y = THREE.MathUtils.lerp(0, Math.PI * 0.5, turnP);
+        energyVisible.current = true;
+        energyProgress.current = turnP;
+
+        // Flash colors
+        const colAttr = cheetah.geometry.getAttribute("color") as THREE.BufferAttribute;
+        if (colAttr) {
+          for (let i = 0; i < POINT_COUNT; i++) {
+            const flash = Math.sin(t * 20 + i * 0.1) * 0.3 + 0.3;
+            colAttr.setXYZ(i,
+              Math.min(1, baseColors[i * 3] + flash * turnP),
+              Math.min(1, baseColors[i * 3 + 1] + flash * turnP),
+              baseColors[i * 3 + 2]
+            );
+          }
+          colAttr.needsUpdate = true;
+        }
+      }
+
+      cheetahWorldX.current = cx;
+
+      // Gallop
+      const speed = t < T.WALK_END ? 2 : t < T.SPRINT_END ? 6 : t < T.HIGHSPEED_END ? 10 : t < T.DECEL_END ? 4 : 0;
+      const bobAmp = speed * 0.005;
+      const legAmp = speed * 0.02;
+
+      for (let i = 0; i < POINT_COUNT; i++) {
+        const ox = origPositions.current[i * 3];
+        const oy = origPositions.current[i * 3 + 1];
+        const oz = origPositions.current[i * 3 + 2];
+        let ny = oy + Math.sin(t * speed * 2) * bobAmp;
+        if (oy < 0.6) {
+          const legPhase = ox > 0 ? 0 : Math.PI;
+          const sidePhase = oz > 0 ? 0 : Math.PI * 0.5;
+          ny += Math.sin(t * speed * 2 + legPhase + sidePhase) * legAmp;
+        }
+        posAttr.setXYZ(i, ox * scaleX, ny, oz);
+      }
+      posAttr.needsUpdate = true;
+
+      cheetah.position.x = cx;
+      if (t < T.STOP_END) cheetah.rotation.y = 0;
+
+      // Reflection
+      refl.position.x = cx;
+      refl.rotation.y = cheetah.rotation.y;
+      for (let i = 0; i < POINT_COUNT; i++) {
+        reflPosAttr.setXYZ(i, posAttr.getX(i), -posAttr.getY(i) - 0.02, posAttr.getZ(i));
+      }
+      reflPosAttr.needsUpdate = true;
+
+      // Trail
+      if (t > T.WALK_END && t < T.DECEL_END && trail) {
+        const tpAttr = trail.geometry.getAttribute("position") as THREE.BufferAttribute;
+        const tcAttr = trail.geometry.getAttribute("color") as THREE.BufferAttribute;
+        if (tpAttr && tcAttr) {
+          for (let s = 0; s < 3; s++) {
+            const ti = trailIdx.current % 1500;
+            tpAttr.setXYZ(ti, cx - 1.5 + (Math.random() - 0.5) * 0.5, 0.7 + (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.3);
+            const cyan = Math.random() > 0.3;
+            tcAttr.setXYZ(ti, cyan ? 0 : 1, cyan ? 1 : 0, 1);
+            trailIdx.current++;
+          }
+          for (let i = 0; i < 1500; i++) {
+            const y = tpAttr.getY(i);
+            if (y > 0) {
+              tpAttr.setY(i, y - 0.005);
+              tpAttr.setX(i, tpAttr.getX(i) - 0.02);
+            }
+          }
+          tpAttr.needsUpdate = true;
+          tcAttr.needsUpdate = true;
+          trail.visible = true;
+        }
+      } else if (trail && t > T.DECEL_END) {
+        trail.visible = false;
+      }
+    } else {
+      // Dissolve phase
+      cheetah.visible = false;
+      refl.visible = false;
+      if (trail) trail.visible = false;
+      energyVisible.current = false;
+
+      if (!dissolveInitialized.current && dissolve) {
+        const lastX = cheetahWorldX.current;
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          const si = i % POINT_COUNT;
+          dissolvePositions.current[i * 3] = origPositions.current[si * 3] + lastX;
+          dissolvePositions.current[i * 3 + 1] = origPositions.current[si * 3 + 1];
+          dissolvePositions.current[i * 3 + 2] = origPositions.current[si * 3 + 2];
+          dissolveVelocities.current[i * 3] = (Math.random() - 0.5) * 3;
+          dissolveVelocities.current[i * 3 + 1] = (Math.random() - 0.3) * 2;
+          dissolveVelocities.current[i * 3 + 2] = (Math.random() - 0.5) * 3;
+          dissolveColors.current[i * 3] = baseColors[(si % POINT_COUNT) * 3];
+          dissolveColors.current[i * 3 + 1] = baseColors[(si % POINT_COUNT) * 3 + 1];
+          dissolveColors.current[i * 3 + 2] = baseColors[(si % POINT_COUNT) * 3 + 2];
+        }
+        const dGeo = dissolve.geometry;
+        dGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(dissolvePositions.current), 3));
+        dGeo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(dissolveColors.current), 3));
+        dissolveInitialized.current = true;
+      }
+
+      if (dissolveInitialized.current && dissolve) {
+        const dPos = dissolve.geometry.getAttribute("position") as THREE.BufferAttribute;
+        if (!dPos) return;
+        dissolve.visible = true;
+
+        if (t < T.DISSOLVE_END) {
+          const ep = (t - T.TURN_END) / (T.DISSOLVE_END - T.TURN_END);
+          for (let i = 0; i < PARTICLE_COUNT; i++) {
+            dissolvePositions.current[i * 3] += dissolveVelocities.current[i * 3] * delta * (1 - ep);
+            dissolvePositions.current[i * 3 + 1] += dissolveVelocities.current[i * 3 + 1] * delta * (1 - ep);
+            dissolvePositions.current[i * 3 + 2] += dissolveVelocities.current[i * 3 + 2] * delta * (1 - ep);
+          }
+          dissolveMat.opacity = 1;
+        } else if (t < T.STREAM_END) {
+          const sp = (t - T.DISSOLVE_END) / (T.STREAM_END - T.DISSOLVE_END);
+          for (let i = 0; i < PARTICLE_COUNT; i++) {
+            dissolvePositions.current[i * 3] += (0 - dissolvePositions.current[i * 3]) * sp * 0.03;
+            dissolvePositions.current[i * 3 + 1] += (1.5 - dissolvePositions.current[i * 3 + 1]) * sp * 0.03;
+            dissolvePositions.current[i * 3 + 2] += (0 - dissolvePositions.current[i * 3 + 2]) * sp * 0.03;
+          }
+          dissolveMat.opacity = THREE.MathUtils.lerp(1, 0.3, sp);
+        } else {
+          const fp = Math.min(1, (t - T.STREAM_END) / (T.FORM_END - T.STREAM_END));
+          dissolveMat.opacity = THREE.MathUtils.lerp(0.3, 0, fp);
+          if (fp >= 1) dissolve.visible = false;
+        }
+
+        dPos.set(dissolvePositions.current);
+        dPos.needsUpdate = true;
+      }
+    }
+  });
+
+  // Build geometry objects
+  const cheetahGeo = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(basePositions), 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(baseColors), 3));
+    return geo;
+  }, [basePositions, baseColors]);
+
+  const reflGeo = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(POINT_COUNT * 3), 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(baseColors), 3));
+    return geo;
+  }, [baseColors]);
+
+  const trailGeo = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(trailPositions.current, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(trailColors.current, 3));
+    return geo;
+  }, []);
+
+  const dissolveGeo = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(PARTICLE_COUNT * 3), 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(PARTICLE_COUNT * 3), 3));
+    return geo;
+  }, []);
+
+  return (
     <>
-      <ambientLight intensity={0.2} color="#00ffff" />
-      <pointLight position={[0, 3, 2]} intensity={0.5} color="#00ffff" />
-      <pointLight position={[-2, 1, 0]} intensity={0.3} color="#ff00ff" />
-
-      {/* Floor */}
-      <mesh rotation-x={-Math.PI / 2} position-y={-0.005}>
-        <planeGeometry args={[50, 50]} />
-        <meshBasicMaterial color="#050508" transparent opacity={0.6} />
-      </mesh>
-
-      {/* Cheetah */}
-      <group ref={cheetahRef}>
-        <mesh geometry={geo}>
-          <meshBasicMaterial vertexColors transparent opacity={0.25} side={THREE.DoubleSide} depthWrite={false} />
-        </mesh>
-        <mesh geometry={geo}>
-          <meshBasicMaterial vertexColors wireframe transparent opacity={0.85} />
-        </mesh>
-      </group>
-
-      {/* Reflection */}
-      <group ref={reflRef} scale-y={-1}>
-        <mesh geometry={geo}>
-          <meshBasicMaterial vertexColors transparent opacity={0.06} side={THREE.DoubleSide} depthWrite={false} />
-        </mesh>
-        <mesh geometry={geo}>
-          <meshBasicMaterial vertexColors wireframe transparent opacity={0.12} />
-        </mesh>
-      </group>
-
-      {/* Energy pulse */}
-      <mesh ref={pulseRef} position={[0, 0.9, 0]} visible={false}>
-        <sphereGeometry args={[0.5, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0} />
-      </mesh>
-
-      {/* Particles */}
-      <points ref={ptsRef} geometry={pGeo}>
-        <pointsMaterial vertexColors size={0.035} transparent opacity={0.75} sizeAttenuation depthWrite={false} />
-      </points>
+      <DriftLines />
+      <Floor />
+      <ambientLight intensity={0.15} />
+      <pointLight position={[5, 8, 5]} intensity={0.5} color={0x00ffff} />
+      <pointLight position={[-3, 4, -2]} intensity={0.3} color={0xff00ff} />
+      <points ref={cheetahRef} visible={false} geometry={cheetahGeo} material={cheetahMat} />
+      <points ref={reflRef} visible={false} geometry={reflGeo} material={reflMat} />
+      <points ref={trailRef} visible={false} geometry={trailGeo} material={trailMat} />
+      <points ref={dissolveRef} visible={false} geometry={dissolveGeo} material={dissolveMat} />
+      {energyVisible.current && <EnergySphere progress={energyProgress.current} position={[cheetahWorldX.current, 1, 0]} />}
     </>
   );
 }
 
-// ==================== LOGIN OVERLAY ====================
-
+/* ── Login Card Overlay ── */
 function LoginOverlay({ visible }: { visible: boolean }) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [tab, setTab] = useState<'login' | 'signup'>('login');
-  const [opacity, setOpacity] = useState(0);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (visible) {
-      const t = setTimeout(() => setOpacity(1), 200);
-      return () => clearTimeout(t);
-    }
-  }, [visible]);
-
-  if (!visible) return null;
-
-  const isLogin = tab === 'login';
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setError(error.message);
-      else navigate('/verify-access');
-    } else {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) setError(error.message);
-      else navigate('/verify-otp');
-    }
-    setLoading(false);
-  };
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    height: 44,
-    background: 'rgba(0,0,0,0.5)',
-    border: '1px solid rgba(0,255,255,0.15)',
-    borderRadius: 8,
-    padding: '0 14px',
-    fontFamily: 'Jost, sans-serif',
-    fontSize: 14,
-    color: '#fff',
-    outline: 'none',
-    boxSizing: 'border-box',
-    transition: 'border-color 0.2s',
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontFamily: 'Jost, sans-serif',
-    fontSize: 10,
-    fontWeight: 600,
-    letterSpacing: '2px',
-    textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.35)',
-    display: 'block',
-    marginBottom: 5,
+    setError("");
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+    if (err) { setError(err.message); setLoading(false); }
+    else navigate("/dashboard");
   };
 
   return (
     <div style={{
-      position: 'absolute', inset: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      opacity, transition: 'opacity 1.2s ease',
-      pointerEvents: visible ? 'auto' : 'none',
-      zIndex: 10,
+      position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+      pointerEvents: visible ? "auto" : "none", zIndex: 20,
+      opacity: visible ? 1 : 0, transform: `scale(${visible ? 1 : 0.94})`,
+      transition: "opacity 2s ease, transform 2s ease",
     }}>
-      <div style={{
-        background: 'rgba(10,10,15,0.85)',
-        border: '1px solid rgba(0,255,255,0.2)',
-        borderRadius: 16,
-        padding: '40px 36px 32px',
-        width: '100%', maxWidth: 380,
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 0 40px rgba(0,255,255,0.1), inset 0 1px 0 rgba(0,255,255,0.1)',
+      <form onSubmit={handleSignIn} style={{
+        background: "rgba(4,8,16,0.92)", border: "1px solid rgba(0,255,255,0.2)",
+        backdropFilter: "blur(20px)", borderRadius: 12, padding: "40px 36px 32px", width: 340,
+        boxShadow: "0 0 60px rgba(0,255,255,0.08), 0 0 120px rgba(255,0,255,0.04)",
       }}>
-        <h1 style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 34, fontWeight: 400, fontStyle: 'italic',
-          color: '#00ffff', textAlign: 'center', margin: 0,
-          letterSpacing: '2px',
-          textShadow: '0 0 20px rgba(0,255,255,0.3)',
-        }}>MirrorAI</h1>
-
-        <p style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 13, fontStyle: 'italic',
-          color: 'rgba(0,255,255,0.5)', textAlign: 'center',
-          marginTop: 4, letterSpacing: '0.1em',
-        }}>Mirror never lies</p>
-
-        {error && (
-          <div style={{
-            marginTop: 16, padding: '8px 14px', borderRadius: 8,
-            border: '1px solid rgba(255,80,80,0.4)',
-            background: 'rgba(255,80,80,0.08)',
-            fontFamily: 'Jost, sans-serif', fontSize: 12,
-            color: '#ff6060', textAlign: 'center',
-          }}>{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit} style={{ marginTop: 24 }}>
-          <div style={{ marginBottom: 14 }}>
-            <label style={labelStyle}>Email</label>
-            <input
-              type="email" value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="your@email.com" required
-              style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'rgba(0,255,255,0.5)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(0,255,255,0.15)'}
-            />
-          </div>
-          <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Password</label>
-            <input
-              type="password" value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••" required minLength={6}
-              style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'rgba(0,255,255,0.5)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(0,255,255,0.15)'}
-            />
-          </div>
-          <button type="submit" disabled={loading} style={{
-            width: '100%', height: 46,
-            background: 'linear-gradient(135deg, #00ffff, #00cccc)',
-            border: 'none', borderRadius: 8,
-            fontFamily: 'Jost, sans-serif', fontSize: 13,
-            fontWeight: 700, letterSpacing: '2px',
-            textTransform: 'uppercase', color: '#000',
-            cursor: 'pointer',
-            boxShadow: '0 0 20px rgba(0,255,255,0.2)',
-            opacity: loading ? 0.6 : 1,
-          }}>
-            {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
+        <h1 style={{ textAlign: "center", fontSize: 28, letterSpacing: 6, color: "#fff", margin: 0, fontFamily: "'Cormorant Garamond', serif" }}>
+          Mirror<span style={{ color: "#00ffff" }}>AI</span>
+        </h1>
+        <p style={{ textAlign: "center", color: "#00ffff", fontStyle: "italic", fontSize: 11, margin: "6px 0 28px", letterSpacing: 2 }}>
+          Mirror never lies
+        </p>
+        {error && <p style={{ color: "#ff4466", fontSize: 11, textAlign: "center", marginBottom: 12 }}>{error}</p>}
+        <div style={{ marginBottom: 16 }}>
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
+            style={{ width: "100%", padding: "10px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, color: "#fff", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+        </div>
+        <div style={{ marginBottom: 20, position: "relative" }}>
+          <input type={showPw ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)}
+            style={{ width: "100%", padding: "10px 40px 10px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, color: "#fff", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+          <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: 16 }}>
+            {showPw ? "◉" : "◎"}
           </button>
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
-            <button type="button" onClick={() => { setTab(isLogin ? 'signup' : 'login'); setError(''); }} style={{
-              background: 'none', border: 'none',
-              fontFamily: 'Jost, sans-serif', fontSize: 11,
-              color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
-            }}>
-              {isLogin
-                ? <>No account? <span style={{ color: '#00ffff' }}>Sign up</span></>
-                : <>Have an account? <span style={{ color: '#00ffff' }}>Sign in</span></>}
-            </button>
-          </div>
-        </form>
-
-        <p style={{
-          fontFamily: 'Jost, sans-serif', fontSize: 9,
-          fontWeight: 500, letterSpacing: '0.3em',
-          textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.15)',
-          textAlign: 'center', marginTop: 20, marginBottom: 0,
-        }}>professional and premium</p>
-      </div>
+        </div>
+        <button type="submit" disabled={loading} style={{
+          width: "100%", padding: "11px 0", background: "linear-gradient(135deg, #00cccc, #00ffff)",
+          border: "none", borderRadius: 6, color: "#000", fontSize: 12, fontWeight: 700, letterSpacing: 3,
+          cursor: "pointer", textTransform: "uppercase",
+          boxShadow: "0 0 20px rgba(0,255,255,0.3), 0 0 40px rgba(0,255,255,0.1)",
+        }}>
+          {loading ? "..." : "SIGN IN"}
+        </button>
+        <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 18 }}>
+          No account?{" "}<span onClick={() => navigate("/register")} style={{ color: "#00ffff", cursor: "pointer" }}>Sign up</span>
+          {"   "}<span onClick={() => navigate("/forgot-password")} style={{ color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>Forgot?</span>
+        </p>
+        <p style={{ textAlign: "center", fontSize: 9, color: "rgba(255,255,255,0.2)", marginTop: 10, letterSpacing: 1 }}>
+          professional and premium
+        </p>
+      </form>
     </div>
   );
 }
 
-// ==================== MAIN COMPONENT ====================
-
-const CheetahLanding = () => {
-  const navigate = useNavigate();
+/* ── Main Component ── */
+export default function CheetahLanding() {
+  const [phase, setPhase] = useState("ESTABLISHING");
+  const [time, setTime] = useState(0);
   const [showLogin, setShowLogin] = useState(false);
+  const [skipped, setSkipped] = useState(false);
 
-  const skipIntro = useCallback(() => {
-    navigate('/login', { replace: true });
-  }, [navigate]);
+  useEffect(() => {
+    if (time >= T.FORM_END - 1 || skipped) setShowLogin(true);
+  }, [time, skipped]);
+
+  const handleSkip = useCallback(() => { setSkipped(true); setShowLogin(true); }, []);
+  const progress = Math.min(1, time / T.TOTAL);
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#000', overflow: 'hidden' }}>
-      <Canvas
-        camera={{ position: [0, 1.2, 6], fov: 50 }}
-        style={{ position: 'absolute', inset: 0 }}
-        gl={{ antialias: true, alpha: false }}
-      >
-        <color attach="background" args={['#000000']} />
-        <fog attach="fog" args={['#000000', 10, 30]} />
-        <Scene onLoginReady={() => setShowLogin(true)} />
-      </Canvas>
+    <div style={{ position: "fixed", inset: 0, background: "#000", overflow: "hidden" }}>
+      {!skipped && (
+        <Canvas
+          camera={{ position: [0, 2.2, 11], fov: 50, near: 0.1, far: 100 }}
+          gl={{ antialias: window.innerWidth > 768, powerPreference: "high-performance", alpha: false }}
+          dpr={Math.min(window.devicePixelRatio, 2)}
+          style={{ position: "absolute", inset: 0 }}
+        >
+          <color attach="background" args={["#000000"]} />
+          <fog attach="fog" args={["#000000", 15, 50]} />
+          <AnimatedScene onPhaseChange={setPhase} onTimeUpdate={setTime} />
+        </Canvas>
+      )}
+
+      {/* Scene label */}
+      <div style={{
+        position: "fixed", top: 16, left: 20, color: "#00ffff", fontSize: 10, letterSpacing: 3,
+        fontFamily: "monospace", zIndex: 30, opacity: showLogin ? 0 : 0.7, transition: "opacity 1s", pointerEvents: "none",
+      }}>
+        {phase}
+      </div>
+
+      {/* Skip */}
+      {!showLogin && (
+        <button onClick={handleSkip} style={{
+          position: "fixed", bottom: 20, right: 24, background: "rgba(255,255,255,0.06)",
+          border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "rgba(255,255,255,0.5)",
+          fontSize: 10, letterSpacing: 2, padding: "6px 16px", cursor: "pointer", zIndex: 30, backdropFilter: "blur(8px)",
+        }}>
+          SKIP
+        </button>
+      )}
+
+      {/* Progress bar */}
+      <div style={{
+        position: "fixed", bottom: 0, left: 0, height: 1,
+        background: "linear-gradient(90deg, #00ffff, #ff00ff)",
+        width: `${progress * 100}%`, zIndex: 30, transition: "width 0.1s linear",
+        opacity: showLogin ? 0 : 1,
+      }} />
 
       <LoginOverlay visible={showLogin} />
-
-      <button
-        onClick={skipIntro}
-        style={{
-          position: 'absolute', bottom: 24, right: 28, zIndex: 100,
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 8, padding: '8px 20px',
-          fontFamily: 'Jost, sans-serif', fontSize: 11,
-          fontWeight: 500, letterSpacing: '1.5px',
-          textTransform: 'uppercase' as const,
-          color: 'rgba(255,255,255,0.4)', cursor: 'pointer',
-          backdropFilter: 'blur(8px)',
-        }}
-      >
-        Skip
-      </button>
     </div>
   );
-};
-
-export default CheetahLanding;
+}
