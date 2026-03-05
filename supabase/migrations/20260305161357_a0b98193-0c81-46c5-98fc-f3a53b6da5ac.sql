@@ -1,0 +1,1 @@
+ALTER TABLE public.storybooks ADD COLUMN IF NOT EXISTS slides_data jsonb DEFAULT '[]'::jsonb;
