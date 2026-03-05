@@ -1401,6 +1401,90 @@ export type Database = {
           },
         ]
       }
+      storybook_blocks: {
+        Row: {
+          caption: string | null
+          created_at: string
+          event_id: string | null
+          id: string
+          layout_type: string
+          photo_urls: string[]
+          sort_order: number
+          storybook_id: string
+          subtitle: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          layout_type?: string
+          photo_urls?: string[]
+          sort_order?: number
+          storybook_id: string
+          subtitle?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          layout_type?: string
+          photo_urls?: string[]
+          sort_order?: number
+          storybook_id?: string
+          subtitle?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "storybook_blocks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "storybook_blocks_storybook_id_fkey"
+            columns: ["storybook_id"]
+            isOneToOne: false
+            referencedRelation: "storybooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storybooks: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       studio_profiles: {
         Row: {
           bio: string | null
