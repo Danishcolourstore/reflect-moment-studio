@@ -9,11 +9,12 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import {
   Plus, Save, Trash2, GripVertical, ChevronDown, Image as ImageIcon,
-  BookOpen, Type, Columns, Film, Grid3X3, Maximize, Quote, ArrowLeft, Eye, Instagram, LayoutGrid
+  BookOpen, Type, Columns, Film, Grid3X3, Maximize, Quote, ArrowLeft, Eye, Instagram, LayoutGrid, PenTool
 } from 'lucide-react';
 import StorybookPreview from '@/components/StorybookPreview';
 import InstagramPreview from '@/components/InstagramPreview';
 import InstagramGridPlanner from '@/components/InstagramGridPlanner';
+import CarouselDesigner from '@/components/CarouselDesigner';
 
 type LayoutType = 'hero-cover' | 'split-editorial' | 'film-strip' | 'minimal-grid' | 'fullscreen-story' | 'quote-page';
 
@@ -58,6 +59,7 @@ export default function StorybookCreator() {
   const [showPreview, setShowPreview] = useState(false);
   const [showInstagram, setShowInstagram] = useState(false);
   const [showGridPlanner, setShowGridPlanner] = useState(false);
+  const [showCarousel, setShowCarousel] = useState(false);
 
   const allPhotos = blocks.flatMap(b => b.photo_urls);
 
@@ -267,6 +269,9 @@ export default function StorybookCreator() {
           <Button variant="outline" size="sm" onClick={() => setShowGridPlanner(true)} disabled={allPhotos.length === 0} className="gap-1.5">
             <LayoutGrid className="h-3.5 w-3.5" /> Grid Plan
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowCarousel(true)} className="gap-1.5">
+            <PenTool className="h-3.5 w-3.5" /> Carousel
+          </Button>
           <Button size="sm" onClick={saveStorybook} disabled={saving} className="gap-1.5">
             <Save className="h-3.5 w-3.5" /> {saving ? 'Saving...' : 'Save'}
           </Button>
@@ -435,6 +440,13 @@ export default function StorybookCreator() {
           photos={allPhotos}
           username={title.toLowerCase().replace(/\s+/g, '_')}
           onClose={() => setShowGridPlanner(false)}
+        />
+      )}
+
+      {showCarousel && (
+        <CarouselDesigner
+          photos={allPhotos}
+          onClose={() => setShowCarousel(false)}
         />
       )}
     </DashboardLayout>
