@@ -9,10 +9,11 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import {
   Plus, Save, Trash2, GripVertical, ChevronDown, Image as ImageIcon,
-  BookOpen, Type, Columns, Film, Grid3X3, Maximize, Quote, ArrowLeft, Eye, Instagram
+  BookOpen, Type, Columns, Film, Grid3X3, Maximize, Quote, ArrowLeft, Eye, Instagram, LayoutGrid
 } from 'lucide-react';
 import StorybookPreview from '@/components/StorybookPreview';
 import InstagramPreview from '@/components/InstagramPreview';
+import InstagramGridPlanner from '@/components/InstagramGridPlanner';
 
 type LayoutType = 'hero-cover' | 'split-editorial' | 'film-strip' | 'minimal-grid' | 'fullscreen-story' | 'quote-page';
 
@@ -56,6 +57,7 @@ export default function StorybookCreator() {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showInstagram, setShowInstagram] = useState(false);
+  const [showGridPlanner, setShowGridPlanner] = useState(false);
 
   const allPhotos = blocks.flatMap(b => b.photo_urls);
 
@@ -262,6 +264,9 @@ export default function StorybookCreator() {
           <Button variant="outline" size="sm" onClick={() => setShowInstagram(true)} disabled={allPhotos.length === 0} className="gap-1.5">
             <Instagram className="h-3.5 w-3.5" /> Instagram
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowGridPlanner(true)} disabled={allPhotos.length === 0} className="gap-1.5">
+            <LayoutGrid className="h-3.5 w-3.5" /> Grid Plan
+          </Button>
           <Button size="sm" onClick={saveStorybook} disabled={saving} className="gap-1.5">
             <Save className="h-3.5 w-3.5" /> {saving ? 'Saving...' : 'Save'}
           </Button>
@@ -422,6 +427,14 @@ export default function StorybookCreator() {
           username={title.toLowerCase().replace(/\s+/g, '_')}
           caption={blocks.find(b => b.caption)?.caption || title}
           onClose={() => setShowInstagram(false)}
+        />
+      )}
+
+      {showGridPlanner && (
+        <InstagramGridPlanner
+          photos={allPhotos}
+          username={title.toLowerCase().replace(/\s+/g, '_')}
+          onClose={() => setShowGridPlanner(false)}
         />
       )}
     </DashboardLayout>
