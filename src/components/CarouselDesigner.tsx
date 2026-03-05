@@ -70,19 +70,96 @@ type ToolPanel = 'background' | 'add' | 'layouts' | 'ratio' | 'slides' | 'previe
 
 interface LayoutTemplate {
   name: string;
-  category: string;
+  category: 'basic' | 'storytelling' | 'grid' | 'collage';
   frames: { x: number; y: number; w: number; h: number }[];
 }
 
+interface MultiSlideLayout {
+  name: string;
+  description: string;
+  /** Each entry = one slide's frames. Uses extended coordinates (e.g. x: -0.5 means left half is off-canvas) */
+  slides: { frames: { x: number; y: number; w: number; h: number }[] }[];
+}
+
 const LAYOUT_TEMPLATES: LayoutTemplate[] = [
-  { name: 'Single Image', category: 'single', frames: [{ x: 0, y: 0, w: 1, h: 1 }] },
-  { name: 'Two Vertical', category: 'split', frames: [{ x: 0, y: 0, w: 0.5, h: 1 }, { x: 0.5, y: 0, w: 0.5, h: 1 }] },
-  { name: 'Two Horizontal', category: 'split', frames: [{ x: 0, y: 0, w: 1, h: 0.5 }, { x: 0, y: 0.5, w: 1, h: 0.5 }] },
-  { name: 'Three Layout', category: 'three', frames: [{ x: 0, y: 0, w: 1, h: 0.55 }, { x: 0, y: 0.55, w: 0.5, h: 0.45 }, { x: 0.5, y: 0.55, w: 0.5, h: 0.45 }] },
-  { name: 'Four Grid', category: 'grid', frames: [{ x: 0, y: 0, w: 0.5, h: 0.5 }, { x: 0.5, y: 0, w: 0.5, h: 0.5 }, { x: 0, y: 0.5, w: 0.5, h: 0.5 }, { x: 0.5, y: 0.5, w: 0.5, h: 0.5 }] },
-  { name: 'Film Strip', category: 'film', frames: [{ x: 0, y: 0, w: 1, h: 0.6 }, { x: 0, y: 0.62, w: 0.333, h: 0.38 }, { x: 0.333, y: 0.62, w: 0.334, h: 0.38 }, { x: 0.667, y: 0.62, w: 0.333, h: 0.38 }] },
-  { name: 'Text + Image', category: 'text', frames: [{ x: 0, y: 0.35, w: 1, h: 0.65 }] },
-  { name: 'Center Focus', category: 'single', frames: [{ x: 0.08, y: 0.06, w: 0.84, h: 0.88 }] },
+  // ── Basic ──
+  { name: 'Full Image', category: 'basic', frames: [{ x: 0, y: 0, w: 1, h: 1 }] },
+  { name: '2 Image Grid', category: 'basic', frames: [{ x: 0, y: 0, w: 0.5, h: 1 }, { x: 0.5, y: 0, w: 0.5, h: 1 }] },
+  { name: '3 Image Grid', category: 'basic', frames: [{ x: 0, y: 0, w: 1, h: 0.55 }, { x: 0, y: 0.55, w: 0.5, h: 0.45 }, { x: 0.5, y: 0.55, w: 0.5, h: 0.45 }] },
+  { name: '4 Image Grid', category: 'basic', frames: [{ x: 0, y: 0, w: 0.5, h: 0.5 }, { x: 0.5, y: 0, w: 0.5, h: 0.5 }, { x: 0, y: 0.5, w: 0.5, h: 0.5 }, { x: 0.5, y: 0.5, w: 0.5, h: 0.5 }] },
+  { name: 'Vertical Split', category: 'basic', frames: [{ x: 0, y: 0, w: 0.5, h: 1 }, { x: 0.5, y: 0, w: 0.5, h: 1 }] },
+  { name: 'Horizontal Split', category: 'basic', frames: [{ x: 0, y: 0, w: 1, h: 0.5 }, { x: 0, y: 0.5, w: 1, h: 0.5 }] },
+
+  // ── Storytelling ──
+  { name: 'Left + Space', category: 'storytelling', frames: [{ x: 0, y: 0, w: 0.6, h: 1 }] },
+  { name: 'Right + Space', category: 'storytelling', frames: [{ x: 0.4, y: 0, w: 0.6, h: 1 }] },
+  { name: 'Center Framed', category: 'storytelling', frames: [{ x: 0.1, y: 0.08, w: 0.8, h: 0.84 }] },
+  { name: 'Top Heavy', category: 'storytelling', frames: [{ x: 0, y: 0, w: 1, h: 0.65 }] },
+  { name: 'Bottom Heavy', category: 'storytelling', frames: [{ x: 0, y: 0.35, w: 1, h: 0.65 }] },
+  { name: 'Portrait Left', category: 'storytelling', frames: [{ x: 0.05, y: 0.05, w: 0.45, h: 0.9 }] },
+  { name: 'Portrait Right', category: 'storytelling', frames: [{ x: 0.5, y: 0.05, w: 0.45, h: 0.9 }] },
+  { name: 'Floating Center', category: 'storytelling', frames: [{ x: 0.15, y: 0.15, w: 0.7, h: 0.7 }] },
+
+  // ── Grid / Collage ──
+  { name: 'Film Strip', category: 'grid', frames: [{ x: 0, y: 0, w: 1, h: 0.6 }, { x: 0, y: 0.62, w: 0.333, h: 0.38 }, { x: 0.333, y: 0.62, w: 0.334, h: 0.38 }, { x: 0.667, y: 0.62, w: 0.333, h: 0.38 }] },
+  { name: '3 Column', category: 'grid', frames: [{ x: 0, y: 0, w: 0.333, h: 1 }, { x: 0.333, y: 0, w: 0.334, h: 1 }, { x: 0.667, y: 0, w: 0.333, h: 1 }] },
+  { name: '3 Row', category: 'grid', frames: [{ x: 0, y: 0, w: 1, h: 0.333 }, { x: 0, y: 0.333, w: 1, h: 0.334 }, { x: 0, y: 0.667, w: 1, h: 0.333 }] },
+  { name: 'L-Shape', category: 'grid', frames: [{ x: 0, y: 0, w: 0.6, h: 0.6 }, { x: 0.6, y: 0, w: 0.4, h: 0.6 }, { x: 0, y: 0.6, w: 1, h: 0.4 }] },
+  { name: 'Collage 3', category: 'collage', frames: [{ x: 0, y: 0, w: 0.55, h: 0.55 }, { x: 0.55, y: 0, w: 0.45, h: 0.45 }, { x: 0.2, y: 0.55, w: 0.8, h: 0.45 }] },
+  { name: 'Collage 4', category: 'collage', frames: [{ x: 0, y: 0, w: 0.6, h: 0.5 }, { x: 0.6, y: 0, w: 0.4, h: 0.35 }, { x: 0.6, y: 0.35, w: 0.4, h: 0.3 }, { x: 0, y: 0.5, w: 1, h: 0.5 }] },
+  { name: 'Collage 5', category: 'collage', frames: [{ x: 0, y: 0, w: 0.5, h: 0.5 }, { x: 0.5, y: 0, w: 0.5, h: 0.3 }, { x: 0.5, y: 0.3, w: 0.5, h: 0.2 }, { x: 0, y: 0.5, w: 0.4, h: 0.5 }, { x: 0.4, y: 0.5, w: 0.6, h: 0.5 }] },
+  { name: 'Mosaic', category: 'collage', frames: [{ x: 0, y: 0, w: 0.65, h: 0.65 }, { x: 0.65, y: 0, w: 0.35, h: 0.35 }, { x: 0.65, y: 0.35, w: 0.35, h: 0.3 }, { x: 0, y: 0.65, w: 0.35, h: 0.35 }, { x: 0.35, y: 0.65, w: 0.65, h: 0.35 }] },
+];
+
+const LAYOUT_CATEGORIES: { key: LayoutTemplate['category']; label: string }[] = [
+  { key: 'basic', label: 'Basic' },
+  { key: 'storytelling', label: 'Storytelling' },
+  { key: 'grid', label: 'Grid' },
+  { key: 'collage', label: 'Collage' },
+];
+
+const MULTI_SLIDE_LAYOUTS: MultiSlideLayout[] = [
+  {
+    name: 'Split Left / Right',
+    description: 'Image split across 2 slides',
+    slides: [
+      { frames: [{ x: 0, y: 0, w: 2, h: 1 }] },
+      { frames: [{ x: -1, y: 0, w: 2, h: 1 }] },
+    ],
+  },
+  {
+    name: 'Panorama 3-Slide',
+    description: 'Wide image spanning 3 slides',
+    slides: [
+      { frames: [{ x: 0, y: 0.15, w: 3, h: 0.7 }] },
+      { frames: [{ x: -1, y: 0.15, w: 3, h: 0.7 }] },
+      { frames: [{ x: -2, y: 0.15, w: 3, h: 0.7 }] },
+    ],
+  },
+  {
+    name: 'Grid Continuation',
+    description: '2×2 grid across 2 slides',
+    slides: [
+      { frames: [{ x: 0, y: 0, w: 1, h: 0.5 }, { x: 0, y: 0.5, w: 0.5, h: 0.5 }, { x: 0.5, y: 0.5, w: 0.5, h: 0.5 }] },
+      { frames: [{ x: 0, y: 0, w: 0.5, h: 0.5 }, { x: 0.5, y: 0, w: 0.5, h: 0.5 }, { x: 0, y: 0.5, w: 1, h: 0.5 }] },
+    ],
+  },
+  {
+    name: 'Reveal',
+    description: 'Left half then full reveal',
+    slides: [
+      { frames: [{ x: 0, y: 0, w: 1, h: 1 }] },
+      { frames: [{ x: 0, y: 0, w: 2, h: 1 }] },
+    ],
+  },
+  {
+    name: 'Wide Cinematic',
+    description: 'Cinematic bars across 2 slides',
+    slides: [
+      { frames: [{ x: 0, y: 0.2, w: 2, h: 0.6 }] },
+      { frames: [{ x: -1, y: 0.2, w: 2, h: 0.6 }] },
+    ],
+  },
 ];
 
 const SNAP_DIST = 8;
@@ -261,17 +338,37 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
       objectFit: 'cover' as const,
     }));
 
-    if (layout.category === 'text') {
-      newElements.unshift({
-        id: uid(), type: 'text',
-        x: pad, y: pad, width: usableW, height: dims.h * 0.3,
-        rotation: 0, text: 'Your Story', fontSize: 64, fontWeight: 600,
-        color: '#000000', textAlign: 'center',
-      });
-    }
-
     updateSlide(s => ({ ...s, elements: newElements }));
     setTool(null);
+  };
+
+  const applyMultiSlideLayout = (ml: MultiSlideLayout) => {
+    pushHistory();
+    const pad = GAP;
+    const usableW = dims.w - pad * 2;
+    const usableH = dims.h - pad * 2;
+
+    const newSlides: Slide[] = ml.slides.map(sl => {
+      const elements: CanvasElement[] = sl.frames.map((f) => ({
+        id: uid(), type: 'image' as const,
+        x: pad + f.x * usableW,
+        y: pad + f.y * usableH,
+        width: f.w * usableW,
+        height: f.h * usableH,
+        rotation: 0,
+        src: undefined,
+        objectFit: 'cover' as const,
+      }));
+      return { id: uid(), elements, bg: slide.bg };
+    });
+
+    setSlides(prev => [
+      ...prev.slice(0, activeIdx),
+      ...newSlides,
+      ...prev.slice(activeIdx + 1),
+    ]);
+    setTool(null);
+    toast.success(`${newSlides.length} slides created for "${ml.name}"`);
   };
 
   /* ─── Auto-layout on multi-photo upload ─── */
@@ -289,10 +386,11 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
       addImage(urls[0]);
     } else {
       let layout: LayoutTemplate;
-      if (urls.length === 2) layout = LAYOUT_TEMPLATES[1];
-      else if (urls.length === 3) layout = LAYOUT_TEMPLATES[3];
-      else if (urls.length >= 4) layout = LAYOUT_TEMPLATES[4];
-      else layout = LAYOUT_TEMPLATES[0];
+      const findLayout = (name: string) => LAYOUT_TEMPLATES.find(l => l.name === name)!;
+      if (urls.length === 2) layout = findLayout('2 Image Grid');
+      else if (urls.length === 3) layout = findLayout('3 Image Grid');
+      else if (urls.length >= 4) layout = findLayout('4 Image Grid');
+      else layout = findLayout('Full Image');
 
       const pad = GAP;
       const usableW = dims.w - pad * 2;
@@ -952,27 +1050,79 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
             )}
 
             {tool === 'layouts' && (
-              <div>
-                <p className="text-[11px] uppercase tracking-[2px] font-semibold mb-3" style={{ color: IG.textSecondary }}>Layout Templates</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {LAYOUT_TEMPLATES.map(lt => (
-                    <button key={lt.name} onClick={() => applyLayout(lt)}
-                      className="p-3 rounded-lg text-left transition-colors"
-                      style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = IG.blue; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = IG.border; }}>
-                      <div className="w-full aspect-[4/5] rounded mb-2 relative" style={{ background: '#EDEDED' }}>
-                        {lt.frames.map((f, i) => (
-                          <div key={i} className="absolute rounded-sm" style={{
-                            left: `${f.x * 100}%`, top: `${f.y * 100}%`,
-                            width: `${f.w * 100 - 2}%`, height: `${f.h * 100 - 2}%`,
-                            background: `hsl(${210 + i * 30}, 40%, 70%)`,
-                          }} />
+              <div className="space-y-4" style={{ maxHeight: '60vh', overflowY: 'auto', scrollbarWidth: 'thin' }}>
+                {/* Single-slide layouts by category */}
+                {LAYOUT_CATEGORIES.map(cat => {
+                  const items = LAYOUT_TEMPLATES.filter(lt => lt.category === cat.key);
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={cat.key}>
+                      <p className="text-[10px] uppercase tracking-[2px] font-semibold mb-2" style={{ color: IG.textSecondary }}>{cat.label}</p>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {items.map(lt => (
+                          <button key={lt.name} onClick={() => applyLayout(lt)}
+                            className="p-1.5 rounded-lg text-left transition-colors"
+                            style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = IG.blue; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = IG.border; }}
+                            title={lt.name}>
+                            <div className="w-full aspect-[4/5] rounded relative overflow-hidden" style={{ background: '#EDEDED' }}>
+                              {lt.frames.map((f, i) => (
+                                <div key={i} className="absolute" style={{
+                                  left: `${Math.max(0, f.x * 100) + 2}%`, top: `${Math.max(0, f.y * 100) + 2}%`,
+                                  width: `${Math.min(f.w * 100, 100) - 4}%`, height: `${Math.min(f.h * 100, 100) - 4}%`,
+                                  background: `hsl(${210 + i * 40}, 45%, 65%)`,
+                                  borderRadius: 2,
+                                }} />
+                              ))}
+                            </div>
+                            <span className="text-[10px] block mt-1 truncate" style={{ color: IG.textSecondary }}>{lt.name}</span>
+                          </button>
                         ))}
                       </div>
-                      <span className="text-[12px] font-medium">{lt.name}</span>
-                    </button>
-                  ))}
+                    </div>
+                  );
+                })}
+
+                {/* Multi-slide continuation layouts */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-[2px] font-semibold mb-2" style={{ color: IG.textSecondary }}>
+                    Multi-Slide Continuation
+                  </p>
+                  <div className="space-y-1.5">
+                    {MULTI_SLIDE_LAYOUTS.map(ml => (
+                      <button key={ml.name} onClick={() => applyMultiSlideLayout(ml)}
+                        className="w-full p-2 rounded-lg text-left transition-colors"
+                        style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = IG.blue; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = IG.border; }}>
+                        {/* Multi-slide thumbnail preview */}
+                        <div className="flex gap-1 mb-1.5">
+                          {ml.slides.map((sl, si) => (
+                            <div key={si} className="flex-1 aspect-[4/5] rounded relative overflow-hidden" style={{ background: '#EDEDED' }}>
+                              {sl.frames.map((f, fi) => {
+                                const clampedX = Math.max(0, Math.min(f.x * 100, 100));
+                                const clampedY = Math.max(0, Math.min(f.y * 100, 100));
+                                const clampedW = Math.min(f.w * 100, 100 - clampedX);
+                                const clampedH = Math.min(f.h * 100, 100 - clampedY);
+                                if (clampedW <= 0 || clampedH <= 0) return null;
+                                return (
+                                  <div key={fi} className="absolute" style={{
+                                    left: `${clampedX + 3}%`, top: `${clampedY + 3}%`,
+                                    width: `${clampedW - 6}%`, height: `${clampedH - 6}%`,
+                                    background: `hsl(${200 + fi * 50}, 50%, 60%)`,
+                                    borderRadius: 1,
+                                  }} />
+                                );
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                        <span className="text-[11px] font-medium block">{ml.name}</span>
+                        <span className="text-[9px] block" style={{ color: IG.textSecondary }}>{ml.description}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
