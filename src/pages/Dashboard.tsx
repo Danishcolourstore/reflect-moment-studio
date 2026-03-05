@@ -146,6 +146,7 @@ function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; lab
 function StudioInfoSection({ profile }: { profile: any }) {
   const [studio, setStudio] = useState<any>(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
@@ -162,7 +163,6 @@ function StudioInfoSection({ profile }: { profile: any }) {
   if (!profile && !studio) return null;
 
   const studioName = studio?.display_name || profile?.studio_name || 'Studio';
-  const navigate = useNavigate();
 
   return (
     <div className="mt-14 mb-4">
