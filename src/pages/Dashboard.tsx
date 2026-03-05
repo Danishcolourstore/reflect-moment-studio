@@ -67,38 +67,22 @@ const Dashboard = () => {
 
   const greeting = () => {
     const h = new Date().getHours();
-    if (h >= 5 && h < 12) return 'Good Morning';
-    if (h >= 12 && h < 17) return 'Good Afternoon';
-    if (h >= 17 && h < 22) return 'Good Evening';
-    return 'Working Late';
-  };
-
-  const displayName = profile?.studio_name || user?.user_metadata?.full_name || 'Creator';
-
-  const contextLine = () => {
-    if (events.length === 0) return 'Create your first event to get started.';
-    const published = events.filter(e => e.is_published).length;
-    if (totalViews > 0) return 'Clients are viewing your work.';
-    if (published > 0) return 'Your galleries are ready to share.';
-    return 'Your stories are live today.';
+    if (h >= 5 && h < 12) return 'Hello bro, good morning ☀️';
+    if (h >= 12 && h < 17) return 'Hello bro, good afternoon 👋';
+    if (h >= 17 && h < 22) return 'Hello bro, good evening 🌙';
+    return 'Hello bro, good evening 🌙';
   };
 
   return (
     <DashboardLayout>
       {/* Greeting */}
       <div className="mb-8" style={{ padding: '8px 0 0' }}>
-        <p className="text-muted-foreground" style={{ fontFamily: 'var(--editorial-body)', fontSize: '11px', fontWeight: 500, letterSpacing: '3px', textTransform: 'uppercase' }}>
-          {greeting()}
-        </p>
         <h1
-          className="text-foreground mt-2"
-          style={{ fontFamily: 'var(--editorial-heading)', fontSize: '52px', fontWeight: 300, fontStyle: 'italic', letterSpacing: '-0.5px', lineHeight: 1.1 }}
+          className="text-foreground"
+          style={{ fontFamily: 'var(--editorial-heading)', fontSize: '32px', fontWeight: 400, letterSpacing: '-0.3px', lineHeight: 1.3 }}
         >
-          {displayName}
+          {greeting()}
         </h1>
-        <p className="text-muted-foreground mt-3" style={{ fontFamily: 'var(--editorial-body)', fontSize: '14px', fontWeight: 400 }}>
-          {loading ? format(new Date(), 'EEEE, MMMM d, yyyy') : contextLine()}
-        </p>
       </div>
 
       {/* Quick Actions Row */}
@@ -125,32 +109,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Recent Activity */}
-      <div className="mb-8">
-        <h2 className="font-serif text-foreground mb-5" style={{ fontSize: '24px', fontWeight: 500 }}>Recent Activity</h2>
-        {loading ? (
-          <Skeleton className="h-48 rounded-2xl" />
-        ) : activity.length === 0 ? (
-          <div className="bg-card border border-border rounded-2xl p-10 text-center" style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}>
-            <Clock className="mx-auto h-8 w-8 text-primary mb-4" strokeWidth={1.5} />
-            <p className="font-serif text-muted-foreground" style={{ fontSize: '20px', fontStyle: 'italic', fontWeight: 400 }}>No recent activity yet</p>
-            <p className="font-sans text-muted-foreground mt-2" style={{ fontSize: '13px' }}>Upload photos or create an event to get started</p>
-          </div>
-        ) : (
-          <div className="bg-card border border-border rounded-2xl overflow-hidden" style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}>
-            {activity.map((item, i) => (
-              <div key={item.id} className={`flex items-center gap-4 px-5 py-4 ${i < activity.length - 1 ? 'border-b border-border' : ''}`}>
-                <div className="h-2 w-2 rounded-full bg-primary/40 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-serif text-foreground truncate" style={{ fontSize: '16px', fontWeight: 400 }}>{item.description}</p>
-                  <p className="font-sans text-muted-foreground mt-0.5" style={{ fontSize: '12px' }}>{formatDistanceToNow(new Date(item.time), { addSuffix: true })}</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-primary/40 shrink-0" />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+
 
       <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
       {shareEvent && <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.name} pin={shareEvent.gallery_pin} />}

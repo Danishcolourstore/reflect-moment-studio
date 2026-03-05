@@ -1,14 +1,15 @@
 /**
  * CarouselDesigner — Professional Instagram Carousel Editor
- * Canvas-based slide editor with layout templates, text, drag-and-drop,
+ * Canvas-based slide editor with layout templates, drag-and-drop,
  * grid overlay, snap alignment, Instagram preview, and full-res export.
+ * Instagram-style light UI. No text layers.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  X, Download, Undo2, Redo2, Plus, Trash2, Copy, Type, Image as ImageIcon,
-  Grid3X3, Layers, Eye, ChevronLeft, ChevronRight, Move, Square, RectangleHorizontal,
-  Smartphone, GripVertical, ZoomIn, ZoomOut, AlignCenter, Palette, LayoutGrid,
+  X, Download, Undo2, Redo2, Plus, Trash2, Copy, Image as ImageIcon,
+  Grid3X3, Layers, Eye, ChevronLeft, ChevronRight, Square, RectangleHorizontal,
+  Palette, LayoutGrid,
   Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Save, ArrowLeft,
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -16,15 +17,15 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { toast } from 'sonner';
 
-/* ─── Design Tokens ─── */
+/* ─── Design Tokens (Instagram Light) ─── */
 
 const IG = {
-  bg: '#000000',
-  surface: '#121212',
-  surface2: '#1C1C1C',
-  border: '#262626',
-  text: '#FAFAFA',
-  textSecondary: '#A8A8A8',
+  bg: '#FFFFFF',
+  surface: '#FAFAFA',
+  surface2: '#F0F0F0',
+  border: '#DBDBDB',
+  text: '#262626',
+  textSecondary: '#8E8E8E',
   blue: '#0095F6',
   blueHover: '#1877F2',
   font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
@@ -40,6 +41,7 @@ export interface CanvasElement {
   rotation: number;
   src?: string;
   objectFit?: 'cover' | 'contain';
+  // Legacy text fields kept for backwards compat with saved data but never rendered
   text?: string;
   fontSize?: number;
   fontWeight?: number;
@@ -77,7 +79,6 @@ interface LayoutTemplate {
 interface MultiSlideLayout {
   name: string;
   description: string;
-  /** Each entry = one slide's frames. Uses extended coordinates (e.g. x: -0.5 means left half is off-canvas) */
   slides: { frames: { x: number; y: number; w: number; h: number }[] }[];
 }
 
@@ -100,15 +101,20 @@ const LAYOUT_TEMPLATES: LayoutTemplate[] = [
   { name: 'Portrait Right', category: 'storytelling', frames: [{ x: 0.5, y: 0.05, w: 0.45, h: 0.9 }] },
   { name: 'Floating Center', category: 'storytelling', frames: [{ x: 0.15, y: 0.15, w: 0.7, h: 0.7 }] },
 
-  // ── Grid / Collage ──
+  // ── Grid ──
   { name: 'Film Strip', category: 'grid', frames: [{ x: 0, y: 0, w: 1, h: 0.6 }, { x: 0, y: 0.62, w: 0.333, h: 0.38 }, { x: 0.333, y: 0.62, w: 0.334, h: 0.38 }, { x: 0.667, y: 0.62, w: 0.333, h: 0.38 }] },
   { name: '3 Column', category: 'grid', frames: [{ x: 0, y: 0, w: 0.333, h: 1 }, { x: 0.333, y: 0, w: 0.334, h: 1 }, { x: 0.667, y: 0, w: 0.333, h: 1 }] },
   { name: '3 Row', category: 'grid', frames: [{ x: 0, y: 0, w: 1, h: 0.333 }, { x: 0, y: 0.333, w: 1, h: 0.334 }, { x: 0, y: 0.667, w: 1, h: 0.333 }] },
   { name: 'L-Shape', category: 'grid', frames: [{ x: 0, y: 0, w: 0.6, h: 0.6 }, { x: 0.6, y: 0, w: 0.4, h: 0.6 }, { x: 0, y: 0.6, w: 1, h: 0.4 }] },
+  { name: 'T-Shape', category: 'grid', frames: [{ x: 0, y: 0, w: 1, h: 0.4 }, { x: 0, y: 0.4, w: 0.5, h: 0.6 }, { x: 0.5, y: 0.4, w: 0.5, h: 0.6 }] },
+  { name: '6 Grid', category: 'grid', frames: [{ x: 0, y: 0, w: 0.333, h: 0.5 }, { x: 0.333, y: 0, w: 0.334, h: 0.5 }, { x: 0.667, y: 0, w: 0.333, h: 0.5 }, { x: 0, y: 0.5, w: 0.333, h: 0.5 }, { x: 0.333, y: 0.5, w: 0.334, h: 0.5 }, { x: 0.667, y: 0.5, w: 0.333, h: 0.5 }] },
+
+  // ── Collage ──
   { name: 'Collage 3', category: 'collage', frames: [{ x: 0, y: 0, w: 0.55, h: 0.55 }, { x: 0.55, y: 0, w: 0.45, h: 0.45 }, { x: 0.2, y: 0.55, w: 0.8, h: 0.45 }] },
   { name: 'Collage 4', category: 'collage', frames: [{ x: 0, y: 0, w: 0.6, h: 0.5 }, { x: 0.6, y: 0, w: 0.4, h: 0.35 }, { x: 0.6, y: 0.35, w: 0.4, h: 0.3 }, { x: 0, y: 0.5, w: 1, h: 0.5 }] },
   { name: 'Collage 5', category: 'collage', frames: [{ x: 0, y: 0, w: 0.5, h: 0.5 }, { x: 0.5, y: 0, w: 0.5, h: 0.3 }, { x: 0.5, y: 0.3, w: 0.5, h: 0.2 }, { x: 0, y: 0.5, w: 0.4, h: 0.5 }, { x: 0.4, y: 0.5, w: 0.6, h: 0.5 }] },
   { name: 'Mosaic', category: 'collage', frames: [{ x: 0, y: 0, w: 0.65, h: 0.65 }, { x: 0.65, y: 0, w: 0.35, h: 0.35 }, { x: 0.65, y: 0.35, w: 0.35, h: 0.3 }, { x: 0, y: 0.65, w: 0.35, h: 0.35 }, { x: 0.35, y: 0.65, w: 0.65, h: 0.35 }] },
+  { name: 'Diamond', category: 'collage', frames: [{ x: 0.25, y: 0, w: 0.5, h: 0.4 }, { x: 0, y: 0.3, w: 0.5, h: 0.4 }, { x: 0.5, y: 0.3, w: 0.5, h: 0.4 }, { x: 0.25, y: 0.6, w: 0.5, h: 0.4 }] },
 ];
 
 const LAYOUT_CATEGORIES: { key: LayoutTemplate['category']; label: string }[] = [
@@ -160,6 +166,15 @@ const MULTI_SLIDE_LAYOUTS: MultiSlideLayout[] = [
       { frames: [{ x: -1, y: 0.2, w: 2, h: 0.6 }] },
     ],
   },
+  {
+    name: 'Triptych',
+    description: 'Image across 3 equal slides',
+    slides: [
+      { frames: [{ x: 0, y: 0, w: 3, h: 1 }] },
+      { frames: [{ x: -1, y: 0, w: 3, h: 1 }] },
+      { frames: [{ x: -2, y: 0, w: 3, h: 1 }] },
+    ],
+  },
 ];
 
 const SNAP_DIST = 8;
@@ -176,19 +191,21 @@ export function makeSlide(bg = '#EDEDED'): Slide {
 interface CarouselDesignerProps {
   photos?: string[];
   onClose: () => void;
-  /** If provided, shows a save button and calls this with current slides */
   onSave?: (slides: Slide[]) => void;
-  /** If provided, pre-populates slides */
   initialSlides?: Slide[];
-  /** Title shown in header */
   title?: string;
-  /** Whether save is in progress */
   saving?: boolean;
 }
 
 export default function CarouselDesigner({ photos = [], onClose, onSave, initialSlides, title, saving }: CarouselDesignerProps) {
   const [slides, setSlides] = useState<Slide[]>(
-    initialSlides && initialSlides.length > 0 ? initialSlides : [makeSlide()]
+    initialSlides && initialSlides.length > 0
+      ? initialSlides.map(s => ({
+          ...s,
+          // Filter out any legacy text elements from saved data
+          elements: s.elements.filter(e => e.type !== 'text'),
+        }))
+      : [makeSlide()]
   );
   const [activeIdx, setActiveIdx] = useState(0);
   const [ratio, setRatio] = useState<Ratio>('4:5');
@@ -302,15 +319,6 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
       id: uid(), type: 'image', x: GAP, y: GAP,
       width: dims.w - GAP * 2, height: dims.h - GAP * 2,
       rotation: 0, src, objectFit: 'cover',
-    });
-  };
-
-  const addText = () => {
-    addElement({
-      id: uid(), type: 'text', x: dims.w * 0.1, y: dims.h * 0.4,
-      width: dims.w * 0.8, height: 120,
-      rotation: 0, text: 'Your text here', fontSize: 48, fontWeight: 600,
-      color: '#000000', textAlign: 'center',
     });
   };
 
@@ -569,10 +577,6 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
         html += `<div style="position:absolute;left:${el.x}px;top:${el.y}px;width:${el.width}px;height:${el.height}px;overflow:hidden;border-radius:8px;transform:rotate(${el.rotation}deg);">`;
         html += `<img src="${el.src}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:${el.objectFit || 'cover'};" />`;
         html += `</div>`;
-      } else if (el.type === 'text') {
-        html += `<div style="position:absolute;left:${el.x}px;top:${el.y}px;width:${el.width}px;height:${el.height}px;display:flex;align-items:center;justify-content:${el.textAlign === 'center' ? 'center' : el.textAlign === 'right' ? 'flex-end' : 'flex-start'};transform:rotate(${el.rotation}deg);">`;
-        html += `<p style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:${el.fontSize}px;font-weight:${el.fontWeight};color:${el.color};text-align:${el.textAlign};width:100%;margin:0;line-height:1.3;word-wrap:break-word;">${el.text}</p>`;
-        html += `</div>`;
       } else if (el.type === 'shape') {
         const br = el.shapeType === 'circle' ? '50%' : '8px';
         html += `<div style="position:absolute;left:${el.x}px;top:${el.y}px;width:${el.width}px;height:${el.height}px;background:${el.fill};border-radius:${br};transform:rotate(${el.rotation}deg);"></div>`;
@@ -633,12 +637,11 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: IG.bg, fontFamily: IG.font }}>
       {/* Hidden export container */}
       <div ref={exportRef} style={{ position: 'fixed', left: -9999, top: 0, width: 0, height: 0, overflow: 'hidden' }} />
-      {/* Hidden file input */}
       <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileUpload} />
       <input ref={frameFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFrameUpload} />
 
       {/* ═══ Top Nav ═══ */}
-      <div className="flex items-center h-12 px-3 shrink-0" style={{ borderBottom: `1px solid ${IG.border}` }}>
+      <div className="flex items-center h-12 px-3 shrink-0" style={{ borderBottom: `1px solid ${IG.border}`, background: IG.bg }}>
         <button onClick={onClose} className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors" style={{ color: IG.text }}
           onMouseEnter={e => { e.currentTarget.style.background = IG.surface2; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
           <ArrowLeft className="h-4 w-4" />
@@ -662,22 +665,20 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
           <button onClick={() => setShowGrid(!showGrid)}
             className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ color: showGrid ? IG.blue : IG.textSecondary, background: showGrid ? `${IG.blue}20` : 'transparent' }}
+            style={{ color: showGrid ? IG.blue : IG.textSecondary, background: showGrid ? `${IG.blue}15` : 'transparent' }}
             title="Grid overlay">
             <Grid3X3 className="h-4 w-4" />
           </button>
 
-          {/* Save */}
           {onSave && (
             <button onClick={() => onSave(slides)} disabled={saving}
               className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-[13px] font-semibold transition-colors"
-              style={{ background: IG.surface2, color: IG.text, border: `1px solid ${IG.border}` }}>
+              style={{ background: IG.surface, color: IG.text, border: `1px solid ${IG.border}` }}>
               <Save className="h-3.5 w-3.5" />
               {saving ? 'Saving...' : 'Save'}
             </button>
           )}
 
-          {/* Export */}
           <div className="relative">
             <button onClick={() => setShowExportMenu(!showExportMenu)}
               className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-[13px] font-semibold transition-colors"
@@ -690,13 +691,13 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
               {exporting ? exportProgress : 'Export'}
             </button>
             {showExportMenu && !exporting && (
-              <div className="absolute right-0 top-full mt-1 w-52 rounded-lg overflow-hidden shadow-xl z-30" style={{ background: IG.surface, border: `1px solid ${IG.border}` }}>
+              <div className="absolute right-0 top-full mt-1 w-52 rounded-lg overflow-hidden shadow-xl z-30" style={{ background: IG.bg, border: `1px solid ${IG.border}` }}>
                 <button onClick={exportCurrent} className="w-full text-left px-4 py-2.5 text-[13px] transition-colors" style={{ color: IG.text }}
-                  onMouseEnter={e => { e.currentTarget.style.background = IG.surface2; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                  onMouseEnter={e => { e.currentTarget.style.background = IG.surface; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
                   Current slide (.jpg)
                 </button>
                 <button onClick={exportAll} className="w-full text-left px-4 py-2.5 text-[13px] transition-colors" style={{ color: IG.text }}
-                  onMouseEnter={e => { e.currentTarget.style.background = IG.surface2; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                  onMouseEnter={e => { e.currentTarget.style.background = IG.surface; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
                   All slides (.zip)
                 </button>
               </div>
@@ -708,7 +709,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
       {/* ═══ Main Area ═══ */}
       <div className="flex flex-1 overflow-hidden">
         {/* Canvas area */}
-        <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden" style={{ background: IG.bg }}
+        <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden" style={{ background: IG.surface }}
           onClick={() => { setSelectedId(null); setShowExportMenu(false); }}
           onTouchStart={e => {
             if (e.touches.length === 1) {
@@ -731,7 +732,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
           {/* Slide strip */}
           <div className="absolute top-3 left-0 right-0 flex items-center justify-center gap-2 z-10 px-4">
             <button onClick={() => setActiveIdx(Math.max(0, activeIdx - 1))} disabled={activeIdx === 0}
-              className="h-7 w-7 rounded-full flex items-center justify-center disabled:opacity-20" style={{ background: IG.surface2, color: IG.text }}>
+              className="h-7 w-7 rounded-full flex items-center justify-center disabled:opacity-20" style={{ background: IG.bg, color: IG.text, border: `1px solid ${IG.border}` }}>
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
             <div className="flex gap-1.5 overflow-x-auto max-w-[60vw]" style={{ scrollbarWidth: 'none' }}>
@@ -755,7 +756,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
               </button>
             </div>
             <button onClick={() => setActiveIdx(Math.min(slides.length - 1, activeIdx + 1))} disabled={activeIdx >= slides.length - 1}
-              className="h-7 w-7 rounded-full flex items-center justify-center disabled:opacity-20" style={{ background: IG.surface2, color: IG.text }}>
+              className="h-7 w-7 rounded-full flex items-center justify-center disabled:opacity-20" style={{ background: IG.bg, color: IG.text, border: `1px solid ${IG.border}` }}>
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -765,7 +766,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
             style={{
               width: dims.w * scale, height: dims.h * scale,
               background: slide.bg, borderRadius: 4,
-              boxShadow: '0 0 60px rgba(0,0,0,0.5)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
               overflow: 'hidden',
             }}>
             <div style={{ width: dims.w, height: dims.h, transform: `scale(${scale})`, transformOrigin: 'top left', position: 'relative' }}>
@@ -774,10 +775,10 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                 <div className="absolute inset-0 pointer-events-none z-30">
                   {Array.from({ length: 13 }).map((_, i) => {
                     const x = GAP + (i * (dims.w - GAP * 2)) / 12;
-                    return <div key={`gx${i}`} style={{ position: 'absolute', left: x, top: 0, width: 1, height: '100%', background: 'rgba(0,0,0,0.08)' }} />;
+                    return <div key={`gx${i}`} style={{ position: 'absolute', left: x, top: 0, width: 1, height: '100%', background: 'rgba(0,0,0,0.06)' }} />;
                   })}
-                  <div style={{ position: 'absolute', left: dims.w / 2, top: 0, width: 1, height: '100%', background: 'rgba(0,149,246,0.2)' }} />
-                  <div style={{ position: 'absolute', left: 0, top: dims.h / 2, width: '100%', height: 1, background: 'rgba(0,149,246,0.2)' }} />
+                  <div style={{ position: 'absolute', left: dims.w / 2, top: 0, width: 1, height: '100%', background: 'rgba(0,149,246,0.25)' }} />
+                  <div style={{ position: 'absolute', left: 0, top: dims.h / 2, width: '100%', height: 1, background: 'rgba(0,149,246,0.25)' }} />
                 </div>
               )}
 
@@ -811,22 +812,9 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                   {el.type === 'image' && !el.src && (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-2 cursor-pointer"
                       onClick={(ev) => triggerFrameUpload(el.id, ev)}
-                      style={{ background: 'rgba(0,0,0,0.05)', borderRadius: 8, border: '2px dashed rgba(0,0,0,0.15)' }}>
-                      <ImageIcon className="h-8 w-8" style={{ color: 'rgba(0,0,0,0.2)' }} />
+                      style={{ background: 'rgba(0,0,0,0.03)', borderRadius: 8, border: '2px dashed rgba(0,0,0,0.12)' }}>
+                      <ImageIcon className="h-8 w-8" style={{ color: 'rgba(0,0,0,0.15)' }} />
                       <span style={{ color: 'rgba(0,0,0,0.25)', fontSize: 11, fontWeight: 500 }}>Click to add</span>
-                    </div>
-                  )}
-                  {el.type === 'text' && (
-                    <div className="w-full h-full flex items-center"
-                      style={{ justifyContent: el.textAlign === 'center' ? 'center' : el.textAlign === 'right' ? 'flex-end' : 'flex-start' }}>
-                      <p style={{
-                        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-                        fontSize: el.fontSize, fontWeight: el.fontWeight, color: el.color,
-                        textAlign: el.textAlign, width: '100%', margin: 0, lineHeight: 1.3,
-                        wordWrap: 'break-word',
-                      }}>
-                        {el.text}
-                      </p>
                     </div>
                   )}
                   {el.type === 'shape' && (
@@ -858,8 +846,8 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
               {/* Empty state */}
               {slide.elements.length === 0 && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <Layers className="h-10 w-10" style={{ color: 'rgba(0,0,0,0.15)' }} />
-                  <p style={{ color: 'rgba(0,0,0,0.3)', fontSize: 14, fontFamily: IG.font }}>Add images, text, or choose a layout</p>
+                  <ImageIcon className="h-10 w-10" style={{ color: 'rgba(0,0,0,0.12)' }} />
+                  <p style={{ color: IG.textSecondary, fontSize: 14, fontFamily: IG.font }}>Choose a layout or add images</p>
                 </div>
               )}
             </div>
@@ -868,7 +856,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
         {/* ═══ Right Panel — Element Properties ═══ */}
         {sel && (
-          <div className="w-64 shrink-0 overflow-y-auto hidden md:block" style={{ background: IG.surface, borderLeft: `1px solid ${IG.border}`, scrollbarWidth: 'thin' }}>
+          <div className="w-64 shrink-0 overflow-y-auto hidden md:block" style={{ background: IG.bg, borderLeft: `1px solid ${IG.border}`, scrollbarWidth: 'thin' }}>
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] uppercase tracking-[2px] font-semibold" style={{ color: IG.textSecondary }}>
@@ -886,12 +874,12 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                   <div>
                     <span className="text-[10px]" style={{ color: IG.textSecondary }}>X</span>
                     <input type="number" value={Math.round(sel.x)} onChange={e => updateElement(sel.id, { x: +e.target.value })}
-                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
+                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
                   </div>
                   <div>
                     <span className="text-[10px]" style={{ color: IG.textSecondary }}>Y</span>
                     <input type="number" value={Math.round(sel.y)} onChange={e => updateElement(sel.id, { y: +e.target.value })}
-                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
+                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
                   </div>
                 </div>
               </div>
@@ -903,62 +891,15 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                   <div>
                     <span className="text-[10px]" style={{ color: IG.textSecondary }}>W</span>
                     <input type="number" value={Math.round(sel.width)} onChange={e => updateElement(sel.id, { width: +e.target.value })}
-                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
+                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
                   </div>
                   <div>
                     <span className="text-[10px]" style={{ color: IG.textSecondary }}>H</span>
                     <input type="number" value={Math.round(sel.height)} onChange={e => updateElement(sel.id, { height: +e.target.value })}
-                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
+                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
                   </div>
                 </div>
               </div>
-
-              {/* Text props */}
-              {sel.type === 'text' && (
-                <>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block" style={{ color: IG.textSecondary }}>Text</label>
-                    <textarea value={sel.text} onChange={e => updateElement(sel.id, { text: e.target.value })}
-                      className="w-full h-20 rounded px-2 py-1.5 text-[12px] resize-none"
-                      style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
-                  </div>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block" style={{ color: IG.textSecondary }}>Font Size</label>
-                    <input type="range" min={12} max={120} value={sel.fontSize} onChange={e => updateElement(sel.id, { fontSize: +e.target.value })}
-                      className="w-full" style={{ accentColor: IG.blue }} />
-                    <span className="text-[11px]" style={{ color: IG.textSecondary }}>{sel.fontSize}px</span>
-                  </div>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block" style={{ color: IG.textSecondary }}>Weight</label>
-                    <div className="flex gap-1">
-                      {[400, 500, 600, 700].map(w => (
-                        <button key={w} onClick={() => updateElement(sel.id, { fontWeight: w })}
-                          className="flex-1 py-1 rounded text-[11px]"
-                          style={{ background: sel.fontWeight === w ? IG.blue : IG.surface2, color: IG.text }}>
-                          {w}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block" style={{ color: IG.textSecondary }}>Align</label>
-                    <div className="flex gap-1">
-                      {(['left', 'center', 'right'] as const).map(a => (
-                        <button key={a} onClick={() => updateElement(sel.id, { textAlign: a })}
-                          className="flex-1 py-1 rounded text-[11px] capitalize"
-                          style={{ background: sel.textAlign === a ? IG.blue : IG.surface2, color: IG.text }}>
-                          {a}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block" style={{ color: IG.textSecondary }}>Color</label>
-                    <input type="color" value={sel.color} onChange={e => updateElement(sel.id, { color: e.target.value })}
-                      className="w-full h-8 rounded cursor-pointer" style={{ border: `1px solid ${IG.border}` }} />
-                  </div>
-                </>
-              )}
 
               {/* Image replace */}
               {sel.type === 'image' && (
@@ -989,7 +930,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
       </div>
 
       {/* ═══ Bottom Toolbar ═══ */}
-      <div className="flex items-center justify-center gap-1 h-14 px-4 shrink-0" style={{ borderTop: `1px solid ${IG.border}`, background: IG.surface }}>
+      <div className="flex items-center justify-center gap-1 h-14 px-4 shrink-0" style={{ borderTop: `1px solid ${IG.border}`, background: IG.bg }}>
         {[
           { id: 'background' as ToolPanel, icon: Palette, label: 'Background' },
           { id: 'add' as ToolPanel, icon: Plus, label: 'Add' },
@@ -1000,7 +941,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
         ].map(t => (
           <button key={t.id} onClick={() => { if (t.id === 'preview') { setShowIGPreview(true); setTool(null); } else setTool(tool === t.id ? null : t.id); }}
             className="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg transition-colors"
-            style={{ color: tool === t.id ? IG.blue : IG.textSecondary, background: tool === t.id ? `${IG.blue}15` : 'transparent' }}>
+            style={{ color: tool === t.id ? IG.blue : IG.textSecondary, background: tool === t.id ? `${IG.blue}10` : 'transparent' }}>
             <t.icon className="h-5 w-5" />
             <span className="text-[10px] font-medium">{t.label}</span>
           </button>
@@ -1009,7 +950,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
       {/* ═══ Tool Panels ═══ */}
       {tool && (
-        <div className="absolute bottom-14 left-0 right-0 z-20" style={{ background: IG.surface, borderTop: `1px solid ${IG.border}`, maxHeight: '40vh', overflowY: 'auto' }}>
+        <div className="absolute bottom-14 left-0 right-0 z-20" style={{ background: IG.bg, borderTop: `1px solid ${IG.border}`, maxHeight: '40vh', overflowY: 'auto' }}>
           <div className="p-4 max-w-lg mx-auto">
             {tool === 'background' && (
               <div>
@@ -1034,24 +975,17 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => fileInputRef.current?.click()}
                     className="flex items-center gap-2 p-3 rounded-lg transition-colors"
-                    style={{ background: IG.surface2, color: IG.text, border: `1px solid ${IG.border}` }}>
+                    style={{ background: IG.surface, color: IG.text, border: `1px solid ${IG.border}` }}>
                     <ImageIcon className="h-5 w-5" style={{ color: IG.blue }} />
                     <span className="text-[13px]">Image</span>
                   </button>
-                  <button onClick={() => { addText(); setTool(null); }}
-                    className="flex items-center gap-2 p-3 rounded-lg transition-colors"
-                    style={{ background: IG.surface2, color: IG.text, border: `1px solid ${IG.border}` }}>
-                    <Type className="h-5 w-5" style={{ color: IG.blue }} />
-                    <span className="text-[13px]">Text</span>
-                  </button>
                   <button onClick={() => { addShape(); setTool(null); }}
                     className="flex items-center gap-2 p-3 rounded-lg transition-colors"
-                    style={{ background: IG.surface2, color: IG.text, border: `1px solid ${IG.border}` }}>
+                    style={{ background: IG.surface, color: IG.text, border: `1px solid ${IG.border}` }}>
                     <Square className="h-5 w-5" style={{ color: IG.blue }} />
                     <span className="text-[13px]">Shape</span>
                   </button>
                 </div>
-                {/* Photo pool from event */}
                 {photos.length > 0 && (
                   <div className="mt-3">
                     <p className="text-[10px] uppercase tracking-[1.5px] mb-2" style={{ color: IG.textSecondary }}>Event Photos</p>
@@ -1073,7 +1007,6 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
             {tool === 'layouts' && (
               <div className="space-y-4" style={{ maxHeight: '60vh', overflowY: 'auto', scrollbarWidth: 'thin' }}>
-                {/* Single-slide layouts by category */}
                 {LAYOUT_CATEGORIES.map(cat => {
                   const items = LAYOUT_TEMPLATES.filter(lt => lt.category === cat.key);
                   if (items.length === 0) return null;
@@ -1084,16 +1017,16 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                         {items.map(lt => (
                           <button key={lt.name} onClick={() => applyLayout(lt)}
                             className="p-1.5 rounded-lg text-left transition-colors"
-                            style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text }}
+                            style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text }}
                             onMouseEnter={e => { e.currentTarget.style.borderColor = IG.blue; }}
                             onMouseLeave={e => { e.currentTarget.style.borderColor = IG.border; }}
                             title={lt.name}>
-                            <div className="w-full aspect-[4/5] rounded relative overflow-hidden" style={{ background: '#EDEDED' }}>
+                            <div className="w-full aspect-[4/5] rounded relative overflow-hidden" style={{ background: '#E8E8E8' }}>
                               {lt.frames.map((f, i) => (
                                 <div key={i} className="absolute" style={{
                                   left: `${Math.max(0, f.x * 100) + 2}%`, top: `${Math.max(0, f.y * 100) + 2}%`,
                                   width: `${Math.min(f.w * 100, 100) - 4}%`, height: `${Math.min(f.h * 100, 100) - 4}%`,
-                                  background: `hsl(${210 + i * 40}, 45%, 65%)`,
+                                  background: `hsl(${210 + i * 40}, 35%, 72%)`,
                                   borderRadius: 2,
                                 }} />
                               ))}
@@ -1115,13 +1048,12 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                     {MULTI_SLIDE_LAYOUTS.map(ml => (
                       <button key={ml.name} onClick={() => applyMultiSlideLayout(ml)}
                         className="w-full p-2 rounded-lg text-left transition-colors"
-                        style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text }}
+                        style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text }}
                         onMouseEnter={e => { e.currentTarget.style.borderColor = IG.blue; }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor = IG.border; }}>
-                        {/* Multi-slide thumbnail preview */}
                         <div className="flex gap-1 mb-1.5">
                           {ml.slides.map((sl, si) => (
-                            <div key={si} className="flex-1 aspect-[4/5] rounded relative overflow-hidden" style={{ background: '#EDEDED' }}>
+                            <div key={si} className="flex-1 aspect-[4/5] rounded relative overflow-hidden" style={{ background: '#E8E8E8' }}>
                               {sl.frames.map((f, fi) => {
                                 const clampedX = Math.max(0, Math.min(f.x * 100, 100));
                                 const clampedY = Math.max(0, Math.min(f.y * 100, 100));
@@ -1132,7 +1064,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                                   <div key={fi} className="absolute" style={{
                                     left: `${clampedX + 3}%`, top: `${clampedY + 3}%`,
                                     width: `${clampedW - 6}%`, height: `${clampedH - 6}%`,
-                                    background: `hsl(${200 + fi * 50}, 50%, 60%)`,
+                                    background: `hsl(${200 + fi * 50}, 40%, 68%)`,
                                     borderRadius: 1,
                                   }} />
                                 );
@@ -1158,7 +1090,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                     return (
                       <button key={r} onClick={() => { setRatio(r); setTool(null); }}
                         className="p-3 rounded-lg flex items-center gap-3 transition-colors"
-                        style={{ background: ratio === r ? `${IG.blue}20` : IG.surface2, border: `1px solid ${ratio === r ? IG.blue : IG.border}`, color: IG.text }}>
+                        style={{ background: ratio === r ? `${IG.blue}15` : IG.surface, border: `1px solid ${ratio === r ? IG.blue : IG.border}`, color: IG.text }}>
                         <div className="rounded" style={{
                           width: r === '9:16' ? 16 : r === '16:9' ? 32 : r === '1:1' ? 24 : 20,
                           height: r === '9:16' ? 28 : r === '16:9' ? 18 : r === '1:1' ? 24 : 25,
@@ -1184,12 +1116,12 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                     <Plus className="h-3.5 w-3.5" /> Add
                   </button>
                   <button onClick={dupSlide} className="flex-1 py-2 rounded-lg text-[12px] font-medium flex items-center justify-center gap-1.5"
-                    style={{ background: IG.surface2, color: IG.text, border: `1px solid ${IG.border}` }}>
+                    style={{ background: IG.surface, color: IG.text, border: `1px solid ${IG.border}` }}>
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </button>
                   <button onClick={delSlide} disabled={slides.length <= 1}
                     className="flex-1 py-2 rounded-lg text-[12px] font-medium flex items-center justify-center gap-1.5 disabled:opacity-30"
-                    style={{ background: IG.surface2, color: '#ED4956', border: `1px solid ${IG.border}` }}>
+                    style={{ background: IG.surface, color: '#ED4956', border: `1px solid ${IG.border}` }}>
                     <Trash2 className="h-3.5 w-3.5" /> Delete
                   </button>
                 </div>
@@ -1219,7 +1151,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
   );
 }
 
-/* ─── Instagram Preview Modal ─── */
+/* ─── Instagram Preview Modal (Light UI) ─── */
 
 function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: number; h: number }; onClose: () => void }) {
   const [idx, setIdx] = useState(0);
@@ -1228,84 +1160,80 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
   const username = 'photographer';
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.95)', fontFamily: IG.font }}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.4)', fontFamily: IG.font }}>
       <button onClick={onClose} className="absolute top-4 right-4 z-[70] h-9 w-9 rounded-full flex items-center justify-center"
-        style={{ background: 'rgba(250,250,250,0.1)', color: IG.textSecondary }}>
+        style={{ background: 'rgba(0,0,0,0.5)', color: '#fff' }}>
         <X className="h-4 w-4" />
       </button>
 
-      <div className="w-full max-w-[375px] rounded-[2.5rem] overflow-hidden shadow-2xl mx-4"
-        style={{ background: IG.bg, border: `1px solid ${IG.border}`, maxHeight: '90vh' }}>
-        <div className="flex items-center justify-center pt-2 pb-1">
-          <div className="w-32 h-5 rounded-full" style={{ background: IG.bg, border: `1px solid ${IG.border}` }} />
+      <div className="w-full max-w-[375px] rounded-2xl overflow-hidden shadow-2xl mx-4"
+        style={{ background: '#FFFFFF', maxHeight: '90vh' }}>
+
+        {/* Top bar */}
+        <div className="flex items-center gap-3 px-3 py-2.5" style={{ borderBottom: '1px solid #EFEFEF' }}>
+          <div className="h-8 w-8 rounded-full p-[2px]" style={{ background: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF, #515BD4)' }}>
+            <div className="h-full w-full rounded-full flex items-center justify-center" style={{ background: '#fff' }}>
+              <span style={{ color: '#262626', fontSize: '9px', fontWeight: 700 }}>{username[0].toUpperCase()}</span>
+            </div>
+          </div>
+          <p className="flex-1" style={{ color: '#262626', fontSize: 14, fontWeight: 600 }}>{username}</p>
+          <MoreHorizontal className="h-5 w-5" style={{ color: '#262626' }} />
         </div>
 
-        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 28px)', scrollbarWidth: 'none' }}>
-          <div className="flex items-center gap-3 px-3 py-2.5">
-            <div className="h-8 w-8 rounded-full p-[2px]" style={{ background: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF, #515BD4)' }}>
-              <div className="h-full w-full rounded-full flex items-center justify-center" style={{ background: IG.bg }}>
-                <span style={{ color: IG.text, fontSize: '9px', fontWeight: 700 }}>{username[0].toUpperCase()}</span>
-              </div>
+        {/* Post area */}
+        <div className="relative w-full" style={{ aspectRatio: `${dims.w}/${dims.h}`, background: '#FAFAFA' }}>
+          {slides[idx] && <SlidePreviewRender slide={slides[idx]} dims={dims} />}
+
+          {slides.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
+              {slides.map((_, i) => (
+                <button key={i} onClick={() => setIdx(i)} className="rounded-full transition-all"
+                  style={{ width: i === idx ? 6 : 5, height: i === idx ? 6 : 5, background: i === idx ? '#0095F6' : 'rgba(0,0,0,0.15)' }} />
+              ))}
             </div>
-            <p className="flex-1" style={{ color: IG.text, fontSize: 14, fontWeight: 600 }}>{username}</p>
-            <MoreHorizontal className="h-5 w-5" style={{ color: IG.text }} />
-          </div>
+          )}
 
-          <div className="relative w-full" style={{ aspectRatio: `${dims.w}/${dims.h}`, background: IG.surface }}>
-            {slides[idx] && <SlidePreviewRender slide={slides[idx]} dims={dims} />}
+          {idx > 0 && (
+            <button onClick={() => setIdx(idx - 1)} className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.9)', color: 'rgba(0,0,0,0.7)', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {idx < slides.length - 1 && (
+            <button onClick={() => setIdx(idx + 1)} className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.9)', color: 'rgba(0,0,0,0.7)', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          )}
 
-            {slides.length > 1 && (
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
-                {slides.map((_, i) => (
-                  <button key={i} onClick={() => setIdx(i)} className="rounded-full transition-all"
-                    style={{ width: i === idx ? 6 : 5, height: i === idx ? 6 : 5, background: i === idx ? IG.blue : 'rgba(250,250,250,0.4)' }} />
-                ))}
-              </div>
-            )}
-
-            {idx > 0 && (
-              <button onClick={() => setIdx(idx - 1)} className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(250,250,250,0.9)', color: 'rgba(0,0,0,0.7)' }}>
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </button>
-            )}
-            {idx < slides.length - 1 && (
-              <button onClick={() => setIdx(idx + 1)} className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(250,250,250,0.9)', color: 'rgba(0,0,0,0.7)' }}>
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            )}
-
-            {slides.length > 1 && (
-              <div className="absolute top-3 right-3 rounded-full px-2.5 py-0.5" style={{ background: 'rgba(0,0,0,0.6)' }}>
-                <span style={{ color: IG.text, fontSize: 12, fontWeight: 500 }}>{idx + 1}/{slides.length}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center px-3 pt-2.5 pb-1">
-            <div className="flex items-center gap-4 flex-1">
-              <button onClick={() => setLiked(!liked)}><Heart className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : ''}`} style={liked ? {} : { color: IG.text }} /></button>
-              <MessageCircle className="h-6 w-6" style={{ color: IG.text, transform: 'scaleX(-1)' }} />
-              <Send className="h-5 w-5 -rotate-12" style={{ color: IG.text }} />
+          {slides.length > 1 && (
+            <div className="absolute top-3 right-3 rounded-full px-2.5 py-0.5" style={{ background: 'rgba(0,0,0,0.6)' }}>
+              <span style={{ color: '#fff', fontSize: 12, fontWeight: 500 }}>{idx + 1}/{slides.length}</span>
             </div>
-            <button onClick={() => setSaved(!saved)}><Bookmark className={`h-6 w-6 ${saved ? 'fill-white' : ''}`} style={{ color: IG.text }} /></button>
-          </div>
+          )}
+        </div>
 
-          <div className="px-3 pt-1 pb-1">
-            <p style={{ color: IG.text, fontSize: 14, fontWeight: 600 }}>{liked ? '1 like' : '0 likes'}</p>
+        {/* Bottom actions */}
+        <div className="flex items-center px-3 pt-2.5 pb-1">
+          <div className="flex items-center gap-4 flex-1">
+            <button onClick={() => setLiked(!liked)}><Heart className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : ''}`} style={liked ? {} : { color: '#262626' }} /></button>
+            <MessageCircle className="h-6 w-6" style={{ color: '#262626', transform: 'scaleX(-1)' }} />
+            <Send className="h-5 w-5 -rotate-12" style={{ color: '#262626' }} />
           </div>
+          <button onClick={() => setSaved(!saved)}><Bookmark className={`h-6 w-6 ${saved ? 'fill-black' : ''}`} style={{ color: '#262626' }} /></button>
+        </div>
 
-          <div className="px-3 pb-4">
-            <p style={{ color: IG.text, fontSize: 14, lineHeight: '18px' }}>
-              <span style={{ fontWeight: 600, marginRight: 6 }}>{username}</span>
-              Beautiful carousel story ✨
-            </p>
-          </div>
+        {/* Likes */}
+        <div className="px-3 pt-1 pb-1">
+          <p style={{ color: '#262626', fontSize: 14, fontWeight: 600 }}>{liked ? '1 like' : '0 likes'}</p>
+        </div>
 
-          <div className="flex justify-center pb-2 pt-1">
-            <div className="w-28 h-1 rounded-full" style={{ background: 'rgba(250,250,250,0.3)' }} />
-          </div>
+        {/* Caption */}
+        <div className="px-3 pb-4">
+          <p style={{ color: '#262626', fontSize: 14, lineHeight: '18px' }}>
+            <span style={{ fontWeight: 600, marginRight: 6 }}>{username}</span>
+            Beautiful carousel story ✨
+          </p>
         </div>
       </div>
     </div>
@@ -1317,7 +1245,7 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
 function SlidePreviewRender({ slide, dims }: { slide: Slide; dims: { w: number; h: number } }) {
   return (
     <div className="w-full h-full relative overflow-hidden" style={{ background: slide.bg }}>
-      {slide.elements.map(el => (
+      {slide.elements.filter(e => e.type !== 'text').map(el => (
         <div key={el.id} className="absolute" style={{
           left: `${(el.x / dims.w) * 100}%`,
           top: `${(el.y / dims.h) * 100}%`,
@@ -1329,17 +1257,6 @@ function SlidePreviewRender({ slide, dims }: { slide: Slide; dims: { w: number; 
         }}>
           {el.type === 'image' && el.src && (
             <img src={el.src} alt="" className="w-full h-full" style={{ objectFit: el.objectFit || 'cover' }} />
-          )}
-          {el.type === 'text' && (
-            <div className="w-full h-full flex items-center" style={{ justifyContent: el.textAlign === 'center' ? 'center' : el.textAlign === 'right' ? 'flex-end' : 'flex-start' }}>
-              <p style={{
-                fontFamily: 'Inter, -apple-system, sans-serif',
-                fontSize: `${(el.fontSize! / dims.w) * 100}vw`,
-                fontWeight: el.fontWeight, color: el.color, textAlign: el.textAlign, width: '100%', margin: 0, lineHeight: 1.3,
-              }}>
-                {el.text}
-              </p>
-            </div>
           )}
           {el.type === 'shape' && (
             <div className="w-full h-full" style={{ background: el.fill, borderRadius: el.shapeType === 'circle' ? '50%' : 4 }} />
