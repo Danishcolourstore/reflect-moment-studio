@@ -31,6 +31,7 @@ const Branding = () => {
   const [email, setEmail] = useState('');
   const [footerText, setFooterText] = useState('');
   const [fontStyle, setFontStyle] = useState('serif');
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -58,6 +59,7 @@ const Branding = () => {
         setWhatsapp(studio.whatsapp || '');
         setFooterText(studio.footer_text || '');
         setFontStyle(studio.font_style || 'serif');
+        setUsername(studio.username || '');
       }
       setLoading(false);
     };
@@ -103,7 +105,7 @@ const Branding = () => {
     if (!user) return;
     setSaving(true);
     await (supabase.from('profiles').update({ studio_name: studioName, studio_accent_color: accentColor } as any) as any).eq('user_id', user.id);
-    const studioData = { bio, display_name: tagline, instagram: instagram || null, website: website || null, whatsapp: whatsapp || null, footer_text: footerText || null, font_style: fontStyle };
+    const studioData = { bio, display_name: tagline, instagram: instagram || null, website: website || null, whatsapp: whatsapp || null, footer_text: footerText || null, font_style: fontStyle, username: username || null };
     const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).single();
     if (existing) {
       await (supabase.from('studio_profiles').update(studioData as any) as any).eq('user_id', user.id);
@@ -133,6 +135,15 @@ const Branding = () => {
             <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium mb-4">STUDIO IDENTITY</p>
             <div className="space-y-4">
               <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Name</label><Input value={studioName} onChange={(e) => setStudioName(e.target.value)} className="mt-1 bg-card" /></div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Portfolio Username</label>
+                <Input value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="mt-1 bg-card" />
+                {username && (
+                  <p className="text-[10px] text-muted-foreground/50 mt-1">
+                    Your public portfolio: <span className="text-foreground/70 font-medium">{window.location.origin}/p/{username}</span>
+                  </p>
+                )}
+              </div>
               <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Tagline</label><Input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Reflections of Your Moments" className="mt-1 bg-card" /></div>
               <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">About / Bio</label><Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="mt-1 bg-card min-h-[100px]" placeholder="Tell your story..." /></div>
               <div><label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Footer Text</label><Input value={footerText} onChange={(e) => setFooterText(e.target.value)} placeholder="Fine art wedding photography" className="mt-1 bg-card" /></div>
