@@ -1,11 +1,11 @@
-import { LayoutDashboard, CalendarDays, BookOpen, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, BookOpen, Users, Settings } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 
 const items = [
   { title: 'Home', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Events', url: '/dashboard/events', icon: CalendarDays },
   { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
-  { title: 'Stats', url: '/dashboard/analytics', icon: BarChart3 },
+  { title: 'Clients', url: '/dashboard/clients', icon: Users },
   { title: 'More', url: '/dashboard/settings', icon: Settings },
 ];
 
