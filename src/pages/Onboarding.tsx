@@ -115,10 +115,6 @@ const Onboarding = () => {
                 <Input value={studioName} onChange={e => { setStudioName(e.target.value); setSlug(generateSlug(e.target.value)); }} placeholder="Enter studio name" className="mt-1 bg-background" required />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Tagline</label>
-                <Input value={tagline} onChange={e => setTagline(e.target.value)} placeholder="Enter studio tagline" className="mt-1 bg-background" />
-              </div>
-              <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Slug</label>
                 <Input value={slug} onChange={e => setSlug(e.target.value)} className="mt-1 bg-background" />
                 <p className="text-[10px] text-muted-foreground/50 mt-1">mirrorai.app/studio/{slug || 'your-studio'}</p>
