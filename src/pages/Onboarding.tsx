@@ -34,7 +34,7 @@ const Onboarding = () => {
       .eq('user_id', user.id).single()
       .then(({ data }: any) => {
         if (data?.onboarding_completed) navigate('/dashboard', { replace: true });
-        if (data?.studio_name) setStudioName(data.studio_name);
+        // Don't pre-fill studio name from profile
       });
   }, [user, navigate]);
 
@@ -112,11 +112,11 @@ const Onboarding = () => {
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Name</label>
-                <Input value={studioName} onChange={e => { setStudioName(e.target.value); setSlug(generateSlug(e.target.value)); }} className="mt-1 bg-background" required />
+                <Input value={studioName} onChange={e => { setStudioName(e.target.value); setSlug(generateSlug(e.target.value)); }} placeholder="Enter studio name" className="mt-1 bg-background" required />
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Tagline</label>
-                <Input value={tagline} onChange={e => setTagline(e.target.value)} placeholder="Reflections of Your Moments" className="mt-1 bg-background" />
+                <Input value={tagline} onChange={e => setTagline(e.target.value)} placeholder="Enter studio tagline" className="mt-1 bg-background" />
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Slug</label>
