@@ -9,8 +9,9 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import {
   Plus, Save, Trash2, GripVertical, ChevronDown, Image as ImageIcon,
-  BookOpen, Type, Columns, Film, Grid3X3, Maximize, Quote, ArrowLeft
+  BookOpen, Type, Columns, Film, Grid3X3, Maximize, Quote, ArrowLeft, Eye
 } from 'lucide-react';
+import StorybookPreview from '@/components/StorybookPreview';
 
 type LayoutType = 'hero-cover' | 'split-editorial' | 'film-strip' | 'minimal-grid' | 'fullscreen-story' | 'quote-page';
 
@@ -52,6 +53,7 @@ export default function StorybookCreator() {
   const [showPicker, setShowPicker] = useState<string | null>(null);
   const [showNewBlock, setShowNewBlock] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Load storybooks list + events
   useEffect(() => {
@@ -250,6 +252,9 @@ export default function StorybookCreator() {
           <Button variant="outline" size="sm" onClick={deleteStorybook} className="gap-1.5 text-destructive border-destructive/30">
             <Trash2 className="h-3.5 w-3.5" /> Delete
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowPreview(true)} disabled={blocks.length === 0} className="gap-1.5">
+            <Eye className="h-3.5 w-3.5" /> Preview
+          </Button>
           <Button size="sm" onClick={saveStorybook} disabled={saving} className="gap-1.5">
             <Save className="h-3.5 w-3.5" /> {saving ? 'Saving...' : 'Save'}
           </Button>
@@ -394,6 +399,14 @@ export default function StorybookCreator() {
         <Button variant="outline" onClick={() => setShowNewBlock(true)} className="w-full gap-2 mb-20">
           <Plus className="h-4 w-4" /> Add Block
         </Button>
+      )}
+
+      {showPreview && (
+        <StorybookPreview
+          title={title}
+          blocks={blocks}
+          onClose={() => setShowPreview(false)}
+        />
       )}
     </DashboardLayout>
   );
