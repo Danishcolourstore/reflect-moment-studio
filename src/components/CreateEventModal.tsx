@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard } from 'lucide-react';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Image, BookOpen } from 'lucide-react';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -19,6 +19,8 @@ const LAYOUT_OPTIONS = [
   { value: 'pixieset', label: 'Pixieset', icon: Sparkles },
   { value: 'cinematic', label: 'Cinematic', icon: Clapperboard },
   { value: 'mosaic', label: 'Mosaic', icon: LayoutDashboard },
+  { value: 'minimal-portfolio', label: 'Portfolio', icon: Image },
+  { value: 'storybook', label: 'Story Book', icon: BookOpen },
 ] as const;
 
 interface CreateEventModalProps {
