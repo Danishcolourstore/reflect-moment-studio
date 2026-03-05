@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Check, Camera, Copy, Sparkles, MessageCircle } from 'lucide-react';
+import { Camera, Copy, Sparkles, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 
-const STEPS = ['Studio', 'Logo', 'Event', 'Client'];
+
 
 const Onboarding = () => {
   const { user } = useAuth();
