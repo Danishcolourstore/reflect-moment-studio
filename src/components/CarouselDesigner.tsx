@@ -208,6 +208,8 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
   const canvasRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const frameFileInputRef = useRef<HTMLInputElement>(null);
+  const frameTargetIdRef = useRef<string | null>(null);
   const swipeStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   const dims = RATIO_DIMS[ratio];
@@ -408,6 +410,22 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
     }
 
     e.target.value = '';
+  };
+
+  const handleFrameUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f || !frameTargetIdRef.current) return;
+    const url = await readFileAsDataURL(f);
+    pushHistory();
+    updateElement(frameTargetIdRef.current, { src: url });
+    frameTargetIdRef.current = null;
+    e.target.value = '';
+  };
+
+  const triggerFrameUpload = (elId: string, ev: React.MouseEvent) => {
+    ev.stopPropagation();
+    frameTargetIdRef.current = elId;
+    frameFileInputRef.current?.click();
   };
 
   /* ─── Drag & Snap ─── */
@@ -617,6 +635,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
       <div ref={exportRef} style={{ position: 'fixed', left: -9999, top: 0, width: 0, height: 0, overflow: 'hidden' }} />
       {/* Hidden file input */}
       <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileUpload} />
+      <input ref={frameFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFrameUpload} />
 
       {/* ═══ Top Nav ═══ */}
       <div className="flex items-center h-12 px-3 shrink-0" style={{ borderBottom: `1px solid ${IG.border}` }}>
@@ -790,8 +809,11 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                       style={{ objectFit: el.objectFit || 'cover', borderRadius: 8 }} />
                   )}
                   {el.type === 'image' && !el.src && (
-                    <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.05)', borderRadius: 8, border: '2px dashed rgba(0,0,0,0.15)' }}>
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 cursor-pointer"
+                      onClick={(ev) => triggerFrameUpload(el.id, ev)}
+                      style={{ background: 'rgba(0,0,0,0.05)', borderRadius: 8, border: '2px dashed rgba(0,0,0,0.15)' }}>
                       <ImageIcon className="h-8 w-8" style={{ color: 'rgba(0,0,0,0.2)' }} />
+                      <span style={{ color: 'rgba(0,0,0,0.25)', fontSize: 11, fontWeight: 500 }}>Click to add</span>
                     </div>
                   )}
                   {el.type === 'text' && (
