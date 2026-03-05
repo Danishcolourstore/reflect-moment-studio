@@ -9,7 +9,7 @@ import {
   X, Download, Undo2, Redo2, Plus, Trash2, Copy, Type, Image as ImageIcon,
   Grid3X3, Layers, Eye, ChevronLeft, ChevronRight, Move, Square, RectangleHorizontal,
   Smartphone, GripVertical, ZoomIn, ZoomOut, AlignCenter, Palette, LayoutGrid,
-  Heart, MessageCircle, Send, Bookmark, MoreHorizontal,
+  Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Save, ArrowLeft,
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
@@ -32,29 +32,24 @@ const IG = {
 
 /* ─── Types ─── */
 
-interface Vec2 { x: number; y: number }
-
-interface CanvasElement {
+export interface CanvasElement {
   id: string;
   type: 'image' | 'text' | 'shape';
   x: number; y: number;
   width: number; height: number;
   rotation: number;
-  // image
   src?: string;
   objectFit?: 'cover' | 'contain';
-  // text
   text?: string;
   fontSize?: number;
   fontWeight?: number;
   color?: string;
   textAlign?: 'left' | 'center' | 'right';
-  // shape
   shapeType?: 'rect' | 'circle';
   fill?: string;
 }
 
-interface Slide {
+export interface Slide {
   id: string;
   elements: CanvasElement[];
   bg: string;
@@ -95,21 +90,29 @@ const GAP = 24;
 
 function uid() { return crypto.randomUUID(); }
 
-function makeSlide(bg = '#EDEDED'): Slide {
+export function makeSlide(bg = '#EDEDED'): Slide {
   return { id: uid(), elements: [], bg };
 }
-
-function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)); }
 
 /* ─── Component ─── */
 
 interface CarouselDesignerProps {
   photos?: string[];
   onClose: () => void;
+  /** If provided, shows a save button and calls this with current slides */
+  onSave?: (slides: Slide[]) => void;
+  /** If provided, pre-populates slides */
+  initialSlides?: Slide[];
+  /** Title shown in header */
+  title?: string;
+  /** Whether save is in progress */
+  saving?: boolean;
 }
 
-export default function CarouselDesigner({ photos = [], onClose }: CarouselDesignerProps) {
-  const [slides, setSlides] = useState<Slide[]>([makeSlide()]);
+export default function CarouselDesigner({ photos = [], onClose, onSave, initialSlides, title, saving }: CarouselDesignerProps) {
+  const [slides, setSlides] = useState<Slide[]>(
+    initialSlides && initialSlides.length > 0 ? initialSlides : [makeSlide()]
+  );
   const [activeIdx, setActiveIdx] = useState(0);
   const [ratio, setRatio] = useState<Ratio>('4:5');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -155,10 +158,11 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'z') { e.preventDefault(); undo(); }
       if ((e.metaKey || e.ctrlKey) && e.key === 'y') { e.preventDefault(); redo(); }
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); onSave?.(slides); }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, [selectedId, showIGPreview, tool]);
+  }, [selectedId, showIGPreview, tool, slides]);
 
   /* ─── History ─── */
   const pushHistory = useCallback(() => {
@@ -256,7 +260,6 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
       objectFit: 'cover' as const,
     }));
 
-    // Add text element for text+image layout
     if (layout.category === 'text') {
       newElements.unshift({
         id: uid(), type: 'text',
@@ -284,11 +287,10 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
     if (files.length === 1) {
       addImage(urls[0]);
     } else {
-      // Auto-layout suggestion
       let layout: LayoutTemplate;
-      if (urls.length === 2) layout = LAYOUT_TEMPLATES[1]; // Two Vertical
-      else if (urls.length === 3) layout = LAYOUT_TEMPLATES[3]; // Three Layout
-      else if (urls.length >= 4) layout = LAYOUT_TEMPLATES[4]; // Four Grid
+      if (urls.length === 2) layout = LAYOUT_TEMPLATES[1];
+      else if (urls.length === 3) layout = LAYOUT_TEMPLATES[3];
+      else if (urls.length >= 4) layout = LAYOUT_TEMPLATES[4];
       else layout = LAYOUT_TEMPLATES[0];
 
       const pad = GAP;
@@ -375,7 +377,6 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
         const xTargets = targets.filter(t => t.type === 'x').map(t => t.value);
         const yTargets = targets.filter(t => t.type === 'y').map(t => t.value);
 
-        // Snap edges and center
         const lines: { x?: number; y?: number }[] = [];
         const sx1 = snapValue(newX, xTargets);
         const sx2 = snapValue(newX + el.width, xTargets);
@@ -440,7 +441,6 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
     wrapper.style.cssText = `width:${dims.w}px;height:${dims.h}px;position:absolute;left:-9999px;top:0;overflow:hidden;background:${slideToCapture.bg};`;
     container.appendChild(wrapper);
 
-    // Pre-load images
     const imgSrcs = slideToCapture.elements.filter(e => e.type === 'image' && e.src).map(e => e.src!);
     await Promise.all(imgSrcs.map(src => new Promise<void>(r => {
       const img = new Image(); img.crossOrigin = 'anonymous'; img.onload = () => r(); img.onerror = () => r(); img.src = src;
@@ -523,10 +523,12 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
       <div className="flex items-center h-12 px-3 shrink-0" style={{ borderBottom: `1px solid ${IG.border}` }}>
         <button onClick={onClose} className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors" style={{ color: IG.text }}
           onMouseEnter={e => { e.currentTarget.style.background = IG.surface2; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-          <X className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
         </button>
-        <span className="ml-3 text-[13px] font-semibold" style={{ color: IG.text }}>Carousel Designer</span>
-        <span className="ml-2 text-[11px]" style={{ color: IG.textSecondary }}>
+        <span className="ml-3 text-[13px] font-semibold truncate" style={{ color: IG.text }}>
+          {title || 'Carousel Designer'}
+        </span>
+        <span className="ml-2 text-[11px] shrink-0" style={{ color: IG.textSecondary }}>
           Slide {activeIdx + 1}/{slides.length} · {dims.w}×{dims.h}
         </span>
 
@@ -546,6 +548,16 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
             title="Grid overlay">
             <Grid3X3 className="h-4 w-4" />
           </button>
+
+          {/* Save */}
+          {onSave && (
+            <button onClick={() => onSave(slides)} disabled={saving}
+              className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-[13px] font-semibold transition-colors"
+              style={{ background: IG.surface2, color: IG.text, border: `1px solid ${IG.border}` }}>
+              <Save className="h-3.5 w-3.5" />
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          )}
 
           {/* Export */}
           <div className="relative">
@@ -629,7 +641,6 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
                     const x = GAP + (i * (dims.w - GAP * 2)) / 12;
                     return <div key={`gx${i}`} style={{ position: 'absolute', left: x, top: 0, width: 1, height: '100%', background: 'rgba(0,0,0,0.08)' }} />;
                   })}
-                  {/* Center lines */}
                   <div style={{ position: 'absolute', left: dims.w / 2, top: 0, width: 1, height: '100%', background: 'rgba(0,149,246,0.2)' }} />
                   <div style={{ position: 'absolute', left: 0, top: dims.h / 2, width: '100%', height: 1, background: 'rgba(0,149,246,0.2)' }} />
                 </div>
@@ -692,7 +703,7 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
                     <>
                       {['tl', 'tr', 'bl', 'br'].map(c => (
                         <div key={c}
-                          onMouseDown={e => onResizeMouseDown(e, el.id, c.replace('t', 't').replace('b', 'b').replace('l', 'l').replace('r', 'r'))}
+                          onMouseDown={e => onResizeMouseDown(e, el.id, c)}
                           className="absolute z-30"
                           style={{
                             width: 10, height: 10, background: '#fff', border: `2px solid ${IG.blue}`, borderRadius: 2,
@@ -719,7 +730,7 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
 
         {/* ═══ Right Panel — Element Properties ═══ */}
         {sel && (
-          <div className="w-64 shrink-0 overflow-y-auto" style={{ background: IG.surface, borderLeft: `1px solid ${IG.border}`, scrollbarWidth: 'thin' }}>
+          <div className="w-64 shrink-0 overflow-y-auto hidden md:block" style={{ background: IG.surface, borderLeft: `1px solid ${IG.border}`, scrollbarWidth: 'thin' }}>
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] uppercase tracking-[2px] font-semibold" style={{ color: IG.textSecondary }}>
@@ -932,7 +943,6 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
                       style={{ background: IG.surface2, border: `1px solid ${IG.border}`, color: IG.text }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = IG.blue; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = IG.border; }}>
-                      {/* Mini preview */}
                       <div className="w-full aspect-[4/5] rounded mb-2 relative" style={{ background: '#EDEDED' }}>
                         {lt.frames.map((f, i) => (
                           <div key={i} className="absolute rounded-sm" style={{
@@ -1007,9 +1017,6 @@ export default function CarouselDesigner({ photos = [], onClose }: CarouselDesig
                     </button>
                   ))}
                 </div>
-                <p className="mt-3 text-[11px]" style={{ color: IG.textSecondary }}>
-                  Post images in this order for correct grid appearance.
-                </p>
               </div>
             )}
           </div>
@@ -1039,13 +1046,11 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
 
       <div className="w-full max-w-[375px] rounded-[2.5rem] overflow-hidden shadow-2xl mx-4"
         style={{ background: IG.bg, border: `1px solid ${IG.border}`, maxHeight: '90vh' }}>
-        {/* Notch */}
         <div className="flex items-center justify-center pt-2 pb-1">
           <div className="w-32 h-5 rounded-full" style={{ background: IG.bg, border: `1px solid ${IG.border}` }} />
         </div>
 
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 28px)', scrollbarWidth: 'none' }}>
-          {/* Header */}
           <div className="flex items-center gap-3 px-3 py-2.5">
             <div className="h-8 w-8 rounded-full p-[2px]" style={{ background: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF, #515BD4)' }}>
               <div className="h-full w-full rounded-full flex items-center justify-center" style={{ background: IG.bg }}>
@@ -1056,13 +1061,9 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
             <MoreHorizontal className="h-5 w-5" style={{ color: IG.text }} />
           </div>
 
-          {/* Carousel */}
           <div className="relative w-full" style={{ aspectRatio: `${dims.w}/${dims.h}`, background: IG.surface }}>
-            {slides[idx] && (
-              <SlidePreviewRender slide={slides[idx]} dims={dims} />
-            )}
+            {slides[idx] && <SlidePreviewRender slide={slides[idx]} dims={dims} />}
 
-            {/* Dots */}
             {slides.length > 1 && (
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
                 {slides.map((_, i) => (
@@ -1072,7 +1073,6 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
               </div>
             )}
 
-            {/* Nav arrows */}
             {idx > 0 && (
               <button onClick={() => setIdx(idx - 1)} className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full flex items-center justify-center"
                 style={{ background: 'rgba(250,250,250,0.9)', color: 'rgba(0,0,0,0.7)' }}>
@@ -1086,7 +1086,6 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
               </button>
             )}
 
-            {/* Counter */}
             {slides.length > 1 && (
               <div className="absolute top-3 right-3 rounded-full px-2.5 py-0.5" style={{ background: 'rgba(0,0,0,0.6)' }}>
                 <span style={{ color: IG.text, fontSize: 12, fontWeight: 500 }}>{idx + 1}/{slides.length}</span>
@@ -1094,7 +1093,6 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
             )}
           </div>
 
-          {/* Actions */}
           <div className="flex items-center px-3 pt-2.5 pb-1">
             <div className="flex items-center gap-4 flex-1">
               <button onClick={() => setLiked(!liked)}><Heart className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : ''}`} style={liked ? {} : { color: IG.text }} /></button>
@@ -1115,7 +1113,6 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
             </p>
           </div>
 
-          {/* Home indicator */}
           <div className="flex justify-center pb-2 pt-1">
             <div className="w-28 h-1 rounded-full" style={{ background: 'rgba(250,250,250,0.3)' }} />
           </div>
