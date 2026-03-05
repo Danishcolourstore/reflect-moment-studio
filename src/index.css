@@ -68,45 +68,46 @@
   }
 
   .dark {
-    /* Dark bg — #17120F */
-    --background: 18 22% 8%;
-    /* Text — #F2EDE8 */
-    --foreground: 25 22% 93%;
-    /* Cards — #211C18 */
-    --card: 20 18% 11%;
-    --card-foreground: 25 22% 93%;
-    --popover: 20 18% 11%;
-    --popover-foreground: 25 22% 93%;
-    /* Gold stays identical */
-    --primary: 34 35% 64%;
-    --primary-foreground: 22 18% 10%;
-    /* Secondary — #2A2420 */
-    --secondary: 20 16% 15%;
-    --secondary-foreground: 25 22% 93%;
-    --muted: 20 16% 15%;
-    /* Muted text — #8A7D72 */
-    --muted-foreground: 22 11% 50%;
-    --accent: 34 35% 64%;
-    --accent-foreground: 22 18% 10%;
-    --destructive: 10 50% 45%;
-    --destructive-foreground: 25 22% 93%;
-    /* Borders — #332C26 */
-    --border: 22 16% 17%;
-    --input: 20 18% 11%;
-    --ring: 34 35% 64%;
-    --sidebar-background: 18 22% 8%;
-    --sidebar-foreground: 25 22% 93%;
-    --sidebar-primary: 25 22% 93%;
-    --sidebar-primary-foreground: 18 22% 8%;
-    --sidebar-accent: 20 18% 11%;
-    --sidebar-accent-foreground: 25 22% 93%;
-    --sidebar-border: 22 16% 17%;
-    --sidebar-ring: 34 35% 64%;
-    --gold: 34 35% 64%;
-    --gold-hover: 34 38% 57%;
-    --accent-subtle: 20 16% 15%;
-    --overlay-tint: 30 20% 69%;
-    --overlay-warm: 20 30% 8%;
+    /* Dark bg — #000000 pure black */
+    --background: 0 0% 0%;
+    /* Text — #FFFFFF */
+    --foreground: 0 0% 100%;
+    /* Cards — #0B0B0B */
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 100%;
+    /* Gold — #D4AF37 */
+    --primary: 45 64% 52%;
+    --primary-foreground: 0 0% 0%;
+    /* Secondary — #111111 */
+    --secondary: 0 0% 7%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 7%;
+    /* Muted text — #9A9A9A */
+    --muted-foreground: 0 0% 60%;
+    --accent: 45 64% 52%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    /* Borders — #1A1A1A */
+    --border: 0 0% 10%;
+    --input: 0 0% 4%;
+    --ring: 45 64% 52%;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 4%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 10%;
+    --sidebar-ring: 45 64% 52%;
+    /* Gold accents */
+    --gold: 45 64% 52%;
+    --gold-hover: 47 72% 56%;
+    --accent-subtle: 0 0% 7%;
+    --overlay-tint: 0 0% 40%;
+    --overlay-warm: 0 0% 0%;
 
     --editorial-heading: 'Cormorant Garamond', serif;
     --editorial-body: 'Jost', sans-serif;
