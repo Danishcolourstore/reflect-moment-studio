@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
 import { useInfinitePhotos } from '@/hooks/use-infinite-photos';
 import { ProgressiveImage } from '@/components/ProgressiveImage';
+import { MinimalPortfolioLayout } from '@/components/MinimalPortfolioLayout';
+import { StoryBookLayout } from '@/components/StoryBookLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { useGuestSession } from '@/hooks/use-guest-session';
@@ -779,6 +781,39 @@ const PublicGallery = () => {
             ))}
             {infiniteSentinel}
           </div>
+        );
+
+      case 'minimal-portfolio':
+        return (
+          <>
+            <MinimalPortfolioLayout
+              photos={visiblePhotos.map(p => ({ ...p, is_favorite: isFavorite(p.id) }))}
+              eventName={event.name}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
+              canDownload={canDownload}
+              onOpenLightbox={openLightbox}
+              watermarkText={showWatermark ? (studioProfile?.studio_name ?? null) : null}
+            />
+            {infiniteSentinel}
+          </>
+        );
+
+      case 'storybook':
+        return (
+          <>
+            <StoryBookLayout
+              photos={visiblePhotos.map(p => ({ ...p, is_favorite: isFavorite(p.id) }))}
+              eventName={event.name}
+              eventDate={event.event_date}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
+              canDownload={canDownload}
+              onOpenLightbox={openLightbox}
+              watermarkText={showWatermark ? (studioProfile?.studio_name ?? null) : null}
+            />
+            {infiniteSentinel}
+          </>
         );
 
       default:

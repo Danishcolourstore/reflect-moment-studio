@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink } from 'lucide-react';
+import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink, Image, BookOpen } from 'lucide-react';
 import { SmartQRAccess } from '@/components/events/SmartQRAccess';
 import { GALLERY_STYLES, DEFAULT_LAYOUT_FOR_STYLE, type GalleryStyleValue } from '@/lib/gallery-styles';
 import { WEBSITE_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
@@ -20,6 +20,8 @@ const LAYOUT_OPTIONS = [
   { value: 'pixieset', label: 'Pixieset', icon: Sparkles },
   { value: 'cinematic', label: 'Cinematic', icon: Clapperboard },
   { value: 'mosaic', label: 'Mosaic', icon: LayoutDashboard },
+  { value: 'minimal-portfolio', label: 'Portfolio', icon: Image },
+  { value: 'storybook', label: 'Story Book', icon: BookOpen },
 ] as const;
 
 const PREVIEW_HEIGHTS: Record<string, number[]> = {
@@ -31,6 +33,8 @@ const PREVIEW_HEIGHTS: Record<string, number[]> = {
   pixieset:   [5, 3, 3, 4, 3, 4],
   cinematic:  [4, 2, 5, 2, 4, 3],
   mosaic:     [5, 1, 3, 2, 4, 1],
+  'minimal-portfolio': [5, 5, 5, 5, 5, 5],
+  storybook:  [5, 3, 3, 2, 2, 5],
 };
 
 interface EventData {
