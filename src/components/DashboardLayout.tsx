@@ -4,7 +4,7 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  LayoutGrid, Camera, Upload, Users, BarChart2, Palette, User,
+  LayoutGrid, Camera, BookOpen, Users, BarChart2, Palette, User,
   LogOut, Moon, Sun, Bell, ChevronRight, Menu,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,7 +22,7 @@ import { useStorageUsage, formatBytes, PLAN_LIMITS } from '@/hooks/use-storage-u
 const NAV_ITEMS = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
-  { title: 'Upload', url: '/dashboard/upload', icon: Upload },
+  { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
   { title: 'Clients', url: '/dashboard/clients', icon: Users },
   { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart2 },
   { title: 'Notifications', url: '/dashboard/notifications', icon: Bell },
@@ -44,7 +44,7 @@ interface Profile {
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/events': 'Events',
-  '/dashboard/upload': 'Upload',
+  '/dashboard/storybook': 'Storybook',
   '/dashboard/clients': 'Clients',
   '/dashboard/analytics': 'Analytics',
   '/dashboard/notifications': 'Notifications',
