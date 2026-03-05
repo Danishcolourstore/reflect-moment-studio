@@ -88,6 +88,7 @@ interface StudioExtended {
   footer_text: string | null;
   cover_url: string | null;
   font_style: string | null;
+  username: string | null;
 }
 
 /* ── Ken Burns keyframe (scoped, injected once) ── */
@@ -318,7 +319,7 @@ const PublicGallery = () => {
 
     // Fetch extended studio profile
     const { data: studioExt } = await (supabase.from('studio_profiles')
-      .select('bio, display_name, instagram, website, whatsapp, footer_text, cover_url, font_style') as any)
+      .select('bio, display_name, instagram, website, whatsapp, footer_text, cover_url, font_style, username') as any)
       .eq('user_id', ev.user_id).maybeSingle();
     if (studioExt) setStudioExtended(studioExt as unknown as StudioExtended);
 
@@ -1077,7 +1078,7 @@ const PublicGallery = () => {
       )}
 
       {/* ── WEBSITE FOOTER ── */}
-      <WebsiteFooter template={websiteTemplate} branding={combinedBranding} />
+      <WebsiteFooter template={websiteTemplate} branding={combinedBranding} photographerUsername={studioExtended?.username} />
 
       {/* ── Lightbox ── */}
       <PhotoLightbox

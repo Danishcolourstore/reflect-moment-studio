@@ -34,6 +34,7 @@ import NotFound from "./pages/NotFound";
 import { GalleryShell } from "./components/GalleryShell";
 import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
+import PhotographerFeed from "./pages/PhotographerFeed";
 import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
 import AdminGate from "./pages/admin/AdminGate";
@@ -406,6 +407,7 @@ const AppRoutes = () => {
       />
 
       <Route path="/find/:token" element={<GuestFinder />} />
+      <Route path="/p/:username" element={<PhotographerFeed />} />
 
       <Route
         path="/"
