@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ProgressiveImage } from '@/components/ProgressiveImage';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Camera, MapPin, Calendar, Instagram, Globe, ExternalLink } from 'lucide-react';
+import { Play, Instagram, Globe, Mail, Phone, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface StudioData {
@@ -14,12 +14,15 @@ interface StudioData {
   website: string | null;
   cover_url: string | null;
   username: string | null;
+  whatsapp: string | null;
 }
 
 interface ProfileData {
   studio_name: string;
   studio_logo_url: string | null;
   studio_accent_color: string | null;
+  email: string | null;
+  mobile: string | null;
 }
 
 interface FeedEvent {
@@ -49,15 +52,13 @@ const PhotographerFeed = () => {
   const [coverPhotos, setCoverPhotos] = useState<Record<string, FeedPhoto[]>>({});
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
 
   useEffect(() => {
     if (!username) return;
     (async () => {
-      // Find studio by username
       const { data: studioData } = await (supabase
         .from('studio_profiles')
-        .select('user_id, display_name, bio, instagram, website, cover_url, username') as any)
+        .select('user_id, display_name, bio, instagram, website, cover_url, username, whatsapp') as any)
         .eq('username', username)
         .maybeSingle();
 
@@ -70,15 +71,13 @@ const PhotographerFeed = () => {
       const sd = studioData as unknown as StudioData;
       setStudio(sd);
 
-      // Fetch profile
       const { data: profileData } = await (supabase
         .from('profiles')
-        .select('studio_name, studio_logo_url, studio_accent_color') as any)
+        .select('studio_name, studio_logo_url, studio_accent_color, email, mobile') as any)
         .eq('user_id', sd.user_id)
         .maybeSingle();
       if (profileData) setProfile(profileData as unknown as ProfileData);
 
-      // Fetch feed-visible published events
       const { data: eventsData } = await (supabase
         .from('events')
         .select('id, name, slug, event_date, location, cover_url, photo_count, gallery_layout') as any)
@@ -90,7 +89,6 @@ const PhotographerFeed = () => {
       const typedEvents = (eventsData || []) as unknown as FeedEvent[];
       setEvents(typedEvents);
 
-      // Fetch 1 cover photo per event for those without cover_url
       const noCover = typedEvents.filter(e => !e.cover_url);
       if (noCover.length > 0) {
         const photos: Record<string, FeedPhoto[]> = {};
@@ -110,14 +108,16 @@ const PhotographerFeed = () => {
     })();
   }, [username]);
 
-  const accent = profile?.studio_accent_color || '#C6A77B';
-
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: '#0C0B08' }}>
-        <Skeleton className="h-[50vh] w-full rounded-none" />
-        <div className="max-w-5xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[4/3] rounded-lg" />)}
+      <div className="min-h-screen bg-black">
+        <Skeleton className="h-[70vh] w-full rounded-none" />
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <Skeleton className="h-6 w-48 mx-auto mb-4" />
+          <Skeleton className="h-20 w-full max-w-lg mx-auto" />
+        </div>
+        <div className="max-w-6xl mx-auto px-4 grid grid-cols-3 gap-1">
+          {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[4/3] rounded-none" />)}
         </div>
       </div>
     );
@@ -125,14 +125,12 @@ const PhotographerFeed = () => {
 
   if (notFound || !studio) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0C0B08' }}>
+      <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="text-center">
-          <h1 className="text-3xl font-light" style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}>
+          <h1 className="text-3xl font-light text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
             Photographer Not Found
           </h1>
-          <p className="mt-3 text-sm" style={{ color: '#A6A197' }}>
-            This portfolio link doesn't exist.
-          </p>
+          <p className="mt-3 text-sm text-neutral-500">This portfolio link doesn't exist.</p>
         </div>
       </div>
     );
@@ -141,151 +139,215 @@ const PhotographerFeed = () => {
   const studioName = studio.display_name || profile?.studio_name || 'Photographer';
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#0C0B08', color: '#EDEAE3', fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
 
-      {/* ── Hero / Header ── */}
-      <div className="relative" style={{ minHeight: '50vh' }}>
+      {/* ── Navigation ── */}
+      <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 sm:px-10 py-5"
+        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)' }}>
+        <div className="flex items-center gap-8">
+          <span className="text-[10px] tracking-[0.3em] uppercase text-white/80 cursor-pointer hover:text-white transition-colors">
+            Home
+          </span>
+          <span className="text-[10px] tracking-[0.3em] uppercase text-white/80 cursor-pointer hover:text-white transition-colors">
+            About
+          </span>
+        </div>
+
+        {/* Center logo */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          {profile?.studio_logo_url ? (
+            <img src={profile.studio_logo_url} alt="" className="h-10 object-contain invert brightness-200" />
+          ) : (
+            <span className="text-white text-sm tracking-[0.15em] uppercase font-light"
+              style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '14px' }}>
+              {studioName}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-8">
+          <span className="text-[10px] tracking-[0.3em] uppercase text-white/80 cursor-pointer hover:text-white transition-colors">
+            Work
+          </span>
+          <span className="text-[10px] tracking-[0.3em] uppercase text-white/80 cursor-pointer hover:text-white transition-colors">
+            Contact
+          </span>
+        </div>
+      </nav>
+
+      {/* ── Hero ── */}
+      <section className="relative h-[75vh] sm:h-[85vh] overflow-hidden">
         {studio.cover_url ? (
           <>
             <img src={studio.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #0C0B08 0%, rgba(12,11,8,0.4) 50%, rgba(12,11,8,0.6) 100%)' }} />
+            <div className="absolute inset-0 bg-black/20" />
           </>
         ) : (
-          <div className="absolute inset-0" style={{ backgroundColor: '#131109' }} />
+          <div className="absolute inset-0 bg-neutral-900" />
         )}
+      </section>
 
-        <div className="relative z-10 flex flex-col items-center justify-end h-full min-h-[50vh] pb-16 px-6 text-center">
-          {profile?.studio_logo_url ? (
-            <img src={profile.studio_logo_url} alt="" className="h-16 object-contain mb-6 opacity-90" />
-          ) : null}
-
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-[0.02em]"
-            style={{ fontFamily: "'Playfair Display', serif" }}>
-            {studioName}
-          </h1>
-
+      {/* ── About / Bio ── */}
+      <section className="bg-white py-20 sm:py-28 px-6">
+        <div className="max-w-xl mx-auto text-center">
+          <h2 className="text-lg sm:text-xl font-normal text-neutral-800 mb-6"
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+            Hi, I'm {studioName.split(' ')[0]}.
+          </h2>
           {studio.bio && (
-            <p className="mt-4 max-w-lg text-sm leading-relaxed" style={{ color: '#A6A197' }}>
+            <p className="text-[13px] sm:text-[14px] leading-[1.9] text-neutral-600 mb-8"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}>
               {studio.bio}
             </p>
           )}
-
-          <div className="flex items-center gap-4 mt-6">
-            {studio.instagram && (
-              <a href={`https://instagram.com/${studio.instagram.replace('@', '')}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs transition-colors hover:opacity-80"
-                style={{ color: accent }}>
-                <Instagram className="h-4 w-4" /> {studio.instagram}
-              </a>
-            )}
-            {studio.website && (
-              <a href={studio.website.startsWith('http') ? studio.website : `https://${studio.website}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs transition-colors hover:opacity-80"
-                style={{ color: accent }}>
-                <Globe className="h-4 w-4" /> Website
-              </a>
-            )}
-          </div>
+          <p className="text-[14px] italic text-neutral-700"
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+            Enjoy!
+          </p>
         </div>
-      </div>
+      </section>
 
-      {/* ── Portfolio Label ── */}
-      <div className="text-center py-12">
-        <div className="w-8 h-[1px] mx-auto mb-4" style={{ backgroundColor: accent }} />
-        <p className="text-xs tracking-[0.3em] uppercase" style={{ color: '#A6A197' }}>
-          Portfolio · {events.length} {events.length === 1 ? 'shoot' : 'shoots'}
-        </p>
-      </div>
-
-      {/* ── Feed Grid ── */}
-      {events.length === 0 ? (
-        <div className="text-center py-20">
-          <Camera className="mx-auto h-10 w-10 mb-4" style={{ color: '#A6A197', opacity: 0.3 }} />
-          <p className="text-sm" style={{ color: '#A6A197' }}>No public shoots yet</p>
+      {/* ── Portfolio Feed Heading ── */}
+      {events.length > 0 && (
+        <div className="bg-white pb-4 pt-2 text-center">
+          <p className="text-[10px] tracking-[0.35em] uppercase text-white font-medium"
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              color: '#1a1a1a',
+            }}>
+            Photographer Feed
+          </p>
         </div>
-      ) : (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+      )}
+
+      {/* ── Portfolio Grid ── */}
+      {events.length > 0 && (
+        <section className="bg-white pb-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[2px]">
             {events.map(ev => {
               const coverUrl = ev.cover_url || coverPhotos[ev.id]?.[0]?.url || null;
-              const isHovered = hoveredEvent === ev.id;
 
               return (
                 <a
                   key={ev.id}
                   href={`/event/${ev.slug}`}
                   onClick={(e) => { e.preventDefault(); navigate(`/event/${ev.slug}`); }}
-                  className="group relative overflow-hidden cursor-pointer block"
-                  style={{ borderRadius: '4px' }}
-                  onMouseEnter={() => setHoveredEvent(ev.id)}
-                  onMouseLeave={() => setHoveredEvent(null)}
+                  className="group relative block overflow-hidden cursor-pointer"
                 >
-                  <div className="aspect-[4/3] overflow-hidden" style={{ backgroundColor: '#17140D' }}>
+                  <div className="aspect-[4/3] overflow-hidden bg-neutral-100">
                     {coverUrl ? (
-                      <div className="h-full w-full transition-transform duration-700 ease-out"
-                        style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}>
+                      <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-105">
                         <ProgressiveImage src={coverUrl} alt={ev.name} className="h-full w-full object-cover" />
                       </div>
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center">
-                        <Camera className="h-8 w-8" style={{ color: '#A6A197', opacity: 0.2 }} />
+                      <div className="h-full w-full bg-neutral-200" />
+                    )}
+
+                    {/* Dark overlay on hover */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-500" />
+
+                    {/* Play button overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-400">
+                      <div className="w-14 h-14 rounded-full border-2 border-white/80 flex items-center justify-center">
+                        <Play className="h-5 w-5 text-white/90 ml-0.5" fill="white" fillOpacity={0.9} />
                       </div>
-                    )}
-
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 transition-opacity duration-500"
-                      style={{
-                        background: 'linear-gradient(to top, rgba(12,11,8,0.85) 0%, rgba(12,11,8,0.1) 50%, transparent 100%)',
-                        opacity: isHovered ? 1 : 0.6,
-                      }} />
-                  </div>
-
-                  {/* Info overlay */}
-                  <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5">
-                    <h3 className="text-base sm:text-lg font-light tracking-wide"
-                      style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}>
-                      {ev.name}
-                    </h3>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-[10px] tracking-[0.15em] uppercase flex items-center gap-1"
-                        style={{ color: '#A6A197' }}>
-                        <Calendar className="h-3 w-3" style={{ color: accent }} />
-                        {format(new Date(ev.event_date), 'MMM yyyy')}
-                      </span>
-                      {ev.location && (
-                        <span className="text-[10px] tracking-[0.15em] uppercase flex items-center gap-1"
-                          style={{ color: '#A6A197' }}>
-                          <MapPin className="h-3 w-3" style={{ color: accent }} />
-                          {ev.location}
-                        </span>
-                      )}
                     </div>
-                    {ev.photo_count > 0 && (
-                      <p className="mt-2 text-[10px] tracking-[0.2em] uppercase" style={{ color: accent, opacity: 0.7 }}>
-                        {ev.photo_count} photos
-                      </p>
-                    )}
-                  </div>
 
-                  {/* View arrow on hover */}
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <ExternalLink className="h-4 w-4" style={{ color: accent }} />
+                    {/* Shoot title at bottom-left */}
+                    <div className="absolute bottom-0 inset-x-0 p-4">
+                      <p className="text-[11px] tracking-[0.15em] text-white/90 lowercase italic"
+                        style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '13px' }}>
+                        {ev.name.toLowerCase()}
+                      </p>
+                    </div>
                   </div>
                 </a>
               );
             })}
           </div>
-        </div>
+        </section>
       )}
 
+      {events.length === 0 && (
+        <section className="bg-white py-20 text-center">
+          <p className="text-sm text-neutral-400">No public shoots yet.</p>
+        </section>
+      )}
+
+      {/* ── Contact / Studio Info ── */}
+      <section className="bg-white py-20 sm:py-28 px-6">
+        <div className="max-w-md mx-auto text-center">
+          <h3 className="text-[11px] tracking-[0.3em] uppercase text-neutral-800 mb-10 font-medium"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            Contact Us
+          </h3>
+
+          <div className="space-y-5 text-[13px] text-neutral-500" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+            {/* Studio / Photographer Name */}
+            <p className="text-neutral-700 text-[15px]">{studioName}</p>
+
+            {profile?.email && (
+              <a href={`mailto:${profile.email}`} className="flex items-center justify-center gap-2 hover:text-neutral-800 transition-colors">
+                <Mail className="h-3.5 w-3.5" />
+                <span>{profile.email}</span>
+              </a>
+            )}
+
+            {profile?.mobile && (
+              <a href={`tel:${profile.mobile}`} className="flex items-center justify-center gap-2 hover:text-neutral-800 transition-colors">
+                <Phone className="h-3.5 w-3.5" />
+                <span>{profile.mobile}</span>
+              </a>
+            )}
+
+            {studio.instagram && (
+              <a
+                href={`https://instagram.com/${studio.instagram.replace('@', '')}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 hover:text-neutral-800 transition-colors"
+              >
+                <Instagram className="h-3.5 w-3.5" />
+                <span>{studio.instagram}</span>
+              </a>
+            )}
+
+            {studio.website && (
+              <a
+                href={studio.website.startsWith('http') ? studio.website : `https://${studio.website}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 hover:text-neutral-800 transition-colors"
+              >
+                <Globe className="h-3.5 w-3.5" />
+                <span>Website</span>
+              </a>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* ── Footer ── */}
-      <div className="text-center py-12 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <p className="text-[10px] tracking-[0.3em] uppercase" style={{ color: '#A6A197', opacity: 0.4 }}>
+      <footer className="bg-[#1a1a1a] py-12 px-6 text-center">
+        <p className="text-[10px] tracking-[0.3em] uppercase text-white/70 mb-4">
+          © {studioName} {new Date().getFullYear()} | All Rights Reserved
+        </p>
+        <div className="flex items-center justify-center gap-5">
+          {studio.instagram && (
+            <a href={`https://instagram.com/${studio.instagram.replace('@', '')}`}
+              target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white/80 transition-colors">
+              <Instagram className="h-3.5 w-3.5" />
+            </a>
+          )}
+          {studio.website && (
+            <a href={studio.website.startsWith('http') ? studio.website : `https://${studio.website}`}
+              target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white/80 transition-colors">
+              <Globe className="h-3.5 w-3.5" />
+            </a>
+          )}
+        </div>
+        <p className="text-[8px] tracking-[0.2em] uppercase text-white/25 mt-6">
           Powered by MirrorAI
         </p>
-      </div>
+      </footer>
     </div>
   );
 };
