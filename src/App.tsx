@@ -36,6 +36,8 @@ import { GalleryShell } from "./components/GalleryShell";
 import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
 import PhotographerFeed from "./pages/PhotographerFeed";
+import DashboardFeed from "./pages/DashboardFeed";
+import DashboardDownloads from "./pages/DashboardDownloads";
 import StorybookCreator from "./pages/StorybookCreator";
 import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
@@ -386,6 +388,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Billing />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/feed"
+        element={
+          <ProtectedRoute>
+            <DashboardFeed />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/downloads"
+        element={
+          <ProtectedRoute>
+            <DashboardDownloads />
           </ProtectedRoute>
         }
       />
