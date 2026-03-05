@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Camera, Copy, Sparkles, MessageCircle } from 'lucide-react';
+import { Check, Camera, Copy, Sparkles, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 
-
+const STEPS = ['Studio', 'Logo', 'Event', 'Client'];
 
 const Onboarding = () => {
   const { user } = useAuth();
@@ -34,7 +34,7 @@ const Onboarding = () => {
       .eq('user_id', user.id).single()
       .then(({ data }: any) => {
         if (data?.onboarding_completed) navigate('/dashboard', { replace: true });
-        // Don't pre-fill studio name from profile
+        if (data?.studio_name) setStudioName(data.studio_name);
       });
   }, [user, navigate]);
 
@@ -103,6 +103,24 @@ const Onboarding = () => {
     <DashboardLayout>
       <div className="pointer-events-auto flex items-center justify-center min-h-[70vh]">
         <div className="bg-card border border-border rounded-xl shadow-md p-8 max-w-[600px] w-full">
+          {/* Step indicator */}
+          <div className="flex items-center justify-center gap-0 mb-8">
+            {STEPS.map((s, i) => (
+              <div key={s} className="flex items-center">
+                <div className="flex flex-col items-center">
+                  <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium border-2 transition-colors ${
+                    i < step ? 'bg-primary border-primary text-primary-foreground' :
+                    i === step ? 'border-primary text-primary' :
+                    'border-border text-muted-foreground'
+                  }`}>
+                    {i < step ? <Check className="h-4 w-4" /> : i + 1}
+                  </div>
+                  <span className="text-[9px] text-muted-foreground mt-1 uppercase tracking-wider">{s}</span>
+                </div>
+                {i < STEPS.length - 1 && <div className={`w-12 h-px mx-1 mb-4 ${i < step ? 'bg-primary' : 'bg-border'}`} />}
+              </div>
+            ))}
+          </div>
 
           {step === 0 && (
             <div className="space-y-5">
@@ -112,7 +130,11 @@ const Onboarding = () => {
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Name</label>
-                <Input value={studioName} onChange={e => { setStudioName(e.target.value); setSlug(generateSlug(e.target.value)); }} placeholder="Enter studio name" className="mt-1 bg-background" required />
+                <Input value={studioName} onChange={e => { setStudioName(e.target.value); setSlug(generateSlug(e.target.value)); }} className="mt-1 bg-background" required />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Tagline</label>
+                <Input value={tagline} onChange={e => setTagline(e.target.value)} placeholder="Reflections of Your Moments" className="mt-1 bg-background" />
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Slug</label>

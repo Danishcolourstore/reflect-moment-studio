@@ -36,8 +36,6 @@ import { GalleryShell } from "./components/GalleryShell";
 import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
 import PhotographerFeed from "./pages/PhotographerFeed";
-import DashboardFeed from "./pages/DashboardFeed";
-import DashboardDownloads from "./pages/DashboardDownloads";
 import StorybookCreator from "./pages/StorybookCreator";
 import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
@@ -67,12 +65,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     (supabase.from("profiles").select("suspended") as any)
       .eq("user_id", user.id)
       .single()
-      .then(({ data, error }: any) => {
-        if (error || !data) {
-          setSuspended(false);
-        } else {
-          setSuspended(data.suspended ?? false);
-        }
+      .then(({ data }: any) => {
+        setSuspended(data?.suspended ?? false);
       });
   }, [user]);
 
@@ -392,22 +386,6 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Billing />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/feed"
-        element={
-          <ProtectedRoute>
-            <DashboardFeed />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard/downloads"
-        element={
-          <ProtectedRoute>
-            <DashboardDownloads />
           </ProtectedRoute>
         }
       />

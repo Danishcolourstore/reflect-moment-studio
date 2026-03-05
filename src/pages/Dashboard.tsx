@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Image, Eye, Download, Plus, Upload, ChevronRight, Instagram, Globe, Mail, Phone } from 'lucide-react';
+import { Camera, Image, Eye, Download, Plus, Upload, Clock, ChevronRight } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { CreateEventModal } from '@/components/CreateEventModal';
 import { ShareModal } from '@/components/ShareModal';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
+import { format, formatDistanceToNow } from 'date-fns';
 
 interface DashEvent {
   id: string; name: string; slug: string; event_date: string; location: string | null;
@@ -104,14 +105,11 @@ const Dashboard = () => {
           <PixisetStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
-          <PixisetStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/downloads')} />
+          <PixisetStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/analytics')} />
         </div>
       )}
 
 
-
-      {/* ── Studio Info with Feed Link ── */}
-      <StudioInfoSection profile={profile} />
 
       <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
       {shareEvent && <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.name} pin={shareEvent.gallery_pin} />}
@@ -138,83 +136,6 @@ function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; lab
       <p className="text-foreground leading-none" style={{ fontFamily: 'var(--editorial-heading)', fontSize: '64px', fontWeight: 300 }}>
         {value}
       </p>
-    </div>
-  );
-}
-
-/* ── Studio Info Section ── */
-function StudioInfoSection({ profile }: { profile: any }) {
-  const [studio, setStudio] = useState<any>(null);
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data } = await (supabase
-        .from('studio_profiles')
-        .select('display_name, instagram, website, whatsapp') as any)
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (data) setStudio(data);
-    })();
-  }, [user]);
-
-  if (!profile && !studio) return null;
-
-  const studioName = studio?.display_name || profile?.studio_name || 'Studio';
-
-  return (
-    <div className="mt-14 mb-4">
-      <div className="text-center mb-6">
-        <p className="font-sans text-muted-foreground" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase' }}>
-          Studio Information
-        </p>
-      </div>
-
-      <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 text-center space-y-4">
-        <button
-          onClick={() => navigate('/dashboard/feed')}
-          className="font-serif text-foreground text-lg tracking-wide hover:text-primary transition-colors cursor-pointer underline-offset-4 hover:underline"
-        >
-          {studioName}
-        </button>
-
-        <div className="space-y-3 text-[13px] text-muted-foreground font-sans">
-          {profile?.email && (
-            <a href={`mailto:${profile.email}`} className="flex items-center justify-center gap-2 hover:text-foreground transition-colors">
-              <Mail className="h-3.5 w-3.5 text-primary/60" />
-              <span>{profile.email}</span>
-            </a>
-          )}
-          {profile?.mobile && (
-            <a href={`tel:${profile.mobile}`} className="flex items-center justify-center gap-2 hover:text-foreground transition-colors">
-              <Phone className="h-3.5 w-3.5 text-primary/60" />
-              <span>{profile.mobile}</span>
-            </a>
-          )}
-          {studio?.instagram && (
-            <a
-              href={`https://instagram.com/${studio.instagram.replace('@', '')}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 hover:text-foreground transition-colors"
-            >
-              <Instagram className="h-3.5 w-3.5 text-primary/60" />
-              <span>{studio.instagram}</span>
-            </a>
-          )}
-          {studio?.website && (
-            <a
-              href={studio.website.startsWith('http') ? studio.website : `https://${studio.website}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 hover:text-foreground transition-colors"
-            >
-              <Globe className="h-3.5 w-3.5 text-primary/60" />
-              <span>Website</span>
-            </a>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
