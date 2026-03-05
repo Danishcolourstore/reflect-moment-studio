@@ -131,6 +131,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
   const canvasRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const swipeStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   const dims = RATIO_DIMS[ratio];
   const slide = slides[activeIdx];
@@ -591,7 +592,24 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
       <div className="flex flex-1 overflow-hidden">
         {/* Canvas area */}
         <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden" style={{ background: IG.bg }}
-          onClick={() => { setSelectedId(null); setShowExportMenu(false); }}>
+          onClick={() => { setSelectedId(null); setShowExportMenu(false); }}
+          onTouchStart={e => {
+            if (e.touches.length === 1) {
+              swipeStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() };
+            }
+          }}
+          onTouchEnd={e => {
+            if (!swipeStartRef.current) return;
+            const touch = e.changedTouches[0];
+            const dx = touch.clientX - swipeStartRef.current.x;
+            const dy = touch.clientY - swipeStartRef.current.y;
+            const dt = Date.now() - swipeStartRef.current.time;
+            swipeStartRef.current = null;
+            if (dt < 400 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              if (dx < 0 && activeIdx < slides.length - 1) setActiveIdx(activeIdx + 1);
+              else if (dx > 0 && activeIdx > 0) setActiveIdx(activeIdx - 1);
+            }
+          }}>
 
           {/* Slide strip */}
           <div className="absolute top-3 left-0 right-0 flex items-center justify-center gap-2 z-10 px-4">
