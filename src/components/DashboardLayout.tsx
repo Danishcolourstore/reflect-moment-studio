@@ -254,8 +254,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {children}
 
           <div className="mt-16 pb-8 text-center">
-            <p className="font-sans" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: '#FFFFFF' }}>
-              Photographer Feed
+            <p className="font-sans text-muted-foreground" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase' }}>
+              Colour Store Preset Universe
             </p>
           </div>
         </div>
