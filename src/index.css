@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -62,6 +62,9 @@
     --accent-subtle: 32 38% 90%;
     --overlay-tint: 30 20% 69%;
     --overlay-warm: 20 30% 8%;
+
+    --editorial-heading: 'Cormorant Garamond', serif;
+    --editorial-body: 'Jost', sans-serif;
   }
 
   .dark {
@@ -104,6 +107,48 @@
     --accent-subtle: 20 16% 15%;
     --overlay-tint: 30 20% 69%;
     --overlay-warm: 20 30% 8%;
+
+    --editorial-heading: 'Cormorant Garamond', serif;
+    --editorial-body: 'Jost', sans-serif;
+  }
+
+  /* Editorial theme — warm, light, magazine-like */
+  .editorial {
+    --background: 36 22% 93%;       /* #F3EFE9 */
+    --foreground: 40 5% 16%;        /* #2B2A28 */
+    --card: 0 0% 100%;              /* #FFFFFF */
+    --card-foreground: 40 5% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 40 5% 16%;
+    --primary: 40 5% 16%;           /* #2B2A28 — buttons */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 34 16% 88%;        /* #E6E0D8 */
+    --secondary-foreground: 40 5% 16%;
+    --muted: 34 16% 88%;
+    --muted-foreground: 30 7% 46%;  /* #7B756D */
+    --accent: 28 14% 66%;           /* #B7AA98 */
+    --accent-foreground: 40 5% 16%;
+    --destructive: 10 50% 52%;
+    --destructive-foreground: 36 22% 93%;
+    --border: 32 18% 83%;           /* #DDD6CC */
+    --input: 34 16% 88%;
+    --ring: 28 14% 66%;
+    --sidebar-background: 36 22% 93%;
+    --sidebar-foreground: 40 5% 16%;
+    --sidebar-primary: 40 5% 16%;
+    --sidebar-primary-foreground: 36 22% 93%;
+    --sidebar-accent: 34 16% 88%;
+    --sidebar-accent-foreground: 40 5% 16%;
+    --sidebar-border: 32 18% 83%;
+    --sidebar-ring: 28 14% 66%;
+    --gold: 28 14% 66%;
+    --gold-hover: 28 18% 56%;
+    --accent-subtle: 34 16% 88%;
+    --overlay-tint: 30 10% 60%;
+    --overlay-warm: 36 22% 93%;
+
+    --editorial-heading: 'Playfair Display', serif;
+    --editorial-body: 'DM Sans', sans-serif;
   }
 }
 
@@ -114,7 +159,7 @@
 
   html, body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Jost', sans-serif;
+    font-family: var(--editorial-body, 'Jost', sans-serif);
     font-weight: 400;
     font-size: 15px;
     line-height: 1.6;
@@ -136,12 +181,17 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--editorial-heading, 'Cormorant Garamond', serif);
   }
 
   h1 { font-size: 48px; font-weight: 500; }
   h2 { font-size: 36px; font-weight: 400; }
   h3 { font-size: 28px; font-weight: 400; }
+
+  /* Editorial theme overrides */
+  .editorial h1 { font-size: 36px; font-weight: 600; }
+  .editorial h2 { font-size: 24px; font-weight: 500; }
+  .editorial h3 { font-size: 20px; font-weight: 500; }
 
   ::selection {
     background: hsl(var(--gold));

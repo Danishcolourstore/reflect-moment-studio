@@ -403,6 +403,100 @@ export type Database = {
         }
         Relationships: []
       }
+      culled_photos: {
+        Row: {
+          composition: number | null
+          created_at: string | null
+          duplicate_risk: boolean | null
+          exposure: number | null
+          eyes_open: boolean | null
+          filename: string
+          id: string
+          rating: string
+          reason: string | null
+          session_id: string | null
+          sharpness: number | null
+          url: string | null
+        }
+        Insert: {
+          composition?: number | null
+          created_at?: string | null
+          duplicate_risk?: boolean | null
+          exposure?: number | null
+          eyes_open?: boolean | null
+          filename: string
+          id?: string
+          rating?: string
+          reason?: string | null
+          session_id?: string | null
+          sharpness?: number | null
+          url?: string | null
+        }
+        Update: {
+          composition?: number | null
+          created_at?: string | null
+          duplicate_risk?: boolean | null
+          exposure?: number | null
+          eyes_open?: boolean | null
+          filename?: string
+          id?: string
+          rating?: string
+          reason?: string | null
+          session_id?: string | null
+          sharpness?: number | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "culled_photos_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "culling_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      culling_sessions: {
+        Row: {
+          best_count: number | null
+          created_at: string | null
+          event_id: string | null
+          id: string
+          maybe_count: number | null
+          reject_count: number | null
+          total_photos: number | null
+          user_id: string
+        }
+        Insert: {
+          best_count?: number | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          maybe_count?: number | null
+          reject_count?: number | null
+          total_photos?: number | null
+          user_id: string
+        }
+        Update: {
+          best_count?: number | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          maybe_count?: number | null
+          reject_count?: number | null
+          total_photos?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "culling_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_analytics: {
         Row: {
           downloads_count: number
@@ -1183,6 +1277,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string | null
+          force_logout_requested: boolean
           id: string
           mobile: string | null
           onboarding_completed: boolean
@@ -1202,6 +1297,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          force_logout_requested?: boolean
           id?: string
           mobile?: string | null
           onboarding_completed?: boolean
@@ -1221,6 +1317,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          force_logout_requested?: boolean
           id?: string
           mobile?: string | null
           onboarding_completed?: boolean
@@ -1383,7 +1480,7 @@ export type Database = {
       verify_admin_pin: { Args: { pin_input: string }; Returns: Json }
     }
     Enums: {
-      app_role: "admin" | "photographer" | "client"
+      app_role: "admin" | "photographer" | "client" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1511,7 +1608,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "photographer", "client"],
+      app_role: ["admin", "photographer", "client", "super_admin"],
     },
   },
 } as const

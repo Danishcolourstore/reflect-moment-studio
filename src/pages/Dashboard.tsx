@@ -87,16 +87,16 @@ const Dashboard = () => {
     <DashboardLayout>
       {/* Greeting */}
       <div className="mb-8" style={{ padding: '8px 0 0' }}>
-        <p className="font-sans text-muted-foreground" style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '3px', textTransform: 'uppercase' }}>
+        <p className="text-muted-foreground" style={{ fontFamily: 'var(--editorial-body)', fontSize: '11px', fontWeight: 500, letterSpacing: '3px', textTransform: 'uppercase' }}>
           {greeting()}
         </p>
         <h1
-          className="text-foreground font-serif mt-2"
-          style={{ fontSize: '52px', fontWeight: 300, fontStyle: 'italic', letterSpacing: '-0.5px', lineHeight: 1.1 }}
+          className="text-foreground mt-2"
+          style={{ fontFamily: 'var(--editorial-heading)', fontSize: '52px', fontWeight: 300, fontStyle: 'italic', letterSpacing: '-0.5px', lineHeight: 1.1 }}
         >
           {displayName}
         </h1>
-        <p className="font-sans text-muted-foreground mt-3" style={{ fontSize: '14px', fontWeight: 400 }}>
+        <p className="text-muted-foreground mt-3" style={{ fontFamily: 'var(--editorial-body)', fontSize: '14px', fontWeight: 400 }}>
           {loading ? format(new Date(), 'EEEE, MMMM d, yyyy') : contextLine()}
         </p>
       </div>
@@ -161,7 +161,7 @@ const Dashboard = () => {
 function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
   return (
     <div
-      className="bg-card border border-border rounded-2xl p-5 cursor-pointer active:scale-[0.97] transition-transform duration-150 hover:border-primary/30"
+      className="bg-card border border-border rounded-2xl p-5 cursor-pointer active:scale-[0.97] transition-all duration-200 hover:border-primary/30 hover:-translate-y-0.5"
       style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}
       onClick={onClick}
       role="button"
@@ -170,11 +170,11 @@ function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; lab
     >
       <div className="flex items-center gap-2 mb-4">
         <Icon className="h-[18px] w-[18px] text-primary" strokeWidth={1.5} />
-        <p className="font-sans text-muted-foreground" style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
+        <p className="text-muted-foreground" style={{ fontFamily: 'var(--editorial-body)', fontSize: '11px', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
           {label}
         </p>
       </div>
-      <p className="text-foreground font-serif leading-none" style={{ fontSize: '64px', fontWeight: 300 }}>
+      <p className="text-foreground leading-none" style={{ fontFamily: 'var(--editorial-heading)', fontSize: '64px', fontWeight: 300 }}>
         {value}
       </p>
     </div>
