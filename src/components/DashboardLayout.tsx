@@ -53,20 +53,24 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
+function applyThemeClass(t: 'dark' | 'editorial') {
+  document.documentElement.classList.remove('dark', 'editorial');
+  document.documentElement.classList.add(t);
+  // Keep legacy keys in sync
+  localStorage.setItem('andhakaar-mode', t === 'dark' ? 'on' : 'off');
+  localStorage.setItem('theme', t);
+}
+
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [dark, setDark] = useState(() => {
-    const ak = localStorage.getItem('andhakaar-mode');
-    const saved = localStorage.getItem('theme');
-    if (ak === 'on' || saved === 'dark') {
-      document.documentElement.classList.add('dark');
-      return true;
-    }
-    document.documentElement.classList.remove('dark');
-    return false;
+  const [theme, setTheme] = useState<'dark' | 'editorial'>(() => {
+    const saved = localStorage.getItem('mirrorai-theme') || 'dark';
+    const t = saved === 'editorial' ? 'editorial' : 'dark';
+    applyThemeClass(t);
+    return t;
   });
   const [moreOpen, setMoreOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -87,25 +91,23 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       });
   }, [user, location.pathname, navigate]);
 
-  const toggleAndhakaar = useCallback(() => {
-    const next = !dark;
+  const toggleTheme = useCallback(() => {
+    const next = theme === 'dark' ? 'editorial' : 'dark';
     const overlay = overlayRef.current;
     if (overlay) {
       overlay.classList.add('active');
       setTimeout(() => {
-        document.documentElement.classList.toggle('dark', next);
-        localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
-        localStorage.setItem('theme', next ? 'dark' : 'light');
-        setDark(next);
+        applyThemeClass(next);
+        localStorage.setItem('mirrorai-theme', next);
+        setTheme(next);
         setTimeout(() => overlay.classList.remove('active'), 100);
-      }, 400);
+      }, 300);
     } else {
-      document.documentElement.classList.toggle('dark', next);
-      localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
-      localStorage.setItem('theme', next ? 'dark' : 'light');
-      setDark(next);
+      applyThemeClass(next);
+      localStorage.setItem('mirrorai-theme', next);
+      setTheme(next);
     }
-  }, [dark]);
+  }, [theme]);
 
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MS';
 
@@ -206,31 +208,23 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <h2 className="text-foreground font-serif lg:hidden" style={{ fontWeight: 700, fontSize: '28px', letterSpacing: '-0.5px' }}>MirrorAI</h2>
         <div className="hidden lg:block" />
         <div className="flex items-center gap-3">
-          {/* Pill dark mode toggle */}
+          {/* Theme toggle — Dark / Editorial */}
           <button
-            onClick={toggleAndhakaar}
-            className="relative flex items-center justify-center rounded-full transition-all duration-300"
-            style={{
-              width: '48px',
-              height: '26px',
-              backgroundColor: dark ? 'hsl(var(--gold))' : 'hsl(var(--border))',
-            }}
-            aria-label="Toggle dark mode"
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 transition-all duration-200 hover:border-primary/40 bg-card"
+            aria-label="Toggle theme"
           >
-            <div
-              className="absolute flex items-center justify-center rounded-full bg-card shadow-sm transition-all duration-300"
-              style={{
-                width: '20px',
-                height: '20px',
-                left: dark ? '25px' : '3px',
-              }}
-            >
-              {dark ? (
-                <Moon className="h-3 w-3 text-primary" strokeWidth={2} />
-              ) : (
-                <Sun className="h-3 w-3 text-primary" strokeWidth={2} />
-              )}
-            </div>
+            {theme === 'dark' ? (
+              <>
+                <Moon className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
+                <span className="font-sans text-muted-foreground" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' as const }}>Dark</span>
+              </>
+            ) : (
+              <>
+                <Sun className="h-3.5 w-3.5 text-foreground" strokeWidth={2} />
+                <span className="font-sans text-foreground" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' as const }}>Editorial</span>
+              </>
+            )}
           </button>
           <NotificationBell />
           <DropdownMenu>

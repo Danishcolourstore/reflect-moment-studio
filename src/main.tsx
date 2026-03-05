@@ -2,8 +2,11 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// Apply saved ANDHAKAAR theme immediately to prevent flash
-if (localStorage.getItem('andhakaar-mode') === 'on' || localStorage.getItem('theme') === 'dark') {
+// Apply saved theme immediately to prevent flash
+const savedTheme = localStorage.getItem('mirrorai-theme') || localStorage.getItem('theme');
+if (savedTheme === 'editorial') {
+  document.documentElement.classList.add('editorial');
+} else {
   document.documentElement.classList.add('dark');
 }
 
