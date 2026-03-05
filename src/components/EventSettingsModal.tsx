@@ -52,6 +52,7 @@ interface EventData {
   watermark_enabled: boolean;
   is_published: boolean;
   selection_mode_enabled?: boolean;
+  feed_visible?: boolean;
   hero_couple_name?: string | null;
   hero_subtitle?: string | null;
   hero_button_label?: string | null;
@@ -78,6 +79,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [watermarkEnabled, setWatermarkEnabled] = useState(event.watermark_enabled);
   const [isPublished, setIsPublished] = useState(event.is_published);
   const [selectionModeEnabled, setSelectionModeEnabled] = useState(event.selection_mode_enabled ?? false);
+  const [feedVisible, setFeedVisible] = useState(event.feed_visible ?? false);
   const [heroCoupleName, setHeroCoupleName] = useState(event.hero_couple_name ?? '');
   const [heroSubtitle, setHeroSubtitle] = useState(event.hero_subtitle ?? '');
   const [heroButtonLabel, setHeroButtonLabel] = useState(event.hero_button_label ?? '');
@@ -95,6 +97,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setWatermarkEnabled(event.watermark_enabled);
     setIsPublished(event.is_published);
     setSelectionModeEnabled(event.selection_mode_enabled ?? false);
+    setFeedVisible(event.feed_visible ?? false);
     setHeroCoupleName(event.hero_couple_name ?? '');
     setHeroSubtitle(event.hero_subtitle ?? '');
     setHeroButtonLabel(event.hero_button_label ?? '');
@@ -118,7 +121,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
       name: title, event_date: date, location: location || null, cover_url: coverUrl,
       gallery_pin: password || null, gallery_layout: galleryLayout, gallery_style: galleryStyle,
       downloads_enabled: downloadsEnabled, watermark_enabled: watermarkEnabled,
-      is_published: isPublished, selection_mode_enabled: selectionModeEnabled,
+      is_published: isPublished, selection_mode_enabled: selectionModeEnabled, feed_visible: feedVisible,
       hero_couple_name: heroCoupleName || null, hero_subtitle: heroSubtitle || null,
       hero_button_label: heroButtonLabel || null, website_template: websiteTemplate,
     } as any).eq('id', event.id);
@@ -299,6 +302,13 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
                 <p className="editorial-helper !mt-0.5">Make this gallery visible to anyone with the link.</p>
               </div>
               <Switch checked={isPublished} onCheckedChange={setIsPublished} />
+            </div>
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <Label className="text-[12px] text-foreground/70 font-normal">Show in Public Feed</Label>
+                <p className="editorial-helper !mt-0.5">Display this shoot on your public portfolio page.</p>
+              </div>
+              <Switch checked={feedVisible} onCheckedChange={setFeedVisible} />
             </div>
             <div className="space-y-1.5">
               <Label className="editorial-label">Gallery Password</Label>

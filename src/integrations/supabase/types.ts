@@ -609,6 +609,7 @@ export type Database = {
           event_date: string
           event_type: string
           face_recognition_enabled: boolean
+          feed_visible: boolean
           gallery_layout: string
           gallery_password: string | null
           gallery_pin: string | null
@@ -647,6 +648,7 @@ export type Database = {
           event_date?: string
           event_type?: string
           face_recognition_enabled?: boolean
+          feed_visible?: boolean
           gallery_layout?: string
           gallery_password?: string | null
           gallery_pin?: string | null
@@ -685,6 +687,7 @@ export type Database = {
           event_date?: string
           event_type?: string
           face_recognition_enabled?: boolean
+          feed_visible?: boolean
           gallery_layout?: string
           gallery_password?: string | null
           gallery_pin?: string | null

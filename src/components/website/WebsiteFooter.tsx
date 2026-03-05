@@ -15,9 +15,10 @@ interface StudioBranding {
 interface WebsiteFooterProps {
   template: string;
   branding: StudioBranding | null;
+  photographerUsername?: string | null;
 }
 
-export function WebsiteFooter({ template, branding }: WebsiteFooterProps) {
+export function WebsiteFooter({ template, branding, photographerUsername }: WebsiteFooterProps) {
   const t = getTemplate(template);
   if (!branding) return null;
 
@@ -95,6 +96,19 @@ export function WebsiteFooter({ template, branding }: WebsiteFooterProps) {
                 <Mail className="h-4 w-4" style={{ color: t.text }} />
               </a>
             )}
+          </div>
+        )}
+
+        {/* Photographer portfolio link */}
+        {photographerUsername && (
+          <div className="pt-2">
+            <a
+              href={`/p/${photographerUsername}`}
+              className="inline-flex items-center gap-1.5 text-[11px] tracking-[0.1em] uppercase transition-opacity hover:opacity-100"
+              style={{ color: t.text, opacity: 0.5 }}
+            >
+              Explore Photographer Portfolio
+            </a>
           </div>
         )}
 

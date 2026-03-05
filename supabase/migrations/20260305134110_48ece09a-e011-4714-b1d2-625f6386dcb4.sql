@@ -1,0 +1,1 @@
+ALTER TABLE public.events ADD COLUMN IF NOT EXISTS feed_visible boolean NOT NULL DEFAULT false;
