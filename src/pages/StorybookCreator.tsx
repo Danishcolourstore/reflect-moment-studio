@@ -9,9 +9,10 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import {
   Plus, Save, Trash2, GripVertical, ChevronDown, Image as ImageIcon,
-  BookOpen, Type, Columns, Film, Grid3X3, Maximize, Quote, ArrowLeft, Eye
+  BookOpen, Type, Columns, Film, Grid3X3, Maximize, Quote, ArrowLeft, Eye, Instagram
 } from 'lucide-react';
 import StorybookPreview from '@/components/StorybookPreview';
+import InstagramPreview from '@/components/InstagramPreview';
 
 type LayoutType = 'hero-cover' | 'split-editorial' | 'film-strip' | 'minimal-grid' | 'fullscreen-story' | 'quote-page';
 
@@ -54,6 +55,9 @@ export default function StorybookCreator() {
   const [showNewBlock, setShowNewBlock] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showInstagram, setShowInstagram] = useState(false);
+
+  const allPhotos = blocks.flatMap(b => b.photo_urls);
 
   // Load storybooks list + events
   useEffect(() => {
@@ -255,6 +259,9 @@ export default function StorybookCreator() {
           <Button variant="outline" size="sm" onClick={() => setShowPreview(true)} disabled={blocks.length === 0} className="gap-1.5">
             <Eye className="h-3.5 w-3.5" /> Preview
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowInstagram(true)} disabled={allPhotos.length === 0} className="gap-1.5">
+            <Instagram className="h-3.5 w-3.5" /> Instagram
+          </Button>
           <Button size="sm" onClick={saveStorybook} disabled={saving} className="gap-1.5">
             <Save className="h-3.5 w-3.5" /> {saving ? 'Saving...' : 'Save'}
           </Button>
@@ -406,6 +413,15 @@ export default function StorybookCreator() {
           title={title}
           blocks={blocks}
           onClose={() => setShowPreview(false)}
+        />
+      )}
+
+      {showInstagram && (
+        <InstagramPreview
+          photos={allPhotos}
+          username={title.toLowerCase().replace(/\s+/g, '_')}
+          caption={blocks.find(b => b.caption)?.caption || title}
+          onClose={() => setShowInstagram(false)}
         />
       )}
     </DashboardLayout>
