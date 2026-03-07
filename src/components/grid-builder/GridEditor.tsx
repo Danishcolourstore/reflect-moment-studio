@@ -188,6 +188,24 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             <ArrowLeft className="h-4 w-4" />
             <span className="text-xs tracking-wider uppercase font-medium">{layout.name}</span>
           </button>
+          {/* Format selector */}
+          {!layout.canvasRatio && (
+            <div className="flex items-center gap-0.5 bg-muted/50 rounded-full p-0.5">
+              {CANVAS_FORMATS.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setFormat(f)}
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wider transition-colors ${
+                    format.id === f.id
+                      ? 'bg-foreground text-background'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
             {/* Tool toggles */}
             {([
