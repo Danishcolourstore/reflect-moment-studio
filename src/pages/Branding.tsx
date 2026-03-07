@@ -274,37 +274,110 @@ const Branding = () => {
 
         {/* Live Preview */}
         <div>
-          <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium mb-4">LIVE PREVIEW</p>
-          <div className="border border-border rounded-xl overflow-hidden bg-card">
-            {/* Mock hero */}
-            <div className="relative aspect-[16/9] bg-secondary overflow-hidden">
-              {coverUrl ? <img src={coverUrl} className="h-full w-full object-cover" /> : <div className="h-full w-full bg-gradient-to-br from-secondary to-muted" />}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-4 left-5">
-                {logoUrl ? <img src={logoUrl} className="h-8 mb-2" /> : <p className="font-display italic text-white text-sm mb-1">{studioName || 'Studio Name'}</p>}
-                <p className="text-white/60 text-[10px]">{tagline || 'Your tagline here'}</p>
-              </div>
-            </div>
-            {/* Mock nav */}
-            <div className="p-3 flex items-center gap-3 border-t border-border">
-              <span className="text-[11px] font-medium" style={{ color: accentColor }}>Gallery</span>
-              <span className="text-[11px] text-muted-foreground">About</span>
-              <span className="text-[11px] text-muted-foreground">Contact</span>
-              <div className="ml-auto flex items-center gap-2">
-                {instagram && <Instagram className="h-3 w-3 text-muted-foreground/40" />}
-                {website && <Globe className="h-3 w-3 text-muted-foreground/40" />}
-                <div className="h-6 w-6 rounded-full flex items-center justify-center" style={{ backgroundColor: accentColor }}>
-                  <span className="text-white text-[10px]">♥</span>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium">LIVE PREVIEW</p>
+            {username && (
+              <Button variant="ghost" size="sm" className="text-[10px] h-7 gap-1" onClick={() => navigate(`/p/${username}`)}>
+                <ExternalLink className="h-3 w-3" /> Open Gallery
+              </Button>
+            )}
+          </div>
+          <div
+            className="border border-border rounded-xl overflow-hidden shadow-lg cursor-pointer transition-shadow hover:shadow-xl active:scale-[0.995] transition-transform"
+            style={{ backgroundColor: '#0C0B08' }}
+            onClick={() => {
+              if (username) navigate(`/p/${username}`);
+              else toast.info('Set a portfolio username first to preview your gallery.');
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' && username) navigate(`/p/${username}`); }}
+          >
+            {/* Hero */}
+            <div className="relative aspect-[16/9] overflow-hidden">
+              {coverUrl ? (
+                <img src={coverUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
+              ) : (
+                <div className="h-full w-full" style={{ backgroundColor: '#131109' }} />
+              )}
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #0C0B08 0%, rgba(12,11,8,0.4) 50%, rgba(12,11,8,0.6) 100%)' }} />
+              <div className="absolute bottom-4 left-5 right-5 z-10">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="" className="h-8 object-contain mb-2 opacity-90" loading="lazy" />
+                ) : (
+                  <p className="text-sm font-light text-white/90" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    {studioName || 'Studio Name'}
+                  </p>
+                )}
+                <p className="text-[10px] mt-1" style={{ color: '#A6A197' }}>{tagline || 'Your tagline here'}</p>
+                <div className="flex items-center gap-3 mt-2">
+                  {instagram && (
+                    <span className="flex items-center gap-1 text-[9px]" style={{ color: accentColor }}>
+                      <Instagram className="h-3 w-3" /> {instagram}
+                    </span>
+                  )}
+                  {website && (
+                    <span className="flex items-center gap-1 text-[9px]" style={{ color: accentColor }}>
+                      <Globe className="h-3 w-3" /> Website
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
-            {/* Mock footer */}
-            <div className="px-3 py-4 border-t border-border text-center space-y-1">
-              <p className="text-[10px] text-muted-foreground/50">© {new Date().getFullYear()} {studioName || 'Studio'}</p>
-              {footerText && <p className="text-[9px] text-muted-foreground/30">{footerText}</p>}
-              <p className="text-[8px] text-muted-foreground/20 tracking-wider uppercase">Powered by MirrorAI</p>
+
+            {/* Portfolio label */}
+            <div className="text-center py-3">
+              <div className="w-6 h-[1px] mx-auto mb-2" style={{ backgroundColor: accentColor }} />
+              <p className="text-[9px] tracking-[0.25em] uppercase" style={{ color: '#A6A197' }}>
+                Portfolio · {feedEvents.length} {feedEvents.length === 1 ? 'shoot' : 'shoots'}
+              </p>
+            </div>
+
+            {/* Event grid */}
+            {feedEvents.length > 0 ? (
+              <div className="px-3 pb-3 grid grid-cols-2 gap-2">
+                {feedEvents.map(ev => {
+                  const thumb = ev.cover_url || feedThumbs[ev.id] || null;
+                  return (
+                    <div key={ev.id} className="relative aspect-[4/3] overflow-hidden" style={{ borderRadius: '3px', backgroundColor: '#17140D' }}>
+                      {thumb ? (
+                        <img src={thumb} alt={ev.name} className="h-full w-full object-cover" loading="lazy" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center">
+                          <Camera className="h-5 w-5" style={{ color: '#A6A197', opacity: 0.2 }} />
+                        </div>
+                      )}
+                      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(12,11,8,0.75) 0%, transparent 60%)' }} />
+                      <div className="absolute bottom-1.5 left-2 right-2">
+                        <p className="text-[9px] font-light text-white/90 truncate" style={{ fontFamily: "'Playfair Display', serif" }}>{ev.name}</p>
+                        {ev.photo_count > 0 && (
+                          <p className="text-[8px] mt-0.5" style={{ color: accentColor, opacity: 0.7 }}>{ev.photo_count} photos</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="px-3 pb-4 text-center">
+                <Camera className="mx-auto h-6 w-6 mb-2" style={{ color: '#A6A197', opacity: 0.2 }} />
+                <p className="text-[9px]" style={{ color: '#A6A197' }}>No public shoots yet</p>
+                <p className="text-[8px] mt-1" style={{ color: '#A6A197', opacity: 0.5 }}>Mark events as "Show in Feed" to see them here</p>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="py-3 text-center border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+              <p className="text-[9px] text-muted-foreground/40">© {new Date().getFullYear()} {studioName || 'Studio'}</p>
+              {footerText && <p className="text-[8px] mt-0.5" style={{ color: '#A6A197', opacity: 0.3 }}>{footerText}</p>}
+              <p className="text-[7px] mt-1 tracking-[0.2em] uppercase" style={{ color: '#A6A197', opacity: 0.2 }}>Powered by MirrorAI</p>
             </div>
           </div>
+          {!username && (
+            <p className="text-[9px] text-muted-foreground/40 mt-2 text-center">
+              Set a portfolio username above to enable the live preview link
+            </p>
+          )}
         </div>
       </div>
     </DashboardLayout>
