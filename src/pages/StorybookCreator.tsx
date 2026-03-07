@@ -177,11 +177,9 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
         <Button onClick={createStorybook} className="gap-2">
           <Plus className="h-4 w-4" /> New Storybook
         </Button>
-        {!standalone && (
-          <Button variant="outline" onClick={() => setShowGridBuilder(true)} className="gap-2">
-            <Grid3X3 className="h-4 w-4" /> Grid Builder
-          </Button>
-        )}
+        <Button variant="outline" onClick={() => setShowGridBuilder(true)} className="gap-2">
+          <Grid3X3 className="h-4 w-4" /> Grid Builder
+        </Button>
       </div>
 
       {loading ? (
