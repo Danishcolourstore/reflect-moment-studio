@@ -41,12 +41,29 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
     setDragging(false);
   }, []);
 
+  const triggerPicker = useCallback(() => {
+    // Reset and click — use timeout for iOS Safari compatibility
+    if (inputRef.current) {
+      inputRef.current.value = '';
+      setTimeout(() => inputRef.current?.click(), 10);
+    }
+  }, []);
+
   return (
     <div
       className="relative overflow-hidden bg-muted/30 border border-border/50 group"
-      style={{ gridArea }}
+      style={{ gridArea, minHeight: '44px' }}
     >
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      {/* Hidden file input — use sr-only instead of hidden for mobile compatibility */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        capture={undefined}
+        className="sr-only"
+        onChange={handleFile}
+        tabIndex={-1}
+      />
 
       {cell.imageUrl ? (
         <>
@@ -63,29 +80,33 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
           />
-          {/* Controls overlay */}
-          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          {/* Controls overlay — always visible on mobile via active state */}
+          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity z-10">
             <button
-              onClick={() => inputRef.current?.click()}
-              className="h-7 w-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-foreground/70 hover:text-foreground"
+              type="button"
+              onClick={triggerPicker}
+              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-foreground/70 active:text-foreground"
             >
-              <RefreshCw className="h-3 w-3" />
+              <RefreshCw className="h-3.5 w-3.5" />
             </button>
             <button
+              type="button"
               onClick={onImageRemove}
-              className="h-7 w-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-destructive/70 hover:text-destructive"
+              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-destructive/70 active:text-destructive"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3.5 w-3.5" />
             </button>
           </div>
         </>
       ) : (
         <button
-          onClick={() => inputRef.current?.click()}
-          className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+          type="button"
+          onClick={triggerPicker}
+          className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-muted-foreground active:text-foreground transition-colors cursor-pointer"
+          style={{ minHeight: '44px', WebkitTapHighlightColor: 'transparent' }}
         >
-          <Plus className="h-5 w-5" />
-          <span className="text-[10px] tracking-wider uppercase">Tap to upload</span>
+          <Plus className="h-6 w-6" />
+          <span className="text-[10px] tracking-wider uppercase font-medium">Tap to upload</span>
         </button>
       )}
     </div>
