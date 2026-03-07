@@ -371,9 +371,9 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             Preview
           </button>
           <div className="flex items-center gap-1.5 flex-wrap justify-end">
-            <CarouselSliceExporter cells={cells} />
+            <CarouselSliceExporter cells={cells} format={format} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
-            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} />
+            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} format={format} />
           </div>
         </div>
       </div>
