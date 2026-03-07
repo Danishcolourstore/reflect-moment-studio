@@ -16,7 +16,7 @@ export function useStorageUsage() {
       if (!user) return { used: 0, limit: PLAN_LIMITS.free, plan: 'free', photoCount: 0, eventCount: 0 };
 
       const { data: profile } = await (supabase.from('profiles').select('plan') as any)
-        .eq('user_id', user.id).single();
+        .eq('user_id', user.id).maybeSingle();
       const plan = profile?.plan || 'free';
       const limit = plan === 'pro' ? PLAN_LIMITS.pro : PLAN_LIMITS.free;
 

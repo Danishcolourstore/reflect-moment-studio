@@ -36,7 +36,9 @@ const Auth = ({ initialView }: AuthProps) => {
 
   const handleForgotPassword = async () => {
     setError(""); setMessage("");
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
     if (error) setError(error.message);
     else setMessage("Password reset email sent");
   };

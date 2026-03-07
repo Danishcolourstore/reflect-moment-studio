@@ -36,7 +36,7 @@ const Dashboard = () => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const { data: prof } = await (supabase.from('profiles').select('*') as any).eq('user_id', user.id).single();
+      const { data: prof } = await (supabase.from('profiles').select('*') as any).eq('user_id', user.id).maybeSingle();
       if (prof) setProfile(prof);
       const { data: evts } = await (supabase.from('events').select('id, name, slug, event_date, location, is_published, cover_url, gallery_pin, photos(count)') as any)
         .eq('user_id', user.id).order('created_at', { ascending: false }).limit(5);

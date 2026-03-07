@@ -2,7 +2,7 @@
  * Logo/watermark overlay — draggable, resizable, with opacity control.
  */
 
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import { Trash2, Move } from 'lucide-react';
 
 export interface LogoLayer {
