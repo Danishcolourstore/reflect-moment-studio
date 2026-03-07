@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EXPORT_SIZES, type ExportSize, type GridLayout, type GridCellData } from './types';
+import { EXPORT_SIZES, type ExportSize, type GridLayout, type GridCellData, type CanvasFormat, CANVAS_FORMATS } from './types';
 import type { TextLayer } from './text-overlay-types';
 import type { DesignElement } from './element-types';
 import type { LogoLayer } from './LogoOverlay';
@@ -23,9 +23,10 @@ interface Props {
   elements?: DesignElement[];
   logo?: LogoLayer | null;
   background?: BackgroundStyle;
+  format?: CanvasFormat;
 }
 
-export default function DownloadGridButton({ gridRef, cells, layout, textLayers = [], elements = [], logo = null, background }: Props) {
+export default function DownloadGridButton({ gridRef, cells, layout, textLayers = [], elements = [], logo = null, background, format }: Props) {
   const [exporting, setExporting] = useState(false);
 
   const exportGrid = async (size: ExportSize) => {
