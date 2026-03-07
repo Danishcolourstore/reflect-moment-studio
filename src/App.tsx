@@ -44,6 +44,8 @@ import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
 import AdminGate from "./pages/admin/AdminGate";
 import AdminLayout from "./pages/admin/AdminLayout";
+import SuperAdmin from "./pages/SuperAdmin";
+import SuperAdminGate from "./pages/SuperAdminGate";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
 import AdminEvents from "./pages/admin/AdminEvents";
