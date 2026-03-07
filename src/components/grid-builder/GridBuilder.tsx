@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Grid3X3, Sparkles } from 'lucide-react';
 import type { GridLayout } from './types';
+import type { TextLayer } from './text-overlay-types';
 import GridLayoutSelector from './GridLayoutSelector';
 import GridEditor from './GridEditor';
 import GridInspireModal from './GridInspireModal';
@@ -11,18 +12,26 @@ interface Props {
 
 export default function GridBuilder({ onClose }: Props) {
   const [selectedLayout, setSelectedLayout] = useState<GridLayout | null>(null);
+  const [initialTextLayers, setInitialTextLayers] = useState<TextLayer[]>([]);
   const [showInspire, setShowInspire] = useState(false);
 
   if (selectedLayout) {
-    return <GridEditor layout={selectedLayout} onBack={() => setSelectedLayout(null)} />;
+    return (
+      <GridEditor
+        layout={selectedLayout}
+        onBack={() => { setSelectedLayout(null); setInitialTextLayers([]); }}
+        initialTextLayers={initialTextLayers}
+      />
+    );
   }
 
   if (showInspire) {
     return (
       <GridInspireModal
         onClose={() => setShowInspire(false)}
-        onLayoutGenerated={(layout) => {
+        onLayoutGenerated={(layout, textLayers) => {
           setShowInspire(false);
+          setInitialTextLayers(textLayers);
           setSelectedLayout(layout);
         }}
       />
@@ -58,7 +67,7 @@ export default function GridBuilder({ onClose }: Props) {
         <p className="text-muted-foreground text-xs tracking-wide mb-5">
           Choose a layout to begin designing your photo grid.
         </p>
-        <GridLayoutSelector onSelect={setSelectedLayout} />
+        <GridLayoutSelector onSelect={(layout) => { setInitialTextLayers([]); setSelectedLayout(layout); }} />
       </div>
     </div>
   );

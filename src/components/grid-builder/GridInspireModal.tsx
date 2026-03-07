@@ -3,10 +3,12 @@ import { X, Upload, Crop, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import type { GridLayout } from './types';
+import type { TextLayer } from './text-overlay-types';
+import { createTextLayer, FONTS } from './text-overlay-types';
 
 interface Props {
   onClose: () => void;
-  onLayoutGenerated: (layout: GridLayout) => void;
+  onLayoutGenerated: (layout: GridLayout, textLayers: TextLayer[]) => void;
 }
 
 type Step = 'upload' | 'crop' | 'analyzing';
@@ -18,6 +20,70 @@ interface CropRect {
   h: number;
 }
 
+interface DetectedTextBlock {
+  text: string;
+  fontGroup: 'serif' | 'sans' | 'script';
+  fontWeight: number;
+  fontSize: number;
+  color: string;
+  letterSpacing: number;
+  lineHeight: number;
+  alignment: 'left' | 'center' | 'right';
+  textTransform: 'none' | 'uppercase' | 'lowercase';
+  fontStyle: 'normal' | 'italic';
+  x: number;
+  y: number;
+  hasShadow: boolean;
+}
+
+/** Map detected fontGroup to the best matching font from our library */
+function mapFontFamily(group: 'serif' | 'sans' | 'script'): string {
+  const defaults: Record<string, string> = {
+    serif: 'Cormorant Garamond',
+    sans: 'Montserrat',
+    script: 'Great Vibes',
+  };
+  return defaults[group] || 'Cormorant Garamond';
+}
+
+/** Snap weight to the nearest available weight for the chosen font */
+function snapWeight(family: string, weight: number): number {
+  const font = FONTS.find(f => f.family === family);
+  if (!font) return 400;
+  return font.weights.reduce((prev, curr) =>
+    Math.abs(curr - weight) < Math.abs(prev - weight) ? curr : prev
+  );
+}
+
+/** Convert detected text blocks to TextLayer objects */
+function textBlocksToLayers(blocks: DetectedTextBlock[]): TextLayer[] {
+  return blocks.map((block) => {
+    const fontFamily = mapFontFamily(block.fontGroup);
+    const fontWeight = snapWeight(fontFamily, block.fontWeight);
+
+    return createTextLayer({
+      text: block.text,
+      fontFamily,
+      fontWeight,
+      fontSize: Math.max(8, Math.min(60, block.fontSize)),
+      color: block.color || '#ffffff',
+      letterSpacing: Math.max(0, Math.min(20, block.letterSpacing)),
+      lineHeight: Math.max(0.8, Math.min(3, block.lineHeight)),
+      alignment: block.alignment,
+      textTransform: block.textTransform,
+      fontStyle: block.fontStyle,
+      x: Math.max(5, Math.min(95, block.x)),
+      y: Math.max(5, Math.min(95, block.y)),
+      opacity: 1,
+      rotation: 0,
+      scale: 1,
+      shadow: block.hasShadow
+        ? { x: 0, y: 2, blur: 10, color: 'rgba(0,0,0,0.45)' }
+        : null,
+    });
+  });
+}
+
 export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) {
   const [step, setStep] = useState<Step>('upload');
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -25,7 +91,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const [dragging, setDragging] = useState<'none' | 'create' | 'move' | 'resize'>('none');
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragCropStart, setDragCropStart] = useState<CropRect>({ x: 0, y: 0, w: 0, h: 0 });
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [imgDisplay, setImgDisplay] = useState({ x: 0, y: 0, w: 0, h: 0 });
@@ -47,7 +112,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     if (file) handleFileSelect(file);
   }, [handleFileSelect]);
 
-  // Compute image display bounds inside container
   useEffect(() => {
     if (!imageSrc || step !== 'crop') return;
     const img = new Image();
@@ -69,7 +133,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     const x = (cw - w) / 2;
     const y = (ch - h) / 2;
     setImgDisplay({ x, y, w, h });
-    // Default crop to 80% center
     if (!crop) {
       const margin = 0.1;
       setCrop({
@@ -81,7 +144,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     }
   }, [crop]);
 
-  // Resize observer
   useEffect(() => {
     if (!containerRef.current || !imgRef.current) return;
     const obs = new ResizeObserver(() => {
@@ -91,7 +153,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     return () => obs.disconnect();
   }, [updateImgDisplay]);
 
-  // Pointer handlers for crop
   const getPointerPos = (e: React.PointerEvent) => {
     const rect = containerRef.current!.getBoundingClientRect();
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -117,7 +178,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     e.preventDefault();
     const pos = getPointerPos(e);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-
     if (crop && isInResizeHandle(pos)) {
       setDragging('resize');
       setDragStart(pos);
@@ -138,13 +198,13 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     const pos = getPointerPos(e);
     const dx = pos.x - dragStart.x;
     const dy = pos.y - dragStart.y;
-
     if (dragging === 'create') {
-      const x = Math.min(pos.x, dragStart.x);
-      const y = Math.min(pos.y, dragStart.y);
-      const w = Math.abs(pos.x - dragStart.x);
-      const h = Math.abs(pos.y - dragStart.y);
-      setCrop({ x, y, w, h });
+      setCrop({
+        x: Math.min(pos.x, dragStart.x),
+        y: Math.min(pos.y, dragStart.y),
+        w: Math.abs(pos.x - dragStart.x),
+        h: Math.abs(pos.y - dragStart.y),
+      });
     } else if (dragging === 'move') {
       setCrop({
         x: Math.max(imgDisplay.x, Math.min(imgDisplay.x + imgDisplay.w - dragCropStart.w, dragCropStart.x + dx)),
@@ -153,26 +213,20 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
         h: dragCropStart.h,
       });
     } else if (dragging === 'resize') {
-      const newW = Math.max(40, dragCropStart.w + dx);
-      const newH = Math.max(40, dragCropStart.h + dy);
-      setCrop({ ...dragCropStart, w: newW, h: newH });
+      setCrop({ ...dragCropStart, w: Math.max(40, dragCropStart.w + dx), h: Math.max(40, dragCropStart.h + dy) });
     }
   };
 
   const handlePointerUp = () => setDragging('none');
 
-  // Convert crop to image coordinates and export as base64
   const getCroppedBase64 = useCallback(async (): Promise<string> => {
     const img = imgRef.current!;
     const c = crop!;
-    // Map from display coordinates to image coordinates
     const sx = ((c.x - imgDisplay.x) / imgDisplay.w) * img.naturalWidth;
     const sy = ((c.y - imgDisplay.y) / imgDisplay.h) * img.naturalHeight;
     const sw = (c.w / imgDisplay.w) * img.naturalWidth;
     const sh = (c.h / imgDisplay.h) * img.naturalHeight;
-
     const canvas = document.createElement('canvas');
-    // Cap export at 1024 for AI
     const maxDim = 1024;
     const scale = Math.min(1, maxDim / Math.max(sw, sh));
     canvas.width = Math.round(sw * scale);
@@ -208,12 +262,11 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
         throw new Error(err.error || 'Analysis failed');
       }
 
-      const { layout } = await resp.json();
+      const { layout, textBlocks } = await resp.json();
       if (!layout || !layout.cells || layout.cells.length === 0) {
         throw new Error('Could not detect a grid layout');
       }
 
-      // Build GridLayout object
       const generated: GridLayout = {
         id: `inspire-${Date.now()}`,
         name: 'Inspired Layout',
@@ -226,8 +279,19 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
         canvasRatio: layout.canvasRatio || 1,
       };
 
-      toast.success('Layout detected! Opening in Grid Builder…');
-      onLayoutGenerated(generated);
+      // Convert detected text blocks to editable TextLayer objects
+      const detectedTextLayers = textBlocks && Array.isArray(textBlocks) && textBlocks.length > 0
+        ? textBlocksToLayers(textBlocks)
+        : [];
+
+      const textCount = detectedTextLayers.length;
+      toast.success(
+        textCount > 0
+          ? `Layout + ${textCount} text block${textCount > 1 ? 's' : ''} detected!`
+          : 'Layout detected! Opening in Grid Builder…'
+      );
+
+      onLayoutGenerated(generated, detectedTextLayers);
     } catch (err: any) {
       console.error('Grid Inspire error:', err);
       toast.error(err.message || 'Failed to analyze layout');
@@ -271,7 +335,12 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             <Upload className="h-8 w-8 text-muted-foreground" />
             <div className="text-center">
               <p className="text-sm font-medium text-foreground">Upload a screenshot</p>
-              <p className="text-xs text-muted-foreground mt-1">Drop an image or tap to select</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Drop an image or tap to select
+              </p>
+              <p className="text-[10px] text-muted-foreground/60 mt-3">
+                Layout + typography will be detected automatically
+              </p>
             </div>
           </div>
         </div>
@@ -283,7 +352,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           <div className="px-4 py-2">
             <p className="text-xs text-muted-foreground text-center">
               <Crop className="inline h-3 w-3 mr-1" />
-              Drag to select the grid area. Ignore UI elements.
+              Drag to select the grid area. Text + layout will be detected.
             </p>
           </div>
 
@@ -295,7 +364,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             onPointerUp={handlePointerUp}
             style={{ touchAction: 'none' }}
           >
-            {/* Image */}
             <img
               src={imageSrc}
               className="absolute pointer-events-none"
@@ -309,10 +377,8 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
               alt="Screenshot"
             />
 
-            {/* Dim overlay outside crop */}
             {crop && crop.w > 0 && crop.h > 0 && (
               <>
-                {/* SVG mask for dimming */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
                   <defs>
                     <mask id="crop-mask">
@@ -323,14 +389,11 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
                   <rect width="100%" height="100%" fill="rgba(0,0,0,0.55)" mask="url(#crop-mask)" />
                 </svg>
 
-                {/* Crop border */}
                 <div
                   className="absolute border-2 border-primary pointer-events-none"
                   style={{ left: crop.x, top: crop.y, width: crop.w, height: crop.h, zIndex: 2 }}
                 >
-                  {/* Corner handles */}
                   <div className="absolute -bottom-2 -right-2 w-5 h-5 bg-primary rounded-full border-2 border-background" />
-                  {/* Grid lines */}
                   <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none">
                     {Array.from({ length: 9 }).map((_, i) => (
                       <div key={i} className="border border-primary/20" />
@@ -341,7 +404,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             )}
           </div>
 
-          {/* Actions */}
           <div className="px-4 pb-6 pt-2 flex gap-3 max-w-[480px] mx-auto w-full">
             <Button variant="outline" className="flex-1" onClick={() => { setStep('upload'); setImageSrc(null); setCrop(null); }}>
               Re-upload
@@ -362,13 +424,11 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             <Sparkles className="absolute inset-0 m-auto h-4 w-4 text-primary" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium text-foreground">Analyzing layout…</p>
-            <p className="text-xs text-muted-foreground mt-1">AI is detecting the grid structure</p>
+            <p className="text-sm font-medium text-foreground">Analyzing layout & typography…</p>
+            <p className="text-xs text-muted-foreground mt-1">AI is detecting grid structure and text elements</p>
           </div>
         </div>
       )}
-
-      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 }

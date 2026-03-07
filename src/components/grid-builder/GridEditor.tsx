@@ -24,13 +24,14 @@ import CarouselSliceExporter from './CarouselSliceExporter';
 interface Props {
   layout: GridLayout;
   onBack: () => void;
+  initialTextLayers?: TextLayer[];
 }
 
 type ActiveTool = 'text' | 'elements' | 'background' | 'logo' | null;
 
-export default function GridEditor({ layout, onBack }: Props) {
+export default function GridEditor({ layout, onBack, initialTextLayers = [] }: Props) {
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
-  const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
+  const [textLayers, setTextLayers] = useState<TextLayer[]>(initialTextLayers);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [elements, setElements] = useState<DesignElement[]>([]);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
