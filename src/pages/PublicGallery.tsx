@@ -1153,7 +1153,20 @@ const PublicGallery = () => {
           </div>
         </div>
       )}
-    </div>
+
+      {/* Find My Photos Modal */}
+      <FindMyPhotosModal
+        open={findMyPhotosOpen}
+        onOpenChange={setFindMyPhotosOpen}
+        eventId={event.id}
+        eventName={event.name}
+        accentColor={accentColor}
+        onOpenLightbox={openLightbox}
+        isFavorite={isFavorite}
+        toggleFavorite={toggleFavorite}
+        canDownload={canDownload}
+        onDownloadPhoto={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
+      />
   );
 };
 
