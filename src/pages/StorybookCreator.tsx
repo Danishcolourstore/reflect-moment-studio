@@ -11,7 +11,7 @@ import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
 import GridBuilder from '@/components/grid-builder/GridBuilder';
 
-export default function StorybookCreator() {
+export default function StorybookCreator({ standalone = false }: { standalone?: boolean }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [storybooks, setStorybooks] = useState<any[]>([]);
