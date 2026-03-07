@@ -22,7 +22,7 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
     setOpen(false);
 
     try {
-      const canvas = await renderGridToCanvas(layout, cells, size.width, size.height);
+      const canvas = await renderGridToCanvas(layout, cells, size.width, size.height, textLayers);
       const link = document.createElement('a');
       link.download = `grid-${size.width}x${size.height}.png`;
       link.href = canvas.toDataURL('image/png');

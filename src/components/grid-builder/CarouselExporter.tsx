@@ -20,7 +20,7 @@ export default function CarouselExporter({ layout, cells, gridRef, textLayers = 
   const exportCombined = async () => {
     setExporting(true);
     try {
-      const canvas = await renderGridToCanvas(layout, cells, 1080, 1080);
+      const canvas = await renderGridToCanvas(layout, cells, 1080, 1080, textLayers);
       const link = document.createElement('a');
       link.download = 'grid-combined-1080x1080.png';
       link.href = canvas.toDataURL('image/png');
