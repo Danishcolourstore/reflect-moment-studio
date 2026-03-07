@@ -1,10 +1,15 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { ProgressiveImage } from '@/components/ProgressiveImage';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Camera, MapPin, Calendar, Instagram, Globe, ExternalLink } from 'lucide-react';
-import { format } from 'date-fns';
+import { WebsiteHero } from '@/components/website/WebsiteHero';
+import { WebsitePortfolio } from '@/components/website/WebsitePortfolio';
+import { WebsiteFeatured } from '@/components/website/WebsiteFeatured';
+import { WebsiteServices, type ServiceItem } from '@/components/website/WebsiteServices';
+import { WebsiteAbout } from '@/components/website/WebsiteAbout';
+import { WebsiteContact } from '@/components/website/WebsiteContact';
+import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
+import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 
 interface StudioData {
   user_id: string;
@@ -12,14 +17,24 @@ interface StudioData {
   bio: string | null;
   instagram: string | null;
   website: string | null;
+  whatsapp: string | null;
   cover_url: string | null;
   username: string | null;
+  footer_text: string | null;
+  section_order: string[] | null;
+  section_visibility: Record<string, boolean> | null;
+  services_data: ServiceItem[] | null;
+  featured_gallery_ids: string[] | null;
+  hero_button_label: string | null;
+  hero_button_url: string | null;
+  portfolio_layout: string | null;
 }
 
 interface ProfileData {
   studio_name: string;
   studio_logo_url: string | null;
   studio_accent_color: string | null;
+  email: string | null;
 }
 
 interface FeedEvent {
@@ -30,14 +45,14 @@ interface FeedEvent {
   location: string | null;
   cover_url: string | null;
   photo_count: number;
-  gallery_layout: string;
+  event_type: string;
 }
 
-interface FeedPhoto {
-  id: string;
-  url: string;
-  event_id: string;
-}
+const DEFAULT_ORDER = ['hero', 'social', 'portfolio', 'about', 'featured', 'services', 'contact'];
+const DEFAULT_VISIBILITY: Record<string, boolean> = {
+  hero: true, social: true, portfolio: true, about: true,
+  featured: true, services: false, contact: true,
+};
 
 const PhotographerFeed = () => {
   const { username } = useParams<{ username: string }>();
@@ -46,18 +61,17 @@ const PhotographerFeed = () => {
   const [studio, setStudio] = useState<StudioData | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [events, setEvents] = useState<FeedEvent[]>([]);
-  const [coverPhotos, setCoverPhotos] = useState<Record<string, FeedPhoto[]>>({});
+  const [featuredEvents, setFeaturedEvents] = useState<FeedEvent[]>([]);
+  const [coverPhotos, setCoverPhotos] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
 
   useEffect(() => {
     if (!username) return;
     (async () => {
-      // Find studio by username
       const { data: studioData } = await (supabase
         .from('studio_profiles')
-        .select('user_id, display_name, bio, instagram, website, cover_url, username') as any)
+        .select('*') as any)
         .eq('username', username)
         .maybeSingle();
 
@@ -70,10 +84,9 @@ const PhotographerFeed = () => {
       const sd = studioData as unknown as StudioData;
       setStudio(sd);
 
-      // Fetch profile
       const { data: profileData } = await (supabase
         .from('profiles')
-        .select('studio_name, studio_logo_url, studio_accent_color') as any)
+        .select('studio_name, studio_logo_url, studio_accent_color, email') as any)
         .eq('user_id', sd.user_id)
         .maybeSingle();
       if (profileData) setProfile(profileData as unknown as ProfileData);
@@ -81,7 +94,7 @@ const PhotographerFeed = () => {
       // Fetch feed-visible published events
       const { data: eventsData } = await (supabase
         .from('events')
-        .select('id, name, slug, event_date, location, cover_url, photo_count, gallery_layout') as any)
+        .select('id, name, slug, event_date, location, cover_url, photo_count, event_type') as any)
         .eq('user_id', sd.user_id)
         .eq('is_published', true)
         .eq('feed_visible', true)
@@ -90,18 +103,30 @@ const PhotographerFeed = () => {
       const typedEvents = (eventsData || []) as unknown as FeedEvent[];
       setEvents(typedEvents);
 
-      // Fetch 1 cover photo per event for those without cover_url
-      const noCover = typedEvents.filter(e => !e.cover_url);
+      // Fetch featured events
+      const featIds = sd.featured_gallery_ids || [];
+      if (featIds.length > 0) {
+        const { data: featData } = await (supabase
+          .from('events')
+          .select('id, name, slug, event_date, location, cover_url, photo_count, event_type') as any)
+          .in('id', featIds)
+          .eq('is_published', true);
+        setFeaturedEvents((featData || []) as unknown as FeedEvent[]);
+      }
+
+      // Fetch cover photos for events without covers
+      const allEvs = [...typedEvents, ...((featIds.length > 0 ? (eventsData || []) : []) as FeedEvent[])];
+      const noCover = allEvs.filter(e => !e.cover_url);
       if (noCover.length > 0) {
-        const photos: Record<string, FeedPhoto[]> = {};
+        const photos: Record<string, string> = {};
         for (const ev of noCover) {
+          if (photos[ev.id]) continue;
           const { data: p } = await (supabase
             .from('photos')
-            .select('id, url, event_id') as any)
+            .select('url') as any)
             .eq('event_id', ev.id)
-            .order('sort_order', { ascending: true, nullsFirst: false })
             .limit(1);
-          if (p && p.length > 0) photos[ev.id] = p as unknown as FeedPhoto[];
+          if (p?.[0]?.url) photos[ev.id] = p[0].url;
         }
         setCoverPhotos(photos);
       }
@@ -110,12 +135,10 @@ const PhotographerFeed = () => {
     })();
   }, [username]);
 
-  const accent = profile?.studio_accent_color || '#C6A77B';
-
   if (loading) {
     return (
       <div className="min-h-screen" style={{ backgroundColor: '#0C0B08' }}>
-        <Skeleton className="h-[50vh] w-full rounded-none" />
+        <Skeleton className="h-[80vh] w-full rounded-none" />
         <div className="max-w-5xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[4/3] rounded-lg" />)}
         </div>
@@ -127,7 +150,10 @@ const PhotographerFeed = () => {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0C0B08' }}>
         <div className="text-center">
-          <h1 className="text-3xl font-light" style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}>
+          <h1
+            className="text-3xl font-light"
+            style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}
+          >
             Photographer Not Found
           </h1>
           <p className="mt-3 text-sm" style={{ color: '#A6A197' }}>
@@ -138,151 +164,131 @@ const PhotographerFeed = () => {
     );
   }
 
-  const studioName = studio.display_name || profile?.studio_name || 'Photographer';
+  const accent = profile?.studio_accent_color || '#C6A77B';
+  const sectionOrder = (studio.section_order as string[]) || DEFAULT_ORDER;
+  const sectionVis = (studio.section_visibility as Record<string, boolean>) || DEFAULT_VISIBILITY;
+  const services = (studio.services_data as ServiceItem[]) || [];
+  const portfolioLayout = (studio.portfolio_layout || 'grid') as 'grid' | 'masonry' | 'large';
+
+  const branding = {
+    studio_name: profile?.studio_name || 'Photographer',
+    studio_logo_url: profile?.studio_logo_url || null,
+    studio_accent_color: accent,
+    bio: studio.bio,
+    display_name: studio.display_name,
+    instagram: studio.instagram,
+    website: studio.website,
+    whatsapp: studio.whatsapp,
+    email: profile?.email,
+    footer_text: studio.footer_text,
+    cover_url: studio.cover_url,
+    hero_button_label: studio.hero_button_label,
+    hero_button_url: studio.hero_button_url,
+  };
+
+  const handleNav = (slug: string) => navigate(`/event/${slug}`);
+
+  const renderSection = (sectionId: string) => {
+    if (!sectionVis[sectionId] && sectionVis[sectionId] !== undefined) return null;
+
+    switch (sectionId) {
+      case 'hero':
+        return <WebsiteHero key="hero" branding={branding} id="hero" />;
+      case 'social':
+        return (
+          <WebsiteSocialBar
+            key="social"
+            id="social"
+            instagram={studio.instagram}
+            website={studio.website}
+            whatsapp={studio.whatsapp}
+            email={profile?.email}
+            accent={accent}
+          />
+        );
+      case 'portfolio':
+        return (
+          <WebsitePortfolio
+            key="portfolio"
+            id="portfolio"
+            events={events}
+            coverPhotos={coverPhotos}
+            accent={accent}
+            layout={portfolioLayout}
+            onNavigate={handleNav}
+          />
+        );
+      case 'about':
+        return studio.bio ? (
+          <WebsiteAbout
+            key="about"
+            id="about"
+            template="modern-portfolio"
+            branding={branding}
+          />
+        ) : null;
+      case 'featured':
+        return (
+          <WebsiteFeatured
+            key="featured"
+            id="featured"
+            events={featuredEvents}
+            coverPhotos={coverPhotos}
+            accent={accent}
+            onNavigate={handleNav}
+          />
+        );
+      case 'services':
+        return (
+          <WebsiteServices
+            key="services"
+            id="services"
+            services={services}
+            accent={accent}
+          />
+        );
+      case 'contact':
+        return (
+          <WebsiteContact
+            key="contact"
+            id="contact"
+            template="modern-portfolio"
+            branding={branding}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#0C0B08', color: '#EDEAE3', fontFamily: "'DM Sans', sans-serif" }}>
+    <div
+      className="min-h-screen"
+      style={{ backgroundColor: '#0C0B08', color: '#EDEAE3', fontFamily: "'DM Sans', sans-serif" }}
+    >
+      {sectionOrder.map(renderSection)}
 
-      {/* ── Hero / Header ── */}
-      <div className="relative" style={{ minHeight: '50vh' }}>
-        {studio.cover_url ? (
-          <>
-            <img src={studio.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #0C0B08 0%, rgba(12,11,8,0.4) 50%, rgba(12,11,8,0.6) 100%)' }} />
-          </>
-        ) : (
-          <div className="absolute inset-0" style={{ backgroundColor: '#131109' }} />
-        )}
-
-        <div className="relative z-10 flex flex-col items-center justify-end h-full min-h-[50vh] pb-16 px-6 text-center">
-          {profile?.studio_logo_url ? (
-            <img src={profile.studio_logo_url} alt="" className="h-16 object-contain mb-6 opacity-90" />
-          ) : null}
-
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-[0.02em]"
-            style={{ fontFamily: "'Playfair Display', serif" }}>
-            {studioName}
-          </h1>
-
-          {studio.bio && (
-            <p className="mt-4 max-w-lg text-sm leading-relaxed" style={{ color: '#A6A197' }}>
-              {studio.bio}
-            </p>
-          )}
-
-          <div className="flex items-center gap-4 mt-6">
-            {studio.instagram && (
-              <a href={`https://instagram.com/${studio.instagram.replace('@', '')}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs transition-colors hover:opacity-80"
-                style={{ color: accent }}>
-                <Instagram className="h-4 w-4" /> {studio.instagram}
-              </a>
-            )}
-            {studio.website && (
-              <a href={studio.website.startsWith('http') ? studio.website : `https://${studio.website}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs transition-colors hover:opacity-80"
-                style={{ color: accent }}>
-                <Globe className="h-4 w-4" /> Website
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Portfolio Label ── */}
-      <div className="text-center py-12">
-        <div className="w-8 h-[1px] mx-auto mb-4" style={{ backgroundColor: accent }} />
-        <p className="text-xs tracking-[0.3em] uppercase" style={{ color: '#A6A197' }}>
-          Portfolio · {events.length} {events.length === 1 ? 'shoot' : 'shoots'}
-        </p>
-      </div>
-
-      {/* ── Feed Grid ── */}
-      {events.length === 0 ? (
-        <div className="text-center py-20">
-          <Camera className="mx-auto h-10 w-10 mb-4" style={{ color: '#A6A197', opacity: 0.3 }} />
-          <p className="text-sm" style={{ color: '#A6A197' }}>No public shoots yet</p>
-        </div>
-      ) : (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {events.map(ev => {
-              const coverUrl = ev.cover_url || coverPhotos[ev.id]?.[0]?.url || null;
-              const isHovered = hoveredEvent === ev.id;
-
-              return (
-                <a
-                  key={ev.id}
-                  href={`/event/${ev.slug}`}
-                  onClick={(e) => { e.preventDefault(); navigate(`/event/${ev.slug}`); }}
-                  className="group relative overflow-hidden cursor-pointer block"
-                  style={{ borderRadius: '4px' }}
-                  onMouseEnter={() => setHoveredEvent(ev.id)}
-                  onMouseLeave={() => setHoveredEvent(null)}
-                >
-                  <div className="aspect-[4/3] overflow-hidden" style={{ backgroundColor: '#17140D' }}>
-                    {coverUrl ? (
-                      <div className="h-full w-full transition-transform duration-700 ease-out"
-                        style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}>
-                        <ProgressiveImage src={coverUrl} alt={ev.name} className="h-full w-full object-cover" />
-                      </div>
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center">
-                        <Camera className="h-8 w-8" style={{ color: '#A6A197', opacity: 0.2 }} />
-                      </div>
-                    )}
-
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 transition-opacity duration-500"
-                      style={{
-                        background: 'linear-gradient(to top, rgba(12,11,8,0.85) 0%, rgba(12,11,8,0.1) 50%, transparent 100%)',
-                        opacity: isHovered ? 1 : 0.6,
-                      }} />
-                  </div>
-
-                  {/* Info overlay */}
-                  <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5">
-                    <h3 className="text-base sm:text-lg font-light tracking-wide"
-                      style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}>
-                      {ev.name}
-                    </h3>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-[10px] tracking-[0.15em] uppercase flex items-center gap-1"
-                        style={{ color: '#A6A197' }}>
-                        <Calendar className="h-3 w-3" style={{ color: accent }} />
-                        {format(new Date(ev.event_date), 'MMM yyyy')}
-                      </span>
-                      {ev.location && (
-                        <span className="text-[10px] tracking-[0.15em] uppercase flex items-center gap-1"
-                          style={{ color: '#A6A197' }}>
-                          <MapPin className="h-3 w-3" style={{ color: accent }} />
-                          {ev.location}
-                        </span>
-                      )}
-                    </div>
-                    {ev.photo_count > 0 && (
-                      <p className="mt-2 text-[10px] tracking-[0.2em] uppercase" style={{ color: accent, opacity: 0.7 }}>
-                        {ev.photo_count} photos
-                      </p>
-                    )}
-                  </div>
-
-                  {/* View arrow on hover */}
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <ExternalLink className="h-4 w-4" style={{ color: accent }} />
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── Footer ── */}
+      {/* Footer always at bottom */}
       <div className="text-center py-12 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <p className="text-[10px] tracking-[0.3em] uppercase" style={{ color: '#A6A197', opacity: 0.4 }}>
+        {profile?.studio_logo_url ? (
+          <img src={profile.studio_logo_url} alt="" className="h-8 mx-auto object-contain opacity-50 mb-4" />
+        ) : (
+          <p
+            className="text-sm font-medium tracking-[0.15em] uppercase mb-4"
+            style={{ color: '#EDEAE3', opacity: 0.5 }}
+          >
+            {profile?.studio_name || 'Studio'}
+          </p>
+        )}
+        {studio.footer_text && (
+          <p className="text-xs mb-3" style={{ color: '#A6A197', opacity: 0.5 }}>
+            {studio.footer_text}
+          </p>
+        )}
+        <p className="text-[10px] tracking-[0.12em] uppercase" style={{ color: '#A6A197', opacity: 0.4 }}>
+          © {new Date().getFullYear()} {profile?.studio_name || 'Studio'}
+        </p>
+        <p className="text-[8px] tracking-[0.14em] uppercase mt-1" style={{ color: '#A6A197', opacity: 0.2 }}>
           Powered by MirrorAI
         </p>
       </div>
