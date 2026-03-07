@@ -61,6 +61,7 @@ interface EventData {
   downloads_enabled: boolean;
   download_resolution: string;
   watermark_enabled: boolean;
+  face_recognition_enabled: boolean;
   user_id: string;
   gallery_layout: string;
   gallery_style?: string;
