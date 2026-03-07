@@ -349,6 +349,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/dashboard/more"
+        element={
+          <ProtectedRoute>
+            <MorePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/settings"
         element={
           <ProtectedRoute>
