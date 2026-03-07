@@ -1,6 +1,6 @@
 /**
  * Canvas-based export utilities for Grid Builder.
- * Renders grids + text overlays using original image data — zero compression, lossless PNG output.
+ * Renders grids + frames + text overlays using original image data — zero compression, lossless PNG output.
  */
 
 import type { GridLayout, GridCellData } from './types';
@@ -17,9 +17,24 @@ export function loadImageElement(src: string): Promise<HTMLImageElement> {
   });
 }
 
+/** Draw a rounded rectangle path */
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 /**
  * Render the full grid to a canvas at the specified resolution.
- * Uses original image data with cover-fit placement — no quality loss.
+ * Supports frame configs for single-image layouts.
  */
 export async function renderGridToCanvas(
   layout: GridLayout,
@@ -33,28 +48,68 @@ export async function renderGridToCanvas(
   canvas.height = height;
   const ctx = canvas.getContext('2d')!;
 
+  const frame = layout.frame;
+
   // Background
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = frame?.background || '#ffffff';
   ctx.fillRect(0, 0, width, height);
 
-  const gap = Math.round(width * 0.007); // proportional gap
-  const pad = gap;
+  // Calculate image area based on frame padding
+  let areaX = 0, areaY = 0, areaW = width, areaH = height;
 
-  const innerW = width - pad * 2 - gap * (layout.gridCols - 1);
-  const innerH = height - pad * 2 - gap * (layout.gridRows - 1);
+  if (frame) {
+    const pt = (frame.padding[0] / 100) * width;
+    const pr = (frame.padding[1] / 100) * width;
+    const pb = (frame.padding[2] / 100) * width;
+    const pl = (frame.padding[3] / 100) * width;
+    areaX = pl;
+    areaY = pt;
+    areaW = width - pl - pr;
+    areaH = height - pt - pb;
+
+    // Shadow under image area
+    if (frame.shadow) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.12)';
+      ctx.shadowBlur = Math.round(width * 0.03);
+      ctx.shadowOffsetY = Math.round(width * 0.008);
+      ctx.fillStyle = '#ffffff';
+      const sr = (frame.imageRadius / 440) * width;
+      roundRect(ctx, areaX, areaY, areaW, areaH, sr);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Border
+    if (frame.borderWidth) {
+      ctx.save();
+      const bw = (frame.borderWidth / 440) * width;
+      ctx.strokeStyle = frame.borderColor;
+      ctx.lineWidth = bw;
+      const sr = (frame.imageRadius / 440) * width;
+      roundRect(ctx, areaX, areaY, areaW, areaH, sr);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // Calculate grid within image area
+  const gap = frame ? 0 : Math.round(width * 0.007);
+  const pad = frame ? 0 : gap;
+
+  const innerW = areaW - pad * 2 - gap * (layout.gridCols - 1);
+  const innerH = areaH - pad * 2 - gap * (layout.gridRows - 1);
   const colW = innerW / layout.gridCols;
   const rowH = innerH / layout.gridRows;
 
-  // CSS grid preview uses ~440px as display width
   const displaySize = 440;
 
   for (let i = 0; i < layout.cells.length; i++) {
     const [rs, cs, re, ce] = layout.cells[i];
     const cell = cells[i];
 
-    // Calculate cell position and size
-    const x = pad + (cs - 1) * (colW + gap);
-    const y = pad + (rs - 1) * (rowH + gap);
+    const x = areaX + pad + (cs - 1) * (colW + gap);
+    const y = areaY + pad + (rs - 1) * (rowH + gap);
     const cw = (ce - cs) * colW + (ce - cs - 1) * gap;
     const ch = (re - rs) * rowH + (re - rs - 1) * gap;
 
@@ -66,21 +121,26 @@ export async function renderGridToCanvas(
 
     const img = await loadImageElement(cell.imageUrl);
 
-    // Cover-fit: scale to fill cell, then apply user offset
     const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * cell.scale;
     const dw = img.naturalWidth * scale;
     const dh = img.naturalHeight * scale;
 
-    // Scale offset from display coordinates to export coordinates
     const offsetScale = width / displaySize;
     const ox = cell.offsetX * offsetScale;
     const oy = cell.offsetY * offsetScale;
 
-    // Clip to cell bounds
     ctx.save();
-    ctx.beginPath();
-    ctx.rect(x, y, cw, ch);
-    ctx.clip();
+
+    // Clip with image radius if frame has it
+    if (frame?.imageRadius) {
+      const sr = (frame.imageRadius / 440) * width;
+      roundRect(ctx, x, y, cw, ch, sr);
+      ctx.clip();
+    } else {
+      ctx.beginPath();
+      ctx.rect(x, y, cw, ch);
+      ctx.clip();
+    }
 
     ctx.drawImage(
       img,
@@ -108,7 +168,6 @@ export async function renderGridToCanvas(
       ctx.scale(layer.scale, layer.scale);
       ctx.globalAlpha = layer.opacity;
 
-      // Font
       const fontSizePx = layer.fontSize * scale;
       const fontStyle = layer.fontStyle === 'italic' ? 'italic' : '';
       ctx.font = `${fontStyle} ${layer.fontWeight} ${fontSizePx}px '${layer.fontFamily}'`;
@@ -116,7 +175,6 @@ export async function renderGridToCanvas(
       ctx.textAlign = layer.alignment;
       ctx.textBaseline = 'middle';
 
-      // Shadow
       if (layer.shadow) {
         ctx.shadowOffsetX = layer.shadow.x * scale;
         ctx.shadowOffsetY = layer.shadow.y * scale;
@@ -124,18 +182,15 @@ export async function renderGridToCanvas(
         ctx.shadowColor = layer.shadow.color;
       }
 
-      // Handle text transform
       let text = layer.text;
       if (layer.textTransform === 'uppercase') text = text.toUpperCase();
       else if (layer.textTransform === 'lowercase') text = text.toLowerCase();
 
-      // Multi-line support
       const lines = text.split('\n');
       const lineHeightPx = fontSizePx * layer.lineHeight;
       const totalHeight = lines.length * lineHeightPx;
       const startY = -(totalHeight / 2) + lineHeightPx / 2;
 
-      // Letter spacing via manual character placement
       if (layer.letterSpacing > 0) {
         const spacingPx = layer.letterSpacing * scale;
 
@@ -143,7 +198,6 @@ export async function renderGridToCanvas(
           const lineY = startY + li * lineHeightPx;
           const line = lines[li];
 
-          // Measure total width with spacing
           let totalW = 0;
           for (let ci = 0; ci < line.length; ci++) {
             totalW += ctx.measureText(line[ci]).width + (ci < line.length - 1 ? spacingPx : 0);
@@ -154,9 +208,8 @@ export async function renderGridToCanvas(
           else if (layer.alignment === 'right') startX = -totalW;
 
           let curX = startX;
+          ctx.textAlign = 'left';
           for (let ci = 0; ci < line.length; ci++) {
-            // Reset textAlign for manual placement
-            ctx.textAlign = 'left';
             ctx.fillText(line[ci], curX, lineY);
             curX += ctx.measureText(line[ci]).width + spacingPx;
           }

@@ -1,7 +1,22 @@
+export interface FrameConfig {
+  /** Padding [top, right, bottom, left] as percentage of canvas */
+  padding: [number, number, number, number];
+  /** Border radius on the image area (px at 440px display) */
+  imageRadius: number;
+  /** Canvas background color */
+  background: string;
+  /** Drop shadow on the image area */
+  shadow: boolean;
+  /** Inner border width (px) */
+  borderWidth: number;
+  /** Inner border color */
+  borderColor: string;
+}
+
 export interface GridLayout {
   id: string;
   name: string;
-  category: 'basic' | 'instagram' | 'creative';
+  category: 'basic' | 'instagram' | 'creative' | 'single';
   cols: number;
   rows: number;
   /** Each cell defines its grid area: [rowStart, colStart, rowEnd, colEnd] */
@@ -10,6 +25,10 @@ export interface GridLayout {
   gridCols: number;
   /** Total grid rows for CSS grid */
   gridRows: number;
+  /** Optional frame styling for single-image layouts */
+  frame?: FrameConfig;
+  /** Canvas aspect ratio (width / height). Defaults to 1 (square) */
+  canvasRatio?: number;
 }
 
 export interface GridCellData {
@@ -30,6 +49,9 @@ export type ExportSize = {
 export const EXPORT_SIZES: ExportSize[] = [
   { label: '1080 × 1080', width: 1080, height: 1080 },
   { label: '1080 × 1350', width: 1080, height: 1350 },
+  { label: '1080 × 1440', width: 1080, height: 1440 },
+  { label: '1080 × 1920', width: 1080, height: 1920 },
+  { label: '1920 × 1080', width: 1920, height: 1080 },
   { label: '2048 × 2048', width: 2048, height: 2048 },
   { label: '4000 × 4000', width: 4000, height: 4000 },
 ];
@@ -43,6 +65,21 @@ const basic = (id: string, name: string, n: number): GridLayout => {
       cells.push([r + 1, c + 1, r + 2, c + 2]);
   return { id, name, category: 'basic', cols: n, rows: n, cells, gridCols: n, gridRows: n };
 };
+
+/** Single-image layout helper */
+const single = (
+  id: string,
+  name: string,
+  opts?: { frame?: FrameConfig; canvasRatio?: number },
+): GridLayout => ({
+  id, name,
+  category: 'single',
+  cols: 1, rows: 1,
+  cells: [[1, 1, 2, 2]],
+  gridCols: 1, gridRows: 1,
+  frame: opts?.frame,
+  canvasRatio: opts?.canvasRatio,
+});
 
 export const GRID_LAYOUTS: GridLayout[] = [
   // ── Basic ──
@@ -329,6 +366,60 @@ export const GRID_LAYOUTS: GridLayout[] = [
     cols: 4, rows: 3, gridCols: 4, gridRows: 3,
     cells: [[1,1,2,2],[1,2,2,4],[1,4,3,5],[2,1,3,2],[2,2,3,4],[3,1,4,3],[3,3,4,5]],
   },
+
+  // ══════════════════════════════════════════════
+  // ── SINGLE IMAGE LAYOUTS ─────────────────────
+  // ══════════════════════════════════════════════
+
+  // ── Classic ──
+  single('single-square', '1:1 Square'),
+  single('single-4x5', '4:5 Portrait', { canvasRatio: 4 / 5 }),
+  single('single-3x4', '3:4 Portrait', { canvasRatio: 3 / 4 }),
+  single('single-16x9', '16:9 Landscape', { canvasRatio: 16 / 9 }),
+  single('single-9x16', '9:16 Story', { canvasRatio: 9 / 16 }),
+
+  // ── Framed ──
+  single('frame-white', 'White Frame', {
+    frame: { padding: [6, 6, 6, 6], imageRadius: 0, background: '#ffffff', shadow: false, borderWidth: 0, borderColor: '' },
+  }),
+  single('frame-editorial', 'Editorial Frame', {
+    frame: { padding: [10, 10, 10, 10], imageRadius: 0, background: '#ffffff', shadow: false, borderWidth: 1, borderColor: '#e0e0e0' },
+  }),
+  single('frame-polaroid', 'Polaroid', {
+    frame: { padding: [5, 5, 18, 5], imageRadius: 0, background: '#ffffff', shadow: true, borderWidth: 0, borderColor: '' },
+  }),
+  single('frame-floating', 'Floating Card', {
+    frame: { padding: [8, 8, 8, 8], imageRadius: 12, background: '#f5f5f5', shadow: true, borderWidth: 0, borderColor: '' },
+  }),
+  single('frame-center', 'Center Margin', {
+    frame: { padding: [15, 15, 15, 15], imageRadius: 0, background: '#ffffff', shadow: false, borderWidth: 0, borderColor: '' },
+  }),
+
+  // ── Editorial ──
+  single('editorial-large-margin', 'Large Margin', {
+    frame: { padding: [18, 18, 18, 18], imageRadius: 0, background: '#F3EFE9', shadow: false, borderWidth: 0, borderColor: '' },
+  }),
+  single('editorial-top', 'Top + Text Space', {
+    frame: { padding: [6, 8, 28, 8], imageRadius: 0, background: '#ffffff', shadow: false, borderWidth: 0, borderColor: '' },
+  }),
+  single('editorial-bottom', 'Title + Bottom', {
+    frame: { padding: [28, 8, 6, 8], imageRadius: 0, background: '#ffffff', shadow: false, borderWidth: 0, borderColor: '' },
+  }),
+  single('editorial-magazine', 'Magazine Frame', {
+    frame: { padding: [8, 8, 8, 8], imageRadius: 0, background: '#F3EFE9', shadow: false, borderWidth: 1, borderColor: '#d4cfc7' },
+  }),
+
+  // ── Minimal ──
+  single('minimal-full', 'Full Bleed'),
+  single('minimal-shadow', 'Soft Shadow', {
+    frame: { padding: [10, 10, 10, 10], imageRadius: 4, background: '#ffffff', shadow: true, borderWidth: 0, borderColor: '' },
+  }),
+  single('minimal-rounded', 'Rounded', {
+    frame: { padding: [4, 4, 4, 4], imageRadius: 20, background: '#ffffff', shadow: false, borderWidth: 0, borderColor: '' },
+  }),
+  single('minimal-cream', 'Cream Border', {
+    frame: { padding: [8, 8, 8, 8], imageRadius: 0, background: '#F5F0E8', shadow: false, borderWidth: 0, borderColor: '' },
+  }),
 ];
 
 export function createCellsForLayout(layout: GridLayout): GridCellData[] {
