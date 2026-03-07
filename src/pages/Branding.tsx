@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Upload, X, Loader2, Instagram, Globe, MessageCircle, Mail } from 'lucide-react';
+import { Upload, X, Loader2, Instagram, Globe, MessageCircle, Mail, ExternalLink, Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
