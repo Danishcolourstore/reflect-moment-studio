@@ -21,6 +21,7 @@ export default function StorybookCreator() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [initialSlides, setInitialSlides] = useState<Slide[]>([]);
+  const [showGridBuilder, setShowGridBuilder] = useState(false);
 
   // Load storybooks list
   useEffect(() => {
