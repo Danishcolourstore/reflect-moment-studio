@@ -16,9 +16,7 @@ const Auth = ({ initialView }: AuthProps) => {
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState<"login" | "signup">(initialView === "signup" ? "signup" : "login");
 
-  useEffect(() => {
-    supabase.auth.signUp({ email: "test@mirroraigallery.com", password: "Test@1234" }).catch(() => {});
-  }, []);
+  // Removed rogue test signup call
 
   const handleLogin = async () => {
     setLoading(true); setError(""); setMessage("");
