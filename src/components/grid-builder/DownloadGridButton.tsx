@@ -76,7 +76,13 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
           {exporting ? 'Exporting…' : 'Download'}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="end" className="w-44">
+      <DropdownMenuContent side="top" align="end" className="w-48">
+        <DropdownMenuItem
+          onClick={exportNative}
+          className="text-xs tracking-wide font-medium"
+        >
+          {activeFormat.label} — {activeFormat.exportWidth}×{activeFormat.exportHeight}
+        </DropdownMenuItem>
         {EXPORT_SIZES.map((s) => (
           <DropdownMenuItem
             key={s.label}
