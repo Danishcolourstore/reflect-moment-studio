@@ -1167,6 +1167,7 @@ const PublicGallery = () => {
         canDownload={canDownload}
         onDownloadPhoto={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
       />
+    </div>
   );
 };
 
