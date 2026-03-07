@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
   { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
+  { title: 'Cheetah Live', url: '/dashboard/cheetah-live', icon: Zap },
   { title: 'Clients', url: '/dashboard/clients', icon: Users },
   { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart2 },
   { title: 'Notifications', url: '/dashboard/notifications', icon: Bell },
