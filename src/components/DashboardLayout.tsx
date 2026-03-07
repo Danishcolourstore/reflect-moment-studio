@@ -31,7 +31,12 @@ const NAV_ITEMS = [
   { title: 'Profile', url: '/dashboard/profile', icon: User },
 ];
 
-const MOBILE_NAV = NAV_ITEMS.slice(0, 4);
+const MOBILE_NAV = [
+  { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
+  { title: 'Events', url: '/dashboard/events', icon: Camera },
+  { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
+  { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
+];
 const MORE_NAV = NAV_ITEMS.slice(4);
 
 interface Profile {
@@ -267,19 +272,19 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border" style={{ height: '72px', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {MOBILE_NAV.map((item) => (
           <NavLink key={item.url} to={item.url} end={item.end}
-            className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors relative pt-0.5"
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative pt-0.5"
             activeClassName="text-foreground [&>.nav-top-bar]:opacity-100"
           >
             <div className="nav-top-bar absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 bg-primary opacity-0 transition-opacity" />
-            <item.icon className="h-6 w-6" strokeWidth={1.5} />
-            <span className="font-sans" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase' }}>{item.title}</span>
+            <item.icon className="h-5 w-5" strokeWidth={1.5} />
+            <span className="font-sans whitespace-nowrap" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>{item.title}</span>
           </NavLink>
         ))}
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
-            <button className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground pt-0.5">
-              <Menu className="h-6 w-6" strokeWidth={1.5} />
-              <span className="font-sans" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase' }}>More</span>
+            <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground pt-0.5">
+              <Menu className="h-5 w-5" strokeWidth={1.5} />
+              <span className="font-sans whitespace-nowrap" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>More</span>
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl">
