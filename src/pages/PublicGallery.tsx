@@ -241,6 +241,7 @@ const PublicGallery = () => {
   const [studioProfile, setStudioProfile] = useState<StudioProfile | null>(null);
   const [studioExtended, setStudioExtended] = useState<StudioExtended | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [textBlocks, setTextBlocks] = useState<TextBlock[]>([]);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
