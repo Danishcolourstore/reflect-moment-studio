@@ -272,7 +272,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border" style={{ height: '72px', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {MOBILE_NAV.map((item) => (
           <NavLink key={item.url} to={item.url} end={item.end}
-            className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors relative pt-0.5"
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative pt-0.5"
             activeClassName="text-foreground [&>.nav-top-bar]:opacity-100"
           >
             <div className="nav-top-bar absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 bg-primary opacity-0 transition-opacity" />
