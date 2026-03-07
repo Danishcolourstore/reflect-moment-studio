@@ -80,7 +80,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     if (!user) return;
     (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed') as any)
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
       .then(({ data }: any) => {
         if (data) {
           setProfile(data);
