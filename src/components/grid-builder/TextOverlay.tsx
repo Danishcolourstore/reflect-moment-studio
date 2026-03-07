@@ -1,9 +1,10 @@
 /**
  * Draggable, rotatable, resizable text layer rendered on the grid canvas.
+ * Uses a controlled <textarea> for stable input on mobile.
  */
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { RotateCw, Move, Pencil, Trash2 } from 'lucide-react';
+import { RotateCw, Pencil, Trash2 } from 'lucide-react';
 import type { TextLayer } from './text-overlay-types';
 
 interface Props {
@@ -17,12 +18,27 @@ interface Props {
 
 export default function TextOverlay({ layer, selected, containerRef, onUpdate, onSelect, onDelete }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [editing, setEditing] = useState(false);
+  const [localText, setLocalText] = useState(layer.text);
   const [dragState, setDragState] = useState<{ type: 'move' | 'rotate'; startX: number; startY: number; origX: number; origY: number; origRot: number } | null>(null);
+
+  // Sync local text when layer text changes externally (not while editing)
+  useEffect(() => {
+    if (!editing) {
+      setLocalText(layer.text);
+    }
+  }, [layer.text, editing]);
 
   // ─── Drag to move ─────────────────────────────
   const onPointerDown = useCallback((e: React.PointerEvent) => {
+    // Don't start drag if target is textarea or inside editing area
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'TEXTAREA' || target.closest('[data-text-edit]')) {
+      return;
+    }
     e.stopPropagation();
+    e.preventDefault();
     onSelect();
     if (editing) return;
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -52,40 +68,45 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
   // ─── Rotation handle ──────────────────────────
   const onRotateDown = useCallback((e: React.PointerEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     setDragState({ type: 'rotate', startX: e.clientX, startY: e.clientY, origX: layer.x, origY: layer.y, origRot: layer.rotation });
   }, [layer.x, layer.y, layer.rotation]);
 
-  // ─── Inline edit ──────────────────────────────
-  const startEdit = useCallback((e: React.MouseEvent) => {
+  // ─── Enter edit mode ──────────────────────────
+  const startEdit = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     onSelect();
     setEditing(true);
   }, [onSelect]);
 
+  // ─── Commit on blur ───────────────────────────
   const handleBlur = useCallback(() => {
     setEditing(false);
+    onUpdate({ text: localText });
+  }, [localText, onUpdate]);
+
+  // ─── Controlled text change ───────────────────
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setLocalText(e.target.value);
   }, []);
 
-  const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
-    onUpdate({ text: (e.target as HTMLDivElement).textContent || '' });
-  }, [onUpdate]);
-
-  // Focus when entering edit mode
+  // Focus textarea when entering edit mode
   useEffect(() => {
-    if (editing && elRef.current) {
-      const el = elRef.current.querySelector('[contenteditable]') as HTMLElement;
-      if (el) {
-        el.focus();
-        // Select all text
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        const sel = window.getSelection();
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-      }
+    if (editing && textareaRef.current) {
+      const ta = textareaRef.current;
+      ta.focus();
+      // Place cursor at end
+      const len = ta.value.length;
+      ta.setSelectionRange(len, len);
     }
   }, [editing]);
+
+  // Stop all touch/pointer events from bubbling out of the editing textarea
+  const stopPropagation = useCallback((e: React.SyntheticEvent) => {
+    e.stopPropagation();
+  }, []);
 
   const textStyle: React.CSSProperties = {
     fontFamily: `'${layer.fontFamily}', serif`,
@@ -117,7 +138,7 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
         transform: `translate(-50%, -50%) rotate(${layer.rotation}deg) scale(${layer.scale})`,
         zIndex: selected ? 30 : 20,
         cursor: editing ? 'text' : 'grab',
-        touchAction: 'none',
+        touchAction: editing ? 'auto' : 'none',
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -130,19 +151,45 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
 
       {/* Text content */}
       {editing ? (
-        <div
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={handleBlur}
-          onInput={handleInput}
-          style={{ ...textStyle, outline: 'none', minWidth: '40px', padding: '2px 4px' }}
-        >
-          {layer.text}
+        <div data-text-edit="true">
+          <textarea
+            ref={textareaRef}
+            value={localText}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onPointerDown={stopPropagation}
+            onTouchStart={stopPropagation}
+            onClick={stopPropagation}
+            onKeyDown={stopPropagation}
+            rows={1}
+            style={{
+              ...textStyle,
+              background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: '4px',
+              outline: 'none',
+              resize: 'none',
+              overflow: 'hidden',
+              minWidth: '60px',
+              padding: '2px 4px',
+              display: 'block',
+              width: '100%',
+              caretColor: layer.color,
+              // Match dimensions to content
+              
+            }}
+          />
         </div>
       ) : (
         <div
           style={textStyle}
           onDoubleClick={startEdit}
+          onTouchEnd={(e) => {
+            // Single tap on selected text enters edit mode on mobile
+            if (selected) {
+              startEdit(e);
+            }
+          }}
         >
           {layer.text}
         </div>
@@ -154,7 +201,7 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
           {/* Edit button */}
           <button
             type="button"
-            onPointerDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
             onClick={startEdit}
             className="absolute -top-10 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-white"
           >
@@ -164,7 +211,7 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
           {/* Delete button */}
           <button
             type="button"
-            onPointerDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             className="absolute -top-10 left-1/2 translate-x-3 h-7 w-7 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-red-400"
           >
