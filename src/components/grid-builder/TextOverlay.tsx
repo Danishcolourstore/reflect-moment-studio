@@ -176,7 +176,7 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
               width: '100%',
               caretColor: layer.color,
               // Match dimensions to content
-              fieldSizing: 'content' as any,
+              
             }}
           />
         </div>
