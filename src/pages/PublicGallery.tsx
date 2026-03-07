@@ -1083,8 +1083,18 @@ const PublicGallery = () => {
           </div>
         )}
 
+        {/* Text blocks before gallery */}
+        {textBlocks.filter(b => b.sort_order < 0).map(block => (
+          <GalleryTextBlockRenderer key={block.id} block={block} />
+        ))}
+
         {/* Gallery grid */}
         {renderGallery()}
+
+        {/* Text blocks after gallery */}
+        {textBlocks.filter(b => b.sort_order >= 0).map(block => (
+          <GalleryTextBlockRenderer key={block.id} block={block} />
+        ))}
 
       </div>
 
