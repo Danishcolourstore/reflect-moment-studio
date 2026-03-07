@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Image, Eye, Download, Plus, Upload, Clock, ChevronRight } from 'lucide-react';
+import { Camera, Image, Eye, Download, Plus, Upload } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { CreateEventModal } from '@/components/CreateEventModal';
 import { ShareModal } from '@/components/ShareModal';
