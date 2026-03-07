@@ -4,7 +4,7 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  LayoutGrid, Camera, BookOpen, Users, BarChart2, Palette, User,
+  LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
   LogOut, Moon, Sun, Bell, ChevronRight, Menu,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
   { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
+  { title: 'Cheetah Live', url: '/dashboard/cheetah-live', icon: Zap },
   { title: 'Clients', url: '/dashboard/clients', icon: Users },
   { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart2 },
   { title: 'Notifications', url: '/dashboard/notifications', icon: Bell },
@@ -45,6 +46,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/events': 'Events',
   '/dashboard/storybook': 'Storybook',
+  '/dashboard/cheetah-live': 'Cheetah Live',
   '/dashboard/clients': 'Clients',
   '/dashboard/analytics': 'Analytics',
   '/dashboard/notifications': 'Notifications',
