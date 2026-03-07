@@ -18,11 +18,11 @@ export function MobileNav() {
           key={item.url}
           to={item.url}
           end={item.url === '/dashboard'}
-          className="flex flex-col items-center gap-0.5 px-3 py-1.5 text-muted-foreground transition-colors"
+          className="flex flex-col items-center gap-0.5 px-1.5 py-1.5 text-muted-foreground transition-colors min-w-0"
           activeClassName="text-gold"
         >
-          <item.icon className="h-[18px] w-[18px]" />
-          <span className="text-[9px] font-medium tracking-wide">{item.title}</span>
+          <item.icon className="h-[18px] w-[18px] shrink-0" />
+          <span className="text-[8px] font-medium tracking-wide truncate">{item.title}</span>
         </NavLink>
       ))}
     </nav>
