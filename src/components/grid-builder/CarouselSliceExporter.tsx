@@ -8,15 +8,18 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { loadImageElement } from './export-utils';
-import type { GridCellData } from './types';
+import type { GridCellData, CanvasFormat } from './types';
+import { CANVAS_FORMATS } from './types';
 
 interface Props {
   cells: GridCellData[];
+  format?: CanvasFormat;
 }
 
-export default function CarouselSliceExporter({ cells }: Props) {
+export default function CarouselSliceExporter({ cells, format }: Props) {
   const [exporting, setExporting] = useState(false);
   const filledCells = cells.filter((c) => c.imageUrl);
+  const activeFormat = format || CANVAS_FORMATS[0];
 
   if (filledCells.length < 2) return null;
 
@@ -24,29 +27,30 @@ export default function CarouselSliceExporter({ cells }: Props) {
     setExporting(true);
     try {
       const zip = new JSZip();
-      const size = 1080;
+      const w = activeFormat.exportWidth;
+      const h = activeFormat.exportHeight;
 
       for (let i = 0; i < cells.length; i++) {
         const cell = cells[i];
         if (!cell.imageUrl) continue;
 
         const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
+        canvas.width = w;
+        canvas.height = h;
         const ctx = canvas.getContext('2d')!;
 
         const img = await loadImageElement(cell.imageUrl);
 
         // Cover fit
-        const scale = Math.max(size / img.naturalWidth, size / img.naturalHeight) * cell.scale;
-        const w = img.naturalWidth * scale;
-        const h = img.naturalHeight * scale;
-        const offsetScale = size / 440;
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight) * cell.scale;
+        const iw = img.naturalWidth * scale;
+        const ih = img.naturalHeight * scale;
+        const offsetScale = w / 440;
         ctx.drawImage(
           img,
-          (size - w) / 2 + cell.offsetX * offsetScale,
-          (size - h) / 2 + cell.offsetY * offsetScale,
-          w, h
+          (w - iw) / 2 + cell.offsetX * offsetScale,
+          (h - ih) / 2 + cell.offsetY * offsetScale,
+          iw, ih
         );
 
         const blob = await new Promise<Blob>((resolve) =>

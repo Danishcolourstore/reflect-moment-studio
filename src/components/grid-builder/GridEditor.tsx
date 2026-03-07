@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ArrowLeft, RotateCcw, Type, Shapes, Image, Palette, Eye, Stamp, Instagram } from 'lucide-react';
 import InstagramCarouselPreview from './InstagramCarouselPreview';
-import type { GridLayout, GridCellData } from './types';
-import { createCellsForLayout } from './types';
+import type { GridLayout, GridCellData, CanvasFormat } from './types';
+import { createCellsForLayout, CANVAS_FORMATS } from './types';
 import type { TextLayer } from './text-overlay-types';
 import { GOOGLE_FONTS_URL } from './text-overlay-types';
 import type { DesignElement } from './element-types';
@@ -42,6 +42,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [background, setBackground] = useState<BackgroundStyle>(DEFAULT_BG);
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [showIgPreview, setShowIgPreview] = useState(false);
+  const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -173,7 +174,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
 
   const filledCount = cells.filter((c) => c.imageUrl).length;
   const hasFrame = !!layout.frame;
-  const canvasRatio = layout.canvasRatio || 1;
+  const canvasRatio = layout.canvasRatio || format.ratio;
 
   // Compute background for canvas
   const canvasBg = hasFrame ? layout.frame!.background : bgToCss(background);
@@ -187,6 +188,24 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             <ArrowLeft className="h-4 w-4" />
             <span className="text-xs tracking-wider uppercase font-medium">{layout.name}</span>
           </button>
+          {/* Format selector */}
+          {!layout.canvasRatio && (
+            <div className="flex items-center gap-0.5 bg-muted/50 rounded-full p-0.5">
+              {CANVAS_FORMATS.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setFormat(f)}
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wider transition-colors ${
+                    format.id === f.id
+                      ? 'bg-foreground text-background'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
             {/* Tool toggles */}
             {([
@@ -352,9 +371,9 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             Preview
           </button>
           <div className="flex items-center gap-1.5 flex-wrap justify-end">
-            <CarouselSliceExporter cells={cells} />
+            <CarouselSliceExporter cells={cells} format={format} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
-            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} />
+            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} format={format} />
           </div>
         </div>
       </div>
