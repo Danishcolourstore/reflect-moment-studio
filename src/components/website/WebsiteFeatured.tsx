@@ -27,23 +27,25 @@ export function WebsiteFeatured({
   if (events.length === 0) return null;
 
   return (
-    <section id={id} className="py-16 px-4 sm:px-6" style={{ backgroundColor: '#0F0E0A' }}>
-      <div className="text-center mb-10">
+    <section id={id} className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#0F0E0A' }}>
+      {/* Section heading */}
+      <div className="text-center mb-16 sm:mb-20">
         <p
-          className="text-[10px] uppercase tracking-[0.25em] font-medium mb-2"
+          className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em] mb-4"
           style={{ color: accent, opacity: 0.7 }}
         >
           Featured Work
         </p>
         <h2
-          className="text-2xl sm:text-3xl font-light"
+          className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-wide"
           style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}
         >
           Highlights
         </h2>
+        <div className="mt-5 w-10 h-[1px] mx-auto" style={{ backgroundColor: accent, opacity: 0.5 }} />
       </div>
 
-      <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
         {events.map((ev) => {
           const cover = ev.cover_url || coverPhotos[ev.id] || null;
           return (
@@ -54,40 +56,47 @@ export function WebsiteFeatured({
                 e.preventDefault();
                 onNavigate(ev.slug);
               }}
-              className="group relative overflow-hidden rounded-lg cursor-pointer block"
+              className="group relative overflow-hidden cursor-pointer block"
+              style={{ borderRadius: '2px' }}
             >
-              <div className="aspect-[3/2] overflow-hidden" style={{ backgroundColor: '#17140D' }}>
+              <div className="aspect-[3/2] overflow-hidden" style={{ backgroundColor: '#14120D' }}>
                 {cover ? (
-                  <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-105">
+                  <div className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]">
                     <ProgressiveImage src={cover} alt={ev.name} className="h-full w-full object-cover" />
                   </div>
                 ) : (
                   <div className="h-full w-full flex items-center justify-center">
-                    <Camera className="h-10 w-10" style={{ color: '#A6A197', opacity: 0.2 }} />
+                    <Camera className="h-10 w-10" style={{ color: '#A6A197', opacity: 0.15 }} />
                   </div>
                 )}
                 <div
-                  className="absolute inset-0 opacity-60 group-hover:opacity-80 transition-opacity duration-500"
+                  className="absolute inset-0 opacity-40 group-hover:opacity-75 transition-opacity duration-500"
                   style={{
-                    background: 'linear-gradient(to top, rgba(12,11,8,0.9) 0%, transparent 60%)',
+                    background: 'linear-gradient(to top, rgba(10,9,6,0.95) 0%, transparent 60%)',
                   }}
                 />
               </div>
 
-              <div className="absolute bottom-0 inset-x-0 p-5">
+              <div className="absolute bottom-0 inset-x-0 p-5 sm:p-6">
                 <p
-                  className="text-[10px] uppercase tracking-[0.2em] mb-1"
-                  style={{ color: accent, opacity: 0.7 }}
+                  className="text-[9px] sm:text-[10px] uppercase tracking-[0.25em] mb-2"
+                  style={{ color: accent, opacity: 0.8 }}
                 >
                   {ev.event_type}
                 </p>
                 <h3
-                  className="text-xl font-light tracking-wide"
+                  className="text-xl sm:text-2xl font-light tracking-wide"
                   style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}
                 >
                   {ev.name}
                 </h3>
               </div>
+
+              {/* Hover reveal bar */}
+              <div
+                className="absolute bottom-0 left-0 right-0 h-[2px] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"
+                style={{ backgroundColor: accent }}
+              />
             </a>
           );
         })}

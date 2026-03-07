@@ -1,5 +1,4 @@
-import { getTemplate } from '@/lib/website-templates';
-import { Mail, MessageCircle, Globe } from 'lucide-react';
+import { Mail, MessageCircle, Globe, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface StudioBranding {
@@ -16,49 +15,57 @@ interface WebsiteContactProps {
   id?: string;
 }
 
-export function WebsiteContact({ template, branding, id }: WebsiteContactProps) {
-  const t = getTemplate(template);
+export function WebsiteContact({ branding, id }: WebsiteContactProps) {
   const hasContact = branding?.email || branding?.whatsapp || branding?.website;
   if (!hasContact) return null;
 
-  const accentColor = branding?.studio_accent_color || t.text;
+  const accent = branding?.studio_accent_color || '#C6A77B';
 
   return (
     <section
       id={id}
-      className="py-16 px-6"
-      style={{
-        backgroundColor: template === 'editorial-studio' ? '#F5F0EA' : template === 'timeless-wedding' ? '#F5F3F0' : '#F8F8F8',
-        fontFamily: t.uiFontFamily,
-      }}
+      className="py-24 sm:py-32 px-6"
+      style={{ backgroundColor: '#0C0B08' }}
     >
-      <div className="max-w-md mx-auto text-center space-y-5">
+      <div className="max-w-lg mx-auto text-center space-y-8">
+        {/* Label */}
         <p
-          className="text-[10px] uppercase tracking-[0.2em] font-medium"
-          style={{ color: t.textSecondary, opacity: 0.6 }}
+          className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em]"
+          style={{ color: accent, opacity: 0.7 }}
         >
           Get in Touch
         </p>
+
+        {/* Heading */}
         <h3
-          className="text-xl font-light"
+          className="text-3xl sm:text-4xl font-light tracking-wide"
           style={{
-            color: t.text,
-            fontFamily: template === 'editorial-studio' ? '"Cormorant Garamond", Georgia, serif' : t.uiFontFamily,
+            color: '#EDEAE3',
+            fontFamily: "'Playfair Display', serif",
           }}
         >
-          Let's create something beautiful
+          Let's Create Together
         </h3>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+        <div className="w-10 h-[1px] mx-auto" style={{ backgroundColor: accent, opacity: 0.4 }} />
+
+        <p
+          className="text-sm leading-relaxed"
+          style={{ color: 'rgba(166,161,151,0.7)', fontFamily: "'DM Sans', sans-serif" }}
+        >
+          Ready to capture your story? Reach out and let's make something beautiful.
+        </p>
+
+        {/* Contact buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
           {branding?.email && (
             <a href={`mailto:${branding.email}`}>
               <Button
                 variant="outline"
-                size="sm"
-                className="h-9 text-[11px] uppercase tracking-[0.1em] rounded-full px-6"
-                style={{ borderColor: accentColor, color: accentColor }}
+                className="h-11 text-[10px] uppercase tracking-[0.15em] rounded-none px-8 transition-all duration-300 hover:scale-[1.02]"
+                style={{ borderColor: accent, color: accent, backgroundColor: 'transparent' }}
               >
-                <Mail className="h-3.5 w-3.5 mr-1.5" /> Email
+                <Mail className="h-3.5 w-3.5 mr-2" /> Email Me
               </Button>
             </a>
           )}
@@ -66,11 +73,10 @@ export function WebsiteContact({ template, branding, id }: WebsiteContactProps) 
             <a href={`https://wa.me/${branding.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer">
               <Button
                 variant="outline"
-                size="sm"
-                className="h-9 text-[11px] uppercase tracking-[0.1em] rounded-full px-6"
-                style={{ borderColor: accentColor, color: accentColor }}
+                className="h-11 text-[10px] uppercase tracking-[0.15em] rounded-none px-8 transition-all duration-300 hover:scale-[1.02]"
+                style={{ borderColor: accent, color: accent, backgroundColor: 'transparent' }}
               >
-                <MessageCircle className="h-3.5 w-3.5 mr-1.5" /> WhatsApp
+                <MessageCircle className="h-3.5 w-3.5 mr-2" /> WhatsApp
               </Button>
             </a>
           )}
@@ -78,11 +84,10 @@ export function WebsiteContact({ template, branding, id }: WebsiteContactProps) 
             <a href={branding.website.startsWith('http') ? branding.website : `https://${branding.website}`} target="_blank" rel="noopener noreferrer">
               <Button
                 variant="outline"
-                size="sm"
-                className="h-9 text-[11px] uppercase tracking-[0.1em] rounded-full px-6"
-                style={{ borderColor: accentColor, color: accentColor }}
+                className="h-11 text-[10px] uppercase tracking-[0.15em] rounded-none px-8 transition-all duration-300 hover:scale-[1.02]"
+                style={{ borderColor: accent, color: accent, backgroundColor: 'transparent' }}
               >
-                <Globe className="h-3.5 w-3.5 mr-1.5" /> Website
+                <Globe className="h-3.5 w-3.5 mr-2" /> Website
               </Button>
             </a>
           )}

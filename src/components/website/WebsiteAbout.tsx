@@ -1,4 +1,3 @@
-import { getTemplate } from '@/lib/website-templates';
 import { Instagram, Globe, MessageCircle } from 'lucide-react';
 
 interface StudioBranding {
@@ -19,56 +18,59 @@ interface WebsiteAboutProps {
   id?: string;
 }
 
-export function WebsiteAbout({ template, branding, id }: WebsiteAboutProps) {
-  const t = getTemplate(template);
+export function WebsiteAbout({ branding, id }: WebsiteAboutProps) {
   if (!branding?.bio) return null;
+
+  const accent = branding.studio_accent_color || '#C6A77B';
 
   return (
     <section
       id={id}
-      className="py-20 px-6"
-      style={{ backgroundColor: t.bg, fontFamily: t.uiFontFamily }}
+      className="py-24 sm:py-32 px-6"
+      style={{ backgroundColor: '#0F0E0A' }}
     >
-      <div className="max-w-3xl mx-auto text-center space-y-6">
+      <div className="max-w-3xl mx-auto text-center space-y-8">
+        {/* Label */}
         <p
-          className="text-[10px] uppercase tracking-[0.2em] font-medium"
-          style={{ color: t.textSecondary, opacity: 0.6 }}
+          className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em]"
+          style={{ color: accent, opacity: 0.7 }}
         >
-          About the Photographer
+          About
         </p>
 
-        {branding.studio_logo_url && (
-          <img src={branding.studio_logo_url} alt="" className="h-12 mx-auto object-contain opacity-70" />
-        )}
-
+        {/* Photographer name */}
         <h3
-          className="text-2xl font-light tracking-wide"
+          className="text-3xl sm:text-4xl font-light tracking-wide"
           style={{
-            color: t.text,
-            fontFamily: template === 'editorial-studio' ? '"Cormorant Garamond", Georgia, serif' : t.uiFontFamily,
+            color: '#EDEAE3',
+            fontFamily: "'Playfair Display', serif",
           }}
         >
           {branding.display_name || branding.studio_name}
         </h3>
 
+        {/* Accent line */}
+        <div className="w-10 h-[1px] mx-auto" style={{ backgroundColor: accent, opacity: 0.4 }} />
+
+        {/* Bio text */}
         <p
-          className="text-sm leading-relaxed max-w-lg mx-auto"
-          style={{ color: t.textSecondary }}
+          className="text-sm sm:text-base leading-[1.9] max-w-xl mx-auto"
+          style={{ color: 'rgba(166,161,151,0.85)', fontFamily: "'DM Sans', sans-serif" }}
         >
           {branding.bio}
         </p>
 
         {/* Social links */}
-        <div className="flex items-center justify-center gap-4 pt-2">
+        <div className="flex items-center justify-center gap-6 pt-4">
           {branding.instagram && (
             <a
               href={`https://instagram.com/${branding.instagram.replace('@', '')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.1em] hover:opacity-100 opacity-60 transition-opacity"
-              style={{ color: t.text }}
+              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] hover:opacity-100 opacity-50 transition-opacity duration-300"
+              style={{ color: '#EDEAE3' }}
             >
-              <Instagram className="h-3.5 w-3.5" /> Instagram
+              <Instagram className="h-4 w-4" /> Instagram
             </a>
           )}
           {branding.website && (
@@ -76,10 +78,10 @@ export function WebsiteAbout({ template, branding, id }: WebsiteAboutProps) {
               href={branding.website.startsWith('http') ? branding.website : `https://${branding.website}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.1em] hover:opacity-100 opacity-60 transition-opacity"
-              style={{ color: t.text }}
+              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] hover:opacity-100 opacity-50 transition-opacity duration-300"
+              style={{ color: '#EDEAE3' }}
             >
-              <Globe className="h-3.5 w-3.5" /> Website
+              <Globe className="h-4 w-4" /> Website
             </a>
           )}
           {branding.whatsapp && (
@@ -87,10 +89,10 @@ export function WebsiteAbout({ template, branding, id }: WebsiteAboutProps) {
               href={`https://wa.me/${branding.whatsapp.replace(/[^0-9]/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.1em] hover:opacity-100 opacity-60 transition-opacity"
-              style={{ color: t.text }}
+              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] hover:opacity-100 opacity-50 transition-opacity duration-300"
+              style={{ color: '#EDEAE3' }}
             >
-              <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+              <MessageCircle className="h-4 w-4" /> WhatsApp
             </a>
           )}
         </div>
