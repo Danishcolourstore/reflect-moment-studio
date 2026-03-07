@@ -134,29 +134,21 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
     if (loading || !user) return;
 
     // Check for super_admin role by user ID only (no email check)
-    const saCheck = supabase
+    supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .eq('role', 'super_admin')
-      .maybeSingle();
+      .then(({ data: rolesData }) => {
+        const roles = (rolesData || []).map((r: any) => r.role);
 
-    saCheck.then(({ data: saRole }) => {
-      if (saRole) {
-        setRedirectTo('/super-admin');
-        setChecked(true);
-        return;
-      }
+        if (roles.includes('super_admin')) {
+          setRedirectTo('/super-admin');
+          setChecked(true);
+          return;
+        }
 
-      // Not super admin — continue with normal role check
-
-    const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
-    const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
-    Promise.race([rolePromise, timeout])
-      .then((result: any) => {
-        const roles = (result?.data || []).map((r: any) => r.role);
-        if (roles.includes("client")) {
-          setRedirectTo("/client");
+        if (roles.includes('client')) {
+          setRedirectTo('/client');
         } else {
           const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
           if (pinVerified) {
