@@ -4,14 +4,16 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { renderGridToCanvas, loadImageElement } from './export-utils';
 import type { GridLayout, GridCellData } from './types';
+import type { TextLayer } from './text-overlay-types';
 
 interface Props {
   layout: GridLayout;
   cells: GridCellData[];
   gridRef: React.RefObject<HTMLDivElement | null>;
+  textLayers?: TextLayer[];
 }
 
-export default function CarouselExporter({ layout, cells, gridRef }: Props) {
+export default function CarouselExporter({ layout, cells, gridRef, textLayers = [] }: Props) {
   const [exporting, setExporting] = useState(false);
   const filledCount = cells.filter((c) => c.imageUrl).length;
 
