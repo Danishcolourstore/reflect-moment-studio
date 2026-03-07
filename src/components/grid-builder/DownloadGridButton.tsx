@@ -29,15 +29,37 @@ interface Props {
 export default function DownloadGridButton({ gridRef, cells, layout, textLayers = [], elements = [], logo = null, background, format }: Props) {
   const [exporting, setExporting] = useState(false);
 
+  const activeFormat = format || CANVAS_FORMATS[0];
+
   const exportGrid = async (size: ExportSize) => {
     setExporting(true);
     try {
-      const canvas = await renderGridToCanvas(layout, cells, size.width, size.height, textLayers, elements, logo, background);
+      // Scale export to match format ratio
+      const exportW = size.width;
+      const exportH = Math.round(size.width / activeFormat.ratio);
+      const canvas = await renderGridToCanvas(layout, cells, exportW, exportH, textLayers, elements, logo, background);
       const link = document.createElement('a');
-      link.download = `grid-${size.width}x${size.height}.png`;
+      link.download = `grid-${exportW}x${exportH}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-      toast.success(`Exported at ${size.label} — lossless PNG`);
+      toast.success(`Exported at ${exportW}×${exportH} — lossless PNG`);
+    } catch (err) {
+      console.error('Export failed', err);
+      toast.error('Export failed — try again');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportNative = async () => {
+    setExporting(true);
+    try {
+      const canvas = await renderGridToCanvas(layout, cells, activeFormat.exportWidth, activeFormat.exportHeight, textLayers, elements, logo, background);
+      const link = document.createElement('a');
+      link.download = `grid-${activeFormat.exportWidth}x${activeFormat.exportHeight}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      toast.success(`Exported at ${activeFormat.exportWidth}×${activeFormat.exportHeight} — lossless PNG`);
     } catch (err) {
       console.error('Export failed', err);
       toast.error('Export failed — try again');
