@@ -342,9 +342,14 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       {/* Bottom bar */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur border-t border-border px-3 py-3 safe-area-pb">
         <div className="max-w-[480px] mx-auto flex items-center justify-between gap-2">
-          <p className="text-[10px] tracking-wider uppercase text-muted-foreground whitespace-nowrap shrink-0">
-            {filledCount}/{cells.length}
-          </p>
+          <button
+            onClick={() => filledCount > 0 && setShowIgPreview(true)}
+            disabled={filledCount === 0}
+            className="flex items-center gap-1.5 text-[10px] tracking-wider uppercase font-medium text-foreground disabled:text-muted-foreground/40 transition-colors"
+          >
+            <Instagram className="h-3.5 w-3.5" />
+            Preview
+          </button>
           <div className="flex items-center gap-1.5 flex-wrap justify-end">
             <CarouselSliceExporter cells={cells} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
@@ -352,6 +357,14 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           </div>
         </div>
       </div>
+
+      {/* Instagram Preview Modal */}
+      {showIgPreview && (
+        <InstagramCarouselPreview
+          images={cells.filter((c) => c.imageUrl).map((c) => c.imageUrl!)}
+          onClose={() => setShowIgPreview(false)}
+        />
+      )}
     </div>
   );
 }
