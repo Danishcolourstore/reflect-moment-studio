@@ -3,6 +3,9 @@ import { Download, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EXPORT_SIZES, type ExportSize, type GridLayout, type GridCellData } from './types';
 import type { TextLayer } from './text-overlay-types';
+import type { DesignElement } from './element-types';
+import type { LogoLayer } from './LogoOverlay';
+import type { BackgroundStyle } from './BackgroundStyler';
 import { renderGridToCanvas } from './export-utils';
 import { toast } from 'sonner';
 
@@ -11,9 +14,12 @@ interface Props {
   cells: GridCellData[];
   layout: GridLayout;
   textLayers?: TextLayer[];
+  elements?: DesignElement[];
+  logo?: LogoLayer | null;
+  background?: BackgroundStyle;
 }
 
-export default function DownloadGridButton({ gridRef, cells, layout, textLayers = [] }: Props) {
+export default function DownloadGridButton({ gridRef, cells, layout, textLayers = [], elements = [], logo = null, background }: Props) {
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -22,7 +28,7 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
     setOpen(false);
 
     try {
-      const canvas = await renderGridToCanvas(layout, cells, size.width, size.height, textLayers);
+      const canvas = await renderGridToCanvas(layout, cells, size.width, size.height, textLayers, elements, logo, background);
       const link = document.createElement('a');
       link.download = `grid-${size.width}x${size.height}.png`;
       link.href = canvas.toDataURL('image/png');
@@ -51,7 +57,6 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
 
       {open && (
         <>
-          {/* Backdrop to close */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 bottom-full mb-2 w-44 rounded-xl border border-border bg-card shadow-lg z-50 overflow-hidden">
             {EXPORT_SIZES.map((s) => (

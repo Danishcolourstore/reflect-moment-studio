@@ -1,10 +1,14 @@
 /**
  * Canvas-based export utilities for Grid Builder.
- * Renders grids + frames + text overlays using original image data — zero compression, lossless PNG output.
+ * Renders grids + frames + text overlays + design elements + logos using original image data — zero compression, lossless PNG output.
  */
 
 import type { GridLayout, GridCellData } from './types';
 import type { TextLayer } from './text-overlay-types';
+import type { DesignElement } from './element-types';
+import type { LogoLayer } from './LogoOverlay';
+import type { BackgroundStyle } from './BackgroundStyler';
+import { bgToCss } from './BackgroundStyler';
 
 /** Load an image element from a URL (blob/object URL or data URL) */
 export function loadImageElement(src: string): Promise<HTMLImageElement> {
@@ -34,7 +38,6 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 
 /**
  * Render the full grid to a canvas at the specified resolution.
- * Supports frame configs for single-image layouts.
  */
 export async function renderGridToCanvas(
   layout: GridLayout,
@@ -42,6 +45,9 @@ export async function renderGridToCanvas(
   width: number,
   height: number,
   textLayers: TextLayer[] = [],
+  elements: DesignElement[] = [],
+  logo: LogoLayer | null = null,
+  background?: BackgroundStyle,
 ): Promise<HTMLCanvasElement> {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -51,8 +57,25 @@ export async function renderGridToCanvas(
   const frame = layout.frame;
 
   // Background
-  ctx.fillStyle = frame?.background || '#ffffff';
-  ctx.fillRect(0, 0, width, height);
+  if (background && !frame) {
+    if (background.type === 'gradient' && background.gradientTo) {
+      const angle = (background.gradientAngle || 180) * Math.PI / 180;
+      const x0 = width / 2 - Math.sin(angle) * width / 2;
+      const y0 = height / 2 - Math.cos(angle) * height / 2;
+      const x1 = width / 2 + Math.sin(angle) * width / 2;
+      const y1 = height / 2 + Math.cos(angle) * height / 2;
+      const grad = ctx.createLinearGradient(x0, y0, x1, y1);
+      grad.addColorStop(0, background.color);
+      grad.addColorStop(1, background.gradientTo);
+      ctx.fillStyle = grad;
+    } else {
+      ctx.fillStyle = background.color;
+    }
+    ctx.fillRect(0, 0, width, height);
+  } else {
+    ctx.fillStyle = frame?.background || '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+  }
 
   // Calculate image area based on frame padding
   let areaX = 0, areaY = 0, areaW = width, areaH = height;
@@ -67,7 +90,6 @@ export async function renderGridToCanvas(
     areaW = width - pl - pr;
     areaH = height - pt - pb;
 
-    // Shadow under image area
     if (frame.shadow) {
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,0.12)';
@@ -80,7 +102,6 @@ export async function renderGridToCanvas(
       ctx.restore();
     }
 
-    // Border
     if (frame.borderWidth) {
       ctx.save();
       const bw = (frame.borderWidth / 440) * width;
@@ -131,7 +152,6 @@ export async function renderGridToCanvas(
 
     ctx.save();
 
-    // Clip with image radius if frame has it
     if (frame?.imageRadius) {
       const sr = (frame.imageRadius / 440) * width;
       roundRect(ctx, x, y, cw, ch, sr);
@@ -142,15 +162,76 @@ export async function renderGridToCanvas(
       ctx.clip();
     }
 
-    ctx.drawImage(
-      img,
-      x + (cw - dw) / 2 + ox,
-      y + (ch - dh) / 2 + oy,
-      dw,
-      dh,
-    );
-
+    ctx.drawImage(img, x + (cw - dw) / 2 + ox, y + (ch - dh) / 2 + oy, dw, dh);
     ctx.restore();
+  }
+
+  // ─── Render design elements ───────────────────
+  if (elements.length > 0) {
+    const scale = width / displaySize;
+
+    for (const el of elements) {
+      ctx.save();
+
+      const ex = (el.x / 100) * width;
+      const ey = (el.y / 100) * height;
+      const ew = el.width * scale;
+      const eh = el.height * scale;
+
+      ctx.translate(ex, ey);
+      ctx.rotate((el.rotation * Math.PI) / 180);
+      ctx.globalAlpha = el.opacity;
+
+      if (el.type === 'circle') {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, ew / 2, eh / 2, 0, 0, Math.PI * 2);
+        if (el.filled) {
+          ctx.fillStyle = el.color;
+          ctx.fill();
+        }
+        if (el.borderWidth) {
+          ctx.strokeStyle = el.borderColor;
+          ctx.lineWidth = el.borderWidth * scale;
+          ctx.stroke();
+        }
+      } else {
+        const br = el.borderRadius * scale;
+        roundRect(ctx, -ew / 2, -eh / 2, ew, eh, br);
+        if (el.filled) {
+          ctx.fillStyle = el.color;
+          ctx.fill();
+        }
+        if (el.borderWidth) {
+          ctx.strokeStyle = el.borderColor;
+          ctx.lineWidth = el.borderWidth * scale;
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    }
+  }
+
+  // ─── Render logo ──────────────────────────────
+  if (logo) {
+    try {
+      const logoImg = await loadImageElement(logo.imageUrl);
+      const scale = width / displaySize;
+      const lw = logo.width * scale;
+      const lh = (logoImg.naturalHeight / logoImg.naturalWidth) * lw;
+
+      const lx = (logo.x / 100) * width;
+      const ly = (logo.y / 100) * height;
+
+      ctx.save();
+      ctx.translate(lx, ly);
+      ctx.rotate((logo.rotation * Math.PI) / 180);
+      ctx.globalAlpha = logo.opacity;
+      ctx.drawImage(logoImg, -lw / 2, -lh / 2, lw, lh);
+      ctx.restore();
+    } catch {
+      // Logo failed to load, skip
+    }
   }
 
   // ─── Render text overlays ───────────────────
