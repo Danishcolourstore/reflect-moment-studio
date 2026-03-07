@@ -213,6 +213,15 @@ const AppRoutes = () => {
       <Route path="/verify-otp" element={<VerifyOTP />} />
 
       <Route
+        path="/super-admin"
+        element={
+          <SuperAdminGate>
+            <SuperAdmin />
+          </SuperAdminGate>
+        }
+      />
+
+      <Route
         path="/admin"
         element={
           <AdminGate>
