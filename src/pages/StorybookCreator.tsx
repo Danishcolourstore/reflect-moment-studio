@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { Plus, BookOpen, Trash2 } from 'lucide-react';
+import { Plus, BookOpen, Trash2, Grid3X3 } from 'lucide-react';
 import CarouselDesigner from '@/components/CarouselDesigner';
 import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
+import GridBuilder from '@/components/grid-builder/GridBuilder';
 
 export default function StorybookCreator() {
   const { user } = useAuth();
