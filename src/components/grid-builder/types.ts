@@ -40,6 +40,20 @@ export interface GridCellData {
   scale: number;
 }
 
+export type CanvasFormat = {
+  id: string;
+  label: string;
+  ratio: number; // width / height
+  exportWidth: number;
+  exportHeight: number;
+};
+
+export const CANVAS_FORMATS: CanvasFormat[] = [
+  { id: '1:1', label: '1:1', ratio: 1, exportWidth: 1080, exportHeight: 1080 },
+  { id: '4:5', label: '4:5', ratio: 4 / 5, exportWidth: 1080, exportHeight: 1350 },
+  { id: '9:16', label: '9:16', ratio: 9 / 16, exportWidth: 1080, exportHeight: 1920 },
+];
+
 export type ExportSize = {
   label: string;
   width: number;

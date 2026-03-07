@@ -42,6 +42,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [background, setBackground] = useState<BackgroundStyle>(DEFAULT_BG);
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [showIgPreview, setShowIgPreview] = useState(false);
+  const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
