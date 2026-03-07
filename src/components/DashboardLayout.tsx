@@ -46,6 +46,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/events': 'Events',
   '/dashboard/storybook': 'Storybook',
+  '/dashboard/cheetah-live': 'Cheetah Live',
   '/dashboard/clients': 'Clients',
   '/dashboard/analytics': 'Analytics',
   '/dashboard/notifications': 'Notifications',
