@@ -16,9 +16,7 @@ const Auth = ({ initialView }: AuthProps) => {
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState<"login" | "signup">(initialView === "signup" ? "signup" : "login");
 
-  useEffect(() => {
-    supabase.auth.signUp({ email: "test@mirroraigallery.com", password: "Test@1234" }).catch(() => {});
-  }, []);
+  // Removed rogue test signup call
 
   const handleLogin = async () => {
     setLoading(true); setError(""); setMessage("");
@@ -38,7 +36,9 @@ const Auth = ({ initialView }: AuthProps) => {
 
   const handleForgotPassword = async () => {
     setError(""); setMessage("");
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
     if (error) setError(error.message);
     else setMessage("Password reset email sent");
   };

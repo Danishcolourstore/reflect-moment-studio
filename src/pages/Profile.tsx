@@ -31,7 +31,7 @@ const Profile = () => {
     if (!user) return;
     setEmail(user.email || '');
     setFullName(user.user_metadata?.full_name || '');
-    (supabase.from('profiles').select('avatar_url, studio_name') as any).eq('user_id', user.id).single()
+    (supabase.from('profiles').select('avatar_url, studio_name') as any).eq('user_id', user.id).maybeSingle()
       .then(({ data }: any) => {
         if (data) {
           setAvatarUrl(data.avatar_url);

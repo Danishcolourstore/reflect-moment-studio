@@ -49,7 +49,7 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
     if (!user) return;
     (supabase.from('clients').select('name') as any)
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
       .then(({ data }: any) => {
         if (data) setClientName(data.name);
       });

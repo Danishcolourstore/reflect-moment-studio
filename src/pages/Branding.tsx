@@ -42,8 +42,8 @@ const Branding = () => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const { data: profile } = await (supabase.from('profiles').select('studio_name, studio_logo_url, studio_accent_color, email') as any).eq('user_id', user.id).single();
-      const { data: studio } = await (supabase.from('studio_profiles').select('*') as any).eq('user_id', user.id).single();
+      const { data: profile } = await (supabase.from('profiles').select('studio_name, studio_logo_url, studio_accent_color, email') as any).eq('user_id', user.id).maybeSingle();
+      const { data: studio } = await (supabase.from('studio_profiles').select('*') as any).eq('user_id', user.id).maybeSingle();
       if (profile) {
         setStudioName(profile.studio_name || '');
         setLogoUrl(profile.studio_logo_url || null);
@@ -89,7 +89,7 @@ const Branding = () => {
     setCoverUploading(true);
     try {
       const url = await uploadFile(file, `studio-covers/${user.id}/cover.${file.name.split('.').pop()}`);
-      const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).single();
+      const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
       if (existing) {
         await (supabase.from('studio_profiles').update({ cover_url: url } as any) as any).eq('user_id', user.id);
       } else {
@@ -106,7 +106,7 @@ const Branding = () => {
     setSaving(true);
     await (supabase.from('profiles').update({ studio_name: studioName, studio_accent_color: accentColor } as any) as any).eq('user_id', user.id);
     const studioData = { bio, display_name: tagline, instagram: instagram || null, website: website || null, whatsapp: whatsapp || null, footer_text: footerText || null, font_style: fontStyle, username: username || null };
-    const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).single();
+    const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
     if (existing) {
       await (supabase.from('studio_profiles').update(studioData as any) as any).eq('user_id', user.id);
     } else {

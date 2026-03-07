@@ -64,9 +64,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (!user) return;
     (supabase.from("profiles").select("suspended") as any)
       .eq("user_id", user.id)
-      .single()
-      .then(({ data }: any) => {
-        setSuspended(data?.suspended ?? false);
+      .maybeSingle()
+      .then(({ data, error }: any) => {
+        if (error || !data) {
+          // Profile doesn't exist yet — allow access, not suspended
+          setSuspended(false);
+          return;
+        }
+        setSuspended(data.suspended ?? false);
       });
   }, [user]);
 
