@@ -268,6 +268,7 @@ const PublicGallery = () => {
 
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [findMyPhotosOpen, setFindMyPhotosOpen] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
