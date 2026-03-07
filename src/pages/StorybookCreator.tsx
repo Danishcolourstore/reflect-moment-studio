@@ -10,6 +10,7 @@ import CarouselDesigner from '@/components/CarouselDesigner';
 import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
 import GridBuilder from '@/components/grid-builder/GridBuilder';
+import { StorybookInstallBanner } from '@/components/StorybookInstallBanner';
 
 // Generate a deterministic UUID v5-like ID from an email for standalone mode
 function emailToUuid(email: string): string {
@@ -41,6 +42,17 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
     : user?.id;
 
   const hasAccess = standalone ? !!sessionStorage.getItem('storybook_access_verified') : !!user;
+
+  // Swap manifest to storybook-specific one for PWA install
+  useEffect(() => {
+    if (!standalone) return;
+    const link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+    const original = link?.getAttribute('href');
+    if (link) link.setAttribute('href', '/manifest-storybook.json');
+    return () => {
+      if (link && original) link.setAttribute('href', original);
+    };
+  }, [standalone]);
 
   // Load storybooks list
   useEffect(() => {
@@ -220,6 +232,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-3xl mx-auto px-4 py-8">
+          <StorybookInstallBanner />
           {listContent}
         </div>
       </div>
