@@ -33,6 +33,7 @@ import { OtpInput } from '@/components/OtpInput';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
 import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
+import { FindMyPhotosModal } from '@/components/FindMyPhotosModal';
 import { TimelessWeddingHero } from '@/components/TimelessWeddingHero';
 import { AndhakarHero } from '@/components/AndhakarHero';
 import { WebsiteHeader } from '@/components/website/WebsiteHeader';
