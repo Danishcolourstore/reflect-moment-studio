@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, Type, Shapes, Image, Palette, Eye, Stamp } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Type, Shapes, Image, Palette, Eye, Stamp, Instagram } from 'lucide-react';
+import InstagramCarouselPreview from './InstagramCarouselPreview';
 import type { GridLayout, GridCellData } from './types';
 import { createCellsForLayout } from './types';
 import type { TextLayer } from './text-overlay-types';
