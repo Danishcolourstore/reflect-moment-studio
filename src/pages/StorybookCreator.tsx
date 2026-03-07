@@ -133,8 +133,8 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
   }
 
   // ─── List View ───
-  return (
-    <DashboardLayout>
+  const listContent = (
+    <>
       <div className="mb-6">
         <h1 className="font-serif text-foreground" style={{ fontSize: '36px', fontWeight: 400, fontStyle: 'italic' }}>
           Storybook Creator
