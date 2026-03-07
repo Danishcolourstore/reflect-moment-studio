@@ -6,6 +6,22 @@ interface Props {
   onClose: () => void;
 }
 
+type AspectMode = 'portrait' | 'square' | 'landscape';
+
+function detectAspectMode(ratio: number): AspectMode {
+  if (ratio <= 0.85) return 'portrait';
+  if (ratio >= 1.3) return 'landscape';
+  return 'square';
+}
+
+function getContainerRatio(mode: AspectMode): string {
+  switch (mode) {
+    case 'portrait': return '4 / 5';
+    case 'landscape': return '1.91 / 1';
+    default: return '1 / 1';
+  }
+}
+
 export default function InstagramCarouselPreview({ images, onClose }: Props) {
   const [current, setCurrent] = useState(0);
   const touchStartX = useRef(0);
@@ -14,8 +30,20 @@ export default function InstagramCarouselPreview({ images, onClose }: Props) {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [aspectMode, setAspectMode] = useState<AspectMode>('square');
 
   const total = images.length;
+
+  // Detect aspect ratio from first image
+  useEffect(() => {
+    if (!images.length) return;
+    const img = new Image();
+    img.onload = () => {
+      const ratio = img.naturalWidth / img.naturalHeight;
+      setAspectMode(detectAspectMode(ratio));
+    };
+    img.src = images[0];
+  }, [images]);
 
   const goTo = useCallback((idx: number) => {
     setCurrent(Math.max(0, Math.min(total - 1, idx)));
@@ -41,7 +69,6 @@ export default function InstagramCarouselPreview({ images, onClose }: Props) {
     touchDeltaX.current = 0;
   };
 
-  // Keyboard nav
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') goTo(current - 1);
@@ -51,6 +78,8 @@ export default function InstagramCarouselPreview({ images, onClose }: Props) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [current, goTo, onClose]);
+
+  const containerRatio = getContainerRatio(aspectMode);
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
@@ -84,7 +113,7 @@ export default function InstagramCarouselPreview({ images, onClose }: Props) {
           <div
             ref={containerRef}
             className="relative w-full overflow-hidden"
-            style={{ aspectRatio: '1 / 1' }}
+            style={{ aspectRatio: containerRatio }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -97,11 +126,11 @@ export default function InstagramCarouselPreview({ images, onClose }: Props) {
               }}
             >
               {images.map((src, i) => (
-                <div key={i} className="h-full flex-shrink-0" style={{ width: `${100 / total}%` }}>
+                <div key={i} className="h-full flex-shrink-0 flex items-center justify-center bg-black" style={{ width: `${100 / total}%` }}>
                   <img
                     src={src}
                     alt={`Slide ${i + 1}`}
-                    className="w-full h-full object-cover"
+                    className="max-w-full max-h-full object-contain"
                     draggable={false}
                   />
                 </div>
@@ -145,7 +174,6 @@ export default function InstagramCarouselPreview({ images, onClose }: Props) {
             <Send className="h-6 w-6 text-white" />
           </div>
 
-          {/* Pagination dots */}
           {total > 1 && (
             <div className="flex items-center gap-1">
               {images.map((_, i) => (
