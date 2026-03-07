@@ -431,6 +431,9 @@ const EventGallery = () => {
           </TabsList>
 
           <TabsContent value="photos" className="mt-4">
+            {/* Text Block Manager */}
+            <TextBlockManager eventId={event.id} textBlocks={textBlocks} onRefresh={fetchTextBlocks} />
+
             {/* Owner filter bar */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-0">
