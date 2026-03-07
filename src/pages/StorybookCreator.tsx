@@ -113,6 +113,11 @@ export default function StorybookCreator() {
     setInitialSlides([]);
   };
 
+  // ─── Grid Builder View ───
+  if (showGridBuilder) {
+    return <GridBuilder onClose={() => setShowGridBuilder(false)} />;
+  }
+
   // ─── Editor View (Carousel Designer) ───
   if (activeId && initialSlides.length > 0) {
     return (
