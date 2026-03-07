@@ -1,4 +1,4 @@
-import { LayoutDashboard, CalendarDays, BookOpen, Zap, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, BookOpen, Zap, Settings } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 
 const items = [
@@ -6,13 +6,12 @@ const items = [
   { title: 'Events', url: '/dashboard/events', icon: CalendarDays },
   { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
   { title: 'Cheetah Live', url: '/dashboard/cheetah-live', icon: Zap },
-  { title: 'Clients', url: '/dashboard/clients', icon: Users },
-  { title: 'More', url: '/dashboard/settings', icon: Settings },
+  { title: 'More', url: '/dashboard/more', icon: Settings },
 ];
 
 export function MobileNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 grid grid-cols-6 border-t border-border bg-card/95 backdrop-blur-md py-1.5 lg:hidden safe-area-pb">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 grid grid-cols-5 border-t border-border bg-card/95 backdrop-blur-md py-1.5 lg:hidden safe-area-pb">
       {items.map((item) => (
         <NavLink
           key={item.url}
