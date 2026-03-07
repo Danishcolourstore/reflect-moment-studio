@@ -17,6 +17,7 @@ import Clients from "./pages/Clients";
 import Cheetah from "./pages/Cheetah";
 import CheetahLive from "./pages/CheetahLive";
 import Branding from "./pages/Branding";
+import MorePage from "./pages/MorePage";
 import BrandEditor from "./pages/BrandEditor";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
@@ -344,6 +345,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Analytics />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/more"
+        element={
+          <ProtectedRoute>
+            <MorePage />
           </ProtectedRoute>
         }
       />
