@@ -158,7 +158,14 @@ const EventGallery = () => {
     }
   }, [id]);
 
-  useEffect(() => { fetchEvent(); fetchPhotos(); fetchFavStats(); }, [fetchEvent, fetchPhotos, fetchFavStats]);
+  const fetchTextBlocks = useCallback(async () => {
+    if (!id) return;
+    const { data } = await (supabase.from('gallery_text_blocks' as any)
+      .select('*').eq('event_id', id).order('sort_order', { ascending: true }) as any);
+    if (data) setTextBlocks(data as unknown as TextBlock[]);
+  }, [id]);
+
+  useEffect(() => { fetchEvent(); fetchPhotos(); fetchFavStats(); fetchTextBlocks(); }, [fetchEvent, fetchPhotos, fetchFavStats, fetchTextBlocks]);
 
   // Refresh photos & show success toast when upload completes
   useEffect(() => {
