@@ -11,7 +11,7 @@ import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
 import GridBuilder from '@/components/grid-builder/GridBuilder';
 
-export default function StorybookCreator() {
+export default function StorybookCreator({ standalone = false }: { standalone?: boolean }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [storybooks, setStorybooks] = useState<any[]>([]);
@@ -133,8 +133,8 @@ export default function StorybookCreator() {
   }
 
   // ─── List View ───
-  return (
-    <DashboardLayout>
+  const listContent = (
+    <>
       <div className="mb-6">
         <h1 className="font-serif text-foreground" style={{ fontSize: '36px', fontWeight: 400, fontStyle: 'italic' }}>
           Storybook Creator
@@ -148,9 +148,11 @@ export default function StorybookCreator() {
         <Button onClick={createStorybook} className="gap-2">
           <Plus className="h-4 w-4" /> New Storybook
         </Button>
-        <Button variant="outline" onClick={() => setShowGridBuilder(true)} className="gap-2">
-          <Grid3X3 className="h-4 w-4" /> Grid Builder
-        </Button>
+        {!standalone && (
+          <Button variant="outline" onClick={() => setShowGridBuilder(true)} className="gap-2">
+            <Grid3X3 className="h-4 w-4" /> Grid Builder
+          </Button>
+        )}
       </div>
 
       {loading ? (
@@ -194,6 +196,18 @@ export default function StorybookCreator() {
           ))}
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
+
+  if (standalone) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-3xl mx-auto px-4 py-8">
+          {listContent}
+        </div>
+      </div>
+    );
+  }
+
+  return <DashboardLayout>{listContent}</DashboardLayout>;
 }
