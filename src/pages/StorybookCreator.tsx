@@ -10,6 +10,7 @@ import CarouselDesigner from '@/components/CarouselDesigner';
 import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
 import GridBuilder from '@/components/grid-builder/GridBuilder';
+import { StorybookInstallBanner } from '@/components/StorybookInstallBanner';
 
 // Generate a deterministic UUID v5-like ID from an email for standalone mode
 function emailToUuid(email: string): string {
