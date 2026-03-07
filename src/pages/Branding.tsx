@@ -63,6 +63,30 @@ const Branding = () => {
         setFontStyle(studio.font_style || 'serif');
         setUsername(studio.username || '');
       }
+
+      // Load feed events for preview
+      const { data: evData } = await (supabase.from('events')
+        .select('id, name, cover_url, photo_count') as any)
+        .eq('user_id', user.id)
+        .eq('is_published', true)
+        .eq('feed_visible', true)
+        .order('event_date', { ascending: false })
+        .limit(4);
+      const typedEv = (evData || []) as { id: string; name: string; cover_url: string | null; photo_count: number }[];
+      setFeedEvents(typedEv);
+
+      // Fetch a thumbnail for events missing cover_url
+      const noCover = typedEv.filter(e => !e.cover_url);
+      if (noCover.length > 0) {
+        const thumbs: Record<string, string> = {};
+        for (const ev of noCover) {
+          const { data: p } = await (supabase.from('photos').select('url') as any)
+            .eq('event_id', ev.id).limit(1);
+          if (p?.[0]?.url) thumbs[ev.id] = p[0].url;
+        }
+        setFeedThumbs(thumbs);
+      }
+
       setLoading(false);
     };
     load();
