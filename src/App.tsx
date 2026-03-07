@@ -135,21 +135,16 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 
     // Super admin check — both email and database role
     if (user.email === 'danishsubair@gmail.com') {
-      // Check for super_admin role in DB
-      const { data: saRole } = await supabase
+      supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'super_admin')
-        .maybeSingle();
-      if (saRole) {
-        setRedirectTo('/super-admin');
-        setChecked(true);
-        return;
-      }
-      // Fallback to admin
-      setRedirectTo('/admin');
-      setChecked(true);
+        .maybeSingle()
+        .then(({ data: saRole }) => {
+          setRedirectTo(saRole ? '/super-admin' : '/admin');
+          setChecked(true);
+        });
       return;
     }
 
