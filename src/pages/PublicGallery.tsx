@@ -34,6 +34,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
 import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
 import { FindMyPhotosModal } from '@/components/FindMyPhotosModal';
+import { GalleryTextBlockRenderer, type TextBlock } from '@/components/GalleryTextBlock';
 import { TimelessWeddingHero } from '@/components/TimelessWeddingHero';
 import { AndhakarHero } from '@/components/AndhakarHero';
 import { WebsiteHeader } from '@/components/website/WebsiteHeader';
@@ -240,6 +241,7 @@ const PublicGallery = () => {
   const [studioProfile, setStudioProfile] = useState<StudioProfile | null>(null);
   const [studioExtended, setStudioExtended] = useState<StudioExtended | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [textBlocks, setTextBlocks] = useState<TextBlock[]>([]);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -339,6 +341,11 @@ const PublicGallery = () => {
         setCachedPhotos(ev.id, typedPhotos);
       }
     }
+
+    // Fetch text blocks
+    const { data: tbData } = await (supabase.from('gallery_text_blocks' as any)
+      .select('*').eq('event_id', ev.id).order('sort_order', { ascending: true }) as any);
+    if (tbData) setTextBlocks(tbData as unknown as TextBlock[]);
 
     // Fetch comment counts
     const { data: comments } = await (supabase.from('photo_comments').select('photo_id') as any)
@@ -1076,8 +1083,18 @@ const PublicGallery = () => {
           </div>
         )}
 
+        {/* Text blocks before gallery */}
+        {textBlocks.filter(b => b.sort_order < 0).map(block => (
+          <GalleryTextBlockRenderer key={block.id} block={block} />
+        ))}
+
         {/* Gallery grid */}
         {renderGallery()}
+
+        {/* Text blocks after gallery */}
+        {textBlocks.filter(b => b.sort_order >= 0).map(block => (
+          <GalleryTextBlockRenderer key={block.id} block={block} />
+        ))}
 
       </div>
 

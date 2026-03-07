@@ -838,6 +838,71 @@ export type Database = {
           },
         ]
       }
+      gallery_text_blocks: {
+        Row: {
+          bg_style: string | null
+          created_at: string
+          event_id: string
+          font_family: string | null
+          font_size: string | null
+          font_weight: string | null
+          id: string
+          letter_spacing: string | null
+          line_height: string | null
+          paragraph: string | null
+          sort_order: number
+          subtitle: string | null
+          template: string | null
+          text_align: string | null
+          text_color: string | null
+          title: string | null
+        }
+        Insert: {
+          bg_style?: string | null
+          created_at?: string
+          event_id: string
+          font_family?: string | null
+          font_size?: string | null
+          font_weight?: string | null
+          id?: string
+          letter_spacing?: string | null
+          line_height?: string | null
+          paragraph?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          template?: string | null
+          text_align?: string | null
+          text_color?: string | null
+          title?: string | null
+        }
+        Update: {
+          bg_style?: string | null
+          created_at?: string
+          event_id?: string
+          font_family?: string | null
+          font_size?: string | null
+          font_weight?: string | null
+          id?: string
+          letter_spacing?: string | null
+          line_height?: string | null
+          paragraph?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          template?: string | null
+          text_align?: string | null
+          text_color?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_text_blocks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_registrations: {
         Row: {
           created_at: string

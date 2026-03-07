@@ -34,7 +34,8 @@ import { PhotoSectionSelect } from '@/components/PhotoSectionSelect';
 import { SelectionsViewer } from '@/components/SelectionsViewer';
 import { CommentsViewer } from '@/components/CommentsViewer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { GripVertical, MessageCircle, CheckSquare } from 'lucide-react';
+import { GripVertical, MessageCircle, CheckSquare, Type } from 'lucide-react';
+import { TextBlockEditor, TextBlockManager, type TextBlock } from '@/components/GalleryTextBlock';
 
 interface Photo {
   id: string;
@@ -96,6 +97,8 @@ const EventGallery = () => {
   const [downloadProgress, setDownloadProgress] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [favStats, setFavStats] = useState<{ totalFavs: number; uniqueGuests: number }>({ totalFavs: 0, uniqueGuests: 0 });
+  const [textBlocks, setTextBlocks] = useState<TextBlock[]>([]);
+  const [textEditorOpen, setTextEditorOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
 
@@ -155,7 +158,14 @@ const EventGallery = () => {
     }
   }, [id]);
 
-  useEffect(() => { fetchEvent(); fetchPhotos(); fetchFavStats(); }, [fetchEvent, fetchPhotos, fetchFavStats]);
+  const fetchTextBlocks = useCallback(async () => {
+    if (!id) return;
+    const { data } = await (supabase.from('gallery_text_blocks' as any)
+      .select('*').eq('event_id', id).order('sort_order', { ascending: true }) as any);
+    if (data) setTextBlocks(data as unknown as TextBlock[]);
+  }, [id]);
+
+  useEffect(() => { fetchEvent(); fetchPhotos(); fetchFavStats(); fetchTextBlocks(); }, [fetchEvent, fetchPhotos, fetchFavStats, fetchTextBlocks]);
 
   // Refresh photos & show success toast when upload completes
   useEffect(() => {
@@ -339,6 +349,9 @@ const EventGallery = () => {
               <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
                 <Share2 className="mr-1 h-3 w-3" />Share
               </Button>
+              <Button variant="ghost" size="sm" onClick={() => setTextEditorOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
+                <Type className="mr-1 h-3 w-3" />Add Text
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
                 <Settings className="mr-1 h-3 w-3" />Settings
               </Button>
@@ -418,6 +431,9 @@ const EventGallery = () => {
           </TabsList>
 
           <TabsContent value="photos" className="mt-4">
+            {/* Text Block Manager */}
+            <TextBlockManager eventId={event.id} textBlocks={textBlocks} onRefresh={fetchTextBlocks} />
+
             {/* Owner filter bar */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-0">
@@ -670,6 +686,13 @@ const EventGallery = () => {
         <>
           <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventSlug={event.slug} eventName={event.name} pin={event.gallery_pin} />
           <EventSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} event={event} onUpdated={() => { fetchEvent(); fetchPhotos(); }} />
+          <TextBlockEditor
+            open={textEditorOpen}
+            onOpenChange={setTextEditorOpen}
+            eventId={event.id}
+            nextSortOrder={Math.max(...textBlocks.map(b => b.sort_order), 0) + 1}
+            onSaved={fetchTextBlocks}
+          />
           {sharePhoto && (
             <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
               photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownloadAnything} />
