@@ -42,8 +42,8 @@ const Branding = () => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const { data: profile } = await (supabase.from('profiles').select('studio_name, studio_logo_url, studio_accent_color, email') as any).eq('user_id', user.id).single();
-      const { data: studio } = await (supabase.from('studio_profiles').select('*') as any).eq('user_id', user.id).single();
+      const { data: profile } = await (supabase.from('profiles').select('studio_name, studio_logo_url, studio_accent_color, email') as any).eq('user_id', user.id).maybeSingle();
+      const { data: studio } = await (supabase.from('studio_profiles').select('*') as any).eq('user_id', user.id).maybeSingle();
       if (profile) {
         setStudioName(profile.studio_name || '');
         setLogoUrl(profile.studio_logo_url || null);
