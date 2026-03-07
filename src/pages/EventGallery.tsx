@@ -34,7 +34,8 @@ import { PhotoSectionSelect } from '@/components/PhotoSectionSelect';
 import { SelectionsViewer } from '@/components/SelectionsViewer';
 import { CommentsViewer } from '@/components/CommentsViewer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { GripVertical, MessageCircle, CheckSquare } from 'lucide-react';
+import { GripVertical, MessageCircle, CheckSquare, Type } from 'lucide-react';
+import { TextBlockEditor, TextBlockManager, type TextBlock } from '@/components/GalleryTextBlock';
 
 interface Photo {
   id: string;
