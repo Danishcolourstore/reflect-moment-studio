@@ -947,6 +947,21 @@ const PublicGallery = () => {
 
           {/* Right: actions */}
           <div className="flex items-center gap-1">
+            {event.face_recognition_enabled && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-1.5 text-[11px] hidden sm:flex"
+                onClick={() => setFindMyPhotosOpen(true)}
+              >
+                <Camera className="h-3.5 w-3.5" /> Find My Photos
+              </Button>
+            )}
+            {event.face_recognition_enabled && (
+              <Button variant="ghost" size="icon" className="h-9 w-9 sm:hidden" onClick={() => setFindMyPhotosOpen(true)}>
+                <Camera className="h-4 w-4" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchOpen(v => !v)}>
               <Search className="h-4 w-4" />
             </Button>
