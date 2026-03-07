@@ -133,28 +133,21 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
-    // Super admin check — both email and database role
-    if (user.email === 'danishsubair@gmail.com') {
-      supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'super_admin')
-        .maybeSingle()
-        .then(({ data: saRole }) => {
-          setRedirectTo(saRole ? '/super-admin' : '/admin');
-          setChecked(true);
-        });
-      return;
-    }
-
-    const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
+    // Check for super_admin role by user ID only (no email check)
+    const rolePromise = supabase.from('user_roles').select('role').eq('user_id', user.id);
     const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
     Promise.race([rolePromise, timeout])
       .then((result: any) => {
         const roles = (result?.data || []).map((r: any) => r.role);
-        if (roles.includes("client")) {
-          setRedirectTo("/client");
+
+        if (roles.includes('super_admin')) {
+          setRedirectTo('/super-admin');
+          setChecked(true);
+          return;
+        }
+
+        if (roles.includes('client')) {
+          setRedirectTo('/client');
         } else {
           const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
           if (pinVerified) {

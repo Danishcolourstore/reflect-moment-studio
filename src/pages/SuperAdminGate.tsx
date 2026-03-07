@@ -3,8 +3,6 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 
-const SUPER_ADMIN_EMAIL = 'danishsubair@gmail.com';
-
 export default function SuperAdminGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const [checking, setChecking] = useState(true);
@@ -13,13 +11,7 @@ export default function SuperAdminGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
-    // First check: must be the admin email
-    if (user.email !== SUPER_ADMIN_EMAIL) {
-      setChecking(false);
-      return;
-    }
-
-    // Second check: verify super_admin role in database
+    // Verify super_admin role in database using authenticated user ID only
     supabase
       .from('user_roles')
       .select('role')
