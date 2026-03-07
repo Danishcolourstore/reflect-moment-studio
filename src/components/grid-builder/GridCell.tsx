@@ -13,15 +13,21 @@ interface Props {
 export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, onOffsetChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const dragRef = useRef<any>(null);
-  const pinchRef = useRef<any>(null);
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    origX: number;
+    origY: number;
+  } | null>(null);
 
   const [dragging, setDragging] = useState(false);
 
   const handleFile = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
+
       if (file) onImageAdd(file);
+
       e.target.value = "";
     },
     [onImageAdd],
@@ -29,15 +35,11 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
 
   const triggerPicker = useCallback(() => {
     if (!inputRef.current) return;
+
     inputRef.current.value = "";
+
     setTimeout(() => inputRef.current?.click(), 10);
   }, []);
-
-  const getDistance = (t1: Touch, t2: Touch) => {
-    const dx = t1.clientX - t2.clientX;
-    const dy = t1.clientY - t2.clientY;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -71,6 +73,7 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
 
   const onPointerUp = useCallback(() => {
     dragRef.current = null;
+
     setDragging(false);
   }, []);
 
@@ -91,41 +94,14 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
     [cell, onOffsetChange],
   );
 
-  const onTouchStart = useCallback(
-    (e: React.TouchEvent) => {
-      if (e.touches.length === 2) {
-        pinchRef.current = {
-          startDist: getDistance(e.touches[0], e.touches[1]),
-          startScale: cell.scale,
-        };
-      }
-    },
-    [cell.scale],
-  );
-
-  const onTouchMove = useCallback(
-    (e: React.TouchEvent) => {
-      if (e.touches.length === 2 && pinchRef.current) {
-        const dist = getDistance(e.touches[0], e.touches[1]);
-
-        let newScale = pinchRef.current.startScale * (dist / pinchRef.current.startDist);
-
-        newScale = Math.max(1, Math.min(3, newScale));
-
-        onOffsetChange(cell.offsetX, cell.offsetY, newScale);
-      }
-    },
-    [cell.offsetX, cell.offsetY, onOffsetChange],
-  );
-
-  const onTouchEnd = useCallback(() => {
-    pinchRef.current = null;
-  }, []);
-
   return (
     <div
       className="relative overflow-hidden bg-muted/30 border border-border/50 group"
-      style={{ gridArea, minHeight: "44px" }}
+      style={{
+        gridArea,
+        minHeight: "44px",
+        touchAction: "none",
+      }}
     >
       <input ref={inputRef} type="file" accept="image/*" className="sr-only" onChange={handleFile} tabIndex={-1} />
 
@@ -143,10 +119,8 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
+            onPointerLeave={onPointerUp}
             onWheel={onWheel}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
           />
 
           <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity z-10">
