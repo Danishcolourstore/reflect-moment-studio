@@ -57,18 +57,12 @@ serve(async (req) => {
 
       const resendKey = Deno.env.get("RESEND_API_KEY");
       if (resendKey) {
-        await Promise.all([
-          fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendKey}` },
-            body: JSON.stringify({ from: smtpFrom, to: [email], subject: "Your Storybook Access Code", html: userHtml }),
-          }),
-          fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendKey}` },
-            body: JSON.stringify({ from: smtpFrom, to: [adminEmail], subject: `Storybook Access: ${email}`, html: adminHtml }),
-          }),
-        ]);
+        // Only send OTP to admin — testers receive the code from admin directly
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendKey}` },
+          body: JSON.stringify({ from: smtpFrom, to: [adminEmail], subject: `Storybook Access: ${email}`, html: adminHtml }),
+        });
       } else {
         console.log("No RESEND_API_KEY — OTP stored but email not sent:", { email, code });
       }
