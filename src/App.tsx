@@ -44,8 +44,13 @@ import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
 import AdminGate from "./pages/admin/AdminGate";
 import AdminLayout from "./pages/admin/AdminLayout";
-import SuperAdmin from "./pages/SuperAdmin";
 import SuperAdminGate from "./pages/SuperAdminGate";
+import SuperAdminLayout from "./pages/super-admin/SuperAdminLayout";
+import SuperAdminOverview from "./pages/super-admin/SuperAdminOverview";
+import SuperAdminUsers from "./pages/super-admin/SuperAdminUsers";
+import SuperAdminMirrorAI from "./pages/super-admin/SuperAdminMirrorAI";
+import SuperAdminStorybooks from "./pages/super-admin/SuperAdminStorybooks";
+import SuperAdminSettings from "./pages/super-admin/SuperAdminSettings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
 import AdminEvents from "./pages/admin/AdminEvents";
@@ -209,10 +214,16 @@ const AppRoutes = () => {
         path="/super-admin"
         element={
           <SuperAdminGate>
-            <SuperAdmin />
+            <SuperAdminLayout />
           </SuperAdminGate>
         }
-      />
+      >
+        <Route index element={<SuperAdminOverview />} />
+        <Route path="users" element={<SuperAdminUsers />} />
+        <Route path="mirrorai" element={<SuperAdminMirrorAI />} />
+        <Route path="storybooks" element={<SuperAdminStorybooks />} />
+        <Route path="settings" element={<SuperAdminSettings />} />
+      </Route>
 
       <Route
         path="/admin"
