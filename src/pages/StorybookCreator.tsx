@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { Plus, BookOpen, Trash2 } from 'lucide-react';
+import { Plus, BookOpen, Trash2, Grid3X3 } from 'lucide-react';
 import CarouselDesigner from '@/components/CarouselDesigner';
 import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
+import GridBuilder from '@/components/grid-builder/GridBuilder';
 
 export default function StorybookCreator() {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ export default function StorybookCreator() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [initialSlides, setInitialSlides] = useState<Slide[]>([]);
+  const [showGridBuilder, setShowGridBuilder] = useState(false);
 
   // Load storybooks list
   useEffect(() => {
@@ -111,6 +113,11 @@ export default function StorybookCreator() {
     setInitialSlides([]);
   };
 
+  // ─── Grid Builder View ───
+  if (showGridBuilder) {
+    return <GridBuilder onClose={() => setShowGridBuilder(false)} />;
+  }
+
   // ─── Editor View (Carousel Designer) ───
   if (activeId && initialSlides.length > 0) {
     return (
@@ -137,9 +144,14 @@ export default function StorybookCreator() {
         </p>
       </div>
 
-      <Button onClick={createStorybook} className="mb-6 gap-2">
-        <Plus className="h-4 w-4" /> New Storybook
-      </Button>
+      <div className="flex gap-3 mb-6">
+        <Button onClick={createStorybook} className="gap-2">
+          <Plus className="h-4 w-4" /> New Storybook
+        </Button>
+        <Button variant="outline" onClick={() => setShowGridBuilder(true)} className="gap-2">
+          <Grid3X3 className="h-4 w-4" /> Grid Builder
+        </Button>
+      </div>
 
       {loading ? (
         <div className="space-y-3">
