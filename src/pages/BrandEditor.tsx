@@ -123,7 +123,7 @@ const BrandEditor = () => {
       whatsapp: d.whatsapp || null, footer_text: d.footerText || null,
       font_style: d.fontStyle,
     };
-    const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).single();
+    const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
     if (existing) {
       await (supabase.from('studio_profiles').update(studioPayload as any) as any).eq('user_id', user.id);
     } else {
