@@ -37,7 +37,7 @@ const MOBILE_NAV = [
   { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
 ];
-const MORE_NAV = NAV_ITEMS.slice(4);
+const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));
 
 interface Profile {
   studio_name: string;

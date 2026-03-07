@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Image, Eye, Download, Plus, Upload, Clock, ChevronRight } from 'lucide-react';
+import { Camera, Image, Eye, Download, Plus, Upload } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { CreateEventModal } from '@/components/CreateEventModal';
 import { ShareModal } from '@/components/ShareModal';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { format, formatDistanceToNow } from 'date-fns';
+
 
 interface DashEvent {
   id: string; name: string; slug: string; event_date: string; location: string | null;
