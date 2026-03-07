@@ -34,7 +34,6 @@ export default function GridEditor({ layout, onBack }: Props) {
     }
   }, []);
 
-  /** Create an object URL from raw file — zero compression, original bytes */
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
 
   const updateCell = useCallback((index: number, patch: Partial<GridCellData>) => {
@@ -85,7 +84,6 @@ export default function GridEditor({ layout, onBack }: Props) {
     setSelectedTextId(null);
   }, [layout]);
 
-  // ─── Text layer handlers ──────────────────────
   const addTextLayer = useCallback((layer: TextLayer) => {
     setTextLayers((prev) => [...prev, layer]);
     setSelectedTextId(layer.id);
@@ -106,6 +104,8 @@ export default function GridEditor({ layout, onBack }: Props) {
   }, []);
 
   const filledCount = cells.filter((c) => c.imageUrl).length;
+  const hasFrame = !!layout.frame;
+  const canvasRatio = layout.canvasRatio || 1;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -140,27 +140,47 @@ export default function GridEditor({ layout, onBack }: Props) {
       <div className="flex-1 flex items-start justify-center px-4 pt-5 pb-40" onClick={deselectText}>
         <div
           ref={gridRef}
-          className="w-full aspect-square max-w-[440px] rounded-2xl overflow-hidden bg-card border border-border shadow-sm relative"
+          className="w-full max-w-[440px] rounded-2xl overflow-hidden border border-border shadow-sm relative"
           style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
-            gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-            gap: '3px',
-            padding: '3px',
+            aspectRatio: canvasRatio,
+            backgroundColor: hasFrame ? layout.frame!.background : 'hsl(var(--card))',
           }}
         >
-          {layout.cells.map((area, i) => (
-            <GridCell
-              key={cells[i].id}
-              cell={cells[i]}
-              gridArea={`${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`}
-              onImageAdd={(f) => handleImageAdd(i, f)}
-              onImageRemove={() => handleImageRemove(i)}
-              onOffsetChange={(x, y) => handleOffsetChange(i, x, y)}
-            />
-          ))}
+          {/* Frame padding wrapper */}
+          <div
+            className="w-full h-full relative"
+            style={{
+              padding: hasFrame
+                ? `${layout.frame!.padding[0]}% ${layout.frame!.padding[1]}% ${layout.frame!.padding[2]}% ${layout.frame!.padding[3]}%`
+                : '3px',
+            }}
+          >
+            <div
+              className="w-full h-full overflow-hidden relative"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
+                gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
+                gap: hasFrame ? '0px' : '3px',
+                borderRadius: hasFrame && layout.frame!.imageRadius ? `${layout.frame!.imageRadius}px` : undefined,
+                boxShadow: hasFrame && layout.frame!.shadow ? '0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)' : undefined,
+                border: hasFrame && layout.frame!.borderWidth ? `${layout.frame!.borderWidth}px solid ${layout.frame!.borderColor}` : undefined,
+              }}
+            >
+              {layout.cells.map((area, i) => (
+                <GridCell
+                  key={cells[i].id}
+                  cell={cells[i]}
+                  gridArea={`${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`}
+                  onImageAdd={(f) => handleImageAdd(i, f)}
+                  onImageRemove={() => handleImageRemove(i)}
+                  onOffsetChange={(x, y) => handleOffsetChange(i, x, y)}
+                />
+              ))}
+            </div>
+          </div>
 
-          {/* Text overlays */}
+          {/* Text overlays — positioned over the entire canvas */}
           {textLayers.map((layer) => (
             <TextOverlay
               key={layer.id}
