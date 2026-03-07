@@ -31,7 +31,12 @@ const NAV_ITEMS = [
   { title: 'Profile', url: '/dashboard/profile', icon: User },
 ];
 
-const MOBILE_NAV = NAV_ITEMS.slice(0, 4);
+const MOBILE_NAV = [
+  { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
+  { title: 'Events', url: '/dashboard/events', icon: Camera },
+  { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
+  { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
+];
 const MORE_NAV = NAV_ITEMS.slice(4);
 
 interface Profile {
