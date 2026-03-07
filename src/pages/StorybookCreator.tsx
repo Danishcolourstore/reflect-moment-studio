@@ -144,9 +144,14 @@ export default function StorybookCreator() {
         </p>
       </div>
 
-      <Button onClick={createStorybook} className="mb-6 gap-2">
-        <Plus className="h-4 w-4" /> New Storybook
-      </Button>
+      <div className="flex gap-3 mb-6">
+        <Button onClick={createStorybook} className="gap-2">
+          <Plus className="h-4 w-4" /> New Storybook
+        </Button>
+        <Button variant="outline" onClick={() => setShowGridBuilder(true)} className="gap-2">
+          <Grid3X3 className="h-4 w-4" /> Grid Builder
+        </Button>
+      </div>
 
       {loading ? (
         <div className="space-y-3">
