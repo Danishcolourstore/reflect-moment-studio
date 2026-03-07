@@ -43,6 +43,17 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
 
   const hasAccess = standalone ? !!sessionStorage.getItem('storybook_access_verified') : !!user;
 
+  // Swap manifest to storybook-specific one for PWA install
+  useEffect(() => {
+    if (!standalone) return;
+    const link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+    const original = link?.getAttribute('href');
+    if (link) link.setAttribute('href', '/manifest-storybook.json');
+    return () => {
+      if (link && original) link.setAttribute('href', original);
+    };
+  }, [standalone]);
+
   // Load storybooks list
   useEffect(() => {
     if (!hasAccess || !effectiveUserId) return;
