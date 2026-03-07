@@ -33,6 +33,7 @@ import { OtpInput } from '@/components/OtpInput';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
 import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
+import { FindMyPhotosModal } from '@/components/FindMyPhotosModal';
 import { TimelessWeddingHero } from '@/components/TimelessWeddingHero';
 import { AndhakarHero } from '@/components/AndhakarHero';
 import { WebsiteHeader } from '@/components/website/WebsiteHeader';
@@ -60,6 +61,7 @@ interface EventData {
   downloads_enabled: boolean;
   download_resolution: string;
   watermark_enabled: boolean;
+  face_recognition_enabled: boolean;
   user_id: string;
   gallery_layout: string;
   gallery_style?: string;
@@ -266,6 +268,7 @@ const PublicGallery = () => {
 
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [findMyPhotosOpen, setFindMyPhotosOpen] = useState(false);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -944,6 +947,21 @@ const PublicGallery = () => {
 
           {/* Right: actions */}
           <div className="flex items-center gap-1">
+            {event.face_recognition_enabled && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-1.5 text-[11px] hidden sm:flex"
+                onClick={() => setFindMyPhotosOpen(true)}
+              >
+                <Camera className="h-3.5 w-3.5" /> Find My Photos
+              </Button>
+            )}
+            {event.face_recognition_enabled && (
+              <Button variant="ghost" size="icon" className="h-9 w-9 sm:hidden" onClick={() => setFindMyPhotosOpen(true)}>
+                <Camera className="h-4 w-4" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchOpen(v => !v)}>
               <Search className="h-4 w-4" />
             </Button>
@@ -1135,6 +1153,20 @@ const PublicGallery = () => {
           </div>
         </div>
       )}
+
+      {/* Find My Photos Modal */}
+      <FindMyPhotosModal
+        open={findMyPhotosOpen}
+        onOpenChange={setFindMyPhotosOpen}
+        eventId={event.id}
+        eventName={event.name}
+        accentColor={accentColor}
+        onOpenLightbox={openLightbox}
+        isFavorite={isFavorite}
+        toggleFavorite={toggleFavorite}
+        canDownload={canDownload}
+        onDownloadPhoto={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
+      />
     </div>
   );
 };
