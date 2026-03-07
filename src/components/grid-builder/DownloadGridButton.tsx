@@ -1,6 +1,12 @@
 import { useState } from 'react';
-import { Download, ChevronDown } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { EXPORT_SIZES, type ExportSize, type GridLayout, type GridCellData } from './types';
 import type { TextLayer } from './text-overlay-types';
 import type { DesignElement } from './element-types';
@@ -20,13 +26,10 @@ interface Props {
 }
 
 export default function DownloadGridButton({ gridRef, cells, layout, textLayers = [], elements = [], logo = null, background }: Props) {
-  const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const exportGrid = async (size: ExportSize) => {
     setExporting(true);
-    setOpen(false);
-
     try {
       const canvas = await renderGridToCanvas(layout, cells, size.width, size.height, textLayers, elements, logo, background);
       const link = document.createElement('a');
@@ -43,34 +46,24 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
   };
 
   return (
-    <div className="relative">
-      <Button
-        size="sm"
-        onClick={() => setOpen(!open)}
-        disabled={exporting}
-        className="gap-2"
-      >
-        <Download className="h-3.5 w-3.5" />
-        {exporting ? 'Exporting…' : 'Download'}
-        <ChevronDown className="h-3 w-3" />
-      </Button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 bottom-full mb-2 w-44 rounded-xl border border-border bg-card shadow-lg z-50 overflow-hidden">
-            {EXPORT_SIZES.map((s) => (
-              <button
-                key={s.label}
-                onClick={() => exportGrid(s)}
-                className="w-full text-left px-4 py-2.5 text-xs tracking-wide hover:bg-muted/50 transition-colors text-foreground"
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" disabled={exporting} className="gap-1.5 text-[10px]">
+          <Download className="h-3 w-3" />
+          {exporting ? 'Exporting…' : 'Download'}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="top" align="end" className="w-44">
+        {EXPORT_SIZES.map((s) => (
+          <DropdownMenuItem
+            key={s.label}
+            onClick={() => exportGrid(s)}
+            className="text-xs tracking-wide"
+          >
+            {s.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
