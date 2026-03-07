@@ -47,6 +47,7 @@ export function StorybookGate({ children }: { children: ReactNode }) {
       if (fnErr) throw fnErr;
       if (data?.valid) {
         sessionStorage.setItem(SESSION_KEY, 'true');
+        sessionStorage.setItem('storybook_email', email.trim().toLowerCase());
         setVerified(true);
       } else {
         setError('Invalid or expired code. Please try again.');
