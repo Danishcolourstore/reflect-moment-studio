@@ -338,14 +338,12 @@ export default function GridEditor({ layout, onBack }: Props) {
       )}
 
       {/* Bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur border-t border-border px-4 py-3 safe-area-pb">
-        <div className="max-w-[480px] mx-auto flex items-center justify-between">
-          <p className="text-[10px] tracking-wider uppercase text-muted-foreground">
-            {filledCount}/{cells.length} filled
-            {textLayers.length > 0 && ` · ${textLayers.length} text`}
-            {elements.length > 0 && ` · ${elements.length} shapes`}
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur border-t border-border px-3 py-3 safe-area-pb">
+        <div className="max-w-[480px] mx-auto flex items-center justify-between gap-2">
+          <p className="text-[10px] tracking-wider uppercase text-muted-foreground whitespace-nowrap shrink-0">
+            {filledCount}/{cells.length}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
             <CarouselSliceExporter cells={cells} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
             <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} />
