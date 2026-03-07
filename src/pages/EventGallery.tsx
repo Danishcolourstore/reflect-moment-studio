@@ -349,6 +349,9 @@ const EventGallery = () => {
               <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
                 <Share2 className="mr-1 h-3 w-3" />Share
               </Button>
+              <Button variant="ghost" size="sm" onClick={() => setTextEditorOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
+                <Type className="mr-1 h-3 w-3" />Add Text
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
                 <Settings className="mr-1 h-3 w-3" />Settings
               </Button>
