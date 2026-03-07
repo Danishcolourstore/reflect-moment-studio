@@ -8,15 +8,18 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { loadImageElement } from './export-utils';
-import type { GridCellData } from './types';
+import type { GridCellData, CanvasFormat } from './types';
+import { CANVAS_FORMATS } from './types';
 
 interface Props {
   cells: GridCellData[];
+  format?: CanvasFormat;
 }
 
-export default function CarouselSliceExporter({ cells }: Props) {
+export default function CarouselSliceExporter({ cells, format }: Props) {
   const [exporting, setExporting] = useState(false);
   const filledCells = cells.filter((c) => c.imageUrl);
+  const activeFormat = format || CANVAS_FORMATS[0];
 
   if (filledCells.length < 2) return null;
 
