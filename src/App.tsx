@@ -133,20 +133,22 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
-    // Super admin check — both email and database role
-    if (user.email === 'danishsubair@gmail.com') {
-      supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'super_admin')
-        .maybeSingle()
-        .then(({ data: saRole }) => {
-          setRedirectTo(saRole ? '/super-admin' : '/admin');
-          setChecked(true);
-        });
-      return;
-    }
+    // Check for super_admin role by user ID only (no email check)
+    const saCheck = supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'super_admin')
+      .maybeSingle();
+
+    saCheck.then(({ data: saRole }) => {
+      if (saRole) {
+        setRedirectTo('/super-admin');
+        setChecked(true);
+        return;
+      }
+
+      // Not super admin — continue with normal role check
 
     const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
     const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
