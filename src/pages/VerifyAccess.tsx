@@ -21,12 +21,21 @@ export default function VerifyAccess() {
   const [lockoutEnd, setLockoutEnd] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  // Bypass PIN for super admin
+  // Bypass PIN for super admin (check role by user ID, not email)
   useEffect(() => {
-    if (!loading && user?.email === 'danishsubair@gmail.com') {
-      sessionStorage.setItem(SESSION_KEY, 'true');
-      navigate('/super-admin', { replace: true });
-    }
+    if (loading || !user) return;
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'super_admin')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          sessionStorage.setItem(SESSION_KEY, 'true');
+          navigate('/super-admin', { replace: true });
+        }
+      });
   }, [user, loading, navigate]);
 
   useEffect(() => {
