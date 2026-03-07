@@ -97,6 +97,8 @@ const EventGallery = () => {
   const [downloadProgress, setDownloadProgress] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [favStats, setFavStats] = useState<{ totalFavs: number; uniqueGuests: number }>({ totalFavs: 0, uniqueGuests: 0 });
+  const [textBlocks, setTextBlocks] = useState<TextBlock[]>([]);
+  const [textEditorOpen, setTextEditorOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
 
