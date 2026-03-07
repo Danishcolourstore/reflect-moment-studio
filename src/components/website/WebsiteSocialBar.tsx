@@ -1,4 +1,4 @@
-import { Instagram, Globe, MessageCircle, Mail, Youtube } from 'lucide-react';
+import { Instagram, Globe, MessageCircle, Mail } from 'lucide-react';
 
 interface WebsiteSocialBarProps {
   instagram?: string | null;
@@ -46,8 +46,8 @@ export function WebsiteSocialBar({
   return (
     <section
       id={id}
-      className="py-8 px-4 flex items-center justify-center gap-5"
-      style={{ backgroundColor: '#0C0B08' }}
+      className="py-6 px-4 flex items-center justify-center gap-6"
+      style={{ backgroundColor: '#0C0B08', borderTop: `1px solid rgba(255,255,255,0.04)`, borderBottom: `1px solid rgba(255,255,255,0.04)` }}
     >
       {links.map((link, i) => (
         <a
@@ -55,7 +55,7 @@ export function WebsiteSocialBar({
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-xs transition-colors hover:opacity-80"
+          className="flex items-center gap-2 text-[10px] uppercase tracking-[0.12em] transition-opacity duration-300 opacity-50 hover:opacity-100"
           style={{ color: accent }}
         >
           <link.icon className="h-4 w-4" />
