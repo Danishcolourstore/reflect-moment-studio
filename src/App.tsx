@@ -449,6 +449,14 @@ const AppRoutes = () => {
 
       <Route path="/find/:token" element={<GuestFinder />} />
       <Route path="/p/:username" element={<PhotographerFeed />} />
+      <Route
+        path="/storybook"
+        element={
+          <ProtectedRoute>
+            <StorybookCreator standalone />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/"

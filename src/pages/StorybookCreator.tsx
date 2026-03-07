@@ -196,6 +196,18 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
           ))}
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
+
+  if (standalone) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-3xl mx-auto px-4 py-8">
+          {listContent}
+        </div>
+      </div>
+    );
+  }
+
+  return <DashboardLayout>{listContent}</DashboardLayout>;
 }
