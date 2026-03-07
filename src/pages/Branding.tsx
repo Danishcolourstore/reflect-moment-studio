@@ -106,7 +106,7 @@ const Branding = () => {
     setSaving(true);
     await (supabase.from('profiles').update({ studio_name: studioName, studio_accent_color: accentColor } as any) as any).eq('user_id', user.id);
     const studioData = { bio, display_name: tagline, instagram: instagram || null, website: website || null, whatsapp: whatsapp || null, footer_text: footerText || null, font_style: fontStyle, username: username || null };
-    const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).single();
+    const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
     if (existing) {
       await (supabase.from('studio_profiles').update(studioData as any) as any).eq('user_id', user.id);
     } else {
