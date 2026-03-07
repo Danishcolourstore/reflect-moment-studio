@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Download, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EXPORT_SIZES, type ExportSize, type GridLayout, type GridCellData } from './types';
+import type { TextLayer } from './text-overlay-types';
 import { renderGridToCanvas } from './export-utils';
 import { toast } from 'sonner';
 
@@ -9,9 +10,10 @@ interface Props {
   gridRef: React.RefObject<HTMLDivElement | null>;
   cells: GridCellData[];
   layout: GridLayout;
+  textLayers?: TextLayer[];
 }
 
-export default function DownloadGridButton({ gridRef, cells, layout }: Props) {
+export default function DownloadGridButton({ gridRef, cells, layout, textLayers = [] }: Props) {
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
