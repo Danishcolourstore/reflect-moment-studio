@@ -11,6 +11,18 @@ import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
 import GridBuilder from '@/components/grid-builder/GridBuilder';
 
+// Generate a deterministic UUID v5-like ID from an email for standalone mode
+function emailToUuid(email: string): string {
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    const char = email.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  const hex = Math.abs(hash).toString(16).padStart(8, '0');
+  return `${hex.slice(0, 8)}-0000-4000-8000-${hex.repeat(3).slice(0, 12)}`;
+}
+
 export default function StorybookCreator({ standalone = false }: { standalone?: boolean }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -23,27 +35,33 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
   const [initialSlides, setInitialSlides] = useState<Slide[]>([]);
   const [showGridBuilder, setShowGridBuilder] = useState(false);
 
+  // Resolve effective user ID
+  const effectiveUserId = standalone
+    ? emailToUuid(sessionStorage.getItem('storybook_email') || 'anonymous')
+    : user?.id;
+
+  const hasAccess = standalone ? !!sessionStorage.getItem('storybook_access_verified') : !!user;
+
   // Load storybooks list
   useEffect(() => {
-    if (!user) return;
+    if (!hasAccess || !effectiveUserId) return;
     const load = async () => {
       setLoading(true);
       const { data: sb } = await (supabase.from('storybooks').select('*') as any)
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('updated_at', { ascending: false });
       setStorybooks(sb || []);
       setLoading(false);
     };
     load();
-  }, [user]);
+  }, [hasAccess, effectiveUserId]);
 
   // Load active storybook data + event photos
   useEffect(() => {
-    if (!activeId || !user) return;
+    if (!activeId || !hasAccess || !effectiveUserId) return;
     const sb = storybooks.find(s => s.id === activeId);
     if (sb) {
       setTitle(sb.title);
-      // Parse slides_data from JSON
       const saved = sb.slides_data;
       if (saved && Array.isArray(saved) && saved.length > 0) {
         setInitialSlides(saved as Slide[]);
@@ -52,20 +70,21 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
       }
     }
 
-    // Load all event photos for the photo pool
-    (async () => {
-      const { data: photos } = await (supabase.from('photos').select('url') as any)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(100);
-      setEventPhotos((photos || []).map((p: any) => p.url));
-    })();
-  }, [activeId, user]);
+    if (!standalone) {
+      (async () => {
+        const { data: photos } = await (supabase.from('photos').select('url') as any)
+          .eq('user_id', effectiveUserId)
+          .order('created_at', { ascending: false })
+          .limit(100);
+        setEventPhotos((photos || []).map((p: any) => p.url));
+      })();
+    }
+  }, [activeId, hasAccess, effectiveUserId]);
 
   const createStorybook = async () => {
-    if (!user) return;
+    if (!hasAccess || !effectiveUserId) return;
     const { data, error } = await (supabase.from('storybooks').insert({
-      user_id: user.id,
+      user_id: effectiveUserId,
       title: 'Untitled Story',
       slides_data: [makeSlide()],
     } as any).select().single() as any);
@@ -88,12 +107,10 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
   const handleSave = async (slides: Slide[]) => {
     if (!activeId) return;
     setSaving(true);
-    // Strip data URLs from slides for storage efficiency — keep only remote URLs
     const cleanSlides = slides.map(s => ({
       ...s,
       elements: s.elements.map(el => ({
         ...el,
-        // Keep src only if it's a remote URL, strip base64 data URLs to save space
         src: el.src && !el.src.startsWith('data:') ? el.src : el.src,
       })),
     }));
