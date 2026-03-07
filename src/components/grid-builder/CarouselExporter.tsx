@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { LayoutGrid, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
+import { renderGridToCanvas, loadImageElement } from './export-utils';
 import type { GridLayout, GridCellData } from './types';
 
 interface Props {
@@ -16,20 +16,14 @@ export default function CarouselExporter({ layout, cells, gridRef }: Props) {
   const filledCount = cells.filter((c) => c.imageUrl).length;
 
   const exportCombined = async () => {
-    if (!gridRef.current) return;
     setExporting(true);
     try {
-      const dataUrl = await toPng(gridRef.current, {
-        width: 1080,
-        height: 1080,
-        pixelRatio: 1,
-        style: { width: '1080px', height: '1080px' },
-      });
+      const canvas = await renderGridToCanvas(layout, cells, 1080, 1080);
       const link = document.createElement('a');
       link.download = 'grid-combined-1080x1080.png';
-      link.href = dataUrl;
+      link.href = canvas.toDataURL('image/png');
       link.click();
-      toast.success('Combined grid exported');
+      toast.success('Combined grid exported — lossless PNG');
     } catch {
       toast.error('Export failed');
     } finally {
@@ -44,36 +38,28 @@ export default function CarouselExporter({ layout, cells, gridRef }: Props) {
         const cell = cells[i];
         if (!cell.imageUrl) continue;
 
-        // Create a temporary canvas to export individual cell
         const canvas = document.createElement('canvas');
         canvas.width = 1080;
         canvas.height = 1080;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) continue;
+        const ctx = canvas.getContext('2d')!;
 
-        const img = new window.Image();
-        img.crossOrigin = 'anonymous';
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
-          img.onerror = reject;
-          img.src = cell.imageUrl!;
-        });
+        // Use original image — no compression
+        const img = await loadImageElement(cell.imageUrl);
 
-        // Draw centered/cover
-        const scale = Math.max(1080 / img.width, 1080 / img.height);
-        const w = img.width * scale;
-        const h = img.height * scale;
-        ctx.drawImage(img, (1080 - w) / 2, (1080 - h) / 2, w, h);
+        // Draw with cover behavior at full resolution
+        const scale = Math.max(1080 / img.naturalWidth, 1080 / img.naturalHeight);
+        const w = img.naturalWidth * scale;
+        const h = img.naturalHeight * scale;
+        ctx.drawImage(img, (1080 - w) / 2 + cell.offsetX * (1080 / 440), (1080 - h) / 2 + cell.offsetY * (1080 / 440), w, h);
 
         const link = document.createElement('a');
         link.download = `slide-${i + 1}-1080x1080.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
 
-        // Small delay between downloads
         await new Promise((r) => setTimeout(r, 300));
       }
-      toast.success(`${filledCount} slides exported`);
+      toast.success(`${filledCount} slides exported — lossless PNG`);
     } catch {
       toast.error('Slide export failed');
     } finally {

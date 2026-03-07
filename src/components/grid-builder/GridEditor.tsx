@@ -17,23 +17,30 @@ export default function GridEditor({ layout, onBack }: Props) {
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const readFileAsUrl = (file: File): Promise<string> =>
-    new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.readAsDataURL(file);
-    });
+  /** Create an object URL from raw file — zero compression, original bytes */
+  const fileToUrl = (file: File): string => URL.createObjectURL(file);
 
   const updateCell = useCallback((index: number, patch: Partial<GridCellData>) => {
     setCells((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
   }, []);
 
-  const handleImageAdd = useCallback(async (index: number, file: File) => {
-    const url = await readFileAsUrl(file);
+  const handleImageAdd = useCallback((index: number, file: File) => {
+    // Revoke old URL to free memory
+    setCells((prev) => {
+      const old = prev[index];
+      if (old.imageUrl) URL.revokeObjectURL(old.imageUrl);
+      return prev;
+    });
+    const url = fileToUrl(file);
     updateCell(index, { imageUrl: url, file, offsetX: 0, offsetY: 0, scale: 1 });
   }, [updateCell]);
 
   const handleImageRemove = useCallback((index: number) => {
+    setCells((prev) => {
+      const old = prev[index];
+      if (old.imageUrl) URL.revokeObjectURL(old.imageUrl);
+      return prev;
+    });
     updateCell(index, { imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 });
   }, [updateCell]);
 
@@ -41,20 +48,24 @@ export default function GridEditor({ layout, onBack }: Props) {
     updateCell(index, { offsetX: x, offsetY: y });
   }, [updateCell]);
 
-  const handleSmartFill = useCallback(async (files: File[]) => {
-    const urls = await Promise.all(files.map(readFileAsUrl));
-    setCells((prev) =>
-      prev.map((c, i) => {
-        if (i < urls.length) {
-          return { ...c, imageUrl: urls[i], file: files[i], offsetX: 0, offsetY: 0, scale: 1 };
+  const handleSmartFill = useCallback((files: File[]) => {
+    setCells((prev) => {
+      // Revoke old URLs
+      prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
+      return prev.map((c, i) => {
+        if (i < files.length) {
+          return { ...c, imageUrl: fileToUrl(files[i]), file: files[i], offsetX: 0, offsetY: 0, scale: 1 };
         }
-        return c;
-      })
-    );
+        return { ...c, imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 };
+      });
+    });
   }, []);
 
   const handleReset = useCallback(() => {
-    setCells(createCellsForLayout(layout));
+    setCells((prev) => {
+      prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
+      return createCellsForLayout(layout);
+    });
   }, [layout]);
 
   const filledCount = cells.filter((c) => c.imageUrl).length;
@@ -114,7 +125,7 @@ export default function GridEditor({ layout, onBack }: Props) {
           </p>
           <div className="flex items-center gap-2">
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} />
-            <DownloadGridButton gridRef={gridRef} />
+            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} />
           </div>
         </div>
       </div>
