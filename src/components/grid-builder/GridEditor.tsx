@@ -174,7 +174,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
 
   const filledCount = cells.filter((c) => c.imageUrl).length;
   const hasFrame = !!layout.frame;
-  const canvasRatio = layout.canvasRatio || 1;
+  const canvasRatio = layout.canvasRatio || format.ratio;
 
   // Compute background for canvas
   const canvasBg = hasFrame ? layout.frame!.background : bgToCss(background);
