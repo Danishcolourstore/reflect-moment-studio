@@ -1,29 +1,46 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, Type } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Type, Shapes, Image, Palette, Eye, Stamp } from 'lucide-react';
 import type { GridLayout, GridCellData } from './types';
 import { createCellsForLayout } from './types';
 import type { TextLayer } from './text-overlay-types';
 import { GOOGLE_FONTS_URL } from './text-overlay-types';
+import type { DesignElement } from './element-types';
+import type { LogoLayer } from './LogoOverlay';
+import { BackgroundStyle, DEFAULT_BG, bgToCss } from './BackgroundStyler';
 import GridCell from './GridCell';
 import TextOverlay from './TextOverlay';
 import TextToolbar from './TextToolbar';
+import ElementOverlay from './ElementOverlay';
+import ElementToolbar from './ElementToolbar';
+import SafeAreaGuides from './SafeAreaGuides';
+import BackgroundStyler from './BackgroundStyler';
+import LogoOverlayComponent from './LogoOverlay';
+import LogoToolbar from './LogoToolbar';
 import SmartFillUploader from './SmartFillUploader';
 import DownloadGridButton from './DownloadGridButton';
 import CarouselExporter from './CarouselExporter';
+import CarouselSliceExporter from './CarouselSliceExporter';
 
 interface Props {
   layout: GridLayout;
   onBack: () => void;
 }
 
+type ActiveTool = 'text' | 'elements' | 'background' | 'logo' | null;
+
 export default function GridEditor({ layout, onBack }: Props) {
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
-  const [showTextTools, setShowTextTools] = useState(false);
+  const [elements, setElements] = useState<DesignElement[]>([]);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [logo, setLogo] = useState<LogoLayer | null>(null);
+  const [logoSelected, setLogoSelected] = useState(false);
+  const [showSafeArea, setShowSafeArea] = useState(false);
+  const [background, setBackground] = useState<BackgroundStyle>(DEFAULT_BG);
+  const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // Load Google Fonts for typography
   useEffect(() => {
     if (!document.querySelector('link[data-grid-fonts]')) {
       const link = document.createElement('link');
@@ -82,12 +99,20 @@ export default function GridEditor({ layout, onBack }: Props) {
     });
     setTextLayers([]);
     setSelectedTextId(null);
-  }, [layout]);
+    setElements([]);
+    setSelectedElementId(null);
+    if (logo?.imageUrl) URL.revokeObjectURL(logo.imageUrl);
+    setLogo(null);
+    setLogoSelected(false);
+    setBackground(DEFAULT_BG);
+  }, [layout, logo]);
 
+  // Text layer handlers
   const addTextLayer = useCallback((layer: TextLayer) => {
     setTextLayers((prev) => [...prev, layer]);
     setSelectedTextId(layer.id);
-    setShowTextTools(true);
+    setSelectedElementId(null);
+    setLogoSelected(false);
   }, []);
 
   const updateTextLayer = useCallback((id: string, patch: Partial<TextLayer>) => {
@@ -99,13 +124,56 @@ export default function GridEditor({ layout, onBack }: Props) {
     setSelectedTextId(null);
   }, []);
 
-  const deselectText = useCallback(() => {
+  // Element handlers
+  const addElement = useCallback((el: DesignElement) => {
+    setElements((prev) => [...prev, el]);
+    setSelectedElementId(el.id);
     setSelectedTextId(null);
+    setLogoSelected(false);
   }, []);
+
+  const updateElement = useCallback((id: string, patch: Partial<DesignElement>) => {
+    setElements((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  }, []);
+
+  const deleteElement = useCallback((id: string) => {
+    setElements((prev) => prev.filter((e) => e.id !== id));
+    setSelectedElementId(null);
+  }, []);
+
+  // Logo handlers
+  const handleAddLogo = useCallback((l: LogoLayer) => {
+    if (logo?.imageUrl) URL.revokeObjectURL(logo.imageUrl);
+    setLogo(l);
+    setLogoSelected(true);
+    setSelectedTextId(null);
+    setSelectedElementId(null);
+  }, [logo]);
+
+  const handleUpdateLogo = useCallback((patch: Partial<LogoLayer>) => {
+    setLogo((prev) => prev ? { ...prev, ...patch } : prev);
+  }, []);
+
+  const handleDeleteLogo = useCallback(() => {
+    if (logo?.imageUrl) URL.revokeObjectURL(logo.imageUrl);
+    setLogo(null);
+    setLogoSelected(false);
+  }, [logo]);
+
+  const deselectAll = useCallback(() => {
+    setSelectedTextId(null);
+    setSelectedElementId(null);
+    setLogoSelected(false);
+  }, []);
+
+  const toggleTool = (tool: ActiveTool) => setActiveTool((prev) => (prev === tool ? null : tool));
 
   const filledCount = cells.filter((c) => c.imageUrl).length;
   const hasFrame = !!layout.frame;
   const canvasRatio = layout.canvasRatio || 1;
+
+  // Compute background for canvas
+  const canvasBg = hasFrame ? layout.frame!.background : bgToCss(background);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -116,15 +184,36 @@ export default function GridEditor({ layout, onBack }: Props) {
             <ArrowLeft className="h-4 w-4" />
             <span className="text-xs tracking-wider uppercase font-medium">{layout.name}</span>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {/* Tool toggles */}
+            {([
+              { tool: 'text' as const, Icon: Type, label: 'Text' },
+              { tool: 'elements' as const, Icon: Shapes, label: 'Elements' },
+              { tool: 'background' as const, Icon: Palette, label: 'BG' },
+              { tool: 'logo' as const, Icon: Stamp, label: 'Logo' },
+            ]).map(({ tool, Icon }) => (
+              <button
+                key={tool}
+                onClick={() => toggleTool(tool)}
+                className={`h-8 w-8 rounded-full border flex items-center justify-center transition-colors ${
+                  activeTool === tool ? 'border-foreground/40 bg-foreground/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+              </button>
+            ))}
+
+            {/* Safe area toggle */}
             <button
-              onClick={() => setShowTextTools(!showTextTools)}
+              onClick={() => setShowSafeArea(!showSafeArea)}
               className={`h-8 w-8 rounded-full border flex items-center justify-center transition-colors ${
-                showTextTools ? 'border-foreground/40 bg-foreground/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'
+                showSafeArea ? 'border-foreground/40 bg-foreground/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'
               }`}
+              title="Safe Area Guides"
             >
-              <Type className="h-3.5 w-3.5" />
+              <Eye className="h-3.5 w-3.5" />
             </button>
+
             <button
               onClick={handleReset}
               className="h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
@@ -137,15 +226,22 @@ export default function GridEditor({ layout, onBack }: Props) {
       </div>
 
       {/* Grid canvas */}
-      <div className="flex-1 flex items-start justify-center px-4 pt-5 pb-40" onClick={deselectText}>
+      <div className="flex-1 flex items-start justify-center px-4 pt-5 pb-40" onClick={deselectAll}>
         <div
           ref={gridRef}
           className="w-full max-w-[440px] rounded-2xl overflow-hidden border border-border shadow-sm relative"
           style={{
             aspectRatio: canvasRatio,
-            backgroundColor: hasFrame ? layout.frame!.background : 'hsl(var(--card))',
+            background: canvasBg,
           }}
         >
+          {/* Grain overlay */}
+          {!hasFrame && background.type === 'grain' && (
+            <div className="absolute inset-0 pointer-events-none opacity-20 z-[1]" style={{
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.5\'/%3E%3C/svg%3E")',
+            }} />
+          )}
+
           {/* Frame padding wrapper */}
           <div
             className="w-full h-full relative"
@@ -180,7 +276,32 @@ export default function GridEditor({ layout, onBack }: Props) {
             </div>
           </div>
 
-          {/* Text overlays — positioned over the entire canvas */}
+          {/* Design element overlays */}
+          {elements.map((el) => (
+            <ElementOverlay
+              key={el.id}
+              element={el}
+              selected={el.id === selectedElementId}
+              containerRef={gridRef}
+              onUpdate={(patch) => updateElement(el.id, patch)}
+              onSelect={() => { setSelectedElementId(el.id); setSelectedTextId(null); setLogoSelected(false); }}
+              onDelete={() => deleteElement(el.id)}
+            />
+          ))}
+
+          {/* Logo overlay */}
+          {logo && (
+            <LogoOverlayComponent
+              logo={logo}
+              selected={logoSelected}
+              containerRef={gridRef}
+              onUpdate={handleUpdateLogo}
+              onSelect={() => { setLogoSelected(true); setSelectedTextId(null); setSelectedElementId(null); }}
+              onDelete={handleDeleteLogo}
+            />
+          )}
+
+          {/* Text overlays */}
           {textLayers.map((layer) => (
             <TextOverlay
               key={layer.id}
@@ -188,22 +309,31 @@ export default function GridEditor({ layout, onBack }: Props) {
               selected={layer.id === selectedTextId}
               containerRef={gridRef}
               onUpdate={(patch) => updateTextLayer(layer.id, patch)}
-              onSelect={() => setSelectedTextId(layer.id)}
+              onSelect={() => { setSelectedTextId(layer.id); setSelectedElementId(null); setLogoSelected(false); }}
               onDelete={() => deleteTextLayer(layer.id)}
             />
           ))}
+
+          {/* Safe area guides */}
+          {showSafeArea && <SafeAreaGuides canvasRatio={canvasRatio} />}
         </div>
       </div>
 
-      {/* Text toolbar */}
-      {showTextTools && (
+      {/* Active tool panel */}
+      {activeTool && (
         <div className="fixed bottom-[60px] left-0 right-0 z-30">
-          <TextToolbar
-            layers={textLayers}
-            selectedId={selectedTextId}
-            onAddLayer={addTextLayer}
-            onUpdateLayer={updateTextLayer}
-          />
+          {activeTool === 'text' && (
+            <TextToolbar layers={textLayers} selectedId={selectedTextId} onAddLayer={addTextLayer} onUpdateLayer={updateTextLayer} />
+          )}
+          {activeTool === 'elements' && (
+            <ElementToolbar elements={elements} selectedId={selectedElementId} onAddElement={addElement} onUpdateElement={updateElement} />
+          )}
+          {activeTool === 'background' && !hasFrame && (
+            <BackgroundStyler value={background} onChange={setBackground} />
+          )}
+          {activeTool === 'logo' && (
+            <LogoToolbar logo={logo} onAddLogo={handleAddLogo} onUpdateLogo={handleUpdateLogo} />
+          )}
         </div>
       )}
 
@@ -213,10 +343,12 @@ export default function GridEditor({ layout, onBack }: Props) {
           <p className="text-[10px] tracking-wider uppercase text-muted-foreground">
             {filledCount}/{cells.length} filled
             {textLayers.length > 0 && ` · ${textLayers.length} text`}
+            {elements.length > 0 && ` · ${elements.length} shapes`}
           </p>
           <div className="flex items-center gap-2">
+            <CarouselSliceExporter cells={cells} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
-            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} />
+            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} />
           </div>
         </div>
       </div>
