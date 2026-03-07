@@ -686,6 +686,13 @@ const EventGallery = () => {
         <>
           <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventSlug={event.slug} eventName={event.name} pin={event.gallery_pin} />
           <EventSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} event={event} onUpdated={() => { fetchEvent(); fetchPhotos(); }} />
+          <TextBlockEditor
+            open={textEditorOpen}
+            onOpenChange={setTextEditorOpen}
+            eventId={event.id}
+            nextSortOrder={Math.max(...textBlocks.map(b => b.sort_order), 0) + 1}
+            onSaved={fetchTextBlocks}
+          />
           {sharePhoto && (
             <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
               photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownloadAnything} />
