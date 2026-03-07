@@ -89,7 +89,7 @@ const Branding = () => {
     setCoverUploading(true);
     try {
       const url = await uploadFile(file, `studio-covers/${user.id}/cover.${file.name.split('.').pop()}`);
-      const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).single();
+      const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
       if (existing) {
         await (supabase.from('studio_profiles').update({ cover_url: url } as any) as any).eq('user_id', user.id);
       } else {
