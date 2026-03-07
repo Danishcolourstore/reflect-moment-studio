@@ -38,6 +38,8 @@ const Branding = () => {
   const [coverUploading, setCoverUploading] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLInputElement>(null);
+  const [feedEvents, setFeedEvents] = useState<{ id: string; name: string; cover_url: string | null; photo_count: number }[]>([]);
+  const [feedThumbs, setFeedThumbs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!user) return;
