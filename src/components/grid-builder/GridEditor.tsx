@@ -1,9 +1,12 @@
-import { useState, useCallback, useRef } from 'react';
-import { ArrowLeft, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { ArrowLeft, RotateCcw, Type } from 'lucide-react';
 import type { GridLayout, GridCellData } from './types';
 import { createCellsForLayout } from './types';
+import type { TextLayer } from './text-overlay-types';
+import { GOOGLE_FONTS_URL } from './text-overlay-types';
 import GridCell from './GridCell';
+import TextOverlay from './TextOverlay';
+import TextToolbar from './TextToolbar';
 import SmartFillUploader from './SmartFillUploader';
 import DownloadGridButton from './DownloadGridButton';
 import CarouselExporter from './CarouselExporter';
@@ -15,7 +18,21 @@ interface Props {
 
 export default function GridEditor({ layout, onBack }: Props) {
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
+  const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
+  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [showTextTools, setShowTextTools] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  // Load Google Fonts for typography
+  useEffect(() => {
+    if (!document.querySelector('link[data-grid-fonts]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = GOOGLE_FONTS_URL;
+      link.setAttribute('data-grid-fonts', 'true');
+      document.head.appendChild(link);
+    }
+  }, []);
 
   /** Create an object URL from raw file — zero compression, original bytes */
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
@@ -25,7 +42,6 @@ export default function GridEditor({ layout, onBack }: Props) {
   }, []);
 
   const handleImageAdd = useCallback((index: number, file: File) => {
-    // Revoke old URL to free memory
     setCells((prev) => {
       const old = prev[index];
       if (old.imageUrl) URL.revokeObjectURL(old.imageUrl);
@@ -50,7 +66,6 @@ export default function GridEditor({ layout, onBack }: Props) {
 
   const handleSmartFill = useCallback((files: File[]) => {
     setCells((prev) => {
-      // Revoke old URLs
       prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
       return prev.map((c, i) => {
         if (i < files.length) {
@@ -66,7 +81,29 @@ export default function GridEditor({ layout, onBack }: Props) {
       prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
       return createCellsForLayout(layout);
     });
+    setTextLayers([]);
+    setSelectedTextId(null);
   }, [layout]);
+
+  // ─── Text layer handlers ──────────────────────
+  const addTextLayer = useCallback((layer: TextLayer) => {
+    setTextLayers((prev) => [...prev, layer]);
+    setSelectedTextId(layer.id);
+    setShowTextTools(true);
+  }, []);
+
+  const updateTextLayer = useCallback((id: string, patch: Partial<TextLayer>) => {
+    setTextLayers((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+  }, []);
+
+  const deleteTextLayer = useCallback((id: string) => {
+    setTextLayers((prev) => prev.filter((l) => l.id !== id));
+    setSelectedTextId(null);
+  }, []);
+
+  const deselectText = useCallback(() => {
+    setSelectedTextId(null);
+  }, []);
 
   const filledCount = cells.filter((c) => c.imageUrl).length;
 
@@ -81,6 +118,14 @@ export default function GridEditor({ layout, onBack }: Props) {
           </button>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowTextTools(!showTextTools)}
+              className={`h-8 w-8 rounded-full border flex items-center justify-center transition-colors ${
+                showTextTools ? 'border-foreground/40 bg-foreground/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Type className="h-3.5 w-3.5" />
+            </button>
+            <button
               onClick={handleReset}
               className="h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -92,10 +137,10 @@ export default function GridEditor({ layout, onBack }: Props) {
       </div>
 
       {/* Grid canvas */}
-      <div className="flex-1 flex items-start justify-center px-4 pt-5 pb-40">
+      <div className="flex-1 flex items-start justify-center px-4 pt-5 pb-40" onClick={deselectText}>
         <div
           ref={gridRef}
-          className="w-full aspect-square max-w-[440px] rounded-2xl overflow-hidden bg-card border border-border shadow-sm"
+          className="w-full aspect-square max-w-[440px] rounded-2xl overflow-hidden bg-card border border-border shadow-sm relative"
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
@@ -114,18 +159,44 @@ export default function GridEditor({ layout, onBack }: Props) {
               onOffsetChange={(x, y) => handleOffsetChange(i, x, y)}
             />
           ))}
+
+          {/* Text overlays */}
+          {textLayers.map((layer) => (
+            <TextOverlay
+              key={layer.id}
+              layer={layer}
+              selected={layer.id === selectedTextId}
+              containerRef={gridRef}
+              onUpdate={(patch) => updateTextLayer(layer.id, patch)}
+              onSelect={() => setSelectedTextId(layer.id)}
+              onDelete={() => deleteTextLayer(layer.id)}
+            />
+          ))}
         </div>
       </div>
+
+      {/* Text toolbar */}
+      {showTextTools && (
+        <div className="fixed bottom-[60px] left-0 right-0 z-30">
+          <TextToolbar
+            layers={textLayers}
+            selectedId={selectedTextId}
+            onAddLayer={addTextLayer}
+            onUpdateLayer={updateTextLayer}
+          />
+        </div>
+      )}
 
       {/* Bottom bar */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur border-t border-border px-4 py-3 safe-area-pb">
         <div className="max-w-[480px] mx-auto flex items-center justify-between">
           <p className="text-[10px] tracking-wider uppercase text-muted-foreground">
             {filledCount}/{cells.length} filled
+            {textLayers.length > 0 && ` · ${textLayers.length} text`}
           </p>
           <div className="flex items-center gap-2">
-            <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} />
-            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} />
+            <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
+            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} />
           </div>
         </div>
       </div>
