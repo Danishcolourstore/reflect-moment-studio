@@ -35,22 +35,22 @@ export default function CarouselSliceExporter({ cells, format }: Props) {
         if (!cell.imageUrl) continue;
 
         const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
+        canvas.width = w;
+        canvas.height = h;
         const ctx = canvas.getContext('2d')!;
 
         const img = await loadImageElement(cell.imageUrl);
 
         // Cover fit
-        const scale = Math.max(size / img.naturalWidth, size / img.naturalHeight) * cell.scale;
-        const w = img.naturalWidth * scale;
-        const h = img.naturalHeight * scale;
-        const offsetScale = size / 440;
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight) * cell.scale;
+        const iw = img.naturalWidth * scale;
+        const ih = img.naturalHeight * scale;
+        const offsetScale = w / 440;
         ctx.drawImage(
           img,
-          (size - w) / 2 + cell.offsetX * offsetScale,
-          (size - h) / 2 + cell.offsetY * offsetScale,
-          w, h
+          (w - iw) / 2 + cell.offsetX * offsetScale,
+          (h - ih) / 2 + cell.offsetY * offsetScale,
+          iw, ih
         );
 
         const blob = await new Promise<Blob>((resolve) =>
