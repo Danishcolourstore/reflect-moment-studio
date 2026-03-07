@@ -44,6 +44,8 @@ import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
 import AdminGate from "./pages/admin/AdminGate";
 import AdminLayout from "./pages/admin/AdminLayout";
+import SuperAdmin from "./pages/SuperAdmin";
+import SuperAdminGate from "./pages/SuperAdminGate";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
 import AdminEvents from "./pages/admin/AdminEvents";
@@ -131,10 +133,18 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
-    // Admin by email — no role lookup needed
+    // Super admin check — both email and database role
     if (user.email === 'danishsubair@gmail.com') {
-      setRedirectTo('/admin');
-      setChecked(true);
+      supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'super_admin')
+        .maybeSingle()
+        .then(({ data: saRole }) => {
+          setRedirectTo(saRole ? '/super-admin' : '/admin');
+          setChecked(true);
+        });
       return;
     }
 
@@ -201,6 +211,15 @@ const AppRoutes = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-access" element={<VerifyAccess />} />
       <Route path="/verify-otp" element={<VerifyOTP />} />
+
+      <Route
+        path="/super-admin"
+        element={
+          <SuperAdminGate>
+            <SuperAdmin />
+          </SuperAdminGate>
+        }
+      />
 
       <Route
         path="/admin"

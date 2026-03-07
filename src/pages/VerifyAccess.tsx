@@ -21,6 +21,14 @@ export default function VerifyAccess() {
   const [lockoutEnd, setLockoutEnd] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(0);
 
+  // Bypass PIN for super admin
+  useEffect(() => {
+    if (!loading && user?.email === 'danishsubair@gmail.com') {
+      sessionStorage.setItem(SESSION_KEY, 'true');
+      navigate('/super-admin', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/login", { replace: true });
