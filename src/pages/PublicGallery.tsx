@@ -342,6 +342,11 @@ const PublicGallery = () => {
       }
     }
 
+    // Fetch text blocks
+    const { data: tbData } = await (supabase.from('gallery_text_blocks' as any)
+      .select('*').eq('event_id', ev.id).order('sort_order', { ascending: true }) as any);
+    if (tbData) setTextBlocks(tbData as unknown as TextBlock[]);
+
     // Fetch comment counts
     const { data: comments } = await (supabase.from('photo_comments').select('photo_id') as any)
       .eq('event_id', ev.id);
