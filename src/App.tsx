@@ -453,9 +453,9 @@ const AppRoutes = () => {
       <Route
         path="/storybook"
         element={
-          <ProtectedRoute>
+          <StorybookGate>
             <StorybookCreator standalone />
-          </ProtectedRoute>
+          </StorybookGate>
         }
       />
 
