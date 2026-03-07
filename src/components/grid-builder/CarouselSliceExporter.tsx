@@ -27,7 +27,8 @@ export default function CarouselSliceExporter({ cells, format }: Props) {
     setExporting(true);
     try {
       const zip = new JSZip();
-      const size = 1080;
+      const w = activeFormat.exportWidth;
+      const h = activeFormat.exportHeight;
 
       for (let i = 0; i < cells.length; i++) {
         const cell = cells[i];
