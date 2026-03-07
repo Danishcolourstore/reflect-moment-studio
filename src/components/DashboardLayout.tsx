@@ -4,7 +4,7 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  LayoutGrid, Camera, BookOpen, Users, BarChart2, Palette, User,
+  LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
   LogOut, Moon, Sun, Bell, ChevronRight, Menu,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
