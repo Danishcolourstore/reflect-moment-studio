@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
+import { StorybookGate } from "@/components/StorybookGate";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Events from "./pages/Events";
@@ -452,9 +453,9 @@ const AppRoutes = () => {
       <Route
         path="/storybook"
         element={
-          <ProtectedRoute>
+          <StorybookGate>
             <StorybookCreator standalone />
-          </ProtectedRoute>
+          </StorybookGate>
         }
       />
 
