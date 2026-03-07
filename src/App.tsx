@@ -15,6 +15,7 @@ import StudioSettings from "./pages/StudioSettings";
 import Billing from "./pages/Billing";
 import Clients from "./pages/Clients";
 import Cheetah from "./pages/Cheetah";
+import CheetahLive from "./pages/CheetahLive";
 import Branding from "./pages/Branding";
 import BrandEditor from "./pages/BrandEditor";
 import Profile from "./pages/Profile";
@@ -327,6 +328,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Cheetah />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/cheetah-live"
+        element={
+          <ProtectedRoute>
+            <CheetahLive />
           </ProtectedRoute>
         }
       />
