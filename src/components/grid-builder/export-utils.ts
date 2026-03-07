@@ -1,9 +1,10 @@
 /**
  * Canvas-based export utilities for Grid Builder.
- * Renders grids using original image data — zero compression, lossless PNG output.
+ * Renders grids + text overlays using original image data — zero compression, lossless PNG output.
  */
 
 import type { GridLayout, GridCellData } from './types';
+import type { TextLayer } from './text-overlay-types';
 
 /** Load an image element from a URL (blob/object URL or data URL) */
 export function loadImageElement(src: string): Promise<HTMLImageElement> {
@@ -25,6 +26,7 @@ export async function renderGridToCanvas(
   cells: GridCellData[],
   width: number,
   height: number,
+  textLayers: TextLayer[] = [],
 ): Promise<HTMLCanvasElement> {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -89,6 +91,85 @@ export async function renderGridToCanvas(
     );
 
     ctx.restore();
+  }
+
+  // ─── Render text overlays ───────────────────
+  if (textLayers.length > 0) {
+    const scale = width / displaySize;
+
+    for (const layer of textLayers) {
+      ctx.save();
+
+      const tx = (layer.x / 100) * width;
+      const ty = (layer.y / 100) * height;
+
+      ctx.translate(tx, ty);
+      ctx.rotate((layer.rotation * Math.PI) / 180);
+      ctx.scale(layer.scale, layer.scale);
+      ctx.globalAlpha = layer.opacity;
+
+      // Font
+      const fontSizePx = layer.fontSize * scale;
+      const fontStyle = layer.fontStyle === 'italic' ? 'italic' : '';
+      ctx.font = `${fontStyle} ${layer.fontWeight} ${fontSizePx}px '${layer.fontFamily}'`;
+      ctx.fillStyle = layer.color;
+      ctx.textAlign = layer.alignment;
+      ctx.textBaseline = 'middle';
+
+      // Shadow
+      if (layer.shadow) {
+        ctx.shadowOffsetX = layer.shadow.x * scale;
+        ctx.shadowOffsetY = layer.shadow.y * scale;
+        ctx.shadowBlur = layer.shadow.blur * scale;
+        ctx.shadowColor = layer.shadow.color;
+      }
+
+      // Handle text transform
+      let text = layer.text;
+      if (layer.textTransform === 'uppercase') text = text.toUpperCase();
+      else if (layer.textTransform === 'lowercase') text = text.toLowerCase();
+
+      // Multi-line support
+      const lines = text.split('\n');
+      const lineHeightPx = fontSizePx * layer.lineHeight;
+      const totalHeight = lines.length * lineHeightPx;
+      const startY = -(totalHeight / 2) + lineHeightPx / 2;
+
+      // Letter spacing via manual character placement
+      if (layer.letterSpacing > 0) {
+        const spacingPx = layer.letterSpacing * scale;
+
+        for (let li = 0; li < lines.length; li++) {
+          const lineY = startY + li * lineHeightPx;
+          const line = lines[li];
+
+          // Measure total width with spacing
+          let totalW = 0;
+          for (let ci = 0; ci < line.length; ci++) {
+            totalW += ctx.measureText(line[ci]).width + (ci < line.length - 1 ? spacingPx : 0);
+          }
+
+          let startX = 0;
+          if (layer.alignment === 'center') startX = -totalW / 2;
+          else if (layer.alignment === 'right') startX = -totalW;
+
+          let curX = startX;
+          for (let ci = 0; ci < line.length; ci++) {
+            // Reset textAlign for manual placement
+            ctx.textAlign = 'left';
+            ctx.fillText(line[ci], curX, lineY);
+            curX += ctx.measureText(line[ci]).width + spacingPx;
+          }
+        }
+      } else {
+        for (let li = 0; li < lines.length; li++) {
+          const lineY = startY + li * lineHeightPx;
+          ctx.fillText(lines[li], 0, lineY);
+        }
+      }
+
+      ctx.restore();
+    }
   }
 
   return canvas;
