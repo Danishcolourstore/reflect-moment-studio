@@ -332,6 +332,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/dashboard/cheetah-live"
+        element={
+          <ProtectedRoute>
+            <CheetahLive />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/analytics"
         element={
           <ProtectedRoute>
