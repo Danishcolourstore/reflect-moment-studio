@@ -23,7 +23,7 @@ const Branding = () => {
       const { data: studio } = await (supabase.from('studio_profiles').select('website_template, username') as any)
         .eq('user_id', user.id).maybeSingle();
       if (studio) {
-        setSelectedTemplate((studio.website_template as WebsiteTemplateValue) || 'dark-portfolio');
+        setSelectedTemplate((studio.website_template as WebsiteTemplateValue) || 'vows-elegance');
         setUsername(studio.username || '');
         setHasStudio(true);
       }
