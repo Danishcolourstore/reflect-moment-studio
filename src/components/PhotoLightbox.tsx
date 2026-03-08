@@ -88,6 +88,15 @@ export function PhotoLightbox({
       if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowRight') goNext();
       if (e.key === 'ArrowLeft') goPrev();
+      // Desktop keyboard shortcuts
+      if ((e.key === 'f' || e.key === 'F') && toggleFavorite && photo) {
+        e.preventDefault();
+        toggleFavorite(photo.id);
+      }
+      if ((e.key === 'd' || e.key === 'D') && canDownload && onDownload && photo) {
+        e.preventDefault();
+        onDownload(photo);
+      }
     };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
@@ -95,7 +104,7 @@ export function PhotoLightbox({
       window.removeEventListener('keydown', handler);
       document.body.style.overflow = '';
     };
-  }, [open, onClose, goNext, goPrev]);
+  }, [open, onClose, goNext, goPrev, toggleFavorite, canDownload, onDownload, photos, currentIndex]);
 
   if (!open || photos.length === 0) return null;
 

@@ -211,9 +211,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Fixed Header — 64px */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 flex items-center justify-between px-5 lg:px-10 bg-background border-b border-border" style={{ height: '64px' }}>
+      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 flex items-center justify-between px-5 lg:px-12 xl:px-16 bg-background/80 backdrop-blur-xl border-b border-border" style={{ height: '64px' }}>
         <h2 className="text-foreground font-serif lg:hidden" style={{ fontWeight: 700, fontSize: '28px', letterSpacing: '-0.5px' }}>MirrorAI</h2>
-        <div className="hidden lg:block" />
+        {/* Desktop page title */}
+        <h2 className="hidden lg:block text-foreground font-sans" style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>
+          {PAGE_TITLES[location.pathname] || ''}
+        </h2>
         <div className="flex items-center gap-3">
           {/* Theme toggle — Dark / Editorial */}
           <button

@@ -188,17 +188,26 @@ function PhotoCard({
       {/* Hover overlay — subtle gradient from bottom */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-      {/* Heart button — top right */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-        className="absolute top-3 right-3 z-10 min-w-[44px] min-h-[44px] rounded-full bg-black/25 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/40 active:scale-90"
-        style={isFav ? { opacity: 1 } : undefined}
-      >
-        <Heart
-          className="h-5 w-5 transition-all duration-300"
-          style={isFav ? { color: heartColor, fill: heartColor, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' } : { color: 'white', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
-        />
-      </button>
+      {/* Desktop hover action buttons — top right */}
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300" style={isFav ? { opacity: 1 } : undefined}>
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+          className="min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center hover:bg-black/50 active:scale-90 transition-all duration-200"
+        >
+          <Heart
+            className="h-4.5 w-4.5 transition-all duration-300"
+            style={isFav ? { color: heartColor, fill: heartColor, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' } : { color: 'white', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
+          />
+        </button>
+        {canDownload && onDownload && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDownload(); }}
+            className="min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-md items-center justify-center hover:bg-black/50 active:scale-90 transition-all duration-200 hidden md:flex"
+          >
+            <Download className="h-4 w-4 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+          </button>
+        )}
+      </div>
 
       {/* Selection checkbox — top left */}
       {selectionMode && (
