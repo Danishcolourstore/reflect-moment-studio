@@ -29,6 +29,7 @@ import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
 import { WebsiteAlbums } from '@/components/website/WebsiteAlbums';
+import { AlbumManagerDrawer } from '@/components/brand-editor/AlbumManagerDrawer';
 
 /* ── Types ── */
 interface BrandData {
