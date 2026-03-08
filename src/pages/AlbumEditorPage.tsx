@@ -457,7 +457,9 @@ export default function AlbumEditorPage() {
 
       <div className="flex-1 flex overflow-hidden">
         <AlbumPhotoPanel
+          albumId={album.id}
           eventId={album.event_id}
+          onEventLinked={(eid) => setAlbum({ ...album, event_id: eid })}
           placedPhotoUrls={placedPhotoUrls}
           placedPhotoCounts={placedPhotoCounts}
           onDragStart={() => {}}
