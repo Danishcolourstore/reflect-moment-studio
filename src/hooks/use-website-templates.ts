@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { type WebsiteTemplateConfig, _setRuntimeCache } from '@/lib/website-templates';
+import { bumpImageRevision } from '@/lib/cache-bust';
 
 function mapDbRow(row: any): WebsiteTemplateConfig {
   const styling = row.styling_config || {};
