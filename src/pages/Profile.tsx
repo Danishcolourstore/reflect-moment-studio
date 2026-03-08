@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Loader2, Moon } from 'lucide-react';
+import { Upload, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -151,45 +151,42 @@ const Profile = () => {
           </Button>
         </div>
 
-        {/* ANDHAKAAR Appearance */}
+        {/* Appearance / Theme */}
         <div className="bg-card border border-border rounded-xl p-6">
-          <div className="flex items-center gap-3 mb-1">
-            <Moon className={`h-5 w-5 transition-all duration-300 ${document.documentElement.classList.contains('dark') ? 'text-foreground andhakaar-glow' : 'text-muted-foreground'}`} strokeWidth={1.3} />
-            <h2 className="font-serif text-lg text-foreground" style={{ fontWeight: 700 }}>ANDHAKAAR</h2>
-          </div>
-          <p className="text-muted-foreground mb-5" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '13px', fontStyle: 'italic', letterSpacing: '0.04em' }}>
-            Enter the darkness
-          </p>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-foreground">Enable Andhakaar Mode</p>
-              <p className="text-[11px] text-muted-foreground/50">Cinematic dark theme for your studio</p>
-            </div>
-            <button
-              onClick={() => {
-                const isDark = document.documentElement.classList.contains('dark');
-                const next = !isDark;
-                document.documentElement.classList.toggle('dark', next);
-                localStorage.setItem('andhakaar-mode', next ? 'on' : 'off');
-                localStorage.setItem('theme', next ? 'dark' : 'light');
-                toast.success(next ? 'Andhakaar activated' : 'Light mode restored');
-                // Force re-render
-                window.dispatchEvent(new Event('storage'));
-              }}
-              className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-300 ${
-                document.documentElement.classList.contains('dark')
-                  ? 'border-[hsl(37,7%,57%)] bg-foreground'
-                  : 'border-border bg-input'
-              }`}
-            >
-              <span
-                className={`pointer-events-none block h-5 w-5 rounded-full shadow-lg ring-0 transition-transform duration-300 ${
-                  document.documentElement.classList.contains('dark')
-                    ? 'translate-x-7 bg-[#0d0d0d]'
-                    : 'translate-x-0.5 bg-background'
-                }`}
-              />
-            </button>
+          <h2 className="font-serif text-lg text-foreground mb-5">Appearance</h2>
+          <p className="text-[11px] text-muted-foreground mb-4">Choose your dashboard theme</p>
+          <div className="grid grid-cols-3 gap-3">
+            {([
+              { key: 'dark', label: 'Dark', emoji: '🌙', desc: 'Cinematic dark' },
+              { key: 'editorial', label: 'Editorial', emoji: '☀', desc: 'Warm neutral' },
+              { key: 'classic', label: 'Classic', emoji: '✦', desc: 'Clean white' },
+            ] as const).map(({ key, label, emoji, desc }) => {
+              const currentTheme = localStorage.getItem('mirrorai-theme') || 'dark';
+              const isActive = currentTheme === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => {
+                    document.documentElement.classList.remove('dark', 'editorial', 'classic');
+                    document.documentElement.classList.add(key);
+                    localStorage.setItem('mirrorai-theme', key);
+                    localStorage.setItem('theme', key);
+                    if (user) {
+                      (supabase.from('profiles').update({ theme_preference: key } as any) as any).eq('user_id', user.id);
+                    }
+                    toast.success(`${label} theme activated`);
+                    window.dispatchEvent(new Event('storage'));
+                  }}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                    isActive ? 'border-accent bg-accent/10' : 'border-border hover:border-foreground/20'
+                  }`}
+                >
+                  <span className="text-2xl">{emoji}</span>
+                  <span className="text-[12px] font-medium text-foreground">{label}</span>
+                  <span className="text-[10px] text-muted-foreground">{desc}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

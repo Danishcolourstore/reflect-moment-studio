@@ -201,9 +201,9 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
             <button
               key={tool.name}
               onClick={tool.onClick}
-              className="text-left rounded-2xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.15)] transition-all group"
+              className="text-left rounded-2xl border border-border bg-card p-5 hover:border-accent/40 hover:shadow-[0_0_20px_-6px_hsl(var(--accent)/0.15)] transition-all group"
             >
-              <tool.icon className="h-5 w-5 text-primary/70 mb-3 group-hover:text-primary transition-colors" strokeWidth={1.5} />
+              <tool.icon className="h-5 w-5 text-accent/70 mb-3 group-hover:text-accent transition-colors" strokeWidth={1.5} />
               <p className="text-foreground text-sm font-medium">{tool.name}</p>
               <p className="text-muted-foreground text-xs mt-1">{tool.desc}</p>
             </button>
@@ -220,7 +220,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
           </div>
         ) : storybooks.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-12 text-center">
-            <BookOpen className="mx-auto h-10 w-10 text-primary mb-4" strokeWidth={1.5} />
+            <BookOpen className="mx-auto h-10 w-10 text-accent mb-4" strokeWidth={1.5} />
             <p className="font-serif text-foreground text-xl" style={{ fontStyle: 'italic' }}>No storybooks yet</p>
             <p className="text-muted-foreground text-sm mt-2">Create your first Instagram carousel</p>
           </div>
@@ -230,7 +230,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
               <button
                 key={sb.id}
                 onClick={() => setActiveId(sb.id)}
-                className="w-full text-left rounded-2xl border border-border bg-card p-5 hover:border-primary/30 transition-all group"
+                className="w-full text-left rounded-2xl border border-border bg-card p-5 hover:border-accent/30 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -240,7 +240,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] uppercase tracking-[2px] text-primary/60 font-semibold border border-primary/20 rounded-full px-3 py-1">
+                    <span className="text-[9px] uppercase tracking-[2px] text-accent/60 font-semibold border border-accent/20 rounded-full px-3 py-1">
                       Draft
                     </span>
                     <button
