@@ -554,9 +554,9 @@ const PublicGallery = () => {
             <Skeleton className="h-9 w-24 rounded-full" />
             <Skeleton className="h-9 w-28 rounded-full" />
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <Skeleton key={i} className="rounded-lg" style={{ height: `${180 + (i % 3) * 60}px` }} />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton key={i} className="rounded-lg" style={{ height: `${180 + (i % 4) * 50}px` }} />
             ))}
           </div>
         </div>
