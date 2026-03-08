@@ -61,7 +61,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-type ThemeMode = 'dark' | 'editorial' | 'classic';
+type ThemeMode = 'dark' | 'classic';
 
 function applyThemeClass(t: ThemeMode) {
   document.documentElement.classList.remove('dark', 'editorial', 'classic');
