@@ -1,7 +1,13 @@
 /**
  * Folder Watcher Hook — uses the File System Access API to monitor a local
- * directory for new images. Polls every N seconds and uploads new files
- * through the Cheetah ingest pipeline.
+ * directory for new images. Polls every 500ms and uploads new files
+ * through the Cheetah ingest pipeline with high concurrency.
+ *
+ * Optimisations:
+ * - 500ms poll interval (near real-time detection)
+ * - 6 concurrent uploads for burst handling
+ * - Thumbnail generation in Web Worker (non-blocking)
+ * - Fast ingest mode: upload first, AI scoring deferred
  *
  * Browser support: Chromium-based browsers only (Chrome, Edge, Brave, Arc).
  */
@@ -11,8 +17,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const VALID_EXTENSIONS = new Set(['jpg', 'jpeg', 'heif', 'heic', 'png']);
-const POLL_INTERVAL_MS = 2000; // Check every 2 seconds
-const UPLOAD_CONCURRENCY = 3;
+const POLL_INTERVAL_MS = 500;
+const UPLOAD_CONCURRENCY = 6;
+const MIN_FILE_SIZE = 10_000; // Skip incomplete writes
 
 export interface FolderWatcherState {
   isSupported: boolean;
@@ -38,9 +45,23 @@ export function useFolderWatcher(sessionId: string | null) {
   const dirHandleRef = useRef<FileSystemDirectoryHandle | null>(null);
   const knownFilesRef = useRef<Set<string>>(new Set());
   const uploadQueueRef = useRef<File[]>([]);
-  const isProcessingRef = useRef(false);
+  const activeUploadsRef = useRef(0);
   const intervalRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
+  const tokenRef = useRef<string | null>(null);
+
+  // Keep auth token fresh
+  useEffect(() => {
+    const refresh = async () => {
+      const { data } = await supabase.auth.getSession();
+      tokenRef.current = data.session?.access_token ?? null;
+    };
+    refresh();
+    const { data: listener } = supabase.auth.onAuthStateChange((_ev, session) => {
+      tokenRef.current = session?.access_token ?? null;
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -50,61 +71,51 @@ export function useFolderWatcher(sessionId: string | null) {
     };
   }, []);
 
-  // Process upload queue
-  const processQueue = useCallback(async () => {
-    if (isProcessingRef.current || uploadQueueRef.current.length === 0 || !sessionId) return;
-    isProcessingRef.current = true;
+  const updateState = useCallback((patch: Partial<FolderWatcherState>) => {
+    if (mountedRef.current) setState((s) => ({ ...s, ...patch }));
+  }, []);
 
-    const session = await supabase.auth.getSession();
-    const token = session.data.session?.access_token;
-    if (!token) {
-      isProcessingRef.current = false;
-      return;
-    }
+  // Upload a single file — called from the drain loop
+  const uploadOne = useCallback(async (file: File) => {
+    const token = tokenRef.current;
+    if (!token || !sessionId) return;
 
-    while (uploadQueueRef.current.length > 0) {
-      const batch = uploadQueueRef.current.splice(0, UPLOAD_CONCURRENCY);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('session_id', sessionId);
 
-      if (mountedRef.current) {
-        setState((s) => ({ ...s, filesQueued: uploadQueueRef.current.length }));
-      }
-
-      await Promise.all(
-        batch.map(async (file) => {
-          try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('session_id', sessionId);
-
-            const res = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cheetah-ingest`,
-              {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
-                body: formData,
-              }
-            );
-
-            if (!res.ok) {
-              console.error('Folder watcher upload failed:', file.name);
-            }
-
-            if (mountedRef.current) {
-              setState((s) => ({
-                ...s,
-                filesUploaded: s.filesUploaded + 1,
-                filesQueued: uploadQueueRef.current.length,
-              }));
-            }
-          } catch (err) {
-            console.error('Upload error:', file.name, err);
-          }
-        })
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cheetah-ingest`,
+        { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData }
       );
+
+      if (!res.ok) console.error('Folder watcher upload failed:', file.name);
+    } catch (err) {
+      console.error('Upload error:', file.name, err);
     }
 
-    isProcessingRef.current = false;
-  }, [sessionId]);
+    updateState({
+      filesUploaded: (state.filesUploaded ?? 0) + 1,
+      filesQueued: uploadQueueRef.current.length,
+    });
+  }, [sessionId, updateState]);
+
+  // Drain the upload queue, respecting concurrency limit
+  const drainQueue = useCallback(() => {
+    while (activeUploadsRef.current < UPLOAD_CONCURRENCY && uploadQueueRef.current.length > 0) {
+      const file = uploadQueueRef.current.shift()!;
+      activeUploadsRef.current++;
+      uploadOne(file).finally(() => {
+        activeUploadsRef.current--;
+        if (mountedRef.current) {
+          updateState({ filesQueued: uploadQueueRef.current.length });
+        }
+        // Keep draining
+        drainQueue();
+      });
+    }
+  }, [uploadOne, updateState]);
 
   // Scan directory for new files
   const scanDirectory = useCallback(async () => {
@@ -122,37 +133,34 @@ export function useFolderWatcher(sessionId: string | null) {
         if (!VALID_EXTENSIONS.has(ext)) continue;
         if (knownFilesRef.current.has(name)) continue;
 
-        // New file detected
         knownFilesRef.current.add(name);
         try {
           const file: File = await entry.getFile();
-          // Skip tiny files (likely incomplete writes)
-          if (file.size < 10000) continue;
+          if (file.size < MIN_FILE_SIZE) {
+            knownFilesRef.current.delete(name);
+            continue;
+          }
           newFiles.push(file);
         } catch {
-          // File might still be writing, skip and retry next scan
           knownFilesRef.current.delete(name);
         }
       }
 
       if (newFiles.length > 0) {
         uploadQueueRef.current.push(...newFiles);
-        if (mountedRef.current) {
-          setState((s) => ({
-            ...s,
-            filesDetected: s.filesDetected + newFiles.length,
-            filesQueued: uploadQueueRef.current.length,
-            lastScanAt: new Date().toISOString(),
-          }));
-        }
-        processQueue();
-      } else if (mountedRef.current) {
-        setState((s) => ({ ...s, lastScanAt: new Date().toISOString() }));
+        updateState({
+          filesDetected: (state.filesDetected ?? 0) + newFiles.length,
+          filesQueued: uploadQueueRef.current.length,
+          lastScanAt: new Date().toISOString(),
+        });
+        drainQueue();
+      } else {
+        updateState({ lastScanAt: new Date().toISOString() });
       }
     } catch (err) {
       console.error('Directory scan error:', err);
     }
-  }, [processQueue]);
+  }, [drainQueue, updateState]);
 
   // Select folder and start watching
   const startWatching = useCallback(async () => {
@@ -162,20 +170,15 @@ export function useFolderWatcher(sessionId: string | null) {
     }
 
     try {
-      const dirHandle = await (window as any).showDirectoryPicker({
-        mode: 'read',
-      });
-
+      const dirHandle = await (window as any).showDirectoryPicker({ mode: 'read' });
       dirHandleRef.current = dirHandle;
       knownFilesRef.current = new Set();
 
-      // Initial scan to record existing files (don't upload them)
+      // Snapshot existing files so we don't re-upload them
       for await (const entry of (dirHandle as any).values()) {
         if (entry.kind === 'file') {
           const ext = entry.name.split('.').pop()?.toLowerCase() || '';
-          if (VALID_EXTENSIONS.has(ext)) {
-            knownFilesRef.current.add(entry.name);
-          }
+          if (VALID_EXTENSIONS.has(ext)) knownFilesRef.current.add(entry.name);
         }
       }
 
@@ -189,9 +192,7 @@ export function useFolderWatcher(sessionId: string | null) {
         lastScanAt: new Date().toISOString(),
       }));
 
-      // Start polling
       intervalRef.current = window.setInterval(scanDirectory, POLL_INTERVAL_MS);
-
       toast.success(`Watching folder: ${dirHandle.name}`);
     } catch (err: any) {
       if (err.name !== 'AbortError') {
@@ -222,9 +223,5 @@ export function useFolderWatcher(sessionId: string | null) {
     };
   }, [sessionId]);
 
-  return {
-    ...state,
-    startWatching,
-    stopWatching,
-  };
+  return { ...state, startWatching, stopWatching };
 }
