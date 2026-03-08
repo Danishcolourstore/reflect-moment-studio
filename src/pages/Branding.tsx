@@ -13,7 +13,7 @@ const Branding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [selectedTemplate, setSelectedTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
+  const [selectedTemplate, setSelectedTemplate] = useState<WebsiteTemplateValue>('vows-elegance');
   const [username, setUsername] = useState('');
   const [hasStudio, setHasStudio] = useState(false);
 
