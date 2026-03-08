@@ -53,13 +53,13 @@ serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Upload original to gallery-photos bucket
+    // Upload original to cheetah-photos bucket
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const storagePath = `cheetah/${sessionId}/${crypto.randomUUID()}.${ext}`;
+    const storagePath = `${userId}/${sessionId}/${crypto.randomUUID()}.${ext}`;
 
     const arrayBuf = await file.arrayBuffer();
     const { error: uploadErr } = await adminClient.storage
-      .from("gallery-photos")
+      .from("cheetah-photos")
       .upload(storagePath, arrayBuf, {
         contentType: file.type || "image/jpeg",
         upsert: false,
@@ -74,7 +74,7 @@ serve(async (req) => {
     }
 
     const { data: urlData } = adminClient.storage
-      .from("gallery-photos")
+      .from("cheetah-photos")
       .getPublicUrl(storagePath);
 
     const originalUrl = urlData.publicUrl;
