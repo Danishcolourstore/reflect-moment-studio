@@ -17,13 +17,16 @@ interface WebsiteFeaturedProps {
   onNavigate: (slug: string) => void;
   id?: string;
   template?: string;
+  /** Custom section heading */
+  heading?: string;
 }
 
-export function WebsiteFeatured({ events, coverPhotos, accent, onNavigate, id, template = 'vows-elegance' }: WebsiteFeaturedProps) {
+export function WebsiteFeatured({ events, coverPhotos, accent, onNavigate, id, template = 'vows-elegance', heading }: WebsiteFeaturedProps) {
   if (events.length === 0) return null;
   const tmpl = getTemplate(template);
   const isEditorial = template === 'editorial-luxury';
   const textColor = isEditorial ? '#2B2A28' : tmpl.text;
+  const title = heading || 'Featured Work';
 
   return (
     <section id={id} className="py-20 sm:py-32 px-6 sm:px-8" style={{ backgroundColor: isEditorial ? '#F5F0EA' : tmpl.bg }}>
@@ -38,7 +41,7 @@ export function WebsiteFeatured({ events, coverPhotos, accent, onNavigate, id, t
           className={`text-3xl sm:text-5xl lg:text-6xl font-light tracking-[0.04em] ${isEditorial ? 'italic' : 'uppercase tracking-[0.06em]'}`}
           style={{ fontFamily: isEditorial ? '"Playfair Display", Georgia, serif' : '"Cormorant Garamond", Georgia, serif', color: textColor }}
         >
-          {isEditorial ? 'Stories We\'ve Told' : 'The Stories We Told'}
+          {title}
         </h2>
         <div className="mt-6 w-12 h-[1px] mx-auto" style={{ backgroundColor: isEditorial ? '#D5CEC5' : accent, opacity: 0.4 }} />
       </div>
