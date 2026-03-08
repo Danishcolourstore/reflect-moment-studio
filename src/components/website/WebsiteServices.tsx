@@ -4,6 +4,7 @@ export interface ServiceItem {
   title: string;
   description: string;
   icon?: string;
+  price?: string;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
