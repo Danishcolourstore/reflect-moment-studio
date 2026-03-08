@@ -92,6 +92,8 @@ interface StudioExtended {
   cover_url: string | null;
   font_style: string | null;
   username: string | null;
+  heading_font: string | null;
+  body_font: string | null;
 }
 
 /* ── Ken Burns keyframe (scoped, injected once) ── */
