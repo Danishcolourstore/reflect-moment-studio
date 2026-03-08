@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, Type, Shapes, Image, Palette, Eye, Stamp, Instagram } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Type, Shapes, Image, Palette, Eye, Stamp, Instagram, MessageSquare } from 'lucide-react';
+import AICaptionGenerator from './AICaptionGenerator';
 import InstagramCarouselPreview from './InstagramCarouselPreview';
 import type { GridLayout, GridCellData, CanvasFormat } from './types';
 import { createCellsForLayout, CANVAS_FORMATS } from './types';
