@@ -54,7 +54,7 @@ interface BrandData {
   phone: string;
 }
 
-type SectionId = 'hero' | 'branding' | 'about' | 'contact' | 'footer' | 'portfolio' | 'featured' | 'services' | 'social';
+type SectionId = 'hero' | 'branding' | 'about' | 'contact' | 'footer' | 'portfolio' | 'featured' | 'services' | 'social' | 'testimonials' | 'albums';
 
 interface SectionConfig {
   id: SectionId;
