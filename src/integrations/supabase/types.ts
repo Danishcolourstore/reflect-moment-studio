@@ -2069,6 +2069,78 @@ export type Database = {
         }
         Relationships: []
       }
+      website_templates: {
+        Row: {
+          bg_color: string
+          card_bg: string
+          created_at: string
+          demo_content: Json
+          description: string | null
+          font_family: string
+          footer_bg: string
+          footer_text_color: string
+          header_style: string
+          hero_style: string
+          id: string
+          is_active: boolean
+          label: string
+          nav_bg: string
+          nav_border: string
+          slug: string
+          sort_order: number
+          text_color: string
+          text_secondary_color: string
+          ui_font_family: string
+          updated_at: string
+        }
+        Insert: {
+          bg_color?: string
+          card_bg?: string
+          created_at?: string
+          demo_content?: Json
+          description?: string | null
+          font_family?: string
+          footer_bg?: string
+          footer_text_color?: string
+          header_style?: string
+          hero_style?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          nav_bg?: string
+          nav_border?: string
+          slug: string
+          sort_order?: number
+          text_color?: string
+          text_secondary_color?: string
+          ui_font_family?: string
+          updated_at?: string
+        }
+        Update: {
+          bg_color?: string
+          card_bg?: string
+          created_at?: string
+          demo_content?: Json
+          description?: string | null
+          font_family?: string
+          footer_bg?: string
+          footer_text_color?: string
+          header_style?: string
+          hero_style?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          nav_bg?: string
+          nav_border?: string
+          slug?: string
+          sort_order?: number
+          text_color?: string
+          text_secondary_color?: string
+          ui_font_family?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

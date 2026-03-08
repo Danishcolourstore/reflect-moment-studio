@@ -3,7 +3,7 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Crown, Users, Camera, BookOpen, Settings, BarChart3,
-  LogOut, Shield, Home,
+  LogOut, Shield, Home, Layout,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { to: '/super-admin', icon: Home, label: 'Overview', end: true },
   { to: '/super-admin/users', icon: Users, label: 'Users' },
+  { to: '/super-admin/templates', icon: Layout, label: 'Templates' },
   { to: '/super-admin/mirrorai', icon: Camera, label: 'MirrorAI' },
   { to: '/super-admin/storybooks', icon: BookOpen, label: 'Storybooks' },
   { to: '/super-admin/settings', icon: Settings, label: 'Settings' },

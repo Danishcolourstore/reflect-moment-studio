@@ -53,6 +53,7 @@ import SuperAdminGate from "./pages/SuperAdminGate";
 import SuperAdminLayout from "./pages/super-admin/SuperAdminLayout";
 import SuperAdminOverview from "./pages/super-admin/SuperAdminOverview";
 import SuperAdminUsers from "./pages/super-admin/SuperAdminUsers";
+import SuperAdminTemplates from "./pages/super-admin/SuperAdminTemplates";
 import SuperAdminMirrorAI from "./pages/super-admin/SuperAdminMirrorAI";
 import SuperAdminStorybooks from "./pages/super-admin/SuperAdminStorybooks";
 import SuperAdminSettings from "./pages/super-admin/SuperAdminSettings";
@@ -216,6 +217,7 @@ const AppRoutes = () => {
       >
         <Route index element={<SuperAdminOverview />} />
         <Route path="users" element={<SuperAdminUsers />} />
+        <Route path="templates" element={<SuperAdminTemplates />} />
         <Route path="mirrorai" element={<SuperAdminMirrorAI />} />
         <Route path="storybooks" element={<SuperAdminStorybooks />} />
         <Route path="settings" element={<SuperAdminSettings />} />
