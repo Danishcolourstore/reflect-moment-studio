@@ -49,6 +49,9 @@ interface BrandData {
   portfolioLayout: string;
   services: ServiceItem[];
   featuredGalleryIds: string[];
+  testimonials: Testimonial[];
+  location: string;
+  phone: string;
 }
 
 type SectionId = 'hero' | 'branding' | 'about' | 'contact' | 'footer' | 'portfolio' | 'featured' | 'services' | 'social';
