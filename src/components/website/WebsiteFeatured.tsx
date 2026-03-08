@@ -19,6 +19,10 @@ interface WebsiteFeaturedProps {
   template?: string;
 }
 
+/**
+ * "THE STORIES WE TOLD" featured gallery section matching the reference.
+ * Shows highlighted couple stories with large cover images and elegant overlays.
+ */
 export function WebsiteFeatured({
   events,
   coverPhotos,
@@ -31,74 +35,83 @@ export function WebsiteFeatured({
   const tmpl = getTemplate(template);
 
   return (
-    <section id={id} className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: tmpl.bg }}>
+    <section id={id} className="py-20 sm:py-32 px-6 sm:px-8" style={{ backgroundColor: tmpl.bg }}>
       {/* Section heading */}
-      <div className="text-center mb-16 sm:mb-20">
+      <div className="text-center mb-16 sm:mb-24">
         <p
-          className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em] mb-4"
-          style={{ color: accent, opacity: 0.7 }}
+          className="text-[10px] sm:text-xs uppercase tracking-[0.35em] mb-4"
+          style={{ color: accent, opacity: 0.7, fontFamily: '"DM Sans", sans-serif' }}
         >
-          Featured Work
+          Gallery
         </p>
         <h2
-          className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-wide"
-          style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}
+          className="text-3xl sm:text-5xl lg:text-6xl font-light uppercase tracking-[0.06em]"
+          style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: tmpl.text }}
         >
-          Highlights
+          The Stories We Told
         </h2>
-        <div className="mt-5 w-10 h-[1px] mx-auto" style={{ backgroundColor: accent, opacity: 0.5 }} />
+        <div className="mt-6 w-12 h-[1px] mx-auto" style={{ backgroundColor: accent, opacity: 0.4 }} />
       </div>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-        {events.map((ev) => {
+      {/* Featured stories grid */}
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+        {events.map((ev, idx) => {
           const cover = ev.cover_url || coverPhotos[ev.id] || null;
+          const isEven = idx % 2 === 0;
           return (
             <a
               key={ev.id}
               href={`/event/${ev.slug}`}
-              onClick={(e) => {
-                e.preventDefault();
-                onNavigate(ev.slug);
-              }}
-              className="group relative overflow-hidden cursor-pointer block"
+              onClick={(e) => { e.preventDefault(); onNavigate(ev.slug); }}
+              className="group relative block overflow-hidden"
               style={{ borderRadius: '2px' }}
             >
-              <div className="aspect-[3/2] overflow-hidden" style={{ backgroundColor: tmpl.cardBg }}>
+              <div className="aspect-[16/9] sm:aspect-[21/9] overflow-hidden" style={{ backgroundColor: tmpl.cardBg }}>
                 {cover ? (
-                  <div className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]">
+                  <div className="h-full w-full transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]">
                     <ProgressiveImage src={cover} alt={ev.name} className="h-full w-full object-cover" />
                   </div>
                 ) : (
                   <div className="h-full w-full flex items-center justify-center">
-                    <Camera className="h-10 w-10" style={{ color: tmpl.textSecondary, opacity: 0.15 }} />
+                    <Camera className="h-12 w-12" style={{ color: tmpl.textSecondary, opacity: 0.1 }} />
                   </div>
                 )}
+                {/* Gradient overlay */}
                 <div
-                  className="absolute inset-0 opacity-40 group-hover:opacity-75 transition-opacity duration-500"
+                  className="absolute inset-0 transition-opacity duration-500"
                   style={{
-                    background: `linear-gradient(to top, ${tmpl.footerBg}F2 0%, transparent 60%)`,
+                    background: isEven
+                      ? `linear-gradient(to right, ${tmpl.bg}DD 0%, ${tmpl.bg}66 40%, transparent 70%)`
+                      : `linear-gradient(to left, ${tmpl.bg}DD 0%, ${tmpl.bg}66 40%, transparent 70%)`,
                   }}
                 />
               </div>
 
-              <div className="absolute bottom-0 inset-x-0 p-5 sm:p-6">
+              {/* Text overlay */}
+              <div className={`absolute inset-0 flex flex-col justify-center px-8 sm:px-16 ${isEven ? 'items-start' : 'items-end text-right'}`}>
                 <p
-                  className="text-[9px] sm:text-[10px] uppercase tracking-[0.25em] mb-2"
-                  style={{ color: accent, opacity: 0.8 }}
+                  className="text-[10px] sm:text-xs uppercase tracking-[0.3em] mb-3"
+                  style={{ color: accent, fontFamily: '"DM Sans", sans-serif' }}
                 >
                   {ev.event_type}
                 </p>
                 <h3
-                  className="text-xl sm:text-2xl font-light tracking-wide"
-                  style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}
+                  className="text-2xl sm:text-3xl lg:text-4xl font-light uppercase tracking-[0.05em]"
+                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: tmpl.text }}
                 >
                   {ev.name}
                 </h3>
+                <span
+                  className="mt-4 inline-flex items-center text-[10px] uppercase tracking-[0.25em] opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0"
+                  style={{ color: accent, fontFamily: '"DM Sans", sans-serif' }}
+                >
+                  See The Magic →
+                </span>
               </div>
 
-              {/* Hover reveal bar */}
+              {/* Bottom accent line */}
               <div
-                className="absolute bottom-0 left-0 right-0 h-[2px] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"
+                className="absolute bottom-0 left-0 right-0 h-[2px] scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"
                 style={{ backgroundColor: accent }}
               />
             </a>

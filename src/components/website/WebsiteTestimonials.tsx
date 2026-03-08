@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Star, Quote } from 'lucide-react';
 import { getTemplate } from '@/lib/website-templates';
 
 export interface Testimonial {
@@ -14,59 +14,62 @@ interface WebsiteTestimonialsProps {
   template?: string;
 }
 
+/**
+ * "WHAT THEY SAY ABOUT US" testimonial section matching the reference.
+ * Large italic quote, client name below, elegant styling.
+ */
 export function WebsiteTestimonials({ testimonials, accent, id, template = 'vows-elegance' }: WebsiteTestimonialsProps) {
   if (testimonials.length === 0) return null;
   const tmpl = getTemplate(template);
 
   return (
-    <section id={id} className="py-16 sm:py-24 px-4" style={{ backgroundColor: tmpl.bg }}>
-      <div className="text-center mb-10 sm:mb-14">
-        <p
-          className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em] mb-3"
-          style={{ color: accent, opacity: 0.7 }}
-        >
+    <section id={id} className="relative py-24 sm:py-36 px-6 overflow-hidden" style={{ backgroundColor: tmpl.bg }}>
+      {/* Section heading */}
+      <div className="text-center mb-16 sm:mb-20">
+        <p className="text-[10px] sm:text-xs uppercase tracking-[0.35em] mb-4" style={{ color: accent, opacity: 0.7, fontFamily: '"DM Sans", sans-serif' }}>
           Client Love
         </p>
         <h2
-          className="text-3xl sm:text-4xl font-light tracking-wide"
-          style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}
+          className="text-3xl sm:text-4xl lg:text-5xl font-light uppercase tracking-[0.06em]"
+          style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: tmpl.text }}
         >
-          Testimonials
+          What They Say About Us
         </h2>
-        <div className="mt-4 w-10 h-[1px] mx-auto" style={{ backgroundColor: accent, opacity: 0.5 }} />
+        <div className="mt-5 w-12 h-[1px] mx-auto" style={{ backgroundColor: accent, opacity: 0.4 }} />
       </div>
 
-      <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+      {/* Testimonials */}
+      <div className="max-w-4xl mx-auto space-y-16 sm:space-y-24">
         {testimonials.map((t, idx) => (
-          <div
-            key={idx}
-            className="p-6 rounded-xl border"
-            style={{ backgroundColor: tmpl.cardBg, borderColor: `${tmpl.text}0A` }}
-          >
+          <div key={idx} className="text-center px-4 sm:px-8">
+            {/* Quote icon */}
+            <div className="flex justify-center mb-8">
+              <Quote className="h-8 w-8 rotate-180" style={{ color: accent, opacity: 0.3 }} />
+            </div>
+            {/* Review text - large italic serif */}
+            <p
+              className="text-lg sm:text-xl lg:text-2xl leading-[1.9] font-light italic"
+              style={{ color: tmpl.text, fontFamily: '"Cormorant Garamond", Georgia, serif', opacity: 0.9 }}
+            >
+              "{t.review}"
+            </p>
             {/* Stars */}
-            <div className="flex gap-0.5 mb-4">
+            <div className="flex justify-center gap-1 mt-8">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
                   key={i}
-                  className="h-3.5 w-3.5"
+                  className="h-3 w-3"
                   fill={i < t.rating ? accent : 'transparent'}
                   style={{ color: i < t.rating ? accent : `${tmpl.text}1A` }}
                 />
               ))}
             </div>
-            {/* Review */}
-            <p
-              className="text-sm leading-relaxed mb-4"
-              style={{ color: tmpl.textSecondary, fontFamily: tmpl.uiFontFamily }}
-            >
-              "{t.review}"
-            </p>
             {/* Client name */}
             <p
-              className="text-[11px] uppercase tracking-[0.15em] font-medium"
-              style={{ color: accent, opacity: 0.8 }}
+              className="mt-4 text-xs uppercase tracking-[0.25em]"
+              style={{ color: accent, fontFamily: '"DM Sans", sans-serif' }}
             >
-              {t.clientName}
+              — {t.clientName}
             </p>
           </div>
         ))}
