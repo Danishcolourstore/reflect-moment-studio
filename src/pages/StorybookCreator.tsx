@@ -240,7 +240,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] uppercase tracking-[2px] text-primary/60 font-semibold border border-primary/20 rounded-full px-3 py-1">
+                    <span className="text-[9px] uppercase tracking-[2px] text-accent/60 font-semibold border border-accent/20 rounded-full px-3 py-1">
                       Draft
                     </span>
                     <button
