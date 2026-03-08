@@ -138,7 +138,7 @@ const BrandEditor = () => {
       });
 
       setSections(loadedSections);
-
+      if (studio?.website_template) setWebsiteTemplate(studio.website_template);
       const newData: BrandData = {
         studioName: profile?.studio_name || '',
         logoUrl: profile?.studio_logo_url || null,
