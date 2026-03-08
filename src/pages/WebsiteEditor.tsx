@@ -4,6 +4,7 @@ import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertic
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileSectionDrawer } from '@/components/website-editor/MobileSectionDrawer';
 import { MobileEditorPanel } from '@/components/website-editor/MobileEditorPanel';
+import { WebsiteImageUploader, WebsiteImageGridUploader } from '@/components/website-editor/WebsiteImageUploader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +15,14 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { WEBSITE_TEMPLATES, getTemplate, type WebsiteTemplateValue } from '@/lib/website-templates';
 import { getStudioUrl, getStudioDisplayUrl } from '@/lib/studio-url';
+
+// Website image data structure (independent of events/galleries)
+interface WebsiteImages {
+  hero_cover?: string | null;
+  about_photo?: string | null;
+  portfolio_photos?: string[];
+  featured_photos?: string[];
+}
 
 // Website section components
 import { WebsiteHero } from '@/components/website/WebsiteHero';
