@@ -63,12 +63,14 @@ export default function LogoToolbar({ logo, onAddLogo, onUpdateLogo }: Props) {
   const handleLoadSaved = () => {
     const saved = loadSavedLogo();
     if (saved) {
-      // Convert base64 back to blob URL
+      // Convert base64 back to blob URL and File
       fetch(saved.dataUrl).then(r => r.blob()).then(blob => {
+        const file = new File([blob], 'saved-logo.png', { type: 'image/png' });
         const url = URL.createObjectURL(blob);
         onAddLogo({
           id: `logo-${Date.now()}`,
           imageUrl: url,
+          file,
           width: saved.width,
           opacity: saved.opacity,
           x: saved.x,
