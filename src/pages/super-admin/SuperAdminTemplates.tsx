@@ -88,6 +88,7 @@ export default function SuperAdminTemplates() {
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<Omit<TemplateRow, 'id' | 'created_at' | 'updated_at'>>(EMPTY_TEMPLATE);
+  const invalidateTemplates = useInvalidateTemplates();
 
   const loadTemplates = useCallback(async () => {
     const { data, error } = await (supabase.from('website_templates').select('*') as any).order('sort_order');
