@@ -506,7 +506,7 @@ const BrandEditor = () => {
                 case 'albums':
                   return null; // albums managed separately
                 case 'contact':
-                  return (data.whatsapp || data.website || data.email) ? <WebsiteContact key="contact" template="dark-portfolio" branding={combinedBranding} /> : null;
+                  return (data.whatsapp || data.website || data.email) ? <WebsiteContact key="contact" template="vows-elegance" branding={combinedBranding} /> : null;
                 case 'branding':
                   return null; // branding is meta, not visual
                 case 'footer':
