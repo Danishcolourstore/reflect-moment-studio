@@ -13,8 +13,10 @@ import AlbumPhotoPanel from '@/components/album-designer/AlbumPhotoPanel';
 import AlbumCanvas from '@/components/album-designer/AlbumCanvas';
 import AlbumRightPanel from '@/components/album-designer/AlbumRightPanel';
 import AlbumTimeline, { type PageSlot } from '@/components/album-designer/AlbumTimeline';
+import AlbumPreviewModal from '@/components/album-designer/AlbumPreviewModal';
+import AlbumExportDialog from '@/components/album-designer/AlbumExportDialog';
+import AlbumAutoLayoutDialog from '@/components/album-designer/AlbumAutoLayoutDialog';
 
-// Default layout for a fresh page
 const DEFAULT_LAYOUT: GridLayout = {
   id: 'full-bleed', name: 'Full Bleed', category: 'single',
   cols: 1, rows: 1, cells: [[1,1,2,2]], gridCols: 1, gridRows: 1,
@@ -52,15 +54,18 @@ export default function AlbumEditorPage() {
   const [paperTexture, setPaperTexture] = useState('white');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [loading, setLoading] = useState(true);
-
-  // Track placed photos across all pages (simplified: just current page for now)
   const [placedPhotoIds, setPlacedPhotoIds] = useState<Set<string>>(new Set());
   const [placedPhotoCounts, setPlacedPhotoCounts] = useState<Map<string, number>>(new Map());
+
+  // Modals
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [autoLayoutOpen, setAutoLayoutOpen] = useState(false);
 
   // Undo/redo stacks
   const [undoStack, setUndoStack] = useState<any[]>([]);
   const [redoStack, setRedoStack] = useState<any[]>([]);
-  const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
 
   // Load album
@@ -72,13 +77,11 @@ export default function AlbumEditorPage() {
       if (error || !albumData) { toast.error('Album not found'); navigate('/dashboard/album-designer'); return; }
       setAlbum(albumData as Album);
 
-      // Load pages
       const { data: pagesData } = await (supabase.from('album_pages' as any).select('id, page_number, spread_index, background_color, paper_texture')
         .eq('album_id', albumId).order('page_number', { ascending: true }) as any);
       const ps = (pagesData || []).map((p: any) => ({ id: p.id, pageNumber: p.page_number, spreadIndex: p.spread_index }));
       setPages(ps);
 
-      // Select first page
       if (ps.length > 0) {
         setCurrentPageId(ps[0].id);
         if (pagesData?.[0]) {
@@ -104,11 +107,9 @@ export default function AlbumEditorPage() {
         return;
       }
 
-      // Reconstruct layout from layers
       const photoLayers = (layers as LayerRecord[]).filter(l => l.layer_type === 'photo');
       const textLayerRecords = (layers as LayerRecord[]).filter(l => l.layer_type === 'text');
 
-      // Restore layout from settings_json of first photo layer if available
       const savedLayout = photoLayers[0]?.settings_json?.layout;
       const activeLayout = savedLayout ? { ...DEFAULT_LAYOUT, ...savedLayout } : DEFAULT_LAYOUT;
       setLayout(activeLayout);
@@ -127,7 +128,6 @@ export default function AlbumEditorPage() {
       });
       setCells(newCells);
 
-      // Restore text layers
       const restoredText: TextLayer[] = textLayerRecords.map(tl => ({
         ...createTextLayer(),
         ...tl.settings_json,
@@ -140,57 +140,44 @@ export default function AlbumEditorPage() {
     })();
   }, [currentPageId]);
 
-  // Auto-save every 30s
-  useEffect(() => {
-    autoSaveRef.current = setInterval(() => {
+  // Debounced auto-save (3s after last change)
+  const scheduleSave = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
       if (dirtyRef.current) saveLayers();
-    }, 30000);
-    return () => { if (autoSaveRef.current) clearInterval(autoSaveRef.current); };
-  }, [currentPageId, cells, textLayers, layout]);
+    }, 3000);
+  }, []);
 
-  const markDirty = () => { dirtyRef.current = true; setSaveStatus('unsaved'); };
+  const markDirty = () => { dirtyRef.current = true; setSaveStatus('unsaved'); scheduleSave(); };
 
   const saveLayers = useCallback(async () => {
     if (!currentPageId) return;
     setSaveStatus('saving');
     try {
-      // Delete existing layers for this page
       await (supabase.from('album_layers' as any).delete().eq('page_id', currentPageId) as any);
 
       const layersToInsert: any[] = [];
-
-      // Photo layers
       cells.forEach((cell, i) => {
         layersToInsert.push({
           page_id: currentPageId,
           layer_type: 'photo',
-          photo_id: null,
-          text_content: null,
-          x: 0, y: 0,
-          width: 100, height: 100,
-          rotation: 0,
-          z_index: i,
+          photo_id: null, text_content: null,
+          x: 0, y: 0, width: 100, height: 100, rotation: 0, z_index: i,
           settings_json: {
-            imageUrl: cell.imageUrl,
-            offsetX: cell.offsetX,
-            offsetY: cell.offsetY,
+            imageUrl: cell.imageUrl, offsetX: cell.offsetX, offsetY: cell.offsetY,
             scale: cell.scale,
             layout: { gridCols: layout.gridCols, gridRows: layout.gridRows, cells: layout.cells },
           },
         });
       });
 
-      // Text layers
       textLayers.forEach((tl, i) => {
         layersToInsert.push({
           page_id: currentPageId,
-          layer_type: 'text',
-          photo_id: null,
+          layer_type: 'text', photo_id: null,
           text_content: tl.text,
-          x: tl.x, y: tl.y,
-          width: 100, height: 100,
-          rotation: tl.rotation,
-          z_index: 100 + i,
+          x: tl.x, y: tl.y, width: 100, height: 100,
+          rotation: tl.rotation, z_index: 100 + i,
           settings_json: { ...tl },
         });
       });
@@ -199,7 +186,6 @@ export default function AlbumEditorPage() {
         await (supabase.from('album_layers' as any).insert(layersToInsert) as any);
       }
 
-      // Save page background
       await (supabase.from('album_pages' as any).update({ background_color: bgColor, paper_texture: paperTexture } as any).eq('id', currentPageId) as any);
 
       dirtyRef.current = false;
@@ -233,9 +219,7 @@ export default function AlbumEditorPage() {
     const prev = undoStack[undoStack.length - 1];
     setRedoStack(r => [...r, { cells: [...cells], textLayers: [...textLayers], layout }]);
     setUndoStack(s => s.slice(0, -1));
-    setCells(prev.cells);
-    setTextLayers(prev.textLayers);
-    setLayout(prev.layout);
+    setCells(prev.cells); setTextLayers(prev.textLayers); setLayout(prev.layout);
     markDirty();
   };
 
@@ -244,9 +228,7 @@ export default function AlbumEditorPage() {
     const next = redoStack[redoStack.length - 1];
     setUndoStack(s => [...s, { cells: [...cells], textLayers: [...textLayers], layout }]);
     setRedoStack(r => r.slice(0, -1));
-    setCells(next.cells);
-    setTextLayers(next.textLayers);
-    setLayout(next.layout);
+    setCells(next.cells); setTextLayers(next.textLayers); setLayout(next.layout);
     markDirty();
   };
 
@@ -256,8 +238,7 @@ export default function AlbumEditorPage() {
   const handleApplyTemplate = (partial: Partial<GridLayout>) => {
     pushUndo();
     const newLayout: GridLayout = {
-      ...DEFAULT_LAYOUT,
-      ...partial,
+      ...DEFAULT_LAYOUT, ...partial,
       id: partial.cells ? `template-${partial.cells.length}` : DEFAULT_LAYOUT.id,
       name: 'Custom',
     };
@@ -286,10 +267,8 @@ export default function AlbumEditorPage() {
     if (!album) return;
     const maxPageNum = Math.max(...pages.map(p => p.pageNumber), 0);
     const newPageNum = maxPageNum + 1;
-    const { data, error } = await (supabase.from('album_pages' as any).insert({
-      album_id: album.id,
-      page_number: newPageNum,
-      spread_index: Math.ceil(newPageNum / 2),
+    const { data } = await (supabase.from('album_pages' as any).insert({
+      album_id: album.id, page_number: newPageNum, spread_index: Math.ceil(newPageNum / 2),
     } as any).select().single() as any);
     if (data) {
       setPages(prev => [...prev, { id: data.id, pageNumber: data.page_number, spreadIndex: data.spread_index }]);
@@ -301,11 +280,8 @@ export default function AlbumEditorPage() {
     if (!album) return;
     const maxPageNum = Math.max(...pages.map(p => p.pageNumber), 0) + 1;
     const { data } = await (supabase.from('album_pages' as any).insert({
-      album_id: album.id,
-      page_number: maxPageNum,
-      spread_index: Math.ceil(maxPageNum / 2),
-      background_color: bgColor,
-      paper_texture: paperTexture,
+      album_id: album.id, page_number: maxPageNum, spread_index: Math.ceil(maxPageNum / 2),
+      background_color: bgColor, paper_texture: paperTexture,
     } as any).select().single() as any);
     if (data) {
       setPages(prev => [...prev, { id: data.id, pageNumber: data.page_number, spreadIndex: data.spread_index }]);
@@ -314,6 +290,7 @@ export default function AlbumEditorPage() {
   };
 
   const handleDeletePage = async (pageId: string) => {
+    await (supabase.from('album_layers' as any).delete().eq('page_id', pageId) as any);
     await (supabase.from('album_pages' as any).delete().eq('id', pageId) as any);
     setPages(prev => prev.filter(p => p.id !== pageId));
     if (currentPageId === pageId && pages.length > 1) {
@@ -327,6 +304,56 @@ export default function AlbumEditorPage() {
     if (dirtyRef.current) saveLayers();
     setCurrentPageId(pageId);
   };
+
+  // Status workflow
+  const handleStatusChange = async (newStatus: string) => {
+    if (!album) return;
+    const updates: any = { status: newStatus };
+
+    // Auto-generate share link when sending for review
+    if (newStatus === 'review' && !album.share_token) {
+      const token = crypto.randomUUID();
+      updates.share_token = token;
+      setAlbum({ ...album, status: newStatus as any, share_token: token });
+      await (supabase.from('albums' as any).update(updates).eq('id', album.id) as any);
+      const url = `${window.location.origin}/album-preview/${token}`;
+      await navigator.clipboard.writeText(url);
+      toast.success('Review link copied to clipboard!');
+      return;
+    }
+
+    setAlbum({ ...album, status: newStatus as any });
+    await (supabase.from('albums' as any).update(updates).eq('id', album.id) as any);
+    toast.success(`Status updated to ${newStatus}`);
+  };
+
+  // Generate share link
+  const handleSharePreview = async (): Promise<string> => {
+    if (!album) return '';
+    let token = album.share_token;
+    if (!token) {
+      token = crypto.randomUUID();
+      await (supabase.from('albums' as any).update({ share_token: token } as any).eq('id', album.id) as any);
+      setAlbum({ ...album, share_token: token });
+    }
+    const url = `${window.location.origin}/album-preview/${token}`;
+    await navigator.clipboard.writeText(url);
+    toast.success('Preview link copied!');
+    return url;
+  };
+
+  // Reload pages after auto layout
+  const handleAutoLayoutComplete = async () => {
+    if (!albumId) return;
+    const { data: pagesData } = await (supabase.from('album_pages' as any).select('id, page_number, spread_index, background_color, paper_texture')
+      .eq('album_id', albumId).order('page_number', { ascending: true }) as any);
+    const ps = (pagesData || []).map((p: any) => ({ id: p.id, pageNumber: p.page_number, spreadIndex: p.spread_index }));
+    setPages(ps);
+    if (ps.length > 0) { setCurrentPageId(ps[0].id); }
+  };
+
+  // Get current spread page IDs for timeline highlighting
+  const currentSpreadIndex = pages.find(p => p.id === currentPageId)?.spreadIndex ?? -1;
 
   if (loading) {
     return (
@@ -353,6 +380,11 @@ export default function AlbumEditorPage() {
         canUndo={undoStack.length > 0}
         canRedo={redoStack.length > 0}
         saveStatus={saveStatus}
+        albumStatus={album.status}
+        onStatusChange={handleStatusChange}
+        onAutoLayout={() => setAutoLayoutOpen(true)}
+        onPreview={() => setPreviewOpen(true)}
+        onExport={() => setExportOpen(true)}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -373,12 +405,14 @@ export default function AlbumEditorPage() {
           onSelectText={setSelectedTextId}
           albumSize={(album.size as AlbumSize) || '12x12'}
           zoom={zoom}
+          onZoomChange={setZoom}
           spreadView={spreadView}
           showBleed={showBleed}
           showSafeMargin={showSafeMargin}
           showSpine={showSpine}
           bgColor={bgColor}
           onDropPhoto={handleDropPhoto}
+          currentPageNumber={pages.find(p => p.id === currentPageId)?.pageNumber ?? 0}
         />
 
         <AlbumRightPanel
@@ -387,6 +421,7 @@ export default function AlbumEditorPage() {
           selectedTextId={selectedTextId}
           onAddText={(layer) => { pushUndo(); setTextLayers(prev => [...prev, layer]); setSelectedTextId(layer.id); markDirty(); }}
           onUpdateText={(id, patch) => { pushUndo(); setTextLayers(prev => prev.map(l => l.id === id ? { ...l, ...patch } : l)); markDirty(); }}
+          onDeleteText={(id) => { pushUndo(); setTextLayers(prev => prev.filter(l => l.id !== id)); setSelectedTextId(null); markDirty(); }}
           showBleed={showBleed}
           showSafeMargin={showSafeMargin}
           showSpine={showSpine}
@@ -403,11 +438,39 @@ export default function AlbumEditorPage() {
       <AlbumTimeline
         pages={pages}
         currentPageId={currentPageId}
+        currentSpreadIndex={currentSpreadIndex}
         spreadView={spreadView}
         onSelectPage={handleSelectPage}
         onAddPage={handleAddPage}
         onDuplicatePage={handleDuplicatePage}
         onDeletePage={handleDeletePage}
+      />
+
+      {/* Preview Modal */}
+      {previewOpen && album && (
+        <AlbumPreviewModal
+          albumId={album.id}
+          albumName={album.name}
+          onClose={() => setPreviewOpen(false)}
+          onSharePreview={handleSharePreview}
+        />
+      )}
+
+      {/* Export Dialog */}
+      <AlbumExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        album={album}
+        pages={pages}
+        onSharePreview={handleSharePreview}
+      />
+
+      {/* Auto Layout Dialog */}
+      <AlbumAutoLayoutDialog
+        open={autoLayoutOpen}
+        onOpenChange={setAutoLayoutOpen}
+        album={album}
+        onComplete={handleAutoLayoutComplete}
       />
     </div>
   );

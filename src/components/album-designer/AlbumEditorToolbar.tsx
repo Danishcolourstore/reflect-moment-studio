@@ -1,8 +1,23 @@
 import { useState } from 'react';
-import { ArrowLeft, Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Eye, Download, PanelLeftClose, PanelRightClose } from 'lucide-react';
+import { ArrowLeft, Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Eye, Download, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import type { AlbumStatus } from './types';
+
+const STATUS_BADGE: Record<string, { label: string; className: string }> = {
+  draft: { label: 'Draft', className: 'bg-muted text-muted-foreground' },
+  review: { label: 'In Review', className: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' },
+  approved: { label: 'Approved', className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  print: { label: 'Sent to Print', className: 'bg-primary/10 text-primary' },
+};
+
+const STATUS_ACTIONS: Record<string, { label: string; next: string }> = {
+  draft: { label: 'Send for Review', next: 'review' },
+  review: { label: 'Mark Approved', next: 'approved' },
+  approved: { label: 'Send to Print', next: 'print' },
+};
 
 interface Props {
   albumName: string;
@@ -17,14 +32,22 @@ interface Props {
   canUndo: boolean;
   canRedo: boolean;
   saveStatus: 'saved' | 'saving' | 'unsaved';
+  albumStatus: AlbumStatus;
+  onStatusChange: (status: string) => void;
+  onAutoLayout: () => void;
+  onPreview: () => void;
+  onExport: () => void;
 }
 
 export default function AlbumEditorToolbar({
   albumName, onNameChange, onBack, spreadView, onToggleSpread,
   zoom, onZoomChange, onUndo, onRedo, canUndo, canRedo, saveStatus,
+  albumStatus, onStatusChange, onAutoLayout, onPreview, onExport,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(albumName);
+  const badge = STATUS_BADGE[albumStatus] || STATUS_BADGE.draft;
+  const action = STATUS_ACTIONS[albumStatus];
 
   return (
     <header className="h-12 flex items-center justify-between px-3 bg-card/95 backdrop-blur-xl border-b border-border/60 z-50 shrink-0">
@@ -35,8 +58,7 @@ export default function AlbumEditorToolbar({
         </Button>
         {editing ? (
           <Input
-            autoFocus
-            value={draft}
+            autoFocus value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={() => { onNameChange(draft); setEditing(false); }}
             onKeyDown={(e) => { if (e.key === 'Enter') { onNameChange(draft); setEditing(false); } }}
@@ -47,32 +69,35 @@ export default function AlbumEditorToolbar({
             {albumName}
           </button>
         )}
+        <Badge variant="secondary" className={cn('text-[10px] shrink-0', badge.className)}>
+          {badge.label}
+        </Badge>
         <span className={cn(
-          'text-[10px] px-2 py-0.5 rounded-full tracking-wide uppercase font-medium',
+          'text-[10px] px-2 py-0.5 rounded-full tracking-wide uppercase font-medium shrink-0',
           saveStatus === 'saved' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400' :
           saveStatus === 'saving' ? 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400' :
           'text-muted-foreground bg-muted'
         )}>
-          {saveStatus === 'saved' ? 'Saved' : saveStatus === 'saving' ? 'Saving…' : 'Unsaved'}
+          {saveStatus === 'saved' ? 'Saved ✓' : saveStatus === 'saving' ? 'Saving…' : 'Unsaved'}
         </span>
       </div>
 
       {/* Center */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <div className="flex bg-muted/50 rounded-lg p-0.5">
           <button
             onClick={() => spreadView && onToggleSpread()}
             className={cn('px-3 py-1 rounded-md text-xs font-medium transition-all', !spreadView ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground')}
-          >
-            Single Page
-          </button>
+          >Single Page</button>
           <button
             onClick={() => !spreadView && onToggleSpread()}
             className={cn('px-3 py-1 rounded-md text-xs font-medium transition-all', spreadView ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground')}
-          >
-            Spread View
-          </button>
+          >Spread View</button>
         </div>
+
+        <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={onAutoLayout}>
+          <Wand2 className="h-3.5 w-3.5" /> Auto Layout
+        </Button>
       </div>
 
       {/* Right */}
@@ -95,10 +120,17 @@ export default function AlbumEditorToolbar({
           <Maximize className="h-3.5 w-3.5" />
         </Button>
         <div className="h-5 w-px bg-border mx-1" />
-        <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
+
+        {action && (
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => onStatusChange(action.next)}>
+            {action.label}
+          </Button>
+        )}
+
+        <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={onPreview}>
           <Eye className="h-3.5 w-3.5" /> Preview
         </Button>
-        <Button size="sm" className="h-8 text-xs gap-1.5">
+        <Button size="sm" className="h-8 text-xs gap-1.5" onClick={onExport}>
           <Download className="h-3.5 w-3.5" /> Export
         </Button>
       </div>

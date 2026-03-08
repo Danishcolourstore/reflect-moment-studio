@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -6,13 +5,12 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LayoutGrid, Type, Ruler, Palette, Plus } from 'lucide-react';
+import { LayoutGrid, Type, Ruler, Palette, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import type { GridLayout } from '@/components/grid-builder/types';
 import type { TextLayer } from '@/components/grid-builder/text-overlay-types';
 import { createTextLayer, FONTS, FONT_GROUPS } from '@/components/grid-builder/text-overlay-types';
 import { cn } from '@/lib/utils';
 
-// Album-specific layout templates
 const ALBUM_TEMPLATES: { id: string; name: string; desc: string; layout: Partial<GridLayout> }[] = [
   { id: 'full-bleed', name: '1 Photo — Full Bleed', desc: 'Single photo fills the page', layout: { gridCols: 1, gridRows: 1, cells: [[1,1,2,2]] } },
   { id: 'h-split', name: '2 Photos — H Split', desc: 'Two photos side by side', layout: { gridCols: 2, gridRows: 1, cells: [[1,1,2,2],[1,2,2,3]] } },
@@ -30,6 +28,7 @@ interface Props {
   selectedTextId: string | null;
   onAddText: (layer: TextLayer) => void;
   onUpdateText: (id: string, patch: Partial<TextLayer>) => void;
+  onDeleteText: (id: string) => void;
   showBleed: boolean;
   showSafeMargin: boolean;
   showSpine: boolean;
@@ -50,14 +49,14 @@ const PAPER_TEXTURES = [
 ];
 
 const TEXT_PRESETS = [
-  { label: 'Couple Names', text: 'Aarav & Priya', font: 'Cormorant Garamond', size: 28, style: 'italic' as const },
-  { label: 'Wedding Date', text: 'March 15, 2026', font: 'Montserrat', size: 14, style: 'normal' as const },
-  { label: 'Venue Name', text: 'The Grand Palace', font: 'Playfair Display', size: 18, style: 'normal' as const },
-  { label: 'Custom Quote', text: '"Forever begins today"', font: 'Great Vibes', size: 24, style: 'normal' as const },
+  { label: 'Couple Names', text: 'Aarav & Priya', font: 'Great Vibes', size: 36, style: 'normal' as const, x: 50, y: 20 },
+  { label: 'Wedding Date', text: 'March 15, 2026', font: 'Cormorant Garamond', size: 16, style: 'normal' as const, x: 50, y: 85 },
+  { label: 'Venue Name', text: 'The Grand Palace', font: 'Montserrat', size: 14, style: 'normal' as const, x: 50, y: 50 },
+  { label: 'Custom Quote', text: '"Forever begins today"', font: 'Playfair Display', size: 22, style: 'italic' as const, x: 50, y: 50 },
 ];
 
 export default function AlbumRightPanel({
-  onApplyTemplate, textLayers, selectedTextId, onAddText, onUpdateText,
+  onApplyTemplate, textLayers, selectedTextId, onAddText, onUpdateText, onDeleteText,
   showBleed, showSafeMargin, showSpine, onToggleBleed, onToggleSafe, onToggleSpine,
   bgColor, onBgColorChange, paperTexture, onPaperTextureChange,
 }: Props) {
@@ -77,11 +76,8 @@ export default function AlbumRightPanel({
         <TabsContent value="layout" className="flex-1 overflow-y-auto p-3 space-y-2 mt-0">
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">Page Templates</p>
           {ALBUM_TEMPLATES.map(t => (
-            <button
-              key={t.id}
-              onClick={() => onApplyTemplate(t.layout)}
-              className="w-full text-left rounded-lg border border-border p-3 hover:border-primary/50 hover:bg-primary/5 transition-all group"
-            >
+            <button key={t.id} onClick={() => onApplyTemplate(t.layout)}
+              className="w-full text-left rounded-lg border border-border p-3 hover:border-primary/50 hover:bg-primary/5 transition-all group">
               <span className="text-xs font-medium">{t.name}</span>
               <span className="text-[10px] text-muted-foreground block mt-0.5">{t.desc}</span>
             </button>
@@ -93,16 +89,11 @@ export default function AlbumRightPanel({
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Quick Insert</p>
           <div className="grid grid-cols-2 gap-1.5">
             {TEXT_PRESETS.map(p => (
-              <Button
-                key={p.label}
-                variant="outline"
-                size="sm"
-                className="text-[10px] h-7"
+              <Button key={p.label} variant="outline" size="sm" className="text-[10px] h-7"
                 onClick={() => onAddText(createTextLayer({
-                  text: p.text, fontFamily: p.font, fontSize: p.size, fontStyle: p.style,
+                  text: p.text, fontFamily: p.font, fontSize: p.size, fontStyle: p.style, x: p.x, y: p.y,
                   color: bgColor === '#1a1a1a' ? '#ffffff' : '#1a1a1a',
-                }))}
-              >
+                }))}>
                 {p.label}
               </Button>
             ))}
@@ -112,10 +103,36 @@ export default function AlbumRightPanel({
             <Plus className="h-3 w-3" /> Add Text Layer
           </Button>
 
-          {/* Selected text controls */}
           {selectedText && (
             <div className="space-y-3 border-t border-border pt-3">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Text Properties</p>
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Text Properties</p>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" className="h-6 w-6" title="Move Forward"
+                    onClick={() => {
+                      const idx = textLayers.findIndex(l => l.id === selectedText.id);
+                      if (idx < textLayers.length - 1) {
+                        const arr = [...textLayers]; [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+                        onUpdateText(selectedText.id, {}); // trigger re-render via parent
+                      }
+                    }}>
+                    <ArrowUp className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" title="Move Backward"
+                    onClick={() => {
+                      const idx = textLayers.findIndex(l => l.id === selectedText.id);
+                      if (idx > 0) {
+                        const arr = [...textLayers]; [arr[idx], arr[idx - 1]] = [arr[idx - 1], arr[idx]];
+                        onUpdateText(selectedText.id, {});
+                      }
+                    }}>
+                    <ArrowDown className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => onDeleteText(selectedText.id)}>
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label className="text-[10px]">Font</Label>
                 <Select value={selectedText.fontFamily} onValueChange={(v) => onUpdateText(selectedText.id, { fontFamily: v })}>
@@ -144,8 +161,9 @@ export default function AlbumRightPanel({
                 <div className="flex gap-1">
                   {(['left', 'center', 'right'] as const).map(a => (
                     <button key={a} onClick={() => onUpdateText(selectedText.id, { alignment: a })}
-                      className={cn('flex-1 py-1 rounded text-[10px] uppercase', selectedText.alignment === a ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground')}
-                    >{a}</button>
+                      className={cn('flex-1 py-1 rounded text-[10px] uppercase', selectedText.alignment === a ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground')}>
+                      {a}
+                    </button>
                   ))}
                 </div>
 
@@ -154,6 +172,16 @@ export default function AlbumRightPanel({
 
                 <Label className="text-[10px]">Opacity: {Math.round(selectedText.opacity * 100)}%</Label>
                 <Slider value={[selectedText.opacity * 100]} min={10} max={100} step={5} onValueChange={([v]) => onUpdateText(selectedText.id, { opacity: v / 100 })} />
+
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px]">Text Shadow</Label>
+                  <Switch
+                    checked={!!selectedText.shadow}
+                    onCheckedChange={(on) => onUpdateText(selectedText.id, {
+                      shadow: on ? { x: 0, y: 2, blur: 8, color: 'rgba(0,0,0,0.4)' } : null
+                    })}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -163,24 +191,15 @@ export default function AlbumRightPanel({
         <TabsContent value="guides" className="flex-1 overflow-y-auto p-3 space-y-4 mt-0">
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">Print Guides</p>
           <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xs font-medium">Bleed Area</span>
-              <span className="text-[10px] text-muted-foreground block">Red border, 3mm</span>
-            </div>
+            <div><span className="text-xs font-medium">Bleed Area</span><span className="text-[10px] text-muted-foreground block">Red border, 3mm</span></div>
             <Switch checked={showBleed} onCheckedChange={onToggleBleed} />
           </div>
           <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xs font-medium">Safe Margin</span>
-              <span className="text-[10px] text-muted-foreground block">Blue border, 5mm</span>
-            </div>
+            <div><span className="text-xs font-medium">Safe Margin</span><span className="text-[10px] text-muted-foreground block">Blue border, 5mm</span></div>
             <Switch checked={showSafeMargin} onCheckedChange={onToggleSafe} />
           </div>
           <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xs font-medium">Center Spine</span>
-              <span className="text-[10px] text-muted-foreground block">Spread center line</span>
-            </div>
+            <div><span className="text-xs font-medium">Center Spine</span><span className="text-[10px] text-muted-foreground block">Spread center line</span></div>
             <Switch checked={showSpine} onCheckedChange={onToggleSpine} />
           </div>
           <p className="text-[10px] text-muted-foreground italic">Guides are visible in editor only — never included in exports.</p>
@@ -197,14 +216,8 @@ export default function AlbumRightPanel({
             <Label className="text-[10px]">Paper Texture</Label>
             <div className="grid grid-cols-2 gap-2 mt-2">
               {PAPER_TEXTURES.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => { onPaperTextureChange(t.id); onBgColorChange(t.color); }}
-                  className={cn(
-                    'rounded-lg border-2 p-3 text-center transition-all',
-                    paperTexture === t.id ? 'border-primary' : 'border-border hover:border-primary/30'
-                  )}
-                >
+                <button key={t.id} onClick={() => { onPaperTextureChange(t.id); onBgColorChange(t.color); }}
+                  className={cn('rounded-lg border-2 p-3 text-center transition-all', paperTexture === t.id ? 'border-primary' : 'border-border hover:border-primary/30')}>
                   <div className="h-6 w-full rounded" style={{ background: t.color, border: t.id === 'white' ? '1px solid #e5e5e5' : undefined }} />
                   <span className="text-[10px] mt-1 block">{t.label}</span>
                 </button>

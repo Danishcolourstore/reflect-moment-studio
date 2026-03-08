@@ -15,6 +15,7 @@ export interface PageSlot {
 interface Props {
   pages: PageSlot[];
   currentPageId: string | null;
+  currentSpreadIndex: number;
   spreadView: boolean;
   onSelectPage: (pageId: string) => void;
   onAddPage: () => void;
@@ -23,29 +24,25 @@ interface Props {
 }
 
 export default function AlbumTimeline({
-  pages, currentPageId, spreadView, onSelectPage, onAddPage, onDuplicatePage, onDeletePage,
+  pages, currentPageId, currentSpreadIndex, spreadView, onSelectPage, onAddPage, onDuplicatePage, onDeletePage,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scroll = (dir: number) => { scrollRef.current?.scrollBy({ left: dir * 200, behavior: 'smooth' }); };
 
-  const scroll = (dir: number) => {
-    scrollRef.current?.scrollBy({ left: dir * 200, behavior: 'smooth' });
-  };
-
-  // Group pages into spread pairs for display
-  const slots = pages.sort((a, b) => a.pageNumber - b.pageNumber);
+  const slots = [...pages].sort((a, b) => a.pageNumber - b.pageNumber);
 
   return (
     <div className="h-24 border-t border-border bg-card/95 backdrop-blur-xl flex items-center shrink-0 relative">
-      {/* Scroll left */}
       <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-1" onClick={() => scroll(-1)}>
         <ChevronLeft className="h-4 w-4" />
       </Button>
 
-      {/* Scrollable area */}
       <div ref={scrollRef} className="flex-1 overflow-x-auto flex items-center gap-2 px-2 scrollbar-thin">
         {slots.map((page) => {
           const isCover = page.pageNumber === 0;
           const isActive = page.id === currentPageId;
+          // In spread view, highlight both pages of the active spread
+          const isSpreadActive = spreadView && !isCover && page.spreadIndex === currentSpreadIndex;
           const label = isCover ? 'Cover' : `Page ${page.pageNumber}`;
 
           return (
@@ -56,7 +53,9 @@ export default function AlbumTimeline({
                   onContextMenu={(e) => e.preventDefault()}
                   className={cn(
                     'shrink-0 w-16 h-16 rounded-lg border-2 flex flex-col items-center justify-center gap-1 transition-all hover:border-primary/50 cursor-pointer group relative',
-                    isActive ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-muted/30'
+                    isActive ? 'border-primary bg-primary/5 shadow-sm' :
+                    isSpreadActive ? 'border-primary/40 bg-primary/5' :
+                    'border-border bg-muted/30'
                   )}
                 >
                   <div className="w-10 h-10 rounded bg-muted/50 flex items-center justify-center">
@@ -79,7 +78,6 @@ export default function AlbumTimeline({
           );
         })}
 
-        {/* Add page button */}
         <button
           onClick={onAddPage}
           className="shrink-0 w-16 h-16 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 hover:border-primary/50 hover:bg-primary/5 transition-all"
@@ -89,7 +87,6 @@ export default function AlbumTimeline({
         </button>
       </div>
 
-      {/* Scroll right */}
       <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 mr-1" onClick={() => scroll(1)}>
         <ChevronRight className="h-4 w-4" />
       </Button>
