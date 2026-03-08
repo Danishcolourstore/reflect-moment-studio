@@ -175,8 +175,6 @@
 
   #root {
     width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
     min-height: 100%;
     overflow-x: hidden;
   }
