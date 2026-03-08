@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Moon, Sun, Sparkles, Bell, ChevronRight, Menu,
+  LogOut, Moon, Sparkles, Bell, ChevronRight, Menu,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
