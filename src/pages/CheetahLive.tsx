@@ -467,10 +467,12 @@ export default function CheetahLive() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {folderWatcher.isWatching && folderWatcher.filesQueued > 0 && (
+          {folderWatcher.isWatching && (folderWatcher.filesQueued > 0 || folderWatcher.filesUploaded < folderWatcher.filesDetected) && folderWatcher.filesDetected > 0 && (
                 <div className="flex items-center gap-1.5">
                   <Loader2 className="h-3 w-3 animate-spin text-accent" />
-                  <span className="text-[10px] text-accent font-medium">{folderWatcher.filesQueued} uploading</span>
+                  <span className="text-[10px] text-accent font-medium">
+                    {Math.round((folderWatcher.filesUploaded / folderWatcher.filesDetected) * 100)}%
+                  </span>
                 </div>
               )}
               {folderWatcher.isWatching ? (
