@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, Loader2, Upload, Save, ArrowLeft,
-  Image as ImageIcon, X, Camera, Mail, Instagram, Globe, ChevronDown
+  Image as ImageIcon, X, Camera, Mail, Instagram, Globe, ChevronDown,
+  Monitor, Smartphone, Menu as MenuIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
