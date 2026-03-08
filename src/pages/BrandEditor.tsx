@@ -530,7 +530,7 @@ const BrandEditor = () => {
             <DrawerDescription>Choose your gallery website style</DrawerDescription>
           </DrawerHeader>
           <div className="px-4 pb-8 space-y-3 overflow-y-auto">
-            {WEBSITE_TEMPLATES.map(tmpl => (
+            {templates.map(tmpl => (
               <button
                 key={tmpl.value}
                 onClick={() => { setWebsiteTemplate(tmpl.value); setActiveDrawer(null); }}

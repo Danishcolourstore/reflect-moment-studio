@@ -192,7 +192,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
             <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Website Template</h3>
             <p className="editorial-helper !mt-0">Choose how guests experience your gallery — like visiting your own website.</p>
             <div className="grid grid-cols-1 gap-2">
-              {WEBSITE_TEMPLATES.map((tmpl) => (
+              {wsTemplates.map((tmpl) => (
                 <button
                   key={tmpl.value}
                   type="button"

@@ -16,7 +16,7 @@ export function WebsiteTemplateSelector({ value, onChange }: WebsiteTemplateSele
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {WEBSITE_TEMPLATES.map((tmpl) => {
+        {templates.map((tmpl) => {
           const isSelected = value === tmpl.value;
           return (
             <button

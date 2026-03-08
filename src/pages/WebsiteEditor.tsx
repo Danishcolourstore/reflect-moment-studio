@@ -14,7 +14,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { WEBSITE_TEMPLATES, getTemplate, loadTemplatesFromDb, type WebsiteTemplateValue, type WebsiteTemplateConfig } from '@/lib/website-templates';
+import { getTemplate, type WebsiteTemplateValue, type WebsiteTemplateConfig } from '@/lib/website-templates';
+import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { getStudioUrl, getStudioDisplayUrl } from '@/lib/studio-url';
 
 // Website image data structure (independent of events/galleries)
