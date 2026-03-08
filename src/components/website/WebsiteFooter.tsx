@@ -27,6 +27,71 @@ export function WebsiteFooter({ template, branding, photographerUsername }: Webs
   const accent = branding.studio_accent_color || '#C6A77B';
   const isEditorial = template === 'editorial-luxury';
   const isModernGrid = template === 'modern-photography-grid';
+  const isCinematic = template === 'cinematic-wedding-story';
+
+  // ── Cinematic Wedding Story Footer ──
+  if (isCinematic) {
+    const navItems = ['Home', 'About', 'Portfolio', 'Journal', 'Contact'];
+    return (
+      <footer style={{ backgroundColor: '#1A1715', fontFamily: '"DM Sans", sans-serif' }}>
+        <div className="border-t" style={{ borderColor: 'rgba(250,248,245,0.06)' }}>
+          <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-6 sm:gap-10 py-8 px-6">
+            {navItems.map(link => (
+              <a key={link} href={`#${link.toLowerCase()}`}
+                className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-light transition-opacity hover:opacity-100"
+                style={{ color: '#9A958E', opacity: 0.7 }}>
+                {link}
+              </a>
+            ))}
+          </div>
+        </div>
+        <div className="border-t py-16 px-6 text-center" style={{ borderColor: 'rgba(250,248,245,0.04)' }}>
+          <div className="max-w-4xl mx-auto space-y-6">
+            {branding.studio_logo_url ? (
+              <img src={branding.studio_logo_url} alt="" className="h-14 sm:h-16 mx-auto object-contain opacity-70" />
+            ) : (
+              <h3
+                className="text-2xl sm:text-3xl font-light tracking-[0.04em]"
+                style={{ color: '#FAF8F5', opacity: 0.8, fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+              >
+                {branding.studio_name}
+              </h3>
+            )}
+            {branding.footer_text && (
+              <p className="text-xs tracking-[0.15em] uppercase" style={{ color: '#9A958E', opacity: 0.6 }}>
+                {branding.footer_text}
+              </p>
+            )}
+            <div className="flex items-center justify-center gap-5 pt-4">
+              {branding.instagram && (
+                <a href={`https://instagram.com/${branding.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="hover:opacity-100 opacity-50 transition-opacity">
+                  <Instagram className="h-4 w-4" style={{ color: '#FAF8F5' }} />
+                </a>
+              )}
+              {branding.email && (
+                <a href={`mailto:${branding.email}`} className="hover:opacity-100 opacity-50 transition-opacity">
+                  <Mail className="h-4 w-4" style={{ color: '#FAF8F5' }} />
+                </a>
+              )}
+              {branding.website && (
+                <a href={branding.website.startsWith('http') ? branding.website : `https://${branding.website}`} target="_blank" rel="noopener noreferrer" className="hover:opacity-100 opacity-50 transition-opacity">
+                  <Globe className="h-4 w-4" style={{ color: '#FAF8F5' }} />
+                </a>
+              )}
+            </div>
+            <div className="space-y-2 pt-6">
+              <p className="text-[10px] tracking-[0.15em] uppercase" style={{ color: '#9A958E', opacity: 0.5 }}>
+                © {branding.studio_name.toLowerCase()} {year} — All rights reserved
+              </p>
+              <p className="text-[8px] tracking-[0.15em] uppercase" style={{ color: '#9A958E', opacity: 0.25 }}>
+                Powered by MirrorAI
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   // ── Modern Photography Grid Footer ──
   if (isModernGrid) {

@@ -30,10 +30,12 @@ export function WebsiteInquiryForm({
 }: WebsiteInquiryFormProps) {
   const tmpl = getTemplate(template);
   const isEditorial = template === 'editorial-luxury';
-  const bgColor = isEditorial ? '#EFEBE5' : tmpl.bg;
-  const textColor = isEditorial ? '#2B2A28' : tmpl.text;
-  const secondaryColor = isEditorial ? '#6B6560' : tmpl.textSecondary;
-  const borderColor = isEditorial ? '#D5CEC5' : `${tmpl.text}20`;
+  const isCinematic = template === 'cinematic-wedding-story';
+  const bgColor = isCinematic ? '#FAF8F5' : isEditorial ? '#EFEBE5' : tmpl.bg;
+  const textColor = isCinematic ? '#1A1715' : isEditorial ? '#2B2A28' : tmpl.text;
+  const secondaryColor = isCinematic ? '#7A756E' : isEditorial ? '#6B6560' : tmpl.textSecondary;
+  const borderColor = isCinematic ? 'rgba(26,23,21,0.15)' : isEditorial ? '#D5CEC5' : `${tmpl.text}20`;
+  const fontSerif = isCinematic ? '"Cormorant Garamond", Georgia, serif' : '"Playfair Display", Georgia, serif';
 
   const [form, setForm] = useState({ name: '', email: '', date: '', message: '' });
 
@@ -49,8 +51,8 @@ export function WebsiteInquiryForm({
             Get in Touch
           </p>
           <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-light italic"
-            style={{ fontFamily: '"Playfair Display", Georgia, serif', color: textColor }}
+            className={`text-3xl sm:text-4xl lg:text-5xl font-light ${isCinematic ? 'uppercase tracking-[0.04em]' : 'italic'}`}
+            style={{ fontFamily: fontSerif, color: textColor }}
           >
             Let's Create Something Beautiful
           </h2>

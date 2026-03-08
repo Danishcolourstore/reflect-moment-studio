@@ -29,6 +29,17 @@ interface WebsiteImages {
   newsletter_description?: string;
   newsletter_button_text?: string;
   latest_works_title?: string;
+  // Cinematic Wedding Story sections
+  featured_galleries?: { title: string; location: string; imageUrl: string }[];
+  storytelling_headline?: string;
+  storytelling_paragraph?: string;
+  storytelling_bg_image?: string | null;
+  process_title?: string;
+  process_blocks?: { title: string; description: string; imageUrl?: string }[];
+  journal_entries?: { title: string; imageUrl?: string; date?: string }[];
+  inquiry_heading?: string;
+  inquiry_subheading?: string;
+  inquiry_bg_image?: string | null;
 }
 
 // Website section components
@@ -46,20 +57,30 @@ import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 import { WebsiteLatestWorks } from '@/components/website/WebsiteLatestWorks';
 import { WebsiteNewsletter } from '@/components/website/WebsiteNewsletter';
 import { WebsiteImageStrip } from '@/components/website/WebsiteImageStrip';
+import { WebsiteFeaturedGalleries, type FeaturedGalleryItem } from '@/components/website/WebsiteFeaturedGalleries';
+import { WebsiteStorytelling } from '@/components/website/WebsiteStorytelling';
+import { WebsiteProcessSection, type ProcessBlock } from '@/components/website/WebsiteProcessSection';
+import { WebsiteJournal, type JournalEntry } from '@/components/website/WebsiteJournal';
+import { WebsiteInquiryForm } from '@/components/website/WebsiteInquiryForm';
 
 // ── Section metadata ──
 const ALL_SECTIONS = [
   { id: 'hero', label: 'Hero', icon: '🖼️' },
   { id: 'social', label: 'Social Bar', icon: '🔗' },
+  { id: 'featured_galleries', label: 'Featured Galleries', icon: '🏛️' },
+  { id: 'storytelling', label: 'Storytelling', icon: '✨' },
   { id: 'portfolio', label: 'Portfolio', icon: '📷' },
   { id: 'latest_works', label: 'Latest Works', icon: '🎯' },
   { id: 'albums', label: 'Albums', icon: '📁' },
   { id: 'about', label: 'About', icon: '👤' },
   { id: 'featured', label: 'Featured Work', icon: '⭐' },
+  { id: 'process', label: 'Style & Process', icon: '🎨' },
   { id: 'services', label: 'Services', icon: '💼' },
   { id: 'testimonials', label: 'Testimonials', icon: '💬' },
+  { id: 'journal', label: 'Journal', icon: '📖' },
   { id: 'newsletter', label: 'Newsletter', icon: '📬' },
   { id: 'image_strip', label: 'Image Strip', icon: '🎞️' },
+  { id: 'inquiry', label: 'Inquiry Form', icon: '💌' },
   { id: 'contact', label: 'Contact', icon: '✉️' },
 ] as const;
 

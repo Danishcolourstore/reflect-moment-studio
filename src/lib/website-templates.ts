@@ -85,6 +85,23 @@ const STATIC_TEMPLATES: WebsiteTemplateConfig[] = [
     footerBg: '#1A1A1A',
     footerText: '#999999',
   },
+  {
+    value: 'cinematic-wedding-story',
+    label: 'Cinematic Wedding Story',
+    description: 'Luxury cinematic wedding photography with storytelling flow',
+    fontFamily: '"Cormorant Garamond", Georgia, serif',
+    uiFontFamily: '"DM Sans", sans-serif',
+    bg: '#FAF8F5',
+    text: '#1A1715',
+    textSecondary: '#7A756E',
+    navBg: 'rgba(250,248,245,0.95)',
+    navBorder: 'rgba(26,23,21,0.06)',
+    headerStyle: 'transparent',
+    heroStyle: 'cinematic' as any,
+    cardBg: '#FFFFFF',
+    footerBg: '#1A1715',
+    footerText: '#9A958E',
+  },
 ];
 
 // Cached DB templates
