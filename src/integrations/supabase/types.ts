@@ -1964,6 +1964,7 @@ export type Database = {
           location: string | null
           phone: string | null
           portfolio_layout: string | null
+          portfolio_photo_ids: string[] | null
           section_order: Json | null
           section_visibility: Json | null
           services_data: Json | null
@@ -1997,6 +1998,7 @@ export type Database = {
           location?: string | null
           phone?: string | null
           portfolio_layout?: string | null
+          portfolio_photo_ids?: string[] | null
           section_order?: Json | null
           section_visibility?: Json | null
           services_data?: Json | null
@@ -2030,6 +2032,7 @@ export type Database = {
           location?: string | null
           phone?: string | null
           portfolio_layout?: string | null
+          portfolio_photo_ids?: string[] | null
           section_order?: Json | null
           section_visibility?: Json | null
           services_data?: Json | null

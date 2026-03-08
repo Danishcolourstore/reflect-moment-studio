@@ -12,6 +12,7 @@ import { WebsiteContact } from '@/components/website/WebsiteContact';
 import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
 import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
 import { WebsiteAlbums, type PortfolioAlbum } from '@/components/website/WebsiteAlbums';
+import { WebsitePortfolioImages } from '@/components/website/WebsitePortfolioImages';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 
 // ── Types ──────────────────────────────────────────────
@@ -70,6 +71,7 @@ function useFeedData(username: string | undefined) {
   const [featuredEvents, setFeaturedEvents] = useState<FeedEvent[]>([]);
   const [coverPhotos, setCoverPhotos] = useState<Record<string, string>>({});
   const [albums, setAlbums] = useState<PortfolioAlbum[]>([]);
+  const [portfolioPhotos, setPortfolioPhotos] = useState<{ id: string; url: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -89,6 +91,18 @@ function useFeedData(username: string | undefined) {
 
       const sd = studioData as unknown as StudioData;
       setStudio(sd);
+
+      // Load portfolio photos
+      const portfolioIds = (sd as any).portfolio_photo_ids as string[] || [];
+      if (portfolioIds.length > 0) {
+        const { data: pPhotos } = await (supabase.from('photos').select('id, url') as any)
+          .in('id', portfolioIds);
+        if (!cancelled && pPhotos) {
+          // Preserve order from portfolioIds
+          const photoMap = new Map((pPhotos as any[]).map(p => [p.id, p]));
+          setPortfolioPhotos(portfolioIds.map(id => photoMap.get(id)).filter(Boolean) as { id: string; url: string }[]);
+        }
+      }
 
       const { data: profileData } = await (supabase
         .from('profiles')
@@ -146,14 +160,14 @@ function useFeedData(username: string | undefined) {
     return () => { cancelled = true; };
   }, [username]);
 
-  return { studio, profile, events, featuredEvents, coverPhotos, albums, loading, notFound };
+  return { studio, profile, events, featuredEvents, coverPhotos, albums, portfolioPhotos, loading, notFound };
 }
 
 // ── Page Component ─────────────────────────────────────
 const PhotographerFeed = () => {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
-  const { studio, profile, events, featuredEvents, coverPhotos, albums, loading, notFound } = useFeedData(username);
+  const { studio, profile, events, featuredEvents, coverPhotos, albums, portfolioPhotos, loading, notFound } = useFeedData(username);
 
   const templateValue = studio?.website_template || 'dark-portfolio';
   const tmpl = getTemplate(templateValue);
@@ -265,10 +279,17 @@ const PhotographerFeed = () => {
         ) : null;
       case 'featured':
         return (
-          <WebsiteFeatured key="featured" id="featured"
-            events={featuredEvents} coverPhotos={coverPhotos}
-            accent={accent} onNavigate={handleNav} template={templateValue}
-          />
+          <>
+            {portfolioPhotos.length > 0 && (
+              <WebsitePortfolioImages key="portfolio-images" id="portfolio-images"
+                photos={portfolioPhotos} accent={accent} template={templateValue}
+              />
+            )}
+            <WebsiteFeatured key="featured" id="featured"
+              events={featuredEvents} coverPhotos={coverPhotos}
+              accent={accent} onNavigate={handleNav} template={templateValue}
+            />
+          </>
         );
       case 'services':
         return (
