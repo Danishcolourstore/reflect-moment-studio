@@ -549,7 +549,7 @@ const PublicGallery = () => {
         {/* Hero skeleton */}
         <Skeleton className="h-[70vh] w-full rounded-none" />
         {/* Gallery skeleton grid */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-10">
           <div className="flex items-center gap-3 mb-8">
             <Skeleton className="h-9 w-24 rounded-full" />
             <Skeleton className="h-9 w-28 rounded-full" />
