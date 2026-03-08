@@ -389,7 +389,7 @@ const Branding = () => {
             <div className="flex items-center justify-between mb-4">
               <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium">LIVE PREVIEW</p>
               {username && (
-                <Button variant="ghost" size="sm" className="text-[10px] h-7 gap-1" onClick={() => navigate(`/p/${username}`)}>
+                <Button variant="ghost" size="sm" className="text-[10px] h-7 gap-1" onClick={() => navigate(`/studio/${username}`)}>
                   <ExternalLink className="h-3 w-3" /> Open Gallery
                 </Button>
               )}
