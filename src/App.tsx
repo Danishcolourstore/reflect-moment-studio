@@ -425,6 +425,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/dashboard/template-preview"
+        element={
+          <ProtectedRoute>
+            <TemplatePreview />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/profile"
         element={
           <ProtectedRoute>
