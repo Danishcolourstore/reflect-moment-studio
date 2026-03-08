@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useSettingFlag } from '@/hooks/use-platform-settings';
 
 const navLinks = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -23,12 +24,9 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [counts, setCounts] = useState({ photographers: 0, events: 0 });
-  const [maintenance, setMaintenance] = useState(false);
+  const maintenance = useSettingFlag('maintenanceMode', false);
 
   useEffect(() => {
-    const settings = JSON.parse(localStorage.getItem('mirrorai_platform_settings') || '{}');
-    setMaintenance(settings.maintenanceMode === true);
-
     Promise.all([
       (supabase.from('profiles').select('id', { count: 'exact', head: true }) as any),
       (supabase.from('events').select('id', { count: 'exact', head: true }) as any),

@@ -10,35 +10,23 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
-
-const HARDCODED_DEFAULT = '291294';
-
-function getSettings() {
-  try {
-    return JSON.parse(localStorage.getItem('mirrorai_platform_settings') || '{}');
-  } catch { return {}; }
-}
-
-function saveSettings(s: any) {
-  localStorage.setItem('mirrorai_platform_settings', JSON.stringify(s));
-}
+import { usePlatformSettings, useInvalidateSettings } from '@/hooks/use-platform-settings';
 
 export default function AdminSettings() {
   const [currentCode, setCurrentCode] = useState('');
   const [newCode, setNewCode] = useState('');
   const [confirmCode, setConfirmCode] = useState('');
 
-  const [allowRegistrations, setAllowRegistrations] = useState(true);
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [forceWatermark, setForceWatermark] = useState(false);
+  const { data: settings = {} } = usePlatformSettings();
+  const invalidateSettings = useInvalidateSettings();
+
+  const allowRegistrations = (settings['allowRegistrations'] ?? 'true') !== 'false';
+  const maintenanceMode = settings['maintenanceMode'] === 'true';
+  const forceWatermark = settings['forceWatermark'] === 'true';
 
   useEffect(() => {
-    const code = localStorage.getItem('mirrorai_admin_code') || HARDCODED_DEFAULT;
+    const code = localStorage.getItem('mirrorai_admin_code') || '291294';
     setCurrentCode(code);
-    const s = getSettings();
-    setAllowRegistrations(s.allowRegistrations !== false);
-    setMaintenanceMode(s.maintenanceMode === true);
-    setForceWatermark(s.forceWatermark === true);
   }, []);
 
   const handleSaveCode = () => {
@@ -57,13 +45,18 @@ export default function AdminSettings() {
     toast.success('Access code updated');
   };
 
-  const handleToggle = (key: string, value: boolean) => {
-    const s = getSettings();
-    s[key] = value;
-    saveSettings(s);
-    if (key === 'allowRegistrations') setAllowRegistrations(value);
-    if (key === 'maintenanceMode') setMaintenanceMode(value);
-    if (key === 'forceWatermark') setForceWatermark(value);
+  const handleToggle = async (key: string, value: boolean) => {
+    const newVal = value ? 'true' : 'false';
+    const { error } = await supabase
+      .from('platform_settings')
+      .update({ value: newVal, updated_at: new Date().toISOString() })
+      .eq('key', key);
+
+    if (error) {
+      // Key doesn't exist yet — insert it
+      await supabase.from('platform_settings').insert({ key, value: newVal });
+    }
+    invalidateSettings();
     toast.success('Setting updated');
   };
 
@@ -72,13 +65,17 @@ export default function AdminSettings() {
     toast.success('Activity logs cleared');
   };
 
-  const resetSettings = () => {
-    localStorage.removeItem('mirrorai_platform_settings');
+  const resetSettings = async () => {
+    const keys = ['allowRegistrations', 'maintenanceMode', 'forceWatermark'];
+    for (const key of keys) {
+      await supabase
+        .from('platform_settings')
+        .update({ value: key === 'allowRegistrations' ? 'true' : 'false', updated_at: new Date().toISOString() })
+        .eq('key', key);
+    }
     localStorage.removeItem('mirrorai_admin_code');
-    setAllowRegistrations(true);
-    setMaintenanceMode(false);
-    setForceWatermark(false);
-    setCurrentCode(HARDCODED_DEFAULT);
+    setCurrentCode('291294');
+    invalidateSettings();
     toast.success('Platform settings reset');
   };
 
