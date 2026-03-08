@@ -160,7 +160,7 @@ function useFeedData(username: string | undefined) {
     return () => { cancelled = true; };
   }, [username]);
 
-  return { studio, profile, events, featuredEvents, coverPhotos, albums, loading, notFound };
+  return { studio, profile, events, featuredEvents, coverPhotos, albums, portfolioPhotos, loading, notFound };
 }
 
 // ── Page Component ─────────────────────────────────────
