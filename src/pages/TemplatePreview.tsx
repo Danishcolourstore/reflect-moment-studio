@@ -122,7 +122,7 @@ export default function TemplatePreview() {
       } else {
         await (supabase.from('studio_profiles').insert({ user_id: user.id, website_template: templateValue } as any) as any);
       }
-      toast.success(`Template "${templateInfo?.label}" selected`);
+      toast.success('Template selected successfully');
       navigate('/dashboard/website-editor');
     } catch {
       toast.error('Failed to select template');
@@ -189,8 +189,7 @@ export default function TemplatePreview() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <p className="text-xs font-semibold text-foreground">{templateInfo?.label || 'Template Preview'}</p>
-            <p className="text-[10px] text-muted-foreground/50">{templateInfo?.description}</p>
+            <p className="text-xs font-semibold text-foreground">Website Preview</p>
           </div>
         </div>
 
