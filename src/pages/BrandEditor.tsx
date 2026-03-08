@@ -456,7 +456,7 @@ const BrandEditor = () => {
                 case 'services':
                   return <WebsiteServices key="services" services={data.services} accent={data.accentColor} />;
                 case 'contact':
-                  return (data.whatsapp || data.website || data.email) ? <WebsiteContact key="contact" template="modern-portfolio" branding={combinedBranding} /> : null;
+                  return (data.whatsapp || data.website || data.email) ? <WebsiteContact key="contact" template="dark-portfolio" branding={combinedBranding} /> : null;
                 case 'branding':
                   return null; // branding is meta, not visual
                 case 'footer':
