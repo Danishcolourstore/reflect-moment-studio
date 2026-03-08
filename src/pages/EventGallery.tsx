@@ -22,6 +22,7 @@ import { usePhotoUpload } from '@/hooks/use-photo-upload';
 import { EventSettingsModal } from '@/components/EventSettingsModal';
 import { useZipUpload } from '@/hooks/use-zip-upload';
 import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
+import { ProgressiveImage } from '@/components/ProgressiveImage';
 import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
 import { MinimalPortfolioLayout } from '@/components/MinimalPortfolioLayout';
 import { StoryBookLayout } from '@/components/StoryBookLayout';
