@@ -154,18 +154,13 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
         if (roles.includes('client')) {
           setRedirectTo('/client');
         } else {
-          const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
-          if (pinVerified) {
-            const redirect = sessionStorage.getItem("redirectAfterLogin");
-            if (redirect && redirect.startsWith("/dashboard")) {
-              sessionStorage.removeItem("redirectAfterLogin");
-              setRedirectTo(redirect);
-            } else {
-              sessionStorage.removeItem("redirectAfterLogin");
-              setRedirectTo("/dashboard");
-            }
+          const redirect = sessionStorage.getItem("redirectAfterLogin");
+          if (redirect && redirect.startsWith("/dashboard")) {
+            sessionStorage.removeItem("redirectAfterLogin");
+            setRedirectTo(redirect);
           } else {
-            setRedirectTo("/verify-access");
+            sessionStorage.removeItem("redirectAfterLogin");
+            setRedirectTo("/dashboard");
           }
         }
         setChecked(true);
