@@ -226,7 +226,7 @@ const Branding = () => {
                     <Input value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="mt-1 bg-card" />
                     {username && (
                       <p className="text-[10px] text-muted-foreground/50 mt-1">
-                        Your studio page: <span className="text-foreground/70 font-medium">{window.location.origin}/studio/{username}</span>
+                        Your studio page: <span className="text-foreground/70 font-medium">{getStudioDisplayUrl(username)}</span>
                       </p>
                     )}
                   </div>
