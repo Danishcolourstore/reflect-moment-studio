@@ -23,13 +23,12 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [counts, setCounts] = useState({ photographers: 0, events: 0 });
-  const [maintenance, setMaintenance] = useState(false);
+
+  // Use DB-backed platform settings via React Query (auto-refreshed via realtime)
+  const { useSettingFlag } = require('@/hooks/use-platform-settings');
+  const maintenance = useSettingFlag('maintenanceMode', false);
 
   useEffect(() => {
-    const settings = JSON.parse(localStorage.getItem('mirrorai_platform_settings') || '{}');
-    setMaintenance(settings.maintenanceMode === true);
-
-    Promise.all([
       (supabase.from('profiles').select('id', { count: 'exact', head: true }) as any),
       (supabase.from('events').select('id', { count: 'exact', head: true }) as any),
     ]).then(([p, e]) => {
