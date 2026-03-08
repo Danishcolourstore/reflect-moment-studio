@@ -157,15 +157,23 @@ const EventGallery = () => {
 
   const fetchFavStats = useCallback(async () => {
     if (!id) return;
-    const { data } = await (supabase
-      .from('favorites' as any)
-      .select('id, guest_session_id') as any)
-      .eq('event_id', id);
-    if (data) {
-      const rows = data as any[];
-      const uniqueGuests = new Set(rows.map((r: any) => r.guest_session_id)).size;
-      setFavStats({ totalFavs: rows.length, uniqueGuests });
+    // Paginate to avoid 1000-row limit on popular events
+    let allRows: any[] = [];
+    let from = 0;
+    const PAGE = 1000;
+    while (true) {
+      const { data } = await (supabase
+        .from('favorites' as any)
+        .select('id, guest_session_id') as any)
+        .eq('event_id', id)
+        .range(from, from + PAGE - 1);
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < PAGE) break;
+      from += PAGE;
     }
+    const uniqueGuests = new Set(allRows.map((r: any) => r.guest_session_id)).size;
+    setFavStats({ totalFavs: allRows.length, uniqueGuests });
   }, [id]);
 
   const fetchTextBlocks = useCallback(async () => {
