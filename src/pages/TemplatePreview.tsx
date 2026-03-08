@@ -189,8 +189,7 @@ export default function TemplatePreview() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <p className="text-xs font-semibold text-foreground">{templateInfo?.label || 'Template Preview'}</p>
-            <p className="text-[10px] text-muted-foreground/50">{templateInfo?.description}</p>
+            <p className="text-xs font-semibold text-foreground">Website Preview</p>
           </div>
         </div>
 
