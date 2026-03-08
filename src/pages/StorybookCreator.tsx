@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { Plus, BookOpen, Trash2, Grid3X3 } from 'lucide-react';
+import { Plus, BookOpen, Trash2, Grid3X3, LayoutGrid } from 'lucide-react';
 import CarouselDesigner from '@/components/CarouselDesigner';
 import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
 import GridBuilder from '@/components/grid-builder/GridBuilder';
+import InstagramFeedPlanner from '@/components/InstagramFeedPlanner';
 import { StorybookInstallBanner } from '@/components/StorybookInstallBanner';
 
 // Generate a deterministic UUID v5-like ID from an email for standalone mode
