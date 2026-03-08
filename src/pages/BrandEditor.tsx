@@ -156,6 +156,9 @@ const BrandEditor = () => {
         portfolioLayout: studio?.portfolio_layout || 'grid',
         services: (studio?.services_data as ServiceItem[]) || [],
         featuredGalleryIds: (studio?.featured_gallery_ids as string[]) || [],
+        testimonials: (studio?.testimonials_data as Testimonial[]) || [],
+        location: studio?.location || '',
+        phone: studio?.phone || '',
       };
       setData(newData);
       lastSavedData.current = JSON.stringify(newData);
