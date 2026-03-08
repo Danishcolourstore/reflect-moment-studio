@@ -400,7 +400,7 @@ const BrandEditor = () => {
                     {templates.find(t => t.value === websiteTemplate)?.label}
                   </p>
                   <p className="text-[11px] text-muted-foreground/60">
-                    {WEBSITE_TEMPLATES.find(t => t.value === websiteTemplate)?.description}
+                    {templates.find(t => t.value === websiteTemplate)?.description}
                   </p>
                 </div>
               </div>
