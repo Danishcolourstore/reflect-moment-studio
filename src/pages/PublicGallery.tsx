@@ -1052,14 +1052,14 @@ const PublicGallery = () => {
       </div>
 
       {/* ── GALLERY SECTION ── */}
-      <div ref={galleryRef} className={`max-w-7xl mx-auto ${isStoryLayout ? '' : isTimeless ? 'px-0 sm:px-0 py-6' : 'px-4 sm:px-6 py-8'}`}>
+      <div ref={galleryRef} className={`max-w-7xl mx-auto ${isStoryLayout ? '' : isTimeless ? 'px-2 sm:px-4 py-8' : 'px-4 sm:px-8 py-10 sm:py-14'}`}>
 
         {/* Filter / Sort bar */}
         {!isStoryLayout && (
-          <div className="mb-6 space-y-3">
+          <div className="mb-8 sm:mb-10 space-y-4">
             <div className="flex items-center justify-between gap-4">
               {/* Filter pills */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide min-w-0">
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-hide min-w-0">
                 <FilterPill active={filter === 'all' && !sectionFilter} onClick={() => { setFilter('all'); setSectionFilter(null); }} accent={accentColor}>
                   All Photos
                 </FilterPill>
@@ -1069,13 +1069,13 @@ const PublicGallery = () => {
                   </FilterPill>
                 ))}
                 <FilterPill active={filter === 'favorites'} onClick={() => { setFilter(f => f === 'favorites' ? 'all' : 'favorites'); setSectionFilter(null); }} accent={accentColor}>
-                  <Heart className="h-3 w-3 mr-1" /> Favorites {favoriteCount > 0 && `(${favoriteCount})`}
+                  <Heart className="h-3.5 w-3.5 mr-1.5" /> Favorites {favoriteCount > 0 && `(${favoriteCount})`}
                 </FilterPill>
               </div>
 
               {/* Sort */}
               <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as any)}>
-                <SelectTrigger className="h-8 w-[140px] text-xs border-border/50 rounded-full bg-transparent shrink-0">
+                <SelectTrigger className="h-9 w-[140px] text-xs border-border/40 rounded-full bg-transparent shrink-0 shadow-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1088,16 +1088,16 @@ const PublicGallery = () => {
             {/* Search bar */}
             {searchOpen && (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search photos by name or section…"
-                  className="pl-9 pr-9 bg-background"
+                  className="pl-10 pr-10 bg-background/60 backdrop-blur-sm border-border/40 rounded-full h-11 shadow-none"
                   autoFocus
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                     <X className="h-4 w-4" />
                   </button>
                 )}
