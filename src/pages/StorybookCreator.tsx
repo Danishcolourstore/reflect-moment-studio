@@ -220,7 +220,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
           </div>
         ) : storybooks.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-12 text-center">
-            <BookOpen className="mx-auto h-10 w-10 text-primary mb-4" strokeWidth={1.5} />
+            <BookOpen className="mx-auto h-10 w-10 text-accent mb-4" strokeWidth={1.5} />
             <p className="font-serif text-foreground text-xl" style={{ fontStyle: 'italic' }}>No storybooks yet</p>
             <p className="text-muted-foreground text-sm mt-2">Create your first Instagram carousel</p>
           </div>
