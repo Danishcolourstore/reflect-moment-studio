@@ -4,23 +4,142 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Image, BookOpen } from 'lucide-react';
+import { Check } from 'lucide-react';
+
+/* Wireframe SVG previews for each layout */
+function LayoutWireframe({ type }: { type: string }) {
+  const s = { stroke: 'currentColor', strokeWidth: 1.2, fill: 'none', rx: 1 };
+  const f = { fill: 'currentColor', opacity: 0.15, rx: 1 };
+  return (
+    <svg viewBox="0 0 40 40" className="w-full h-full">
+      {type === 'classic' && (
+        <>
+          <rect x="2" y="2" width="11" height="11" {...f} />
+          <rect x="15" y="2" width="11" height="11" {...f} />
+          <rect x="28" y="2" width="11" height="11" {...f} />
+          <rect x="2" y="15" width="11" height="11" {...f} />
+          <rect x="15" y="15" width="11" height="11" {...f} />
+          <rect x="28" y="15" width="11" height="11" {...f} />
+          <rect x="2" y="28" width="11" height="11" {...f} />
+          <rect x="15" y="28" width="11" height="11" {...f} />
+          <rect x="28" y="28" width="11" height="11" {...f} />
+        </>
+      )}
+      {type === 'masonry' && (
+        <>
+          <rect x="2" y="2" width="11" height="16" {...f} />
+          <rect x="15" y="2" width="11" height="10" {...f} />
+          <rect x="28" y="2" width="11" height="13" {...f} />
+          <rect x="2" y="20" width="11" height="10" {...f} />
+          <rect x="15" y="14" width="11" height="16" {...f} />
+          <rect x="28" y="17" width="11" height="10" {...f} />
+          <rect x="2" y="32" width="11" height="7" {...f} />
+          <rect x="15" y="32" width="11" height="7" {...f} />
+          <rect x="28" y="29" width="11" height="10" {...f} />
+        </>
+      )}
+      {type === 'justified' && (
+        <>
+          <rect x="2" y="2" width="14" height="8" {...f} />
+          <rect x="18" y="2" width="21" height="8" {...f} />
+          <rect x="2" y="12" width="21" height="8" {...f} />
+          <rect x="25" y="12" width="14" height="8" {...f} />
+          <rect x="2" y="22" width="10" height="8" {...f} />
+          <rect x="14" y="22" width="12" height="8" {...f} />
+          <rect x="28" y="22" width="11" height="8" {...f} />
+          <rect x="2" y="32" width="18" height="7" {...f} />
+          <rect x="22" y="32" width="17" height="7" {...f} />
+        </>
+      )}
+      {type === 'editorial' && (
+        <>
+          <rect x="2" y="2" width="37" height="12" {...f} />
+          <rect x="2" y="16" width="12" height="8" {...f} />
+          <rect x="15.5" y="16" width="12" height="8" {...f} />
+          <rect x="29" y="16" width="10" height="8" {...f} />
+          <rect x="2" y="26" width="18" height="13" {...f} />
+          <rect x="22" y="26" width="17" height="13" {...f} />
+        </>
+      )}
+      {type === 'editorial-collage' && (
+        <>
+          <rect x="2" y="2" width="22" height="18" {...f} />
+          <rect x="26" y="2" width="13" height="10" {...f} />
+          <rect x="26" y="14" width="13" height="6" {...f} />
+          <rect x="2" y="22" width="13" height="9" {...f} />
+          <rect x="17" y="22" width="10" height="17" {...f} />
+          <rect x="29" y="22" width="10" height="9" {...f} />
+          <rect x="2" y="33" width="13" height="6" {...f} />
+          <rect x="29" y="33" width="10" height="6" {...f} />
+        </>
+      )}
+      {type === 'pixieset' && (
+        <>
+          <rect x="2" y="2" width="11" height="14" {...f} />
+          <rect x="15" y="2" width="11" height="14" {...f} />
+          <rect x="28" y="2" width="11" height="14" {...f} />
+          <rect x="2" y="18" width="11" height="12" {...f} />
+          <rect x="15" y="18" width="11" height="12" {...f} />
+          <rect x="28" y="18" width="11" height="12" {...f} />
+          <rect x="2" y="32" width="11" height="7" {...f} />
+          <rect x="15" y="32" width="11" height="7" {...f} />
+          <rect x="28" y="32" width="11" height="7" {...f} />
+        </>
+      )}
+      {type === 'cinematic' && (
+        <>
+          <rect x="2" y="3" width="37" height="9" {...f} />
+          <rect x="2" y="14" width="37" height="9" {...f} />
+          <rect x="2" y="25" width="37" height="9" {...f} />
+        </>
+      )}
+      {type === 'mosaic' && (
+        <>
+          <rect x="2" y="2" width="18" height="18" {...f} />
+          <rect x="22" y="2" width="8" height="8" {...f} />
+          <rect x="32" y="2" width="7" height="8" {...f} />
+          <rect x="22" y="12" width="17" height="8" {...f} />
+          <rect x="2" y="22" width="8" height="8" {...f} />
+          <rect x="12" y="22" width="8" height="8" {...f} />
+          <rect x="22" y="22" width="17" height="17" {...f} />
+          <rect x="2" y="32" width="18" height="7" {...f} />
+        </>
+      )}
+      {type === 'minimal-portfolio' && (
+        <>
+          <rect x="6" y="3" width="28" height="14" {...f} />
+          <rect x="6" y="20" width="28" height="14" {...f} />
+        </>
+      )}
+      {type === 'storybook' && (
+        <>
+          <rect x="2" y="2" width="18" height="14" {...f} />
+          <rect x="22" y="4" width="16" height="3" {...f} />
+          <rect x="22" y="9" width="12" height="2" {...f} />
+          <rect x="2" y="20" width="16" height="3" {...f} />
+          <rect x="2" y="25" width="12" height="2" {...f} />
+          <rect x="20" y="18" width="19" height="14" {...f} />
+          <rect x="2" y="34" width="37" height="5" {...f} />
+        </>
+      )}
+    </svg>
+  );
+}
 
 const LAYOUT_OPTIONS = [
-  { value: 'classic', label: 'Classic', icon: Grid2X2 },
-  { value: 'masonry', label: 'Masonry', icon: LayoutGrid },
-  { value: 'justified', label: 'Justified', icon: AlignJustify },
-  { value: 'editorial', label: 'Editorial', icon: Newspaper },
-  { value: 'editorial-collage', label: 'Collage', icon: GalleryHorizontalEnd },
-  { value: 'pixieset', label: 'Pixieset', icon: Sparkles },
-  { value: 'cinematic', label: 'Cinematic', icon: Clapperboard },
-  { value: 'mosaic', label: 'Mosaic', icon: LayoutDashboard },
-  { value: 'minimal-portfolio', label: 'Portfolio', icon: Image },
-  { value: 'storybook', label: 'Story Book', icon: BookOpen },
+  { value: 'classic', label: 'Classic' },
+  { value: 'masonry', label: 'Masonry' },
+  { value: 'justified', label: 'Justified' },
+  { value: 'editorial', label: 'Editorial' },
+  { value: 'editorial-collage', label: 'Collage' },
+  { value: 'pixieset', label: 'Pixieset' },
+  { value: 'cinematic', label: 'Cinematic' },
+  { value: 'mosaic', label: 'Mosaic' },
+  { value: 'minimal-portfolio', label: 'Portfolio' },
+  { value: 'storybook', label: 'Story Book' },
 ] as const;
 
 interface CreateEventModalProps {
@@ -160,22 +279,32 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
           {/* Gallery layout preset */}
           <div className="space-y-2">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Layout</Label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {LAYOUT_OPTIONS.map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setGalleryLayout(value)}
-                  className={`flex flex-col items-center gap-1 py-2.5 px-1 border transition-colors text-center ${
-                    galleryLayout === value
-                      ? 'border-foreground bg-foreground/5 text-foreground'
-                      : 'border-border text-muted-foreground/60 hover:border-foreground/30'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-[9px] uppercase tracking-wider leading-none">{label}</span>
-                </button>
-              ))}
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              {LAYOUT_OPTIONS.map(({ value, label }) => {
+                const selected = galleryLayout === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setGalleryLayout(value)}
+                    className={`relative flex flex-col items-center gap-1.5 p-2 border rounded-lg transition-all min-h-[80px] ${
+                      selected
+                        ? 'border-accent bg-accent/10 text-accent'
+                        : 'border-border text-muted-foreground/60 hover:border-muted-foreground/30'
+                    }`}
+                  >
+                    {selected && (
+                      <div className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent flex items-center justify-center">
+                        <Check className="h-2.5 w-2.5 text-accent-foreground" />
+                      </div>
+                    )}
+                    <div className={`w-10 h-10 ${selected ? 'text-accent' : 'text-muted-foreground/40'}`}>
+                      <LayoutWireframe type={value} />
+                    </div>
+                    <span className={`text-[8px] uppercase tracking-wider leading-none font-medium ${selected ? 'text-accent' : ''}`}>{label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

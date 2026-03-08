@@ -732,33 +732,79 @@ const PublicGallery = () => {
           </>
         );
 
-      case 'cinematic':
+      case 'pixieset':
         return (
           <>
-            <div className="space-y-2">
-              {visiblePhotos.map((p, i) => {
-                const rowIndex = Math.floor(i / 4);
-                const posInGroup = i % 4;
-                if (posInGroup === 0) {
-                  return <div key={p.id}>{renderPhotoCard(p, 'cinematic-wide')}</div>;
-                }
-                if (posInGroup === 1) {
-                  const group = visiblePhotos.slice(i, i + 3);
-                  return (
-                    <div key={`row-${rowIndex}`} className="grid grid-cols-3 gap-2">
-                      {group.map(gp => renderPhotoCard(gp, 'cinematic-cell'))}
-                    </div>
-                  );
-                }
-                return null;
-              })}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {visiblePhotos.map(p => renderPhotoCard(p, 'masonry'))}
             </div>
             {infiniteSentinel}
           </>
         );
 
-      case 'collage':
-      case 'mosaic':
+      case 'cinematic':
+        return (
+          <>
+            <div className="space-y-[2px]">
+              {visiblePhotos.map(p => (
+                <div key={p.id} className="relative w-full aspect-video overflow-hidden cursor-pointer group"
+                  onClick={() => openLightbox(p.id)}>
+                  <ProgressiveImage src={p.url} alt="" className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 pointer-events-none" />
+                  <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+                    className="absolute top-3 right-3 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    style={isFavorite(p.id) ? { opacity: 1 } : undefined}>
+                    <Heart className="h-4 w-4" style={isFavorite(p.id) ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : { color: 'white' }} />
+                  </button>
+                  {showWatermark && studioProfile?.studio_name && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+                      <span className="font-serif text-white/20 text-lg whitespace-nowrap tracking-[0.15em]">{studioProfile.studio_name}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {infiniteSentinel}
+          </>
+        );
+
+      case 'mosaic': {
+        // Mosaic brick pattern with varied tile sizes
+        const mosaicBlocks: Photo[][] = [];
+        for (let mi = 0; mi < visiblePhotos.length; mi += 8) {
+          mosaicBlocks.push(visiblePhotos.slice(mi, mi + 8));
+        }
+        const tileSizes = [
+          'col-span-2 row-span-2', 'col-span-1 row-span-1', 'col-span-1 row-span-1',
+          'col-span-1 row-span-1', 'col-span-1 row-span-2', 'col-span-1 row-span-1',
+          'col-span-2 row-span-1', 'col-span-1 row-span-1',
+        ];
+        return (
+          <>
+            <div className="space-y-[2px]">
+              {mosaicBlocks.map((block, bi) => (
+                <div key={bi} className="grid grid-cols-3 md:grid-cols-4 auto-rows-[120px] md:auto-rows-[160px] gap-[2px]">
+                  {block.map((p, pi) => (
+                    <div key={p.id} className={`relative overflow-hidden cursor-pointer group ${tileSizes[pi % tileSizes.length]}`}
+                      onClick={() => openLightbox(p.id)}>
+                      <ProgressiveImage src={p.url} alt="" className="h-full w-full object-cover" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 pointer-events-none" />
+                      <button onClick={(e) => { e.stopPropagation(); toggleFavorite(p.id); }}
+                        className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+                        style={isFavorite(p.id) ? { opacity: 1 } : undefined}>
+                        <Heart className="h-4 w-4" style={isFavorite(p.id) ? { color: accentColor || 'hsl(var(--primary))', fill: accentColor || 'hsl(var(--primary))' } : { color: 'white' }} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            {infiniteSentinel}
+          </>
+        );
+      }
+
+      case 'collage': {
         const first5 = visiblePhotos.slice(0, 5);
         const rest = visiblePhotos.slice(5);
         const positions = [
@@ -795,6 +841,7 @@ const PublicGallery = () => {
             {infiniteSentinel}
           </>
         );
+      }
 
       case 'timeline':
         const grouped = groupByDate(visiblePhotos);
