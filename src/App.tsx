@@ -125,10 +125,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
-  if (!pinVerified && location.pathname.startsWith("/dashboard")) {
-    return <Navigate to="/verify-access" replace />;
-  }
+  // PIN verification removed from dashboard routes — photographers access freely after login
 
   return <>{children}</>;
 }
