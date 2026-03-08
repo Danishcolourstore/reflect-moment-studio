@@ -231,15 +231,15 @@ export function PhotoLightbox({
       : undefined;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col"
+    <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-200"
       onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
       {/* Top bar */}
-      <div className="flex items-center justify-between px-5 py-4 shrink-0">
-        <span className="text-white/40 text-[13px] tracking-[0.1em] font-sans font-light">
+      <div className="flex items-center justify-between px-5 py-4 shrink-0 bg-gradient-to-b from-black/40 to-transparent">
+        <span className="text-white/50 text-[13px] tracking-[0.12em] font-sans font-light">
           {currentIndex + 1} / {photos.length}
         </span>
         <button onClick={onClose}
-          className="min-w-[48px] min-h-[48px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-all duration-200">
+          className="min-w-[48px] min-h-[48px] rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-all duration-300 active:scale-90">
           <X className="h-5 w-5" />
         </button>
       </div>
