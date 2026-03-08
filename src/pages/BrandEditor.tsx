@@ -13,6 +13,7 @@ import {
   Instagram, Globe, MessageCircle, Mail,
   ChevronUp, ChevronDown, Check, Palette, Image as ImageIcon,
   Layout, User, Phone, FileText, Star, Briefcase, Share2, Plus, Trash2,
+  MessageSquare, FolderHeart,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
