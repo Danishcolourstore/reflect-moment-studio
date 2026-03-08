@@ -71,6 +71,7 @@ function useFeedData(username: string | undefined) {
   const [featuredEvents, setFeaturedEvents] = useState<FeedEvent[]>([]);
   const [coverPhotos, setCoverPhotos] = useState<Record<string, string>>({});
   const [albums, setAlbums] = useState<PortfolioAlbum[]>([]);
+  const [portfolioPhotos, setPortfolioPhotos] = useState<{ id: string; url: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
