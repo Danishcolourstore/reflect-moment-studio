@@ -87,21 +87,21 @@ const Dashboard = () => {
 
       {/* Quick Actions Row */}
       <div className="flex gap-3 mb-8">
-        <Button onClick={() => setCreateOpen(true)} className="flex-1 h-11 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
+        <Button onClick={() => setCreateOpen(true)} className="flex-1 lg:flex-none h-11 lg:h-12 lg:px-8 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
           <Plus className="h-4 w-4" /> New Event
         </Button>
-        <Button variant="outline" onClick={() => navigate('/dashboard/upload')} className="flex-1 h-11 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
+        <Button variant="outline" onClick={() => navigate('/dashboard/upload')} className="flex-1 lg:flex-none h-11 lg:h-12 lg:px-8 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
           <Upload className="h-4 w-4" /> Upload Photos
         </Button>
       </div>
 
-      {/* Stats 2×2 Grid */}
+      {/* Stats Grid — 2×2 mobile, 4×1 desktop */}
       {loading ? (
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 mb-8">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 lg:h-40 rounded-2xl" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 mb-8">
           <PixisetStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
