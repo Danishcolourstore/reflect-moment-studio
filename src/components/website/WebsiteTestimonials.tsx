@@ -1,4 +1,5 @@
 import { Star } from 'lucide-react';
+import { getTemplate } from '@/lib/website-templates';
 
 export interface Testimonial {
   clientName: string;
@@ -10,13 +11,15 @@ interface WebsiteTestimonialsProps {
   testimonials: Testimonial[];
   accent: string;
   id?: string;
+  template?: string;
 }
 
-export function WebsiteTestimonials({ testimonials, accent, id }: WebsiteTestimonialsProps) {
+export function WebsiteTestimonials({ testimonials, accent, id, template = 'dark-portfolio' }: WebsiteTestimonialsProps) {
   if (testimonials.length === 0) return null;
+  const tmpl = getTemplate(template);
 
   return (
-    <section id={id} className="py-16 sm:py-24 px-4" style={{ backgroundColor: '#0C0B08' }}>
+    <section id={id} className="py-16 sm:py-24 px-4" style={{ backgroundColor: tmpl.bg }}>
       <div className="text-center mb-10 sm:mb-14">
         <p
           className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em] mb-3"
@@ -26,7 +29,7 @@ export function WebsiteTestimonials({ testimonials, accent, id }: WebsiteTestimo
         </p>
         <h2
           className="text-3xl sm:text-4xl font-light tracking-wide"
-          style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}
+          style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}
         >
           Testimonials
         </h2>
@@ -38,7 +41,7 @@ export function WebsiteTestimonials({ testimonials, accent, id }: WebsiteTestimo
           <div
             key={idx}
             className="p-6 rounded-xl border"
-            style={{ backgroundColor: '#14120D', borderColor: 'rgba(255,255,255,0.06)' }}
+            style={{ backgroundColor: tmpl.cardBg, borderColor: `${tmpl.text}0A` }}
           >
             {/* Stars */}
             <div className="flex gap-0.5 mb-4">
@@ -47,14 +50,14 @@ export function WebsiteTestimonials({ testimonials, accent, id }: WebsiteTestimo
                   key={i}
                   className="h-3.5 w-3.5"
                   fill={i < t.rating ? accent : 'transparent'}
-                  style={{ color: i < t.rating ? accent : 'rgba(255,255,255,0.1)' }}
+                  style={{ color: i < t.rating ? accent : `${tmpl.text}1A` }}
                 />
               ))}
             </div>
             {/* Review */}
             <p
               className="text-sm leading-relaxed mb-4"
-              style={{ color: 'rgba(237,234,227,0.7)', fontFamily: "'DM Sans', sans-serif" }}
+              style={{ color: tmpl.textSecondary, fontFamily: tmpl.uiFontFamily }}
             >
               "{t.review}"
             </p>

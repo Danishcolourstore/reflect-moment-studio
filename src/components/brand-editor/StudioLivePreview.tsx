@@ -154,7 +154,7 @@ export function StudioLivePreview({
         return (
           <WebsitePortfolio key="portfolio" id="portfolio"
             events={events} coverPhotos={coverPhotos} accent={accent}
-            layout={portfolioLayout} onNavigate={() => {}}
+            layout={portfolioLayout} onNavigate={() => {}} template={template}
           />
         );
       case 'albums':
@@ -169,16 +169,16 @@ export function StudioLivePreview({
         return featuredEvents.length > 0 ? (
           <WebsiteFeatured key="featured" id="featured"
             events={featuredEvents} coverPhotos={coverPhotos}
-            accent={accent} onNavigate={() => {}}
+            accent={accent} onNavigate={() => {}} template={template}
           />
         ) : null;
       case 'services':
         return services.length > 0 ? (
-          <WebsiteServices key="services" id="services" services={services} accent={accent} />
+          <WebsiteServices key="services" id="services" services={services} accent={accent} template={template} />
         ) : null;
       case 'testimonials':
         return testimonials.length > 0 ? (
-          <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonials} accent={accent} />
+          <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonials} accent={accent} template={template} />
         ) : null;
       case 'contact':
         return (

@@ -15,6 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import BrandTypography, { BRAND_PRESETS, type BrandPreset } from '@/components/brand/BrandTypography';
 import BrandWatermark from '@/components/brand/BrandWatermark';
 import BrandAssets, { type BrandAsset } from '@/components/brand/BrandAssets';
+import { WebsiteTemplateSelector } from '@/components/brand-editor/WebsiteTemplateSelector';
+import { StudioLivePreview } from '@/components/brand-editor/StudioLivePreview';
+import { type WebsiteTemplateValue } from '@/lib/website-templates';
 
 const Branding = () => {
   const { user } = useAuth();
@@ -51,6 +54,13 @@ const Branding = () => {
   const [watermarkPosition, setWatermarkPosition] = useState('bottom-right');
   const [watermarkUploading, setWatermarkUploading] = useState(false);
   const [brandAssets, setBrandAssets] = useState<BrandAsset[]>([]);
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
+  const [sectionOrder, setSectionOrder] = useState<string[]>(['hero', 'social', 'portfolio', 'albums', 'about', 'featured', 'services', 'testimonials', 'contact']);
+  const [sectionVisibility, setSectionVisibility] = useState<Record<string, boolean>>({ hero: true, social: true, portfolio: true, albums: false, about: true, featured: true, services: false, testimonials: false, contact: true });
+  const [servicesData, setServicesData] = useState<any[]>([]);
+  const [testimonialsData, setTestimonialsData] = useState<any[]>([]);
+  const [featuredGalleryIds, setFeaturedGalleryIds] = useState<string[]>([]);
+  const [portfolioLayout, setPortfolioLayout] = useState<'grid' | 'masonry' | 'large'>('grid');
 
   useEffect(() => {
     if (!user) return;
@@ -82,6 +92,13 @@ const Branding = () => {
         setWatermarkOpacity(studio.watermark_opacity ?? 20);
         setWatermarkPosition(studio.watermark_position || 'bottom-right');
         setBrandAssets((studio.brand_assets as BrandAsset[]) || []);
+        setWebsiteTemplate((studio.website_template as WebsiteTemplateValue) || 'dark-portfolio');
+        setSectionOrder((studio.section_order as string[]) || ['hero', 'social', 'portfolio', 'albums', 'about', 'featured', 'services', 'testimonials', 'contact']);
+        setSectionVisibility((studio.section_visibility as Record<string, boolean>) || { hero: true, social: true, portfolio: true, albums: false, about: true, featured: true, services: false, testimonials: false, contact: true });
+        setServicesData((studio.services_data as any[]) || []);
+        setTestimonialsData((studio.testimonials_data as any[]) || []);
+        setFeaturedGalleryIds((studio.featured_gallery_ids as string[]) || []);
+        setPortfolioLayout((studio.portfolio_layout as 'grid' | 'masonry' | 'large') || 'grid');
       }
 
       const { data: evData } = await (supabase.from('events')
@@ -172,6 +189,7 @@ const Branding = () => {
       brand_preset: brandPreset, custom_domain: customDomain || null,
       watermark_logo_url: watermarkUrl, watermark_opacity: watermarkOpacity,
       watermark_position: watermarkPosition, brand_assets: brandAssets,
+      website_template: websiteTemplate,
     };
     const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
     if (existing) {
@@ -208,6 +226,9 @@ const Branding = () => {
               </TabsTrigger>
               <TabsTrigger value="assets" className="text-[11px] uppercase tracking-wider data-[state=active]:bg-background">
                 <FolderOpen className="h-3 w-3 mr-1" /> Assets
+              </TabsTrigger>
+              <TabsTrigger value="website" className="text-[11px] uppercase tracking-wider data-[state=active]:bg-background">
+                <Globe className="h-3 w-3 mr-1" /> Website
               </TabsTrigger>
               <TabsTrigger value="domain" className="text-[11px] uppercase tracking-wider data-[state=active]:bg-background">
                 <Link2 className="h-3 w-3 mr-1" /> Domain
@@ -338,6 +359,11 @@ const Branding = () => {
                   onAssetsChange={setBrandAssets}
                 />
               )}
+            </TabsContent>
+
+            {/* ── WEBSITE TAB ── */}
+            <TabsContent value="website">
+              <WebsiteTemplateSelector value={websiteTemplate} onChange={setWebsiteTemplate} />
             </TabsContent>
 
             {/* ── DOMAIN TAB ── */}

@@ -252,7 +252,7 @@ const PhotographerFeed = () => {
         return (
           <WebsitePortfolio key="portfolio" id="portfolio"
             events={events} coverPhotos={coverPhotos} accent={accent}
-            layout={portfolioLayout} onNavigate={handleNav}
+            layout={portfolioLayout} onNavigate={handleNav} template={templateValue}
           />
         );
       case 'albums':
@@ -267,16 +267,16 @@ const PhotographerFeed = () => {
         return (
           <WebsiteFeatured key="featured" id="featured"
             events={featuredEvents} coverPhotos={coverPhotos}
-            accent={accent} onNavigate={handleNav}
+            accent={accent} onNavigate={handleNav} template={templateValue}
           />
         );
       case 'services':
         return (
-          <WebsiteServices key="services" id="services" services={services} accent={accent} />
+          <WebsiteServices key="services" id="services" services={services} accent={accent} template={templateValue} />
         );
       case 'testimonials':
         return testimonials.length > 0 ? (
-          <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonials} accent={accent} />
+          <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonials} accent={accent} template={templateValue} />
         ) : null;
       case 'contact':
         return (
