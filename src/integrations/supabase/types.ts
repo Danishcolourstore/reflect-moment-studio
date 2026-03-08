@@ -65,6 +65,107 @@ export type Database = {
         }
         Relationships: []
       }
+      album_layers: {
+        Row: {
+          created_at: string
+          height: number
+          id: string
+          layer_type: string
+          page_id: string
+          photo_id: string | null
+          rotation: number
+          settings_json: Json | null
+          text_content: string | null
+          width: number
+          x: number
+          y: number
+          z_index: number
+        }
+        Insert: {
+          created_at?: string
+          height?: number
+          id?: string
+          layer_type?: string
+          page_id: string
+          photo_id?: string | null
+          rotation?: number
+          settings_json?: Json | null
+          text_content?: string | null
+          width?: number
+          x?: number
+          y?: number
+          z_index?: number
+        }
+        Update: {
+          created_at?: string
+          height?: number
+          id?: string
+          layer_type?: string
+          page_id?: string
+          photo_id?: string | null
+          rotation?: number
+          settings_json?: Json | null
+          text_content?: string | null
+          width?: number
+          x?: number
+          y?: number
+          z_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "album_layers_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "album_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "album_layers_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      album_pages: {
+        Row: {
+          album_id: string
+          background_color: string | null
+          created_at: string
+          id: string
+          page_number: number
+          paper_texture: string | null
+          spread_index: number
+        }
+        Insert: {
+          album_id: string
+          background_color?: string | null
+          created_at?: string
+          id?: string
+          page_number?: number
+          paper_texture?: string | null
+          spread_index?: number
+        }
+        Update: {
+          album_id?: string
+          background_color?: string | null
+          created_at?: string
+          id?: string
+          page_number?: number
+          paper_texture?: string | null
+          spread_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "album_pages_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       album_selections: {
         Row: {
           created_at: string
@@ -100,6 +201,56 @@ export type Database = {
             columns: ["photo_id"]
             isOneToOne: false
             referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      albums: {
+        Row: {
+          cover_type: string
+          created_at: string
+          event_id: string | null
+          id: string
+          leaf_count: number
+          name: string
+          page_count: number
+          size: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_type?: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          leaf_count?: number
+          name?: string
+          page_count?: number
+          size?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_type?: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          leaf_count?: number
+          name?: string
+          page_count?: number
+          size?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "albums_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
