@@ -272,7 +272,7 @@ const PhotographerFeed = () => {
         );
       case 'services':
         return (
-          <WebsiteServices key="services" id="services" services={services} accent={accent} />
+          <WebsiteServices key="services" id="services" services={services} accent={accent} template={templateValue} />
         );
       case 'testimonials':
         return testimonials.length > 0 ? (
