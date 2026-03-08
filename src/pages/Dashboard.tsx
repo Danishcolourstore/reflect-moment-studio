@@ -76,7 +76,7 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       {/* Greeting */}
-      <div className="mb-8" style={{ padding: '8px 0 0' }}>
+      <div className="mb-8 lg:mb-10" style={{ padding: '8px 0 0' }}>
         <h1
           className="text-foreground"
           style={{ fontFamily: 'var(--editorial-heading)', fontSize: '32px', fontWeight: 400, letterSpacing: '-0.3px', lineHeight: 1.3 }}
@@ -86,7 +86,7 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions Row */}
-      <div className="flex gap-3 mb-8">
+      <div className="flex gap-3 mb-8 lg:mb-10">
         <Button onClick={() => setCreateOpen(true)} className="flex-1 lg:flex-none h-11 lg:h-12 lg:px-8 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
           <Plus className="h-4 w-4" /> New Event
         </Button>
@@ -97,19 +97,17 @@ const Dashboard = () => {
 
       {/* Stats Grid — 2×2 mobile, 4×1 desktop */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 mb-8">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 lg:h-40 rounded-2xl" />)}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-10">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 lg:h-44 rounded-2xl" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-10">
           <PixisetStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
           <PixisetStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/analytics')} />
         </div>
       )}
-
-
 
       <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
       {shareEvent && <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.name} pin={shareEvent.gallery_pin} />}
@@ -120,14 +118,13 @@ const Dashboard = () => {
 function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
   return (
     <div
-      className="bg-card border border-border rounded-2xl p-5 lg:p-7 cursor-pointer active:scale-[0.97] transition-all duration-200 hover:border-primary/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5"
-      style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}
+      className="bg-card border border-border rounded-2xl p-5 lg:p-8 cursor-pointer active:scale-[0.97] transition-all duration-300 hover:border-primary/30 hover-lift"
       onClick={onClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick?.(); }}
     >
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 lg:mb-6">
         <Icon className="h-[18px] w-[18px] text-primary" strokeWidth={1.5} />
         <p className="text-muted-foreground" style={{ fontFamily: 'var(--editorial-body)', fontSize: '11px', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
           {label}

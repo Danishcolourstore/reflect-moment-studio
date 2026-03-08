@@ -347,42 +347,42 @@ const EventGallery = () => {
 
       {/* Cover banner */}
       {event.cover_url && (
-        <div className="relative -mx-5 -mt-6 mb-5 h-32 sm:h-40 overflow-hidden sm:-mx-8 lg:-mx-10">
+        <div className="relative -mx-5 -mt-6 mb-6 h-40 sm:h-48 lg:h-56 xl:h-64 overflow-hidden sm:-mx-8 lg:-mx-10">
           <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         </div>
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-5 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-6 lg:mb-8 gap-3">
         <div>
-          <h1 className="font-serif text-xl sm:text-[22px] font-semibold text-foreground leading-tight">{event.name}</h1>
-          <p className="text-[11px] text-muted-foreground/60 tracking-wide mt-0.5">
+          <h1 className="font-serif text-xl sm:text-[22px] lg:text-[26px] font-semibold text-foreground leading-tight">{event.name}</h1>
+          <p className="text-[11px] lg:text-xs text-muted-foreground/60 tracking-wide mt-1">
             {format(new Date(event.event_date), 'MMMM d, yyyy')} · {photos.length} photos
             {favStats.totalFavs > 0 && (
               <> · <Heart className="inline h-3 w-3 text-primary" fill="hsl(var(--primary))" /> {favStats.totalFavs} favorites from {favStats.uniqueGuests} guest{favStats.uniqueGuests !== 1 ? 's' : ''}</>
             )}
           </p>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5 lg:gap-2">
           {isOwner && (
             <>
               <Button onClick={() => fileInputRef.current?.click()} disabled={upload.isUploading || zipUpload.isUploading || zipUpload.isExtracting}
-                variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
-                <Upload className="mr-1 h-3 w-3" />Upload
+                variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+                <Upload className="mr-1.5 h-3.5 w-3.5" />Upload
               </Button>
               <Button onClick={() => zipInputRef.current?.click()} disabled={upload.isUploading || zipUpload.isUploading || zipUpload.isExtracting}
-                variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
-                <FileArchive className="mr-1 h-3 w-3" />Upload ZIP
+                variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+                <FileArchive className="mr-1.5 h-3.5 w-3.5" />Upload ZIP
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
-                <Share2 className="mr-1 h-3 w-3" />Share
+              <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+                <Share2 className="mr-1.5 h-3.5 w-3.5" />Share
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setTextEditorOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
-                <Type className="mr-1 h-3 w-3" />Add Text
+              <Button variant="ghost" size="sm" onClick={() => setTextEditorOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+                <Type className="mr-1.5 h-3.5 w-3.5" />Add Text
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] h-7 px-2.5 uppercase tracking-[0.06em]">
-                <Settings className="mr-1 h-3 w-3" />Settings
+              <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)} className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+                <Settings className="mr-1.5 h-3.5 w-3.5" />Settings
               </Button>
             </>
           )}

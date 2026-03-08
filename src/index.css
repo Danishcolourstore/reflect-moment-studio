@@ -175,8 +175,6 @@
 
   #root {
     width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
     min-height: 100%;
     overflow-x: hidden;
   }
@@ -207,6 +205,20 @@
 }
 
 @layer components {
+  /* Glass surface utility */
+  .glass-surface {
+    @apply bg-card/80 backdrop-blur-xl border border-border/60;
+    box-shadow: 0 4px 24px -4px hsl(var(--foreground) / 0.06), 0 1px 2px hsl(var(--foreground) / 0.04);
+  }
+
+  /* Desktop hover card lift */
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+  .hover-lift:hover {
+    @apply -translate-y-0.5;
+    box-shadow: 0 8px 30px -8px hsl(var(--foreground) / 0.1), 0 2px 8px hsl(var(--foreground) / 0.04);
+  }
   .editorial-label {
     font-family: 'Jost', sans-serif;
     @apply text-[11px] uppercase tracking-[2px] text-muted-foreground font-semibold;
