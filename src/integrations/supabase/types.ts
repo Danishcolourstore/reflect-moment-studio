@@ -1975,6 +1975,7 @@ export type Database = {
           watermark_opacity: number | null
           watermark_position: string | null
           website: string | null
+          website_images: Json | null
           website_template: string | null
           whatsapp: string | null
         }
@@ -2009,6 +2010,7 @@ export type Database = {
           watermark_opacity?: number | null
           watermark_position?: string | null
           website?: string | null
+          website_images?: Json | null
           website_template?: string | null
           whatsapp?: string | null
         }
@@ -2043,6 +2045,7 @@ export type Database = {
           watermark_opacity?: number | null
           watermark_position?: string | null
           website?: string | null
+          website_images?: Json | null
           website_template?: string | null
           whatsapp?: string | null
         }

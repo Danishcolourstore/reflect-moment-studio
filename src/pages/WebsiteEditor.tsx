@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileSectionDrawer } from '@/components/website-editor/MobileSectionDrawer';
 import { MobileEditorPanel } from '@/components/website-editor/MobileEditorPanel';
+import { WebsiteImageUploader, WebsiteImageGridUploader } from '@/components/website-editor/WebsiteImageUploader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +15,14 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { WEBSITE_TEMPLATES, getTemplate, type WebsiteTemplateValue } from '@/lib/website-templates';
 import { getStudioUrl, getStudioDisplayUrl } from '@/lib/studio-url';
+
+// Website image data structure (independent of events/galleries)
+interface WebsiteImages {
+  hero_cover?: string | null;
+  about_photo?: string | null;
+  portfolio_photos?: string[];
+  featured_photos?: string[];
+}
 
 // Website section components
 import { WebsiteHero } from '@/components/website/WebsiteHero';
@@ -87,6 +96,9 @@ const WebsiteEditor = () => {
   const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>([]);
   const [featuredGalleryIds, setFeaturedGalleryIds] = useState<string[]>([]);
 
+  // ── Website images (independent of events/galleries) ──
+  const [websiteImages, setWebsiteImages] = useState<WebsiteImages>({});
+
   // ── Live data from DB ──
   const [events, setEvents] = useState<any[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
@@ -99,8 +111,6 @@ const WebsiteEditor = () => {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
-  // Cover upload ref
-  const coverInputRef = useRef<HTMLInputElement>(null);
 
   // ── Load all data ──
   useEffect(() => {
@@ -141,6 +151,7 @@ const WebsiteEditor = () => {
         setServicesData((s.services_data as ServiceItem[]) || []);
         setTestimonialsData((s.testimonials_data as Testimonial[]) || []);
         setFeaturedGalleryIds((s.featured_gallery_ids as string[]) || []);
+        setWebsiteImages((s.website_images as WebsiteImages) || {});
       }
 
       // Load events
@@ -208,6 +219,7 @@ const WebsiteEditor = () => {
         services_data: servicesData, testimonials_data: testimonialsData,
         featured_gallery_ids: featuredGalleryIds, portfolio_layout: portfolioLayout,
         hero_button_label: heroButtonLabel || null, hero_button_url: heroButtonUrl || null,
+        website_images: websiteImages,
       };
 
       const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
@@ -221,7 +233,7 @@ const WebsiteEditor = () => {
       toast.error('Failed to save');
     }
     setSaving(false);
-  }, [user, studioName, accentColor, bio, tagline, instagram, websiteUrl, whatsapp, footerText, username, websiteTemplate, sectionOrder, sectionVisibility, servicesData, testimonialsData, featuredGalleryIds, portfolioLayout, heroButtonLabel, heroButtonUrl]);
+  }, [user, studioName, accentColor, bio, tagline, instagram, websiteUrl, whatsapp, footerText, username, websiteTemplate, sectionOrder, sectionVisibility, servicesData, testimonialsData, featuredGalleryIds, portfolioLayout, heroButtonLabel, heroButtonUrl, websiteImages]);
 
   // ── Publish ──
   const handlePublish = useCallback(async () => {
@@ -235,24 +247,6 @@ const WebsiteEditor = () => {
     toast.success('Website published!', { description: getStudioDisplayUrl(username) });
   }, [username, handleSave]);
 
-  // ── Cover upload ──
-  const handleCoverUpload = async (file: File) => {
-    if (!user) return;
-    try {
-      const path = `studio-covers/${user.id}/cover.${file.name.split('.').pop()}`;
-      const { error } = await supabase.storage.from('event-covers').upload(path, file, { upsert: true });
-      if (error) throw error;
-      const url = supabase.storage.from('event-covers').getPublicUrl(path).data.publicUrl;
-      const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
-      if (existing) {
-        await (supabase.from('studio_profiles').update({ cover_url: url } as any) as any).eq('user_id', user.id);
-      } else {
-        await (supabase.from('studio_profiles').insert({ user_id: user.id, cover_url: url } as any) as any);
-      }
-      setCoverUrl(url);
-      toast.success('Cover updated');
-    } catch (e: any) { toast.error(e.message); }
-  };
 
   // ── Section toggle ──
   const toggleSection = (id: string) => {
@@ -337,7 +331,7 @@ const WebsiteEditor = () => {
         </button>
         <h3 className="text-sm font-semibold text-foreground">{sec.icon} {sec.label}</h3>
 
-        {activeSection === 'hero' && (
+        {activeSection === 'hero' && user && (
           <div className="space-y-3">
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Name</label>
@@ -347,24 +341,17 @@ const WebsiteEditor = () => {
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Tagline</label>
               <Input value={tagline} onChange={e => setTagline(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="Reflections of Your Moments" />
             </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Cover Image</label>
-              <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); e.target.value = ''; }} />
-              {coverUrl ? (
-                <div className="mt-1 space-y-2">
-                  <img src={coverUrl} alt="" className="w-full aspect-video object-cover rounded-lg border border-border" />
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="text-[10px] h-7" onClick={() => coverInputRef.current?.click()}>
-                      <Upload className="h-3 w-3 mr-1" /> Replace
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Button variant="outline" size="sm" className="mt-1 text-[10px] h-8" onClick={() => coverInputRef.current?.click()}>
-                  <Upload className="h-3 w-3 mr-1" /> Upload Cover
-                </Button>
-              )}
-            </div>
+            <WebsiteImageUploader
+              value={websiteImages.hero_cover || coverUrl}
+              onChange={(url) => {
+                setWebsiteImages(prev => ({ ...prev, hero_cover: url }));
+                if (url) setCoverUrl(url);
+              }}
+              userId={user.id}
+              folder="hero"
+              label="Cover Image"
+              aspectClass="aspect-video"
+            />
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Button Label</label>
               <Input value={heroButtonLabel} onChange={e => setHeroButtonLabel(e.target.value)} className="mt-1 h-9 text-sm bg-card" />
@@ -376,7 +363,7 @@ const WebsiteEditor = () => {
           </div>
         )}
 
-        {activeSection === 'portfolio' && (
+        {activeSection === 'portfolio' && user && (
           <div className="space-y-3">
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Layout Style</label>
@@ -389,37 +376,51 @@ const WebsiteEditor = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium mb-2">Visible Galleries</p>
-              <p className="text-[10px] text-muted-foreground/40 mb-2">Events marked as "Show in Feed" appear automatically.</p>
-              <div className="text-[11px] text-muted-foreground/50">{events.length} galleries visible</div>
-            </div>
+            <WebsiteImageGridUploader
+              values={websiteImages.portfolio_photos || []}
+              onChange={(urls) => setWebsiteImages(prev => ({ ...prev, portfolio_photos: urls }))}
+              userId={user.id}
+              folder="portfolio"
+              label="Portfolio Photos"
+              maxImages={20}
+            />
+            <p className="text-[8px] text-muted-foreground/30">Upload your best portfolio images directly from your device.</p>
           </div>
         )}
 
-        {activeSection === 'about' && (
+        {activeSection === 'about' && user && (
           <div className="space-y-3">
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">About / Bio</label>
               <Textarea value={bio} onChange={e => setBio(e.target.value)} className="mt-1 text-sm bg-card min-h-[120px]" placeholder="Tell your story..." />
             </div>
+            <WebsiteImageUploader
+              value={websiteImages.about_photo || null}
+              onChange={(url) => setWebsiteImages(prev => ({ ...prev, about_photo: url }))}
+              userId={user.id}
+              folder="about"
+              label="Photographer Portrait"
+              aspectClass="aspect-[3/4]"
+            />
           </div>
         )}
 
-        {activeSection === 'featured' && (
+        {activeSection === 'featured' && user && (
           <div className="space-y-3">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Select Featured Events</p>
-            <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-              {allEvents.map(ev => (
-                <label key={ev.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
-                  <input type="checkbox" checked={featuredGalleryIds.includes(ev.id)} onChange={() => toggleFeaturedGallery(ev.id)} className="rounded" />
-                  <span className="text-xs text-foreground truncate">{ev.name}</span>
-                </label>
-              ))}
-              {allEvents.length === 0 && <p className="text-[10px] text-muted-foreground/40">No published events found</p>}
-            </div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Featured Work Photos</p>
+            <p className="text-[8px] text-muted-foreground/30 mb-2">Upload your best featured work images. These are independent of your event galleries.</p>
+            <WebsiteImageGridUploader
+              values={websiteImages.featured_photos || []}
+              onChange={(urls) => setWebsiteImages(prev => ({ ...prev, featured_photos: urls }))}
+              userId={user.id}
+              folder="featured"
+              label="Featured Images"
+              maxImages={12}
+            />
           </div>
         )}
+
+
 
         {activeSection === 'services' && (
           <div className="space-y-3">
