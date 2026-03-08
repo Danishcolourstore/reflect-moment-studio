@@ -525,11 +525,9 @@ function TemplateEditor({ form, setForm, creating, editing, saving, onSave, onCa
 
         <ResizableHandle withHandle />
 
-        {/* Live Preview */}
+        {/* Live Preview with device toggle */}
         <ResizablePanel defaultSize={62}>
-          <ScrollArea className="h-full">
-            <TemplatePreview form={form} updateDemoContent={updateDemoContent} uploadDemoImage={uploadDemoImage} />
-          </ScrollArea>
+          <PreviewPanel form={form} updateDemoContent={updateDemoContent} uploadDemoImage={uploadDemoImage} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
