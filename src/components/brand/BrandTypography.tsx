@@ -46,6 +46,9 @@ interface Props {
 }
 
 const BrandTypography = ({ headingFont, bodyFont, activePreset, onHeadingFontChange, onBodyFontChange, onPresetChange }: Props) => {
+  // Dynamically load selected fonts so previews render correctly
+  useGoogleFonts(headingFont, bodyFont);
+
   return (
     <div className="space-y-6">
       <div>

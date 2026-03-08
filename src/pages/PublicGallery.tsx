@@ -503,6 +503,9 @@ const PublicGallery = () => {
   const websiteTemplate = (event as any)?.website_template || 'editorial-studio';
   const wt = getTemplate(websiteTemplate);
 
+  // Dynamically load studio heading/body fonts from Google Fonts
+  useGoogleFonts(studioExtended?.heading_font, studioExtended?.body_font);
+
   // Build combined branding object for website components
   const combinedBranding = studioProfile ? {
     ...studioProfile,
