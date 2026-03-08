@@ -247,24 +247,6 @@ const WebsiteEditor = () => {
     toast.success('Website published!', { description: getStudioDisplayUrl(username) });
   }, [username, handleSave]);
 
-  // ── Cover upload ──
-  const handleCoverUpload = async (file: File) => {
-    if (!user) return;
-    try {
-      const path = `studio-covers/${user.id}/cover.${file.name.split('.').pop()}`;
-      const { error } = await supabase.storage.from('event-covers').upload(path, file, { upsert: true });
-      if (error) throw error;
-      const url = supabase.storage.from('event-covers').getPublicUrl(path).data.publicUrl;
-      const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
-      if (existing) {
-        await (supabase.from('studio_profiles').update({ cover_url: url } as any) as any).eq('user_id', user.id);
-      } else {
-        await (supabase.from('studio_profiles').insert({ user_id: user.id, cover_url: url } as any) as any);
-      }
-      setCoverUrl(url);
-      toast.success('Cover updated');
-    } catch (e: any) { toast.error(e.message); }
-  };
 
   // ── Section toggle ──
   const toggleSection = (id: string) => {
