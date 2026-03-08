@@ -483,6 +483,10 @@ const BrandEditor = () => {
                   ) : null;
                 case 'services':
                   return <WebsiteServices key="services" services={data.services} accent={data.accentColor} />;
+                case 'testimonials':
+                  return data.testimonials.length > 0 ? <WebsiteTestimonials key="testimonials" testimonials={data.testimonials} accent={data.accentColor} /> : null;
+                case 'albums':
+                  return null; // albums managed separately
                 case 'contact':
                   return (data.whatsapp || data.website || data.email) ? <WebsiteContact key="contact" template="dark-portfolio" branding={combinedBranding} /> : null;
                 case 'branding':
