@@ -68,6 +68,23 @@ const STATIC_TEMPLATES: WebsiteTemplateConfig[] = [
     footerBg: '#2B2A28',
     footerText: '#A09A92',
   },
+  {
+    value: 'modern-photography-grid',
+    label: 'Modern Photography Grid',
+    description: 'Clean minimal black-and-white photography portfolio with large hero and grid gallery',
+    fontFamily: '"DM Sans", "Helvetica Neue", sans-serif',
+    uiFontFamily: '"DM Sans", sans-serif',
+    bg: '#FFFFFF',
+    text: '#1A1A1A',
+    textSecondary: '#6B6B6B',
+    navBg: 'rgba(255,255,255,0.95)',
+    navBorder: 'rgba(0,0,0,0.08)',
+    headerStyle: 'solid',
+    heroStyle: 'modern-grid' as any,
+    cardBg: '#F8F8F8',
+    footerBg: '#1A1A1A',
+    footerText: '#999999',
+  },
 ];
 
 // Cached DB templates
