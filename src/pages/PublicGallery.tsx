@@ -328,18 +328,25 @@ const PublicGallery = () => {
       .eq('user_id', ev.user_id).maybeSingle();
     if (studioExt) setStudioExtended(studioExt as unknown as StudioExtended);
 
-    // Fetch photos — use session cache
+    // Fetch photos — use session cache, paginate past 1000-row limit
     const cached = getCachedPhotos<Photo[]>(ev.id);
     if (cached) {
       setPhotos(cached);
     } else {
-      const { data: photoData } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
-        .eq('event_id', ev.id).order('sort_order', { ascending: true, nullsFirst: false });
-      if (photoData) {
-        const typedPhotos = photoData as unknown as Photo[];
-        setPhotos(typedPhotos);
-        setCachedPhotos(ev.id, typedPhotos);
+      let allPhotos: Photo[] = [];
+      let from = 0;
+      const PAGE = 1000;
+      while (true) {
+        const { data: photoData } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
+          .eq('event_id', ev.id).order('sort_order', { ascending: true, nullsFirst: false })
+          .range(from, from + PAGE - 1);
+        if (!photoData || photoData.length === 0) break;
+        allPhotos = allPhotos.concat(photoData as unknown as Photo[]);
+        if (photoData.length < PAGE) break;
+        from += PAGE;
       }
+      setPhotos(allPhotos);
+      if (allPhotos.length > 0) setCachedPhotos(ev.id, allPhotos);
     }
 
     // Fetch text blocks
