@@ -9,6 +9,8 @@ import { WebsiteServices, type ServiceItem } from '@/components/website/WebsiteS
 import { WebsiteAbout } from '@/components/website/WebsiteAbout';
 import { WebsiteContact } from '@/components/website/WebsiteContact';
 import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
+import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
+import { WebsiteAlbums, type PortfolioAlbum } from '@/components/website/WebsiteAlbums';
 import { Instagram, Globe, MessageCircle, Mail } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────
@@ -29,6 +31,10 @@ interface StudioData {
   hero_button_label: string | null;
   hero_button_url: string | null;
   portfolio_layout: string | null;
+  testimonials_data: Testimonial[] | null;
+  location: string | null;
+  phone: string | null;
+  website_template: string | null;
 }
 
 interface ProfileData {
@@ -49,10 +55,10 @@ interface FeedEvent {
   event_type: string;
 }
 
-const DEFAULT_ORDER = ['hero', 'social', 'portfolio', 'about', 'featured', 'services', 'contact'];
+const DEFAULT_ORDER = ['hero', 'social', 'portfolio', 'albums', 'about', 'featured', 'services', 'testimonials', 'contact'];
 const DEFAULT_VISIBILITY: Record<string, boolean> = {
-  hero: true, social: true, portfolio: true, about: true,
-  featured: true, services: false, contact: true,
+  hero: true, social: true, portfolio: true, albums: false, about: true,
+  featured: true, services: false, testimonials: false, contact: true,
 };
 
 // ── Data Hook ──────────────────────────────────────────
@@ -62,6 +68,7 @@ function useFeedData(username: string | undefined) {
   const [events, setEvents] = useState<FeedEvent[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<FeedEvent[]>([]);
   const [coverPhotos, setCoverPhotos] = useState<Record<string, string>>({});
+  const [albums, setAlbums] = useState<PortfolioAlbum[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -90,17 +97,27 @@ function useFeedData(username: string | undefined) {
       if (cancelled) return;
       if (profileData) setProfile(profileData as unknown as ProfileData);
 
-      const { data: eventsData } = await (supabase
-        .from('events')
-        .select('id, name, slug, event_date, location, cover_url, photo_count, event_type') as any)
-        .eq('user_id', sd.user_id)
-        .eq('is_published', true)
-        .eq('feed_visible', true)
-        .order('event_date', { ascending: false });
+      // Fetch events + albums in parallel
+      const [eventsResult, albumsResult] = await Promise.all([
+        (supabase
+          .from('events')
+          .select('id, name, slug, event_date, location, cover_url, photo_count, event_type') as any)
+          .eq('user_id', sd.user_id)
+          .eq('is_published', true)
+          .eq('feed_visible', true)
+          .order('event_date', { ascending: false }),
+        (supabase
+          .from('portfolio_albums')
+          .select('id, title, description, cover_url, category, photo_urls') as any)
+          .eq('user_id', sd.user_id)
+          .eq('is_visible', true)
+          .order('sort_order', { ascending: true }),
+      ]);
 
       if (cancelled) return;
-      const typedEvents = (eventsData || []) as unknown as FeedEvent[];
+      const typedEvents = (eventsResult.data || []) as unknown as FeedEvent[];
       setEvents(typedEvents);
+      setAlbums((albumsResult.data || []) as unknown as PortfolioAlbum[]);
 
       const featIds = sd.featured_gallery_ids || [];
       if (featIds.length > 0) {
@@ -113,8 +130,7 @@ function useFeedData(username: string | undefined) {
       }
 
       // Fetch cover photos for events without covers
-      const allEvs = [...typedEvents, ...((featIds.length > 0 ? (eventsData || []) : []) as FeedEvent[])];
-      const noCover = allEvs.filter(e => !e.cover_url);
+      const noCover = typedEvents.filter(e => !e.cover_url);
       if (noCover.length > 0) {
         const photos: Record<string, string> = {};
         for (const ev of noCover) {
@@ -135,14 +151,14 @@ function useFeedData(username: string | undefined) {
     return () => { cancelled = true; };
   }, [username]);
 
-  return { studio, profile, events, featuredEvents, coverPhotos, loading, notFound };
+  return { studio, profile, events, featuredEvents, coverPhotos, albums, loading, notFound };
 }
 
 // ── Page Component ─────────────────────────────────────
 const PhotographerFeed = () => {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
-  const { studio, profile, events, featuredEvents, coverPhotos, loading, notFound } = useFeedData(username);
+  const { studio, profile, events, featuredEvents, coverPhotos, albums, loading, notFound } = useFeedData(username);
 
   if (loading) {
     return (
@@ -174,6 +190,7 @@ const PhotographerFeed = () => {
   const sectionOrder = (studio.section_order as string[]) || DEFAULT_ORDER;
   const sectionVis = (studio.section_visibility as Record<string, boolean>) || DEFAULT_VISIBILITY;
   const services = (studio.services_data as ServiceItem[]) || [];
+  const testimonials = (studio.testimonials_data as Testimonial[]) || [];
   const portfolioLayout = (studio.portfolio_layout || 'grid') as 'grid' | 'masonry' | 'large';
 
   const branding = {
@@ -214,9 +231,13 @@ const PhotographerFeed = () => {
             layout={portfolioLayout} onNavigate={handleNav}
           />
         );
+      case 'albums':
+        return albums.length > 0 ? (
+          <WebsiteAlbums key="albums" id="albums" albums={albums} accent={accent} />
+        ) : null;
       case 'about':
         return studio.bio ? (
-          <WebsiteAbout key="about" id="about" template="modern-portfolio" branding={branding} />
+          <WebsiteAbout key="about" id="about" template="dark-portfolio" branding={branding} />
         ) : null;
       case 'featured':
         return (
@@ -229,9 +250,13 @@ const PhotographerFeed = () => {
         return (
           <WebsiteServices key="services" id="services" services={services} accent={accent} />
         );
+      case 'testimonials':
+        return testimonials.length > 0 ? (
+          <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonials} accent={accent} />
+        ) : null;
       case 'contact':
         return (
-          <WebsiteContact key="contact" id="contact" template="modern-portfolio" branding={branding} />
+          <WebsiteContact key="contact" id="contact" template="dark-portfolio" branding={branding} />
         );
       default:
         return null;

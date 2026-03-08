@@ -13,6 +13,7 @@ import {
   Instagram, Globe, MessageCircle, Mail,
   ChevronUp, ChevronDown, Check, Palette, Image as ImageIcon,
   Layout, User, Phone, FileText, Star, Briefcase, Share2, Plus, Trash2,
+  MessageSquare, FolderHeart,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
@@ -26,6 +27,8 @@ import { WebsiteAbout } from '@/components/website/WebsiteAbout';
 import { WebsiteContact } from '@/components/website/WebsiteContact';
 import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
+import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
+import { WebsiteAlbums } from '@/components/website/WebsiteAlbums';
 
 /* ── Types ── */
 interface BrandData {
@@ -46,9 +49,12 @@ interface BrandData {
   portfolioLayout: string;
   services: ServiceItem[];
   featuredGalleryIds: string[];
+  testimonials: Testimonial[];
+  location: string;
+  phone: string;
 }
 
-type SectionId = 'hero' | 'branding' | 'about' | 'contact' | 'footer' | 'portfolio' | 'featured' | 'services' | 'social';
+type SectionId = 'hero' | 'branding' | 'about' | 'contact' | 'footer' | 'portfolio' | 'featured' | 'services' | 'social' | 'testimonials' | 'albums';
 
 interface SectionConfig {
   id: SectionId;
@@ -61,9 +67,11 @@ const DEFAULT_SECTIONS: SectionConfig[] = [
   { id: 'hero', label: 'Hero Section', icon: ImageIcon, enabled: true },
   { id: 'social', label: 'Social Links', icon: Share2, enabled: true },
   { id: 'portfolio', label: 'Portfolio', icon: Layout, enabled: true },
+  { id: 'albums', label: 'Albums', icon: FolderHeart, enabled: false },
   { id: 'about', label: 'About Section', icon: User, enabled: true },
   { id: 'featured', label: 'Featured Galleries', icon: Star, enabled: true },
   { id: 'services', label: 'Services', icon: Briefcase, enabled: false },
+  { id: 'testimonials', label: 'Testimonials', icon: MessageSquare, enabled: false },
   { id: 'contact', label: 'Contact Section', icon: Phone, enabled: true },
   { id: 'branding', label: 'Studio Branding', icon: Palette, enabled: true },
   { id: 'footer', label: 'Footer', icon: FileText, enabled: true },
@@ -85,9 +93,10 @@ const BrandEditor = () => {
     logoUrl: null, coverUrl: null, instagram: '', website: '',
     whatsapp: '', email: '', footerText: '', fontStyle: 'serif',
     heroButtonLabel: '', heroButtonUrl: '', portfolioLayout: 'grid',
-    services: [], featuredGalleryIds: [],
+    services: [], featuredGalleryIds: [], testimonials: [],
+    location: '', phone: '',
   });
-  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('editorial-studio');
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
   const [sections, setSections] = useState<SectionConfig[]>(DEFAULT_SECTIONS);
   const [allEvents, setAllEvents] = useState<EventOption[]>([]);
 
@@ -147,6 +156,9 @@ const BrandEditor = () => {
         portfolioLayout: studio?.portfolio_layout || 'grid',
         services: (studio?.services_data as ServiceItem[]) || [],
         featuredGalleryIds: (studio?.featured_gallery_ids as string[]) || [],
+        testimonials: (studio?.testimonials_data as Testimonial[]) || [],
+        location: studio?.location || '',
+        phone: studio?.phone || '',
       };
       setData(newData);
       lastSavedData.current = JSON.stringify(newData);
@@ -189,6 +201,9 @@ const BrandEditor = () => {
       featured_gallery_ids: d.featuredGalleryIds,
       section_order: sectionOrder,
       section_visibility: sectionVisibility,
+      testimonials_data: d.testimonials,
+      location: d.location || null,
+      phone: d.phone || null,
     };
 
     const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
@@ -269,6 +284,19 @@ const BrandEditor = () => {
   };
   const removeService = (idx: number) => {
     updateData({ services: data.services.filter((_, i) => i !== idx) });
+  };
+
+  // ── Testimonials helpers ──
+  const addTestimonial = () => {
+    updateData({ testimonials: [...data.testimonials, { clientName: '', review: '', rating: 5 }] });
+  };
+  const updateTestimonial = (idx: number, partial: Partial<Testimonial>) => {
+    const next = [...data.testimonials];
+    next[idx] = { ...next[idx], ...partial };
+    updateData({ testimonials: next });
+  };
+  const removeTestimonial = (idx: number) => {
+    updateData({ testimonials: data.testimonials.filter((_, i) => i !== idx) });
   };
 
   // ── Featured gallery toggle ──
@@ -441,7 +469,7 @@ const BrandEditor = () => {
                     </div>
                   );
                 case 'about':
-                  return data.bio ? <WebsiteAbout key="about" template="modern-portfolio" branding={combinedBranding} /> : null;
+                  return data.bio ? <WebsiteAbout key="about" template="dark-portfolio" branding={combinedBranding} /> : null;
                 case 'featured':
                   return data.featuredGalleryIds.length > 0 ? (
                     <div key="featured" className="py-8 px-4 text-center">
@@ -455,12 +483,16 @@ const BrandEditor = () => {
                   ) : null;
                 case 'services':
                   return <WebsiteServices key="services" services={data.services} accent={data.accentColor} />;
+                case 'testimonials':
+                  return data.testimonials.length > 0 ? <WebsiteTestimonials key="testimonials" testimonials={data.testimonials} accent={data.accentColor} /> : null;
+                case 'albums':
+                  return null; // albums managed separately
                 case 'contact':
-                  return (data.whatsapp || data.website || data.email) ? <WebsiteContact key="contact" template="modern-portfolio" branding={combinedBranding} /> : null;
+                  return (data.whatsapp || data.website || data.email) ? <WebsiteContact key="contact" template="dark-portfolio" branding={combinedBranding} /> : null;
                 case 'branding':
                   return null; // branding is meta, not visual
                 case 'footer':
-                  return <WebsiteFooter key="footer" template="modern-portfolio" branding={combinedBranding} />;
+                  return <WebsiteFooter key="footer" template="dark-portfolio" branding={combinedBranding} />;
                 default:
                   return null;
               }
@@ -689,6 +721,7 @@ const BrandEditor = () => {
                 </div>
                 <Input value={svc.title} onChange={(e) => updateService(idx, { title: e.target.value })} placeholder="Service name" className="h-10" />
                 <Textarea value={svc.description} onChange={(e) => updateService(idx, { description: e.target.value })} placeholder="Brief description" className="min-h-[60px]" />
+                <Input value={svc.price || ''} onChange={(e) => updateService(idx, { price: e.target.value })} placeholder="Price (optional) e.g. ₹25,000" className="h-10" />
                 <Select value={svc.icon || 'camera'} onValueChange={(v) => updateService(idx, { icon: v })}>
                   <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -764,6 +797,62 @@ const BrandEditor = () => {
             </div>
             <p className="text-[10px] text-muted-foreground/40">
               Footer automatically displays your studio name, social links, and copyright.
+            </p>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Testimonials Drawer */}
+      <Drawer open={activeDrawer === 'testimonials'} onOpenChange={(open) => !open && setActiveDrawer(null)}>
+        <DrawerContent className="max-h-[88dvh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-base">Testimonials</DrawerTitle>
+            <DrawerDescription>Add client reviews</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-8 space-y-4 overflow-y-auto">
+            {data.testimonials.map((t, idx) => (
+              <div key={idx} className="p-4 bg-card border border-border rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-medium">Review {idx + 1}</span>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeTestimonial(idx)}>
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
+                </div>
+                <Input value={t.clientName} onChange={(e) => updateTestimonial(idx, { clientName: e.target.value })} placeholder="Client name" className="h-10" />
+                <Textarea value={t.review} onChange={(e) => updateTestimonial(idx, { review: e.target.value })} placeholder="Their review..." className="min-h-[60px]" />
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-medium">Rating</label>
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(r => (
+                      <button key={r} onClick={() => updateTestimonial(idx, { rating: r })}
+                        className="p-1 transition-colors">
+                        <Star className="h-5 w-5" fill={r <= t.rating ? '#D4AF37' : 'transparent'} style={{ color: r <= t.rating ? '#D4AF37' : 'rgba(255,255,255,0.15)' }} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Button variant="outline" onClick={addTestimonial} className="w-full h-12 border-dashed text-[12px]">
+              <Plus className="mr-1.5 h-4 w-4" /> Add Testimonial
+            </Button>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Albums Drawer */}
+      <Drawer open={activeDrawer === 'albums'} onOpenChange={(open) => !open && setActiveDrawer(null)}>
+        <DrawerContent className="max-h-[88dvh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-base">Portfolio Albums</DrawerTitle>
+            <DrawerDescription>Organize work into categories</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-8 space-y-4 overflow-y-auto">
+            <p className="text-[10px] text-muted-foreground/40">
+              Portfolio albums are managed separately. Enable this section to display your album categories on your public portfolio page.
+            </p>
+            <p className="text-[10px] text-muted-foreground/40">
+              Categories: Weddings, Pre-Wedding, Engagement, Fashion, Portraits, and more.
             </p>
           </div>
         </DrawerContent>

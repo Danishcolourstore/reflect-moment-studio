@@ -1625,6 +1625,48 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_albums: {
+        Row: {
+          category: string | null
+          cover_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_visible: boolean | null
+          photo_urls: string[] | null
+          sort_order: number | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_visible?: boolean | null
+          photo_urls?: string[] | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_visible?: boolean | null
+          photo_urls?: string[] | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1886,16 +1928,20 @@ export type Database = {
           hero_button_url: string | null
           id: string
           instagram: string | null
+          location: string | null
+          phone: string | null
           portfolio_layout: string | null
           section_order: Json | null
           section_visibility: Json | null
           services_data: Json | null
+          testimonials_data: Json | null
           user_id: string
           username: string | null
           watermark_logo_url: string | null
           watermark_opacity: number | null
           watermark_position: string | null
           website: string | null
+          website_template: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -1915,16 +1961,20 @@ export type Database = {
           hero_button_url?: string | null
           id?: string
           instagram?: string | null
+          location?: string | null
+          phone?: string | null
           portfolio_layout?: string | null
           section_order?: Json | null
           section_visibility?: Json | null
           services_data?: Json | null
+          testimonials_data?: Json | null
           user_id: string
           username?: string | null
           watermark_logo_url?: string | null
           watermark_opacity?: number | null
           watermark_position?: string | null
           website?: string | null
+          website_template?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -1944,16 +1994,20 @@ export type Database = {
           hero_button_url?: string | null
           id?: string
           instagram?: string | null
+          location?: string | null
+          phone?: string | null
           portfolio_layout?: string | null
           section_order?: Json | null
           section_visibility?: Json | null
           services_data?: Json | null
+          testimonials_data?: Json | null
           user_id?: string
           username?: string | null
           watermark_logo_url?: string | null
           watermark_opacity?: number | null
           watermark_position?: string | null
           website?: string | null
+          website_template?: string | null
           whatsapp?: string | null
         }
         Relationships: []

@@ -4,6 +4,7 @@ export interface ServiceItem {
   title: string;
   description: string;
   icon?: string;
+  price?: string;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -66,6 +67,11 @@ export function WebsiteServices({ services, accent, id }: WebsiteServicesProps) 
               {svc.description && (
                 <p className="text-sm leading-relaxed" style={{ color: '#A6A197' }}>
                   {svc.description}
+                </p>
+              )}
+              {svc.price && (
+                <p className="mt-3 text-sm font-medium" style={{ color: accent }}>
+                  {svc.price}
                 </p>
               )}
             </div>
