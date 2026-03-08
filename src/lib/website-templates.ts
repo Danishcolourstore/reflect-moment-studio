@@ -21,6 +21,23 @@ export const WEBSITE_TEMPLATES = [
     footerBg: '#0C0A07',
     footerText: '#7A7365',
   },
+  {
+    value: 'editorial-luxury',
+    label: 'Editorial Luxury',
+    description: 'Fine-art editorial magazine layout with cream tones and elegant serif typography',
+    fontFamily: '"Playfair Display", Georgia, serif',
+    uiFontFamily: '"DM Sans", sans-serif',
+    bg: '#F5F0EA',
+    text: '#2B2A28',
+    textSecondary: '#6B6560',
+    navBg: 'rgba(245,240,234,0.92)',
+    navBorder: 'rgba(43,42,40,0.08)',
+    headerStyle: 'solid' as const,
+    heroStyle: 'editorial' as const,
+    cardBg: '#FFFFFF',
+    footerBg: '#2B2A28',
+    footerText: '#A09A92',
+  },
 ] as const;
 
 export type WebsiteTemplateValue = typeof WEBSITE_TEMPLATES[number]['value'];
