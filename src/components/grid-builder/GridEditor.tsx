@@ -1,5 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, Type, Shapes, Image, Palette, Eye, Stamp, Instagram, MessageSquare } from 'lucide-react';
+import {
+  ArrowLeft, RotateCcw, Type, Shapes, Palette, Stamp, Instagram,
+  MessageSquare, Eye, Download, ChevronDown,
+} from 'lucide-react';
 import AICaptionGenerator from './AICaptionGenerator';
 import InstagramCarouselPreview from './InstagramCarouselPreview';
 import type { GridLayout, GridCellData, CanvasFormat } from './types';
@@ -23,6 +26,7 @@ import SmartFillUploader from './SmartFillUploader';
 import DownloadGridButton from './DownloadGridButton';
 import CarouselExporter from './CarouselExporter';
 import CarouselSliceExporter from './CarouselSliceExporter';
+import { cn } from '@/lib/utils';
 
 interface Props {
   layout: GridLayout;
@@ -48,7 +52,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load legacy font sheet for existing presets
     if (!document.querySelector('link[data-grid-fonts]')) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
@@ -56,7 +59,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       link.setAttribute('data-grid-fonts', 'true');
       document.head.appendChild(link);
     }
-    // Preload common fonts for dynamic picker
     preloadCommonFonts();
   }, []);
 
@@ -180,86 +182,88 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const filledCount = cells.filter((c) => c.imageUrl).length;
   const hasFrame = !!layout.frame;
   const canvasRatio = layout.canvasRatio || format.ratio;
-
-  // Compute background for canvas
   const canvasBg = hasFrame ? layout.frame!.background : bgToCss(background);
+
+  const toolButtons: { tool: ActiveTool; Icon: any; label: string }[] = [
+    { tool: 'text', Icon: Type, label: 'Text' },
+    { tool: 'elements', Icon: Shapes, label: 'Shapes' },
+    { tool: 'background', Icon: Palette, label: 'BG' },
+    { tool: 'logo', Icon: Stamp, label: 'Logo' },
+    { tool: 'caption', Icon: MessageSquare, label: 'Caption' },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
-        <div className="flex items-center justify-between">
-          <button onClick={onBack} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-xs tracking-wider uppercase font-medium">{layout.name}</span>
+      {/* ─── Compact Header ─── */}
+      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/60">
+        <div className="flex items-center justify-between px-4 h-12">
+          {/* Back + layout name */}
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground transition-colors group"
+          >
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span className="text-[11px] tracking-wider uppercase font-medium">{layout.name}</span>
           </button>
+
           {/* Format selector */}
           {!layout.canvasRatio && (
-            <div className="flex items-center gap-0.5 bg-muted/50 rounded-full p-0.5">
+            <div className="flex items-center gap-0.5 bg-muted/40 rounded-full p-0.5">
               {CANVAS_FORMATS.map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setFormat(f)}
-                  className={`px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wider transition-colors ${
+                  className={cn(
+                    'px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wider transition-all duration-200',
                     format.id === f.id
-                      ? 'bg-foreground text-background'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                      ? 'bg-foreground text-background shadow-sm'
+                      : 'text-muted-foreground/60 hover:text-foreground'
+                  )}
                 >
                   {f.label}
                 </button>
               ))}
             </div>
           )}
-          <div className="flex items-center gap-1.5">
-            {/* Tool toggles */}
-            {([
-              { tool: 'text' as const, Icon: Type, label: 'Text' },
-              { tool: 'elements' as const, Icon: Shapes, label: 'Elements' },
-              { tool: 'background' as const, Icon: Palette, label: 'BG' },
-              { tool: 'logo' as const, Icon: Stamp, label: 'Logo' },
-            ]).map(({ tool, Icon }) => (
-              <button
-                key={tool}
-                onClick={() => toggleTool(tool)}
-                className={`h-8 w-8 rounded-full border flex items-center justify-center transition-colors ${
-                  activeTool === tool ? 'border-foreground/40 bg-foreground/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-              </button>
-            ))}
 
-            {/* Safe area toggle */}
+          {/* Utility actions */}
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setShowSafeArea(!showSafeArea)}
-              className={`h-8 w-8 rounded-full border flex items-center justify-center transition-colors ${
-                showSafeArea ? 'border-foreground/40 bg-foreground/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground'
-              }`}
+              className={cn(
+                'h-8 w-8 rounded-lg flex items-center justify-center transition-all duration-200',
+                showSafeArea
+                  ? 'bg-primary/15 text-primary'
+                  : 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50'
+              )}
               title="Safe Area Guides"
             >
               <Eye className="h-3.5 w-3.5" />
             </button>
-
             <button
               onClick={handleReset}
-              className="h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200"
+              title="Reset"
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </button>
             <SmartFillUploader totalCells={cells.length} onFiles={handleSmartFill} />
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Grid canvas */}
-      <div className="flex-1 flex items-start justify-center px-4 pt-5 pb-40" onClick={deselectAll}>
+      {/* ─── Canvas Area ─── */}
+      <div
+        className="flex-1 flex items-center justify-center px-4 py-6"
+        onClick={deselectAll}
+      >
         <div
           ref={gridRef}
-          className="w-full max-w-[440px] rounded-2xl overflow-hidden border border-border shadow-sm relative"
+          className="w-full max-w-[420px] rounded-xl overflow-hidden shadow-lg relative transition-shadow duration-300"
           style={{
             aspectRatio: canvasRatio,
             background: canvasBg,
+            boxShadow: '0 8px 40px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
           }}
         >
           {/* Grain overlay */}
@@ -346,50 +350,72 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         </div>
       </div>
 
-      {/* Active tool panel */}
-      {activeTool && (
-        <div className="fixed bottom-[60px] left-0 right-0 z-30">
-          {activeTool === 'text' && (
-            <TextToolbar layers={textLayers} selectedId={selectedTextId} onAddLayer={addTextLayer} onUpdateLayer={updateTextLayer} />
-          )}
-          {activeTool === 'elements' && (
-            <ElementToolbar elements={elements} selectedId={selectedElementId} onAddElement={addElement} onUpdateElement={updateElement} />
-          )}
-          {activeTool === 'background' && !hasFrame && (
-            <BackgroundStyler value={background} onChange={setBackground} />
-          )}
-          {activeTool === 'logo' && (
-            <LogoToolbar logo={logo} onAddLogo={handleAddLogo} onUpdateLogo={handleUpdateLogo} />
-          )}
-          {activeTool === 'caption' && (
-            <div className="max-h-[50vh] overflow-y-auto px-3 py-2">
-              <AICaptionGenerator photoCount={filledCount} onClose={() => setActiveTool(null)} />
-            </div>
-          )}
-        </div>
-      )}
+      {/* ─── Tool Rail (horizontal icons above panels) ─── */}
+      <div className="fixed bottom-[52px] left-0 right-0 z-30">
+        {/* Active tool panel — slides up from bottom */}
+        {activeTool && (
+          <div className="animate-fade-in">
+            {activeTool === 'text' && (
+              <TextToolbar layers={textLayers} selectedId={selectedTextId} onAddLayer={addTextLayer} onUpdateLayer={updateTextLayer} />
+            )}
+            {activeTool === 'elements' && (
+              <ElementToolbar elements={elements} selectedId={selectedElementId} onAddElement={addElement} onUpdateElement={updateElement} />
+            )}
+            {activeTool === 'background' && !hasFrame && (
+              <BackgroundStyler value={background} onChange={setBackground} />
+            )}
+            {activeTool === 'logo' && (
+              <LogoToolbar logo={logo} onAddLogo={handleAddLogo} onUpdateLogo={handleUpdateLogo} />
+            )}
+            {activeTool === 'caption' && (
+              <div className="max-h-[50vh] overflow-y-auto bg-card border-t border-border px-3 py-2">
+                <AICaptionGenerator photoCount={filledCount} onClose={() => setActiveTool(null)} />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
-      {/* Bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur border-t border-border px-3 py-3 safe-area-pb">
-        <div className="max-w-[480px] mx-auto flex items-center justify-between gap-2">
-          <button
-            onClick={() => filledCount > 0 && setShowIgPreview(true)}
-            disabled={filledCount === 0}
-            className="flex items-center gap-1.5 text-[10px] tracking-wider uppercase font-medium text-foreground disabled:text-muted-foreground/40 transition-colors"
-          >
-            <Instagram className="h-3.5 w-3.5" />
-            Preview
-          </button>
-          <button
-            onClick={() => toggleTool('caption')}
-            className={`flex items-center gap-1.5 text-[10px] tracking-wider uppercase font-medium transition-colors ${
-              activeTool === 'caption' ? 'text-primary' : 'text-foreground'
-            }`}
-          >
-            <MessageSquare className="h-3.5 w-3.5" />
-            Caption
-          </button>
-          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+      {/* ─── Bottom Bar ─── */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60 safe-area-pb">
+        <div className="max-w-[480px] mx-auto">
+          {/* Tool icons */}
+          <div className="flex items-center justify-between px-2 pt-1.5">
+            {toolButtons.map(({ tool, Icon, label }) => (
+              <button
+                key={tool}
+                onClick={() => toggleTool(tool)}
+                className={cn(
+                  'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-all duration-200 min-w-[48px]',
+                  activeTool === tool
+                    ? 'text-primary bg-primary/8'
+                    : 'text-muted-foreground/60 hover:text-foreground'
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="text-[8px] tracking-wider uppercase font-medium">{label}</span>
+              </button>
+            ))}
+
+            {/* Separator */}
+            <div className="h-6 w-px bg-border/60" />
+
+            {/* Preview + Export */}
+            <button
+              onClick={() => filledCount > 0 && setShowIgPreview(true)}
+              disabled={filledCount === 0}
+              className={cn(
+                'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-all duration-200 min-w-[48px]',
+                'text-muted-foreground/60 hover:text-foreground disabled:opacity-30'
+              )}
+            >
+              <Instagram className="h-4 w-4" />
+              <span className="text-[8px] tracking-wider uppercase font-medium">Preview</span>
+            </button>
+          </div>
+
+          {/* Export row */}
+          <div className="flex items-center justify-end gap-1.5 px-3 pb-2 pt-1">
             <CarouselSliceExporter cells={cells} format={format} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
             <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} format={format} />

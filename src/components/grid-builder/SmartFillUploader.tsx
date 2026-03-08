@@ -1,6 +1,5 @@
 import { useRef, useCallback } from 'react';
-import { Upload, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 
 interface Props {
   totalCells: number;
@@ -19,15 +18,13 @@ export default function SmartFillUploader({ totalCells, onFiles }: Props) {
   return (
     <>
       <input ref={ref} type="file" accept="image/*" multiple className="hidden" onChange={handle} />
-      <Button
-        variant="outline"
-        size="sm"
+      <button
         onClick={() => ref.current?.click()}
-        className="gap-2"
+        className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-[10px] tracking-wider uppercase font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 active:scale-95"
       >
-        <Sparkles className="h-3.5 w-3.5" />
-        Smart Fill ({totalCells})
-      </Button>
+        <Sparkles className="h-3 w-3" />
+        Fill ({totalCells})
+      </button>
     </>
   );
 }
