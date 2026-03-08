@@ -197,7 +197,7 @@ export default function AlbumDesigner() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem disabled>
+                          <DropdownMenuItem onClick={() => navigate(`/dashboard/album-designer/${album.id}/editor`)}>
                             <ExternalLink className="h-4 w-4 mr-2" /> Open Editor
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDuplicate(album)}>
