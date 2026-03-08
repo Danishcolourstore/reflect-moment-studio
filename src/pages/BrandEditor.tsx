@@ -205,6 +205,7 @@ const BrandEditor = () => {
       testimonials_data: d.testimonials,
       location: d.location || null,
       phone: d.phone || null,
+      website_template: websiteTemplate,
     };
 
     const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
