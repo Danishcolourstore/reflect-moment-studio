@@ -360,6 +360,9 @@ const WebsiteEditor = () => {
       );
       case 'services': return servicesData.length > 0 ? <WebsiteServices key="services" id="services" services={servicesData} accent={accentColor} template={websiteTemplate} /> : <div key="services" className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>Add services in the section editor</div>;
       case 'testimonials': return testimonialsData.length > 0 ? <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonialsData} accent={accentColor} template={websiteTemplate} /> : <div key="testimonials" className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>Add testimonials in the section editor</div>;
+      case 'latest_works': return <WebsiteLatestWorks key="latest_works" id="latest-works" template={websiteTemplate} images={websiteImages.latest_works_photos || []} accent={accentColor} title={websiteImages.latest_works_title || 'My Latest Works'} maxImages={30} />;
+      case 'newsletter': return <WebsiteNewsletter key="newsletter" id="newsletter" template={websiteTemplate} title={websiteImages.newsletter_title} description={websiteImages.newsletter_description} buttonText={websiteImages.newsletter_button_text} />;
+      case 'image_strip': return <WebsiteImageStrip key="image_strip" id="image-strip" template={websiteTemplate} images={websiteImages.image_strip_photos || []} />;
       case 'contact': return <WebsiteContact key="contact" id="contact" template={websiteTemplate} branding={branding} photographerId={user?.id} />;
       default: return null;
     }
