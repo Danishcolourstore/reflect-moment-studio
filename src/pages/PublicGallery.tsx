@@ -8,6 +8,7 @@ import { StoryBookLayout } from '@/components/StoryBookLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { useGuestSession } from '@/hooks/use-guest-session';
+import { useGoogleFonts } from '@/hooks/use-google-fonts';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
