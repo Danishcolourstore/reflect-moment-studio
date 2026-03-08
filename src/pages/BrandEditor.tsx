@@ -441,7 +441,7 @@ const BrandEditor = () => {
                     </div>
                   );
                 case 'about':
-                  return data.bio ? <WebsiteAbout key="about" template="modern-portfolio" branding={combinedBranding} /> : null;
+                  return data.bio ? <WebsiteAbout key="about" template="dark-portfolio" branding={combinedBranding} /> : null;
                 case 'featured':
                   return data.featuredGalleryIds.length > 0 ? (
                     <div key="featured" className="py-8 px-4 text-center">
