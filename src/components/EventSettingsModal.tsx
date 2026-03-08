@@ -83,7 +83,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [heroCoupleName, setHeroCoupleName] = useState(event.hero_couple_name ?? '');
   const [heroSubtitle, setHeroSubtitle] = useState(event.hero_subtitle ?? '');
   const [heroButtonLabel, setHeroButtonLabel] = useState(event.hero_button_label ?? '');
-  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>((event.website_template as WebsiteTemplateValue) || 'editorial-studio');
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>((event.website_template as WebsiteTemplateValue) || 'dark-portfolio');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
