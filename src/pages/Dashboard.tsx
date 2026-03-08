@@ -76,7 +76,7 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       {/* Greeting */}
-      <div className="mb-8" style={{ padding: '8px 0 0' }}>
+      <div className="mb-8 lg:mb-10" style={{ padding: '8px 0 0' }}>
         <h1
           className="text-foreground"
           style={{ fontFamily: 'var(--editorial-heading)', fontSize: '32px', fontWeight: 400, letterSpacing: '-0.3px', lineHeight: 1.3 }}
@@ -86,7 +86,7 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions Row */}
-      <div className="flex gap-3 mb-8">
+      <div className="flex gap-3 mb-8 lg:mb-10">
         <Button onClick={() => setCreateOpen(true)} className="flex-1 lg:flex-none h-11 lg:h-12 lg:px-8 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
           <Plus className="h-4 w-4" /> New Event
         </Button>
@@ -97,19 +97,17 @@ const Dashboard = () => {
 
       {/* Stats Grid — 2×2 mobile, 4×1 desktop */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 mb-8">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 lg:h-40 rounded-2xl" />)}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-10">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 lg:h-44 rounded-2xl" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-10">
           <PixisetStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
           <PixisetStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/analytics')} />
         </div>
       )}
-
-
 
       <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
       {shareEvent && <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.name} pin={shareEvent.gallery_pin} />}
