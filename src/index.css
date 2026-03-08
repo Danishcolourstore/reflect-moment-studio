@@ -305,13 +305,60 @@
     @apply text-[12px] text-muted-foreground;
   }
 
-  /* Classic theme — Pixieset-style clean card shadows */
+  /* Classic theme — Pixieset-style overrides */
   .classic .hover-lift:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
   }
   .classic .glass-surface {
     @apply bg-card border border-border backdrop-blur-none;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  /* Classic cards get subtle shadow */
+  .classic .bg-card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  /* Classic nav active uses gold accent */
+  .classic .nav-active-gold {
+    color: hsl(38 40% 61%);
+  }
+  .classic .nav-bar-gold {
+    background: hsl(38 40% 61%);
+  }
+  /* Classic inputs: white bg, visible border */
+  .classic input,
+  .classic textarea,
+  .classic select {
+    background: #FFFFFF;
+    border-color: hsl(40 10% 90%);
+    border-radius: 10px;
+  }
+  .classic input:focus,
+  .classic textarea:focus {
+    border-color: hsl(38 40% 61%);
+    box-shadow: 0 0 0 2px hsl(38 40% 61% / 0.15);
+  }
+  /* Classic buttons: hover shadow lift */
+  .classic button:hover {
+    transition: all 150ms ease;
+  }
+  /* Classic dialogs */
+  .classic [role="dialog"] {
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+  /* Classic toast */
+  .classic [data-sonner-toast] {
+    border: 1px solid hsl(40 10% 90%);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  }
+  /* Classic page transitions */
+  .classic main {
+    animation: classic-fade-in 150ms ease;
+  }
+  /* Classic skeleton shimmer */
+  .classic .animate-pulse {
+    background-color: #F0F0EE;
   }
 }
 
