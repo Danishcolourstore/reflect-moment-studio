@@ -122,7 +122,7 @@ export default function TemplatePreview() {
       } else {
         await (supabase.from('studio_profiles').insert({ user_id: user.id, website_template: templateValue } as any) as any);
       }
-      toast.success(`Template "${templateInfo?.label}" selected`);
+      toast.success('Template selected successfully');
       navigate('/dashboard/website-editor');
     } catch {
       toast.error('Failed to select template');
