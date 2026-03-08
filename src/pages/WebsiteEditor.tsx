@@ -513,6 +513,17 @@ const WebsiteEditor = () => {
     );
   };
 
+  // ── Mobile section edit handler ──
+  const openMobileSectionEditor = (id: string) => {
+    setActiveSection(id);
+    setMobileEditorOpen(true);
+  };
+
+  const closeMobileSectionEditor = () => {
+    setMobileEditorOpen(false);
+    setActiveSection(null);
+  };
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
@@ -522,7 +533,102 @@ const WebsiteEditor = () => {
   }
 
   const visibleSections = sectionOrder.filter(id => sectionVisibility[id]);
+  const activeSecMeta = ALL_SECTIONS.find(s => s.id === activeSection);
 
+  // ═══════════════════════════════════════════
+  // MOBILE LAYOUT
+  // ═══════════════════════════════════════════
+  if (isMobile) {
+    return (
+      <div className="h-screen flex flex-col bg-background overflow-hidden">
+        {/* ── Mobile Top Toolbar ── */}
+        <header className="h-12 border-b border-border flex items-center justify-between px-3 bg-card shrink-0 z-50">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/dashboard/branding')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+
+          <div className="flex items-center gap-1.5">
+            {username && (
+              <Button variant="ghost" size="sm" className="text-[10px] h-8 px-2" onClick={() => window.open(`/studio/${username}`, '_blank')}>
+                <Eye className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="text-[10px] h-8 px-3" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3 mr-1" />}
+              Save
+            </Button>
+            <Button size="sm" className="text-[10px] h-8 px-3 bg-primary text-primary-foreground" onClick={handlePublish} disabled={publishing}>
+              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3 mr-1" />}
+              Publish
+            </Button>
+          </div>
+        </header>
+
+        {/* ── Full-Screen Preview ── */}
+        <main className="flex-1 overflow-y-auto">
+          <div
+            style={{ backgroundColor: tmpl.bg, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}
+          >
+            {visibleSections.map(sectionId => (
+              <div
+                key={sectionId}
+                className={`relative group transition-all ${
+                  activeSection === sectionId ? 'ring-2 ring-primary ring-inset' : ''
+                }`}
+                onClick={() => openMobileSectionEditor(sectionId)}
+              >
+                {/* Tap-to-edit hint on hover */}
+                <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-md text-[9px] font-medium uppercase tracking-wider bg-black/60 text-white opacity-0 active:opacity-100 transition-opacity pointer-events-none">
+                  <Pencil className="h-2.5 w-2.5 inline mr-1" />
+                  {ALL_SECTIONS.find(s => s.id === sectionId)?.label}
+                </div>
+                {renderSection(sectionId)}
+              </div>
+            ))}
+            <WebsiteFooter template={websiteTemplate} branding={branding} />
+          </div>
+        </main>
+
+        {/* ── Floating Edit Button ── */}
+        <button
+          onClick={() => setMobileSectionsOpen(true)}
+          className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+          style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
+        >
+          <LayoutGrid className="h-5 w-5" />
+        </button>
+
+        {/* ── Sections Manager Drawer ── */}
+        <MobileSectionDrawer
+          open={mobileSectionsOpen}
+          onOpenChange={setMobileSectionsOpen}
+          sections={ALL_SECTIONS as unknown as { id: string; label: string; icon: string }[]}
+          sectionOrder={sectionOrder}
+          sectionVisibility={sectionVisibility}
+          onReorder={setSectionOrder}
+          onToggleVisibility={toggleSection}
+          onEditSection={openMobileSectionEditor}
+        />
+
+        {/* ── Section Editor Drawer ── */}
+        {activeSection && activeSecMeta && (
+          <MobileEditorPanel
+            open={mobileEditorOpen}
+            onOpenChange={(open) => { if (!open) closeMobileSectionEditor(); }}
+            sectionLabel={activeSecMeta.label}
+            sectionIcon={activeSecMeta.icon}
+            onBack={closeMobileSectionEditor}
+          >
+            {renderSectionEditor()}
+          </MobileEditorPanel>
+        )}
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════
+  // DESKTOP LAYOUT (unchanged)
+  // ═══════════════════════════════════════════
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* ── Top Bar ── */}
@@ -678,9 +784,9 @@ const WebsiteEditor = () => {
                 style={{ backgroundColor: tmpl.navBg, borderColor: tmpl.navBorder }}
               >
                 <div className="flex gap-1">
-                  <div className="w-2 h-2 rounded-full bg-red-400/60" />
-                  <div className="w-2 h-2 rounded-full bg-yellow-400/60" />
-                  <div className="w-2 h-2 rounded-full bg-green-400/60" />
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'rgb(248 113 113 / 0.6)' }} />
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'rgb(250 204 21 / 0.6)' }} />
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'rgb(74 222 128 / 0.6)' }} />
                 </div>
                 <div
                   className="flex-1 text-center text-[9px] font-mono truncate px-2 py-0.5 rounded-md"
@@ -708,7 +814,7 @@ const WebsiteEditor = () => {
                   >
                     {/* Section label overlay */}
                     <div className={`absolute top-2 left-2 z-20 px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider transition-opacity ${
-                      activeSection === sectionId ? 'opacity-100 bg-primary text-primary-foreground' : 'opacity-0 group-hover:opacity-100 bg-black/70 text-white'
+                      activeSection === sectionId ? 'opacity-100 bg-primary text-primary-foreground' : 'opacity-0 group-hover:opacity-100 bg-foreground/70 text-background'
                     }`}>
                       {ALL_SECTIONS.find(s => s.id === sectionId)?.label}
                     </div>
