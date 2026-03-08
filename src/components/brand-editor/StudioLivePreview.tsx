@@ -169,7 +169,7 @@ export function StudioLivePreview({
         return featuredEvents.length > 0 ? (
           <WebsiteFeatured key="featured" id="featured"
             events={featuredEvents} coverPhotos={coverPhotos}
-            accent={accent} onNavigate={() => {}}
+            accent={accent} onNavigate={() => {}} template={template}
           />
         ) : null;
       case 'services':
