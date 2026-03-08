@@ -141,7 +141,7 @@ const WebsiteEditor = () => {
   const [albums, setAlbums] = useState<PortfolioAlbum[]>([]);
   const [portfolioPhotos, setPortfolioPhotos] = useState<{ id: string; url: string }[]>([]);
   const [allEvents, setAllEvents] = useState<{ id: string; name: string }[]>([]);
-  const [dbTemplates, setDbTemplates] = useState<WebsiteTemplateConfig[]>([]);
+  const { data: dbTemplates = [] } = useWebsiteTemplates();
 
   // ── Drag state ──
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -154,14 +154,11 @@ const WebsiteEditor = () => {
     let cancelled = false;
 
     (async () => {
-      // Load DB templates in parallel with profile data
-      const [profileRes, studioRes, loadedTemplates] = await Promise.all([
+      const [profileRes, studioRes] = await Promise.all([
         (supabase.from('profiles').select('studio_name, studio_logo_url, studio_accent_color, email') as any).eq('user_id', user.id).maybeSingle(),
         (supabase.from('studio_profiles').select('*') as any).eq('user_id', user.id).maybeSingle(),
-        loadTemplatesFromDb(),
       ]);
       if (cancelled) return;
-      setDbTemplates(loadedTemplates);
 
       const p = profileRes.data;
       const s = studioRes.data;

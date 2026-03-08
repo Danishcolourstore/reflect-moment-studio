@@ -90,6 +90,7 @@ interface EventOption {
 const BrandEditor = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: templates = STATIC_TEMPLATES } = useWebsiteTemplates();
 
   const [data, setData] = useState<BrandData>({
     studioName: '', tagline: '', bio: '', accentColor: '#b08d57',

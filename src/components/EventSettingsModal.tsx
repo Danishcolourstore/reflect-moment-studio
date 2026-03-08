@@ -69,6 +69,7 @@ interface EventSettingsModalProps {
 
 export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: EventSettingsModalProps) {
   const { toast } = useToast();
+  const { data: wsTemplates = [] } = useWebsiteTemplates();
   const [title, setTitle] = useState(event.name);
   const [date, setDate] = useState(event.event_date);
   const [location, setLocation] = useState(event.location ?? '');

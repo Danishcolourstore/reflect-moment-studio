@@ -8,6 +8,7 @@ interface WebsiteTemplateSelectorProps {
 }
 
 export function WebsiteTemplateSelector({ value, onChange }: WebsiteTemplateSelectorProps) {
+  const { data: templates = STATIC_TEMPLATES } = useWebsiteTemplates();
   return (
     <div className="space-y-6">
       <div>

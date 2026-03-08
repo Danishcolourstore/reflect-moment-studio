@@ -13,6 +13,7 @@ import { getStudioDisplayUrl } from '@/lib/studio-url';
 const Branding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: templates = STATIC_TEMPLATES } = useWebsiteTemplates();
   const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<WebsiteTemplateValue>('vows-elegance');
   const [username, setUsername] = useState('');

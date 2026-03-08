@@ -105,9 +105,9 @@ export default function TemplatePreview() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: allTemplates = [] } = useWebsiteTemplates();
   const templateValue = (params.get('template') || 'vows-elegance') as WebsiteTemplateValue;
   const tmpl = getTemplate(templateValue);
-  const templateInfo = WEBSITE_TEMPLATES.find(t => t.value === templateValue);
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
   const [choosing, setChoosing] = useState(false);
 
