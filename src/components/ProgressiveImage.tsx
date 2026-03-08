@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, memo } from 'react';
+import { getOptimizedUrl, getImageSrcSet, getImageSizes } from '@/lib/image-utils';
 
 interface ProgressiveImageProps {
   src: string;
@@ -6,47 +7,68 @@ interface ProgressiveImageProps {
   className?: string;
   draggable?: boolean;
   onClick?: () => void;
+  /** Use 'grid' for gallery thumbnails, 'lightbox' for full viewer, 'hero' for hero/cover */
+  context?: 'grid' | 'lightbox' | 'hero';
 }
 
 /**
- * Progressive image with blur-up placeholder.
- * Shows a CSS blur placeholder → loads thumbnail → reveals full image.
+ * Progressive image with blur-up placeholder and responsive sizing.
+ *
+ * Phase 1: Neutral muted placeholder (instant)
+ * Phase 2: Tiny thumbnail loads with blur (fast, ~15KB)
+ * Phase 3: Thumbnail sharpens into view
+ *
+ * In grid context, only loads 400px-wide thumbnails.
+ * srcSet allows browser to pick optimal size based on viewport.
  */
 export const ProgressiveImage = memo(function ProgressiveImage({
   src, alt = '', className = '', draggable = false, onClick,
+  context = 'grid',
 }: ProgressiveImageProps) {
-  const [loaded, setLoaded] = useState(false);
+  const [thumbLoaded, setThumbLoaded] = useState(false);
   const [inView, setInView] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  // Determine the display URL based on context
+  const displayUrl = context === 'lightbox' ? src : getOptimizedUrl(src, context === 'hero' ? 'medium' : 'thumbnail');
+  const srcSet = context === 'lightbox' ? undefined : getImageSrcSet(src);
+  const sizes = getImageSizes(context);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { rootMargin: '200px' }
+      { rootMargin: '300px' }
     );
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
 
+  // Reset loaded state when src changes
+  useEffect(() => {
+    setThumbLoaded(false);
+  }, [src]);
+
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`} onClick={onClick}>
-      {/* Blur placeholder background */}
+      {/* Phase 1: Neutral muted placeholder */}
       <div
         className="absolute inset-0 bg-muted/30 transition-opacity duration-500"
-        style={{ opacity: loaded ? 0 : 1 }}
+        style={{ opacity: thumbLoaded ? 0 : 1 }}
       />
 
       {inView && (
         <img
-          src={src}
+          src={displayUrl}
+          srcSet={srcSet}
+          sizes={sizes}
           alt={alt}
-          className={`${className} transition-all duration-500 ${loaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}
+          className={`${className} transition-all duration-500 ${thumbLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}
           draggable={draggable}
           loading="lazy"
           decoding="async"
-          onLoad={() => setLoaded(true)}
+          onLoad={() => setThumbLoaded(true)}
         />
       )}
     </div>
