@@ -42,6 +42,10 @@ export default function AlbumExportDialog({ open, onOpenChange, album, pages, on
 
     return sortedPages.map(p => {
       const pageLayers = (layersData || []).filter((l: any) => l.page_id === p.id && l.layer_type === 'photo');
+      const photos = pageLayers.filter((l: any) => l.settings_json?.imageUrl).map((l: any) => l.settings_json.imageUrl as string);
+      return { pageNum: p.pageNumber, bgColor: (bgMap.get(p.id) || '#ffffff') as string, photos };
+    });
+      const pageLayers = (layersData || []).filter((l: any) => l.page_id === p.id && l.layer_type === 'photo');
       const photos = pageLayers.filter((l: any) => l.settings_json?.imageUrl).map((l: any) => l.settings_json.imageUrl);
       return { pageNum: p.pageNumber, bgColor: bgMap.get(p.id) || '#ffffff', photos };
     });
