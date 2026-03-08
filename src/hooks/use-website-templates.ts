@@ -11,6 +11,8 @@ function mapDbRow(row: any): WebsiteTemplateConfig {
     value: row.slug,
     label: row.label,
     description: row.description || '',
+    category: row.category || 'wedding',
+    previewImageUrl: row.preview_image_url || null,
     fontFamily: styling.fontFamily || row.font_family,
     uiFontFamily: styling.uiFontFamily || row.ui_font_family,
     bg: styling.bg || row.bg_color,
