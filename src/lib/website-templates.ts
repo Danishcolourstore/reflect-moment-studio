@@ -3,10 +3,18 @@
  * Templates are loaded from the database (managed by Super Admin).
  */
 
+export interface SectionConfigItem {
+  id: string;
+  enabled: boolean;
+  order: number;
+}
+
 export interface WebsiteTemplateConfig {
   value: string;
   label: string;
   description: string;
+  category: string;
+  previewImageUrl: string | null;
   fontFamily: string;
   uiFontFamily: string;
   bg: string;
@@ -24,15 +32,23 @@ export interface WebsiteTemplateConfig {
     portfolio?: { layout?: string; max_images?: number; demo_images?: string[] };
     about?: { bio?: string; profile_image_url?: string | null };
     services?: { title: string; description: string; icon: string }[];
-    contact?: { heading?: string; button_text?: string };
-    footer?: { text?: string; show_social?: boolean };
+    contact?: { heading?: string; button_text?: string; show_whatsapp?: boolean };
+    footer?: { text?: string; show_social?: boolean; email?: string };
     gallery_images?: string[];
     featured_stories?: { title: string; location: string; image_url: string }[];
     films?: { title: string; thumbnail_url: string; video_url?: string }[];
     social_images?: string[];
+    testimonials?: { name: string; text: string; location?: string }[];
   };
-  stylingConfig?: Record<string, unknown>;
-  sectionConfig?: Record<string, unknown>;
+  stylingConfig?: {
+    galleryColumnsDesktop?: number;
+    galleryColumnsTablet?: number;
+    galleryColumnsMobile?: number;
+    buttonStyle?: string;
+    spacing?: string;
+    [key: string]: unknown;
+  };
+  sectionConfig?: { sections?: SectionConfigItem[] };
 }
 
 const EMPTY_TEMPLATE: WebsiteTemplateConfig = {
