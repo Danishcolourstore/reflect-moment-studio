@@ -154,7 +154,7 @@ export function StudioLivePreview({
         return (
           <WebsitePortfolio key="portfolio" id="portfolio"
             events={events} coverPhotos={coverPhotos} accent={accent}
-            layout={portfolioLayout} onNavigate={() => {}}
+            layout={portfolioLayout} onNavigate={() => {}} template={template}
           />
         );
       case 'albums':
