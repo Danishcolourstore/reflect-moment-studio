@@ -70,7 +70,7 @@ const WebsiteEditor = () => {
   const [heroButtonUrl, setHeroButtonUrl] = useState('#portfolio');
 
   // ── Template & layout ──
-  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('vows-elegance');
   const [sectionOrder, setSectionOrder] = useState<string[]>(['hero', 'social', 'portfolio', 'albums', 'about', 'featured', 'services', 'testimonials', 'contact']);
   const [sectionVisibility, setSectionVisibility] = useState<Record<string, boolean>>({ hero: true, social: true, portfolio: true, albums: false, about: true, featured: true, services: false, testimonials: false, contact: true });
   const [portfolioLayout, setPortfolioLayout] = useState<'grid' | 'masonry' | 'large'>('grid');
