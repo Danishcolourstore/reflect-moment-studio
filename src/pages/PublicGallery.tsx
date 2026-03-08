@@ -354,12 +354,20 @@ const PublicGallery = () => {
       .select('*').eq('event_id', ev.id).order('sort_order', { ascending: true }) as any);
     if (tbData) setTextBlocks(tbData as unknown as TextBlock[]);
 
-    // Fetch comment counts
-    const { data: comments } = await (supabase.from('photo_comments').select('photo_id') as any)
-      .eq('event_id', ev.id);
-    if (comments) {
+    // Fetch comment counts (paginated to avoid 1000-row limit)
+    let allComments: any[] = [];
+    let cFrom = 0;
+    while (true) {
+      const { data: comments } = await (supabase.from('photo_comments').select('photo_id') as any)
+        .eq('event_id', ev.id).range(cFrom, cFrom + 999);
+      if (!comments || comments.length === 0) break;
+      allComments = allComments.concat(comments);
+      if (comments.length < 1000) break;
+      cFrom += 1000;
+    }
+    if (allComments.length > 0) {
       const counts: Record<string, number> = {};
-      (comments as any[]).forEach((c: any) => {
+      allComments.forEach((c: any) => {
         counts[c.photo_id] = (counts[c.photo_id] || 0) + 1;
       });
       setCommentCounts(counts);
@@ -404,14 +412,23 @@ const PublicGallery = () => {
     try {
       const zip = new JSZip();
       const folder = zip.folder(event?.name ?? label);
-      for (let i = 0; i < targetPhotos.length; i++) {
-        setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
-        setZipPercent(Math.round(((i + 1) / targetPhotos.length) * 100));
-        const p = targetPhotos[i];
-        const res = await fetch(p.url);
-        const blob = await res.blob();
-        folder?.file(p.file_name ?? `photo-${i + 1}.jpg`, blob);
+      const CONCURRENT = 6;
+      let completed = 0;
+
+      for (let i = 0; i < targetPhotos.length; i += CONCURRENT) {
+        const batch = targetPhotos.slice(i, i + CONCURRENT);
+        const blobs = await Promise.all(
+          batch.map(async (p) => {
+            const res = await fetch(p.url);
+            return { blob: await res.blob(), name: p.file_name ?? `photo-${targetPhotos.indexOf(p) + 1}.jpg` };
+          })
+        );
+        blobs.forEach(({ blob, name }) => folder?.file(name, blob));
+        completed += batch.length;
+        setDownloadProgress(`${completed} / ${targetPhotos.length}`);
+        setZipPercent(Math.round((completed / targetPhotos.length) * 100));
       }
+
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${event?.name ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });

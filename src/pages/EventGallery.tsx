@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
+import { useInfinitePhotos } from '@/hooks/use-infinite-photos';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ShareModal } from '@/components/ShareModal';
@@ -156,15 +157,23 @@ const EventGallery = () => {
 
   const fetchFavStats = useCallback(async () => {
     if (!id) return;
-    const { data } = await (supabase
-      .from('favorites' as any)
-      .select('id, guest_session_id') as any)
-      .eq('event_id', id);
-    if (data) {
-      const rows = data as any[];
-      const uniqueGuests = new Set(rows.map((r: any) => r.guest_session_id)).size;
-      setFavStats({ totalFavs: rows.length, uniqueGuests });
+    // Paginate to avoid 1000-row limit on popular events
+    let allRows: any[] = [];
+    let from = 0;
+    const PAGE = 1000;
+    while (true) {
+      const { data } = await (supabase
+        .from('favorites' as any)
+        .select('id, guest_session_id') as any)
+        .eq('event_id', id)
+        .range(from, from + PAGE - 1);
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < PAGE) break;
+      from += PAGE;
     }
+    const uniqueGuests = new Set(allRows.map((r: any) => r.guest_session_id)).size;
+    setFavStats({ totalFavs: allRows.length, uniqueGuests });
   }, [id]);
 
   const fetchTextBlocks = useCallback(async () => {
@@ -235,21 +244,29 @@ const EventGallery = () => {
     fetchEvent();
   };
 
-  /* ── ZIP helpers ── */
+  /* ── ZIP helpers (concurrent fetch for speed) ── */
   const buildZip = async (targetPhotos: Photo[], label: string) => {
     if (targetPhotos.length === 0) { toast({ title: 'No photos to download' }); return; }
     setDownloading(true);
     try {
       const zip = new JSZip();
       const folder = zip.folder(event?.name ?? label);
-      for (let i = 0; i < targetPhotos.length; i++) {
-        setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
-        const p = targetPhotos[i];
-        const res = await fetch(p.url);
-        const blob = await res.blob();
-        const fileName = p.file_name ?? `photo-${i + 1}.jpg`;
-        folder?.file(fileName, blob);
+      const CONCURRENT = 6;
+      let completed = 0;
+
+      for (let i = 0; i < targetPhotos.length; i += CONCURRENT) {
+        const batch = targetPhotos.slice(i, i + CONCURRENT);
+        const blobs = await Promise.all(
+          batch.map(async (p) => {
+            const res = await fetch(p.url);
+            return { blob: await res.blob(), name: p.file_name ?? `photo-${targetPhotos.indexOf(p) + 1}.jpg` };
+          })
+        );
+        blobs.forEach(({ blob, name }) => folder?.file(name, blob));
+        completed += batch.length;
+        setDownloadProgress(`${completed} / ${targetPhotos.length}`);
       }
+
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${event?.name ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
@@ -293,6 +310,8 @@ const EventGallery = () => {
     ? photos.filter((p) => isFavorite(p.id))
     : photos;
 
+  const { visiblePhotos: paginatedPhotos, hasMore, sentinelRef } = useInfinitePhotos(displayPhotos);
+
   const layout = event.gallery_layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
 
@@ -315,7 +334,7 @@ const EventGallery = () => {
   };
 
   // Map photos for grid components that expect the old shape
-  const gridPhotos = displayPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
+  const gridPhotos = paginatedPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
 
   return (
     <DashboardLayout>
@@ -551,8 +570,9 @@ const EventGallery = () => {
                   <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
                 )
               ) : (
+                <>
                 <div className={gridClass}>
-                  {displayPhotos.map(photo => {
+                  {paginatedPhotos.map(photo => {
                     const fav = isFavorite(photo.id);
                     return (
                       <div key={photo.id} className={`group ${getItemClass(layout)}`}>
@@ -599,6 +619,12 @@ const EventGallery = () => {
                     );
                   })}
                 </div>
+                {hasMore && (
+                  <div ref={sentinelRef} className="flex justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/30" />
+                  </div>
+                )}
+                </>
               )
             ) : null}
 
@@ -671,8 +697,9 @@ const EventGallery = () => {
               <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
             </div>
           ) : displayPhotos.length > 0 ? (
+            <>
             <div className={gridClass}>
-              {displayPhotos.map(photo => {
+              {paginatedPhotos.map(photo => {
                 const fav = isFavorite(photo.id);
                 return (
                   <div key={photo.id} className={`group ${getItemClass(layout)}`}>
@@ -687,6 +714,12 @@ const EventGallery = () => {
                 );
               })}
             </div>
+            {hasMore && (
+              <div ref={sentinelRef} className="flex justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/30" />
+              </div>
+            )}
+            </>
           ) : null}
         </>
       )}

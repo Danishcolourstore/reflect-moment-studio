@@ -42,7 +42,9 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
         body: { selfieId: selfie.id, eventId },
       });
 
+      let pollActive = true;
       const poll = setInterval(async () => {
+        if (!pollActive) return;
         const { data } = await (supabase
           .from('guest_selfies' as any)
           .select('processing_status, match_results')
@@ -50,6 +52,7 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
           .single() as any);
         if (data?.processing_status === 'completed') {
           clearInterval(poll);
+          pollActive = false;
           const matchIds: string[] = (data.match_results as string[]) || [];
           if (matchIds.length > 0) {
             const { data: photos } = await supabase
@@ -61,18 +64,22 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
           setStep('results');
         } else if (data?.processing_status === 'failed') {
           clearInterval(poll);
+          pollActive = false;
           setStep('error');
         }
       }, 1500);
 
       setTimeout(() => {
-        clearInterval(poll);
-        if (step === 'processing') setStep('results');
+        if (pollActive) {
+          clearInterval(poll);
+          pollActive = false;
+          setStep('results');
+        }
       }, 30000);
     } catch {
       setStep('error');
     }
-  }, [eventId, qrAccessId, step]);
+  }, [eventId, qrAccessId]);
 
   return { step, matchedPhotos, submitSelfie };
 };
