@@ -252,7 +252,7 @@ const PhotographerFeed = () => {
         return (
           <WebsitePortfolio key="portfolio" id="portfolio"
             events={events} coverPhotos={coverPhotos} accent={accent}
-            layout={portfolioLayout} onNavigate={handleNav}
+            layout={portfolioLayout} onNavigate={handleNav} template={templateValue}
           />
         );
       case 'albums':
