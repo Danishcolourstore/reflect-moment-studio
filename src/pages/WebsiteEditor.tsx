@@ -439,12 +439,8 @@ const WebsiteEditor = () => {
             />
           </div>
         )}
-                </label>
-              ))}
-              {allEvents.length === 0 && <p className="text-[10px] text-muted-foreground/40">No published events found</p>}
-            </div>
-          </div>
-        )}
+
+
 
         {activeSection === 'services' && (
           <div className="space-y-3">
