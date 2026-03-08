@@ -842,22 +842,13 @@ const BrandEditor = () => {
       </Drawer>
 
       {/* Albums Drawer */}
-      <Drawer open={activeDrawer === 'albums'} onOpenChange={(open) => !open && setActiveDrawer(null)}>
-        <DrawerContent className="max-h-[88dvh]">
-          <DrawerHeader>
-            <DrawerTitle className="text-base">Portfolio Albums</DrawerTitle>
-            <DrawerDescription>Organize work into categories</DrawerDescription>
-          </DrawerHeader>
-          <div className="px-4 pb-8 space-y-4 overflow-y-auto">
-            <p className="text-[10px] text-muted-foreground/40">
-              Portfolio albums are managed separately. Enable this section to display your album categories on your public portfolio page.
-            </p>
-            <p className="text-[10px] text-muted-foreground/40">
-              Categories: Weddings, Pre-Wedding, Engagement, Fashion, Portraits, and more.
-            </p>
-          </div>
-        </DrawerContent>
-      </Drawer>
+      {user && (
+        <AlbumManagerDrawer
+          open={activeDrawer === 'albums'}
+          onClose={() => setActiveDrawer(null)}
+          userId={user.id}
+        />
+      )}
     </div>
   );
 };
