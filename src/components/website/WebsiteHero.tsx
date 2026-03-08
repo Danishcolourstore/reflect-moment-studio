@@ -27,7 +27,96 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
   const btnLabel = branding.hero_button_label;
   const btnUrl = branding.hero_button_url;
   const isEditorial = template === 'editorial-luxury';
+  const isModernGrid = template === 'modern-photography-grid';
 
+  // ── Modern Photography Grid Hero ──
+  if (isModernGrid) {
+    const navItems = ['Home', 'About', 'Projects', 'Team', 'Clients', 'Blog', 'Contact'];
+    return (
+      <section id={id} style={{ backgroundColor: '#FFFFFF' }}>
+        {/* Nav bar */}
+        <nav className="flex items-center justify-between px-6 sm:px-12 py-5" style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+          {branding.studio_logo_url ? (
+            <img src={branding.studio_logo_url} alt="" className="h-8 sm:h-10 object-contain" loading="eager" />
+          ) : (
+            <span
+              className="text-sm sm:text-base font-semibold tracking-[0.02em]"
+              style={{ color: '#1A1A1A', fontFamily: '"DM Sans", sans-serif' }}
+            >
+              {studioName}
+            </span>
+          )}
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.map(item => (
+              <a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className="text-[11px] uppercase tracking-[0.12em] font-medium transition-opacity hover:opacity-70"
+                style={{ color: '#1A1A1A', fontFamily: '"DM Sans", sans-serif' }}
+              >
+                {item}
+              </a>
+            ))}
+          </div>
+        </nav>
+
+        {/* Hero content */}
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 py-12 sm:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* Text side */}
+            <div className="order-2 lg:order-1">
+              {tagline && (
+                <p
+                  className="text-[11px] uppercase tracking-[0.25em] font-medium mb-4"
+                  style={{ color: '#999', fontFamily: '"DM Sans", sans-serif' }}
+                >
+                  {tagline}
+                </p>
+              )}
+              <h1
+                className="text-4xl sm:text-5xl lg:text-6xl font-light leading-[1.1] tracking-tight"
+                style={{ fontFamily: '"DM Sans", sans-serif', color: '#1A1A1A' }}
+              >
+                {studioName}
+              </h1>
+              {(branding as any).bio && (
+                <p className="mt-6 text-sm leading-relaxed max-w-md" style={{ color: '#6B6B6B' }}>
+                  {(branding as any).bio}
+                </p>
+              )}
+              {btnLabel && (
+                <a href={btnUrl || '#portfolio'} className="mt-8 inline-block">
+                  <button
+                    className="h-12 px-10 text-[11px] uppercase tracking-[0.2em] font-medium border border-black rounded-full transition-all duration-300 hover:bg-black hover:text-white"
+                    style={{ color: '#1A1A1A' }}
+                  >
+                    {btnLabel}
+                  </button>
+                </a>
+              )}
+            </div>
+            {/* Image side */}
+            <div className="order-1 lg:order-2">
+              {coverUrl ? (
+                <div className="overflow-hidden rounded-sm">
+                  <img
+                    src={coverUrl}
+                    alt=""
+                    className="w-full aspect-[4/5] object-cover"
+                    loading="eager"
+                  />
+                </div>
+              ) : (
+                <div className="w-full aspect-[4/5] rounded-sm flex items-center justify-center" style={{ backgroundColor: '#F5F5F5' }}>
+                  <span className="text-sm" style={{ color: '#CCC' }}>Upload hero image</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
   if (isEditorial) {
     return (
       <section id={id} style={{ backgroundColor: '#F5F0EA' }}>

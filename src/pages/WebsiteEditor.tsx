@@ -23,6 +23,12 @@ interface WebsiteImages {
   about_photo?: string | null;
   portfolio_photos?: string[];
   featured_photos?: string[];
+  latest_works_photos?: string[];
+  image_strip_photos?: string[];
+  newsletter_title?: string;
+  newsletter_description?: string;
+  newsletter_button_text?: string;
+  latest_works_title?: string;
 }
 
 // Website section components
@@ -37,17 +43,23 @@ import { WebsiteTestimonials, type Testimonial } from '@/components/website/Webs
 import { WebsiteAlbums, type PortfolioAlbum } from '@/components/website/WebsiteAlbums';
 import { WebsitePortfolioImages } from '@/components/website/WebsitePortfolioImages';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
+import { WebsiteLatestWorks } from '@/components/website/WebsiteLatestWorks';
+import { WebsiteNewsletter } from '@/components/website/WebsiteNewsletter';
+import { WebsiteImageStrip } from '@/components/website/WebsiteImageStrip';
 
 // ── Section metadata ──
 const ALL_SECTIONS = [
   { id: 'hero', label: 'Hero', icon: '🖼️' },
   { id: 'social', label: 'Social Bar', icon: '🔗' },
   { id: 'portfolio', label: 'Portfolio', icon: '📷' },
+  { id: 'latest_works', label: 'Latest Works', icon: '🎯' },
   { id: 'albums', label: 'Albums', icon: '📁' },
   { id: 'about', label: 'About', icon: '👤' },
   { id: 'featured', label: 'Featured Work', icon: '⭐' },
   { id: 'services', label: 'Services', icon: '💼' },
   { id: 'testimonials', label: 'Testimonials', icon: '💬' },
+  { id: 'newsletter', label: 'Newsletter', icon: '📬' },
+  { id: 'image_strip', label: 'Image Strip', icon: '🎞️' },
   { id: 'contact', label: 'Contact', icon: '✉️' },
 ] as const;
 
@@ -348,6 +360,9 @@ const WebsiteEditor = () => {
       );
       case 'services': return servicesData.length > 0 ? <WebsiteServices key="services" id="services" services={servicesData} accent={accentColor} template={websiteTemplate} /> : <div key="services" className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>Add services in the section editor</div>;
       case 'testimonials': return testimonialsData.length > 0 ? <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonialsData} accent={accentColor} template={websiteTemplate} /> : <div key="testimonials" className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>Add testimonials in the section editor</div>;
+      case 'latest_works': return <WebsiteLatestWorks key="latest_works" id="latest-works" template={websiteTemplate} images={websiteImages.latest_works_photos || []} accent={accentColor} title={websiteImages.latest_works_title || 'My Latest Works'} maxImages={30} />;
+      case 'newsletter': return <WebsiteNewsletter key="newsletter" id="newsletter" template={websiteTemplate} title={websiteImages.newsletter_title} description={websiteImages.newsletter_description} buttonText={websiteImages.newsletter_button_text} />;
+      case 'image_strip': return <WebsiteImageStrip key="image_strip" id="image-strip" template={websiteTemplate} images={websiteImages.image_strip_photos || []} />;
       case 'contact': return <WebsiteContact key="contact" id="contact" template={websiteTemplate} branding={branding} photographerId={user?.id} />;
       default: return null;
     }
@@ -533,6 +548,55 @@ const WebsiteEditor = () => {
         {activeSection === 'albums' && (
           <div className="space-y-3">
             <p className="text-[10px] text-muted-foreground/40">Albums are managed from the Album Designer. Visible albums appear automatically.</p>
+          </div>
+        )}
+
+        {activeSection === 'latest_works' && user && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Section Title</label>
+              <Input value={websiteImages.latest_works_title || 'My Latest Works'} onChange={e => setWebsiteImages(prev => ({ ...prev, latest_works_title: e.target.value }))} className="mt-1 h-9 text-sm bg-card" />
+            </div>
+            <WebsiteImageGridUploader
+              values={websiteImages.latest_works_photos || []}
+              onChange={(urls) => setWebsiteImages(prev => ({ ...prev, latest_works_photos: urls }))}
+              userId={user.id}
+              folder="latest-works"
+              label="Gallery Images"
+              maxImages={30}
+            />
+            <p className="text-[8px] text-muted-foreground/30">Upload up to 30 images. Visitors can click to view full-screen.</p>
+          </div>
+        )}
+
+        {activeSection === 'newsletter' && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Title</label>
+              <Input value={websiteImages.newsletter_title || 'Follow Our Updates'} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_title: e.target.value }))} className="mt-1 h-9 text-sm bg-card" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Description</label>
+              <Textarea value={websiteImages.newsletter_description || ''} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_description: e.target.value }))} className="mt-1 text-sm bg-card min-h-[80px]" placeholder="Subscribe to stay updated..." />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Button Text</label>
+              <Input value={websiteImages.newsletter_button_text || 'Subscribe'} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_button_text: e.target.value }))} className="mt-1 h-9 text-sm bg-card" />
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'image_strip' && user && (
+          <div className="space-y-3">
+            <WebsiteImageGridUploader
+              values={websiteImages.image_strip_photos || []}
+              onChange={(urls) => setWebsiteImages(prev => ({ ...prev, image_strip_photos: urls }))}
+              userId={user.id}
+              folder="image-strip"
+              label="Strip Images (up to 6)"
+              maxImages={6}
+            />
+            <p className="text-[8px] text-muted-foreground/30">These appear as a horizontal row. Works like an Instagram preview.</p>
           </div>
         )}
 

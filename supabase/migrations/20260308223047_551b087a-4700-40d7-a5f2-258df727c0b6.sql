@@ -1,0 +1,8 @@
+
+INSERT INTO public.website_templates (slug, label, description, sort_order, font_family, ui_font_family, bg_color, text_color, text_secondary_color, nav_bg, nav_border, header_style, hero_style, card_bg, footer_bg, footer_text_color, demo_content)
+VALUES
+  ('modern-photography-grid', 'Modern Photography Grid', 'Clean minimal black-and-white photography portfolio with large hero and grid gallery', 3,
+   '"DM Sans", "Helvetica Neue", sans-serif', '"DM Sans", sans-serif',
+   '#FFFFFF', '#1A1A1A', '#6B6B6B', 'rgba(255,255,255,0.95)', 'rgba(0,0,0,0.08)',
+   'solid', 'modern-grid', '#F8F8F8', '#1A1A1A', '#999999',
+   '{"hero":{"headline":"Creative Photography Studio","tagline":"VISUAL STORYTELLER","button_text":"Read More","description":"We capture moments that tell your unique story through the lens of modern photography.","image_url":null,"nav_items":["Home","About","Projects","Team","Clients","Blog","Contact"]},"portfolio":{"layout":"grid","max_images":30,"demo_images":[],"columns":3},"about":{"bio":"Award-winning photographer with a passion for capturing authentic moments.","profile_image_url":null},"services":[{"title":"Wedding Photography","description":"Full day coverage","icon":"camera"},{"title":"Portrait Sessions","description":"Studio & outdoor","icon":"people"}],"contact":{"heading":"Get In Touch","button_text":"Send Message"},"footer":{"text":"© 2025 Studio. All Rights Reserved.","show_social":true,"nav_items":["Home","About","Projects","Team","Clients","Blog","Contact"]},"newsletter":{"title":"Follow Our Updates","description":"Subscribe to stay updated with our latest photography work and behind-the-scenes stories.","button_text":"Subscribe"},"image_strip":{"images":[],"count":6}}'::jsonb);

@@ -26,6 +26,69 @@ export function WebsiteFooter({ template, branding, photographerUsername }: Webs
   const year = new Date().getFullYear();
   const accent = branding.studio_accent_color || '#C6A77B';
   const isEditorial = template === 'editorial-luxury';
+  const isModernGrid = template === 'modern-photography-grid';
+
+  // ── Modern Photography Grid Footer ──
+  if (isModernGrid) {
+    const navItems = ['Home', 'About', 'Projects', 'Team', 'Clients', 'Blog', 'Contact'];
+    return (
+      <footer style={{ backgroundColor: '#1A1A1A', fontFamily: '"DM Sans", sans-serif' }}>
+        <div className="max-w-6xl mx-auto px-6 py-14">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
+            {/* Logo / name */}
+            <div>
+              {branding.studio_logo_url ? (
+                <img src={branding.studio_logo_url} alt="" className="h-8 object-contain brightness-0 invert opacity-80" />
+              ) : (
+                <span className="text-sm font-semibold tracking-[0.02em]" style={{ color: '#FFFFFF', opacity: 0.9 }}>
+                  {branding.studio_name}
+                </span>
+              )}
+            </div>
+
+            {/* Nav links */}
+            <nav className="flex flex-wrap items-center justify-center gap-5">
+              {navItems.map(link => (
+                <a key={link} href={`#${link.toLowerCase()}`}
+                  className="text-[10px] uppercase tracking-[0.15em] transition-opacity hover:opacity-100"
+                  style={{ color: '#999', opacity: 0.7 }}>
+                  {link}
+                </a>
+              ))}
+            </nav>
+
+            {/* Social icons */}
+            <div className="flex items-center gap-4">
+              {branding.instagram && (
+                <a href={`https://instagram.com/${branding.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="hover:opacity-100 opacity-50 transition-opacity">
+                  <Instagram className="h-4 w-4" style={{ color: '#FFFFFF' }} />
+                </a>
+              )}
+              {branding.email && (
+                <a href={`mailto:${branding.email}`} className="hover:opacity-100 opacity-50 transition-opacity">
+                  <Mail className="h-4 w-4" style={{ color: '#FFFFFF' }} />
+                </a>
+              )}
+              {branding.website && (
+                <a href={branding.website.startsWith('http') ? branding.website : `https://${branding.website}`} target="_blank" rel="noopener noreferrer" className="hover:opacity-100 opacity-50 transition-opacity">
+                  <Globe className="h-4 w-4" style={{ color: '#FFFFFF' }} />
+                </a>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t mt-8 pt-6 text-center" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+            <p className="text-[10px] tracking-[0.12em]" style={{ color: '#666' }}>
+              {branding.footer_text || `© ${branding.studio_name} ${year}. All Rights Reserved.`}
+            </p>
+            <p className="text-[8px] tracking-[0.12em] mt-2" style={{ color: '#444' }}>
+              Powered by MirrorAI
+            </p>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   if (isEditorial) {
     return (
