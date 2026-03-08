@@ -364,9 +364,43 @@ const EventGallery = () => {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-1.5 lg:gap-2">
+        <div className="flex items-center gap-1.5 lg:gap-2 flex-wrap">
           {isOwner && (
             <>
+              {/* Layout Switcher */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+                    <LayoutGrid className="mr-1.5 h-3.5 w-3.5" />Layout
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[180px]">
+                  {[
+                    { value: 'classic', label: 'Classic' },
+                    { value: 'masonry', label: 'Masonry' },
+                    { value: 'justified', label: 'Justified' },
+                    { value: 'editorial', label: 'Editorial' },
+                    { value: 'editorial-collage', label: 'Collage' },
+                    { value: 'pixieset', label: 'Pixieset' },
+                    { value: 'cinematic', label: 'Cinematic' },
+                    { value: 'mosaic', label: 'Mosaic' },
+                    { value: 'minimal-portfolio', label: 'Portfolio' },
+                    { value: 'storybook', label: 'Story Book' },
+                  ].map(opt => (
+                    <DropdownMenuItem
+                      key={opt.value}
+                      onClick={async () => {
+                        await supabase.from('events').update({ gallery_layout: opt.value } as any).eq('id', event.id);
+                        setEvent(prev => prev ? { ...prev, gallery_layout: opt.value } : prev);
+                      }}
+                      className={`text-[12px] gap-2 ${layout === opt.value ? 'font-semibold text-primary' : ''}`}
+                    >
+                      {layout === opt.value && <span className="text-primary">●</span>}
+                      {opt.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button onClick={() => fileInputRef.current?.click()} disabled={upload.isUploading || zipUpload.isUploading || zipUpload.isExtracting}
                 variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
                 <Upload className="mr-1.5 h-3.5 w-3.5" />Upload
