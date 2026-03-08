@@ -67,15 +67,20 @@ import { WebsiteInquiryForm } from '@/components/website/WebsiteInquiryForm';
 const ALL_SECTIONS = [
   { id: 'hero', label: 'Hero', icon: '🖼️' },
   { id: 'social', label: 'Social Bar', icon: '🔗' },
+  { id: 'featured_galleries', label: 'Featured Galleries', icon: '🏛️' },
+  { id: 'storytelling', label: 'Storytelling', icon: '✨' },
   { id: 'portfolio', label: 'Portfolio', icon: '📷' },
   { id: 'latest_works', label: 'Latest Works', icon: '🎯' },
   { id: 'albums', label: 'Albums', icon: '📁' },
   { id: 'about', label: 'About', icon: '👤' },
   { id: 'featured', label: 'Featured Work', icon: '⭐' },
+  { id: 'process', label: 'Style & Process', icon: '🎨' },
   { id: 'services', label: 'Services', icon: '💼' },
   { id: 'testimonials', label: 'Testimonials', icon: '💬' },
+  { id: 'journal', label: 'Journal', icon: '📖' },
   { id: 'newsletter', label: 'Newsletter', icon: '📬' },
   { id: 'image_strip', label: 'Image Strip', icon: '🎞️' },
+  { id: 'inquiry', label: 'Inquiry Form', icon: '💌' },
   { id: 'contact', label: 'Contact', icon: '✉️' },
 ] as const;
 
