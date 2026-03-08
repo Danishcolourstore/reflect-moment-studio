@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save } from 'lucide-react';
+import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save, AlertTriangle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileSectionDrawer } from '@/components/website-editor/MobileSectionDrawer';
 import { MobileEditorPanel } from '@/components/website-editor/MobileEditorPanel';
@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { WEBSITE_TEMPLATES, getTemplate, type WebsiteTemplateValue } from '@/lib/website-templates';
@@ -248,7 +249,37 @@ const WebsiteEditor = () => {
   }, [username, handleSave]);
 
 
-  // ── Section toggle ──
+  // ── Delete / Reset Website ──
+  const [deleting, setDeleting] = useState(false);
+  const handleDeleteWebsite = useCallback(async () => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      // Reset studio_profiles website config (keep non-website fields intact)
+      await (supabase.from('studio_profiles').update({
+        website_template: null,
+        section_order: null,
+        section_visibility: null,
+        services_data: null,
+        testimonials_data: null,
+        featured_gallery_ids: null,
+        portfolio_layout: null,
+        hero_button_label: null,
+        hero_button_url: null,
+        website_images: null,
+        username: null,
+        footer_text: null,
+      } as any) as any).eq('user_id', user.id);
+
+      toast.success('Portfolio website deleted');
+      navigate('/dashboard/branding');
+    } catch {
+      toast.error('Failed to delete website');
+    }
+    setDeleting(false);
+  }, [user, navigate]);
+
+
   const toggleSection = (id: string) => {
     setSectionVisibility(prev => ({ ...prev, [id]: !prev[id] }));
   };
@@ -549,6 +580,34 @@ const WebsiteEditor = () => {
           </Button>
 
           <div className="flex items-center gap-1.5">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-destructive" /> Delete Portfolio Website
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete your current portfolio website? This will remove the website layout, content, and unpublish it. Your galleries, events, and photos will not be affected.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteWebsite}
+                    disabled={deleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleting ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
+                    Delete Website
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             {username && (
               <Button variant="ghost" size="sm" className="text-[10px] h-8 px-2" onClick={() => window.open(`/studio/${username}`, '_blank')}>
                 <Eye className="h-3.5 w-3.5" />
@@ -763,6 +822,40 @@ const WebsiteEditor = () => {
                 <div className="space-y-2">
                   <Input value={footerText} onChange={e => setFooterText(e.target.value)} className="h-8 text-xs bg-background" placeholder="Footer tagline" />
                 </div>
+              </div>
+            )}
+
+            {/* Delete Website */}
+            {!activeSection && (
+              <div className="pt-4 border-t border-border">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-full text-[10px] h-8 text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5">
+                      <Trash2 className="h-3 w-3" /> Delete Website
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-destructive" /> Delete Portfolio Website
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete your current portfolio website? This will remove the website layout, content, and unpublish it. Your galleries, events, and photos will not be affected.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteWebsite}
+                        disabled={deleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {deleting ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
+                        Delete Website
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             )}
           </div>
