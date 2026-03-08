@@ -267,7 +267,7 @@ const PhotographerFeed = () => {
         return (
           <WebsiteFeatured key="featured" id="featured"
             events={featuredEvents} coverPhotos={coverPhotos}
-            accent={accent} onNavigate={handleNav}
+            accent={accent} onNavigate={handleNav} template={templateValue}
           />
         );
       case 'services':
