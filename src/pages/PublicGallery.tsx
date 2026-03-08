@@ -529,7 +529,20 @@ const PublicGallery = () => {
   if (loading) {
     return (
       <div className="min-h-[100dvh] bg-background">
-        <Skeleton className="h-[100vh] w-full rounded-none" />
+        {/* Hero skeleton */}
+        <Skeleton className="h-[70vh] w-full rounded-none" />
+        {/* Gallery skeleton grid */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <div className="flex items-center gap-3 mb-8">
+            <Skeleton className="h-9 w-24 rounded-full" />
+            <Skeleton className="h-9 w-28 rounded-full" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <Skeleton key={i} className="rounded-lg" style={{ height: `${180 + (i % 3) * 60}px` }} />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
