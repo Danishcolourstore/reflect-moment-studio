@@ -6,6 +6,7 @@ import type { GridLayout, GridCellData, CanvasFormat } from './types';
 import { createCellsForLayout, CANVAS_FORMATS } from './types';
 import type { TextLayer } from './text-overlay-types';
 import { GOOGLE_FONTS_URL } from './text-overlay-types';
+import { preloadCommonFonts } from './font-library';
 import type { DesignElement } from './element-types';
 import type { LogoLayer } from './LogoOverlay';
 import { BackgroundStyle, DEFAULT_BG, bgToCss } from './BackgroundStyler';
