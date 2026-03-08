@@ -350,12 +350,12 @@ const Branding = () => {
                     <div>
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground/40 font-medium mb-1">Your Studio Page</p>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm text-foreground font-medium">{window.location.origin}/studio/{username}</p>
+                        <p className="text-sm text-foreground font-medium">{getStudioDisplayUrl(username)}</p>
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/studio/${username}`);
-                          toast.success('Link copied!');
+                          navigator.clipboard.writeText(getStudioUrl(username));
+                          toast.success('Studio link copied!');
                         }}>
-                          <Link2 className="h-3.5 w-3.5" />
+                          <Copy className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
