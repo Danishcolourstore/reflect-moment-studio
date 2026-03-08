@@ -688,6 +688,39 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_inquiries: {
+        Row: {
+          created_at: string
+          email: string
+          event_type: string | null
+          id: string
+          message: string
+          name: string
+          phone: string | null
+          photographer_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_type?: string | null
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+          photographer_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_type?: string | null
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          photographer_id?: string
+        }
+        Relationships: []
+      }
       culled_photos: {
         Row: {
           composition: number | null

@@ -29,6 +29,7 @@ import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
 import { WebsiteAlbums } from '@/components/website/WebsiteAlbums';
+import { AlbumManagerDrawer } from '@/components/brand-editor/AlbumManagerDrawer';
 
 /* ── Types ── */
 interface BrandData {
@@ -137,7 +138,7 @@ const BrandEditor = () => {
       });
 
       setSections(loadedSections);
-
+      if (studio?.website_template) setWebsiteTemplate(studio.website_template);
       const newData: BrandData = {
         studioName: profile?.studio_name || '',
         logoUrl: profile?.studio_logo_url || null,
@@ -204,6 +205,7 @@ const BrandEditor = () => {
       testimonials_data: d.testimonials,
       location: d.location || null,
       phone: d.phone || null,
+      website_template: websiteTemplate,
     };
 
     const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
@@ -841,22 +843,13 @@ const BrandEditor = () => {
       </Drawer>
 
       {/* Albums Drawer */}
-      <Drawer open={activeDrawer === 'albums'} onOpenChange={(open) => !open && setActiveDrawer(null)}>
-        <DrawerContent className="max-h-[88dvh]">
-          <DrawerHeader>
-            <DrawerTitle className="text-base">Portfolio Albums</DrawerTitle>
-            <DrawerDescription>Organize work into categories</DrawerDescription>
-          </DrawerHeader>
-          <div className="px-4 pb-8 space-y-4 overflow-y-auto">
-            <p className="text-[10px] text-muted-foreground/40">
-              Portfolio albums are managed separately. Enable this section to display your album categories on your public portfolio page.
-            </p>
-            <p className="text-[10px] text-muted-foreground/40">
-              Categories: Weddings, Pre-Wedding, Engagement, Fashion, Portraits, and more.
-            </p>
-          </div>
-        </DrawerContent>
-      </Drawer>
+      {user && (
+        <AlbumManagerDrawer
+          open={activeDrawer === 'albums'}
+          onClose={() => setActiveDrawer(null)}
+          userId={user.id}
+        />
+      )}
     </div>
   );
 };
