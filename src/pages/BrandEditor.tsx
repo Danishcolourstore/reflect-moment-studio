@@ -98,7 +98,7 @@ const BrandEditor = () => {
     services: [], featuredGalleryIds: [], testimonials: [],
     location: '', phone: '',
   });
-  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('vows-elegance');
   const [sections, setSections] = useState<SectionConfig[]>(DEFAULT_SECTIONS);
   const [allEvents, setAllEvents] = useState<EventOption[]>([]);
 
@@ -487,7 +487,7 @@ const BrandEditor = () => {
                     </div>
                   );
                 case 'about':
-                  return data.bio ? <WebsiteAbout key="about" template="dark-portfolio" branding={combinedBranding} /> : null;
+                  return data.bio ? <WebsiteAbout key="about" template="vows-elegance" branding={combinedBranding} /> : null;
                 case 'featured':
                   return data.featuredGalleryIds.length > 0 ? (
                     <div key="featured" className="py-8 px-4 text-center">
@@ -506,11 +506,11 @@ const BrandEditor = () => {
                 case 'albums':
                   return null; // albums managed separately
                 case 'contact':
-                  return (data.whatsapp || data.website || data.email) ? <WebsiteContact key="contact" template="dark-portfolio" branding={combinedBranding} /> : null;
+                  return (data.whatsapp || data.website || data.email) ? <WebsiteContact key="contact" template="vows-elegance" branding={combinedBranding} /> : null;
                 case 'branding':
                   return null; // branding is meta, not visual
                 case 'footer':
-                  return <WebsiteFooter key="footer" template="dark-portfolio" branding={combinedBranding} />;
+                  return <WebsiteFooter key="footer" template="vows-elegance" branding={combinedBranding} />;
                 default:
                   return null;
               }

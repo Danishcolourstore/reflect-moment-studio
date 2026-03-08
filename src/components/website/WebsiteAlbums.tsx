@@ -19,7 +19,7 @@ interface WebsiteAlbumsProps {
   id?: string;
 }
 
-export function WebsiteAlbums({ albums, accent, template = 'dark-portfolio', onAlbumClick, id }: WebsiteAlbumsProps) {
+export function WebsiteAlbums({ albums, accent, template = 'vows-elegance', onAlbumClick, id }: WebsiteAlbumsProps) {
   if (albums.length === 0) return null;
   const tmpl = getTemplate(template);
 

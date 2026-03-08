@@ -28,8 +28,8 @@ export function WebsiteHeader({ template, branding, eventName, onScrollToGallery
     ...(onScrollToContact ? [{ label: 'Contact', onClick: onScrollToContact }] : []),
   ];
 
-  const isLight = ['minimal-portfolio', 'modern-grid'].includes(template);
-  const isTransparent = ['luxury-wedding', 'magazine-editorial', 'dark-portfolio'].includes(template);
+  const isLight = false;
+  const isTransparent = ['vows-elegance'].includes(template);
 
   if (isLight) {
     return (

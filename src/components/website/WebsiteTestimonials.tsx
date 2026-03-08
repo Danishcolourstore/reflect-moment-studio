@@ -14,7 +14,7 @@ interface WebsiteTestimonialsProps {
   template?: string;
 }
 
-export function WebsiteTestimonials({ testimonials, accent, id, template = 'dark-portfolio' }: WebsiteTestimonialsProps) {
+export function WebsiteTestimonials({ testimonials, accent, id, template = 'vows-elegance' }: WebsiteTestimonialsProps) {
   if (testimonials.length === 0) return null;
   const tmpl = getTemplate(template);
 

@@ -22,7 +22,7 @@ interface WebsiteServicesProps {
   template?: string;
 }
 
-export function WebsiteServices({ services, accent, id, template = 'dark-portfolio' }: WebsiteServicesProps) {
+export function WebsiteServices({ services, accent, id, template = 'vows-elegance' }: WebsiteServicesProps) {
   if (!services || services.length === 0) return null;
   const tmpl = getTemplate(template);
 

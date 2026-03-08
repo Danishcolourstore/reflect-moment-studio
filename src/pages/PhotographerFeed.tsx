@@ -169,7 +169,7 @@ const PhotographerFeed = () => {
   const navigate = useNavigate();
   const { studio, profile, events, featuredEvents, coverPhotos, albums, portfolioPhotos, loading, notFound } = useFeedData(username);
 
-  const templateValue = studio?.website_template || 'dark-portfolio';
+  const templateValue = studio?.website_template || 'vows-elegance';
   const tmpl = getTemplate(templateValue);
 
   // ── Dynamic SEO meta tags ──

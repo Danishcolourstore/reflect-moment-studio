@@ -83,7 +83,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [heroCoupleName, setHeroCoupleName] = useState(event.hero_couple_name ?? '');
   const [heroSubtitle, setHeroSubtitle] = useState(event.hero_subtitle ?? '');
   const [heroButtonLabel, setHeroButtonLabel] = useState(event.hero_button_label ?? '');
-  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>((event.website_template as WebsiteTemplateValue) || 'dark-portfolio');
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>((event.website_template as WebsiteTemplateValue) || 'vows-elegance');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -101,7 +101,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setHeroCoupleName(event.hero_couple_name ?? '');
     setHeroSubtitle(event.hero_subtitle ?? '');
     setHeroButtonLabel(event.hero_button_label ?? '');
-    setWebsiteTemplate((event.website_template as WebsiteTemplateValue) || 'dark-portfolio');
+    setWebsiteTemplate((event.website_template as WebsiteTemplateValue) || 'vows-elegance');
   }, [event]);
 
   const handleSave = async () => {
