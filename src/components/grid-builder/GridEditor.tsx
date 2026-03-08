@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   ArrowLeft, RotateCcw, Type, Shapes, Palette, Stamp, Instagram,
-  MessageSquare, Eye, Download, ChevronDown,
+  MessageSquare, Eye, Download, GripHorizontal,
 } from 'lucide-react';
 import AICaptionGenerator from './AICaptionGenerator';
 import InstagramCarouselPreview from './InstagramCarouselPreview';
@@ -50,6 +50,10 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [showIgPreview, setShowIgPreview] = useState(false);
   const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  // Panel drag-to-dismiss
+  const [panelDragY, setPanelDragY] = useState(0);
+  const panelDragStart = useRef<number | null>(null);
 
   useEffect(() => {
     if (!document.querySelector('link[data-grid-fonts]')) {
@@ -192,6 +196,27 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     { tool: 'caption', Icon: MessageSquare, label: 'Caption' },
   ];
 
+  // Panel drag handlers
+  const handlePanelDragStart = (e: React.TouchEvent) => {
+    panelDragStart.current = e.touches[0].clientY;
+    setPanelDragY(0);
+  };
+  const handlePanelDragMove = (e: React.TouchEvent) => {
+    if (panelDragStart.current === null) return;
+    const dy = e.touches[0].clientY - panelDragStart.current;
+    if (dy > 0) setPanelDragY(dy);
+  };
+  const handlePanelDragEnd = () => {
+    if (panelDragY > 80) setActiveTool(null);
+    setPanelDragY(0);
+    panelDragStart.current = null;
+  };
+
+  // Format dimensions label
+  const formatDimLabel = (f: CanvasFormat) => {
+    return `${f.label} (${f.exportWidth}×${f.exportHeight})`;
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* ─── Compact Header ─── */}
@@ -206,7 +231,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             <span className="text-[11px] tracking-wider uppercase font-medium">{layout.name}</span>
           </button>
 
-          {/* Format selector */}
+          {/* Format selector with dimensions */}
           {!layout.canvasRatio && (
             <div className="flex items-center gap-0.5 bg-muted/40 rounded-full p-0.5">
               {CANVAS_FORMATS.map((f) => (
@@ -214,13 +239,15 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                   key={f.id}
                   onClick={() => setFormat(f)}
                   className={cn(
-                    'px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wider transition-all duration-200',
+                    'px-2 py-1 rounded-full text-[9px] font-medium tracking-wider transition-all duration-300 flex flex-col items-center leading-tight',
                     format.id === f.id
                       ? 'bg-foreground text-background shadow-sm'
                       : 'text-muted-foreground/60 hover:text-foreground'
                   )}
+                  title={formatDimLabel(f)}
                 >
-                  {f.label}
+                  <span>{f.label}</span>
+                  <span className="text-[7px] opacity-60 tabular-nums">{f.exportWidth}×{f.exportHeight}</span>
                 </button>
               ))}
             </div>
@@ -259,11 +286,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       >
         <div
           ref={gridRef}
-          className="w-full max-w-[420px] rounded-xl overflow-hidden shadow-lg relative transition-shadow duration-300"
+          className="w-full max-w-[420px] rounded-xl overflow-hidden relative transition-all duration-300"
           style={{
             aspectRatio: canvasRatio,
             background: canvasBg,
-            boxShadow: '0 8px 40px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
+            boxShadow: '0 12px 48px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06)',
           }}
         >
           {/* Grain overlay */}
@@ -350,11 +377,23 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         </div>
       </div>
 
-      {/* ─── Tool Rail (horizontal icons above panels) ─── */}
+      {/* ─── Tool Panel (slides up from bottom with drag handle) ─── */}
       <div className="fixed bottom-[52px] left-0 right-0 z-30">
-        {/* Active tool panel — slides up from bottom */}
         {activeTool && (
-          <div className="animate-fade-in">
+          <div
+            className="animate-fade-in transition-transform duration-150"
+            style={{ transform: panelDragY > 0 ? `translateY(${panelDragY}px)` : undefined, opacity: panelDragY > 60 ? 0.5 : 1 }}
+          >
+            {/* Drag handle pill */}
+            <div
+              className="flex justify-center py-2 bg-card border-t border-border/60 cursor-grab active:cursor-grabbing rounded-t-2xl"
+              onTouchStart={handlePanelDragStart}
+              onTouchMove={handlePanelDragMove}
+              onTouchEnd={handlePanelDragEnd}
+            >
+              <div className="w-8 h-1 rounded-full bg-muted-foreground/20" />
+            </div>
+
             {activeTool === 'text' && (
               <TextToolbar layers={textLayers} selectedId={selectedTextId} onAddLayer={addTextLayer} onUpdateLayer={updateTextLayer} />
             )}
@@ -386,14 +425,18 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                 key={tool}
                 onClick={() => toggleTool(tool)}
                 className={cn(
-                  'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-all duration-200 min-w-[48px]',
+                  'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-all duration-200 min-w-[48px] relative',
                   activeTool === tool
-                    ? 'text-primary bg-primary/8'
+                    ? 'text-primary'
                     : 'text-muted-foreground/60 hover:text-foreground'
                 )}
               >
                 <Icon className="h-4 w-4" />
                 <span className="text-[8px] tracking-wider uppercase font-medium">{label}</span>
+                {/* Gold underline indicator */}
+                {activeTool === tool && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-[2px] rounded-full bg-primary" />
+                )}
               </button>
             ))}
 
