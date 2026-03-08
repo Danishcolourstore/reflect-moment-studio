@@ -29,6 +29,17 @@ interface WebsiteImages {
   newsletter_description?: string;
   newsletter_button_text?: string;
   latest_works_title?: string;
+  // Cinematic Wedding Story sections
+  featured_galleries?: { title: string; location: string; imageUrl: string }[];
+  storytelling_headline?: string;
+  storytelling_paragraph?: string;
+  storytelling_bg_image?: string | null;
+  process_title?: string;
+  process_blocks?: { title: string; description: string; imageUrl?: string }[];
+  journal_entries?: { title: string; imageUrl?: string; date?: string }[];
+  inquiry_heading?: string;
+  inquiry_subheading?: string;
+  inquiry_bg_image?: string | null;
 }
 
 // Website section components
