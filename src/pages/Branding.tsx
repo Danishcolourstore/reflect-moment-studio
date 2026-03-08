@@ -398,7 +398,7 @@ const Branding = () => {
               className="border border-border rounded-xl overflow-hidden shadow-lg cursor-pointer transition-shadow hover:shadow-xl active:scale-[0.995] transition-transform"
               style={{ backgroundColor: '#0C0B08' }}
               onClick={() => {
-                if (username) navigate(`/p/${username}`);
+                if (username) navigate(`/studio/${username}`);
                 else toast.info('Set a portfolio username first to preview your gallery.');
               }}
               role="button"
