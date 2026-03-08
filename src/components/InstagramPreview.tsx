@@ -232,8 +232,8 @@ export default function InstagramPreview({
                   }}
                 >
                   {photos.map((url, i) => (
-                    <div key={i} className="w-full h-full shrink-0">
-                      <img src={url} alt="" className="h-full w-full object-cover" draggable={false} />
+                    <div key={i} className="w-full h-full shrink-0 flex items-center justify-center">
+                      <img src={url} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     </div>
                   ))}
                 </div>

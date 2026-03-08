@@ -147,7 +147,12 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
       ) : (
         <button
           type="button"
-          onClick={triggerPicker}
+          onClick={(e) => {
+            // Only trigger upload if the click didn't originate from a text overlay
+            const target = e.target as HTMLElement;
+            if (target.closest('[data-text-overlay]') || target.closest('[data-text-edit]')) return;
+            triggerPicker();
+          }}
           className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-muted-foreground cursor-pointer"
         >
           <Plus className="h-6 w-6" />
