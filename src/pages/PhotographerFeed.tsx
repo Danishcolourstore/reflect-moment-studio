@@ -216,7 +216,7 @@ const PhotographerFeed = () => {
         );
       case 'about':
         return studio.bio ? (
-          <WebsiteAbout key="about" id="about" template="modern-portfolio" branding={branding} />
+          <WebsiteAbout key="about" id="about" template="dark-portfolio" branding={branding} />
         ) : null;
       case 'featured':
         return (
