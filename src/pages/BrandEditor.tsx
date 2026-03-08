@@ -397,7 +397,7 @@ const BrandEditor = () => {
                 <Layout className="h-5 w-5 text-muted-foreground/50" />
                 <div className="text-left">
                   <p className="text-sm font-medium text-foreground">
-                    {WEBSITE_TEMPLATES.find(t => t.value === websiteTemplate)?.label}
+                    {templates.find(t => t.value === websiteTemplate)?.label}
                   </p>
                   <p className="text-[11px] text-muted-foreground/60">
                     {WEBSITE_TEMPLATES.find(t => t.value === websiteTemplate)?.description}
