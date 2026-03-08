@@ -17,14 +17,14 @@ interface Photo {
 
 interface Props {
   eventId: string | null;
-  placedPhotoIds: Set<string>;
+  placedPhotoUrls: Set<string>;
   placedPhotoCounts: Map<string, number>;
   onDragStart: (photo: Photo) => void;
 }
 
 type Filter = 'all' | 'unused' | 'favorites';
 
-export default function AlbumPhotoPanel({ eventId, placedPhotoIds, placedPhotoCounts, onDragStart }: Props) {
+export default function AlbumPhotoPanel({ eventId, placedPhotoUrls, placedPhotoCounts, onDragStart }: Props) {
   const { user } = useAuth();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,8 +96,12 @@ export default function AlbumPhotoPanel({ eventId, placedPhotoIds, placedPhotoCo
     }
   };
 
+  // Match photos by URL since we track by URL in cells
+  const isPhotoPlaced = (photo: Photo) => placedPhotoUrls.has(photo.url);
+  const getPhotoCount = (photo: Photo) => placedPhotoCounts.get(photo.url) || 0;
+
   const filtered = photos.filter(p => {
-    if (filter === 'unused' && placedPhotoIds.has(p.id)) return false;
+    if (filter === 'unused' && isPhotoPlaced(p)) return false;
     if (search && p.file_name && !p.file_name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -160,7 +164,7 @@ export default function AlbumPhotoPanel({ eventId, placedPhotoIds, placedPhotoCo
         ) : (
           <div className="grid grid-cols-3 gap-1">
             {filtered.map(photo => {
-              const count = placedPhotoCounts.get(photo.id) || 0;
+              const count = getPhotoCount(photo);
               return (
                 <div
                   key={photo.id}

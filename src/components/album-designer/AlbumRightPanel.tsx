@@ -29,6 +29,7 @@ interface Props {
   onAddText: (layer: TextLayer) => void;
   onUpdateText: (id: string, patch: Partial<TextLayer>) => void;
   onDeleteText: (id: string) => void;
+  onReorderTextLayers: (layers: TextLayer[]) => void;
   showBleed: boolean;
   showSafeMargin: boolean;
   showSpine: boolean;
@@ -56,11 +57,25 @@ const TEXT_PRESETS = [
 ];
 
 export default function AlbumRightPanel({
-  onApplyTemplate, textLayers, selectedTextId, onAddText, onUpdateText, onDeleteText,
+  onApplyTemplate, textLayers, selectedTextId, onAddText, onUpdateText, onDeleteText, onReorderTextLayers,
   showBleed, showSafeMargin, showSpine, onToggleBleed, onToggleSafe, onToggleSpine,
   bgColor, onBgColorChange, paperTexture, onPaperTextureChange,
 }: Props) {
   const selectedText = textLayers.find(l => l.id === selectedTextId);
+
+  const moveTextLayer = (direction: 'up' | 'down') => {
+    if (!selectedText) return;
+    const idx = textLayers.findIndex(l => l.id === selectedText.id);
+    if (direction === 'up' && idx < textLayers.length - 1) {
+      const arr = [...textLayers];
+      [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+      onReorderTextLayers(arr);
+    } else if (direction === 'down' && idx > 0) {
+      const arr = [...textLayers];
+      [arr[idx], arr[idx - 1]] = [arr[idx - 1], arr[idx]];
+      onReorderTextLayers(arr);
+    }
+  };
 
   return (
     <div className="w-64 xl:w-72 border-l border-border bg-card flex flex-col shrink-0 h-full overflow-hidden">
@@ -109,23 +124,11 @@ export default function AlbumRightPanel({
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Text Properties</p>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" className="h-6 w-6" title="Move Forward"
-                    onClick={() => {
-                      const idx = textLayers.findIndex(l => l.id === selectedText.id);
-                      if (idx < textLayers.length - 1) {
-                        const arr = [...textLayers]; [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
-                        onUpdateText(selectedText.id, {}); // trigger re-render via parent
-                      }
-                    }}>
+                    onClick={() => moveTextLayer('up')}>
                     <ArrowUp className="h-3 w-3" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-6 w-6" title="Move Backward"
-                    onClick={() => {
-                      const idx = textLayers.findIndex(l => l.id === selectedText.id);
-                      if (idx > 0) {
-                        const arr = [...textLayers]; [arr[idx], arr[idx - 1]] = [arr[idx - 1], arr[idx]];
-                        onUpdateText(selectedText.id, {});
-                      }
-                    }}>
+                    onClick={() => moveTextLayer('down')}>
                     <ArrowDown className="h-3 w-3" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => onDeleteText(selectedText.id)}>
