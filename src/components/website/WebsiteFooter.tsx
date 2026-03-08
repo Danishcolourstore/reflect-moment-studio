@@ -103,7 +103,7 @@ export function WebsiteFooter({ template, branding, photographerUsername }: Webs
         {photographerUsername && (
           <div className="pt-2">
             <a
-              href={`/p/${photographerUsername}`}
+              href={`/studio/${photographerUsername}`}
               className="inline-flex items-center gap-1.5 text-[11px] tracking-[0.1em] uppercase transition-opacity hover:opacity-100"
               style={{ color: t.text, opacity: 0.5 }}
             >

@@ -403,7 +403,7 @@ const Branding = () => {
               }}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' && username) navigate(`/p/${username}`); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && username) navigate(`/studio/${username}`); }}
             >
               {/* Hero */}
               <div className="relative aspect-[16/9] overflow-hidden">
