@@ -249,7 +249,37 @@ const WebsiteEditor = () => {
   }, [username, handleSave]);
 
 
-  // ── Section toggle ──
+  // ── Delete / Reset Website ──
+  const [deleting, setDeleting] = useState(false);
+  const handleDeleteWebsite = useCallback(async () => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      // Reset studio_profiles website config (keep non-website fields intact)
+      await (supabase.from('studio_profiles').update({
+        website_template: null,
+        section_order: null,
+        section_visibility: null,
+        services_data: null,
+        testimonials_data: null,
+        featured_gallery_ids: null,
+        portfolio_layout: null,
+        hero_button_label: null,
+        hero_button_url: null,
+        website_images: null,
+        username: null,
+        footer_text: null,
+      } as any) as any).eq('user_id', user.id);
+
+      toast.success('Portfolio website deleted');
+      navigate('/dashboard/branding');
+    } catch {
+      toast.error('Failed to delete website');
+    }
+    setDeleting(false);
+  }, [user, navigate]);
+
+
   const toggleSection = (id: string) => {
     setSectionVisibility(prev => ({ ...prev, [id]: !prev[id] }));
   };
