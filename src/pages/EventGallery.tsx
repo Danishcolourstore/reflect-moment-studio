@@ -569,9 +569,17 @@ const EventGallery = () => {
                             <Share2 className="h-3 w-3" />
                           </button>
                           {canDownloadAnything && (
-                            <a href={photo.url} download={photo.file_name ?? true} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
+                            <button onClick={() => {
+                              fetch(photo.url).then(r => r.blob()).then(blob => {
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url; a.download = photo.file_name ?? 'photo.jpg';
+                                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                              });
+                            }} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-foreground/80 hover:bg-card/90 transition">
                               <Download className="h-3 w-3" />
-                            </a>
+                            </button>
                           )}
                           {isOwner && (
                             <button onClick={() => deletePhoto(photo)} className="rounded-full bg-card/70 backdrop-blur-sm p-1 text-destructive hover:bg-card/90 transition">
