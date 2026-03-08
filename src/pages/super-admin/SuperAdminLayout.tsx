@@ -3,18 +3,22 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Crown, Users, Camera, BookOpen, Settings, BarChart3,
-  LogOut, Shield, Home, Layout,
+  LogOut, Shield, Home, Layout, HardDrive, DollarSign,
+  Mail, Activity,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/super-admin', icon: Home, label: 'Overview', end: true },
-  { to: '/super-admin/users', icon: Users, label: 'Users' },
+  { to: '/super-admin', icon: Home, label: 'Dashboard', end: true },
+  { to: '/super-admin/users', icon: Users, label: 'Photographers' },
+  { to: '/super-admin/events', icon: Camera, label: 'Events' },
+  { to: '/super-admin/storage', icon: HardDrive, label: 'Storage' },
+  { to: '/super-admin/revenue', icon: DollarSign, label: 'Revenue' },
   { to: '/super-admin/templates', icon: Layout, label: 'Templates' },
-  { to: '/super-admin/mirrorai', icon: Camera, label: 'MirrorAI' },
-  { to: '/super-admin/storybooks', icon: BookOpen, label: 'Storybooks' },
+  { to: '/super-admin/emails', icon: Mail, label: 'Bulk Email' },
+  { to: '/super-admin/activity', icon: Activity, label: 'Activity Log' },
   { to: '/super-admin/settings', icon: Settings, label: 'Settings' },
 ];
 
