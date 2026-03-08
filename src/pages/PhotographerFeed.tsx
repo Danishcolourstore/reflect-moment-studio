@@ -279,10 +279,17 @@ const PhotographerFeed = () => {
         ) : null;
       case 'featured':
         return (
-          <WebsiteFeatured key="featured" id="featured"
-            events={featuredEvents} coverPhotos={coverPhotos}
-            accent={accent} onNavigate={handleNav} template={templateValue}
-          />
+          <>
+            {portfolioPhotos.length > 0 && (
+              <WebsitePortfolioImages key="portfolio-images" id="portfolio-images"
+                photos={portfolioPhotos} accent={accent} template={templateValue}
+              />
+            )}
+            <WebsiteFeatured key="featured" id="featured"
+              events={featuredEvents} coverPhotos={coverPhotos}
+              accent={accent} onNavigate={handleNav} template={templateValue}
+            />
+          </>
         );
       case 'services':
         return (
