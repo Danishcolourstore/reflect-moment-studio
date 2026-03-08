@@ -28,6 +28,91 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
   const btnUrl = branding.hero_button_url;
   const isEditorial = template === 'editorial-luxury';
   const isModernGrid = template === 'modern-photography-grid';
+  const isCinematic = template === 'cinematic-wedding-story';
+
+  // ── Cinematic Wedding Story Hero ──
+  if (isCinematic) {
+    const navItems = ['Home', 'About', 'Portfolio', 'Journal', 'Contact'];
+    return (
+      <section id={id} className="relative" style={{ minHeight: '100vh' }}>
+        {coverUrl ? (
+          <>
+            <div className="absolute inset-0 overflow-hidden">
+              <img
+                src={coverUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="eager"
+                style={{ animation: 'cinematicZoom 25s ease-in-out infinite alternate' }}
+              />
+            </div>
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(180deg, rgba(26,23,21,0.15) 0%, rgba(26,23,21,0.05) 30%, rgba(26,23,21,0.3) 70%, rgba(26,23,21,0.65) 100%)',
+              }}
+            />
+          </>
+        ) : (
+          <div className="absolute inset-0" style={{ backgroundColor: '#FAF8F5' }} />
+        )}
+
+        {/* Navigation */}
+        <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 sm:px-12 py-6">
+          {branding.studio_logo_url ? (
+            <img src={branding.studio_logo_url} alt="" className="h-10 sm:h-12 object-contain" loading="eager" />
+          ) : (
+            <span className="text-xs sm:text-sm tracking-[0.08em]" style={{ color: coverUrl ? '#FAF8F5' : '#1A1715', fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 'clamp(1.2rem, 3vw, 2rem)', fontWeight: 300 }}>
+              {studioName}
+            </span>
+          )}
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.map(item => (
+              <a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                className="text-[10px] uppercase tracking-[0.2em] font-medium transition-opacity hover:opacity-100"
+                style={{ color: coverUrl ? '#FAF8F5' : '#1A1715', opacity: 0.7, fontFamily: '"DM Sans", sans-serif' }}
+              >
+                {item}
+              </a>
+            ))}
+          </div>
+          {btnLabel && (
+            <a href={btnUrl || '#contact'} className="hidden sm:block">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-semibold" style={{ color: coverUrl ? '#FAF8F5' : '#1A1715', fontFamily: '"DM Sans", sans-serif' }}>
+                {btnLabel}
+              </span>
+            </a>
+          )}
+        </nav>
+
+        {/* Center content */}
+        <div className="relative z-10 flex flex-col items-center justify-center h-screen px-6 text-center">
+          {tagline && (
+            <p
+              className="text-xs sm:text-sm tracking-[0.3em] uppercase mb-4"
+              style={{ color: coverUrl ? 'rgba(250,248,245,0.6)' : '#7A756E', fontFamily: '"DM Sans", sans-serif' }}
+            >
+              ( {tagline} )
+            </p>
+          )}
+          <h1
+            className="text-[clamp(2.5rem,7vw,7rem)] font-light tracking-[0.03em] leading-[0.95]"
+            style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: coverUrl ? '#FAF8F5' : '#1A1715' }}
+          >
+            {studioName}
+          </h1>
+        </div>
+
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 opacity-30 animate-bounce">
+          <ChevronDown className="h-5 w-5" style={{ color: coverUrl ? '#FAF8F5' : '#1A1715' }} />
+        </div>
+
+        <style>{`@keyframes cinematicZoom { 0% { transform: scale(1); } 100% { transform: scale(1.06); } }`}</style>
+      </section>
+    );
+  }
 
   // ── Modern Photography Grid Hero ──
   if (isModernGrid) {

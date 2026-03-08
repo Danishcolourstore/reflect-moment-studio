@@ -51,8 +51,8 @@ export function WebsiteInquiryForm({
             Get in Touch
           </p>
           <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-light italic"
-            style={{ fontFamily: '"Playfair Display", Georgia, serif', color: textColor }}
+            className={`text-3xl sm:text-4xl lg:text-5xl font-light ${isCinematic ? 'uppercase tracking-[0.04em]' : 'italic'}`}
+            style={{ fontFamily: fontSerif, color: textColor }}
           >
             Let's Create Something Beautiful
           </h2>
