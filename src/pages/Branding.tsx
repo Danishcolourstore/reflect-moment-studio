@@ -15,6 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import BrandTypography, { BRAND_PRESETS, type BrandPreset } from '@/components/brand/BrandTypography';
 import BrandWatermark from '@/components/brand/BrandWatermark';
 import BrandAssets, { type BrandAsset } from '@/components/brand/BrandAssets';
+import { WebsiteTemplateSelector } from '@/components/brand-editor/WebsiteTemplateSelector';
+import { StudioLivePreview } from '@/components/brand-editor/StudioLivePreview';
+import { type WebsiteTemplateValue } from '@/lib/website-templates';
 
 const Branding = () => {
   const { user } = useAuth();
