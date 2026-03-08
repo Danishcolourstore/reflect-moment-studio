@@ -243,7 +243,7 @@ export function StudioLivePreview({
               className="flex-1 text-center text-[9px] font-mono truncate px-2 py-0.5 rounded-md"
               style={{ backgroundColor: `${tmpl.text}08`, color: tmpl.textSecondary }}
             >
-              mirrorai.app/studio/{branding.studio_name?.toLowerCase().replace(/\s+/g, '') || 'yourstudio'}
+              {getStudioDisplayUrl(branding.studio_name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'yourstudio')}
             </div>
           </div>
 

@@ -436,7 +436,7 @@ const Branding = () => {
                       )}
                     </div>
                     <div className="p-3 border-t border-border">
-                      <p className="text-[10px] text-muted-foreground/40 truncate">{customDomain || `${window.location.host}/studio/${username}`}</p>
+                      <p className="text-[10px] text-muted-foreground/40 truncate">{customDomain || getStudioDisplayUrl(username)}</p>
                       <p className="text-sm font-medium text-foreground mt-0.5">{studioName || 'Studio Name'} — Photography</p>
                       <p className="text-[11px] text-muted-foreground/60 mt-0.5 line-clamp-2">{bio || tagline || 'Professional photography portfolio'}</p>
                     </div>
