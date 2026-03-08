@@ -138,7 +138,7 @@ export default function SuperAdminTemplates() {
   const handleDelete = async (id: string) => {
     const { error } = await (supabase.from('website_templates').delete() as any).eq('id', id);
     if (error) { toast.error('Delete failed'); return; }
-    toast.success('Template deleted'); loadTemplates();
+    toast.success('Template deleted'); clearTemplateCache(); invalidateTemplates(); loadTemplates();
   };
 
   const handleToggleActive = async (tmpl: TemplateRow) => {
