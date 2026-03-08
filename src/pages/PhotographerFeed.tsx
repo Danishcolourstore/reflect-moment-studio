@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getTemplate } from '@/lib/website-templates';
 import { WebsiteHero } from '@/components/website/WebsiteHero';
 import { WebsitePortfolio } from '@/components/website/WebsitePortfolio';
 import { WebsiteFeatured } from '@/components/website/WebsiteFeatured';
@@ -11,7 +12,7 @@ import { WebsiteContact } from '@/components/website/WebsiteContact';
 import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
 import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
 import { WebsiteAlbums, type PortfolioAlbum } from '@/components/website/WebsiteAlbums';
-import { Instagram, Globe, MessageCircle, Mail } from 'lucide-react';
+import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 
 // ── Types ──────────────────────────────────────────────
 interface StudioData {
@@ -97,7 +98,6 @@ function useFeedData(username: string | undefined) {
       if (cancelled) return;
       if (profileData) setProfile(profileData as unknown as ProfileData);
 
-      // Fetch events + albums in parallel
       const [eventsResult, albumsResult] = await Promise.all([
         (supabase
           .from('events')
@@ -129,17 +129,12 @@ function useFeedData(username: string | undefined) {
         if (!cancelled) setFeaturedEvents((featData || []) as unknown as FeedEvent[]);
       }
 
-      // Fetch cover photos for events without covers
       const noCover = typedEvents.filter(e => !e.cover_url);
       if (noCover.length > 0) {
         const photos: Record<string, string> = {};
         for (const ev of noCover) {
           if (photos[ev.id]) continue;
-          const { data: p } = await (supabase
-            .from('photos')
-            .select('url') as any)
-            .eq('event_id', ev.id)
-            .limit(1);
+          const { data: p } = await (supabase.from('photos').select('url') as any).eq('event_id', ev.id).limit(1);
           if (p?.[0]?.url) photos[ev.id] = p[0].url;
         }
         if (!cancelled) setCoverPhotos(photos);
@@ -160,9 +155,12 @@ const PhotographerFeed = () => {
   const navigate = useNavigate();
   const { studio, profile, events, featuredEvents, coverPhotos, albums, loading, notFound } = useFeedData(username);
 
+  const templateValue = studio?.website_template || 'dark-portfolio';
+  const tmpl = getTemplate(templateValue);
+
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: '#0A0906' }}>
+      <div className="min-h-screen" style={{ backgroundColor: tmpl.bg }}>
         <Skeleton className="h-screen w-full rounded-none" />
       </div>
     );
@@ -170,15 +168,12 @@ const PhotographerFeed = () => {
 
   if (notFound || !studio) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0A0906' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: tmpl.bg }}>
         <div className="text-center px-6">
-          <h1
-            className="text-4xl font-light"
-            style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}
-          >
+          <h1 className="text-4xl font-light" style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}>
             Not Found
           </h1>
-          <p className="mt-4 text-sm" style={{ color: '#A6A197' }}>
+          <p className="mt-4 text-sm" style={{ color: tmpl.textSecondary }}>
             This portfolio link doesn't exist.
           </p>
         </div>
@@ -222,6 +217,7 @@ const PhotographerFeed = () => {
           <WebsiteSocialBar key="social" id="social"
             instagram={studio.instagram} website={studio.website}
             whatsapp={studio.whatsapp} email={profile?.email} accent={accent}
+            template={templateValue}
           />
         );
       case 'portfolio':
@@ -233,11 +229,11 @@ const PhotographerFeed = () => {
         );
       case 'albums':
         return albums.length > 0 ? (
-          <WebsiteAlbums key="albums" id="albums" albums={albums} accent={accent} />
+          <WebsiteAlbums key="albums" id="albums" albums={albums} accent={accent} template={templateValue} />
         ) : null;
       case 'about':
         return studio.bio ? (
-          <WebsiteAbout key="about" id="about" template="dark-portfolio" branding={branding} />
+          <WebsiteAbout key="about" id="about" template={templateValue} branding={branding} />
         ) : null;
       case 'featured':
         return (
@@ -256,7 +252,7 @@ const PhotographerFeed = () => {
         ) : null;
       case 'contact':
         return (
-          <WebsiteContact key="contact" id="contact" template="dark-portfolio" branding={branding} />
+          <WebsiteContact key="contact" id="contact" template={templateValue} branding={branding} photographerId={studio.user_id} />
         );
       default:
         return null;
@@ -264,69 +260,9 @@ const PhotographerFeed = () => {
   };
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ backgroundColor: '#0A0906', color: '#EDEAE3', fontFamily: "'DM Sans', sans-serif" }}
-    >
+    <div className="min-h-screen" style={{ backgroundColor: tmpl.bg, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}>
       {sectionOrder.map(renderSection)}
-
-      {/* Premium footer */}
-      <footer className="py-16 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="max-w-lg mx-auto text-center space-y-5">
-          {profile?.studio_logo_url ? (
-            <img src={profile.studio_logo_url} alt="" className="h-8 mx-auto object-contain opacity-40" />
-          ) : (
-            <p
-              className="text-[11px] tracking-[0.2em] uppercase"
-              style={{ color: '#EDEAE3', opacity: 0.4 }}
-            >
-              {profile?.studio_name || 'Studio'}
-            </p>
-          )}
-
-          {/* Footer social row */}
-          <div className="flex items-center justify-center gap-5">
-            {studio.instagram && (
-              <a href={`https://instagram.com/${studio.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer"
-                className="opacity-30 hover:opacity-60 transition-opacity">
-                <Instagram className="h-4 w-4" style={{ color: '#EDEAE3' }} />
-              </a>
-            )}
-            {studio.website && (
-              <a href={studio.website.startsWith('http') ? studio.website : `https://${studio.website}`} target="_blank" rel="noopener noreferrer"
-                className="opacity-30 hover:opacity-60 transition-opacity">
-                <Globe className="h-4 w-4" style={{ color: '#EDEAE3' }} />
-              </a>
-            )}
-            {studio.whatsapp && (
-              <a href={`https://wa.me/${studio.whatsapp.replace(/[^0-9]/g,'')}`} target="_blank" rel="noopener noreferrer"
-                className="opacity-30 hover:opacity-60 transition-opacity">
-                <MessageCircle className="h-4 w-4" style={{ color: '#EDEAE3' }} />
-              </a>
-            )}
-            {profile?.email && (
-              <a href={`mailto:${profile.email}`} className="opacity-30 hover:opacity-60 transition-opacity">
-                <Mail className="h-4 w-4" style={{ color: '#EDEAE3' }} />
-              </a>
-            )}
-          </div>
-
-          {studio.footer_text && (
-            <p className="text-xs" style={{ color: '#A6A197', opacity: 0.4 }}>
-              {studio.footer_text}
-            </p>
-          )}
-
-          <div className="space-y-1 pt-2">
-            <p className="text-[10px] tracking-[0.15em] uppercase" style={{ color: '#A6A197', opacity: 0.3 }}>
-              © {new Date().getFullYear()} {profile?.studio_name || 'Studio'}
-            </p>
-            <p className="text-[8px] tracking-[0.14em] uppercase" style={{ color: '#A6A197', opacity: 0.15 }}>
-              Powered by MirrorAI
-            </p>
-          </div>
-        </div>
-      </footer>
+      <WebsiteFooter template={templateValue} branding={branding} />
     </div>
   );
 };
