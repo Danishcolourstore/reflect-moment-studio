@@ -296,6 +296,8 @@ export default function CheetahLive() {
     loading, uploading, uploadProgress, createSession, uploadPhotos, setCullStatus,
   } = useCheetah();
 
+  const folderWatcher = useFolderWatcher(activeSessionId);
+
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterMode>('all');
   const [showNewSession, setShowNewSession] = useState(false);
