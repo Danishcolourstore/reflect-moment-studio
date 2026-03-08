@@ -10,7 +10,11 @@ import { WebsiteAbout } from '@/components/website/WebsiteAbout';
 import { WebsiteServices, type ServiceItem } from '@/components/website/WebsiteServices';
 import { WebsiteContact } from '@/components/website/WebsiteContact';
 import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
+import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
+import { WebsitePhotoShowcase } from '@/components/website/WebsitePhotoShowcase';
+import { WebsiteInterstitial } from '@/components/website/WebsiteInterstitial';
+import { WebsiteInstagramGrid } from '@/components/website/WebsiteInstagramGrid';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -21,16 +25,16 @@ const DEMO_BRANDING = {
   studio_name: 'Arjun Kapoor Photography',
   studio_logo_url: null,
   studio_accent_color: '#B08D57',
-  display_name: 'Capturing moments that last forever',
-  bio: 'With over 8 years of experience capturing the most intimate and joyful moments, I specialize in wedding, pre-wedding, and destination photography. My approach blends documentary storytelling with fine-art aesthetics, ensuring every frame reflects the emotion and beauty of your celebration.\n\nBased in Mumbai, available worldwide.',
+  display_name: 'Not Just Photos',
+  bio: "I'm Arjun. My journey started quietly, capturing candid moments for friends. One wedding changed everything — I realised these memories aren't just photos, they become legacy.\n\nFrom the first conversation to the final frame, I hold one promise — your story deserves to be remembered with intention and excellence. I bring not just skill, but sensitivity, timing, and a quiet presence that lets emotions unfold naturally. From grand palace celebrations to intimate beachfront vows, I capture love with honesty, elegance, and timeless storytelling.",
   cover_url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80',
   instagram: '@arjunkapoor.photo',
   website: 'www.arjunkapoor.photo',
   whatsapp: '+919876543210',
   email: 'hello@arjunkapoor.photo',
-  footer_text: 'Crafting timeless memories since 2016',
-  hero_button_label: 'View Portfolio',
-  hero_button_url: '#portfolio',
+  footer_text: 'Vows Through Lens',
+  hero_button_label: 'Get Quote',
+  hero_button_url: '#contact',
 };
 
 const DEMO_EVENTS = [
@@ -43,16 +47,45 @@ const DEMO_EVENTS = [
 ];
 
 const DEMO_FEATURED = [
-  { id: '1', name: 'Priya & Rahul Wedding', slug: 'demo-1', cover_url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&q=80', event_type: 'Wedding' },
-  { id: '2', name: 'Ananya & Dev Pre-Wedding', slug: 'demo-2', cover_url: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=800&q=80', event_type: 'Pre Wedding' },
-  { id: '4', name: 'Neha & Vikram Destination', slug: 'demo-4', cover_url: 'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=800&q=80', event_type: 'Destination Wedding' },
+  { id: '1', name: 'Priya & Rahul', slug: 'demo-1', cover_url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&q=80', event_type: 'Wedding' },
+  { id: '2', name: 'Ananya & Dev', slug: 'demo-2', cover_url: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=800&q=80', event_type: 'Pre Wedding' },
+  { id: '4', name: 'Neha & Vikram', slug: 'demo-4', cover_url: 'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=800&q=80', event_type: 'Destination Wedding' },
 ];
 
 const DEMO_SERVICES: ServiceItem[] = [
-  { title: 'Wedding Photography', description: 'Full-day coverage of your wedding ceremony, from getting ready to reception.', icon: 'camera', price: '₹1,50,000' },
-  { title: 'Pre-Wedding Shoot', description: 'A beautiful pre-wedding session at a location of your choice.', icon: 'heart', price: '₹45,000' },
-  { title: 'Destination Wedding', description: 'Travel anywhere in India or abroad to capture your destination wedding.', icon: 'location', price: '₹3,00,000' },
+  { title: 'Wedding Photography', description: 'Full-day coverage of your wedding ceremony, from getting ready to the last dance.', icon: 'camera', price: '₹1,50,000' },
+  { title: 'Pre-Wedding Shoot', description: 'A cinematic pre-wedding session at a location of your choice.', icon: 'heart', price: '₹45,000' },
+  { title: 'Destination Wedding', description: 'Travel anywhere in India or abroad to capture your destination celebration.', icon: 'location', price: '₹3,00,000' },
   { title: 'Couple Portraits', description: 'Intimate couple portrait sessions for anniversaries and special occasions.', icon: 'people', price: '₹25,000' },
+];
+
+const DEMO_TESTIMONIALS: Testimonial[] = [
+  { clientName: 'Jasmin & Nivin', review: 'Choosing this studio was hands down the best decision we made for our wedding. Their energy, creativity, and calm nature made the whole experience stress-free. When we got the photos, it felt like reliving every emotion all over again.', rating: 5 },
+  { clientName: 'Sneha & Nikhil', review: 'They didn\'t just take photos — they captured our story. Every frame has so much emotion and depth. We couldn\'t be happier.', rating: 5 },
+];
+
+const DEMO_SHOWCASE_PHOTOS = [
+  { url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1460978812857-470ed1c77af0?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1529636798458-92182e662485?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80' },
+];
+
+const DEMO_IG_PHOTOS = [
+  'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=400&q=80',
+  'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=400&q=80',
+  'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=400&q=80',
+  'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=400&q=80',
+  'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80',
+  'https://images.unsplash.com/photo-1460978812857-470ed1c77af0?w=400&q=80',
 ];
 
 type ViewMode = 'desktop' | 'tablet' | 'mobile';
@@ -66,6 +99,8 @@ export default function TemplatePreview() {
   const templateInfo = WEBSITE_TEMPLATES.find(t => t.value === templateValue);
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
   const [choosing, setChoosing] = useState(false);
+
+  const isVows = templateValue === 'vows-elegance';
 
   const handleUseTemplate = async () => {
     if (!user) {
@@ -90,9 +125,55 @@ export default function TemplatePreview() {
     setChoosing(false);
   };
 
-  const sections = ['hero', 'social', 'portfolio', 'about', 'featured', 'services', 'contact'];
+  // ── Vows Elegance section order (matches reference site) ──
+  const vowsSections = [
+    'hero',
+    'showcase',        // Masonry photo wall
+    'interstitial',    // "Captured with Heart"
+    'about',
+    'featured',        // Gallery stories
+    'testimonials',
+    'services',
+    'contact',         // "Let's Connect"
+    'instagram',       // Instagram grid
+  ];
 
-  const renderSection = (sectionId: string) => {
+  const standardSections = ['hero', 'social', 'portfolio', 'about', 'featured', 'services', 'contact'];
+
+  const renderVowsSection = (sectionId: string) => {
+    switch (sectionId) {
+      case 'hero':
+        return <WebsiteHero key="hero" branding={DEMO_BRANDING} template={templateValue} />;
+      case 'showcase':
+        return <WebsitePhotoShowcase key="showcase" photos={DEMO_SHOWCASE_PHOTOS} accent={DEMO_BRANDING.studio_accent_color} template={templateValue} />;
+      case 'interstitial':
+        return (
+          <WebsiteInterstitial
+            key="interstitial"
+            titleLines={['Captured With', 'Heart']}
+            subtitle="These aren't just photos — they are pieces of our heart"
+            accent={DEMO_BRANDING.studio_accent_color}
+            template={templateValue}
+          />
+        );
+      case 'about':
+        return <WebsiteAbout key="about" template={templateValue} branding={DEMO_BRANDING} />;
+      case 'featured':
+        return <WebsiteFeatured key="featured" events={DEMO_FEATURED} coverPhotos={{}} accent={DEMO_BRANDING.studio_accent_color} onNavigate={() => {}} template={templateValue} />;
+      case 'testimonials':
+        return <WebsiteTestimonials key="testimonials" testimonials={DEMO_TESTIMONIALS} accent={DEMO_BRANDING.studio_accent_color} template={templateValue} />;
+      case 'services':
+        return <WebsiteServices key="services" services={DEMO_SERVICES} accent={DEMO_BRANDING.studio_accent_color} template={templateValue} />;
+      case 'contact':
+        return <WebsiteContact key="contact" template={templateValue} branding={DEMO_BRANDING} />;
+      case 'instagram':
+        return <WebsiteInstagramGrid key="instagram" photos={DEMO_IG_PHOTOS} instagramHandle={DEMO_BRANDING.instagram} accent={DEMO_BRANDING.studio_accent_color} template={templateValue} />;
+      default:
+        return null;
+    }
+  };
+
+  const renderStandardSection = (sectionId: string) => {
     switch (sectionId) {
       case 'hero':
         return <WebsiteHero key="hero" branding={DEMO_BRANDING} template={templateValue} />;
@@ -112,6 +193,9 @@ export default function TemplatePreview() {
         return null;
     }
   };
+
+  const sections = isVows ? vowsSections : standardSections;
+  const renderSection = isVows ? renderVowsSection : renderStandardSection;
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
