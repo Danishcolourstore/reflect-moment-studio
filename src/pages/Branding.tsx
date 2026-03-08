@@ -54,6 +54,13 @@ const Branding = () => {
   const [watermarkPosition, setWatermarkPosition] = useState('bottom-right');
   const [watermarkUploading, setWatermarkUploading] = useState(false);
   const [brandAssets, setBrandAssets] = useState<BrandAsset[]>([]);
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
+  const [sectionOrder, setSectionOrder] = useState<string[]>(['hero', 'social', 'portfolio', 'albums', 'about', 'featured', 'services', 'testimonials', 'contact']);
+  const [sectionVisibility, setSectionVisibility] = useState<Record<string, boolean>>({ hero: true, social: true, portfolio: true, albums: false, about: true, featured: true, services: false, testimonials: false, contact: true });
+  const [servicesData, setServicesData] = useState<any[]>([]);
+  const [testimonialsData, setTestimonialsData] = useState<any[]>([]);
+  const [featuredGalleryIds, setFeaturedGalleryIds] = useState<string[]>([]);
+  const [portfolioLayout, setPortfolioLayout] = useState<'grid' | 'masonry' | 'large'>('grid');
 
   useEffect(() => {
     if (!user) return;
