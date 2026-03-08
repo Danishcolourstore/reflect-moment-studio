@@ -47,6 +47,8 @@ const WebsiteEditor = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const isMobile = useIsMobile();
+
   // ── Loading state ──
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -55,6 +57,10 @@ const WebsiteEditor = () => {
   // ── View state ──
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
   const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  // ── Mobile editor state ──
+  const [mobileSectionsOpen, setMobileSectionsOpen] = useState(false);
+  const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
 
   // ── Branding data (from profiles + studio_profiles) ──
   const [studioName, setStudioName] = useState('');
