@@ -100,12 +100,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         if (data) {
           setProfile(data);
           // Sync theme from DB if different from localStorage
-          const dbTheme = data.theme_preference as ThemeMode;
-          if (dbTheme && ['dark', 'editorial', 'classic'].includes(dbTheme)) {
-            applyThemeClass(dbTheme);
-            localStorage.setItem('mirrorai-theme', dbTheme);
-            setTheme(dbTheme);
-          }
+          const dbTheme = normalizeTheme(data.theme_preference || 'dark');
+          applyThemeClass(dbTheme);
+          localStorage.setItem('mirrorai-theme', dbTheme);
+          setTheme(dbTheme);
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
             navigate('/dashboard/onboarding', { replace: true });
           }
