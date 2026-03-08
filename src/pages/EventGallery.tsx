@@ -22,6 +22,7 @@ import { usePhotoUpload } from '@/hooks/use-photo-upload';
 import { EventSettingsModal } from '@/components/EventSettingsModal';
 import { useZipUpload } from '@/hooks/use-zip-upload';
 import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
+import { ProgressiveImage } from '@/components/ProgressiveImage';
 import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
 import { MinimalPortfolioLayout } from '@/components/MinimalPortfolioLayout';
 import { StoryBookLayout } from '@/components/StoryBookLayout';
@@ -576,7 +577,7 @@ const EventGallery = () => {
                     const fav = isFavorite(photo.id);
                     return (
                       <div key={photo.id} className={`group ${getItemClass(layout)}`}>
-                        <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
+                        <ProgressiveImage src={photo.url} alt="" className={getImgClass(layout)} context="grid" />
                         <button onClick={() => { toggleGuestFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to selections.' }); }}
                           className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
                           <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
@@ -703,7 +704,7 @@ const EventGallery = () => {
                 const fav = isFavorite(photo.id);
                 return (
                   <div key={photo.id} className={`group ${getItemClass(layout)}`}>
-                    <img src={photo.url} alt="" className={getImgClass(layout)} loading="lazy" />
+                    <ProgressiveImage src={photo.url} alt="" className={getImgClass(layout)} context="grid" />
                     <button onClick={() => toggleGuestFavorite(photo.id)}
                       className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
                       <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}

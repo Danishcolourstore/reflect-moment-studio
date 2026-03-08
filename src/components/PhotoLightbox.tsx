@@ -2,6 +2,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { Heart, Download, X, ChevronLeft, ChevronRight, Share2, ZoomIn, ZoomOut, RotateCcw, Link2, MessageCircle, Instagram } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
+import { getOptimizedUrl } from '@/lib/image-utils';
 
 interface LightboxPhoto {
   id: string;
@@ -59,17 +60,27 @@ export function PhotoLightbox({
     setTranslate({ x: 0, y: 0 });
   }, [currentIndex]);
 
-  // Preload next 2 images
+  // Preload next 2 images at medium resolution (not full)
   useEffect(() => {
     if (!open) return;
     for (let i = 1; i <= 2; i++) {
       const next = photos[currentIndex + i];
       if (next?.url) {
         const img = new Image();
-        img.src = next.url;
+        img.src = getOptimizedUrl(next.url, 'medium');
       }
     }
   }, [currentIndex, photos, open]);
+
+  // Full-res state: load medium first, then upgrade to full
+  const [fullLoaded, setFullLoaded] = useState(false);
+  useEffect(() => {
+    setFullLoaded(false);
+    if (!open || !photo?.url) return;
+    const img = new Image();
+    img.onload = () => setFullLoaded(true);
+    img.src = photo.url;
+  }, [open, currentIndex]);
 
   useEffect(() => {
     if (!open) return;
@@ -259,7 +270,7 @@ export function PhotoLightbox({
         )}
 
         <img
-          src={photo.url}
+          src={fullLoaded ? photo.url : getOptimizedUrl(photo.url, 'medium')}
           alt=""
           className="max-h-full max-w-[95vw] object-contain select-none transition-transform duration-200"
           style={imgTransform ? { transform: imgTransform } : undefined}
