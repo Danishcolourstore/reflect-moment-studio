@@ -1074,7 +1074,7 @@ const PublicGallery = () => {
       </div>
 
       {/* ── GALLERY SECTION ── */}
-      <div ref={galleryRef} className={`max-w-7xl mx-auto ${isStoryLayout ? '' : isTimeless ? 'px-2 sm:px-4 py-8' : 'px-4 sm:px-8 py-10 sm:py-14'}`}>
+      <div ref={galleryRef} className={`max-w-[1400px] mx-auto ${isStoryLayout ? '' : isTimeless ? 'px-2 sm:px-4 py-8' : 'px-4 sm:px-8 lg:px-10 py-10 sm:py-14 lg:py-16'}`}>
 
         {/* Filter / Sort bar */}
         {!isStoryLayout && (
