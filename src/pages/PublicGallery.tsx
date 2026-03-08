@@ -147,7 +147,7 @@ function PinGate({ event, studioProfile, onUnlock }: {
 function PhotoCard({
   photo, layout, isFav, onToggleFavorite, onOpenLightbox, showWatermark,
   watermarkText, accentColor, selectionMode, isSelected, onToggleSelect,
-  commentCount,
+  commentCount, canDownload, onDownload,
 }: {
   photo: Photo;
   layout: string;
@@ -161,6 +161,8 @@ function PhotoCard({
   isSelected: boolean;
   onToggleSelect: () => void;
   commentCount: number;
+  canDownload?: boolean;
+  onDownload?: () => void;
 }) {
   const aspectClass = layout === 'classic' ? 'aspect-[3/2]' :
     layout === 'editorial-hero' ? 'aspect-[16/9]' :
