@@ -1,6 +1,5 @@
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback } from 'react';
 import type { GridLayout, GridCellData } from '@/components/grid-builder/types';
-import { createCellsForLayout } from '@/components/grid-builder/types';
 import type { TextLayer } from '@/components/grid-builder/text-overlay-types';
 import GridCell from '@/components/grid-builder/GridCell';
 import TextOverlay from '@/components/grid-builder/TextOverlay';
@@ -16,22 +15,29 @@ interface Props {
   onSelectText: (id: string | null) => void;
   albumSize: AlbumSize;
   zoom: number;
+  onZoomChange: (z: number) => void;
   spreadView: boolean;
   showBleed: boolean;
   showSafeMargin: boolean;
   showSpine: boolean;
   bgColor: string;
   onDropPhoto: (photo: any, cellIndex: number) => void;
+  currentPageNumber: number;
 }
 
 export default function AlbumCanvas({
   layout, cells, onCellsChange, textLayers, onTextLayersChange,
-  selectedTextId, onSelectText, albumSize, zoom, spreadView,
-  showBleed, showSafeMargin, showSpine, bgColor, onDropPhoto,
+  selectedTextId, onSelectText, albumSize, zoom, onZoomChange, spreadView,
+  showBleed, showSafeMargin, showSpine, bgColor, onDropPhoto, currentPageNumber,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const dim = ALBUM_SIZES[albumSize];
-  const aspectRatio = spreadView ? (dim.widthIn * 2) / dim.heightIn : dim.widthIn / dim.heightIn;
+
+  // Cover (page 0) always single; spread doubles width for content pages
+  const isCover = currentPageNumber === 0;
+  const showAsSpread = spreadView && !isCover;
+  const aspectRatio = showAsSpread ? (dim.widthIn * 2) / dim.heightIn : dim.widthIn / dim.heightIn;
 
   const updateCell = useCallback((index: number, patch: Partial<GridCellData>) => {
     onCellsChange(cells.map((c, i) => (i === index ? { ...c, ...patch } : c)));
@@ -54,10 +60,7 @@ export default function AlbumCanvas({
     e.preventDefault();
     const data = e.dataTransfer.getData('application/album-photo');
     if (data) {
-      try {
-        const photo = JSON.parse(data);
-        onDropPhoto(photo, cellIndex);
-      } catch {}
+      try { onDropPhoto(JSON.parse(data), cellIndex); } catch {}
     }
   };
 
@@ -70,12 +73,25 @@ export default function AlbumCanvas({
     onSelectText(null);
   }, [textLayers, onTextLayersChange, onSelectText]);
 
-  // Bleed/safe calcs (relative to canvas %)
+  // Wheel zoom
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -10 : 10;
+      onZoomChange(Math.max(25, Math.min(200, zoom + delta)));
+    }
+  }, [zoom, onZoomChange]);
+
+  // Bleed/safe calcs
   const bleedPx = (dim.bleedMm / (dim.widthIn * 25.4)) * 100;
   const safePx = (dim.safeMarginMm / (dim.widthIn * 25.4)) * 100;
 
   return (
-    <div className="flex-1 flex items-center justify-center overflow-auto bg-muted/30 p-8">
+    <div
+      ref={containerRef}
+      className="flex-1 flex items-center justify-center overflow-auto bg-muted/30 p-8"
+      onWheel={handleWheel}
+    >
       <div
         ref={canvasRef}
         className="relative rounded-sm overflow-visible shadow-2xl transition-transform duration-200"
@@ -109,9 +125,10 @@ export default function AlbumCanvas({
           </div>
         )}
 
-        {/* Spine guide */}
-        {showSpine && spreadView && (
-          <div className="absolute top-0 bottom-0 left-1/2 -translate-x-px w-px bg-foreground/20 z-40 pointer-events-none">
+        {/* Spine guide - only in spread view */}
+        {showSpine && showAsSpread && (
+          <div className="absolute top-0 bottom-0 left-1/2 -translate-x-px w-0 z-40 pointer-events-none"
+            style={{ borderLeft: '1.5px dashed rgba(var(--foreground), 0.25)' }}>
             <span className="absolute -top-4 left-1 text-[9px] text-foreground/40 font-medium whitespace-nowrap">SPINE</span>
           </div>
         )}

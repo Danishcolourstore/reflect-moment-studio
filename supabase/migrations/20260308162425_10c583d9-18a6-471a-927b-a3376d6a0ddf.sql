@@ -1,0 +1,1 @@
+ALTER TABLE public.albums ADD COLUMN share_token uuid UNIQUE DEFAULT NULL;

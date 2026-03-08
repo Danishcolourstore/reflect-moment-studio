@@ -35,6 +35,7 @@ export interface Album {
   leaf_count: number;
   page_count: number;
   status: AlbumStatus;
+  share_token: string | null;
   created_at: string;
   updated_at: string;
 }
