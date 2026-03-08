@@ -40,6 +40,7 @@ import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
 import PhotographerFeed from "./pages/PhotographerFeed";
 import StorybookCreator from "./pages/StorybookCreator";
+import AlbumDesigner from "./pages/AlbumDesigner";
 import VerifyAccess from "./pages/VerifyAccess";
 import VerifyOTP from "./pages/VerifyOTP";
 import AdminGate from "./pages/admin/AdminGate";
