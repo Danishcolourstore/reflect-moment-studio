@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
-import { WEBSITE_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { STATIC_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 
 interface WebsiteTemplateSelectorProps {
   value: WebsiteTemplateValue;
