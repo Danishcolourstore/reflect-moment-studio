@@ -189,6 +189,7 @@ const Branding = () => {
       brand_preset: brandPreset, custom_domain: customDomain || null,
       watermark_logo_url: watermarkUrl, watermark_opacity: watermarkOpacity,
       watermark_position: watermarkPosition, brand_assets: brandAssets,
+      website_template: websiteTemplate,
     };
     const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
     if (existing) {
