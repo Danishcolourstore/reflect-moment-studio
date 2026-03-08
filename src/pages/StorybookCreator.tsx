@@ -230,7 +230,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
               <button
                 key={sb.id}
                 onClick={() => setActiveId(sb.id)}
-                className="w-full text-left rounded-2xl border border-border bg-card p-5 hover:border-primary/30 transition-all group"
+                className="w-full text-left rounded-2xl border border-border bg-card p-5 hover:border-accent/30 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div>
