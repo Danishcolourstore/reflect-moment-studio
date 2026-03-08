@@ -579,20 +579,33 @@ const WebsiteEditor = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
+            {username && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => window.open(`/studio/${username}`, '_blank')}>
+                <Eye className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="text-[10px] h-8 px-2.5" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3 mr-1" />}
+              Save
+            </Button>
+            <Button size="sm" className="text-[10px] h-8 px-2.5 bg-primary text-primary-foreground" onClick={handlePublish} disabled={publishing}>
+              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3 mr-1" />}
+              Publish
+            </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                  <Trash2 className="h-3.5 w-3.5" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="max-w-[90vw] rounded-xl">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="flex items-center gap-2">
+                  <AlertDialogTitle className="flex items-center gap-2 text-base">
                     <AlertTriangle className="h-5 w-5 text-destructive" /> Delete Portfolio Website
                   </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete your current portfolio website? This will remove the website layout, content, and unpublish it. Your galleries, events, and photos will not be affected.
+                  <AlertDialogDescription className="text-sm">
+                    Are you sure you want to delete your portfolio website? This will remove the layout and content and unpublish it. Your galleries, events, and photos will not be affected.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -608,19 +621,6 @@ const WebsiteEditor = () => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            {username && (
-              <Button variant="ghost" size="sm" className="text-[10px] h-8 px-2" onClick={() => window.open(`/studio/${username}`, '_blank')}>
-                <Eye className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            <Button variant="outline" size="sm" className="text-[10px] h-8 px-3" onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3 mr-1" />}
-              Save
-            </Button>
-            <Button size="sm" className="text-[10px] h-8 px-3 bg-primary text-primary-foreground" onClick={handlePublish} disabled={publishing}>
-              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3 mr-1" />}
-              Publish
-            </Button>
           </div>
         </header>
 
