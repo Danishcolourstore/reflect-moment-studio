@@ -217,7 +217,12 @@ const AppRoutes = () => {
       >
         <Route index element={<SuperAdminOverview />} />
         <Route path="users" element={<SuperAdminUsers />} />
+        <Route path="events" element={<AdminEvents />} />
+        <Route path="storage" element={<AdminStorage />} />
+        <Route path="revenue" element={<AdminRevenue />} />
         <Route path="templates" element={<SuperAdminTemplates />} />
+        <Route path="emails" element={<AdminEmails />} />
+        <Route path="activity" element={<AdminActivity />} />
         <Route path="mirrorai" element={<SuperAdminMirrorAI />} />
         <Route path="storybooks" element={<SuperAdminStorybooks />} />
         <Route path="settings" element={<SuperAdminSettings />} />
