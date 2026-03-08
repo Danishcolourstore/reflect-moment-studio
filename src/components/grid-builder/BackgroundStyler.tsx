@@ -39,29 +39,24 @@ interface Props {
 
 export default function BackgroundStyler({ value, onChange }: Props) {
   return (
-    <div className="flex flex-col gap-0 bg-card border-t border-border">
-      <div className="px-4 py-3 flex flex-col gap-3">
-        <label className="text-[9px] tracking-wider uppercase text-muted-foreground">Background</label>
+    <div className="bg-card border-t border-border/60">
+      <div className="px-4 py-4 flex flex-col gap-4">
+        <label className="text-[9px] tracking-[0.14em] uppercase text-muted-foreground/60 font-medium">Background</label>
 
         {/* Preset swatches */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2.5 flex-wrap">
           {BG_PRESETS.map((p) => (
             <button
               key={p.label}
               onClick={() => onChange(p.style)}
               className={cn(
-                'h-9 w-9 rounded-full border-2 transition-all active:scale-90 relative overflow-hidden',
+                'h-8 w-8 rounded-full border-2 transition-all duration-200 active:scale-90 relative overflow-hidden',
                 value.color === p.style.color && value.type === p.style.type
-                  ? 'border-foreground scale-110' : 'border-border'
+                  ? 'border-foreground scale-110 shadow-sm' : 'border-border/60 hover:border-foreground/30'
               )}
               title={p.label}
             >
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: bgToCss(p.style),
-                }}
-              />
+              <div className="absolute inset-0" style={{ background: bgToCss(p.style) }} />
               {p.style.type === 'grain' && (
                 <div className="absolute inset-0 opacity-30" style={{
                   backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.5\'/%3E%3C/svg%3E")',
@@ -72,10 +67,10 @@ export default function BackgroundStyler({ value, onChange }: Props) {
         </div>
 
         {/* Custom color */}
-        <div className="flex items-center gap-2">
-          <label className="text-[9px] tracking-wider uppercase text-muted-foreground">Custom</label>
-          <label className="h-8 w-8 rounded-full border-2 border-dashed border-border flex items-center justify-center cursor-pointer relative overflow-hidden">
-            <span className="text-[8px] text-muted-foreground">+</span>
+        <div className="flex items-center gap-3">
+          <label className="text-[9px] tracking-[0.14em] uppercase text-muted-foreground/60 font-medium">Custom</label>
+          <label className="h-8 w-8 rounded-full border-2 border-dashed border-border/60 flex items-center justify-center cursor-pointer relative overflow-hidden hover:border-foreground/30 transition-colors duration-200">
+            <span className="text-[8px] text-muted-foreground/40">+</span>
             <input
               type="color"
               value={value.color}

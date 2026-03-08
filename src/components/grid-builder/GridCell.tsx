@@ -25,9 +25,7 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
   const handleFile = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-
       if (file) onImageAdd(file);
-
       e.target.value = "";
     },
     [onImageAdd],
@@ -35,28 +33,23 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
 
   const triggerPicker = useCallback(() => {
     if (!inputRef.current) return;
-
     inputRef.current.value = "";
-
     setTimeout(() => inputRef.current?.click(), 10);
   }, []);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (!cell.imageUrl) return;
-      // Don't start drag if the event originated from a text overlay
       const target = e.target as HTMLElement;
       if (target.closest('[data-text-overlay]') || target.closest('[data-text-edit]')) return;
 
       e.preventDefault();
-
       dragRef.current = {
         startX: e.clientX,
         startY: e.clientY,
         origX: cell.offsetX,
         origY: cell.offsetY,
       };
-
       setDragging(true);
     },
     [cell],
@@ -65,10 +58,8 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!dragRef.current) return;
-
       const dx = e.clientX - dragRef.current.startX;
       const dy = e.clientY - dragRef.current.startY;
-
       onOffsetChange(dragRef.current.origX + dx, dragRef.current.origY + dy, cell.scale);
     },
     [onOffsetChange, cell.scale],
@@ -76,22 +67,16 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
 
   const onPointerUp = useCallback(() => {
     dragRef.current = null;
-
     setDragging(false);
   }, []);
 
   const onWheel = useCallback(
     (e: React.WheelEvent) => {
       if (!cell.imageUrl) return;
-
       e.preventDefault();
-
       const zoomIntensity = 0.0015;
-
       let newScale = cell.scale - e.deltaY * zoomIntensity;
-
       newScale = Math.max(1, Math.min(3, newScale));
-
       onOffsetChange(cell.offsetX, cell.offsetY, newScale);
     },
     [cell, onOffsetChange],
@@ -99,7 +84,7 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
 
   return (
     <div
-      className="relative overflow-hidden bg-muted/30 border border-border/50 group"
+      className="relative overflow-hidden bg-muted/20 group transition-colors duration-200 hover:bg-muted/30"
       style={{
         gridArea,
         minHeight: "44px",
@@ -126,21 +111,21 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             onWheel={onWheel}
           />
 
-          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity z-10">
+          {/* Hover controls — subtle glass buttons */}
+          <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
             <button
               type="button"
               onClick={triggerPicker}
-              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-foreground/70"
+              className="h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white hover:bg-black/70 transition-all duration-150"
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw className="h-3 w-3" />
             </button>
-
             <button
               type="button"
               onClick={onImageRemove}
-              className="h-8 w-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-destructive/70"
+              className="h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-red-400 hover:bg-black/70 transition-all duration-150"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3 w-3" />
             </button>
           </div>
         </>
@@ -148,16 +133,14 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
         <button
           type="button"
           onClick={(e) => {
-            // Only trigger upload if the click didn't originate from a text overlay
             const target = e.target as HTMLElement;
             if (target.closest('[data-text-overlay]') || target.closest('[data-text-edit]')) return;
             triggerPicker();
           }}
-          className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-muted-foreground cursor-pointer"
+          className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-muted-foreground/40 cursor-pointer hover:text-muted-foreground/60 transition-colors duration-200"
         >
-          <Plus className="h-6 w-6" />
-
-          <span className="text-[10px] tracking-wider uppercase font-medium">Tap to upload</span>
+          <Plus className="h-5 w-5" />
+          <span className="text-[9px] tracking-wider uppercase font-medium">Add photo</span>
         </button>
       )}
     </div>

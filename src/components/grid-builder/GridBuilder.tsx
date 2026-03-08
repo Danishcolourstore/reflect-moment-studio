@@ -7,6 +7,7 @@ import GridEditor from './GridEditor';
 import GridInspireModal from './GridInspireModal';
 import AICaptionGenerator from './AICaptionGenerator';
 import AILayoutSuggestions from './AILayoutSuggestions';
+import { cn } from '@/lib/utils';
 
 interface Props {
   onClose: () => void;
@@ -45,52 +46,47 @@ export default function GridBuilder({ onClose }: Props) {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
-        <div className="flex items-center justify-between">
+      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/60">
+        <div className="flex items-center justify-between px-4 h-12">
           <div className="flex items-center gap-3">
             <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="h-4 w-4" />
             </button>
             <div className="flex items-center gap-2">
               <Grid3X3 className="h-4 w-4 text-primary" />
-              <h1 className="text-sm font-semibold tracking-wider uppercase text-foreground">Grid Builder</h1>
+              <h1 className="text-[11px] font-semibold tracking-[0.12em] uppercase text-foreground">Grid Builder</h1>
             </div>
           </div>
+
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => { setShowAISuggest(!showAISuggest); setShowCaption(false); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] tracking-wider uppercase font-semibold transition-colors ${
-                showAISuggest ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary hover:bg-primary/20'
-              }`}
-            >
-              <LayoutGrid className="h-3 w-3" />
-              AI Layout
-            </button>
-            <button
-              onClick={() => { setShowCaption(!showCaption); setShowAISuggest(false); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] tracking-wider uppercase font-semibold transition-colors ${
-                showCaption ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary hover:bg-primary/20'
-              }`}
-            >
-              <MessageSquare className="h-3 w-3" />
-              Caption
-            </button>
-            <button
-              onClick={() => setShowInspire(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] tracking-wider uppercase font-semibold hover:bg-primary/20 transition-colors"
-            >
-              <Sparkles className="h-3 w-3" />
-              Inspire
-            </button>
+            {[
+              { active: showAISuggest, onClick: () => { setShowAISuggest(!showAISuggest); setShowCaption(false); }, icon: <LayoutGrid className="h-3 w-3" />, label: 'AI Layout' },
+              { active: showCaption, onClick: () => { setShowCaption(!showCaption); setShowAISuggest(false); }, icon: <MessageSquare className="h-3 w-3" />, label: 'Caption' },
+              { active: false, onClick: () => setShowInspire(true), icon: <Sparkles className="h-3 w-3" />, label: 'Inspire' },
+            ].map((btn) => (
+              <button
+                key={btn.label}
+                onClick={btn.onClick}
+                className={cn(
+                  'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[9px] tracking-wider uppercase font-semibold transition-all duration-200',
+                  btn.active
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/50'
+                )}
+              >
+                {btn.icon}
+                {btn.label}
+              </button>
+            ))}
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Content */}
-      <div className="flex-1 px-4 pt-5 pb-24">
+      <div className="flex-1 px-4 pt-6 pb-24">
         {/* AI panels */}
         {showAISuggest && (
-          <div className="mb-5">
+          <div className="mb-6 animate-fade-in">
             <AILayoutSuggestions
               photoCount={4}
               onSelectLayout={(layout) => { setShowAISuggest(false); setInitialTextLayers([]); setSelectedLayout(layout); }}
@@ -99,13 +95,13 @@ export default function GridBuilder({ onClose }: Props) {
           </div>
         )}
         {showCaption && (
-          <div className="mb-5">
+          <div className="mb-6 animate-fade-in">
             <AICaptionGenerator onClose={() => setShowCaption(false)} />
           </div>
         )}
 
-        <p className="text-muted-foreground text-xs tracking-wide mb-5">
-          Choose a layout to begin designing your photo grid.
+        <p className="text-muted-foreground/60 text-xs tracking-wide mb-6">
+          Choose a layout to begin designing your grid.
         </p>
         <GridLayoutSelector onSelect={(layout) => { setInitialTextLayers([]); setSelectedLayout(layout); }} />
       </div>

@@ -33,7 +33,7 @@ function LayoutPreview({ layout }: { layout: GridLayout }) {
           }}
         >
           <div
-            className="w-full h-full bg-primary/20"
+            className="w-full h-full bg-primary/15"
             style={{
               borderRadius: layout.frame!.imageRadius ? `${Math.min(layout.frame!.imageRadius, 6)}px` : undefined,
               boxShadow: layout.frame!.shadow ? '0 2px 8px rgba(0,0,0,0.12)' : undefined,
@@ -54,7 +54,7 @@ function LayoutPreview({ layout }: { layout: GridLayout }) {
           {layout.cells.map((cell, i) => (
             <div
               key={i}
-              className="bg-primary/20 rounded-[3px]"
+              className="bg-primary/15 rounded-[2px]"
               style={{
                 gridRow: `${cell[0]} / ${cell[2]}`,
                 gridColumn: `${cell[1]} / ${cell[3]}`,
@@ -72,18 +72,18 @@ export default function GridLayoutSelector({ onSelect }: Props) {
   const filtered = GRID_LAYOUTS.filter((l) => l.category === cat);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       {/* Category tabs */}
-      <div className="flex gap-1 bg-muted/50 rounded-full p-1">
+      <div className="flex gap-1 bg-muted/30 rounded-full p-1">
         {CATEGORIES.map((c) => (
           <button
             key={c.key}
             onClick={() => setCat(c.key)}
             className={cn(
-              'flex-1 text-[10px] tracking-wider uppercase font-medium py-2 rounded-full transition-all',
+              'flex-1 text-[10px] tracking-wider uppercase font-medium py-2 rounded-full transition-all duration-200',
               cat === c.key
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-foreground text-background shadow-sm'
+                : 'text-muted-foreground/50 hover:text-foreground'
             )}
           >
             {c.label}
@@ -97,10 +97,10 @@ export default function GridLayoutSelector({ onSelect }: Props) {
           <button
             key={layout.id}
             onClick={() => onSelect(layout)}
-            className="flex flex-col items-center gap-2 p-3 rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-sm transition-all active:scale-95"
+            className="flex flex-col items-center gap-2.5 p-3 rounded-xl border border-border/60 bg-card hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 active:scale-95"
           >
             <LayoutPreview layout={layout} />
-            <span className="text-[10px] tracking-wider uppercase text-muted-foreground font-medium">
+            <span className="text-[9px] tracking-wider uppercase text-muted-foreground/60 font-medium">
               {layout.name}
             </span>
           </button>
