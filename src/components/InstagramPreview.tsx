@@ -231,7 +231,7 @@ export default function InstagramPreview({
               {/* Carousel */}
               <div
                 className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "4/5", background: IG.surface }}
+                style={{ aspectRatio: detectedRatio, background: IG.surface }}
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
