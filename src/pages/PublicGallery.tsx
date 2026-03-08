@@ -604,10 +604,12 @@ const PublicGallery = () => {
   const renderGallery = () => {
     if (displayPhotos.length === 0 && filter === 'favorites') {
       return (
-        <div className="py-24 text-center">
-          <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
-          <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
-          <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo</p>
+        <div className="py-32 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/40 mb-5">
+            <Heart className="h-7 w-7 text-muted-foreground/25" />
+          </div>
+          <p className="font-serif text-lg text-muted-foreground/60">No favorites yet</p>
+          <p className="mt-2 text-sm text-muted-foreground/40 max-w-xs mx-auto">Tap the heart icon on any photo to save it to your favorites</p>
         </div>
       );
     }
