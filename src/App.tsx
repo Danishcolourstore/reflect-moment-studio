@@ -125,10 +125,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
-  if (!pinVerified && location.pathname.startsWith("/dashboard")) {
-    return <Navigate to="/verify-access" replace />;
-  }
+  // PIN verification removed from dashboard routes — photographers access freely after login
 
   return <>{children}</>;
 }
@@ -157,26 +154,20 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
         if (roles.includes('client')) {
           setRedirectTo('/client');
         } else {
-          const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
-          if (pinVerified) {
-            const redirect = sessionStorage.getItem("redirectAfterLogin");
-            if (redirect && redirect.startsWith("/dashboard")) {
-              sessionStorage.removeItem("redirectAfterLogin");
-              setRedirectTo(redirect);
-            } else {
-              sessionStorage.removeItem("redirectAfterLogin");
-              setRedirectTo("/dashboard");
-            }
+          const redirect = sessionStorage.getItem("redirectAfterLogin");
+          if (redirect && redirect.startsWith("/dashboard")) {
+            sessionStorage.removeItem("redirectAfterLogin");
+            setRedirectTo(redirect);
           } else {
-            setRedirectTo("/verify-access");
+            sessionStorage.removeItem("redirectAfterLogin");
+            setRedirectTo("/dashboard");
           }
         }
         setChecked(true);
       })
       .catch(() => {
         sessionStorage.removeItem("redirectAfterLogin");
-        const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
-        setRedirectTo(pinVerified ? "/dashboard" : "/verify-access");
+        setRedirectTo("/dashboard");
         setChecked(true);
       });
   }, [user, loading]);
