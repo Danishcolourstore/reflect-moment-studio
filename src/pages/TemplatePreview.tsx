@@ -4,6 +4,7 @@ import { ArrowLeft, Pencil, Monitor, Tablet, Smartphone, X } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { type WebsiteTemplateValue } from '@/lib/website-templates';
 import { useWebsiteTemplates } from '@/hooks/use-website-templates';
+import { cacheBust, cacheBustArray } from '@/lib/cache-bust';
 import { WebsiteHero } from '@/components/website/WebsiteHero';
 import { WebsiteAbout } from '@/components/website/WebsiteAbout';
 import { WebsitePhotoShowcase } from '@/components/website/WebsitePhotoShowcase';
@@ -11,6 +12,10 @@ import { WebsiteServices } from '@/components/website/WebsiteServices';
 import { WebsiteContact } from '@/components/website/WebsiteContact';
 import { WebsiteInstagramGrid } from '@/components/website/WebsiteInstagramGrid';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
+import { WebsiteCinematicGallery } from '@/components/website/WebsiteCinematicGallery';
+import { WebsiteCinematicFilms, type FilmItem } from '@/components/website/WebsiteCinematicFilms';
+import { WebsiteCinematicSocialGrid } from '@/components/website/WebsiteCinematicSocialGrid';
+import { WebsiteCinematicInquiry } from '@/components/website/WebsiteCinematicInquiry';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -31,8 +36,26 @@ export default function TemplatePreview() {
     return allTemplates.find((t) => t.value === templateValue) || allTemplates[0];
   }, [allTemplates, templateValue]);
 
-  const demoImages = tmpl?.demoContent?.portfolio?.demo_images || [];
+  // All images cache-busted from DB demoContent
+  const demoImages = useMemo(() => cacheBustArray(tmpl?.demoContent?.portfolio?.demo_images || []), [tmpl]);
+  const galleryImages = useMemo(() => cacheBustArray(tmpl?.demoContent?.gallery_images || tmpl?.demoContent?.portfolio?.demo_images || []), [tmpl]);
+  const socialImages = useMemo(() => cacheBustArray(tmpl?.demoContent?.social_images || tmpl?.demoContent?.portfolio?.demo_images?.slice(0, 6) || []), [tmpl]);
   const demoServices = tmpl?.demoContent?.services || [];
+
+  const featuredStories = useMemo(() => {
+    return (tmpl?.demoContent?.featured_stories || []).map(s => ({
+      ...s,
+      image_url: cacheBust(s.image_url),
+    }));
+  }, [tmpl]);
+
+  const films: FilmItem[] = useMemo(() => {
+    return (tmpl?.demoContent?.films || []).map(f => ({
+      title: f.title,
+      thumbnailUrl: cacheBust(f.thumbnail_url),
+      videoUrl: f.video_url,
+    }));
+  }, [tmpl]);
 
   const previewBranding = useMemo(() => {
     if (!tmpl) return null;
@@ -41,8 +64,8 @@ export default function TemplatePreview() {
       studio_logo_url: null,
       studio_accent_color: tmpl.textSecondary,
       display_name: tmpl.demoContent?.hero?.tagline || 'Wedding Storytelling',
-      cover_url: tmpl.demoContent?.hero?.image_url || null,
-      about_image_url: tmpl.demoContent?.about?.profile_image_url || null,
+      cover_url: cacheBust(tmpl.demoContent?.hero?.image_url),
+      about_image_url: cacheBust(tmpl.demoContent?.about?.profile_image_url),
       bio: tmpl.demoContent?.about?.bio || '',
       instagram: '@studio',
       website: '',
@@ -53,6 +76,8 @@ export default function TemplatePreview() {
       hero_button_url: '#portfolio',
     };
   }, [tmpl]);
+
+  const isCinematic = tmpl?.value === 'cinematic-wedding-story';
 
   const handleUseTemplate = async () => {
     if (!user) {
@@ -147,18 +172,82 @@ export default function TemplatePreview() {
             </div>
 
             <div style={{ backgroundColor: tmpl.bg, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}>
+              {/* SECTION 1 — Hero */}
               <WebsiteHero branding={previewBranding} template={tmpl.value} />
-              <WebsitePhotoShowcase id="portfolio" photos={demoImages.map((url) => ({ url }))} accent={previewBranding.studio_accent_color || tmpl.textSecondary} template={tmpl.value} />
-              <WebsiteAbout id="about" template={tmpl.value} branding={previewBranding} />
-              <WebsiteServices id="services" services={demoServices} accent={previewBranding.studio_accent_color || tmpl.textSecondary} template={tmpl.value} />
-              <WebsiteInstagramGrid id="instagram" photos={demoImages.slice(0, 5)} instagramHandle={previewBranding.instagram || '@studio'} accent={previewBranding.studio_accent_color || tmpl.textSecondary} template={tmpl.value} />
-              <WebsiteContact
-                id="contact"
+
+              {/* SECTION 2 — Portfolio Showcase */}
+              <WebsitePhotoShowcase
+                id="portfolio"
+                photos={demoImages.map((url) => ({ url }))}
+                accent={previewBranding.studio_accent_color || tmpl.textSecondary}
                 template={tmpl.value}
-                branding={previewBranding}
-                heading={tmpl.demoContent?.contact?.heading}
-                buttonLabel={tmpl.demoContent?.contact?.button_text}
               />
+
+              {/* SECTION 3 — Featured Wedding Stories (cinematic only) */}
+              {isCinematic && featuredStories.length > 0 && (
+                <section id="featured-stories" className="py-20 sm:py-28 px-6 sm:px-12" style={{ backgroundColor: '#FAF8F5' }}>
+                  <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-14">
+                      <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] mb-4" style={{ color: '#7A756E', fontFamily: '"DM Sans", sans-serif' }}>Featured</p>
+                      <h2 className="text-3xl sm:text-5xl font-light lowercase tracking-[0.02em]" style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: '#1A1715' }}>wedding stories</h2>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {featuredStories.map((story, i) => (
+                        <div key={i} className="group cursor-pointer">
+                          <div className="relative overflow-hidden aspect-[3/4]">
+                            <img src={story.image_url} alt={story.title} className="absolute inset-0 h-full w-full object-cover transition-transform duration-[800ms] group-hover:scale-105" loading="lazy" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 p-6">
+                              <h3 className="text-lg font-light tracking-wide" style={{ color: '#FAF8F5', fontFamily: '"Cormorant Garamond", Georgia, serif' }}>{story.title}</h3>
+                              <p className="text-[10px] uppercase tracking-[0.2em] mt-1" style={{ color: 'rgba(250,248,245,0.6)', fontFamily: '"DM Sans", sans-serif' }}>{story.location}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* SECTION 4 — Cinematic Gallery (cinematic) / fallback to standard */}
+              {isCinematic ? (
+                <WebsiteCinematicGallery id="gallery" photos={galleryImages.map(url => ({ url }))} />
+              ) : null}
+
+              {/* SECTION 5 — About */}
+              <WebsiteAbout id="about" template={tmpl.value} branding={previewBranding} />
+
+              {/* SECTION 6 — Films (cinematic only) */}
+              {isCinematic && films.length > 0 && (
+                <WebsiteCinematicFilms id="films" films={films} />
+              )}
+
+              {/* SECTION 7 — Services (non-cinematic) */}
+              {!isCinematic && (
+                <WebsiteServices id="services" services={demoServices} accent={previewBranding.studio_accent_color || tmpl.textSecondary} template={tmpl.value} />
+              )}
+
+              {/* SECTION 7/8 — Social / Instagram Grid */}
+              {isCinematic ? (
+                <WebsiteCinematicSocialGrid id="instagram" photos={socialImages} instagramHandle={previewBranding.instagram || '@studio'} />
+              ) : (
+                <WebsiteInstagramGrid id="instagram" photos={socialImages} instagramHandle={previewBranding.instagram || '@studio'} accent={previewBranding.studio_accent_color || tmpl.textSecondary} template={tmpl.value} />
+              )}
+
+              {/* SECTION 8/9 — Inquiry / Contact */}
+              {isCinematic ? (
+                <WebsiteCinematicInquiry id="contact" branding={previewBranding} />
+              ) : (
+                <WebsiteContact
+                  id="contact"
+                  template={tmpl.value}
+                  branding={previewBranding}
+                  heading={tmpl.demoContent?.contact?.heading}
+                  buttonLabel={tmpl.demoContent?.contact?.button_text}
+                />
+              )}
+
+              {/* SECTION 9 — Footer */}
               <WebsiteFooter template={tmpl.value} branding={previewBranding} />
             </div>
           </div>

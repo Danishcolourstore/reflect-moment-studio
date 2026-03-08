@@ -77,5 +77,7 @@ export async function loadTemplatesFromDb(): Promise<WebsiteTemplateConfig[]> {
 
 export function clearTemplateCache() {
   _runtimeCache = null;
+  // Bump image revision so cached image URLs are invalidated
+  import('./cache-bust').then(m => m.bumpImageRevision());
 }
 
