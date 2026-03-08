@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useSettingFlag } from '@/hooks/use-platform-settings';
 
 const navLinks = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -23,12 +24,10 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [counts, setCounts] = useState({ photographers: 0, events: 0 });
-
-  // Use DB-backed platform settings via React Query (auto-refreshed via realtime)
-  const { useSettingFlag } = require('@/hooks/use-platform-settings');
   const maintenance = useSettingFlag('maintenanceMode', false);
 
   useEffect(() => {
+    Promise.all([
       (supabase.from('profiles').select('id', { count: 'exact', head: true }) as any),
       (supabase.from('events').select('id', { count: 'exact', head: true }) as any),
     ]).then(([p, e]) => {
