@@ -1,5 +1,6 @@
 /**
  * Draggable, rotatable, resizable text layer rendered on the grid canvas.
+ * Supports: stroke, underline, background highlight, gradient text, shadow.
  * Uses a controlled <textarea> for stable input on mobile.
  * 
  * CRITICAL: All pointer/touch events are carefully isolated to prevent
@@ -9,6 +10,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { RotateCw, Pencil, Trash2 } from 'lucide-react';
 import type { TextLayer } from './text-overlay-types';
+import { loadFont } from './font-library';
 
 interface Props {
   layer: TextLayer;
@@ -26,6 +28,9 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
   const [localText, setLocalText] = useState(layer.text);
   const [dragState, setDragState] = useState<{ type: 'move' | 'rotate'; startX: number; startY: number; origX: number; origY: number; origRot: number } | null>(null);
 
+  // Ensure font is loaded
+  useEffect(() => { loadFont(layer.fontFamily); }, [layer.fontFamily]);
+
   // Sync local text when layer text changes externally (not while editing)
   useEffect(() => {
     if (!editing) {
@@ -36,7 +41,6 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
   // ─── Drag to move ─────────────────────────────
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     const target = e.target as HTMLElement;
-    // Never start drag from textarea, buttons, or editing area
     if (
       target.tagName === 'TEXTAREA' ||
       target.tagName === 'BUTTON' ||
@@ -96,7 +100,6 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
   }, [localText, onUpdate]);
 
   // ─── Controlled text change ───────────────────
-  // Use onInput for correct mobile IME character order
   const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
     setLocalText(e.currentTarget.value);
   }, []);
@@ -104,7 +107,6 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
   // Focus textarea when entering edit mode
   useEffect(() => {
     if (editing && textareaRef.current) {
-      // Small delay ensures the textarea is rendered and focusable on mobile
       requestAnimationFrame(() => {
         const ta = textareaRef.current;
         if (!ta) return;
@@ -115,32 +117,51 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
     }
   }, [editing]);
 
-  // Stop all events from bubbling out of the editing textarea
   const stopAll = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation();
-    // Also prevent native event from reaching GridCell file inputs
     e.nativeEvent.stopImmediatePropagation?.();
   }, []);
 
+  // ─── Build text styles ─────────────────────────
+  const hasGradient = layer.gradientColors && layer.gradientColors.length === 2;
+
   const textStyle: React.CSSProperties = {
-    fontFamily: `'${layer.fontFamily}', serif`,
+    fontFamily: `'${layer.fontFamily}', sans-serif`,
     fontSize: `${layer.fontSize}px`,
     fontWeight: layer.fontWeight,
     fontStyle: layer.fontStyle,
     letterSpacing: `${layer.letterSpacing}px`,
     lineHeight: layer.lineHeight,
-    color: layer.color,
+    color: hasGradient ? 'transparent' : layer.color,
     opacity: layer.opacity,
     textAlign: layer.alignment,
     textTransform: layer.textTransform,
+    textDecoration: layer.underline ? 'underline' : 'none',
+    textDecorationColor: hasGradient ? layer.gradientColors![0] : undefined,
     textShadow: layer.shadow
       ? `${layer.shadow.x}px ${layer.shadow.y}px ${layer.shadow.blur}px ${layer.shadow.color}`
       : 'none',
+    WebkitTextStroke: layer.stroke ? `${layer.stroke.width}px ${layer.stroke.color}` : undefined,
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
     WebkitTapHighlightColor: 'transparent',
     userSelect: editing ? 'text' : 'none',
+    // Gradient text
+    ...(hasGradient ? {
+      backgroundImage: `linear-gradient(135deg, ${layer.gradientColors![0]}, ${layer.gradientColors![1]})`,
+      WebkitBackgroundClip: 'text',
+      backgroundClip: 'text',
+    } : {}),
   };
+
+  const highlightStyle: React.CSSProperties | undefined = layer.bgHighlight ? {
+    backgroundColor: layer.bgHighlight,
+    padding: '2px 6px',
+    borderRadius: '3px',
+    display: 'inline',
+    boxDecorationBreak: 'clone' as any,
+    WebkitBoxDecorationBreak: 'clone',
+  } : undefined;
 
   return (
     <div
@@ -177,7 +198,7 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
             ref={textareaRef}
             value={localText}
             onInput={handleInput}
-            onChange={() => {}} // React requires onChange but we use onInput for correct IME ordering
+            onChange={() => {}}
             onBlur={handleBlur}
             onPointerDown={stopAll}
             onTouchStart={stopAll}
@@ -197,28 +218,33 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
               padding: '2px 4px',
               display: 'block',
               width: '100%',
-              caretColor: layer.color,
+              caretColor: hasGradient ? layer.gradientColors![0] : layer.color,
+              // Reset gradient for editing
+              color: hasGradient ? layer.gradientColors![0] : layer.color,
+              backgroundImage: 'none',
+              WebkitBackgroundClip: 'unset',
+              WebkitTextFillColor: 'unset',
             }}
           />
         </div>
       ) : (
         <div
-          style={textStyle}
           onDoubleClick={startEdit}
           onTouchEnd={(e) => {
-            if (selected) {
-              startEdit(e);
-            }
+            if (selected) startEdit(e);
           }}
         >
-          {layer.text}
+          {highlightStyle ? (
+            <span style={{ ...textStyle, ...highlightStyle }}>{layer.text}</span>
+          ) : (
+            <div style={textStyle}>{layer.text}</div>
+          )}
         </div>
       )}
 
       {/* Controls — visible when selected */}
       {selected && !editing && (
         <>
-          {/* Edit button */}
           <button
             type="button"
             onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
@@ -228,7 +254,6 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
             <Pencil className="h-3.5 w-3.5" />
           </button>
 
-          {/* Delete button */}
           <button
             type="button"
             onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
@@ -238,7 +263,6 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
             <Trash2 className="h-3.5 w-3.5" />
           </button>
 
-          {/* Rotate handle */}
           <div
             className="absolute -bottom-9 left-1/2 -translate-x-1/2 h-8 w-8 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-white cursor-grab active:cursor-grabbing"
             onPointerDown={onRotateDown}
