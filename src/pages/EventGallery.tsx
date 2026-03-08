@@ -697,8 +697,9 @@ const EventGallery = () => {
               <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
             </div>
           ) : displayPhotos.length > 0 ? (
+            <>
             <div className={gridClass}>
-              {displayPhotos.map(photo => {
+              {paginatedPhotos.map(photo => {
                 const fav = isFavorite(photo.id);
                 return (
                   <div key={photo.id} className={`group ${getItemClass(layout)}`}>
@@ -713,6 +714,12 @@ const EventGallery = () => {
                 );
               })}
             </div>
+            {hasMore && (
+              <div ref={sentinelRef} className="flex justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/30" />
+              </div>
+            )}
+            </>
           ) : null}
         </>
       )}
