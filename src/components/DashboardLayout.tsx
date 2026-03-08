@@ -61,10 +61,11 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-function applyThemeClass(t: 'dark' | 'editorial') {
-  document.documentElement.classList.remove('dark', 'editorial');
+type ThemeMode = 'dark' | 'editorial' | 'classic';
+
+function applyThemeClass(t: ThemeMode) {
+  document.documentElement.classList.remove('dark', 'editorial', 'classic');
   document.documentElement.classList.add(t);
-  // Keep legacy keys in sync
   localStorage.setItem('andhakaar-mode', t === 'dark' ? 'on' : 'off');
   localStorage.setItem('theme', t);
 }
