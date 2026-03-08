@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Pencil, Monitor, Tablet, Smartphone, X } from 'lucide-react';
+import { ArrowLeft, Pencil, Monitor, Tablet, Smartphone, X, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { type WebsiteTemplateValue } from '@/lib/website-templates';
+import { type WebsiteTemplateValue, type SectionConfigItem } from '@/lib/website-templates';
 import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { cacheBust, cacheBustArray } from '@/lib/cache-bust';
 import { WebsiteHero } from '@/components/website/WebsiteHero';
@@ -22,6 +22,20 @@ import { toast } from 'sonner';
 
 type ViewMode = 'desktop' | 'tablet' | 'mobile';
 
+const DEFAULT_SECTIONS: SectionConfigItem[] = [
+  { id: 'hero', enabled: true, order: 0 },
+  { id: 'portfolio', enabled: true, order: 1 },
+  { id: 'featured_stories', enabled: false, order: 2 },
+  { id: 'gallery', enabled: false, order: 3 },
+  { id: 'about', enabled: true, order: 4 },
+  { id: 'services', enabled: false, order: 5 },
+  { id: 'films', enabled: false, order: 6 },
+  { id: 'testimonials', enabled: false, order: 7 },
+  { id: 'instagram', enabled: false, order: 8 },
+  { id: 'contact', enabled: true, order: 9 },
+  { id: 'footer', enabled: true, order: 10 },
+];
+
 export default function TemplatePreview() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -36,7 +50,12 @@ export default function TemplatePreview() {
     return allTemplates.find((t) => t.value === templateValue) || allTemplates[0];
   }, [allTemplates, templateValue]);
 
-  // All images cache-busted from DB demoContent
+  // Get ordered enabled sections from section_config
+  const enabledSections = useMemo(() => {
+    const sections = tmpl?.sectionConfig?.sections || DEFAULT_SECTIONS;
+    return [...sections].filter(s => s.enabled).sort((a, b) => a.order - b.order);
+  }, [tmpl]);
+
   const demoImages = useMemo(() => cacheBustArray(tmpl?.demoContent?.portfolio?.demo_images || []), [tmpl]);
   const galleryImages = useMemo(() => cacheBustArray(tmpl?.demoContent?.gallery_images || tmpl?.demoContent?.portfolio?.demo_images || []), [tmpl]);
   const socialImages = useMemo(() => cacheBustArray(tmpl?.demoContent?.social_images || tmpl?.demoContent?.portfolio?.demo_images?.slice(0, 6) || []), [tmpl]);
@@ -57,6 +76,8 @@ export default function TemplatePreview() {
     }));
   }, [tmpl]);
 
+  const testimonials = tmpl?.demoContent?.testimonials || [];
+
   const previewBranding = useMemo(() => {
     if (!tmpl) return null;
     return {
@@ -70,40 +91,28 @@ export default function TemplatePreview() {
       instagram: '@studio',
       website: '',
       whatsapp: '',
-      email: 'hello@studio.com',
+      email: tmpl.demoContent?.footer?.email || 'hello@studio.com',
       footer_text: tmpl.demoContent?.footer?.text || '',
       hero_button_label: tmpl.demoContent?.hero?.button_text || 'View Portfolio',
       hero_button_url: '#portfolio',
     };
   }, [tmpl]);
 
-  const isCinematic = tmpl?.value === 'cinematic-wedding-story';
-
   const handleUseTemplate = async () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
+    if (!user) { navigate('/login'); return; }
     if (!tmpl?.value) return;
-
     setChoosing(true);
     try {
       const { data: existing } = await (supabase.from('studio_profiles').select('id') as any)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
+        .eq('user_id', user.id).maybeSingle();
       if (existing) {
-        await (supabase.from('studio_profiles').update({ website_template: tmpl.value } as any) as any)
-          .eq('user_id', user.id);
+        await (supabase.from('studio_profiles').update({ website_template: tmpl.value } as any) as any).eq('user_id', user.id);
       } else {
         await (supabase.from('studio_profiles').insert({ user_id: user.id, website_template: tmpl.value } as any) as any);
       }
-
       toast.success('Template selected successfully');
       navigate('/dashboard/website-editor');
-    } catch {
-      toast.error('Failed to select template');
-    }
+    } catch { toast.error('Failed to select template'); }
     setChoosing(false);
   };
 
@@ -115,6 +124,106 @@ export default function TemplatePreview() {
     );
   }
 
+  const cols = tmpl.stylingConfig?.galleryColumnsDesktop || 3;
+
+  /* Render a section by its id */
+  const renderSection = (sectionId: string) => {
+    switch (sectionId) {
+      case 'hero':
+        return <WebsiteHero key="hero" branding={previewBranding} template={tmpl.value} />;
+
+      case 'portfolio':
+        return demoImages.length > 0 ? (
+          <WebsitePhotoShowcase
+            key="portfolio"
+            id="portfolio"
+            photos={demoImages.map(url => ({ url }))}
+            accent={previewBranding.studio_accent_color || tmpl.textSecondary}
+            template={tmpl.value}
+          />
+        ) : null;
+
+      case 'featured_stories':
+        return featuredStories.length > 0 ? (
+          <section key="featured-stories" id="featured-stories" className="py-20 sm:py-28 px-6 sm:px-12" style={{ backgroundColor: '#FAF8F5' }}>
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-14">
+                <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] mb-4" style={{ color: '#7A756E', fontFamily: '"DM Sans", sans-serif' }}>Featured</p>
+                <h2 className="text-3xl sm:text-5xl font-light lowercase tracking-[0.02em]" style={{ fontFamily: tmpl.fontFamily, color: '#1A1715' }}>wedding stories</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredStories.map((story, i) => (
+                  <div key={i} className="group cursor-pointer">
+                    <div className="relative overflow-hidden aspect-[3/4]">
+                      <img src={story.image_url} alt={story.title} className="absolute inset-0 h-full w-full object-cover transition-transform duration-[800ms] group-hover:scale-105" loading="lazy" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-6">
+                        <h3 className="text-lg font-light tracking-wide" style={{ color: '#FAF8F5', fontFamily: tmpl.fontFamily }}>{story.title}</h3>
+                        <p className="text-[10px] uppercase tracking-[0.2em] mt-1" style={{ color: 'rgba(250,248,245,0.6)', fontFamily: '"DM Sans", sans-serif' }}>{story.location}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null;
+
+      case 'gallery':
+        return galleryImages.length > 0 ? (
+          <WebsiteCinematicGallery key="gallery" id="gallery" photos={galleryImages.map(url => ({ url }))} />
+        ) : null;
+
+      case 'about':
+        return <WebsiteAbout key="about" id="about" template={tmpl.value} branding={previewBranding} />;
+
+      case 'services':
+        return demoServices.length > 0 ? (
+          <WebsiteServices key="services" id="services" services={demoServices} accent={previewBranding.studio_accent_color || tmpl.textSecondary} template={tmpl.value} />
+        ) : null;
+
+      case 'films':
+        return films.length > 0 ? (
+          <WebsiteCinematicFilms key="films" id="films" films={films} />
+        ) : null;
+
+      case 'testimonials':
+        return testimonials.length > 0 ? (
+          <section key="testimonials" className="py-16 sm:py-24 px-6 sm:px-12" style={{ backgroundColor: tmpl.cardBg }}>
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-2xl sm:text-4xl font-light mb-10" style={{ fontFamily: tmpl.fontFamily }}>What Clients Say</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {testimonials.map((t, i) => (
+                  <div key={i} className="rounded-lg border p-6 text-left" style={{ borderColor: tmpl.navBorder }}>
+                    <p className="italic leading-relaxed mb-3" style={{ color: tmpl.textSecondary, fontSize: 14 }}>"{t.text}"</p>
+                    <p className="text-sm font-semibold">{t.name}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null;
+
+      case 'instagram':
+        return socialImages.length > 0 ? (
+          <WebsiteCinematicSocialGrid key="instagram" id="instagram" photos={socialImages} instagramHandle={previewBranding.instagram || '@studio'} />
+        ) : (
+          <WebsiteInstagramGrid key="instagram" id="instagram" photos={socialImages} instagramHandle={previewBranding.instagram || '@studio'} accent={previewBranding.studio_accent_color || tmpl.textSecondary} template={tmpl.value} />
+        );
+
+      case 'contact':
+        return (
+          <WebsiteCinematicInquiry key="contact" id="contact" branding={previewBranding} />
+        );
+
+      case 'footer':
+        return <WebsiteFooter key="footer" template={tmpl.value} branding={previewBranding} />;
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0 z-50">
@@ -123,6 +232,7 @@ export default function TemplatePreview() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <p className="text-xs font-semibold text-foreground">Website Preview</p>
+          <span className="text-[10px] text-muted-foreground capitalize">{tmpl.category}</span>
         </div>
 
         <div className="flex items-center gap-1 bg-muted rounded-full p-0.5">
@@ -172,83 +282,7 @@ export default function TemplatePreview() {
             </div>
 
             <div style={{ backgroundColor: tmpl.bg, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}>
-              {/* SECTION 1 — Hero */}
-              <WebsiteHero branding={previewBranding} template={tmpl.value} />
-
-              {/* SECTION 2 — Portfolio Showcase */}
-              <WebsitePhotoShowcase
-                id="portfolio"
-                photos={demoImages.map((url) => ({ url }))}
-                accent={previewBranding.studio_accent_color || tmpl.textSecondary}
-                template={tmpl.value}
-              />
-
-              {/* SECTION 3 — Featured Wedding Stories (cinematic only) */}
-              {isCinematic && featuredStories.length > 0 && (
-                <section id="featured-stories" className="py-20 sm:py-28 px-6 sm:px-12" style={{ backgroundColor: '#FAF8F5' }}>
-                  <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-14">
-                      <p className="text-[10px] sm:text-xs uppercase tracking-[0.4em] mb-4" style={{ color: '#7A756E', fontFamily: '"DM Sans", sans-serif' }}>Featured</p>
-                      <h2 className="text-3xl sm:text-5xl font-light lowercase tracking-[0.02em]" style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: '#1A1715' }}>wedding stories</h2>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {featuredStories.map((story, i) => (
-                        <div key={i} className="group cursor-pointer">
-                          <div className="relative overflow-hidden aspect-[3/4]">
-                            <img src={story.image_url} alt={story.title} className="absolute inset-0 h-full w-full object-cover transition-transform duration-[800ms] group-hover:scale-105" loading="lazy" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                            <div className="absolute bottom-0 left-0 right-0 p-6">
-                              <h3 className="text-lg font-light tracking-wide" style={{ color: '#FAF8F5', fontFamily: '"Cormorant Garamond", Georgia, serif' }}>{story.title}</h3>
-                              <p className="text-[10px] uppercase tracking-[0.2em] mt-1" style={{ color: 'rgba(250,248,245,0.6)', fontFamily: '"DM Sans", sans-serif' }}>{story.location}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* SECTION 4 — Cinematic Gallery (cinematic) / fallback to standard */}
-              {isCinematic ? (
-                <WebsiteCinematicGallery id="gallery" photos={galleryImages.map(url => ({ url }))} />
-              ) : null}
-
-              {/* SECTION 5 — About */}
-              <WebsiteAbout id="about" template={tmpl.value} branding={previewBranding} />
-
-              {/* SECTION 6 — Films (cinematic only) */}
-              {isCinematic && films.length > 0 && (
-                <WebsiteCinematicFilms id="films" films={films} />
-              )}
-
-              {/* SECTION 7 — Services (non-cinematic) */}
-              {!isCinematic && (
-                <WebsiteServices id="services" services={demoServices} accent={previewBranding.studio_accent_color || tmpl.textSecondary} template={tmpl.value} />
-              )}
-
-              {/* SECTION 7/8 — Social / Instagram Grid */}
-              {isCinematic ? (
-                <WebsiteCinematicSocialGrid id="instagram" photos={socialImages} instagramHandle={previewBranding.instagram || '@studio'} />
-              ) : (
-                <WebsiteInstagramGrid id="instagram" photos={socialImages} instagramHandle={previewBranding.instagram || '@studio'} accent={previewBranding.studio_accent_color || tmpl.textSecondary} template={tmpl.value} />
-              )}
-
-              {/* SECTION 8/9 — Inquiry / Contact */}
-              {isCinematic ? (
-                <WebsiteCinematicInquiry id="contact" branding={previewBranding} />
-              ) : (
-                <WebsiteContact
-                  id="contact"
-                  template={tmpl.value}
-                  branding={previewBranding}
-                  heading={tmpl.demoContent?.contact?.heading}
-                  buttonLabel={tmpl.demoContent?.contact?.button_text}
-                />
-              )}
-
-              {/* SECTION 9 — Footer */}
-              <WebsiteFooter template={tmpl.value} branding={previewBranding} />
+              {enabledSections.map(section => renderSection(section.id))}
             </div>
           </div>
         </div>
