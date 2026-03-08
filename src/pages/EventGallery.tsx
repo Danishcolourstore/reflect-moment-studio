@@ -281,6 +281,12 @@ const EventGallery = () => {
   const downloadAll = () => buildZip(photos, 'gallery');
   const downloadFavorites = () => buildZip(photos.filter((p) => isFavorite(p.id)), 'favorites');
 
+  const displayPhotos = filter === 'favorites'
+    ? photos.filter((p) => isFavorite(p.id))
+    : photos;
+
+  const { visiblePhotos: paginatedPhotos, hasMore, sentinelRef } = useInfinitePhotos(displayPhotos);
+
   if (eventLoading || !event) {
     return (
       <DashboardLayout>
@@ -306,12 +312,6 @@ const EventGallery = () => {
   const isOwner = user?.id === event.user_id;
   const canDownloadAll = isOwner || event.downloads_enabled;
   const canDownloadAnything = canDownloadAll;
-
-  const displayPhotos = filter === 'favorites'
-    ? photos.filter((p) => isFavorite(p.id))
-    : photos;
-
-  const { visiblePhotos: paginatedPhotos, hasMore, sentinelRef } = useInfinitePhotos(displayPhotos);
 
   const layout = event.gallery_layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
