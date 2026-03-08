@@ -241,9 +241,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {/* Theme switcher — Dark / Editorial / Classic */}
           <div className="flex items-center rounded-full border border-border bg-card overflow-hidden">
             {([
-              { key: 'dark' as ThemeMode, icon: Moon, label: 'Dark', emoji: '🌙' },
-              { key: 'editorial' as ThemeMode, icon: Sun, label: 'Editorial', emoji: '☀' },
-              { key: 'classic' as ThemeMode, icon: Sparkles, label: 'Classic', emoji: '✦' },
+              { key: 'dark' as ThemeMode, label: 'Dark', emoji: '🌙' },
+              { key: 'classic' as ThemeMode, label: 'Classic', emoji: '✦' },
             ]).map(({ key, label, emoji }) => (
               <button
                 key={key}

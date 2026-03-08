@@ -155,10 +155,9 @@ const Profile = () => {
         <div className="bg-card border border-border rounded-xl p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Appearance</h2>
           <p className="text-[11px] text-muted-foreground mb-4">Choose your dashboard theme</p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {([
               { key: 'dark', label: 'Dark', emoji: '🌙', desc: 'Cinematic dark' },
-              { key: 'editorial', label: 'Editorial', emoji: '☀', desc: 'Warm neutral' },
               { key: 'classic', label: 'Classic', emoji: '✦', desc: 'Clean white' },
             ] as const).map(({ key, label, emoji, desc }) => {
               const currentTheme = localStorage.getItem('mirrorai-theme') || 'dark';
