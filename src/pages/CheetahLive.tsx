@@ -451,10 +451,12 @@ export default function CheetahLive() {
                     ? `Watching: ${folderWatcher.folderName}`
                     : 'Auto-Upload from Folder'}
                 </p>
-                {folderWatcher.isWatching && (
+              {folderWatcher.isWatching && (
                   <p className="text-[10px] text-muted-foreground">
                     {folderWatcher.filesDetected} detected · {folderWatcher.filesUploaded} uploaded
-                    {folderWatcher.filesQueued > 0 && ` · ${folderWatcher.filesQueued} queued`}
+                    {folderWatcher.filesQueued > 0 && ` · ${folderWatcher.filesQueued} remaining`}
+                    {folderWatcher.uploadSpeedMBps !== null && ` · ${folderWatcher.uploadSpeedMBps} MB/s`}
+                    {folderWatcher.etaSeconds !== null && folderWatcher.etaSeconds > 0 && ` · ~${folderWatcher.etaSeconds}s remaining`}
                   </p>
                 )}
                 {!folderWatcher.isWatching && (
@@ -465,10 +467,12 @@ export default function CheetahLive() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {folderWatcher.isWatching && folderWatcher.filesQueued > 0 && (
+          {folderWatcher.isWatching && (folderWatcher.filesQueued > 0 || folderWatcher.filesUploaded < folderWatcher.filesDetected) && folderWatcher.filesDetected > 0 && (
                 <div className="flex items-center gap-1.5">
                   <Loader2 className="h-3 w-3 animate-spin text-accent" />
-                  <span className="text-[10px] text-accent font-medium">{folderWatcher.filesQueued} uploading</span>
+                  <span className="text-[10px] text-accent font-medium">
+                    {Math.round((folderWatcher.filesUploaded / folderWatcher.filesDetected) * 100)}%
+                  </span>
                 </div>
               )}
               {folderWatcher.isWatching ? (
@@ -519,19 +523,24 @@ export default function CheetahLive() {
       {/* Session selector */}
       {sessions.length > 1 && (
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          {sessions.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setActiveSessionId(s.id)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                s.id === activeSessionId
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              {s.title} ({s.total_photos})
-            </button>
-          ))}
+       {sessions.map((s) => {
+            const displayTitle = s.title && s.title.trim()
+              ? s.title
+              : new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' Session';
+            return (
+              <button
+                key={s.id}
+                onClick={() => setActiveSessionId(s.id)}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  s.id === activeSessionId
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                {displayTitle} ({s.total_photos})
+              </button>
+            );
+          })}
         </div>
       )}
 

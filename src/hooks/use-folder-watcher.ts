@@ -5,9 +5,9 @@
  *
  * Optimisations:
  * - 500ms poll interval (near real-time detection)
- * - 6 concurrent uploads for burst handling
- * - Thumbnail generation in Web Worker (non-blocking)
- * - Fast ingest mode: upload first, AI scoring deferred
+ * - 5 concurrent uploads for burst handling
+ * - Client-side compression (max 2400px, 0.85 quality JPEG)
+ * - Real upload speed & ETA tracking
  *
  * Browser support: Chromium-based browsers only (Chrome, Edge, Brave, Arc).
  */
@@ -18,8 +18,11 @@ import { toast } from 'sonner';
 
 const VALID_EXTENSIONS = new Set(['jpg', 'jpeg', 'heif', 'heic', 'png']);
 const POLL_INTERVAL_MS = 500;
-const UPLOAD_CONCURRENCY = 6;
-const MIN_FILE_SIZE = 10_000; // Skip incomplete writes
+const UPLOAD_CONCURRENCY = 5;
+const MIN_FILE_SIZE = 10_000;
+const MAX_DIMENSION = 2400;
+const JPEG_QUALITY = 0.85;
+const COMPRESS_THRESHOLD = 2 * 1024 * 1024; // 2MB
 
 export interface FolderWatcherState {
   isSupported: boolean;
@@ -29,6 +32,29 @@ export interface FolderWatcherState {
   filesUploaded: number;
   filesQueued: number;
   lastScanAt: string | null;
+  uploadSpeedMBps: number | null;
+  etaSeconds: number | null;
+}
+
+async function compressImage(file: File): Promise<File | Blob> {
+  if (file.size < COMPRESS_THRESHOLD) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(MAX_DIMENSION / bitmap.width, MAX_DIMENSION / bitmap.height, 1);
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+
+    const canvas = new OffscreenCanvas(w, h);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: JPEG_QUALITY });
+    return blob;
+  } catch {
+    return file; // fallback to original on any error
+  }
 }
 
 export function useFolderWatcher(sessionId: string | null) {
@@ -40,6 +66,8 @@ export function useFolderWatcher(sessionId: string | null) {
     filesUploaded: 0,
     filesQueued: 0,
     lastScanAt: null,
+    uploadSpeedMBps: null,
+    etaSeconds: null,
   });
 
   const dirHandleRef = useRef<FileSystemDirectoryHandle | null>(null);
@@ -49,6 +77,12 @@ export function useFolderWatcher(sessionId: string | null) {
   const intervalRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
   const tokenRef = useRef<string | null>(null);
+
+  // Counters stored in refs for accurate concurrent updates
+  const detectedRef = useRef(0);
+  const uploadedRef = useRef(0);
+  const bytesUploadedRef = useRef(0);
+  const uploadStartTimeRef = useRef<number | null>(null);
 
   // Keep auth token fresh
   useEffect(() => {
@@ -71,18 +105,44 @@ export function useFolderWatcher(sessionId: string | null) {
     };
   }, []);
 
-  const updateState = useCallback((patch: Partial<FolderWatcherState>) => {
-    if (mountedRef.current) setState((s) => ({ ...s, ...patch }));
+  const syncState = useCallback(() => {
+    if (!mountedRef.current) return;
+    const elapsed = uploadStartTimeRef.current
+      ? (Date.now() - uploadStartTimeRef.current) / 1000
+      : 0;
+    const speedMBps = elapsed > 0.5
+      ? bytesUploadedRef.current / (1024 * 1024) / elapsed
+      : null;
+    const remaining = uploadQueueRef.current.length + activeUploadsRef.current;
+    // rough estimate: avg bytes per file so far
+    const avgBytes = uploadedRef.current > 0
+      ? bytesUploadedRef.current / uploadedRef.current
+      : 3 * 1024 * 1024; // assume 3MB
+    const etaSeconds = speedMBps && speedMBps > 0
+      ? Math.round((remaining * avgBytes) / (speedMBps * 1024 * 1024))
+      : null;
+
+    setState((s) => ({
+      ...s,
+      filesDetected: detectedRef.current,
+      filesUploaded: uploadedRef.current,
+      filesQueued: uploadQueueRef.current.length,
+      lastScanAt: new Date().toISOString(),
+      uploadSpeedMBps: speedMBps ? Math.round(speedMBps * 10) / 10 : null,
+      etaSeconds,
+    }));
   }, []);
 
-  // Upload a single file — called from the drain loop
+  // Upload a single file
   const uploadOne = useCallback(async (file: File) => {
     const token = tokenRef.current;
     if (!token || !sessionId) return;
 
     try {
+      const compressed = await compressImage(file);
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressed, file.name);
       formData.append('session_id', sessionId);
 
       const res = await fetch(
@@ -90,32 +150,31 @@ export function useFolderWatcher(sessionId: string | null) {
         { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData }
       );
 
-      if (!res.ok) console.error('Folder watcher upload failed:', file.name);
+      if (!res.ok) {
+        console.error('Folder watcher upload failed:', file.name, await res.text().catch(() => ''));
+      }
+
+      bytesUploadedRef.current += compressed.size ?? file.size;
     } catch (err) {
       console.error('Upload error:', file.name, err);
     }
 
-    updateState({
-      filesUploaded: (state.filesUploaded ?? 0) + 1,
-      filesQueued: uploadQueueRef.current.length,
-    });
-  }, [sessionId, updateState]);
+    uploadedRef.current++;
+    syncState();
+  }, [sessionId, syncState]);
 
-  // Drain the upload queue, respecting concurrency limit
+  // Drain the upload queue with concurrency
   const drainQueue = useCallback(() => {
     while (activeUploadsRef.current < UPLOAD_CONCURRENCY && uploadQueueRef.current.length > 0) {
       const file = uploadQueueRef.current.shift()!;
       activeUploadsRef.current++;
       uploadOne(file).finally(() => {
         activeUploadsRef.current--;
-        if (mountedRef.current) {
-          updateState({ filesQueued: uploadQueueRef.current.length });
-        }
-        // Keep draining
+        syncState();
         drainQueue();
       });
     }
-  }, [uploadOne, updateState]);
+  }, [uploadOne, syncState]);
 
   // Scan directory for new files
   const scanDirectory = useCallback(async () => {
@@ -129,7 +188,6 @@ export function useFolderWatcher(sessionId: string | null) {
         if (entry.kind !== 'file') continue;
         const name: string = entry.name;
         const ext = name.split('.').pop()?.toLowerCase() || '';
-
         if (!VALID_EXTENSIONS.has(ext)) continue;
         if (knownFilesRef.current.has(name)) continue;
 
@@ -147,20 +205,18 @@ export function useFolderWatcher(sessionId: string | null) {
       }
 
       if (newFiles.length > 0) {
+        if (!uploadStartTimeRef.current) uploadStartTimeRef.current = Date.now();
+        detectedRef.current += newFiles.length;
         uploadQueueRef.current.push(...newFiles);
-        updateState({
-          filesDetected: (state.filesDetected ?? 0) + newFiles.length,
-          filesQueued: uploadQueueRef.current.length,
-          lastScanAt: new Date().toISOString(),
-        });
+        syncState();
         drainQueue();
       } else {
-        updateState({ lastScanAt: new Date().toISOString() });
+        syncState();
       }
     } catch (err) {
       console.error('Directory scan error:', err);
     }
-  }, [drainQueue, updateState]);
+  }, [drainQueue, syncState]);
 
   // Select folder and start watching
   const startWatching = useCallback(async () => {
@@ -173,6 +229,10 @@ export function useFolderWatcher(sessionId: string | null) {
       const dirHandle = await (window as any).showDirectoryPicker({ mode: 'read' });
       dirHandleRef.current = dirHandle;
       knownFilesRef.current = new Set();
+      detectedRef.current = 0;
+      uploadedRef.current = 0;
+      bytesUploadedRef.current = 0;
+      uploadStartTimeRef.current = null;
 
       // Snapshot existing files so we don't re-upload them
       for await (const entry of (dirHandle as any).values()) {
@@ -190,6 +250,8 @@ export function useFolderWatcher(sessionId: string | null) {
         filesUploaded: 0,
         filesQueued: 0,
         lastScanAt: new Date().toISOString(),
+        uploadSpeedMBps: null,
+        etaSeconds: null,
       }));
 
       intervalRef.current = window.setInterval(scanDirectory, POLL_INTERVAL_MS);
@@ -202,7 +264,6 @@ export function useFolderWatcher(sessionId: string | null) {
     }
   }, [state.isSupported, sessionId, scanDirectory]);
 
-  // Stop watching
   const stopWatching = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -213,7 +274,6 @@ export function useFolderWatcher(sessionId: string | null) {
     toast.info('Folder watching stopped');
   }, []);
 
-  // Cleanup on session change
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
