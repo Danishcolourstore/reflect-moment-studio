@@ -167,7 +167,7 @@ function useFeedData(username: string | undefined) {
 const PhotographerFeed = () => {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
-  const { studio, profile, events, featuredEvents, coverPhotos, albums, loading, notFound } = useFeedData(username);
+  const { studio, profile, events, featuredEvents, coverPhotos, albums, portfolioPhotos, loading, notFound } = useFeedData(username);
 
   const templateValue = studio?.website_template || 'dark-portfolio';
   const tmpl = getTemplate(templateValue);
