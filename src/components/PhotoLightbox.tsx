@@ -272,7 +272,7 @@ export function PhotoLightbox({
         <img
           src={fullLoaded ? photo.url : getOptimizedUrl(photo.url, 'medium')}
           alt=""
-          className="max-h-full max-w-[95vw] object-contain select-none transition-transform duration-200"
+          className="max-h-full max-w-[95vw] object-contain select-none transition-all duration-300 rounded-sm"
           style={imgTransform ? { transform: imgTransform } : undefined}
           draggable={false}
         />
