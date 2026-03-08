@@ -201,6 +201,11 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+const LegacyEventRedirect = () => {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={id ? `/dashboard/events/${id}` : '/dashboard/events'} replace />;
+};
+
 const AppRoutes = () => {
   useRealtimeSync(true);
   return (
