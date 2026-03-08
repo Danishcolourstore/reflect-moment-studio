@@ -294,6 +294,8 @@ const EventGallery = () => {
     ? photos.filter((p) => isFavorite(p.id))
     : photos;
 
+  const { visiblePhotos: paginatedPhotos, hasMore, sentinelRef } = useInfinitePhotos(displayPhotos);
+
   const layout = event.gallery_layout || 'classic';
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
 
