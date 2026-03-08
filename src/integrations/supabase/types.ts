@@ -1221,6 +1221,66 @@ export type Database = {
           },
         ]
       }
+      grid_templates: {
+        Row: {
+          background_color: string
+          border_radius: number
+          category: string
+          columns: number
+          created_at: string
+          frame_style: string | null
+          grid_type: string
+          id: string
+          is_active: boolean
+          layout_config: Json
+          name: string
+          padding: number
+          preview_image_url: string | null
+          rows: number
+          sort_order: number
+          spacing: number
+          updated_at: string
+        }
+        Insert: {
+          background_color?: string
+          border_radius?: number
+          category?: string
+          columns?: number
+          created_at?: string
+          frame_style?: string | null
+          grid_type?: string
+          id?: string
+          is_active?: boolean
+          layout_config?: Json
+          name: string
+          padding?: number
+          preview_image_url?: string | null
+          rows?: number
+          sort_order?: number
+          spacing?: number
+          updated_at?: string
+        }
+        Update: {
+          background_color?: string
+          border_radius?: number
+          category?: string
+          columns?: number
+          created_at?: string
+          frame_style?: string | null
+          grid_type?: string
+          id?: string
+          is_active?: boolean
+          layout_config?: Json
+          name?: string
+          padding?: number
+          preview_image_url?: string | null
+          rows?: number
+          sort_order?: number
+          spacing?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       guest_registrations: {
         Row: {
           created_at: string
