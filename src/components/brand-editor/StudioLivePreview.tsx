@@ -174,7 +174,7 @@ export function StudioLivePreview({
         ) : null;
       case 'services':
         return services.length > 0 ? (
-          <WebsiteServices key="services" id="services" services={services} accent={accent} />
+          <WebsiteServices key="services" id="services" services={services} accent={accent} template={template} />
         ) : null;
       case 'testimonials':
         return testimonials.length > 0 ? (
