@@ -70,6 +70,11 @@ function applyThemeClass(t: ThemeMode) {
   localStorage.setItem('theme', t);
 }
 
+function normalizeTheme(raw: string): ThemeMode {
+  if (raw === 'dark') return 'dark';
+  return 'classic'; // editorial or anything else → classic
+}
+
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
