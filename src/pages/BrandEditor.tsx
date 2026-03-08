@@ -286,6 +286,19 @@ const BrandEditor = () => {
     updateData({ services: data.services.filter((_, i) => i !== idx) });
   };
 
+  // ── Testimonials helpers ──
+  const addTestimonial = () => {
+    updateData({ testimonials: [...data.testimonials, { clientName: '', review: '', rating: 5 }] });
+  };
+  const updateTestimonial = (idx: number, partial: Partial<Testimonial>) => {
+    const next = [...data.testimonials];
+    next[idx] = { ...next[idx], ...partial };
+    updateData({ testimonials: next });
+  };
+  const removeTestimonial = (idx: number) => {
+    updateData({ testimonials: data.testimonials.filter((_, i) => i !== idx) });
+  };
+
   // ── Featured gallery toggle ──
   const toggleFeatured = (eventId: string) => {
     const ids = data.featuredGalleryIds.includes(eventId)
