@@ -167,74 +167,95 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
     );
   }
 
+  const tools = [
+    { icon: Grid3X3, name: 'Grid Builder', desc: 'Design layouts for galleries', onClick: () => setShowGridBuilder(true) },
+    { icon: LayoutGrid, name: 'Feed Planner', desc: 'Plan your feed visually', onClick: () => setShowFeedPlanner(true) },
+    { icon: Layers, name: 'Album Designer', desc: 'Design wedding albums', onClick: () => navigate('/dashboard/album-designer') },
+  ];
+
   // ─── List View ───
   const listContent = (
     <>
-      <div className="mb-6">
-        <h1 className="font-serif text-foreground" style={{ fontSize: '36px', fontWeight: 400, fontStyle: 'italic' }}>
-          Storybook Creator
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="font-serif text-foreground" style={{ fontSize: '32px', fontWeight: 400, fontStyle: 'italic' }}>
+          Storybook
         </h1>
-        <p className="text-muted-foreground mt-2" style={{ fontSize: '13px' }}>
-          Design Instagram carousel posts with a professional slide-based editor.
+        <p className="text-muted-foreground mt-1.5" style={{ fontSize: '13px' }}>
+          Design and manage your creative content
         </p>
       </div>
 
-      <div className="flex gap-3 mb-6">
-        <Button onClick={createStorybook} className="gap-2">
+      {/* Primary action */}
+      <div className="mb-10">
+        <Button onClick={createStorybook} className="gap-2 h-11 px-6">
           <Plus className="h-4 w-4" /> New Storybook
-        </Button>
-        <Button variant="outline" onClick={() => setShowGridBuilder(true)} className="gap-2">
-          <Grid3X3 className="h-4 w-4" /> Grid Builder
-        </Button>
-        <Button variant="outline" onClick={() => setShowFeedPlanner(true)} className="gap-2">
-          <LayoutGrid className="h-4 w-4" /> Feed Planner
-        </Button>
-        <Button variant="outline" onClick={() => navigate('/dashboard/album-designer')} className="gap-2">
-          <Layers className="h-4 w-4" /> Album Designer
         </Button>
       </div>
 
-      {loading ? (
-        <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl bg-card animate-pulse" />)}
-        </div>
-      ) : storybooks.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-12 text-center">
-          <BookOpen className="mx-auto h-10 w-10 text-primary mb-4" strokeWidth={1.5} />
-          <p className="font-serif text-foreground text-xl" style={{ fontStyle: 'italic' }}>No storybooks yet</p>
-          <p className="text-muted-foreground text-sm mt-2">Create your first Instagram carousel</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {storybooks.map(sb => (
+      {/* Tools section */}
+      <div className="mb-10">
+        <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground mb-4">Tools</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {tools.map((tool) => (
             <button
-              key={sb.id}
-              onClick={() => setActiveId(sb.id)}
-              className="w-full text-left rounded-2xl border border-border bg-card p-5 hover:border-primary/30 transition-all group"
+              key={tool.name}
+              onClick={tool.onClick}
+              className="text-left rounded-2xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.15)] transition-all group"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-serif text-foreground text-lg">{sb.title}</p>
-                  <p className="text-muted-foreground text-xs mt-1">
-                    {sb.slides_data && Array.isArray(sb.slides_data) ? `${sb.slides_data.length} slides` : 'Empty'} · {new Date(sb.updated_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] uppercase tracking-[2px] text-primary/60 font-semibold border border-primary/20 rounded-full px-3 py-1">
-                    Draft
-                  </span>
-                  <button
-                    onClick={(e) => deleteStorybook(sb.id, e)}
-                    className="opacity-0 group-hover:opacity-100 h-8 w-8 rounded-lg flex items-center justify-center text-destructive hover:bg-destructive/10 transition-all"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
+              <tool.icon className="h-5 w-5 text-primary/70 mb-3 group-hover:text-primary transition-colors" strokeWidth={1.5} />
+              <p className="text-foreground text-sm font-medium">{tool.name}</p>
+              <p className="text-muted-foreground text-xs mt-1">{tool.desc}</p>
             </button>
           ))}
         </div>
-      )}
+      </div>
+
+      {/* My Storybooks section */}
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground mb-4">My Storybooks</p>
+        {loading ? (
+          <div className="space-y-3">
+            {[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl bg-card animate-pulse" />)}
+          </div>
+        ) : storybooks.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-12 text-center">
+            <BookOpen className="mx-auto h-10 w-10 text-primary mb-4" strokeWidth={1.5} />
+            <p className="font-serif text-foreground text-xl" style={{ fontStyle: 'italic' }}>No storybooks yet</p>
+            <p className="text-muted-foreground text-sm mt-2">Create your first Instagram carousel</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {storybooks.map(sb => (
+              <button
+                key={sb.id}
+                onClick={() => setActiveId(sb.id)}
+                className="w-full text-left rounded-2xl border border-border bg-card p-5 hover:border-primary/30 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-serif text-foreground text-lg">{sb.title}</p>
+                    <p className="text-muted-foreground text-xs mt-1">
+                      {sb.slides_data && Array.isArray(sb.slides_data) ? `${sb.slides_data.length} slides` : 'Empty'} · {new Date(sb.updated_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] uppercase tracking-[2px] text-primary/60 font-semibold border border-primary/20 rounded-full px-3 py-1">
+                      Draft
+                    </span>
+                    <button
+                      onClick={(e) => deleteStorybook(sb.id, e)}
+                      className="opacity-0 group-hover:opacity-100 h-8 w-8 rounded-lg flex items-center justify-center text-destructive hover:bg-destructive/10 transition-all"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </>
   );
 
