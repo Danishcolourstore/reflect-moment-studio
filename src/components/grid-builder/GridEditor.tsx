@@ -48,6 +48,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Load legacy font sheet for existing presets
     if (!document.querySelector('link[data-grid-fonts]')) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
@@ -55,6 +56,8 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       link.setAttribute('data-grid-fonts', 'true');
       document.head.appendChild(link);
     }
+    // Preload common fonts for dynamic picker
+    preloadCommonFonts();
   }, []);
 
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
