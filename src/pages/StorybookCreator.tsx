@@ -36,6 +36,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
   const [saving, setSaving] = useState(false);
   const [initialSlides, setInitialSlides] = useState<Slide[]>([]);
   const [showGridBuilder, setShowGridBuilder] = useState(false);
+  const [showFeedPlanner, setShowFeedPlanner] = useState(false);
 
   // Resolve effective user ID
   const effectiveUserId = standalone
