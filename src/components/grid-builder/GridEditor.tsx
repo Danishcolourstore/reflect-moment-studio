@@ -376,6 +376,15 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             <Instagram className="h-3.5 w-3.5" />
             Preview
           </button>
+          <button
+            onClick={() => toggleTool('caption')}
+            className={`flex items-center gap-1.5 text-[10px] tracking-wider uppercase font-medium transition-colors ${
+              activeTool === 'caption' ? 'text-primary' : 'text-foreground'
+            }`}
+          >
+            <MessageSquare className="h-3.5 w-3.5" />
+            Caption
+          </button>
           <div className="flex items-center gap-1.5 flex-wrap justify-end">
             <CarouselSliceExporter cells={cells} format={format} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
