@@ -120,7 +120,7 @@ const Dashboard = () => {
 function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
   return (
     <div
-      className="bg-card border border-border rounded-2xl p-5 cursor-pointer active:scale-[0.97] transition-all duration-200 hover:border-primary/30 hover:-translate-y-0.5"
+      className="bg-card border border-border rounded-2xl p-5 lg:p-7 cursor-pointer active:scale-[0.97] transition-all duration-200 hover:border-primary/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5"
       style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}
       onClick={onClick}
       role="button"
