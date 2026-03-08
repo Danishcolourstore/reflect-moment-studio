@@ -347,7 +347,7 @@ const EventGallery = () => {
 
       {/* Cover banner */}
       {event.cover_url && (
-        <div className="relative -mx-5 -mt-6 mb-5 h-32 sm:h-40 overflow-hidden sm:-mx-8 lg:-mx-10">
+        <div className="relative -mx-5 -mt-6 mb-6 h-40 sm:h-48 lg:h-56 xl:h-64 overflow-hidden sm:-mx-8 lg:-mx-10">
           <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         </div>
