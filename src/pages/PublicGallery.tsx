@@ -1201,7 +1201,7 @@ const PublicGallery = () => {
           </button>
 
           <button
-            onClick={() => { photos.forEach(p => { if (isFavorite(p.id)) rawToggleFavorite(p.id); }); }}
+            onClick={() => clearFavorites()}
             className="text-white/50 hover:text-white/80 transition-colors ml-1"
             title="Clear all favorites"
           >
