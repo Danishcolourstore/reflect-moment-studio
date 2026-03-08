@@ -18,7 +18,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { STATIC_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { type WebsiteTemplateValue } from '@/lib/website-templates';
 import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { WebsiteHero } from '@/components/website/WebsiteHero';
 import { WebsitePortfolio } from '@/components/website/WebsitePortfolio';
