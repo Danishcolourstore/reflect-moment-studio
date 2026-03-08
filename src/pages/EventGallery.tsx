@@ -570,8 +570,9 @@ const EventGallery = () => {
                   <HighlightMosaicGrid photos={gridPhotos} eventName={event.name} isFavorite={isFavorite} toggleFavorite={toggleGuestFavorite} canDownload={canDownloadAnything} isOwner={isOwner} onDelete={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) deletePhoto(orig); }} onShare={(gp) => { const orig = photos.find(p => p.id === gp.id); if (orig) setSharePhoto(orig); }} />
                 )
               ) : (
+                <>
                 <div className={gridClass}>
-                  {displayPhotos.map(photo => {
+                  {paginatedPhotos.map(photo => {
                     const fav = isFavorite(photo.id);
                     return (
                       <div key={photo.id} className={`group ${getItemClass(layout)}`}>
@@ -618,6 +619,12 @@ const EventGallery = () => {
                     );
                   })}
                 </div>
+                {hasMore && (
+                  <div ref={sentinelRef} className="flex justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/30" />
+                  </div>
+                )}
+                </>
               )
             ) : null}
 
