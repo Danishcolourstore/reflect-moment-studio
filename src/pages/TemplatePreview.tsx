@@ -20,20 +20,20 @@ import { toast } from 'sonner';
 // ── Demo content matching the reference website ──
 
 const DEMO_BRANDING = {
-  studio_name: 'Vows Through Lens',
+  studio_name: 'Your Studio',
   studio_logo_url: null,
   studio_accent_color: '#B08D57',
-  display_name: 'Not Just Photos',
-  bio: "What makes us different? It's simple — We care about the intimate in-betweens, the traditions passed through generations, the joy in your father's eyes, the proud silence of your mother, the inside jokes between your closest friends, and the spark between two people who chose forever. That's the heart of our work and the reason hundreds of couples trust us with the most important day of their lives.\nI'm Shankar. My journey started quietly, capturing candid moments for friends. One wedding changed everything — I realised these memories aren't just photos, they become legacy.\nFrom the first conversation to the final frame, I hold one promise — your story deserves to be remembered with intention and excellence. I bring not just skill, but sensitivity, timing, and a quiet presence that lets emotions unfold naturally. From grand palace celebrations to intimate beachfront vows, I capture love with honesty, elegance, and timeless storytelling.",
+  display_name: 'Fine Art Photography',
+  bio: "Every love story deserves to be told with intention and artistry. We specialise in capturing the quiet, in-between moments — the ones that make your heart swell when you look back years from now.\n\nFrom the first conversation to the final frame, we bring sensitivity, timing, and a quiet presence that lets emotions unfold naturally. From grand celebrations to intimate vows, we capture love with honesty, elegance, and timeless storytelling.",
   cover_url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80',
-  instagram: '@storiesbyshankar',
-  website: 'www.storiesbyshankar.com',
-  whatsapp: '+919633858272',
-  email: 'storiesbyshankar@gmail.com',
-  footer_text: 'Vows Through Lens',
-  hero_button_label: 'Get Quote',
-  hero_button_url: '#contact',
-  phone: '+91 9633858272',
+  instagram: '@yourstudio',
+  website: 'www.yourstudio.com',
+  whatsapp: '',
+  email: 'hello@yourstudio.com',
+  footer_text: 'Your Studio',
+  hero_button_label: 'View Portfolio',
+  hero_button_url: '#portfolio',
+  phone: '',
 };
 
 // 25+ showcase photos for the masonry gallery
