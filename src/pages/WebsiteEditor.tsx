@@ -221,6 +221,7 @@ const WebsiteEditor = () => {
         services_data: servicesData, testimonials_data: testimonialsData,
         featured_gallery_ids: featuredGalleryIds, portfolio_layout: portfolioLayout,
         hero_button_label: heroButtonLabel || null, hero_button_url: heroButtonUrl || null,
+        website_images: websiteImages,
       };
 
       const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
