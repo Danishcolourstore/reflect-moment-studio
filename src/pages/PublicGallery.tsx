@@ -278,7 +278,7 @@ const PublicGallery = () => {
   const galleryRef = useRef<HTMLDivElement>(null);
 
   const { sessionId } = useGuestSession(event?.id);
-  const { favoriteCount, toggleFavorite: rawToggleFavorite, isFavorite } = useGuestFavorites(event?.id, sessionId);
+  const { favoriteCount, toggleFavorite: rawToggleFavorite, isFavorite, clearFavorites } = useGuestFavorites(event?.id, sessionId);
   const { trackView, trackFavoriteChange, trackDownload } = useAnalytics(event?.id);
 
   const toggleFavorite = useCallback((photoId: string) => {
