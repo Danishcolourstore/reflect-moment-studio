@@ -55,8 +55,8 @@ const GalleryCover = () => {
 
     // Check password gate
     if (ev.gallery_pin) {
-      const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
-      if (unlocked === 'true') {
+      const storedPin = localStorage.getItem(`mirrorai_pin_${ev.id}`);
+      if (storedPin === ev.gallery_pin) {
         setPinRequired(false);
       } else {
         setPinRequired(true);
