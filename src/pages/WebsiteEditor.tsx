@@ -128,8 +128,6 @@ const WebsiteEditor = () => {
       ]);
       if (cancelled) return;
       setDbTemplates(loadedTemplates);
-      ]);
-      if (cancelled) return;
 
       const p = profileRes.data;
       const s = studioRes.data;
