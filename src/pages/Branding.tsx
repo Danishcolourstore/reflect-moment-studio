@@ -92,6 +92,13 @@ const Branding = () => {
         setWatermarkOpacity(studio.watermark_opacity ?? 20);
         setWatermarkPosition(studio.watermark_position || 'bottom-right');
         setBrandAssets((studio.brand_assets as BrandAsset[]) || []);
+        setWebsiteTemplate((studio.website_template as WebsiteTemplateValue) || 'dark-portfolio');
+        setSectionOrder((studio.section_order as string[]) || ['hero', 'social', 'portfolio', 'albums', 'about', 'featured', 'services', 'testimonials', 'contact']);
+        setSectionVisibility((studio.section_visibility as Record<string, boolean>) || { hero: true, social: true, portfolio: true, albums: false, about: true, featured: true, services: false, testimonials: false, contact: true });
+        setServicesData((studio.services_data as any[]) || []);
+        setTestimonialsData((studio.testimonials_data as any[]) || []);
+        setFeaturedGalleryIds((studio.featured_gallery_ids as string[]) || []);
+        setPortfolioLayout((studio.portfolio_layout as 'grid' | 'masonry' | 'large') || 'grid');
       }
 
       const { data: evData } = await (supabase.from('events')
