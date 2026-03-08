@@ -93,7 +93,8 @@ const BrandEditor = () => {
     logoUrl: null, coverUrl: null, instagram: '', website: '',
     whatsapp: '', email: '', footerText: '', fontStyle: 'serif',
     heroButtonLabel: '', heroButtonUrl: '', portfolioLayout: 'grid',
-    services: [], featuredGalleryIds: [],
+    services: [], featuredGalleryIds: [], testimonials: [],
+    location: '', phone: '',
   });
   const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
   const [sections, setSections] = useState<SectionConfig[]>(DEFAULT_SECTIONS);
