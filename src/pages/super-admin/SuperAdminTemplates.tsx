@@ -534,20 +534,61 @@ function TemplateEditor({ form, setForm, creating, editing, saving, onSave, onCa
   );
 }
 
+/* ───────── Preview Panel with Device Toggle ───────── */
+
+function PreviewPanel({ form, updateDemoContent, uploadDemoImage }: {
+  form: Omit<TemplateRow, 'id' | 'created_at' | 'updated_at'>;
+  updateDemoContent: (path: string, value: any) => void;
+  uploadDemoImage: (file: File, folder: string) => Promise<string | null>;
+}) {
+  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
+  const isMobile = device === 'mobile';
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Device toggle bar */}
+      <div className="flex items-center justify-center gap-1 px-3 py-2 border-b border-border bg-muted/30 shrink-0">
+        <button
+          onClick={() => setDevice('desktop')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-medium transition-colors ${!isMobile ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+        >
+          <Monitor className="h-3.5 w-3.5" /> Desktop
+        </button>
+        <button
+          onClick={() => setDevice('mobile')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-medium transition-colors ${isMobile ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+        >
+          <Smartphone className="h-3.5 w-3.5" /> Mobile
+        </button>
+      </div>
+
+      {/* Preview container */}
+      <ScrollArea className="flex-1">
+        <div className={`mx-auto transition-all duration-300 ${isMobile ? 'max-w-[375px] border-x border-border shadow-lg' : ''}`}>
+          <TemplatePreview form={form} updateDemoContent={updateDemoContent} uploadDemoImage={uploadDemoImage} isMobile={isMobile} />
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
 /* ───────── Live Preview ───────── */
 
 function TemplatePreview({
   form,
   updateDemoContent,
   uploadDemoImage,
+  isMobile = false,
 }: {
   form: Omit<TemplateRow, 'id' | 'created_at' | 'updated_at'>;
   updateDemoContent: (path: string, value: any) => void;
   uploadDemoImage: (file: File, folder: string) => Promise<string | null>;
+  isMobile?: boolean;
 }) {
   const dc = form.demo_content || {};
   const heroImageInputRef = useRef<HTMLInputElement>(null);
   const aboutImageInputRef = useRef<HTMLInputElement>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
