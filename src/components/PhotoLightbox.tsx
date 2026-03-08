@@ -2,6 +2,9 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { Heart, Download, X, ChevronLeft, ChevronRight, Share2, ZoomIn, ZoomOut, RotateCcw, Link2, MessageCircle, Instagram } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
+import { getOptimizedUrl } from '@/lib/image-utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { toast } from 'sonner';
 
 interface LightboxPhoto {
   id: string;
