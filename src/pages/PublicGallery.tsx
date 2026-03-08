@@ -647,7 +647,7 @@ const PublicGallery = () => {
       case 'classic':
         return (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {visiblePhotos.map(p => renderPhotoCard(p, 'classic'))}
             </div>
             {infiniteSentinel}
@@ -658,8 +658,8 @@ const PublicGallery = () => {
         return (
           <>
             <div style={{
-              columns: isTimeless ? '4 200px' : '3 240px',
-              columnGap: isTimeless ? '2px' : '1rem',
+              columns: isTimeless ? '4 200px' : '3 260px',
+              columnGap: isTimeless ? '4px' : '12px',
             }}>
               {visiblePhotos.map(p => renderPhotoCard(p, 'masonry'))}
             </div>
