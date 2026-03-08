@@ -357,6 +357,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           {activeTool === 'logo' && (
             <LogoToolbar logo={logo} onAddLogo={handleAddLogo} onUpdateLogo={handleUpdateLogo} />
           )}
+          {activeTool === 'caption' && (
+            <div className="max-h-[50vh] overflow-y-auto px-3 py-2">
+              <AICaptionGenerator photoCount={filledCount} onClose={() => setActiveTool(null)} />
+            </div>
+          )}
         </div>
       )}
 
