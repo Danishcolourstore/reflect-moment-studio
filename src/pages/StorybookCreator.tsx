@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { Plus, BookOpen, Trash2, Grid3X3, LayoutGrid } from 'lucide-react';
+import { Plus, BookOpen, Trash2, Grid3X3, LayoutGrid, Layers } from 'lucide-react';
 import CarouselDesigner from '@/components/CarouselDesigner';
 import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
@@ -188,6 +188,9 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
         </Button>
         <Button variant="outline" onClick={() => setShowFeedPlanner(true)} className="gap-2">
           <LayoutGrid className="h-4 w-4" /> Feed Planner
+        </Button>
+        <Button variant="outline" onClick={() => navigate('/dashboard/album-designer')} className="gap-2">
+          <Layers className="h-4 w-4" /> Album Designer
         </Button>
       </div>
 
