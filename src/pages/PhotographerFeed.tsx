@@ -276,7 +276,7 @@ const PhotographerFeed = () => {
         );
       case 'testimonials':
         return testimonials.length > 0 ? (
-          <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonials} accent={accent} />
+          <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonials} accent={accent} template={templateValue} />
         ) : null;
       case 'contact':
         return (
