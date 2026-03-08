@@ -189,6 +189,9 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
         <Button variant="outline" onClick={() => setShowFeedPlanner(true)} className="gap-2">
           <LayoutGrid className="h-4 w-4" /> Feed Planner
         </Button>
+        <Button variant="outline" onClick={() => navigate('/dashboard/album-designer')} className="gap-2">
+          <Layers className="h-4 w-4" /> Album Designer
+        </Button>
       </div>
 
       {loading ? (
