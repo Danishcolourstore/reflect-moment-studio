@@ -231,6 +231,11 @@
   .editorial h2 { font-size: 24px; font-weight: 500; }
   .editorial h3 { font-size: 20px; font-weight: 500; }
 
+  /* Classic theme overrides */
+  .classic h1 { font-size: 28px; font-weight: 300; }
+  .classic h2 { font-size: 22px; font-weight: 400; }
+  .classic h3 { font-size: 18px; font-weight: 400; }
+
   ::selection {
     background: hsl(var(--gold));
     color: hsl(var(--foreground));
