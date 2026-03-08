@@ -235,24 +235,29 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {PAGE_TITLES[location.pathname] || ''}
         </h2>
         <div className="flex items-center gap-3">
-          {/* Theme toggle — Dark / Editorial */}
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 transition-all duration-200 hover:border-primary/40 bg-card"
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? (
-              <>
-                <Moon className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-                <span className="font-sans text-muted-foreground" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' as const }}>Dark</span>
-              </>
-            ) : (
-              <>
-                <Sun className="h-3.5 w-3.5 text-foreground" strokeWidth={2} />
-                <span className="font-sans text-foreground" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' as const }}>Editorial</span>
-              </>
-            )}
-          </button>
+          {/* Theme switcher — Dark / Editorial / Classic */}
+          <div className="flex items-center rounded-full border border-border bg-card overflow-hidden">
+            {([
+              { key: 'dark' as ThemeMode, icon: Moon, label: 'Dark', emoji: '🌙' },
+              { key: 'editorial' as ThemeMode, icon: Sun, label: 'Editorial', emoji: '☀' },
+              { key: 'classic' as ThemeMode, icon: Sparkles, label: 'Classic', emoji: '✦' },
+            ]).map(({ key, label, emoji }) => (
+              <button
+                key={key}
+                onClick={() => switchTheme(key)}
+                className={`flex items-center gap-1 px-2.5 py-1.5 transition-all duration-200 font-sans ${
+                  theme === key
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase' }}
+                aria-label={`Switch to ${label} theme`}
+              >
+                <span className="text-[11px]">{emoji}</span>
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            ))}
+          </div>
           <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
