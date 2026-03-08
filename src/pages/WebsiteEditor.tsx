@@ -23,6 +23,12 @@ interface WebsiteImages {
   about_photo?: string | null;
   portfolio_photos?: string[];
   featured_photos?: string[];
+  latest_works_photos?: string[];
+  image_strip_photos?: string[];
+  newsletter_title?: string;
+  newsletter_description?: string;
+  newsletter_button_text?: string;
+  latest_works_title?: string;
 }
 
 // Website section components
@@ -37,17 +43,23 @@ import { WebsiteTestimonials, type Testimonial } from '@/components/website/Webs
 import { WebsiteAlbums, type PortfolioAlbum } from '@/components/website/WebsiteAlbums';
 import { WebsitePortfolioImages } from '@/components/website/WebsitePortfolioImages';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
+import { WebsiteLatestWorks } from '@/components/website/WebsiteLatestWorks';
+import { WebsiteNewsletter } from '@/components/website/WebsiteNewsletter';
+import { WebsiteImageStrip } from '@/components/website/WebsiteImageStrip';
 
 // ── Section metadata ──
 const ALL_SECTIONS = [
   { id: 'hero', label: 'Hero', icon: '🖼️' },
   { id: 'social', label: 'Social Bar', icon: '🔗' },
   { id: 'portfolio', label: 'Portfolio', icon: '📷' },
+  { id: 'latest_works', label: 'Latest Works', icon: '🎯' },
   { id: 'albums', label: 'Albums', icon: '📁' },
   { id: 'about', label: 'About', icon: '👤' },
   { id: 'featured', label: 'Featured Work', icon: '⭐' },
   { id: 'services', label: 'Services', icon: '💼' },
   { id: 'testimonials', label: 'Testimonials', icon: '💬' },
+  { id: 'newsletter', label: 'Newsletter', icon: '📬' },
+  { id: 'image_strip', label: 'Image Strip', icon: '🎞️' },
   { id: 'contact', label: 'Contact', icon: '✉️' },
 ] as const;
 
