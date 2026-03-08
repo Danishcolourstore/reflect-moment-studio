@@ -1,6 +1,9 @@
 /**
  * Draggable, rotatable, resizable text layer rendered on the grid canvas.
  * Uses a controlled <textarea> for stable input on mobile.
+ * 
+ * CRITICAL: All pointer/touch events are carefully isolated to prevent
+ * text interactions from triggering image uploads in GridCell.
  */
 
 import { useRef, useState, useCallback, useEffect } from 'react';
@@ -32,9 +35,14 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
 
   // ─── Drag to move ─────────────────────────────
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    // Don't start drag if target is textarea or inside editing area
     const target = e.target as HTMLElement;
-    if (target.tagName === 'TEXTAREA' || target.closest('[data-text-edit]')) {
+    // Never start drag from textarea, buttons, or editing area
+    if (
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'BUTTON' ||
+      target.closest('[data-text-edit]') ||
+      target.closest('button')
+    ) {
       return;
     }
     e.stopPropagation();
@@ -88,24 +96,30 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
   }, [localText, onUpdate]);
 
   // ─── Controlled text change ───────────────────
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setLocalText(e.target.value);
+  // Use onInput for correct mobile IME character order
+  const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
+    setLocalText(e.currentTarget.value);
   }, []);
 
   // Focus textarea when entering edit mode
   useEffect(() => {
     if (editing && textareaRef.current) {
-      const ta = textareaRef.current;
-      ta.focus();
-      // Place cursor at end
-      const len = ta.value.length;
-      ta.setSelectionRange(len, len);
+      // Small delay ensures the textarea is rendered and focusable on mobile
+      requestAnimationFrame(() => {
+        const ta = textareaRef.current;
+        if (!ta) return;
+        ta.focus();
+        const len = ta.value.length;
+        ta.setSelectionRange(len, len);
+      });
     }
   }, [editing]);
 
-  // Stop all touch/pointer events from bubbling out of the editing textarea
-  const stopPropagation = useCallback((e: React.SyntheticEvent) => {
+  // Stop all events from bubbling out of the editing textarea
+  const stopAll = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation();
+    // Also prevent native event from reaching GridCell file inputs
+    e.nativeEvent.stopImmediatePropagation?.();
   }, []);
 
   const textStyle: React.CSSProperties = {
@@ -131,6 +145,7 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
   return (
     <div
       ref={elRef}
+      data-text-overlay="true"
       className="absolute"
       style={{
         left: `${layer.x}%`,
@@ -151,16 +166,24 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
 
       {/* Text content */}
       {editing ? (
-        <div data-text-edit="true">
+        <div
+          data-text-edit="true"
+          onPointerDown={stopAll}
+          onTouchStart={stopAll}
+          onClick={stopAll}
+          onMouseDown={stopAll}
+        >
           <textarea
             ref={textareaRef}
             value={localText}
-            onChange={handleChange}
+            onInput={handleInput}
+            onChange={() => {}} // React requires onChange but we use onInput for correct IME ordering
             onBlur={handleBlur}
-            onPointerDown={stopPropagation}
-            onTouchStart={stopPropagation}
-            onClick={stopPropagation}
-            onKeyDown={stopPropagation}
+            onPointerDown={stopAll}
+            onTouchStart={stopAll}
+            onClick={stopAll}
+            onKeyDown={stopAll}
+            onMouseDown={stopAll}
             rows={1}
             style={{
               ...textStyle,
@@ -175,8 +198,6 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
               display: 'block',
               width: '100%',
               caretColor: layer.color,
-              // Match dimensions to content
-              
             }}
           />
         </div>
@@ -185,7 +206,6 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
           style={textStyle}
           onDoubleClick={startEdit}
           onTouchEnd={(e) => {
-            // Single tap on selected text enters edit mode on mobile
             if (selected) {
               startEdit(e);
             }
@@ -203,9 +223,9 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
             type="button"
             onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
             onClick={startEdit}
-            className="absolute -top-10 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-white"
+            className="absolute -top-10 left-1/2 -translate-x-1/2 h-8 w-8 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-white"
           >
-            <Pencil className="h-3 w-3" />
+            <Pencil className="h-3.5 w-3.5" />
           </button>
 
           {/* Delete button */}
@@ -213,19 +233,19 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
             type="button"
             onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="absolute -top-10 left-1/2 translate-x-3 h-7 w-7 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-red-400"
+            className="absolute -top-10 left-1/2 translate-x-4 h-8 w-8 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-red-400"
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
 
           {/* Rotate handle */}
           <div
-            className="absolute -bottom-8 left-1/2 -translate-x-1/2 h-7 w-7 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-white cursor-grab active:cursor-grabbing"
+            className="absolute -bottom-9 left-1/2 -translate-x-1/2 h-8 w-8 rounded-full bg-black/70 backdrop-blur flex items-center justify-center text-white cursor-grab active:cursor-grabbing"
             onPointerDown={onRotateDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
           >
-            <RotateCw className="h-3 w-3" />
+            <RotateCw className="h-3.5 w-3.5" />
           </div>
         </>
       )}

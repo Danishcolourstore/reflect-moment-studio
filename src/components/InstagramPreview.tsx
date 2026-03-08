@@ -36,6 +36,7 @@ export default function InstagramPreview({
   const swipeStarted = useRef(false);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [detectedRatio, setDetectedRatio] = useState("4/5");
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -48,6 +49,19 @@ export default function InstagramPreview({
   // IMPROVEMENT 2: Reset to slide 1 whenever a new photo set is loaded
   useEffect(() => {
     setCurrentSlide(0);
+  }, [photos]);
+
+  // Detect aspect ratio from first image
+  useEffect(() => {
+    if (!photos.length) return;
+    const img = new window.Image();
+    img.onload = () => {
+      const r = img.naturalWidth / img.naturalHeight;
+      if (r <= 0.85) setDetectedRatio("4/5");
+      else if (r >= 1.3) setDetectedRatio("1.91/1");
+      else setDetectedRatio("1/1");
+    };
+    img.src = photos[0];
   }, [photos]);
 
   useEffect(() => {
@@ -217,7 +231,7 @@ export default function InstagramPreview({
               {/* Carousel */}
               <div
                 className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "4/5", background: IG.surface }}
+                style={{ aspectRatio: detectedRatio, background: IG.surface }}
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
@@ -232,8 +246,8 @@ export default function InstagramPreview({
                   }}
                 >
                   {photos.map((url, i) => (
-                    <div key={i} className="w-full h-full shrink-0">
-                      <img src={url} alt="" className="h-full w-full object-cover" draggable={false} />
+                    <div key={i} className="w-full h-full shrink-0 flex items-center justify-center">
+                      <img src={url} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     </div>
                   ))}
                 </div>
