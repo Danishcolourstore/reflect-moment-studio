@@ -523,19 +523,24 @@ export default function CheetahLive() {
       {/* Session selector */}
       {sessions.length > 1 && (
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          {sessions.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setActiveSessionId(s.id)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                s.id === activeSessionId
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              {s.title} ({s.total_photos})
-            </button>
-          ))}
+       {sessions.map((s) => {
+            const displayTitle = s.title && s.title.trim()
+              ? s.title
+              : new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' Session';
+            return (
+              <button
+                key={s.id}
+                onClick={() => setActiveSessionId(s.id)}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  s.id === activeSessionId
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                {displayTitle} ({s.total_photos})
+              </button>
+            );
+          })}
         </div>
       )}
 
