@@ -1,6 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Type, Sparkles } from 'lucide-react';
+import { useGoogleFonts } from '@/hooks/use-google-fonts';
 
 const HEADING_FONTS = [
   { value: 'Cormorant Garamond', label: 'Cormorant Garamond', category: 'Editorial Serif' },
