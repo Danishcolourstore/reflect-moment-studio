@@ -153,6 +153,7 @@ const WebsiteEditor = () => {
         setServicesData((s.services_data as ServiceItem[]) || []);
         setTestimonialsData((s.testimonials_data as Testimonial[]) || []);
         setFeaturedGalleryIds((s.featured_gallery_ids as string[]) || []);
+        setWebsiteImages((s.website_images as WebsiteImages) || {});
       }
 
       // Load events
