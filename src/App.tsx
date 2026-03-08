@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
 import { StorybookGate } from "@/components/StorybookGate";
@@ -200,6 +200,11 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   if (redirectTo) return <Navigate to={redirectTo} replace />;
   return <>{children}</>;
 }
+
+const LegacyEventRedirect = () => {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={id ? `/dashboard/events/${id}` : '/dashboard/events'} replace />;
+};
 
 const AppRoutes = () => {
   useRealtimeSync(true);
@@ -548,7 +553,7 @@ const AppRoutes = () => {
       />
       <Route path="/auth" element={<Navigate to="/login" replace />} />
       <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
-      <Route path="/events/:id" element={<Navigate to="/dashboard/events/:id" replace />} />
+      <Route path="/events/:id" element={<LegacyEventRedirect />} />
       <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
       <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
       <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />

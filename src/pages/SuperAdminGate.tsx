@@ -9,19 +9,44 @@ export default function SuperAdminGate({ children }: { children: ReactNode }) {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
-    if (loading || !user) return;
+    let cancelled = false;
 
-    // Verify super_admin role in database using authenticated user ID only
-    supabase
+    if (loading) return () => { cancelled = true; };
+
+    if (!user) {
+      setIsSuperAdmin(false);
+      setChecking(false);
+      return () => { cancelled = true; };
+    }
+
+    const rolePromise = supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .eq('role', 'super_admin')
-      .maybeSingle()
-      .then(({ data }) => {
-        setIsSuperAdmin(!!data);
+      .maybeSingle();
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('role_check_timeout')), 5000);
+    });
+
+    Promise.race([rolePromise, timeoutPromise])
+      .then((result: any) => {
+        if (cancelled) return;
+        setIsSuperAdmin(Boolean(result?.data));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setIsSuperAdmin(false);
+      })
+      .finally(() => {
+        if (cancelled) return;
         setChecking(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [user, loading]);
 
   if (loading || checking) {
@@ -37,3 +62,4 @@ export default function SuperAdminGate({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
