@@ -2073,6 +2073,7 @@ export type Database = {
         Row: {
           bg_color: string
           card_bg: string
+          category: string
           created_at: string
           demo_content: Json
           description: string | null
@@ -2086,8 +2087,11 @@ export type Database = {
           label: string
           nav_bg: string
           nav_border: string
+          preview_image_url: string | null
+          section_config: Json
           slug: string
           sort_order: number
+          styling_config: Json
           text_color: string
           text_secondary_color: string
           ui_font_family: string
@@ -2096,6 +2100,7 @@ export type Database = {
         Insert: {
           bg_color?: string
           card_bg?: string
+          category?: string
           created_at?: string
           demo_content?: Json
           description?: string | null
@@ -2109,8 +2114,11 @@ export type Database = {
           label: string
           nav_bg?: string
           nav_border?: string
+          preview_image_url?: string | null
+          section_config?: Json
           slug: string
           sort_order?: number
+          styling_config?: Json
           text_color?: string
           text_secondary_color?: string
           ui_font_family?: string
@@ -2119,6 +2127,7 @@ export type Database = {
         Update: {
           bg_color?: string
           card_bg?: string
+          category?: string
           created_at?: string
           demo_content?: Json
           description?: string | null
@@ -2132,8 +2141,11 @@ export type Database = {
           label?: string
           nav_bg?: string
           nav_border?: string
+          preview_image_url?: string | null
+          section_config?: Json
           slug?: string
           sort_order?: number
+          styling_config?: Json
           text_color?: string
           text_secondary_color?: string
           ui_font_family?: string
