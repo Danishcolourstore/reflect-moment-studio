@@ -36,6 +36,7 @@ export default function InstagramPreview({
   const swipeStarted = useRef(false);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [detectedRatio, setDetectedRatio] = useState("4/5");
 
   // Lock body scroll when modal is open
   useEffect(() => {
