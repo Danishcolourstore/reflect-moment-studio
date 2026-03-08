@@ -416,6 +416,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/dashboard/website-editor"
+        element={
+          <ProtectedRoute>
+            <WebsiteEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/profile"
         element={
           <ProtectedRoute>
