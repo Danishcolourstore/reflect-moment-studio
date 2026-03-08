@@ -87,7 +87,7 @@ const BrandEditor = () => {
     heroButtonLabel: '', heroButtonUrl: '', portfolioLayout: 'grid',
     services: [], featuredGalleryIds: [],
   });
-  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('editorial-studio');
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
   const [sections, setSections] = useState<SectionConfig[]>(DEFAULT_SECTIONS);
   const [allEvents, setAllEvents] = useState<EventOption[]>([]);
 
