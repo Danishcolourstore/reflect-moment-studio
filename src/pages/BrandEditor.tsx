@@ -30,6 +30,7 @@ import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
 import { WebsiteAlbums } from '@/components/website/WebsiteAlbums';
 import { AlbumManagerDrawer } from '@/components/brand-editor/AlbumManagerDrawer';
+import { StudioLivePreview } from '@/components/brand-editor/StudioLivePreview';
 
 /* ── Types ── */
 interface BrandData {
