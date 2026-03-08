@@ -41,6 +41,7 @@ async function fetchTemplates(): Promise<WebsiteTemplateConfig[]> {
 
   const mapped = data.map(mapDbRow);
   _setRuntimeCache(mapped);
+  bumpImageRevision();
   return mapped;
 }
 
