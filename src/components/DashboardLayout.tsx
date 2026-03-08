@@ -75,9 +75,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [theme, setTheme] = useState<'dark' | 'editorial'>(() => {
+  const [theme, setTheme] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('mirrorai-theme') || 'dark';
-    const t = saved === 'editorial' ? 'editorial' : 'dark';
+    const t = (['dark', 'editorial', 'classic'].includes(saved) ? saved : 'dark') as ThemeMode;
     applyThemeClass(t);
     return t;
   });
