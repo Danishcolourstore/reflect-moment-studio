@@ -45,8 +45,8 @@ function MobileNavOverlay({ items, isOpen, onClose, color }: { items: string[]; 
 }
 
 export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
-  if (!branding) return null;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  if (!branding) return null;
 
   const t = getTemplate(template || 'vows-elegance');
   const studioName = branding.studio_name || 'Studio';
