@@ -149,6 +149,10 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
     return <GridBuilder onClose={() => setShowGridBuilder(false)} />;
   }
 
+  if (showFeedPlanner) {
+    return <InstagramFeedPlanner photos={eventPhotos} onClose={() => setShowFeedPlanner(false)} />;
+  }
+
   // ─── Editor View (Carousel Designer) ───
   if (activeId && initialSlides.length > 0) {
     return (
