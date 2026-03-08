@@ -20,6 +20,7 @@ import CheetahLive from "./pages/CheetahLive";
 import Branding from "./pages/Branding";
 import MorePage from "./pages/MorePage";
 import BrandEditor from "./pages/BrandEditor";
+import WebsiteEditor from "./pages/WebsiteEditor";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Onboarding from "./pages/Onboarding";

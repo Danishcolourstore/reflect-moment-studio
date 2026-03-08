@@ -1,0 +1,720 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/lib/auth';
+import { toast } from 'sonner';
+import { WEBSITE_TEMPLATES, getTemplate, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { getStudioUrl, getStudioDisplayUrl } from '@/lib/studio-url';
+
+// Website section components
+import { WebsiteHero } from '@/components/website/WebsiteHero';
+import { WebsitePortfolio } from '@/components/website/WebsitePortfolio';
+import { WebsiteFeatured } from '@/components/website/WebsiteFeatured';
+import { WebsiteServices, type ServiceItem } from '@/components/website/WebsiteServices';
+import { WebsiteAbout } from '@/components/website/WebsiteAbout';
+import { WebsiteContact } from '@/components/website/WebsiteContact';
+import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
+import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
+import { WebsiteAlbums, type PortfolioAlbum } from '@/components/website/WebsiteAlbums';
+import { WebsitePortfolioImages } from '@/components/website/WebsitePortfolioImages';
+import { WebsiteFooter } from '@/components/website/WebsiteFooter';
+
+// ── Section metadata ──
+const ALL_SECTIONS = [
+  { id: 'hero', label: 'Hero', icon: '🖼️' },
+  { id: 'social', label: 'Social Bar', icon: '🔗' },
+  { id: 'portfolio', label: 'Portfolio', icon: '📷' },
+  { id: 'albums', label: 'Albums', icon: '📁' },
+  { id: 'about', label: 'About', icon: '👤' },
+  { id: 'featured', label: 'Featured Work', icon: '⭐' },
+  { id: 'services', label: 'Services', icon: '💼' },
+  { id: 'testimonials', label: 'Testimonials', icon: '💬' },
+  { id: 'contact', label: 'Contact', icon: '✉️' },
+] as const;
+
+type ViewMode = 'desktop' | 'tablet' | 'mobile';
+
+const WebsiteEditor = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // ── Loading state ──
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+
+  // ── View state ──
+  const [viewMode, setViewMode] = useState<ViewMode>('desktop');
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  // ── Branding data (from profiles + studio_profiles) ──
+  const [studioName, setStudioName] = useState('');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [accentColor, setAccentColor] = useState('#b08d57');
+  const [tagline, setTagline] = useState('');
+  const [bio, setBio] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [email, setEmail] = useState('');
+  const [footerText, setFooterText] = useState('');
+  const [username, setUsername] = useState('');
+  const [heroButtonLabel, setHeroButtonLabel] = useState('View Portfolio');
+  const [heroButtonUrl, setHeroButtonUrl] = useState('#portfolio');
+
+  // ── Template & layout ──
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
+  const [sectionOrder, setSectionOrder] = useState<string[]>(['hero', 'social', 'portfolio', 'albums', 'about', 'featured', 'services', 'testimonials', 'contact']);
+  const [sectionVisibility, setSectionVisibility] = useState<Record<string, boolean>>({ hero: true, social: true, portfolio: true, albums: false, about: true, featured: true, services: false, testimonials: false, contact: true });
+  const [portfolioLayout, setPortfolioLayout] = useState<'grid' | 'masonry' | 'large'>('grid');
+  const [servicesData, setServicesData] = useState<ServiceItem[]>([]);
+  const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>([]);
+  const [featuredGalleryIds, setFeaturedGalleryIds] = useState<string[]>([]);
+
+  // ── Live data from DB ──
+  const [events, setEvents] = useState<any[]>([]);
+  const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
+  const [coverPhotos, setCoverPhotos] = useState<Record<string, string>>({});
+  const [albums, setAlbums] = useState<PortfolioAlbum[]>([]);
+  const [portfolioPhotos, setPortfolioPhotos] = useState<{ id: string; url: string }[]>([]);
+  const [allEvents, setAllEvents] = useState<{ id: string; name: string }[]>([]);
+
+  // ── Drag state ──
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+
+  // Cover upload ref
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Load all data ──
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+
+    (async () => {
+      const [profileRes, studioRes] = await Promise.all([
+        (supabase.from('profiles').select('studio_name, studio_logo_url, studio_accent_color, email') as any).eq('user_id', user.id).maybeSingle(),
+        (supabase.from('studio_profiles').select('*') as any).eq('user_id', user.id).maybeSingle(),
+      ]);
+      if (cancelled) return;
+
+      const p = profileRes.data;
+      const s = studioRes.data;
+
+      if (p) {
+        setStudioName(p.studio_name || '');
+        setLogoUrl(p.studio_logo_url || null);
+        setAccentColor(p.studio_accent_color || '#b08d57');
+        setEmail(p.email || '');
+      }
+      if (s) {
+        setBio(s.bio || '');
+        setCoverUrl(s.cover_url || null);
+        setTagline(s.display_name || '');
+        setInstagram(s.instagram || '');
+        setWebsiteUrl(s.website || '');
+        setWhatsapp(s.whatsapp || '');
+        setFooterText(s.footer_text || '');
+        setUsername(s.username || '');
+        setHeroButtonLabel(s.hero_button_label || 'View Portfolio');
+        setHeroButtonUrl(s.hero_button_url || '#portfolio');
+        setWebsiteTemplate((s.website_template as WebsiteTemplateValue) || 'dark-portfolio');
+        setSectionOrder((s.section_order as string[]) || ['hero', 'social', 'portfolio', 'albums', 'about', 'featured', 'services', 'testimonials', 'contact']);
+        setSectionVisibility((s.section_visibility as Record<string, boolean>) || { hero: true, social: true, portfolio: true, albums: false, about: true, featured: true, services: false, testimonials: false, contact: true });
+        setPortfolioLayout((s.portfolio_layout as 'grid' | 'masonry' | 'large') || 'grid');
+        setServicesData((s.services_data as ServiceItem[]) || []);
+        setTestimonialsData((s.testimonials_data as Testimonial[]) || []);
+        setFeaturedGalleryIds((s.featured_gallery_ids as string[]) || []);
+      }
+
+      // Load events
+      const [evRes, albumRes, allEvRes] = await Promise.all([
+        (supabase.from('events').select('id, name, slug, event_date, location, cover_url, photo_count, event_type') as any)
+          .eq('user_id', user.id).eq('is_published', true).eq('feed_visible', true)
+          .order('event_date', { ascending: false }).limit(12),
+        (supabase.from('portfolio_albums').select('id, title, description, cover_url, category, photo_urls') as any)
+          .eq('user_id', user.id).eq('is_visible', true).order('sort_order', { ascending: true }),
+        (supabase.from('events').select('id, name') as any).eq('user_id', user.id).eq('is_published', true).order('event_date', { ascending: false }),
+      ]);
+      if (cancelled) return;
+
+      setEvents(evRes.data || []);
+      setAlbums((albumRes.data || []) as unknown as PortfolioAlbum[]);
+      setAllEvents((allEvRes.data || []) as { id: string; name: string }[]);
+
+      // Load portfolio photos
+      const portfolioIds = (s?.portfolio_photo_ids as string[]) || [];
+      if (portfolioIds.length > 0) {
+        const { data: pPhotos } = await (supabase.from('photos').select('id, url') as any).in('id', portfolioIds);
+        if (!cancelled && pPhotos) {
+          const photoMap = new Map((pPhotos as any[]).map(pp => [pp.id, pp]));
+          setPortfolioPhotos(portfolioIds.map(id => photoMap.get(id)).filter(Boolean));
+        }
+      }
+
+      // Featured events
+      const featIds = (s?.featured_gallery_ids as string[]) || [];
+      if (featIds.length > 0) {
+        const { data: fData } = await (supabase.from('events').select('id, name, slug, event_date, location, cover_url, photo_count, event_type') as any).in('id', featIds).eq('is_published', true);
+        if (!cancelled) setFeaturedEvents(fData || []);
+      }
+
+      // Fallback covers
+      const typedEvents = (evRes.data || []) as any[];
+      const noCover = typedEvents.filter((e: any) => !e.cover_url);
+      if (noCover.length > 0) {
+        const photos: Record<string, string> = {};
+        for (const ev of noCover) {
+          const { data: ph } = await (supabase.from('photos').select('url') as any).eq('event_id', ev.id).limit(1);
+          if (ph?.[0]?.url) photos[ev.id] = ph[0].url;
+        }
+        if (!cancelled) setCoverPhotos(photos);
+      }
+
+      if (!cancelled) setLoading(false);
+    })();
+
+    return () => { cancelled = true; };
+  }, [user]);
+
+  // ── Save ──
+  const handleSave = useCallback(async () => {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await (supabase.from('profiles').update({ studio_name: studioName, studio_accent_color: accentColor } as any) as any).eq('user_id', user.id);
+
+      const studioData = {
+        bio, display_name: tagline, instagram: instagram || null, website: websiteUrl || null,
+        whatsapp: whatsapp || null, footer_text: footerText || null,
+        username: username || null, website_template: websiteTemplate,
+        section_order: sectionOrder, section_visibility: sectionVisibility,
+        services_data: servicesData, testimonials_data: testimonialsData,
+        featured_gallery_ids: featuredGalleryIds, portfolio_layout: portfolioLayout,
+        hero_button_label: heroButtonLabel || null, hero_button_url: heroButtonUrl || null,
+      };
+
+      const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
+      if (existing) {
+        await (supabase.from('studio_profiles').update(studioData as any) as any).eq('user_id', user.id);
+      } else {
+        await (supabase.from('studio_profiles').insert({ user_id: user.id, ...studioData } as any) as any);
+      }
+      toast.success('Website saved');
+    } catch {
+      toast.error('Failed to save');
+    }
+    setSaving(false);
+  }, [user, studioName, accentColor, bio, tagline, instagram, websiteUrl, whatsapp, footerText, username, websiteTemplate, sectionOrder, sectionVisibility, servicesData, testimonialsData, featuredGalleryIds, portfolioLayout, heroButtonLabel, heroButtonUrl]);
+
+  // ── Publish ──
+  const handlePublish = useCallback(async () => {
+    if (!username) {
+      toast.error('Set a portfolio username first');
+      return;
+    }
+    setPublishing(true);
+    await handleSave();
+    setPublishing(false);
+    toast.success('Website published!', { description: getStudioDisplayUrl(username) });
+  }, [username, handleSave]);
+
+  // ── Cover upload ──
+  const handleCoverUpload = async (file: File) => {
+    if (!user) return;
+    try {
+      const path = `studio-covers/${user.id}/cover.${file.name.split('.').pop()}`;
+      const { error } = await supabase.storage.from('event-covers').upload(path, file, { upsert: true });
+      if (error) throw error;
+      const url = supabase.storage.from('event-covers').getPublicUrl(path).data.publicUrl;
+      const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
+      if (existing) {
+        await (supabase.from('studio_profiles').update({ cover_url: url } as any) as any).eq('user_id', user.id);
+      } else {
+        await (supabase.from('studio_profiles').insert({ user_id: user.id, cover_url: url } as any) as any);
+      }
+      setCoverUrl(url);
+      toast.success('Cover updated');
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  // ── Section toggle ──
+  const toggleSection = (id: string) => {
+    setSectionVisibility(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // ── Drag reorder ──
+  const handleDragStart = (idx: number) => setDragIdx(idx);
+  const handleDragOver = (e: React.DragEvent, idx: number) => { e.preventDefault(); setDragOverIdx(idx); };
+  const handleDrop = (idx: number) => {
+    if (dragIdx === null || dragIdx === idx) { setDragIdx(null); setDragOverIdx(null); return; }
+    const newOrder = [...sectionOrder];
+    const [moved] = newOrder.splice(dragIdx, 1);
+    newOrder.splice(idx, 0, moved);
+    setSectionOrder(newOrder);
+    setDragIdx(null);
+    setDragOverIdx(null);
+  };
+
+  // ── Service helpers ──
+  const addService = () => setServicesData(prev => [...prev, { title: 'New Service', description: '', icon: 'camera', price: '' }]);
+  const removeService = (i: number) => setServicesData(prev => prev.filter((_, idx) => idx !== i));
+  const updateService = (i: number, field: keyof ServiceItem, val: string) => {
+    setServicesData(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: val } : s));
+  };
+
+  // ── Testimonial helpers ──
+  const addTestimonial = () => setTestimonialsData(prev => [...prev, { name: 'Client Name', text: 'Amazing experience!', event: '' }]);
+  const removeTestimonial = (i: number) => setTestimonialsData(prev => prev.filter((_, idx) => idx !== i));
+  const updateTestimonial = (i: number, field: string, val: string) => {
+    setTestimonialsData(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: val } : t));
+  };
+
+  // ── Featured gallery helpers ──
+  const toggleFeaturedGallery = (eventId: string) => {
+    setFeaturedGalleryIds(prev => prev.includes(eventId) ? prev.filter(id => id !== eventId) : [...prev, eventId]);
+  };
+
+  const tmpl = getTemplate(websiteTemplate);
+
+  const branding = {
+    studio_name: studioName || 'Studio',
+    studio_logo_url: logoUrl,
+    studio_accent_color: accentColor,
+    bio, display_name: tagline,
+    instagram, website: websiteUrl, whatsapp, email,
+    footer_text: footerText, cover_url: coverUrl,
+    hero_button_label: heroButtonLabel, hero_button_url: heroButtonUrl,
+  };
+
+  // ── Render section ──
+  const renderSection = (sectionId: string) => {
+    switch (sectionId) {
+      case 'hero': return <WebsiteHero key="hero" branding={branding} id="hero" template={websiteTemplate} />;
+      case 'social': return <WebsiteSocialBar key="social" id="social" instagram={instagram} website={websiteUrl} whatsapp={whatsapp} email={email} accent={accentColor} template={websiteTemplate} />;
+      case 'portfolio': return <WebsitePortfolio key="portfolio" id="portfolio" events={events} coverPhotos={coverPhotos} accent={accentColor} layout={portfolioLayout} onNavigate={() => {}} template={websiteTemplate} />;
+      case 'albums': return albums.length > 0 ? <WebsiteAlbums key="albums" id="albums" albums={albums} accent={accentColor} template={websiteTemplate} /> : <div key="albums" className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>No albums yet</div>;
+      case 'about': return bio ? <WebsiteAbout key="about" id="about" template={websiteTemplate} branding={branding} /> : <div key="about" className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>Add a bio in the About section editor</div>;
+      case 'featured': return (
+        <>
+          {portfolioPhotos.length > 0 && <WebsitePortfolioImages key="portfolio-images" id="portfolio-images" photos={portfolioPhotos} accent={accentColor} template={websiteTemplate} />}
+          <WebsiteFeatured key="featured" id="featured" events={featuredEvents} coverPhotos={coverPhotos} accent={accentColor} onNavigate={() => {}} template={websiteTemplate} />
+        </>
+      );
+      case 'services': return servicesData.length > 0 ? <WebsiteServices key="services" id="services" services={servicesData} accent={accentColor} template={websiteTemplate} /> : <div key="services" className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>Add services in the section editor</div>;
+      case 'testimonials': return testimonialsData.length > 0 ? <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonialsData} accent={accentColor} template={websiteTemplate} /> : <div key="testimonials" className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>Add testimonials in the section editor</div>;
+      case 'contact': return <WebsiteContact key="contact" id="contact" template={websiteTemplate} branding={branding} photographerId={user?.id} />;
+      default: return null;
+    }
+  };
+
+  // ── Section editor panel ──
+  const renderSectionEditor = () => {
+    if (!activeSection) return null;
+    const sec = ALL_SECTIONS.find(s => s.id === activeSection);
+    if (!sec) return null;
+
+    return (
+      <div className="space-y-4">
+        <button onClick={() => setActiveSection(null)} className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/60 hover:text-foreground transition-colors">
+          <ArrowLeft className="h-3 w-3" /> Back to Sections
+        </button>
+        <h3 className="text-sm font-semibold text-foreground">{sec.icon} {sec.label}</h3>
+
+        {activeSection === 'hero' && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Name</label>
+              <Input value={studioName} onChange={e => setStudioName(e.target.value)} className="mt-1 h-9 text-sm bg-card" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Tagline</label>
+              <Input value={tagline} onChange={e => setTagline(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="Reflections of Your Moments" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Cover Image</label>
+              <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); e.target.value = ''; }} />
+              {coverUrl ? (
+                <div className="mt-1 space-y-2">
+                  <img src={coverUrl} alt="" className="w-full aspect-video object-cover rounded-lg border border-border" />
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="text-[10px] h-7" onClick={() => coverInputRef.current?.click()}>
+                      <Upload className="h-3 w-3 mr-1" /> Replace
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button variant="outline" size="sm" className="mt-1 text-[10px] h-8" onClick={() => coverInputRef.current?.click()}>
+                  <Upload className="h-3 w-3 mr-1" /> Upload Cover
+                </Button>
+              )}
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Button Label</label>
+              <Input value={heroButtonLabel} onChange={e => setHeroButtonLabel(e.target.value)} className="mt-1 h-9 text-sm bg-card" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Button Link</label>
+              <Input value={heroButtonUrl} onChange={e => setHeroButtonUrl(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="#portfolio" />
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'portfolio' && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Layout Style</label>
+              <Select value={portfolioLayout} onValueChange={v => setPortfolioLayout(v as any)}>
+                <SelectTrigger className="mt-1 h-9 text-sm bg-card"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="grid">Grid</SelectItem>
+                  <SelectItem value="masonry">Masonry</SelectItem>
+                  <SelectItem value="large">Full Width</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium mb-2">Visible Galleries</p>
+              <p className="text-[10px] text-muted-foreground/40 mb-2">Events marked as "Show in Feed" appear automatically.</p>
+              <div className="text-[11px] text-muted-foreground/50">{events.length} galleries visible</div>
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'about' && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">About / Bio</label>
+              <Textarea value={bio} onChange={e => setBio(e.target.value)} className="mt-1 text-sm bg-card min-h-[120px]" placeholder="Tell your story..." />
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'featured' && (
+          <div className="space-y-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Select Featured Events</p>
+            <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+              {allEvents.map(ev => (
+                <label key={ev.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                  <input type="checkbox" checked={featuredGalleryIds.includes(ev.id)} onChange={() => toggleFeaturedGallery(ev.id)} className="rounded" />
+                  <span className="text-xs text-foreground truncate">{ev.name}</span>
+                </label>
+              ))}
+              {allEvents.length === 0 && <p className="text-[10px] text-muted-foreground/40">No published events found</p>}
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'services' && (
+          <div className="space-y-3">
+            {servicesData.map((svc, i) => (
+              <div key={i} className="p-3 bg-card rounded-lg border border-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Service {i + 1}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeService(i)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                </div>
+                <Input value={svc.title} onChange={e => updateService(i, 'title', e.target.value)} className="h-8 text-xs bg-background" placeholder="Service name" />
+                <Input value={svc.description} onChange={e => updateService(i, 'description', e.target.value)} className="h-8 text-xs bg-background" placeholder="Description" />
+                <Input value={svc.price || ''} onChange={e => updateService(i, 'price', e.target.value)} className="h-8 text-xs bg-background" placeholder="Price (optional)" />
+                <Select value={svc.icon || 'camera'} onValueChange={v => updateService(i, 'icon', v)}>
+                  <SelectTrigger className="h-8 text-xs bg-background"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="camera">📷 Camera</SelectItem>
+                    <SelectItem value="heart">❤️ Heart</SelectItem>
+                    <SelectItem value="location">📍 Location</SelectItem>
+                    <SelectItem value="people">👥 People</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+            <Button variant="outline" size="sm" className="w-full text-[10px] h-8" onClick={addService}>
+              <Plus className="h-3 w-3 mr-1" /> Add Service
+            </Button>
+          </div>
+        )}
+
+        {activeSection === 'testimonials' && (
+          <div className="space-y-3">
+            {testimonialsData.map((t, i) => (
+              <div key={i} className="p-3 bg-card rounded-lg border border-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Testimonial {i + 1}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeTestimonial(i)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                </div>
+                <Input value={t.name} onChange={e => updateTestimonial(i, 'name', e.target.value)} className="h-8 text-xs bg-background" placeholder="Client name" />
+                <Textarea value={t.text} onChange={e => updateTestimonial(i, 'text', e.target.value)} className="text-xs bg-background min-h-[60px]" placeholder="Testimonial text" />
+                <Input value={t.event || ''} onChange={e => updateTestimonial(i, 'event', e.target.value)} className="h-8 text-xs bg-background" placeholder="Event name (optional)" />
+              </div>
+            ))}
+            <Button variant="outline" size="sm" className="w-full text-[10px] h-8" onClick={addTestimonial}>
+              <Plus className="h-3 w-3 mr-1" /> Add Testimonial
+            </Button>
+          </div>
+        )}
+
+        {activeSection === 'contact' && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Email</label>
+              <Input value={email} onChange={e => setEmail(e.target.value)} className="mt-1 h-9 text-sm bg-card" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">WhatsApp</label>
+              <Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="+1234567890" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Instagram</label>
+              <Input value={instagram} onChange={e => setInstagram(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="@yourstudio" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Website</label>
+              <Input value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="www.studio.com" />
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'social' && (
+          <div className="space-y-3">
+            <p className="text-[10px] text-muted-foreground/40">Social links are pulled from the Contact section. Edit them there.</p>
+          </div>
+        )}
+
+        {activeSection === 'albums' && (
+          <div className="space-y-3">
+            <p className="text-[10px] text-muted-foreground/40">Albums are managed from the Album Designer. Visible albums appear automatically.</p>
+          </div>
+        )}
+
+        {(activeSection === 'hero' || activeSection === 'contact') && (
+          <div className="pt-3 border-t border-border">
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Brand Accent Color</label>
+            <div className="flex items-center gap-2 mt-1">
+              <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} className="h-8 w-8 rounded border border-border cursor-pointer" />
+              <Input value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-24 h-8 text-xs bg-card" />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const visibleSections = sectionOrder.filter(id => sectionVisibility[id]);
+
+  return (
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      {/* ── Top Bar ── */}
+      <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0 z-50">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/dashboard/branding')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <p className="text-xs font-semibold text-foreground">Website Editor</p>
+            <p className="text-[10px] text-muted-foreground/50">{studioName || 'Your Studio'}</p>
+          </div>
+        </div>
+
+        {/* Device preview toggles */}
+        <div className="flex items-center gap-1 bg-muted rounded-full p-0.5">
+          {([['desktop', Monitor], ['tablet', Tablet], ['mobile', Smartphone]] as [ViewMode, any][]).map(([mode, Icon]) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`p-1.5 rounded-full transition-colors ${viewMode === mode ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+            </button>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          {username && (
+            <Button variant="ghost" size="sm" className="text-[10px] h-8 gap-1" onClick={() => window.open(`/studio/${username}`, '_blank')}>
+              <Eye className="h-3 w-3" /> Preview
+            </Button>
+          )}
+          <Button variant="outline" size="sm" className="text-[10px] h-8" onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
+            Save
+          </Button>
+          <Button size="sm" className="text-[10px] h-8 bg-primary text-primary-foreground" onClick={handlePublish} disabled={publishing}>
+            {publishing ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Globe className="h-3 w-3 mr-1" />}
+            Publish
+          </Button>
+        </div>
+      </header>
+
+      {/* ── Main Layout ── */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* ── Left Sidebar ── */}
+        <aside className="w-72 border-r border-border bg-card overflow-y-auto shrink-0">
+          <div className="p-4 space-y-5">
+            {/* Template selector */}
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">TEMPLATE</p>
+              <Select value={websiteTemplate} onValueChange={v => setWebsiteTemplate(v as WebsiteTemplateValue)}>
+                <SelectTrigger className="h-9 text-xs bg-background"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {WEBSITE_TEMPLATES.map(t => (
+                    <SelectItem key={t.value} value={t.value}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: t.bg }} />
+                        <span>{t.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Username */}
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">PORTFOLIO URL</p>
+              <Input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="h-8 text-xs bg-background" />
+              {username && (
+                <p className="text-[9px] text-muted-foreground/40 mt-1 truncate">{getStudioDisplayUrl(username)}</p>
+              )}
+            </div>
+
+            {/* Section editor or section list */}
+            {activeSection ? (
+              renderSectionEditor()
+            ) : (
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">SECTIONS</p>
+                <p className="text-[9px] text-muted-foreground/30 mb-3">Drag to reorder · Click to edit · Toggle visibility</p>
+                <div className="space-y-1">
+                  {sectionOrder.map((sectionId, idx) => {
+                    const sec = ALL_SECTIONS.find(s => s.id === sectionId);
+                    if (!sec) return null;
+                    const isOn = sectionVisibility[sectionId] !== false;
+                    const isDragOver = dragOverIdx === idx;
+
+                    return (
+                      <div
+                        key={sectionId}
+                        draggable
+                        onDragStart={() => handleDragStart(idx)}
+                        onDragOver={e => handleDragOver(e, idx)}
+                        onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+                        onDrop={() => handleDrop(idx)}
+                        className={`flex items-center gap-2 p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing group ${
+                          isDragOver ? 'border-primary bg-primary/5' : 'border-transparent hover:border-border hover:bg-muted/30'
+                        } ${!isOn ? 'opacity-40' : ''}`}
+                      >
+                        <GripVertical className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+                        <span className="text-sm shrink-0">{sec.icon}</span>
+                        <button
+                          onClick={() => setActiveSection(sectionId)}
+                          className="flex-1 text-left text-xs text-foreground hover:text-primary transition-colors truncate"
+                        >
+                          {sec.label}
+                        </button>
+                        <button
+                          onClick={e => { e.stopPropagation(); toggleSection(sectionId); }}
+                          className="shrink-0 p-1 rounded hover:bg-muted transition-colors"
+                          title={isOn ? 'Hide section' : 'Show section'}
+                        >
+                          {isOn ? <Eye className="h-3 w-3 text-muted-foreground/50" /> : <EyeOff className="h-3 w-3 text-muted-foreground/30" />}
+                        </button>
+                        <ChevronRight className="h-3 w-3 text-muted-foreground/20 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Footer editor shortcut */}
+            {!activeSection && (
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">FOOTER</p>
+                <div className="space-y-2">
+                  <Input value={footerText} onChange={e => setFooterText(e.target.value)} className="h-8 text-xs bg-background" placeholder="Footer tagline" />
+                </div>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* ── Preview Area ── */}
+        <main className="flex-1 bg-muted/30 overflow-y-auto flex justify-center py-6 px-4">
+          <div
+            className={`transition-all duration-300 w-full ${
+              viewMode === 'mobile' ? 'max-w-[375px]' : viewMode === 'tablet' ? 'max-w-[768px]' : 'max-w-[1280px]'
+            }`}
+          >
+            <div
+              className="rounded-2xl overflow-hidden border-2 shadow-2xl border-foreground/10"
+              style={{ backgroundColor: tmpl.bg }}
+            >
+              {/* Browser chrome */}
+              <div
+                className="flex items-center gap-1.5 px-3 py-2 border-b"
+                style={{ backgroundColor: tmpl.navBg, borderColor: tmpl.navBorder }}
+              >
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 rounded-full bg-red-400/60" />
+                  <div className="w-2 h-2 rounded-full bg-yellow-400/60" />
+                  <div className="w-2 h-2 rounded-full bg-green-400/60" />
+                </div>
+                <div
+                  className="flex-1 text-center text-[9px] font-mono truncate px-2 py-0.5 rounded-md"
+                  style={{ backgroundColor: `${tmpl.text}08`, color: tmpl.textSecondary }}
+                >
+                  {username ? getStudioDisplayUrl(username) : 'mirroraigallery.com/studio/yourstudio'}
+                </div>
+              </div>
+
+              {/* Website content */}
+              <div
+                style={{
+                  backgroundColor: tmpl.bg,
+                  color: tmpl.text,
+                  fontFamily: tmpl.uiFontFamily,
+                }}
+              >
+                {visibleSections.map(sectionId => (
+                  <div
+                    key={sectionId}
+                    className={`relative group cursor-pointer transition-all ${
+                      activeSection === sectionId ? 'ring-2 ring-primary ring-inset' : 'hover:ring-1 hover:ring-primary/30 hover:ring-inset'
+                    }`}
+                    onClick={() => setActiveSection(sectionId)}
+                  >
+                    {/* Section label overlay */}
+                    <div className={`absolute top-2 left-2 z-20 px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider transition-opacity ${
+                      activeSection === sectionId ? 'opacity-100 bg-primary text-primary-foreground' : 'opacity-0 group-hover:opacity-100 bg-black/70 text-white'
+                    }`}>
+                      {ALL_SECTIONS.find(s => s.id === sectionId)?.label}
+                    </div>
+                    {renderSection(sectionId)}
+                  </div>
+                ))}
+                <WebsiteFooter template={websiteTemplate} branding={branding} />
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default WebsiteEditor;

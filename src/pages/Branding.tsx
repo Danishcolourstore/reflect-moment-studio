@@ -362,8 +362,20 @@ const Branding = () => {
             </TabsContent>
 
             {/* ── WEBSITE TAB ── */}
-            <TabsContent value="website">
+            <TabsContent value="website" className="space-y-6">
               <WebsiteTemplateSelector value={websiteTemplate} onChange={setWebsiteTemplate} />
+              <div className="pt-4 border-t border-border">
+                <Button
+                  onClick={() => navigate('/dashboard/website-editor')}
+                  className="w-full h-12 bg-primary text-primary-foreground text-[11px] uppercase tracking-[0.15em] font-medium"
+                >
+                  <Globe className="h-4 w-4 mr-2" />
+                  Open Template Editor
+                </Button>
+                <p className="text-[10px] text-muted-foreground/40 mt-2 text-center">
+                  Customize sections, reorder layout, add services, and publish your portfolio website
+                </p>
+              </div>
             </TabsContent>
 
             {/* ── DOMAIN TAB ── */}
