@@ -451,7 +451,6 @@ const WebsiteEditor = () => {
                 <Input value={t.clientName} onChange={e => updateTestimonial(i, 'clientName', e.target.value)} className="h-8 text-xs bg-background" placeholder="Client name" />
                 <Textarea value={t.review} onChange={e => updateTestimonial(i, 'review', e.target.value)} className="text-xs bg-background min-h-[60px]" placeholder="Testimonial text" />
               </div>
-              </div>
             ))}
             <Button variant="outline" size="sm" className="w-full text-[10px] h-8" onClick={addTestimonial}>
               <Plus className="h-3 w-3 mr-1" /> Add Testimonial
