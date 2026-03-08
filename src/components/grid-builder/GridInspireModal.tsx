@@ -55,33 +55,64 @@ function snapWeight(family: string, weight: number): number {
   );
 }
 
-/** Convert detected text blocks to TextLayer objects */
+/** Convert detected text blocks to TextLayer objects with de-overlapping */
 function textBlocksToLayers(blocks: DetectedTextBlock[]): TextLayer[] {
-  return blocks.map((block) => {
+  // First pass: create layers with raw positions
+  const layers = blocks.map((block) => {
     const fontFamily = mapFontFamily(block.fontGroup);
     const fontWeight = snapWeight(fontFamily, block.fontWeight);
+    // Estimate height in % based on fontSize (rough: fontSize px → ~N% of canvas)
+    const estimatedHeightPct = Math.max(4, (block.fontSize / 400) * 100 * (block.lineHeight || 1.3));
 
-    return createTextLayer({
-      text: block.text,
-      fontFamily,
-      fontWeight,
-      fontSize: Math.max(8, Math.min(60, block.fontSize)),
-      color: block.color || '#ffffff',
-      letterSpacing: Math.max(0, Math.min(20, block.letterSpacing)),
-      lineHeight: Math.max(0.8, Math.min(3, block.lineHeight)),
-      alignment: block.alignment,
-      textTransform: block.textTransform,
-      fontStyle: block.fontStyle,
-      x: Math.max(5, Math.min(95, block.x)),
-      y: Math.max(5, Math.min(95, block.y)),
-      opacity: 1,
-      rotation: 0,
-      scale: 1,
-      shadow: block.hasShadow
-        ? { x: 0, y: 2, blur: 10, color: 'rgba(0,0,0,0.45)' }
-        : null,
-    });
+    return {
+      layer: createTextLayer({
+        text: block.text,
+        fontFamily,
+        fontWeight,
+        fontSize: Math.max(8, Math.min(48, block.fontSize)),
+        color: block.color || '#ffffff',
+        letterSpacing: Math.max(0, Math.min(20, block.letterSpacing)),
+        lineHeight: Math.max(0.8, Math.min(3, block.lineHeight)),
+        alignment: block.alignment,
+        textTransform: block.textTransform,
+        fontStyle: block.fontStyle,
+        x: Math.max(5, Math.min(95, block.x)),
+        y: Math.max(5, Math.min(95, block.y)),
+        opacity: 1,
+        rotation: 0,
+        scale: 1,
+        shadow: block.hasShadow
+          ? { x: 0, y: 2, blur: 10, color: 'rgba(0,0,0,0.45)' }
+          : null,
+      }),
+      estimatedHeightPct,
+    };
   });
+
+  // Second pass: de-overlap — ensure minimum vertical gap between layers
+  // Sort by y position first
+  layers.sort((a, b) => a.layer.y - b.layer.y);
+
+  const MIN_GAP_PCT = 4; // minimum 4% gap between text block centers
+  for (let i = 1; i < layers.length; i++) {
+    const prev = layers[i - 1];
+    const minY = prev.layer.y + prev.estimatedHeightPct + MIN_GAP_PCT;
+    if (layers[i].layer.y < minY) {
+      layers[i].layer.y = Math.min(95, minY);
+    }
+  }
+
+  // If all layers got pushed past 95%, redistribute evenly
+  const lastY = layers[layers.length - 1]?.layer.y ?? 0;
+  if (lastY >= 95 && layers.length > 1) {
+    const startY = 8;
+    const spacing = Math.min(16, (90 - startY) / (layers.length - 1 || 1));
+    layers.forEach((item, i) => {
+      item.layer.y = Math.min(95, startY + i * spacing);
+    });
+  }
+
+  return layers.map(l => l.layer);
 }
 
 export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) {
