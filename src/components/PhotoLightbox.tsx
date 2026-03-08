@@ -62,17 +62,27 @@ export function PhotoLightbox({
     setTranslate({ x: 0, y: 0 });
   }, [currentIndex]);
 
-  // Preload next 2 images
+  // Preload next 2 images at medium resolution (not full)
   useEffect(() => {
     if (!open) return;
     for (let i = 1; i <= 2; i++) {
       const next = photos[currentIndex + i];
       if (next?.url) {
         const img = new Image();
-        img.src = next.url;
+        img.src = getOptimizedUrl(next.url, 'medium');
       }
     }
   }, [currentIndex, photos, open]);
+
+  // Full-res state: load medium first, then upgrade to full
+  const [fullLoaded, setFullLoaded] = useState(false);
+  useEffect(() => {
+    setFullLoaded(false);
+    if (!open || !photo?.url) return;
+    const img = new Image();
+    img.onload = () => setFullLoaded(true);
+    img.src = photo.url;
+  }, [open, currentIndex]);
 
   useEffect(() => {
     if (!open) return;
