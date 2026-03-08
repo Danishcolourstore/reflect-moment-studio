@@ -111,8 +111,6 @@ const WebsiteEditor = () => {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
-  // Cover upload ref
-  const coverInputRef = useRef<HTMLInputElement>(null);
 
   // ── Load all data ──
   useEffect(() => {
