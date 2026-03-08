@@ -125,9 +125,13 @@ export default function TextOverlay({ layer, selected, containerRef, onUpdate, o
   // ─── Build text styles ─────────────────────────
   const hasGradient = layer.gradientColors && layer.gradientColors.length === 2;
 
+  // Cap font size on small screens
+  const isMobileView = typeof window !== 'undefined' && window.innerWidth < 640;
+  const effectiveFontSize = isMobileView ? Math.min(layer.fontSize, 28) : layer.fontSize;
+
   const textStyle: React.CSSProperties = {
     fontFamily: `'${layer.fontFamily}', sans-serif`,
-    fontSize: `${layer.fontSize}px`,
+    fontSize: `${effectiveFontSize}px`,
     fontWeight: layer.fontWeight,
     fontStyle: layer.fontStyle,
     letterSpacing: `${layer.letterSpacing}px`,
