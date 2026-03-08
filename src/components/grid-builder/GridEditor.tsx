@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, Type, Shapes, Image, Palette, Eye, Stamp, Instagram } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Type, Shapes, Image, Palette, Eye, Stamp, Instagram, MessageSquare } from 'lucide-react';
+import AICaptionGenerator from './AICaptionGenerator';
 import InstagramCarouselPreview from './InstagramCarouselPreview';
 import type { GridLayout, GridCellData, CanvasFormat } from './types';
 import { createCellsForLayout, CANVAS_FORMATS } from './types';
@@ -28,7 +29,7 @@ interface Props {
   initialTextLayers?: TextLayer[];
 }
 
-type ActiveTool = 'text' | 'elements' | 'background' | 'logo' | null;
+type ActiveTool = 'text' | 'elements' | 'background' | 'logo' | 'caption' | null;
 
 export default function GridEditor({ layout, onBack, initialTextLayers = [] }: Props) {
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
@@ -356,6 +357,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           {activeTool === 'logo' && (
             <LogoToolbar logo={logo} onAddLogo={handleAddLogo} onUpdateLogo={handleUpdateLogo} />
           )}
+          {activeTool === 'caption' && (
+            <div className="max-h-[50vh] overflow-y-auto px-3 py-2">
+              <AICaptionGenerator photoCount={filledCount} onClose={() => setActiveTool(null)} />
+            </div>
+          )}
         </div>
       )}
 
@@ -369,6 +375,15 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           >
             <Instagram className="h-3.5 w-3.5" />
             Preview
+          </button>
+          <button
+            onClick={() => toggleTool('caption')}
+            className={`flex items-center gap-1.5 text-[10px] tracking-wider uppercase font-medium transition-colors ${
+              activeTool === 'caption' ? 'text-primary' : 'text-foreground'
+            }`}
+          >
+            <MessageSquare className="h-3.5 w-3.5" />
+            Caption
           </button>
           <div className="flex items-center gap-1.5 flex-wrap justify-end">
             <CarouselSliceExporter cells={cells} format={format} />

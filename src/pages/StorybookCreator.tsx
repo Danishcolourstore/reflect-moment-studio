@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { Plus, BookOpen, Trash2, Grid3X3 } from 'lucide-react';
+import { Plus, BookOpen, Trash2, Grid3X3, LayoutGrid } from 'lucide-react';
 import CarouselDesigner from '@/components/CarouselDesigner';
 import type { Slide } from '@/components/CarouselDesigner';
 import { makeSlide } from '@/components/CarouselDesigner';
 import GridBuilder from '@/components/grid-builder/GridBuilder';
+import InstagramFeedPlanner from '@/components/InstagramFeedPlanner';
 import { StorybookInstallBanner } from '@/components/StorybookInstallBanner';
 
 // Generate a deterministic UUID v5-like ID from an email for standalone mode
@@ -35,6 +36,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
   const [saving, setSaving] = useState(false);
   const [initialSlides, setInitialSlides] = useState<Slide[]>([]);
   const [showGridBuilder, setShowGridBuilder] = useState(false);
+  const [showFeedPlanner, setShowFeedPlanner] = useState(false);
 
   // Resolve effective user ID
   const effectiveUserId = standalone
@@ -147,6 +149,10 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
     return <GridBuilder onClose={() => setShowGridBuilder(false)} />;
   }
 
+  if (showFeedPlanner) {
+    return <InstagramFeedPlanner photos={eventPhotos} onClose={() => setShowFeedPlanner(false)} />;
+  }
+
   // ─── Editor View (Carousel Designer) ───
   if (activeId && initialSlides.length > 0) {
     return (
@@ -179,6 +185,9 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
         </Button>
         <Button variant="outline" onClick={() => setShowGridBuilder(true)} className="gap-2">
           <Grid3X3 className="h-4 w-4" /> Grid Builder
+        </Button>
+        <Button variant="outline" onClick={() => setShowFeedPlanner(true)} className="gap-2">
+          <LayoutGrid className="h-4 w-4" /> Feed Planner
         </Button>
       </div>
 
