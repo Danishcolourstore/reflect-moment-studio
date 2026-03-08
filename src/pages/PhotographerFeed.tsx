@@ -14,6 +14,9 @@ import { WebsiteTestimonials, type Testimonial } from '@/components/website/Webs
 import { WebsiteAlbums, type PortfolioAlbum } from '@/components/website/WebsiteAlbums';
 import { WebsitePortfolioImages } from '@/components/website/WebsitePortfolioImages';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
+import { WebsiteLatestWorks } from '@/components/website/WebsiteLatestWorks';
+import { WebsiteNewsletter } from '@/components/website/WebsiteNewsletter';
+import { WebsiteImageStrip } from '@/components/website/WebsiteImageStrip';
 
 // ── Types ──────────────────────────────────────────────
 interface StudioData {
