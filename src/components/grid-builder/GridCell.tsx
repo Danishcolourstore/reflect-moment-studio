@@ -44,6 +44,9 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (!cell.imageUrl) return;
+      // Don't start drag if the event originated from a text overlay
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-text-overlay]') || target.closest('[data-text-edit]')) return;
 
       e.preventDefault();
 
