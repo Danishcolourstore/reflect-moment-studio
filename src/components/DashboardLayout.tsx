@@ -133,7 +133,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <div ref={overlayRef} className="andhakaar-overlay" />
 
       {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border bg-background">
+      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border bg-background/95 backdrop-blur-xl">
         <div className="px-7 pt-9 pb-6">
           <h1 className="text-foreground font-serif" style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.5px' }}>
             MirrorAI
@@ -169,7 +169,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <nav className="flex-1 px-4 pt-6 space-y-0.5 overflow-y-auto">
           {NAV_ITEMS.map((item) => (
             <NavLink key={item.url} to={item.url} end={item.end}
-              className="flex items-center gap-3.5 px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-foreground rounded-xl border-l-2 border-transparent font-sans"
+              className="flex items-center gap-3.5 px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-muted/50 rounded-xl border-l-2 border-transparent font-sans"
               activeClassName="text-foreground bg-muted border-l-2 !border-primary"
               style={{ fontWeight: 500, fontSize: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' as const }}
             >
@@ -211,7 +211,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Fixed Header — 64px */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 flex items-center justify-between px-5 lg:px-12 xl:px-16 bg-background/80 backdrop-blur-xl border-b border-border" style={{ height: '64px' }}>
+      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 flex items-center justify-between px-5 lg:px-10 bg-background/80 backdrop-blur-xl border-b border-border" style={{ height: '64px' }}>
         <h2 className="text-foreground font-serif lg:hidden" style={{ fontWeight: 700, fontSize: '28px', letterSpacing: '-0.5px' }}>MirrorAI</h2>
         {/* Desktop page title */}
         <h2 className="hidden lg:block text-foreground font-sans" style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>
@@ -260,7 +260,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Main content */}
       <main className="lg:ml-[260px] pb-24 lg:pb-0" style={{ paddingTop: '64px' }}>
-        <div className="mx-auto max-w-[1400px] px-5 py-8 sm:px-8 lg:px-12 xl:px-16">
+        <div className="mx-auto max-w-[1400px] px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
           {children}
 
           <div className="mt-16 pb-8 text-center">

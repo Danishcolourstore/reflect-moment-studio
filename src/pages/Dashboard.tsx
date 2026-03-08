@@ -118,14 +118,13 @@ const Dashboard = () => {
 function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
   return (
     <div
-      className="bg-card border border-border rounded-2xl p-5 lg:p-7 cursor-pointer active:scale-[0.97] transition-all duration-200 hover:border-primary/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5"
-      style={{ boxShadow: '0 2px 12px rgba(28,24,21,0.06)' }}
+      className="bg-card border border-border rounded-2xl p-5 lg:p-8 cursor-pointer active:scale-[0.97] transition-all duration-300 hover:border-primary/30 hover-lift"
       onClick={onClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick?.(); }}
     >
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 lg:mb-6">
         <Icon className="h-[18px] w-[18px] text-primary" strokeWidth={1.5} />
         <p className="text-muted-foreground" style={{ fontFamily: 'var(--editorial-body)', fontSize: '11px', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
           {label}
