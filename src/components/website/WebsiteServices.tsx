@@ -69,6 +69,11 @@ export function WebsiteServices({ services, accent, id }: WebsiteServicesProps) 
                   {svc.description}
                 </p>
               )}
+              {svc.price && (
+                <p className="mt-3 text-sm font-medium" style={{ color: accent }}>
+                  {svc.price}
+                </p>
+              )}
             </div>
           );
         })}
