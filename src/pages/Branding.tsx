@@ -6,12 +6,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Globe, ExternalLink, Sparkles, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
-import { WEBSITE_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { STATIC_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { getStudioDisplayUrl } from '@/lib/studio-url';
 
 const Branding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: templates = STATIC_TEMPLATES } = useWebsiteTemplates();
   const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<WebsiteTemplateValue>('vows-elegance');
   const [username, setUsername] = useState('');
@@ -102,7 +104,7 @@ const Branding = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {WEBSITE_TEMPLATES.map((tmpl) => {
+        {templates.map((tmpl) => {
           const isActive = selectedTemplate === tmpl.value;
           return (
             <div

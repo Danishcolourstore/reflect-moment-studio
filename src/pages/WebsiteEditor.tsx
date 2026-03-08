@@ -14,7 +14,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { WEBSITE_TEMPLATES, getTemplate, loadTemplatesFromDb, type WebsiteTemplateValue, type WebsiteTemplateConfig } from '@/lib/website-templates';
+import { getTemplate, type WebsiteTemplateValue, type WebsiteTemplateConfig } from '@/lib/website-templates';
+import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { getStudioUrl, getStudioDisplayUrl } from '@/lib/studio-url';
 
 // Website image data structure (independent of events/galleries)
@@ -140,7 +141,7 @@ const WebsiteEditor = () => {
   const [albums, setAlbums] = useState<PortfolioAlbum[]>([]);
   const [portfolioPhotos, setPortfolioPhotos] = useState<{ id: string; url: string }[]>([]);
   const [allEvents, setAllEvents] = useState<{ id: string; name: string }[]>([]);
-  const [dbTemplates, setDbTemplates] = useState<WebsiteTemplateConfig[]>([]);
+  const { data: dbTemplates = [] } = useWebsiteTemplates();
 
   // ── Drag state ──
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -153,14 +154,11 @@ const WebsiteEditor = () => {
     let cancelled = false;
 
     (async () => {
-      // Load DB templates in parallel with profile data
-      const [profileRes, studioRes, loadedTemplates] = await Promise.all([
+      const [profileRes, studioRes] = await Promise.all([
         (supabase.from('profiles').select('studio_name, studio_logo_url, studio_accent_color, email') as any).eq('user_id', user.id).maybeSingle(),
         (supabase.from('studio_profiles').select('*') as any).eq('user_id', user.id).maybeSingle(),
-        loadTemplatesFromDb(),
       ]);
       if (cancelled) return;
-      setDbTemplates(loadedTemplates);
 
       const p = profileRes.data;
       const s = studioRes.data;
@@ -862,7 +860,7 @@ const WebsiteEditor = () => {
               <Select value={websiteTemplate} onValueChange={v => setWebsiteTemplate(v as WebsiteTemplateValue)}>
                 <SelectTrigger className="h-9 text-xs bg-background"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {(dbTemplates.length > 0 ? dbTemplates : WEBSITE_TEMPLATES).map(t => (
+                  {dbTemplates.map(t => (
                     <SelectItem key={t.value} value={t.value}>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: t.bg }} />

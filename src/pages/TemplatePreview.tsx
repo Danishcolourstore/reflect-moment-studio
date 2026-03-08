@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Pencil, Monitor, Tablet, Smartphone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getTemplate, type WebsiteTemplateValue, WEBSITE_TEMPLATES } from '@/lib/website-templates';
+import { getTemplate, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { WebsiteHero } from '@/components/website/WebsiteHero';
 import { WebsiteAbout } from '@/components/website/WebsiteAbout';
 import { WebsitePhotoShowcase } from '@/components/website/WebsitePhotoShowcase';
@@ -104,9 +105,9 @@ export default function TemplatePreview() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: allTemplates = [] } = useWebsiteTemplates();
   const templateValue = (params.get('template') || 'vows-elegance') as WebsiteTemplateValue;
   const tmpl = getTemplate(templateValue);
-  const templateInfo = WEBSITE_TEMPLATES.find(t => t.value === templateValue);
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
   const [choosing, setChoosing] = useState(false);
 

@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { clearTemplateCache } from '@/lib/website-templates';
+import { useInvalidateTemplates } from '@/hooks/use-website-templates';
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, Loader2, Upload, Save, ArrowLeft,
   Image as ImageIcon, X, Camera, Mail, Instagram, Globe, ChevronDown,
@@ -86,6 +88,7 @@ export default function SuperAdminTemplates() {
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<Omit<TemplateRow, 'id' | 'created_at' | 'updated_at'>>(EMPTY_TEMPLATE);
+  const invalidateTemplates = useInvalidateTemplates();
 
   const loadTemplates = useCallback(async () => {
     const { data, error } = await (supabase.from('website_templates').select('*') as any).order('sort_order');
@@ -123,6 +126,8 @@ export default function SuperAdminTemplates() {
         toast.success('Template updated');
       }
       setEditing(null); setCreating(false);
+      clearTemplateCache();
+      invalidateTemplates();
       await loadTemplates();
     } catch (e: any) {
       toast.error(e.message || 'Save failed');
@@ -133,12 +138,14 @@ export default function SuperAdminTemplates() {
   const handleDelete = async (id: string) => {
     const { error } = await (supabase.from('website_templates').delete() as any).eq('id', id);
     if (error) { toast.error('Delete failed'); return; }
-    toast.success('Template deleted'); loadTemplates();
+    toast.success('Template deleted'); clearTemplateCache(); invalidateTemplates(); loadTemplates();
   };
 
   const handleToggleActive = async (tmpl: TemplateRow) => {
     await (supabase.from('website_templates').update({ is_active: !tmpl.is_active } as any) as any).eq('id', tmpl.id);
     loadTemplates();
+    clearTemplateCache();
+    invalidateTemplates();
   };
 
   const uploadDemoImage = async (file: File, folder: string): Promise<string | null> => {

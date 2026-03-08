@@ -9,7 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink, Image, BookOpen } from 'lucide-react';
 import { SmartQRAccess } from '@/components/events/SmartQRAccess';
 import { GALLERY_STYLES, DEFAULT_LAYOUT_FOR_STYLE, type GalleryStyleValue } from '@/lib/gallery-styles';
-import { WEBSITE_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { type WebsiteTemplateValue } from '@/lib/website-templates';
+import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },
@@ -68,6 +69,7 @@ interface EventSettingsModalProps {
 
 export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: EventSettingsModalProps) {
   const { toast } = useToast();
+  const { data: wsTemplates = [] } = useWebsiteTemplates();
   const [title, setTitle] = useState(event.name);
   const [date, setDate] = useState(event.event_date);
   const [location, setLocation] = useState(event.location ?? '');
@@ -191,7 +193,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
             <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Website Template</h3>
             <p className="editorial-helper !mt-0">Choose how guests experience your gallery — like visiting your own website.</p>
             <div className="grid grid-cols-1 gap-2">
-              {WEBSITE_TEMPLATES.map((tmpl) => (
+              {wsTemplates.map((tmpl) => (
                 <button
                   key={tmpl.value}
                   type="button"

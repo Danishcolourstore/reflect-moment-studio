@@ -4,8 +4,6 @@
  * Static defaults serve as fallback when DB templates aren't available yet.
  */
 
-import { supabase } from '@/integrations/supabase/client';
-
 export interface WebsiteTemplateConfig {
   value: string;
   label: string;
@@ -33,7 +31,7 @@ export interface WebsiteTemplateConfig {
 }
 
 // Static fallback templates (used when DB is unavailable)
-const STATIC_TEMPLATES: WebsiteTemplateConfig[] = [
+export const STATIC_TEMPLATES: WebsiteTemplateConfig[] = [
   {
     value: 'vows-elegance',
     label: 'Vows Elegance',
@@ -104,63 +102,36 @@ const STATIC_TEMPLATES: WebsiteTemplateConfig[] = [
   },
 ];
 
-// Cached DB templates
-let _cachedTemplates: WebsiteTemplateConfig[] | null = null;
+// Runtime cache synced from React Query via useWebsiteTemplates hook
+let _runtimeCache: WebsiteTemplateConfig[] | null = null;
 
-function mapDbRowToTemplate(row: any): WebsiteTemplateConfig {
-  return {
-    value: row.slug,
-    label: row.label,
-    description: row.description || '',
-    fontFamily: row.font_family,
-    uiFontFamily: row.ui_font_family,
-    bg: row.bg_color,
-    text: row.text_color,
-    textSecondary: row.text_secondary_color,
-    navBg: row.nav_bg,
-    navBorder: row.nav_border,
-    headerStyle: row.header_style as 'transparent' | 'solid',
-    heroStyle: row.hero_style as 'vows' | 'editorial',
-    cardBg: row.card_bg,
-    footerBg: row.footer_bg,
-    footerText: row.footer_text_color,
-    demoContent: row.demo_content || undefined,
-  };
+/** Called by the useWebsiteTemplates hook to keep getTemplate() in sync */
+export function _setRuntimeCache(templates: WebsiteTemplateConfig[]) {
+  _runtimeCache = templates;
 }
 
-/**
- * Load templates from database. Caches result for session.
- */
-export async function loadTemplatesFromDb(): Promise<WebsiteTemplateConfig[]> {
-  if (_cachedTemplates) return _cachedTemplates;
-  try {
-    const { data, error } = await (supabase.from('website_templates').select('*') as any)
-      .eq('is_active', true)
-      .order('sort_order');
-    if (error || !data || data.length === 0) return STATIC_TEMPLATES;
-    _cachedTemplates = data.map(mapDbRowToTemplate);
-    return _cachedTemplates;
-  } catch {
-    return STATIC_TEMPLATES;
-  }
-}
-
-/** Clear the template cache (call after admin edits) */
-export function clearTemplateCache() {
-  _cachedTemplates = null;
-}
-
-// Keep backward-compatible exports
+// Backward-compatible export — consumers that can't use hooks still get static list.
+// Prefer useWebsiteTemplates() hook for dynamic DB-sourced templates.
 export const WEBSITE_TEMPLATES = STATIC_TEMPLATES;
 
 export type WebsiteTemplateValue = string;
 
+/**
+ * Synchronous template lookup.
+ * Checks runtime DB cache first, then falls back to static templates.
+ */
 export function getTemplate(value: string): WebsiteTemplateConfig {
-  // Check cached DB templates first
-  if (_cachedTemplates) {
-    const found = _cachedTemplates.find(t => t.value === value);
+  if (_runtimeCache) {
+    const found = _runtimeCache.find(t => t.value === value);
     if (found) return found;
   }
-  // Fall back to static
   return STATIC_TEMPLATES.find(t => t.value === value) || STATIC_TEMPLATES[0];
+}
+
+// Legacy exports kept for backward compat — no-ops now that React Query manages cache
+export async function loadTemplatesFromDb(): Promise<WebsiteTemplateConfig[]> {
+  return _runtimeCache || STATIC_TEMPLATES;
+}
+export function clearTemplateCache() {
+  _runtimeCache = null;
 }

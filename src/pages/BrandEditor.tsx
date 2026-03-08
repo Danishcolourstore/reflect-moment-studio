@@ -18,7 +18,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { WEBSITE_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { STATIC_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { WebsiteHero } from '@/components/website/WebsiteHero';
 import { WebsitePortfolio } from '@/components/website/WebsitePortfolio';
 import { WebsiteFeatured } from '@/components/website/WebsiteFeatured';
@@ -89,6 +90,7 @@ interface EventOption {
 const BrandEditor = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: templates = STATIC_TEMPLATES } = useWebsiteTemplates();
 
   const [data, setData] = useState<BrandData>({
     studioName: '', tagline: '', bio: '', accentColor: '#b08d57',
@@ -396,10 +398,10 @@ const BrandEditor = () => {
                 <Layout className="h-5 w-5 text-muted-foreground/50" />
                 <div className="text-left">
                   <p className="text-sm font-medium text-foreground">
-                    {WEBSITE_TEMPLATES.find(t => t.value === websiteTemplate)?.label}
+                    {templates.find(t => t.value === websiteTemplate)?.label}
                   </p>
                   <p className="text-[11px] text-muted-foreground/60">
-                    {WEBSITE_TEMPLATES.find(t => t.value === websiteTemplate)?.description}
+                    {templates.find(t => t.value === websiteTemplate)?.description}
                   </p>
                 </div>
               </div>
@@ -529,7 +531,7 @@ const BrandEditor = () => {
             <DrawerDescription>Choose your gallery website style</DrawerDescription>
           </DrawerHeader>
           <div className="px-4 pb-8 space-y-3 overflow-y-auto">
-            {WEBSITE_TEMPLATES.map(tmpl => (
+            {templates.map(tmpl => (
               <button
                 key={tmpl.value}
                 onClick={() => { setWebsiteTemplate(tmpl.value); setActiveDrawer(null); }}

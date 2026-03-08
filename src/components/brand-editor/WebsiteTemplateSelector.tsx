@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
-import { WEBSITE_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { STATIC_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 
 interface WebsiteTemplateSelectorProps {
   value: WebsiteTemplateValue;
@@ -7,6 +8,7 @@ interface WebsiteTemplateSelectorProps {
 }
 
 export function WebsiteTemplateSelector({ value, onChange }: WebsiteTemplateSelectorProps) {
+  const { data: templates = STATIC_TEMPLATES } = useWebsiteTemplates();
   return (
     <div className="space-y-6">
       <div>
@@ -15,7 +17,7 @@ export function WebsiteTemplateSelector({ value, onChange }: WebsiteTemplateSele
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {WEBSITE_TEMPLATES.map((tmpl) => {
+        {templates.map((tmpl) => {
           const isSelected = value === tmpl.value;
           return (
             <button
