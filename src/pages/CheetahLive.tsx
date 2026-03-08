@@ -322,11 +322,13 @@ export default function CheetahLive() {
   };
 
   const handleFiles = (files: FileList | File[]) => {
-    const validFiles = Array.from(files).filter((f) =>
-      ['image/jpeg', 'image/png', 'image/jpg'].includes(f.type)
-    );
+    const validExtensions = new Set(['jpg', 'jpeg', 'png', 'heif', 'heic']);
+    const validFiles = Array.from(files).filter((f) => {
+      const ext = f.name.split('.').pop()?.toLowerCase() || '';
+      return validExtensions.has(ext) || ['image/jpeg', 'image/png', 'image/heif', 'image/heic'].includes(f.type);
+    });
     if (validFiles.length === 0) {
-      toast.error('No valid image files');
+      toast.error('No valid image files (JPG, JPEG, PNG, HEIF, HEIC)');
       return;
     }
     uploadPhotos(validFiles);
