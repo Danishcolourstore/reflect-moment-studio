@@ -511,7 +511,7 @@ const PublicGallery = () => {
   const galleryStyle = (event as any)?.gallery_style || 'vogue-editorial';
   const isTimeless = galleryStyle === 'timeless-wedding';
   const isAndhakar = galleryStyle === 'andhakar';
-  const websiteTemplate = (event as any)?.website_template || 'dark-portfolio';
+  const websiteTemplate = (event as any)?.website_template || 'vows-elegance';
   const wt = getTemplate(websiteTemplate);
 
   // Dynamically load studio heading/body fonts from Google Fonts
