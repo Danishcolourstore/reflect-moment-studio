@@ -361,6 +361,11 @@ const Branding = () => {
               )}
             </TabsContent>
 
+            {/* ── WEBSITE TAB ── */}
+            <TabsContent value="website">
+              <WebsiteTemplateSelector value={websiteTemplate} onChange={setWebsiteTemplate} />
+            </TabsContent>
+
             {/* ── DOMAIN TAB ── */}
             <TabsContent value="domain" className="space-y-6">
               {/* Studio URL */}
