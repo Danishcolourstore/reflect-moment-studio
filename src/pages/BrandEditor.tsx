@@ -98,7 +98,7 @@ const BrandEditor = () => {
     services: [], featuredGalleryIds: [], testimonials: [],
     location: '', phone: '',
   });
-  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('dark-portfolio');
+  const [websiteTemplate, setWebsiteTemplate] = useState<WebsiteTemplateValue>('vows-elegance');
   const [sections, setSections] = useState<SectionConfig[]>(DEFAULT_SECTIONS);
   const [allEvents, setAllEvents] = useState<EventOption[]>([]);
 

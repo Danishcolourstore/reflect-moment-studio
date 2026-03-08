@@ -125,7 +125,7 @@ const WebsiteEditor = () => {
         setUsername(s.username || '');
         setHeroButtonLabel(s.hero_button_label || 'View Portfolio');
         setHeroButtonUrl(s.hero_button_url || '#portfolio');
-        setWebsiteTemplate((s.website_template as WebsiteTemplateValue) || 'dark-portfolio');
+        setWebsiteTemplate((s.website_template as WebsiteTemplateValue) || 'vows-elegance');
         setSectionOrder((s.section_order as string[]) || ['hero', 'social', 'portfolio', 'albums', 'about', 'featured', 'services', 'testimonials', 'contact']);
         setSectionVisibility((s.section_visibility as Record<string, boolean>) || { hero: true, social: true, portfolio: true, albums: false, about: true, featured: true, services: false, testimonials: false, contact: true });
         setPortfolioLayout((s.portfolio_layout as 'grid' | 'masonry' | 'large') || 'grid');

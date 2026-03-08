@@ -101,7 +101,7 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
     setHeroCoupleName(event.hero_couple_name ?? '');
     setHeroSubtitle(event.hero_subtitle ?? '');
     setHeroButtonLabel(event.hero_button_label ?? '');
-    setWebsiteTemplate((event.website_template as WebsiteTemplateValue) || 'dark-portfolio');
+    setWebsiteTemplate((event.website_template as WebsiteTemplateValue) || 'vows-elegance');
   }, [event]);
 
   const handleSave = async () => {
