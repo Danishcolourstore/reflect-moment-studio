@@ -412,14 +412,23 @@ const PublicGallery = () => {
     try {
       const zip = new JSZip();
       const folder = zip.folder(event?.name ?? label);
-      for (let i = 0; i < targetPhotos.length; i++) {
-        setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
-        setZipPercent(Math.round(((i + 1) / targetPhotos.length) * 100));
-        const p = targetPhotos[i];
-        const res = await fetch(p.url);
-        const blob = await res.blob();
-        folder?.file(p.file_name ?? `photo-${i + 1}.jpg`, blob);
+      const CONCURRENT = 6;
+      let completed = 0;
+
+      for (let i = 0; i < targetPhotos.length; i += CONCURRENT) {
+        const batch = targetPhotos.slice(i, i + CONCURRENT);
+        const blobs = await Promise.all(
+          batch.map(async (p) => {
+            const res = await fetch(p.url);
+            return { blob: await res.blob(), name: p.file_name ?? `photo-${targetPhotos.indexOf(p) + 1}.jpg` };
+          })
+        );
+        blobs.forEach(({ blob, name }) => folder?.file(name, blob));
+        completed += batch.length;
+        setDownloadProgress(`${completed} / ${targetPhotos.length}`);
+        setZipPercent(Math.round((completed / targetPhotos.length) * 100));
       }
+
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${event?.name ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
