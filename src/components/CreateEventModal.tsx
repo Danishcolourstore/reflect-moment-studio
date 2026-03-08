@@ -279,22 +279,32 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
           {/* Gallery layout preset */}
           <div className="space-y-2">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Layout</Label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {LAYOUT_OPTIONS.map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setGalleryLayout(value)}
-                  className={`flex flex-col items-center gap-1 py-2.5 px-1 border transition-colors text-center ${
-                    galleryLayout === value
-                      ? 'border-foreground bg-foreground/5 text-foreground'
-                      : 'border-border text-muted-foreground/60 hover:border-foreground/30'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-[9px] uppercase tracking-wider leading-none">{label}</span>
-                </button>
-              ))}
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+              {LAYOUT_OPTIONS.map(({ value, label }) => {
+                const selected = galleryLayout === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setGalleryLayout(value)}
+                    className={`relative flex flex-col items-center gap-1.5 p-2 border rounded-lg transition-all min-h-[80px] ${
+                      selected
+                        ? 'border-accent bg-accent/10 text-accent'
+                        : 'border-border text-muted-foreground/60 hover:border-muted-foreground/30'
+                    }`}
+                  >
+                    {selected && (
+                      <div className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent flex items-center justify-center">
+                        <Check className="h-2.5 w-2.5 text-accent-foreground" />
+                      </div>
+                    )}
+                    <div className={`w-10 h-10 ${selected ? 'text-accent' : 'text-muted-foreground/40'}`}>
+                      <LayoutWireframe type={value} />
+                    </div>
+                    <span className={`text-[8px] uppercase tracking-wider leading-none font-medium ${selected ? 'text-accent' : ''}`}>{label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
