@@ -865,8 +865,8 @@ const PublicGallery = () => {
         return (
           <>
             <div style={{
-              columns: isTimeless ? '4 200px' : '3 240px',
-              columnGap: isTimeless ? '2px' : '1rem',
+              columns: isTimeless ? '4 200px' : '3 260px',
+              columnGap: isTimeless ? '4px' : '12px',
             }}>
               {visiblePhotos.map(p => renderPhotoCard(p, 'masonry'))}
             </div>
