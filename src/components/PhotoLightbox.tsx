@@ -257,14 +257,14 @@ export function PhotoLightbox({
       >
         {currentIndex > 0 && zoom <= 1 && (
           <button onClick={goPrev}
-            className="absolute left-2 sm:left-6 z-10 min-w-[48px] min-h-[48px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 transition-all duration-200">
+            className="absolute left-3 sm:left-8 z-10 min-w-[52px] min-h-[52px] rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 active:scale-90 shadow-lg shadow-black/20">
             <ChevronLeft className="h-7 w-7" />
           </button>
         )}
 
         {currentIndex < photos.length - 1 && zoom <= 1 && (
           <button onClick={goNext}
-            className="absolute right-2 sm:right-6 z-10 min-w-[48px] min-h-[48px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 transition-all duration-200">
+            className="absolute right-3 sm:right-8 z-10 min-w-[52px] min-h-[52px] rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 active:scale-90 shadow-lg shadow-black/20">
             <ChevronRight className="h-7 w-7" />
           </button>
         )}
