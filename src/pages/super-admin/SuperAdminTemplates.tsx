@@ -606,67 +606,86 @@ function TemplatePreview({
     e.target.value = '';
   };
 
+  const navLinks = ['Home', 'About', 'Portfolio', 'Contact'];
+
   return (
-    <div style={{ backgroundColor: form.bg_color, color: form.text_color, fontFamily: form.ui_font_family }} className="min-h-full">
+    <div style={{ backgroundColor: form.bg_color, color: form.text_color, fontFamily: form.ui_font_family }} className="min-h-full overflow-x-hidden">
       <input ref={heroImageInputRef} type="file" accept="image/*" className="hidden" onChange={handleHeroImageUpload} />
       <input ref={aboutImageInputRef} type="file" accept="image/*" className="hidden" onChange={handleAboutImageUpload} />
 
-      {/* ── Navigation ── */}
-      <nav className="sticky top-0 z-10 px-6 py-3 flex items-center justify-between" style={{ background: form.nav_bg, borderBottom: `1px solid ${form.nav_border}` }}>
-        <span className="text-sm font-semibold" style={{ fontFamily: form.font_family }}>{form.label || 'Studio'}</span>
-        <div className="flex gap-4">
-          {['Home', 'About', 'Portfolio', 'Contact'].map(l => (
-            <span key={l} className="text-[10px] uppercase tracking-wider opacity-60">{l}</span>
+      {/* ── Mobile Nav Overlay ── */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 animate-in fade-in duration-200" style={{ backgroundColor: form.bg_color + 'F0' }} onClick={() => setMobileNavOpen(false)}>
+          <button className="absolute top-4 right-4 p-2" onClick={() => setMobileNavOpen(false)}>
+            <X className="h-5 w-5" style={{ color: form.text_color }} />
+          </button>
+          {navLinks.map(l => (
+            <span key={l} className="text-sm uppercase tracking-[0.2em] font-light cursor-pointer" style={{ color: form.text_color }} onClick={() => setMobileNavOpen(false)}>{l}</span>
           ))}
         </div>
+      )}
+
+      {/* ── Navigation ── */}
+      <nav className="sticky top-0 z-10 flex items-center justify-between" style={{ background: form.nav_bg, borderBottom: `1px solid ${form.nav_border}`, padding: isMobile ? '10px 16px' : '12px 24px' }}>
+        <span className="font-semibold" style={{ fontFamily: form.font_family, fontSize: isMobile ? 13 : 14 }}>{form.label || 'Studio'}</span>
+        {isMobile ? (
+          <button onClick={() => setMobileNavOpen(true)} className="p-1">
+            <MenuIcon className="h-4 w-4" style={{ color: form.text_color }} />
+          </button>
+        ) : (
+          <div className="flex gap-4">
+            {navLinks.map(l => (
+              <span key={l} className="text-[10px] uppercase tracking-wider opacity-60">{l}</span>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* ── Hero Section ── */}
-      <section className="relative" style={{ minHeight: 360 }}>
+      <section className="relative" style={{ minHeight: isMobile ? 280 : 360 }}>
         {dc.hero?.image_url ? (
           <img src={dc.hero.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${form.card_bg}, ${form.bg_color})` }} />
         )}
         <div className="absolute inset-0 bg-black/40" />
-        <div className="relative z-[1] flex flex-col items-center justify-center text-center px-6" style={{ minHeight: 360 }}>
+        <div className="relative z-[1] flex flex-col items-center justify-center text-center" style={{ minHeight: isMobile ? 280 : 360, padding: isMobile ? '24px 16px' : '24px' }}>
           <EditableText
             value={dc.hero?.tagline || 'Photography'}
             onChange={v => updateDemoContent('hero.tagline', v)}
-            className="text-[10px] uppercase tracking-[0.2em] mb-3"
-            style={{ color: form.text_secondary_color }}
+            className="uppercase tracking-[0.2em] mb-2"
+            style={{ color: form.text_secondary_color, fontSize: isMobile ? 9 : 10 }}
           />
           <EditableText
             value={dc.hero?.headline || 'Your Story'}
             onChange={v => updateDemoContent('hero.headline', v)}
-            className="text-3xl font-light leading-tight mb-4"
-            style={{ fontFamily: form.font_family, color: '#fff' }}
+            className="font-light leading-tight mb-3"
+            style={{ fontFamily: form.font_family, color: '#fff', fontSize: isMobile ? 22 : 30 }}
             tag="h1"
           />
           <button
-            className="px-5 py-2 text-[10px] uppercase tracking-wider border rounded-sm mt-2"
-            style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}
+            className="uppercase tracking-wider border rounded-sm"
+            style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff', padding: isMobile ? '6px 16px' : '8px 20px', fontSize: isMobile ? 9 : 10 }}
           >
             {dc.hero?.button_text || 'View Portfolio'}
           </button>
-          {/* Click to upload hero image */}
           <button
             onClick={() => heroImageInputRef.current?.click()}
-            className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded bg-black/60 text-white text-[9px] hover:bg-black/80 transition-colors"
+            className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded bg-black/60 text-white text-[9px] hover:bg-black/80 transition-colors"
           >
-            <Camera className="h-3 w-3" /> {dc.hero?.image_url ? 'Replace Hero' : 'Upload Hero'}
+            <Camera className="h-3 w-3" /> {dc.hero?.image_url ? 'Replace' : 'Upload'}
           </button>
         </div>
       </section>
 
       {/* ── About Section ── */}
       {dc.about?.bio && (
-        <section className="px-6 py-12">
-          <div className="max-w-3xl mx-auto flex gap-8 items-start">
-            <div className="w-32 shrink-0">
+        <section style={{ padding: isMobile ? '24px 16px' : '48px 24px' }}>
+          <div className={`max-w-3xl mx-auto ${isMobile ? 'flex flex-col items-center gap-4 text-center' : 'flex gap-8 items-start'}`}>
+            <div className={isMobile ? '' : 'w-32 shrink-0'}>
               {dc.about.profile_image_url ? (
                 <div className="relative group">
-                  <img src={dc.about.profile_image_url} alt="" className="w-32 h-40 object-cover rounded-lg" />
+                  <img src={dc.about.profile_image_url} alt="" className="object-cover rounded-lg" style={{ width: isMobile ? 80 : 128, height: isMobile ? 100 : 160 }} />
                   <button
                     onClick={() => aboutImageInputRef.current?.click()}
                     className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-colors rounded-lg opacity-0 group-hover:opacity-100"
@@ -677,20 +696,20 @@ function TemplatePreview({
               ) : (
                 <button
                   onClick={() => aboutImageInputRef.current?.click()}
-                  className="w-32 h-40 rounded-lg border-2 border-dashed flex items-center justify-center"
-                  style={{ borderColor: form.text_secondary_color + '40' }}
+                  className="rounded-lg border-2 border-dashed flex items-center justify-center"
+                  style={{ borderColor: form.text_secondary_color + '40', width: isMobile ? 80 : 128, height: isMobile ? 100 : 160 }}
                 >
                   <Camera className="h-5 w-5" style={{ color: form.text_secondary_color }} />
                 </button>
               )}
             </div>
             <div className="flex-1">
-              <h2 className="text-lg mb-3" style={{ fontFamily: form.font_family }}>About</h2>
+              <h2 className="mb-2" style={{ fontFamily: form.font_family, fontSize: isMobile ? 16 : 18 }}>About</h2>
               <EditableText
                 value={dc.about.bio}
                 onChange={v => updateDemoContent('about.bio', v)}
-                className="text-sm leading-relaxed"
-                style={{ color: form.text_secondary_color }}
+                className="leading-relaxed"
+                style={{ color: form.text_secondary_color, fontSize: isMobile ? 12 : 14 }}
                 multiline
               />
             </div>
@@ -700,14 +719,14 @@ function TemplatePreview({
 
       {/* ── Services ── */}
       {(dc.services || []).length > 0 && (
-        <section className="px-6 py-10" style={{ backgroundColor: form.card_bg }}>
+        <section style={{ backgroundColor: form.card_bg, padding: isMobile ? '24px 16px' : '40px 24px' }}>
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-lg text-center mb-6" style={{ fontFamily: form.font_family }}>Services</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <h2 className="text-center mb-4" style={{ fontFamily: form.font_family, fontSize: isMobile ? 16 : 18 }}>Services</h2>
+            <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
               {dc.services!.map((svc, i) => (
-                <div key={i} className="p-4 rounded-lg border" style={{ borderColor: form.nav_border }}>
-                  <h3 className="text-sm font-semibold mb-1">{svc.title}</h3>
-                  <p className="text-[11px] leading-relaxed" style={{ color: form.text_secondary_color }}>{svc.description}</p>
+                <div key={i} className="rounded-lg border" style={{ borderColor: form.nav_border, padding: isMobile ? '12px' : '16px' }}>
+                  <h3 className="font-semibold mb-1" style={{ fontSize: isMobile ? 12 : 14 }}>{svc.title}</h3>
+                  <p className="leading-relaxed" style={{ color: form.text_secondary_color, fontSize: isMobile ? 10 : 11 }}>{svc.description}</p>
                 </div>
               ))}
             </div>
@@ -717,10 +736,10 @@ function TemplatePreview({
 
       {/* ── Portfolio Grid ── */}
       {(dc.portfolio?.demo_images || []).length > 0 && (
-        <section className="px-6 py-10">
+        <section style={{ padding: isMobile ? '24px 16px' : '40px 24px' }}>
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-lg text-center mb-6" style={{ fontFamily: form.font_family }}>Portfolio</h2>
-            <div className="grid grid-cols-3 gap-2">
+            <h2 className="text-center mb-4" style={{ fontFamily: form.font_family, fontSize: isMobile ? 16 : 18 }}>Portfolio</h2>
+            <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-3'}`}>
               {dc.portfolio!.demo_images!.map((url, i) => (
                 <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded" />
               ))}
@@ -730,29 +749,29 @@ function TemplatePreview({
       )}
 
       {/* ── Contact ── */}
-      <section className="px-6 py-10" style={{ backgroundColor: form.card_bg }}>
+      <section style={{ backgroundColor: form.card_bg, padding: isMobile ? '24px 16px' : '40px 24px' }}>
         <div className="max-w-md mx-auto text-center">
           <EditableText
             value={dc.contact?.heading || 'Get In Touch'}
             onChange={v => updateDemoContent('contact.heading', v)}
-            className="text-lg mb-4"
-            style={{ fontFamily: form.font_family }}
+            className="mb-3"
+            style={{ fontFamily: form.font_family, fontSize: isMobile ? 16 : 18 }}
             tag="h2"
           />
           <div className="space-y-2">
-            <div className="h-8 rounded border text-[10px] flex items-center px-3 opacity-40" style={{ borderColor: form.nav_border }}>Name</div>
-            <div className="h-8 rounded border text-[10px] flex items-center px-3 opacity-40" style={{ borderColor: form.nav_border }}>Email</div>
-            <div className="h-16 rounded border text-[10px] flex items-start p-3 opacity-40" style={{ borderColor: form.nav_border }}>Message</div>
+            <div className="rounded border flex items-center px-3 opacity-40" style={{ borderColor: form.nav_border, height: isMobile ? 32 : 32, fontSize: 10 }}>Name</div>
+            <div className="rounded border flex items-center px-3 opacity-40" style={{ borderColor: form.nav_border, height: isMobile ? 32 : 32, fontSize: 10 }}>Email</div>
+            <div className="rounded border flex items-start p-3 opacity-40" style={{ borderColor: form.nav_border, height: isMobile ? 56 : 64, fontSize: 10 }}>Message</div>
           </div>
-          <button className="mt-4 px-5 py-2 text-[10px] uppercase tracking-wider rounded-sm" style={{ backgroundColor: form.text_color, color: form.bg_color }}>
+          <button className="mt-3 uppercase tracking-wider rounded-sm" style={{ backgroundColor: form.text_color, color: form.bg_color, padding: isMobile ? '6px 16px' : '8px 20px', fontSize: 10 }}>
             {dc.contact?.button_text || 'Send Message'}
           </button>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="px-6 py-6" style={{ backgroundColor: form.footer_bg, color: form.footer_text_color }}>
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
+      <footer style={{ backgroundColor: form.footer_bg, color: form.footer_text_color, padding: isMobile ? '16px' : '24px' }}>
+        <div className={`max-w-3xl mx-auto flex items-center ${isMobile ? 'flex-col gap-3 text-center' : 'justify-between'}`}>
           <EditableText
             value={dc.footer?.text || '© 2025 Studio'}
             onChange={v => updateDemoContent('footer.text', v)}
