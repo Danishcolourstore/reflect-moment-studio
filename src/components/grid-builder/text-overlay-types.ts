@@ -22,12 +22,22 @@ export interface TextLayer {
   fontWeight: number;
   fontStyle: 'normal' | 'italic';
   textTransform: 'none' | 'uppercase' | 'lowercase';
+  /** Advanced styling */
+  underline?: boolean;
+  stroke?: TextStroke | null;
+  bgHighlight?: string | null;
+  gradientColors?: [string, string] | null;
 }
 
 export interface TextShadow {
   x: number;
   y: number;
   blur: number;
+  color: string;
+}
+
+export interface TextStroke {
+  width: number;
   color: string;
 }
 
