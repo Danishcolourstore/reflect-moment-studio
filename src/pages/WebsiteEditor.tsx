@@ -860,7 +860,7 @@ const WebsiteEditor = () => {
               <Select value={websiteTemplate} onValueChange={v => setWebsiteTemplate(v as WebsiteTemplateValue)}>
                 <SelectTrigger className="h-9 text-xs bg-background"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {(dbTemplates.length > 0 ? dbTemplates : WEBSITE_TEMPLATES).map(t => (
+                  {dbTemplates.map(t => (
                     <SelectItem key={t.value} value={t.value}>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: t.bg }} />
