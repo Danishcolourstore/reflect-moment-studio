@@ -172,9 +172,9 @@ export default function TemplatePreview() {
               style={{ backgroundColor: tmpl.navBg, borderColor: tmpl.navBorder }}
             >
               <div className="flex gap-1">
-                <div className="w-2 h-2 rounded-full bg-red-400/60" />
-                <div className="w-2 h-2 rounded-full bg-yellow-400/60" />
-                <div className="w-2 h-2 rounded-full bg-green-400/60" />
+                <div className="w-2 h-2 rounded-full bg-destructive/60" />
+                <div className="w-2 h-2 rounded-full bg-accent/60" />
+                <div className="w-2 h-2 rounded-full bg-primary/60" />
               </div>
               <div
                 className="flex-1 text-center text-[9px] font-mono truncate px-2 py-0.5 rounded-md"
