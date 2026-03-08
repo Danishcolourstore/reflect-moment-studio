@@ -354,12 +354,20 @@ const PublicGallery = () => {
       .select('*').eq('event_id', ev.id).order('sort_order', { ascending: true }) as any);
     if (tbData) setTextBlocks(tbData as unknown as TextBlock[]);
 
-    // Fetch comment counts
-    const { data: comments } = await (supabase.from('photo_comments').select('photo_id') as any)
-      .eq('event_id', ev.id);
-    if (comments) {
+    // Fetch comment counts (paginated to avoid 1000-row limit)
+    let allComments: any[] = [];
+    let cFrom = 0;
+    while (true) {
+      const { data: comments } = await (supabase.from('photo_comments').select('photo_id') as any)
+        .eq('event_id', ev.id).range(cFrom, cFrom + 999);
+      if (!comments || comments.length === 0) break;
+      allComments = allComments.concat(comments);
+      if (comments.length < 1000) break;
+      cFrom += 1000;
+    }
+    if (allComments.length > 0) {
       const counts: Record<string, number> = {};
-      (comments as any[]).forEach((c: any) => {
+      allComments.forEach((c: any) => {
         counts[c.photo_id] = (counts[c.photo_id] || 0) + 1;
       });
       setCommentCounts(counts);
