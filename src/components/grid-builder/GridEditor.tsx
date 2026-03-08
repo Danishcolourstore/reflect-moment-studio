@@ -29,7 +29,7 @@ interface Props {
   initialTextLayers?: TextLayer[];
 }
 
-type ActiveTool = 'text' | 'elements' | 'background' | 'logo' | null;
+type ActiveTool = 'text' | 'elements' | 'background' | 'logo' | 'caption' | null;
 
 export default function GridEditor({ layout, onBack, initialTextLayers = [] }: Props) {
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
