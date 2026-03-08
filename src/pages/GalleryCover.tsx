@@ -72,7 +72,7 @@ const GalleryCover = () => {
     e.preventDefault();
     if (!event) return;
     if (pinInput === event.gallery_pin) {
-      sessionStorage.setItem(`unlocked_${event.id}`, 'true');
+      localStorage.setItem(`mirrorai_pin_${event.id}`, pinInput);
       setPinRequired(false);
       setPinError(false);
     } else {

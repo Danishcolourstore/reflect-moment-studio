@@ -379,9 +379,7 @@ const PublicGallery = () => {
   const handleDownloadPhoto = async (photo: Photo) => {
     if (!event?.downloads_enabled) return;
     try {
-      const { data: signed, error } = await supabase.storage.from('gallery-photos').createSignedUrl(photo.url, 60);
-      if (error || !signed?.signedUrl) { toast({ title: 'Download failed' }); return; }
-      const res = await fetch(signed.signedUrl);
+      const res = await fetch(photo.url);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -403,9 +401,7 @@ const PublicGallery = () => {
         setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
         setZipPercent(Math.round(((i + 1) / targetPhotos.length) * 100));
         const p = targetPhotos[i];
-        const { data: signed } = await supabase.storage.from('gallery-photos').createSignedUrl(p.url, 120);
-        if (!signed?.signedUrl) continue;
-        const res = await fetch(signed.signedUrl);
+        const res = await fetch(p.url);
         const blob = await res.blob();
         folder?.file(p.file_name ?? `photo-${i + 1}.jpg`, blob);
       }
