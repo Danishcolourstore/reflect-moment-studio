@@ -22,6 +22,11 @@ export interface TextLayer {
   fontWeight: number;
   fontStyle: 'normal' | 'italic';
   textTransform: 'none' | 'uppercase' | 'lowercase';
+  /** Advanced styling */
+  underline?: boolean;
+  stroke?: TextStroke | null;
+  bgHighlight?: string | null;
+  gradientColors?: [string, string] | null;
 }
 
 export interface TextShadow {
