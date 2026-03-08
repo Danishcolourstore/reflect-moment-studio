@@ -4,10 +4,13 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, FileArchive, Search, Check, Image as ImageIcon } from 'lucide-react';
+import { Upload, FileArchive, Search, Check, Image as ImageIcon, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import browserImageCompression from 'browser-image-compression';
 import JSZip from 'jszip';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 
 interface Photo {
   id: string;
@@ -16,15 +19,23 @@ interface Photo {
 }
 
 interface Props {
+  albumId: string;
   eventId: string | null;
+  onEventLinked: (eventId: string) => void;
   placedPhotoUrls: Set<string>;
   placedPhotoCounts: Map<string, number>;
   onDragStart: (photo: Photo) => void;
 }
 
-type Filter = 'all' | 'unused' | 'favorites';
+type Filter = 'all' | 'unused';
 
-export default function AlbumPhotoPanel({ eventId, placedPhotoUrls, placedPhotoCounts, onDragStart }: Props) {
+interface EventOption {
+  id: string;
+  name: string;
+  photo_count: number;
+}
+
+export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, placedPhotoUrls, placedPhotoCounts, onDragStart }: Props) {
   const { user } = useAuth();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,33 +43,76 @@ export default function AlbumPhotoPanel({ eventId, placedPhotoUrls, placedPhotoC
   const [search, setSearch] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+  const [events, setEvents] = useState<EventOption[]>([]);
+  const [showLinkGallery, setShowLinkGallery] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const zipRef = useRef<HTMLInputElement>(null);
 
+  // Fetch available events for linking
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase.from('events').select('id, name, photo_count')
+        .eq('user_id', user.id).order('event_date', { ascending: false });
+      setEvents((data || []) as EventOption[]);
+    })();
+  }, [user]);
+
+  // Fetch photos: from linked event OR album-specific uploads
   const fetchPhotos = useCallback(async () => {
-    if (!eventId) { setPhotos([]); setLoading(false); return; }
+    if (!user) { setPhotos([]); setLoading(false); return; }
     setLoading(true);
-    const { data, error } = await supabase.from('photos').select('id, url, file_name')
-      .eq('event_id', eventId).order('sort_order', { ascending: true });
-    if (!error) setPhotos(data || []);
+
+    if (eventId) {
+      // Load photos from the linked event
+      const { data, error } = await supabase.from('photos').select('id, url, file_name')
+        .eq('event_id', eventId).order('sort_order', { ascending: true });
+      if (!error) setPhotos(data || []);
+    } else {
+      // No event linked — load photos uploaded directly to this album's storage folder
+      const { data: storageFiles } = await supabase.storage.from('gallery-photos').list(`album-${albumId}`, {
+        limit: 1000, sortBy: { column: 'created_at', order: 'asc' },
+      });
+      if (storageFiles && storageFiles.length > 0) {
+        const albumPhotos: Photo[] = storageFiles
+          .filter(f => /\.(jpe?g|png|webp)$/i.test(f.name))
+          .map(f => {
+            const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(`album-${albumId}/${f.name}`);
+            return { id: f.id || f.name, url: publicUrl, file_name: f.name };
+          });
+        setPhotos(albumPhotos);
+      } else {
+        setPhotos([]);
+      }
+    }
     setLoading(false);
-  }, [eventId]);
+  }, [eventId, albumId, user]);
 
   useEffect(() => { fetchPhotos(); }, [fetchPhotos]);
 
+  // Upload files — to event if linked, or to album-specific storage folder
   const uploadFiles = async (files: File[]) => {
-    if (!user || !eventId) return;
+    if (!user) return;
     setUploading(true);
     let done = 0;
     for (const file of files) {
       setUploadProgress(`Uploading ${++done} of ${files.length}…`);
       try {
         const compressed = await browserImageCompression(file, { maxSizeMB: 2, maxWidthOrHeight: 4096, useWebWorker: true });
-        const path = `${eventId}/${Date.now()}-${file.name}`;
-        const { error: upErr } = await supabase.storage.from('gallery-photos').upload(path, compressed);
-        if (upErr) throw upErr;
-        const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(path);
-        await supabase.from('photos').insert({ event_id: eventId, user_id: user.id, url: publicUrl, file_name: file.name } as any);
+        
+        if (eventId) {
+          // Upload to event folder and save photo record
+          const path = `${eventId}/${Date.now()}-${file.name}`;
+          const { error: upErr } = await supabase.storage.from('gallery-photos').upload(path, compressed);
+          if (upErr) throw upErr;
+          const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(path);
+          await supabase.from('photos').insert({ event_id: eventId, user_id: user.id, url: publicUrl, file_name: file.name } as any);
+        } else {
+          // Upload to album-specific folder (no event linked)
+          const path = `album-${albumId}/${Date.now()}-${file.name}`;
+          const { error: upErr } = await supabase.storage.from('gallery-photos').upload(path, compressed);
+          if (upErr) throw upErr;
+        }
       } catch (e) { console.error('Upload failed:', file.name, e); }
     }
     setUploading(false);
@@ -96,12 +150,18 @@ export default function AlbumPhotoPanel({ eventId, placedPhotoUrls, placedPhotoC
     }
   };
 
-  // Match photos by URL since we track by URL in cells
-  const isPhotoPlaced = (photo: Photo) => placedPhotoUrls.has(photo.url);
+  const handleLinkEvent = async (selectedEventId: string) => {
+    // Save event_id to album
+    await (supabase.from('albums' as any).update({ event_id: selectedEventId } as any).eq('id', albumId) as any);
+    onEventLinked(selectedEventId);
+    setShowLinkGallery(false);
+    toast.success('Gallery linked! Photos loading…');
+  };
+
   const getPhotoCount = (photo: Photo) => placedPhotoCounts.get(photo.url) || 0;
 
   const filtered = photos.filter(p => {
-    if (filter === 'unused' && isPhotoPlaced(p)) return false;
+    if (filter === 'unused' && placedPhotoUrls.has(p.url)) return false;
     if (search && p.file_name && !p.file_name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -123,6 +183,41 @@ export default function AlbumPhotoPanel({ eventId, placedPhotoUrls, placedPhotoC
             <FileArchive className="h-3.5 w-3.5" /> ZIP
           </Button>
         </div>
+
+        {/* Link Gallery button */}
+        {!eventId && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-xs gap-1.5 h-8 text-muted-foreground hover:text-foreground"
+            onClick={() => setShowLinkGallery(!showLinkGallery)}
+          >
+            <Link2 className="h-3.5 w-3.5" /> Link Existing Gallery
+          </Button>
+        )}
+
+        {showLinkGallery && !eventId && (
+          <Select onValueChange={handleLinkEvent}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue placeholder="Select a gallery…" />
+            </SelectTrigger>
+            <SelectContent>
+              {events.map(ev => (
+                <SelectItem key={ev.id} value={ev.id} className="text-xs">
+                  {ev.name} ({ev.photo_count} photos)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {eventId && (
+          <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 px-1">
+            <Link2 className="h-3 w-3" />
+            <span>Gallery linked • {photos.length} photos</span>
+          </div>
+        )}
+
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={handleFileUpload} />
         <input ref={zipRef} type="file" accept=".zip" className="sr-only" onChange={handleZipUpload} />
         {uploading && (
@@ -137,7 +232,7 @@ export default function AlbumPhotoPanel({ eventId, placedPhotoUrls, placedPhotoC
           <Input placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 pl-8 text-xs" />
         </div>
         <div className="flex gap-1">
-          {(['all', 'unused', 'favorites'] as Filter[]).map(f => (
+          {(['all', 'unused'] as Filter[]).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -157,9 +252,12 @@ export default function AlbumPhotoPanel({ eventId, placedPhotoUrls, placedPhotoC
         {loading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground text-xs">Loading…</div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <ImageIcon className="h-8 w-8 mb-2 opacity-30" />
-            <span className="text-xs">{eventId ? 'No photos found' : 'No event linked'}</span>
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground text-center px-4">
+            <ImageIcon className="h-8 w-8 mb-3 opacity-30" />
+            <span className="text-xs font-medium mb-1">Upload photos to get started</span>
+            <span className="text-[10px] opacity-60">
+              {eventId ? 'No photos in this gallery yet' : 'Or link an existing gallery below'}
+            </span>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-1">
