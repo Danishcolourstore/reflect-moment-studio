@@ -1,9 +1,39 @@
 /**
  * Website Template System
- * Full-experience presentation wrappers for photographer branding.
+ * Templates are loaded from the database (managed by Super Admin).
+ * Static defaults serve as fallback when DB templates aren't available yet.
  */
 
-export const WEBSITE_TEMPLATES = [
+import { supabase } from '@/integrations/supabase/client';
+
+export interface WebsiteTemplateConfig {
+  value: string;
+  label: string;
+  description: string;
+  fontFamily: string;
+  uiFontFamily: string;
+  bg: string;
+  text: string;
+  textSecondary: string;
+  navBg: string;
+  navBorder: string;
+  headerStyle: 'transparent' | 'solid';
+  heroStyle: 'vows' | 'editorial';
+  cardBg: string;
+  footerBg: string;
+  footerText: string;
+  demoContent?: {
+    hero?: { headline?: string; tagline?: string; button_text?: string; image_url?: string | null };
+    portfolio?: { layout?: string; max_images?: number; demo_images?: string[] };
+    about?: { bio?: string; profile_image_url?: string | null };
+    services?: { title: string; description: string; icon: string }[];
+    contact?: { heading?: string; button_text?: string };
+    footer?: { text?: string; show_social?: boolean };
+  };
+}
+
+// Static fallback templates (used when DB is unavailable)
+const STATIC_TEMPLATES: WebsiteTemplateConfig[] = [
   {
     value: 'vows-elegance',
     label: 'Vows Elegance',
@@ -15,8 +45,8 @@ export const WEBSITE_TEMPLATES = [
     textSecondary: '#A69E8F',
     navBg: 'rgba(12,10,7,0.75)',
     navBorder: 'rgba(242,237,228,0.06)',
-    headerStyle: 'transparent' as const,
-    heroStyle: 'vows' as const,
+    headerStyle: 'transparent',
+    heroStyle: 'vows',
     cardBg: '#161310',
     footerBg: '#0C0A07',
     footerText: '#7A7365',
@@ -32,16 +62,71 @@ export const WEBSITE_TEMPLATES = [
     textSecondary: '#6B6560',
     navBg: 'rgba(245,240,234,0.92)',
     navBorder: 'rgba(43,42,40,0.08)',
-    headerStyle: 'solid' as const,
-    heroStyle: 'editorial' as const,
+    headerStyle: 'solid',
+    heroStyle: 'editorial',
     cardBg: '#FFFFFF',
     footerBg: '#2B2A28',
     footerText: '#A09A92',
   },
-] as const;
+];
 
-export type WebsiteTemplateValue = typeof WEBSITE_TEMPLATES[number]['value'];
+// Cached DB templates
+let _cachedTemplates: WebsiteTemplateConfig[] | null = null;
 
-export function getTemplate(value: string) {
-  return WEBSITE_TEMPLATES.find(t => t.value === value) || WEBSITE_TEMPLATES[0];
+function mapDbRowToTemplate(row: any): WebsiteTemplateConfig {
+  return {
+    value: row.slug,
+    label: row.label,
+    description: row.description || '',
+    fontFamily: row.font_family,
+    uiFontFamily: row.ui_font_family,
+    bg: row.bg_color,
+    text: row.text_color,
+    textSecondary: row.text_secondary_color,
+    navBg: row.nav_bg,
+    navBorder: row.nav_border,
+    headerStyle: row.header_style as 'transparent' | 'solid',
+    heroStyle: row.hero_style as 'vows' | 'editorial',
+    cardBg: row.card_bg,
+    footerBg: row.footer_bg,
+    footerText: row.footer_text_color,
+    demoContent: row.demo_content || undefined,
+  };
+}
+
+/**
+ * Load templates from database. Caches result for session.
+ */
+export async function loadTemplatesFromDb(): Promise<WebsiteTemplateConfig[]> {
+  if (_cachedTemplates) return _cachedTemplates;
+  try {
+    const { data, error } = await (supabase.from('website_templates').select('*') as any)
+      .eq('is_active', true)
+      .order('sort_order');
+    if (error || !data || data.length === 0) return STATIC_TEMPLATES;
+    _cachedTemplates = data.map(mapDbRowToTemplate);
+    return _cachedTemplates;
+  } catch {
+    return STATIC_TEMPLATES;
+  }
+}
+
+/** Clear the template cache (call after admin edits) */
+export function clearTemplateCache() {
+  _cachedTemplates = null;
+}
+
+// Keep backward-compatible exports
+export const WEBSITE_TEMPLATES = STATIC_TEMPLATES;
+
+export type WebsiteTemplateValue = string;
+
+export function getTemplate(value: string): WebsiteTemplateConfig {
+  // Check cached DB templates first
+  if (_cachedTemplates) {
+    const found = _cachedTemplates.find(t => t.value === value);
+    if (found) return found;
+  }
+  // Fall back to static
+  return STATIC_TEMPLATES.find(t => t.value === value) || STATIC_TEMPLATES[0];
 }
