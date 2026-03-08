@@ -225,7 +225,7 @@ const Branding = () => {
                     <Input value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="mt-1 bg-card" />
                     {username && (
                       <p className="text-[10px] text-muted-foreground/50 mt-1">
-                        Your public portfolio: <span className="text-foreground/70 font-medium">{window.location.origin}/p/{username}</span>
+                        Your studio page: <span className="text-foreground/70 font-medium">{window.location.origin}/studio/{username}</span>
                       </p>
                     )}
                   </div>
@@ -341,6 +341,35 @@ const Branding = () => {
 
             {/* ── DOMAIN TAB ── */}
             <TabsContent value="domain" className="space-y-6">
+              {/* Studio URL */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium mb-4">STUDIO URL</p>
+                {username ? (
+                  <div className="border border-border rounded-xl p-5 bg-card/50 space-y-4">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground/40 font-medium mb-1">Your Studio Page</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-foreground font-medium">{window.location.origin}/studio/{username}</p>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/studio/${username}`);
+                          toast.success('Link copied!');
+                        }}>
+                          <Link2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground/50 leading-relaxed">
+                      Share this link on Instagram bio, WhatsApp, Google Business, or anywhere to showcase your portfolio.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-dashed border-border rounded-xl p-5 text-center">
+                    <p className="text-sm text-muted-foreground/50">Set a portfolio username in the Identity tab to get your studio URL.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Custom Domain */}
               <div>
                 <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium mb-4">CUSTOM DOMAIN</p>
                 <div className="space-y-4">
@@ -349,32 +378,73 @@ const Branding = () => {
                     <Input
                       value={customDomain}
                       onChange={(e) => setCustomDomain(e.target.value.toLowerCase().replace(/[^a-z0-9.-]/g, ''))}
-                      placeholder="yourstudio.com"
+                      placeholder="www.yourstudio.com"
                       className="mt-1 bg-card"
                     />
-                    <p className="text-[10px] text-muted-foreground/50 mt-1">
-                      Custom domain support coming soon. Enter your domain to reserve it.
-                    </p>
                   </div>
-                  {username && (
-                    <div className="border border-border rounded-xl p-4 bg-card/50 space-y-2">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground/40 font-medium">CURRENT URL</p>
-                      <p className="text-sm text-foreground font-medium">{window.location.origin}/p/{username}</p>
-                      {customDomain && (
-                        <>
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground/40 font-medium mt-3">FUTURE URL</p>
-                          <p className="text-sm text-foreground font-medium">https://{customDomain}</p>
-                          <div className="mt-3 bg-primary/5 border border-primary/10 rounded-lg p-3">
-                            <p className="text-[10px] text-primary/70">
-                              When custom domains go live, point your DNS A record to our servers and we'll handle SSL automatically.
-                            </p>
+                  {customDomain && (
+                    <div className="border border-border rounded-xl p-5 bg-card/50 space-y-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground/40 font-medium mb-1">DNS CONFIGURATION</p>
+                        <p className="text-[10px] text-muted-foreground/50 mb-3">
+                          Add these records at your domain registrar to connect your custom domain:
+                        </p>
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-3 p-3 bg-background rounded-lg border border-border">
+                            <div className="shrink-0 w-12 text-center">
+                              <span className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground/60 bg-muted px-2 py-0.5 rounded">A</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] text-muted-foreground/50">Name: <span className="text-foreground font-mono">@</span></p>
+                              <p className="text-[10px] text-muted-foreground/50">Value: <span className="text-foreground font-mono">185.158.133.1</span></p>
+                            </div>
                           </div>
-                        </>
-                      )}
+                          <div className="flex items-start gap-3 p-3 bg-background rounded-lg border border-border">
+                            <div className="shrink-0 w-12 text-center">
+                              <span className="text-[9px] uppercase tracking-wider font-medium text-muted-foreground/60 bg-muted px-2 py-0.5 rounded">A</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] text-muted-foreground/50">Name: <span className="text-foreground font-mono">www</span></p>
+                              <p className="text-[10px] text-muted-foreground/50">Value: <span className="text-foreground font-mono">185.158.133.1</span></p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
+                        <p className="text-[10px] text-primary/70 leading-relaxed">
+                          After adding DNS records, connect your domain in Project Settings → Domains. SSL will be provisioned automatically. DNS propagation may take up to 72 hours.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* SEO Preview */}
+              {username && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium mb-4">SOCIAL SHARE PREVIEW</p>
+                  <div className="border border-border rounded-xl overflow-hidden bg-card/50">
+                    <div className="aspect-[1.91/1] relative overflow-hidden" style={{ backgroundColor: '#111' }}>
+                      {coverUrl ? (
+                        <img src={coverUrl} alt="" className="h-full w-full object-cover opacity-80" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center">
+                          <p className="text-muted-foreground/20 text-sm">Add a cover photo for social preview</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 border-t border-border">
+                      <p className="text-[10px] text-muted-foreground/40 truncate">{customDomain || `${window.location.host}/studio/${username}`}</p>
+                      <p className="text-sm font-medium text-foreground mt-0.5">{studioName || 'Studio Name'} — Photography</p>
+                      <p className="text-[11px] text-muted-foreground/60 mt-0.5 line-clamp-2">{bio || tagline || 'Professional photography portfolio'}</p>
+                    </div>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground/40 mt-2">
+                    This is how your studio link will appear when shared on WhatsApp, Instagram, Facebook, etc.
+                  </p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
 
@@ -389,7 +459,7 @@ const Branding = () => {
             <div className="flex items-center justify-between mb-4">
               <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/60 font-medium">LIVE PREVIEW</p>
               {username && (
-                <Button variant="ghost" size="sm" className="text-[10px] h-7 gap-1" onClick={() => navigate(`/p/${username}`)}>
+                <Button variant="ghost" size="sm" className="text-[10px] h-7 gap-1" onClick={() => navigate(`/studio/${username}`)}>
                   <ExternalLink className="h-3 w-3" /> Open Gallery
                 </Button>
               )}
@@ -398,12 +468,12 @@ const Branding = () => {
               className="border border-border rounded-xl overflow-hidden shadow-lg cursor-pointer transition-shadow hover:shadow-xl active:scale-[0.995] transition-transform"
               style={{ backgroundColor: '#0C0B08' }}
               onClick={() => {
-                if (username) navigate(`/p/${username}`);
+                if (username) navigate(`/studio/${username}`);
                 else toast.info('Set a portfolio username first to preview your gallery.');
               }}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' && username) navigate(`/p/${username}`); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && username) navigate(`/studio/${username}`); }}
             >
               {/* Hero */}
               <div className="relative aspect-[16/9] overflow-hidden">
