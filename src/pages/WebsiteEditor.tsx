@@ -271,7 +271,7 @@ const WebsiteEditor = () => {
   };
 
   // ── Testimonial helpers ──
-  const addTestimonial = () => setTestimonialsData(prev => [...prev, { name: 'Client Name', text: 'Amazing experience!', event: '' }]);
+  const addTestimonial = () => setTestimonialsData(prev => [...prev, { clientName: 'Client Name', review: 'Amazing experience!', rating: 5 }]);
   const removeTestimonial = (i: number) => setTestimonialsData(prev => prev.filter((_, idx) => idx !== i));
   const updateTestimonial = (i: number, field: string, val: string) => {
     setTestimonialsData(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: val } : t));
