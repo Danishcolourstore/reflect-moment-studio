@@ -28,7 +28,10 @@ export function WebsiteHeader({ template, branding, eventName, onScrollToGallery
     ...(onScrollToContact ? [{ label: 'Contact', onClick: onScrollToContact }] : []),
   ];
 
-  if (template === 'modern-portfolio') {
+  const isLight = ['minimal-portfolio', 'modern-grid'].includes(template);
+  const isTransparent = ['luxury-wedding', 'magazine-editorial', 'dark-portfolio'].includes(template);
+
+  if (isLight) {
     return (
       <header
         className="sticky top-0 z-[60] backdrop-blur-md transition-all duration-300"
@@ -77,38 +80,7 @@ export function WebsiteHeader({ template, branding, eventName, onScrollToGallery
     );
   }
 
-  if (template === 'timeless-wedding') {
-    return (
-      <header
-        className="relative z-[60] text-center py-6"
-        style={{ backgroundColor: t.bg, fontFamily: t.uiFontFamily }}
-      >
-        <div className="max-w-7xl mx-auto px-6">
-          {branding?.studio_logo_url ? (
-            <img src={branding.studio_logo_url} alt="" className="h-10 mx-auto object-contain mb-3" />
-          ) : (
-            <span className="text-sm font-medium tracking-[0.15em] uppercase" style={{ color: t.textSecondary }}>
-              {branding?.studio_name || 'Studio'}
-            </span>
-          )}
-          <nav className="flex items-center justify-center gap-6 mt-3">
-            {navItems.map(item => (
-              <button
-                key={item.label}
-                onClick={item.onClick}
-                className="text-[11px] uppercase tracking-[0.14em] font-medium transition-colors hover:opacity-70"
-                style={{ color: t.textSecondary }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </header>
-    );
-  }
-
-  // Editorial Studio — transparent overlay header
+  // Transparent overlay header for luxury-wedding, magazine-editorial, dark-portfolio
   return (
     <header
       className="absolute top-0 left-0 right-0 z-[60] pointer-events-none"
