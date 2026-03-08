@@ -235,7 +235,7 @@ const WebsiteEditor = () => {
       toast.error('Failed to save');
     }
     setSaving(false);
-  }, [user, studioName, accentColor, bio, tagline, instagram, websiteUrl, whatsapp, footerText, username, websiteTemplate, sectionOrder, sectionVisibility, servicesData, testimonialsData, featuredGalleryIds, portfolioLayout, heroButtonLabel, heroButtonUrl]);
+  }, [user, studioName, accentColor, bio, tagline, instagram, websiteUrl, whatsapp, footerText, username, websiteTemplate, sectionOrder, sectionVisibility, servicesData, testimonialsData, featuredGalleryIds, portfolioLayout, heroButtonLabel, heroButtonUrl, websiteImages]);
 
   // ── Publish ──
   const handlePublish = useCallback(async () => {
