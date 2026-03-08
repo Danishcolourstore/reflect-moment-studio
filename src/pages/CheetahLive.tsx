@@ -429,6 +429,72 @@ export default function CheetahLive() {
         </div>
       </div>
 
+      {/* Folder Watcher Panel */}
+      {activeSessionId && folderWatcher.isSupported && (
+        <div className="mb-4 p-3 rounded-xl border border-border bg-card">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              {folderWatcher.isWatching ? (
+                <div className="relative">
+                  <FolderSync className="h-4 w-4 text-accent" />
+                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-accent animate-ping" />
+                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-accent" />
+                </div>
+              ) : (
+                <FolderOpen className="h-4 w-4 text-muted-foreground" />
+              )}
+              <div>
+                <p className="text-xs font-medium text-foreground">
+                  {folderWatcher.isWatching
+                    ? `Watching: ${folderWatcher.folderName}`
+                    : 'Auto-Upload from Folder'}
+                </p>
+                {folderWatcher.isWatching && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {folderWatcher.filesDetected} detected · {folderWatcher.filesUploaded} uploaded
+                    {folderWatcher.filesQueued > 0 && ` · ${folderWatcher.filesQueued} queued`}
+                  </p>
+                )}
+                {!folderWatcher.isWatching && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Select a folder — new photos auto-upload to Cheetah
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {folderWatcher.isWatching && folderWatcher.filesQueued > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Loader2 className="h-3 w-3 animate-spin text-accent" />
+                  <span className="text-[10px] text-accent font-medium">{folderWatcher.filesQueued} uploading</span>
+                </div>
+              )}
+              {folderWatcher.isWatching ? (
+                <Button size="sm" variant="outline" onClick={folderWatcher.stopWatching} className="gap-1 text-xs h-7">
+                  <Square className="h-3 w-3" /> Stop
+                </Button>
+              ) : (
+                <Button size="sm" onClick={folderWatcher.startWatching} className="gap-1 text-xs h-7">
+                  <Radio className="h-3 w-3" /> Watch Folder
+                </Button>
+              )}
+            </div>
+          </div>
+          {folderWatcher.isWatching && folderWatcher.filesDetected > 0 && (
+            <div className="mt-2 h-1 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-accent transition-all duration-500"
+                style={{
+                  width: `${folderWatcher.filesDetected > 0
+                    ? (folderWatcher.filesUploaded / folderWatcher.filesDetected) * 100
+                    : 0}%`,
+                }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* New session modal */}
       {showNewSession && (
         <div className="mb-4 p-4 rounded-xl border border-border bg-card">
