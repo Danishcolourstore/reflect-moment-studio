@@ -945,7 +945,7 @@ const PublicGallery = () => {
           />
         </div>
       ) : (
-        <div ref={heroRef} className="relative h-screen overflow-hidden">
+        <div ref={heroRef} className="relative h-[80vh] lg:h-screen overflow-hidden">
           {event.cover_url ? (
             <img
               src={event.cover_url}
@@ -958,16 +958,19 @@ const PublicGallery = () => {
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
-          <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 px-6 text-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 lg:pb-32 px-6 text-center">
             {studioProfile?.studio_logo_url ? (
-              <img src={studioProfile.studio_logo_url} alt="" className="h-12 object-contain mb-6 opacity-80" />
+              <img src={studioProfile.studio_logo_url} alt="" className="h-12 lg:h-16 object-contain mb-6 opacity-80" />
             ) : studioProfile?.studio_name ? (
-              <p className="font-display text-sm italic text-white/60 mb-6 tracking-wider">{studioProfile.studio_name}</p>
+              <p className="font-display text-sm lg:text-base italic text-white/60 mb-6 tracking-wider">{studioProfile.studio_name}</p>
             ) : null}
 
-            <h1 className="font-serif text-4xl md:text-6xl font-bold text-white leading-tight">{event.name}</h1>
-            <p className="text-muted-foreground text-sm mt-3 tracking-wide">
+            <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight max-w-4xl">{event.name}</h1>
+            <p className="text-muted-foreground text-sm lg:text-base mt-3 lg:mt-5 tracking-wide">
               {format(new Date(event.event_date), 'MMMM d, yyyy')}
+            </p>
+            <p className="text-white/40 text-xs lg:text-sm mt-2 font-sans">
+              {photos.length} photos
             </p>
           </div>
 
