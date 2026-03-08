@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Monitor, Smartphone } from 'lucide-react';
-import { getTemplate, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { getStudioDisplayUrl } from '@/lib/studio-url';
 import { WebsiteHero } from '@/components/website/WebsiteHero';
 import { WebsitePortfolio } from '@/components/website/WebsitePortfolio';
 import { WebsiteFeatured } from '@/components/website/WebsiteFeatured';
