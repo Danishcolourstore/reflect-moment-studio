@@ -51,6 +51,19 @@ export default function InstagramPreview({
     setCurrentSlide(0);
   }, [photos]);
 
+  // Detect aspect ratio from first image
+  useEffect(() => {
+    if (!photos.length) return;
+    const img = new window.Image();
+    img.onload = () => {
+      const r = img.naturalWidth / img.naturalHeight;
+      if (r <= 0.85) setDetectedRatio("4/5");
+      else if (r >= 1.3) setDetectedRatio("1.91/1");
+      else setDetectedRatio("1/1");
+    };
+    img.src = photos[0];
+  }, [photos]);
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
