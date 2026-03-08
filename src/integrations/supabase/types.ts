@@ -1583,12 +1583,17 @@ export type Database = {
       studio_profiles: {
         Row: {
           bio: string | null
+          body_font: string | null
+          brand_assets: Json | null
+          brand_preset: string | null
           cover_url: string | null
           created_at: string
+          custom_domain: string | null
           display_name: string | null
           featured_gallery_ids: string[] | null
           font_style: string | null
           footer_text: string | null
+          heading_font: string | null
           hero_button_label: string | null
           hero_button_url: string | null
           id: string
@@ -1599,17 +1604,25 @@ export type Database = {
           services_data: Json | null
           user_id: string
           username: string | null
+          watermark_logo_url: string | null
+          watermark_opacity: number | null
+          watermark_position: string | null
           website: string | null
           whatsapp: string | null
         }
         Insert: {
           bio?: string | null
+          body_font?: string | null
+          brand_assets?: Json | null
+          brand_preset?: string | null
           cover_url?: string | null
           created_at?: string
+          custom_domain?: string | null
           display_name?: string | null
           featured_gallery_ids?: string[] | null
           font_style?: string | null
           footer_text?: string | null
+          heading_font?: string | null
           hero_button_label?: string | null
           hero_button_url?: string | null
           id?: string
@@ -1620,17 +1633,25 @@ export type Database = {
           services_data?: Json | null
           user_id: string
           username?: string | null
+          watermark_logo_url?: string | null
+          watermark_opacity?: number | null
+          watermark_position?: string | null
           website?: string | null
           whatsapp?: string | null
         }
         Update: {
           bio?: string | null
+          body_font?: string | null
+          brand_assets?: Json | null
+          brand_preset?: string | null
           cover_url?: string | null
           created_at?: string
+          custom_domain?: string | null
           display_name?: string | null
           featured_gallery_ids?: string[] | null
           font_style?: string | null
           footer_text?: string | null
+          heading_font?: string | null
           hero_button_label?: string | null
           hero_button_url?: string | null
           id?: string
@@ -1641,6 +1662,9 @@ export type Database = {
           services_data?: Json | null
           user_id?: string
           username?: string | null
+          watermark_logo_url?: string | null
+          watermark_opacity?: number | null
+          watermark_position?: string | null
           website?: string | null
           whatsapp?: string | null
         }
