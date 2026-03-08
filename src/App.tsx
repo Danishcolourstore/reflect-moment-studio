@@ -167,8 +167,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {
         sessionStorage.removeItem("redirectAfterLogin");
-        const pinVerified = sessionStorage.getItem("mirrorai_access_verified") === "true";
-        setRedirectTo(pinVerified ? "/dashboard" : "/verify-access");
+        setRedirectTo("/dashboard");
         setChecked(true);
       });
   }, [user, loading]);
