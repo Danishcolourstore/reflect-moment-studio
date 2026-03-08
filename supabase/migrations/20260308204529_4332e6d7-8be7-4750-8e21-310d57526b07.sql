@@ -1,0 +1,1 @@
+ALTER TABLE public.studio_profiles ADD COLUMN IF NOT EXISTS portfolio_photo_ids text[] DEFAULT '{}';
