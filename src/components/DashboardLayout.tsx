@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Moon, Sun, Sparkles, Bell, ChevronRight, Menu,
+  LogOut, Moon, Sparkles, Bell, ChevronRight, Menu,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -61,13 +61,18 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-type ThemeMode = 'dark' | 'editorial' | 'classic';
+type ThemeMode = 'dark' | 'classic';
 
 function applyThemeClass(t: ThemeMode) {
   document.documentElement.classList.remove('dark', 'editorial', 'classic');
   document.documentElement.classList.add(t);
   localStorage.setItem('andhakaar-mode', t === 'dark' ? 'on' : 'off');
   localStorage.setItem('theme', t);
+}
+
+function normalizeTheme(raw: string): ThemeMode {
+  if (raw === 'dark') return 'dark';
+  return 'classic'; // editorial or anything else → classic
 }
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -77,7 +82,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('mirrorai-theme') || 'dark';
-    const t = (['dark', 'editorial', 'classic'].includes(saved) ? saved : 'dark') as ThemeMode;
+    const t = normalizeTheme(saved);
     applyThemeClass(t);
     return t;
   });
@@ -95,12 +100,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         if (data) {
           setProfile(data);
           // Sync theme from DB if different from localStorage
-          const dbTheme = data.theme_preference as ThemeMode;
-          if (dbTheme && ['dark', 'editorial', 'classic'].includes(dbTheme)) {
-            applyThemeClass(dbTheme);
-            localStorage.setItem('mirrorai-theme', dbTheme);
-            setTheme(dbTheme);
-          }
+          const dbTheme = normalizeTheme(data.theme_preference || 'dark');
+          applyThemeClass(dbTheme);
+          localStorage.setItem('mirrorai-theme', dbTheme);
+          setTheme(dbTheme);
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
             navigate('/dashboard/onboarding', { replace: true });
           }
@@ -238,9 +241,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {/* Theme switcher — Dark / Editorial / Classic */}
           <div className="flex items-center rounded-full border border-border bg-card overflow-hidden">
             {([
-              { key: 'dark' as ThemeMode, icon: Moon, label: 'Dark', emoji: '🌙' },
-              { key: 'editorial' as ThemeMode, icon: Sun, label: 'Editorial', emoji: '☀' },
-              { key: 'classic' as ThemeMode, icon: Sparkles, label: 'Classic', emoji: '✦' },
+              { key: 'dark' as ThemeMode, label: 'Dark', emoji: '🌙' },
+              { key: 'classic' as ThemeMode, label: 'Classic', emoji: '✦' },
             ]).map(({ key, label, emoji }) => (
               <button
                 key={key}
