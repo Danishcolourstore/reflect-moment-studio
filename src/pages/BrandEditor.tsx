@@ -18,7 +18,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { STATIC_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { type WebsiteTemplateValue } from '@/lib/website-templates';
 import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { WebsiteHero } from '@/components/website/WebsiteHero';
 import { WebsitePortfolio } from '@/components/website/WebsitePortfolio';
@@ -90,7 +90,7 @@ interface EventOption {
 const BrandEditor = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: templates = STATIC_TEMPLATES } = useWebsiteTemplates();
+  const { data: templates = [] } = useWebsiteTemplates();
 
   const [data, setData] = useState<BrandData>({
     studioName: '', tagline: '', bio: '', accentColor: '#b08d57',

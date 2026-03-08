@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import { STATIC_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { type WebsiteTemplateValue } from '@/lib/website-templates';
 import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 
 interface WebsiteTemplateSelectorProps {
@@ -8,7 +8,7 @@ interface WebsiteTemplateSelectorProps {
 }
 
 export function WebsiteTemplateSelector({ value, onChange }: WebsiteTemplateSelectorProps) {
-  const { data: templates = STATIC_TEMPLATES } = useWebsiteTemplates();
+  const { data: templates = [] } = useWebsiteTemplates();
   return (
     <div className="space-y-6">
       <div>

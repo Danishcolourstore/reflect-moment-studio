@@ -78,17 +78,36 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    (supabase.from("profiles").select("suspended") as any)
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data, error }: any) => {
-        if (error || !data) {
-          // Profile doesn't exist yet — allow access, not suspended
-          setSuspended(false);
-          return;
-        }
-        setSuspended(data.suspended ?? false);
-      });
+
+    let mounted = true;
+
+    const loadProfileFlags = async () => {
+      const { data, error } = await (supabase.from('profiles').select('suspended') as any)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!mounted) return;
+      if (error || !data) {
+        setSuspended(false);
+        return;
+      }
+      setSuspended(data.suspended ?? false);
+    };
+
+    loadProfileFlags();
+
+    const channel = supabase
+      .channel(`profile-live-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `user_id=eq.${user.id}` }, (payload: any) => {
+        const nextSuspended = payload?.new?.suspended;
+        if (typeof nextSuspended === 'boolean') setSuspended(nextSuspended);
+      })
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   if (loading)
