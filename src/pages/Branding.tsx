@@ -227,6 +227,9 @@ const Branding = () => {
               <TabsTrigger value="assets" className="text-[11px] uppercase tracking-wider data-[state=active]:bg-background">
                 <FolderOpen className="h-3 w-3 mr-1" /> Assets
               </TabsTrigger>
+              <TabsTrigger value="website" className="text-[11px] uppercase tracking-wider data-[state=active]:bg-background">
+                <Globe className="h-3 w-3 mr-1" /> Website
+              </TabsTrigger>
               <TabsTrigger value="domain" className="text-[11px] uppercase tracking-wider data-[state=active]:bg-background">
                 <Link2 className="h-3 w-3 mr-1" /> Domain
               </TabsTrigger>
