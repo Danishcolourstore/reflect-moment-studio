@@ -54,8 +54,6 @@ export default function AlbumEditorPage() {
   const [paperTexture, setPaperTexture] = useState('white');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [loading, setLoading] = useState(true);
-  const [placedPhotoIds, setPlacedPhotoIds] = useState<Set<string>>(new Set());
-  const [placedPhotoCounts, setPlacedPhotoCounts] = useState<Map<string, number>>(new Map());
 
   // Modals
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -67,6 +65,32 @@ export default function AlbumEditorPage() {
   const [redoStack, setRedoStack] = useState<any[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
+
+  // Use refs for save closure to avoid stale captures
+  const cellsRef = useRef(cells);
+  const textLayersRef = useRef(textLayers);
+  const layoutRef = useRef(layout);
+  const bgColorRef = useRef(bgColor);
+  const paperTextureRef = useRef(paperTexture);
+  const currentPageIdRef = useRef(currentPageId);
+
+  cellsRef.current = cells;
+  textLayersRef.current = textLayers;
+  layoutRef.current = layout;
+  bgColorRef.current = bgColor;
+  paperTextureRef.current = paperTexture;
+  currentPageIdRef.current = currentPageId;
+
+  // Compute placed photo tracking from cells
+  const placedPhotoCounts = new Map<string, number>();
+  // Scan ALL layers across all pages would require loading them all; for now track current page cells
+  cells.forEach(cell => {
+    if (cell.imageUrl) {
+      const count = placedPhotoCounts.get(cell.imageUrl) || 0;
+      placedPhotoCounts.set(cell.imageUrl, count + 1);
+    }
+  });
+  const placedPhotoUrls = new Set(placedPhotoCounts.keys());
 
   // Load album
   useEffect(() => {
@@ -99,6 +123,13 @@ export default function AlbumEditorPage() {
     (async () => {
       const { data: layers } = await (supabase.from('album_layers' as any).select('*')
         .eq('page_id', currentPageId).order('z_index', { ascending: true }) as any);
+
+      // Also load page background
+      const { data: pageData } = await (supabase.from('album_pages' as any).select('background_color, paper_texture').eq('id', currentPageId).single() as any);
+      if (pageData) {
+        setBgColor(pageData.background_color || '#ffffff');
+        setPaperTexture(pageData.paper_texture || 'white');
+      }
 
       if (!layers || layers.length === 0) {
         setLayout(DEFAULT_LAYOUT);
@@ -140,40 +171,36 @@ export default function AlbumEditorPage() {
     })();
   }, [currentPageId]);
 
-  // Debounced auto-save (3s after last change)
-  const scheduleSave = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      if (dirtyRef.current) saveLayers();
-    }, 3000);
-  }, []);
-
-  const markDirty = () => { dirtyRef.current = true; setSaveStatus('unsaved'); scheduleSave(); };
-
+  // Save layers using refs to avoid stale closure
   const saveLayers = useCallback(async () => {
-    if (!currentPageId) return;
+    const pageId = currentPageIdRef.current;
+    if (!pageId) return;
     setSaveStatus('saving');
     try {
-      await (supabase.from('album_layers' as any).delete().eq('page_id', currentPageId) as any);
+      await (supabase.from('album_layers' as any).delete().eq('page_id', pageId) as any);
+
+      const currentCells = cellsRef.current;
+      const currentTextLayers = textLayersRef.current;
+      const currentLayout = layoutRef.current;
 
       const layersToInsert: any[] = [];
-      cells.forEach((cell, i) => {
+      currentCells.forEach((cell, i) => {
         layersToInsert.push({
-          page_id: currentPageId,
+          page_id: pageId,
           layer_type: 'photo',
           photo_id: null, text_content: null,
           x: 0, y: 0, width: 100, height: 100, rotation: 0, z_index: i,
           settings_json: {
             imageUrl: cell.imageUrl, offsetX: cell.offsetX, offsetY: cell.offsetY,
             scale: cell.scale,
-            layout: { gridCols: layout.gridCols, gridRows: layout.gridRows, cells: layout.cells },
+            layout: { gridCols: currentLayout.gridCols, gridRows: currentLayout.gridRows, cells: currentLayout.cells },
           },
         });
       });
 
-      textLayers.forEach((tl, i) => {
+      currentTextLayers.forEach((tl, i) => {
         layersToInsert.push({
-          page_id: currentPageId,
+          page_id: pageId,
           layer_type: 'text', photo_id: null,
           text_content: tl.text,
           x: tl.x, y: tl.y, width: 100, height: 100,
@@ -186,7 +213,10 @@ export default function AlbumEditorPage() {
         await (supabase.from('album_layers' as any).insert(layersToInsert) as any);
       }
 
-      await (supabase.from('album_pages' as any).update({ background_color: bgColor, paper_texture: paperTexture } as any).eq('id', currentPageId) as any);
+      await (supabase.from('album_pages' as any).update({
+        background_color: bgColorRef.current,
+        paper_texture: paperTextureRef.current,
+      } as any).eq('id', pageId) as any);
 
       dirtyRef.current = false;
       setSaveStatus('saved');
@@ -194,7 +224,21 @@ export default function AlbumEditorPage() {
       console.error('Save failed', e);
       setSaveStatus('unsaved');
     }
-  }, [currentPageId, cells, textLayers, layout, bgColor, paperTexture]);
+  }, []);
+
+  // Debounced auto-save (3s after last change)
+  const scheduleSave = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (dirtyRef.current) saveLayers();
+    }, 3000);
+  }, [saveLayers]);
+
+  const markDirty = useCallback(() => {
+    dirtyRef.current = true;
+    setSaveStatus('unsaved');
+    scheduleSave();
+  }, [scheduleSave]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -279,13 +323,30 @@ export default function AlbumEditorPage() {
   const handleDuplicatePage = async (pageId: string) => {
     if (!album) return;
     const maxPageNum = Math.max(...pages.map(p => p.pageNumber), 0) + 1;
-    const { data } = await (supabase.from('album_pages' as any).insert({
+
+    // Get source page data
+    const { data: srcPage } = await (supabase.from('album_pages' as any)
+      .select('background_color, paper_texture').eq('id', pageId).single() as any);
+
+    const { data: newPage } = await (supabase.from('album_pages' as any).insert({
       album_id: album.id, page_number: maxPageNum, spread_index: Math.ceil(maxPageNum / 2),
-      background_color: bgColor, paper_texture: paperTexture,
+      background_color: srcPage?.background_color || '#ffffff',
+      paper_texture: srcPage?.paper_texture || 'white',
     } as any).select().single() as any);
-    if (data) {
-      setPages(prev => [...prev, { id: data.id, pageNumber: data.page_number, spreadIndex: data.spread_index }]);
-      toast.success('Page duplicated');
+
+    if (newPage) {
+      // Copy layers from source page
+      const { data: srcLayers } = await (supabase.from('album_layers' as any)
+        .select('layer_type, photo_id, text_content, x, y, width, height, rotation, z_index, settings_json')
+        .eq('page_id', pageId).order('z_index', { ascending: true }) as any);
+
+      if (srcLayers && srcLayers.length > 0) {
+        const copiedLayers = srcLayers.map((l: any) => ({ ...l, page_id: newPage.id }));
+        await (supabase.from('album_layers' as any).insert(copiedLayers) as any);
+      }
+
+      setPages(prev => [...prev, { id: newPage.id, pageNumber: newPage.page_number, spreadIndex: newPage.spread_index }]);
+      toast.success('Page duplicated with all layers');
     }
   };
 
@@ -352,6 +413,13 @@ export default function AlbumEditorPage() {
     if (ps.length > 0) { setCurrentPageId(ps[0].id); }
   };
 
+  // Handle text layer reordering from right panel
+  const handleReorderTextLayers = (newLayers: TextLayer[]) => {
+    pushUndo();
+    setTextLayers(newLayers);
+    markDirty();
+  };
+
   // Get current spread page IDs for timeline highlighting
   const currentSpreadIndex = pages.find(p => p.id === currentPageId)?.spreadIndex ?? -1;
 
@@ -390,7 +458,7 @@ export default function AlbumEditorPage() {
       <div className="flex-1 flex overflow-hidden">
         <AlbumPhotoPanel
           eventId={album.event_id}
-          placedPhotoIds={placedPhotoIds}
+          placedPhotoUrls={placedPhotoUrls}
           placedPhotoCounts={placedPhotoCounts}
           onDragStart={() => {}}
         />
@@ -422,6 +490,7 @@ export default function AlbumEditorPage() {
           onAddText={(layer) => { pushUndo(); setTextLayers(prev => [...prev, layer]); setSelectedTextId(layer.id); markDirty(); }}
           onUpdateText={(id, patch) => { pushUndo(); setTextLayers(prev => prev.map(l => l.id === id ? { ...l, ...patch } : l)); markDirty(); }}
           onDeleteText={(id) => { pushUndo(); setTextLayers(prev => prev.filter(l => l.id !== id)); setSelectedTextId(null); markDirty(); }}
+          onReorderTextLayers={handleReorderTextLayers}
           showBleed={showBleed}
           showSafeMargin={showSafeMargin}
           showSpine={showSpine}
