@@ -174,7 +174,7 @@ function PhotoCard({
 
   return (
     <div
-      className={`group relative cursor-pointer overflow-hidden rounded-lg ${aspectClass} ${isMasonry ? 'break-inside-avoid' : ''} transition-all duration-300 hover:shadow-lg hover:shadow-black/8`}
+      className={`group relative cursor-pointer overflow-hidden rounded-lg ${aspectClass} ${isMasonry ? 'break-inside-avoid' : ''} transition-all duration-300 hover:shadow-xl hover:shadow-black/10 hover:-translate-y-0.5`}
       style={{ marginBottom: isMasonry ? '8px' : undefined }}
       onClick={onOpenLightbox}
     >
