@@ -36,6 +36,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function AlbumDesigner() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
   const [wizardOpen, setWizardOpen] = useState(false);
