@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function AlbumDesigner() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -195,7 +197,7 @@ export default function AlbumDesigner() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem disabled>
+                          <DropdownMenuItem onClick={() => navigate(`/dashboard/album-designer/${album.id}/editor`)}>
                             <ExternalLink className="h-4 w-4 mr-2" /> Open Editor
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDuplicate(album)}>
