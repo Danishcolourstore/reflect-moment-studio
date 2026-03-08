@@ -8,6 +8,7 @@ import { StoryBookLayout } from '@/components/StoryBookLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { useGuestSession } from '@/hooks/use-guest-session';
+import { useGoogleFonts } from '@/hooks/use-google-fonts';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
@@ -92,6 +93,8 @@ interface StudioExtended {
   cover_url: string | null;
   font_style: string | null;
   username: string | null;
+  heading_font: string | null;
+  body_font: string | null;
 }
 
 /* ── Ken Burns keyframe (scoped, injected once) ── */
@@ -323,7 +326,7 @@ const PublicGallery = () => {
 
     // Fetch extended studio profile
     const { data: studioExt } = await (supabase.from('studio_profiles')
-      .select('bio, display_name, instagram, website, whatsapp, footer_text, cover_url, font_style, username') as any)
+      .select('bio, display_name, instagram, website, whatsapp, footer_text, cover_url, font_style, username, heading_font, body_font') as any)
       .eq('user_id', ev.user_id).maybeSingle();
     if (studioExt) setStudioExtended(studioExt as unknown as StudioExtended);
 
@@ -499,6 +502,9 @@ const PublicGallery = () => {
   const isAndhakar = galleryStyle === 'andhakar';
   const websiteTemplate = (event as any)?.website_template || 'editorial-studio';
   const wt = getTemplate(websiteTemplate);
+
+  // Dynamically load studio heading/body fonts from Google Fonts
+  useGoogleFonts(studioExtended?.heading_font, studioExtended?.body_font);
 
   // Build combined branding object for website components
   const combinedBranding = studioProfile ? {

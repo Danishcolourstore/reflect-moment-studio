@@ -1,6 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Type, Sparkles } from 'lucide-react';
+import { useGoogleFonts } from '@/hooks/use-google-fonts';
 
 const HEADING_FONTS = [
   { value: 'Cormorant Garamond', label: 'Cormorant Garamond', category: 'Editorial Serif' },
@@ -45,6 +46,9 @@ interface Props {
 }
 
 const BrandTypography = ({ headingFont, bodyFont, activePreset, onHeadingFontChange, onBodyFontChange, onPresetChange }: Props) => {
+  // Dynamically load selected fonts so previews render correctly
+  useGoogleFonts(headingFont, bodyFont);
+
   return (
     <div className="space-y-6">
       <div>
