@@ -995,7 +995,7 @@ const PublicGallery = () => {
           maxHeight: isTimeless ? '44px' : undefined,
         }}
       >
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between ${isTimeless ? 'h-11' : 'h-14'}`}>
+        <div className={`max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-center justify-between ${isTimeless ? 'h-11' : 'h-14'}`}>
           {/* Left: logo or name */}
           <div className="flex items-center gap-3 min-w-0">
             {studioProfile?.studio_logo_url ? (
