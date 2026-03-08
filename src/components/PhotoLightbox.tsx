@@ -88,6 +88,15 @@ export function PhotoLightbox({
       if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowRight') goNext();
       if (e.key === 'ArrowLeft') goPrev();
+      // Desktop keyboard shortcuts
+      if ((e.key === 'f' || e.key === 'F') && toggleFavorite && photo) {
+        e.preventDefault();
+        toggleFavorite(photo.id);
+      }
+      if ((e.key === 'd' || e.key === 'D') && canDownload && onDownload && photo) {
+        e.preventDefault();
+        onDownload(photo);
+      }
     };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
@@ -95,7 +104,7 @@ export function PhotoLightbox({
       window.removeEventListener('keydown', handler);
       document.body.style.overflow = '';
     };
-  }, [open, onClose, goNext, goPrev]);
+  }, [open, onClose, goNext, goPrev, toggleFavorite, canDownload, onDownload, photos, currentIndex]);
 
   if (!open || photos.length === 0) return null;
 
@@ -238,10 +247,19 @@ export function PhotoLightbox({
         <span className="text-white/50 text-[13px] tracking-[0.12em] font-sans font-light">
           {currentIndex + 1} / {photos.length}
         </span>
-        <button onClick={onClose}
-          className="min-w-[48px] min-h-[48px] rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-all duration-300 active:scale-90">
-          <X className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Desktop keyboard hints */}
+          <div className="hidden lg:flex items-center gap-2 text-white/25 text-[10px] font-sans tracking-wider">
+            <span className="border border-white/15 rounded px-1.5 py-0.5">←→</span>
+            <span className="border border-white/15 rounded px-1.5 py-0.5">F</span>
+            <span className="border border-white/15 rounded px-1.5 py-0.5">D</span>
+            <span className="border border-white/15 rounded px-1.5 py-0.5">ESC</span>
+          </div>
+          <button onClick={onClose}
+            className="min-w-[48px] min-h-[48px] rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-all duration-300 active:scale-90">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {/* Image area */}

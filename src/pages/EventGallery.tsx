@@ -72,10 +72,10 @@ type GalleryFilter = 'all' | 'favorites';
 
 /* ── Layout grid class helpers ── */
 const GRID_CLASSES: Record<string, string> = {
-  classic: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-[3px]',
-  masonry: 'columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-[3px]',
+  classic: 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-[3px]',
+  masonry: 'columns-2 sm:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-[3px]',
   justified: 'flex flex-wrap gap-[3px]',
-  editorial: 'columns-1 sm:columns-2 lg:columns-3 gap-4',
+  editorial: 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4',
 };
 
 // Adapt Photo to the shape grid components expect

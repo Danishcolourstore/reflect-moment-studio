@@ -147,7 +147,7 @@ function PinGate({ event, studioProfile, onUnlock }: {
 function PhotoCard({
   photo, layout, isFav, onToggleFavorite, onOpenLightbox, showWatermark,
   watermarkText, accentColor, selectionMode, isSelected, onToggleSelect,
-  commentCount,
+  commentCount, canDownload, onDownload,
 }: {
   photo: Photo;
   layout: string;
@@ -161,6 +161,8 @@ function PhotoCard({
   isSelected: boolean;
   onToggleSelect: () => void;
   commentCount: number;
+  canDownload?: boolean;
+  onDownload?: () => void;
 }) {
   const aspectClass = layout === 'classic' ? 'aspect-[3/2]' :
     layout === 'editorial-hero' ? 'aspect-[16/9]' :
@@ -172,7 +174,7 @@ function PhotoCard({
 
   return (
     <div
-      className={`group relative cursor-pointer overflow-hidden rounded-lg ${aspectClass} ${isMasonry ? 'break-inside-avoid' : ''} transition-all duration-300 hover:shadow-lg hover:shadow-black/8`}
+      className={`group relative cursor-pointer overflow-hidden rounded-lg ${aspectClass} ${isMasonry ? 'break-inside-avoid' : ''} transition-all duration-300 hover:shadow-xl hover:shadow-black/10 hover:-translate-y-0.5`}
       style={{ marginBottom: isMasonry ? '8px' : undefined }}
       onClick={onOpenLightbox}
     >
@@ -186,17 +188,26 @@ function PhotoCard({
       {/* Hover overlay — subtle gradient from bottom */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-      {/* Heart button — top right */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-        className="absolute top-3 right-3 z-10 min-w-[44px] min-h-[44px] rounded-full bg-black/25 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/40 active:scale-90"
-        style={isFav ? { opacity: 1 } : undefined}
-      >
-        <Heart
-          className="h-5 w-5 transition-all duration-300"
-          style={isFav ? { color: heartColor, fill: heartColor, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' } : { color: 'white', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
-        />
-      </button>
+      {/* Desktop hover action buttons — top right */}
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300" style={isFav ? { opacity: 1 } : undefined}>
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+          className="min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center hover:bg-black/50 active:scale-90 transition-all duration-200"
+        >
+          <Heart
+            className="h-4.5 w-4.5 transition-all duration-300"
+            style={isFav ? { color: heartColor, fill: heartColor, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' } : { color: 'white', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
+          />
+        </button>
+        {canDownload && onDownload && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDownload(); }}
+            className="min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-md items-center justify-center hover:bg-black/50 active:scale-90 transition-all duration-200 hidden md:flex"
+          >
+            <Download className="h-4 w-4 text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+          </button>
+        )}
+      </div>
 
       {/* Selection checkbox — top left */}
       {selectionMode && (
@@ -604,6 +615,8 @@ const PublicGallery = () => {
       isSelected={selectedPhotos.has(photo.id)}
       onToggleSelect={() => toggleSelect(photo.id)}
       commentCount={commentCounts[photo.id] || 0}
+      canDownload={canDownload}
+      onDownload={canDownload ? () => guardedDownload(() => handleDownloadPhoto(photo)) : undefined}
     />
   );
 
@@ -653,7 +666,7 @@ const PublicGallery = () => {
       case 'classic':
         return (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               {visiblePhotos.map(p => renderPhotoCard(p, 'classic'))}
             </div>
             {infiniteSentinel}
@@ -664,8 +677,8 @@ const PublicGallery = () => {
         return (
           <>
             <div style={{
-              columns: isTimeless ? '4 200px' : '3 260px',
-              columnGap: isTimeless ? '4px' : '12px',
+              columns: isTimeless ? '4 200px' : '4 280px',
+              columnGap: isTimeless ? '4px' : '14px',
             }}>
               {visiblePhotos.map(p => renderPhotoCard(p, 'masonry'))}
             </div>
@@ -871,8 +884,8 @@ const PublicGallery = () => {
         return (
           <>
             <div style={{
-              columns: isTimeless ? '4 200px' : '3 260px',
-              columnGap: isTimeless ? '4px' : '12px',
+              columns: isTimeless ? '4 200px' : '4 280px',
+              columnGap: isTimeless ? '4px' : '14px',
             }}>
               {visiblePhotos.map(p => renderPhotoCard(p, 'masonry'))}
             </div>
