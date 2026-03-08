@@ -1,5 +1,6 @@
 import { Camera } from 'lucide-react';
 import { ProgressiveImage } from '@/components/ProgressiveImage';
+import { getTemplate } from '@/lib/website-templates';
 
 interface PortfolioEvent {
   id: string;
@@ -19,6 +20,7 @@ interface WebsitePortfolioProps {
   layout?: 'grid' | 'masonry' | 'large';
   onNavigate: (slug: string) => void;
   id?: string;
+  template?: string;
 }
 
 export function WebsitePortfolio({
@@ -28,18 +30,21 @@ export function WebsitePortfolio({
   layout = 'grid',
   onNavigate,
   id,
+  template = 'dark-portfolio',
 }: WebsitePortfolioProps) {
+  const tmpl = getTemplate(template);
+
   if (events.length === 0) {
     return (
-      <section id={id} className="py-28 text-center" style={{ backgroundColor: '#0C0B08' }}>
-        <Camera className="mx-auto h-10 w-10 mb-4" style={{ color: '#A6A197', opacity: 0.3 }} />
-        <p className="text-sm" style={{ color: '#A6A197' }}>No public shoots yet</p>
+      <section id={id} className="py-28 text-center" style={{ backgroundColor: tmpl.bg }}>
+        <Camera className="mx-auto h-10 w-10 mb-4" style={{ color: tmpl.textSecondary, opacity: 0.3 }} />
+        <p className="text-sm" style={{ color: tmpl.textSecondary }}>No public shoots yet</p>
       </section>
     );
   }
 
   return (
-    <section id={id} className="py-16 sm:py-24 px-3 sm:px-4" style={{ backgroundColor: '#0C0B08' }}>
+    <section id={id} className="py-16 sm:py-24 px-3 sm:px-4" style={{ backgroundColor: tmpl.bg }}>
       {/* Section heading */}
       <div className="text-center mb-10 sm:mb-14">
         <p
@@ -50,7 +55,7 @@ export function WebsitePortfolio({
         </p>
         <h2
           className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-wide"
-          style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}
+          style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}
         >
           Portfolio
         </h2>
@@ -66,6 +71,7 @@ export function WebsitePortfolio({
             coverPhotos={coverPhotos}
             accent={accent}
             onNavigate={onNavigate}
+            tmpl={tmpl}
           />
         ))}
       </div>
@@ -78,11 +84,13 @@ function PortfolioCell({
   coverPhotos,
   accent,
   onNavigate,
+  tmpl,
 }: {
-  event: PortfolioEvent;
+  event: { id: string; name: string; slug: string; cover_url: string | null; photo_count: number; event_type?: string };
   coverPhotos: Record<string, string>;
   accent: string;
   onNavigate: (slug: string) => void;
+  tmpl: ReturnType<typeof getTemplate>;
 }) {
   const coverUrl = ev.cover_url || coverPhotos[ev.id] || null;
   const eventType = ev.event_type;
@@ -97,7 +105,7 @@ function PortfolioCell({
       className="group relative block overflow-hidden cursor-pointer"
     >
       {/* Fixed 4:5 aspect ratio container */}
-      <div className="relative w-full" style={{ paddingBottom: '125%', backgroundColor: '#14120D' }}>
+      <div className="relative w-full" style={{ paddingBottom: '125%', backgroundColor: tmpl.cardBg }}>
         {coverUrl ? (
           <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.05]">
             <ProgressiveImage
@@ -108,7 +116,7 @@ function PortfolioCell({
           </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <Camera className="h-7 w-7" style={{ color: '#A6A197', opacity: 0.15 }} />
+            <Camera className="h-7 w-7" style={{ color: tmpl.textSecondary, opacity: 0.15 }} />
           </div>
         )}
 
@@ -116,7 +124,7 @@ function PortfolioCell({
         <div
           className="absolute inset-0 flex flex-col justify-end p-3 sm:p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-400"
           style={{
-            background: 'linear-gradient(to top, rgba(8,7,4,0.85) 0%, rgba(8,7,4,0.3) 50%, transparent 100%)',
+            background: `linear-gradient(to top, ${tmpl.footerBg}DD 0%, ${tmpl.footerBg}4D 50%, transparent 100%)`,
           }}
         >
           {eventType && (
@@ -129,12 +137,12 @@ function PortfolioCell({
           )}
           <h3
             className="text-sm sm:text-base font-light tracking-wide leading-tight"
-            style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}
+            style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}
           >
             {ev.name}
           </h3>
           {ev.photo_count > 0 && (
-            <p className="mt-1 text-[8px] sm:text-[9px] tracking-[0.15em] uppercase" style={{ color: '#A6A197', opacity: 0.7 }}>
+            <p className="mt-1 text-[8px] sm:text-[9px] tracking-[0.15em] uppercase" style={{ color: tmpl.textSecondary, opacity: 0.7 }}>
               {ev.photo_count} photos
             </p>
           )}

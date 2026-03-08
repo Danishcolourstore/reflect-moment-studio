@@ -1,4 +1,5 @@
 import { Camera, Heart, MapPin, Users } from 'lucide-react';
+import { getTemplate } from '@/lib/website-templates';
 
 export interface ServiceItem {
   title: string;
@@ -18,13 +19,15 @@ interface WebsiteServicesProps {
   services: ServiceItem[];
   accent: string;
   id?: string;
+  template?: string;
 }
 
-export function WebsiteServices({ services, accent, id }: WebsiteServicesProps) {
+export function WebsiteServices({ services, accent, id, template = 'dark-portfolio' }: WebsiteServicesProps) {
   if (!services || services.length === 0) return null;
+  const tmpl = getTemplate(template);
 
   return (
-    <section id={id} className="py-16 px-4 sm:px-6" style={{ backgroundColor: '#0C0B08' }}>
+    <section id={id} className="py-16 px-4 sm:px-6" style={{ backgroundColor: tmpl.bg }}>
       <div className="text-center mb-12">
         <p
           className="text-[10px] uppercase tracking-[0.25em] font-medium mb-2"
@@ -34,7 +37,7 @@ export function WebsiteServices({ services, accent, id }: WebsiteServicesProps) 
         </p>
         <h2
           className="text-2xl sm:text-3xl font-light"
-          style={{ fontFamily: "'Playfair Display', serif", color: '#EDEAE3' }}
+          style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}
         >
           Services
         </h2>
@@ -48,8 +51,8 @@ export function WebsiteServices({ services, accent, id }: WebsiteServicesProps) 
               key={i}
               className="p-6 rounded-xl border transition-colors"
               style={{
-                backgroundColor: 'rgba(255,255,255,0.02)',
-                borderColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: tmpl.cardBg,
+                borderColor: `${tmpl.text}0A`,
               }}
             >
               <div
@@ -60,12 +63,12 @@ export function WebsiteServices({ services, accent, id }: WebsiteServicesProps) 
               </div>
               <h3
                 className="text-base font-medium mb-2"
-                style={{ color: '#EDEAE3' }}
+                style={{ color: tmpl.text }}
               >
                 {svc.title}
               </h3>
               {svc.description && (
-                <p className="text-sm leading-relaxed" style={{ color: '#A6A197' }}>
+                <p className="text-sm leading-relaxed" style={{ color: tmpl.textSecondary }}>
                   {svc.description}
                 </p>
               )}
