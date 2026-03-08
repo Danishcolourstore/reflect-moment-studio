@@ -85,14 +85,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const storage = useStorageUsage();
 
+  // Load profile + theme preference from DB
   useEffect(() => {
     if (!user) return;
-    (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed') as any)
+    (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed, theme_preference') as any)
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }: any) => {
         if (data) {
           setProfile(data);
+          // Sync theme from DB if different from localStorage
+          const dbTheme = data.theme_preference as ThemeMode;
+          if (dbTheme && ['dark', 'editorial', 'classic'].includes(dbTheme)) {
+            applyThemeClass(dbTheme);
+            localStorage.setItem('mirrorai-theme', dbTheme);
+            setTheme(dbTheme);
+          }
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
             navigate('/dashboard/onboarding', { replace: true });
           }
