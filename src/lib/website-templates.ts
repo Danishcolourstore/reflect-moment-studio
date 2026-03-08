@@ -26,6 +26,10 @@ export interface WebsiteTemplateConfig {
     services?: { title: string; description: string; icon: string }[];
     contact?: { heading?: string; button_text?: string };
     footer?: { text?: string; show_social?: boolean };
+    gallery_images?: string[];
+    featured_stories?: { title: string; location: string; image_url: string }[];
+    films?: { title: string; thumbnail_url: string; video_url?: string }[];
+    social_images?: string[];
   };
   stylingConfig?: Record<string, unknown>;
   sectionConfig?: Record<string, unknown>;
