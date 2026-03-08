@@ -4,66 +4,39 @@ import { ArrowLeft, Pencil, Monitor, Tablet, Smartphone, X } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { getTemplate, type WebsiteTemplateValue, WEBSITE_TEMPLATES } from '@/lib/website-templates';
 import { WebsiteHero } from '@/components/website/WebsiteHero';
-import { WebsitePortfolio } from '@/components/website/WebsitePortfolio';
-import { WebsiteFeatured } from '@/components/website/WebsiteFeatured';
 import { WebsiteAbout } from '@/components/website/WebsiteAbout';
-import { WebsiteServices, type ServiceItem } from '@/components/website/WebsiteServices';
-import { WebsiteContact } from '@/components/website/WebsiteContact';
-import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
-import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
-import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 import { WebsitePhotoShowcase } from '@/components/website/WebsitePhotoShowcase';
 import { WebsiteInterstitial } from '@/components/website/WebsiteInterstitial';
+import { WebsiteFeatured } from '@/components/website/WebsiteFeatured';
+import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
+import { WebsiteServices, type ServiceItem } from '@/components/website/WebsiteServices';
+import { WebsiteContact } from '@/components/website/WebsiteContact';
 import { WebsiteInstagramGrid } from '@/components/website/WebsiteInstagramGrid';
+import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 
-// ── Demo content so templates feel like finished websites ──
+// ── Demo content matching the reference website ──
 
 const DEMO_BRANDING = {
-  studio_name: 'Arjun Kapoor Photography',
+  studio_name: 'Vows Through Lens',
   studio_logo_url: null,
   studio_accent_color: '#B08D57',
   display_name: 'Not Just Photos',
-  bio: "I'm Arjun. My journey started quietly, capturing candid moments for friends. One wedding changed everything — I realised these memories aren't just photos, they become legacy.\n\nFrom the first conversation to the final frame, I hold one promise — your story deserves to be remembered with intention and excellence. I bring not just skill, but sensitivity, timing, and a quiet presence that lets emotions unfold naturally. From grand palace celebrations to intimate beachfront vows, I capture love with honesty, elegance, and timeless storytelling.",
+  bio: "What makes us different? It's simple — We care about the intimate in-betweens, the traditions passed through generations, the joy in your father's eyes, the proud silence of your mother, the inside jokes between your closest friends, and the spark between two people who chose forever. That's the heart of our work and the reason hundreds of couples trust us with the most important day of their lives.\nI'm Shankar. My journey started quietly, capturing candid moments for friends. One wedding changed everything — I realised these memories aren't just photos, they become legacy.\nFrom the first conversation to the final frame, I hold one promise — your story deserves to be remembered with intention and excellence. I bring not just skill, but sensitivity, timing, and a quiet presence that lets emotions unfold naturally. From grand palace celebrations to intimate beachfront vows, I capture love with honesty, elegance, and timeless storytelling.",
   cover_url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80',
-  instagram: '@arjunkapoor.photo',
-  website: 'www.arjunkapoor.photo',
-  whatsapp: '+919876543210',
-  email: 'hello@arjunkapoor.photo',
+  instagram: '@storiesbyshankar',
+  website: 'www.storiesbyshankar.com',
+  whatsapp: '+919633858272',
+  email: 'storiesbyshankar@gmail.com',
   footer_text: 'Vows Through Lens',
   hero_button_label: 'Get Quote',
   hero_button_url: '#contact',
+  phone: '+91 9633858272',
 };
 
-const DEMO_EVENTS = [
-  { id: '1', name: 'Priya & Rahul Wedding', slug: 'demo-1', event_date: '2025-12-15', location: 'Udaipur, Rajasthan', cover_url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&q=80', photo_count: 450, event_type: 'Wedding' },
-  { id: '2', name: 'Ananya & Dev Pre-Wedding', slug: 'demo-2', event_date: '2025-11-20', location: 'Goa', cover_url: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=800&q=80', photo_count: 180, event_type: 'Pre Wedding' },
-  { id: '3', name: 'Meera & Arjun Engagement', slug: 'demo-3', event_date: '2025-10-05', location: 'Mumbai', cover_url: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80', photo_count: 120, event_type: 'Engagement' },
-  { id: '4', name: 'Neha & Vikram Destination', slug: 'demo-4', event_date: '2025-09-18', location: 'Jaipur', cover_url: 'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=800&q=80', photo_count: 380, event_type: 'Wedding' },
-  { id: '5', name: 'Ritu & Sanjay Reception', slug: 'demo-5', event_date: '2025-08-25', location: 'Delhi', cover_url: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80', photo_count: 220, event_type: 'Reception' },
-  { id: '6', name: 'Kavya & Aditya Haldi', slug: 'demo-6', event_date: '2025-07-12', location: 'Pune', cover_url: 'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800&q=80', photo_count: 95, event_type: 'Haldi' },
-];
-
-const DEMO_FEATURED = [
-  { id: '1', name: 'Priya & Rahul', slug: 'demo-1', cover_url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&q=80', event_type: 'Wedding' },
-  { id: '2', name: 'Ananya & Dev', slug: 'demo-2', cover_url: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=800&q=80', event_type: 'Pre Wedding' },
-  { id: '4', name: 'Neha & Vikram', slug: 'demo-4', cover_url: 'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=800&q=80', event_type: 'Destination Wedding' },
-];
-
-const DEMO_SERVICES: ServiceItem[] = [
-  { title: 'Wedding Photography', description: 'Full-day coverage of your wedding ceremony, from getting ready to the last dance.', icon: 'camera', price: '₹1,50,000' },
-  { title: 'Pre-Wedding Shoot', description: 'A cinematic pre-wedding session at a location of your choice.', icon: 'heart', price: '₹45,000' },
-  { title: 'Destination Wedding', description: 'Travel anywhere in India or abroad to capture your destination celebration.', icon: 'location', price: '₹3,00,000' },
-  { title: 'Couple Portraits', description: 'Intimate couple portrait sessions for anniversaries and special occasions.', icon: 'people', price: '₹25,000' },
-];
-
-const DEMO_TESTIMONIALS: Testimonial[] = [
-  { clientName: 'Jasmin & Nivin', review: 'Choosing this studio was hands down the best decision we made for our wedding. Their energy, creativity, and calm nature made the whole experience stress-free. When we got the photos, it felt like reliving every emotion all over again.', rating: 5 },
-  { clientName: 'Sneha & Nikhil', review: 'They didn\'t just take photos — they captured our story. Every frame has so much emotion and depth. We couldn\'t be happier.', rating: 5 },
-];
-
+// 25+ showcase photos for the masonry gallery
 const DEMO_SHOWCASE_PHOTOS = [
   { url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=600&q=80' },
   { url: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=600&q=80' },
@@ -77,15 +50,52 @@ const DEMO_SHOWCASE_PHOTOS = [
   { url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=600&q=80' },
   { url: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?w=600&q=80' },
   { url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1502635385003-ee1e6a1a742d?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1585243416360-e3ae0fa8af66?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1544078751-58fee2d8a03b?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1550005809-91ad75fb315f?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1516737488405-7b6d6868fad3?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1549417229-7686ac5595fd?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80' },
+  { url: 'https://images.unsplash.com/photo-1529636798458-92182e662485?w=600&q=80' },
+];
+
+const DEMO_FEATURED = [
+  { id: '1', name: 'Nikhil & Sneha', slug: 'demo-1', cover_url: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=1200&q=80', event_type: 'Wedding' },
+  { id: '2', name: 'Pranav & Gopika', slug: 'demo-2', cover_url: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=1200&q=80', event_type: 'Pre Wedding' },
+  { id: '3', name: 'Alona & Tison', slug: 'demo-3', cover_url: 'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=1200&q=80', event_type: 'Destination Wedding' },
+];
+
+const DEMO_TESTIMONIALS: Testimonial[] = [
+  {
+    clientName: 'Jasmin & Nivin',
+    review: 'Choosing this studio was hands down the best decision we made for our wedding. Their energy, their creativity, their calm nature — everything just made the whole experience stress-free. But the real magic? When we got the photos, it felt like reliving every emotion all over again. Just go for it!',
+    rating: 5,
+  },
+  {
+    clientName: 'Sneha & Nikhil',
+    review: "They didn't just take photos — they captured our story. Every frame has so much emotion and depth. We couldn't be happier with how our wedding memories turned out.",
+    rating: 5,
+  },
+];
+
+const DEMO_SERVICES: ServiceItem[] = [
+  { title: 'Wedding Photography', description: 'Full-day coverage of your wedding ceremony, from getting ready to the last dance. Cinematic storytelling through every frame.', icon: 'camera', price: '₹1,50,000' },
+  { title: 'Pre-Wedding Shoot', description: 'A cinematic pre-wedding session at a location of your choice. Creative direction, styling guidance, and editorial-quality imagery.', icon: 'heart', price: '₹45,000' },
+  { title: 'Destination Wedding', description: 'Travel anywhere in India or abroad to capture your destination celebration with the same care and attention.', icon: 'location', price: '₹3,00,000' },
+  { title: 'Couple Portraits', description: 'Intimate couple portrait sessions for anniversaries and special occasions. Timeless, emotional, and beautifully lit.', icon: 'people', price: '₹25,000' },
 ];
 
 const DEMO_IG_PHOTOS = [
-  'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=400&q=80',
-  'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=400&q=80',
-  'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=400&q=80',
-  'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=400&q=80',
-  'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80',
-  'https://images.unsplash.com/photo-1460978812857-470ed1c77af0?w=400&q=80',
+  'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=500&q=80',
+  'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=500&q=80',
+  'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=500&q=80',
+  'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=500&q=80',
+  'https://images.unsplash.com/photo-1519741497674-611481863552?w=500&q=80',
 ];
 
 type ViewMode = 'desktop' | 'tablet' | 'mobile';
@@ -100,13 +110,8 @@ export default function TemplatePreview() {
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
   const [choosing, setChoosing] = useState(false);
 
-  const isVows = templateValue === 'vows-elegance';
-
   const handleUseTemplate = async () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
+    if (!user) { navigate('/login'); return; }
     setChoosing(true);
     try {
       const { data: existing } = await (supabase.from('studio_profiles').select('id') as any)
@@ -125,25 +130,29 @@ export default function TemplatePreview() {
     setChoosing(false);
   };
 
-  // ── Vows Elegance section order (matches reference site) ──
-  const vowsSections = [
+  /**
+   * Section order matching the reference site:
+   * Hero → About (with vision intro) → Photo Gallery → Interstitial →
+   * Featured Galleries → Testimonials → Services → Contact → Instagram → Footer
+   */
+  const sections = [
     'hero',
-    'showcase',        // Masonry photo wall
-    'interstitial',    // "Captured with Heart"
     'about',
-    'featured',        // Gallery stories
+    'showcase',
+    'interstitial',
+    'featured',
     'testimonials',
     'services',
-    'contact',         // "Let's Connect"
-    'instagram',       // Instagram grid
+    'contact',
+    'instagram',
   ];
 
-  const standardSections = ['hero', 'social', 'portfolio', 'about', 'featured', 'services', 'contact'];
-
-  const renderVowsSection = (sectionId: string) => {
+  const renderSection = (sectionId: string) => {
     switch (sectionId) {
       case 'hero':
         return <WebsiteHero key="hero" branding={DEMO_BRANDING} template={templateValue} />;
+      case 'about':
+        return <WebsiteAbout key="about" template={templateValue} branding={DEMO_BRANDING} />;
       case 'showcase':
         return <WebsitePhotoShowcase key="showcase" photos={DEMO_SHOWCASE_PHOTOS} accent={DEMO_BRANDING.studio_accent_color} template={templateValue} />;
       case 'interstitial':
@@ -156,8 +165,6 @@ export default function TemplatePreview() {
             template={templateValue}
           />
         );
-      case 'about':
-        return <WebsiteAbout key="about" template={templateValue} branding={DEMO_BRANDING} />;
       case 'featured':
         return <WebsiteFeatured key="featured" events={DEMO_FEATURED} coverPhotos={{}} accent={DEMO_BRANDING.studio_accent_color} onNavigate={() => {}} template={templateValue} />;
       case 'testimonials':
@@ -172,30 +179,6 @@ export default function TemplatePreview() {
         return null;
     }
   };
-
-  const renderStandardSection = (sectionId: string) => {
-    switch (sectionId) {
-      case 'hero':
-        return <WebsiteHero key="hero" branding={DEMO_BRANDING} template={templateValue} />;
-      case 'social':
-        return <WebsiteSocialBar key="social" instagram={DEMO_BRANDING.instagram} website={DEMO_BRANDING.website} whatsapp={DEMO_BRANDING.whatsapp} email={DEMO_BRANDING.email} accent={DEMO_BRANDING.studio_accent_color} template={templateValue} />;
-      case 'portfolio':
-        return <WebsitePortfolio key="portfolio" events={DEMO_EVENTS} coverPhotos={{}} accent={DEMO_BRANDING.studio_accent_color} layout="grid" onNavigate={() => {}} template={templateValue} />;
-      case 'about':
-        return <WebsiteAbout key="about" template={templateValue} branding={DEMO_BRANDING} />;
-      case 'featured':
-        return <WebsiteFeatured key="featured" events={DEMO_FEATURED} coverPhotos={{}} accent={DEMO_BRANDING.studio_accent_color} onNavigate={() => {}} template={templateValue} />;
-      case 'services':
-        return <WebsiteServices key="services" services={DEMO_SERVICES} accent={DEMO_BRANDING.studio_accent_color} template={templateValue} />;
-      case 'contact':
-        return <WebsiteContact key="contact" template={templateValue} branding={DEMO_BRANDING} />;
-      default:
-        return null;
-    }
-  };
-
-  const sections = isVows ? vowsSections : standardSections;
-  const renderSection = isVows ? renderVowsSection : renderStandardSection;
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -244,7 +227,7 @@ export default function TemplatePreview() {
       {/* ── Preview Area ── */}
       <main className="flex-1 bg-muted/30 overflow-y-auto flex justify-center py-6 px-4">
         <div className={`transition-all duration-300 w-full ${
-          viewMode === 'mobile' ? 'max-w-[375px]' : viewMode === 'tablet' ? 'max-w-[768px]' : 'max-w-[1280px]'
+          viewMode === 'mobile' ? 'max-w-[375px]' : viewMode === 'tablet' ? 'max-w-[768px]' : 'max-w-[1400px]'
         }`}>
           <div
             className="rounded-2xl overflow-hidden border-2 shadow-2xl border-foreground/10"
@@ -264,7 +247,7 @@ export default function TemplatePreview() {
                 className="flex-1 text-center text-[9px] font-mono truncate px-2 py-0.5 rounded-md"
                 style={{ backgroundColor: `${tmpl.text}08`, color: tmpl.textSecondary }}
               >
-                mirroraigallery.com/studio/yourstudio
+                mirrorai.gallery/studio/yourstudio
               </div>
             </div>
 

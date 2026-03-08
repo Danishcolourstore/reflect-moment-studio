@@ -1,163 +1,96 @@
-import { useState } from 'react';
-import { Mail, MessageCircle, Globe, Loader2, Send } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { getTemplate } from '@/lib/website-templates';
-
-interface StudioBranding {
-  studio_name: string;
-  studio_accent_color: string | null;
-  email?: string | null;
-  whatsapp?: string | null;
-  website?: string | null;
-}
 
 interface WebsiteContactProps {
   template: string;
-  branding: StudioBranding | null;
+  branding: {
+    studio_name: string;
+    studio_accent_color: string | null;
+    email?: string | null;
+    whatsapp?: string | null;
+    website?: string | null;
+  } | null;
   photographerId?: string;
   id?: string;
+  contactImageUrl?: string;
 }
 
-export function WebsiteContact({ template, branding, photographerId, id }: WebsiteContactProps) {
-  const hasContact = branding?.email || branding?.whatsapp || branding?.website;
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '', event_type: '' });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
+/**
+ * "LET'S CONNECT" / "TRUST THROUGH EXCELLENCE" contact section.
+ * Matches the reference: background image, large serif text, CTA button.
+ */
+export function WebsiteContact({ template, branding, id, contactImageUrl }: WebsiteContactProps) {
   const tmpl = getTemplate(template);
   const accent = branding?.studio_accent_color || '#C6A77B';
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    if (!photographerId) return;
-    setSubmitting(true);
-    try {
-      const { error } = await (supabase.from('contact_inquiries').insert({
-        photographer_id: photographerId,
-        name: formData.name.trim().slice(0, 100),
-        email: formData.email.trim().slice(0, 255),
-        phone: formData.phone.trim().slice(0, 30) || null,
-        message: formData.message.trim().slice(0, 1000),
-        event_type: formData.event_type.trim().slice(0, 50) || null,
-      }) as any);
-      if (error) throw error;
-      setSubmitted(true);
-      toast.success('Inquiry sent successfully!');
-    } catch {
-      toast.error('Failed to send inquiry');
-    }
-    setSubmitting(false);
-  };
-
-  if (!hasContact && !photographerId) return null;
+  const bgImage = contactImageUrl || 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80';
 
   return (
-    <section id={id} className="py-24 sm:py-32 px-6" style={{ backgroundColor: tmpl.bg }}>
-      <div className="max-w-lg mx-auto text-center space-y-8">
-        <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em]" style={{ color: accent, opacity: 0.7 }}>
-          Get in Touch
+    <section id={id} className="relative" style={{ minHeight: '70vh' }}>
+      {/* Background image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img src={bgImage} alt="" className="h-full w-full object-cover" loading="lazy" />
+      </div>
+      <div
+        className="absolute inset-0"
+        style={{ background: `linear-gradient(180deg, ${tmpl.bg}CC 0%, ${tmpl.bg}88 30%, ${tmpl.bg}BB 70%, ${tmpl.bg}EE 100%)` }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-[70vh] px-6 text-center py-24">
+        <p
+          className="text-[10px] sm:text-xs uppercase tracking-[0.35em] mb-6"
+          style={{ color: accent, fontFamily: '"DM Sans", sans-serif' }}
+        >
+          Let's Connect
         </p>
-        <h3 className="text-3xl sm:text-4xl font-light tracking-wide" style={{ color: tmpl.text, fontFamily: tmpl.fontFamily }}>
-          Let's Create Together
-        </h3>
-        <div className="w-10 h-[1px] mx-auto" style={{ backgroundColor: accent, opacity: 0.4 }} />
 
-        {/* Contact buttons */}
-        {hasContact && (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            {branding?.email && (
-              <a href={`mailto:${branding.email}`}>
-                <Button variant="outline" className="h-11 text-[10px] uppercase tracking-[0.15em] rounded-none px-8 transition-all duration-300 hover:scale-[1.02]"
-                  style={{ borderColor: accent, color: accent, backgroundColor: 'transparent' }}>
-                  <Mail className="h-3.5 w-3.5 mr-2" /> Email Me
-                </Button>
-              </a>
-            )}
+        <h2
+          className="text-3xl sm:text-5xl lg:text-6xl font-light uppercase tracking-[0.06em] leading-[1.1] mb-2"
+          style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: tmpl.text }}
+        >
+          Trust Through
+        </h2>
+        <h2
+          className="text-4xl sm:text-6xl lg:text-7xl font-light italic tracking-wide"
+          style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: tmpl.text }}
+        >
+          Excellence
+        </h2>
+
+        <div className="mt-8 w-12 h-[1px]" style={{ backgroundColor: accent, opacity: 0.4 }} />
+
+        {/* CTA */}
+        <a href="#contact-form" className="mt-10 inline-block">
+          <button
+            className="h-14 px-14 text-[11px] uppercase tracking-[0.3em] border rounded-full transition-all duration-500 hover:bg-white/10 hover:border-white/50"
+            style={{ borderColor: 'rgba(242,237,228,0.35)', color: '#F2EDE4', backgroundColor: 'transparent' }}
+          >
+            Get Quote
+          </button>
+        </a>
+
+        {/* Quick contact links */}
+        {(branding?.email || branding?.whatsapp) && (
+          <div className="flex items-center gap-6 mt-10">
             {branding?.whatsapp && (
-              <a href={`https://wa.me/${branding.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" className="h-11 text-[10px] uppercase tracking-[0.15em] rounded-none px-8 transition-all duration-300 hover:scale-[1.02]"
-                  style={{ borderColor: accent, color: accent, backgroundColor: 'transparent' }}>
-                  <MessageCircle className="h-3.5 w-3.5 mr-2" /> WhatsApp
-                </Button>
-              </a>
-            )}
-            {branding?.website && (
-              <a href={branding.website.startsWith('http') ? branding.website : `https://${branding.website}`} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" className="h-11 text-[10px] uppercase tracking-[0.15em] rounded-none px-8 transition-all duration-300 hover:scale-[1.02]"
-                  style={{ borderColor: accent, color: accent, backgroundColor: 'transparent' }}>
-                  <Globe className="h-3.5 w-3.5 mr-2" /> Website
-                </Button>
-              </a>
-            )}
-          </div>
-        )}
-
-        {/* Inquiry Form */}
-        {photographerId && !submitted && (
-          <form onSubmit={handleSubmit} className="text-left space-y-4 pt-6">
-            <div className="w-full h-[1px] mb-4" style={{ backgroundColor: tmpl.text, opacity: 0.06 }} />
-            <p className="text-[10px] uppercase tracking-[0.25em] text-center mb-4" style={{ color: tmpl.textSecondary }}>
-              Or send an inquiry
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
-                placeholder="Your Name *" maxLength={100} required
-                className="h-11 px-4 text-sm rounded-lg border bg-transparent outline-none focus:ring-1 transition-all"
-                style={{ borderColor: `${tmpl.text}15`, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}
-              />
-              <input
-                type="email" value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
-                placeholder="Email *" maxLength={255} required
-                className="h-11 px-4 text-sm rounded-lg border bg-transparent outline-none focus:ring-1 transition-all"
-                style={{ borderColor: `${tmpl.text}15`, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                value={formData.phone} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
-                placeholder="Phone (optional)" maxLength={30}
-                className="h-11 px-4 text-sm rounded-lg border bg-transparent outline-none focus:ring-1 transition-all"
-                style={{ borderColor: `${tmpl.text}15`, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}
-              />
-              <input
-                value={formData.event_type} onChange={e => setFormData(p => ({ ...p, event_type: e.target.value }))}
-                placeholder="Event Type (optional)" maxLength={50}
-                className="h-11 px-4 text-sm rounded-lg border bg-transparent outline-none focus:ring-1 transition-all"
-                style={{ borderColor: `${tmpl.text}15`, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}
-              />
-            </div>
-            <textarea
-              value={formData.message} onChange={e => setFormData(p => ({ ...p, message: e.target.value }))}
-              placeholder="Tell me about your event... *" maxLength={1000} required rows={4}
-              className="w-full px-4 py-3 text-sm rounded-lg border bg-transparent outline-none focus:ring-1 transition-all resize-none"
-              style={{ borderColor: `${tmpl.text}15`, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}
-            />
-            <div className="text-center">
-              <button
-                type="submit" disabled={submitting}
-                className="inline-flex items-center gap-2 h-12 px-10 text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
-                style={{ backgroundColor: accent, color: tmpl.bg, borderRadius: '2px' }}
+              <a
+                href={`https://wa.me/${branding.whatsapp.replace(/[^0-9]/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] uppercase tracking-[0.2em] transition-opacity hover:opacity-100"
+                style={{ color: tmpl.text, opacity: 0.6, fontFamily: '"DM Sans", sans-serif' }}
               >
-                {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                Send Inquiry
-              </button>
-            </div>
-          </form>
-        )}
-
-        {submitted && (
-          <div className="py-8 text-center">
-            <p className="text-lg font-light" style={{ color: tmpl.text, fontFamily: tmpl.fontFamily }}>Thank you!</p>
-            <p className="text-sm mt-2" style={{ color: tmpl.textSecondary }}>Your inquiry has been sent. I'll get back to you soon.</p>
+                WhatsApp
+              </a>
+            )}
+            {branding?.email && (
+              <a
+                href={`mailto:${branding.email}`}
+                className="text-[10px] uppercase tracking-[0.2em] transition-opacity hover:opacity-100"
+                style={{ color: tmpl.text, opacity: 0.6, fontFamily: '"DM Sans", sans-serif' }}
+              >
+                Email
+              </a>
+            )}
           </div>
         )}
       </div>
