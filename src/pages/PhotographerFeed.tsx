@@ -158,6 +158,34 @@ const PhotographerFeed = () => {
   const templateValue = studio?.website_template || 'dark-portfolio';
   const tmpl = getTemplate(templateValue);
 
+  // ── Dynamic SEO meta tags ──
+  useEffect(() => {
+    if (!studio || !profile) return;
+    const studioName = profile.studio_name || 'Photography Studio';
+    const desc = studio.bio || studio.display_name || `${studioName} — Professional Photography Portfolio`;
+    const coverImg = studio.cover_url || '';
+
+    document.title = `${studioName} — Photography`;
+
+    const setMeta = (attr: string, key: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute('content', content);
+    };
+
+    setMeta('name', 'description', desc.slice(0, 160));
+    setMeta('property', 'og:title', `${studioName} — Photography`);
+    setMeta('property', 'og:description', desc.slice(0, 160));
+    setMeta('property', 'og:type', 'website');
+    if (coverImg) setMeta('property', 'og:image', coverImg);
+    setMeta('name', 'twitter:card', 'summary_large_image');
+    setMeta('name', 'twitter:title', `${studioName} — Photography`);
+    setMeta('name', 'twitter:description', desc.slice(0, 160));
+    if (coverImg) setMeta('name', 'twitter:image', coverImg);
+
+    return () => { document.title = 'MirrorAI — Reflections of Your Moments'; };
+  }, [studio, profile]);
+
   if (loading) {
     return (
       <div className="min-h-screen" style={{ backgroundColor: tmpl.bg }}>
