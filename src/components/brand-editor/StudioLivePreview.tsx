@@ -178,7 +178,7 @@ export function StudioLivePreview({
         ) : null;
       case 'testimonials':
         return testimonials.length > 0 ? (
-          <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonials} accent={accent} />
+          <WebsiteTestimonials key="testimonials" id="testimonials" testimonials={testimonials} accent={accent} template={template} />
         ) : null;
       case 'contact':
         return (
