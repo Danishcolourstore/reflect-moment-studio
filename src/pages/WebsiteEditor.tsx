@@ -551,6 +551,55 @@ const WebsiteEditor = () => {
           </div>
         )}
 
+        {activeSection === 'latest_works' && user && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Section Title</label>
+              <Input value={websiteImages.latest_works_title || 'My Latest Works'} onChange={e => setWebsiteImages(prev => ({ ...prev, latest_works_title: e.target.value }))} className="mt-1 h-9 text-sm bg-card" />
+            </div>
+            <WebsiteImageGridUploader
+              values={websiteImages.latest_works_photos || []}
+              onChange={(urls) => setWebsiteImages(prev => ({ ...prev, latest_works_photos: urls }))}
+              userId={user.id}
+              folder="latest-works"
+              label="Gallery Images"
+              maxImages={30}
+            />
+            <p className="text-[8px] text-muted-foreground/30">Upload up to 30 images. Visitors can click to view full-screen.</p>
+          </div>
+        )}
+
+        {activeSection === 'newsletter' && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Title</label>
+              <Input value={websiteImages.newsletter_title || 'Follow Our Updates'} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_title: e.target.value }))} className="mt-1 h-9 text-sm bg-card" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Description</label>
+              <Textarea value={websiteImages.newsletter_description || ''} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_description: e.target.value }))} className="mt-1 text-sm bg-card min-h-[80px]" placeholder="Subscribe to stay updated..." />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Button Text</label>
+              <Input value={websiteImages.newsletter_button_text || 'Subscribe'} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_button_text: e.target.value }))} className="mt-1 h-9 text-sm bg-card" />
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'image_strip' && user && (
+          <div className="space-y-3">
+            <WebsiteImageGridUploader
+              values={websiteImages.image_strip_photos || []}
+              onChange={(urls) => setWebsiteImages(prev => ({ ...prev, image_strip_photos: urls }))}
+              userId={user.id}
+              folder="image-strip"
+              label="Strip Images (up to 6)"
+              maxImages={6}
+            />
+            <p className="text-[8px] text-muted-foreground/30">These appear as a horizontal row. Works like an Instagram preview.</p>
+          </div>
+        )}
+
         {(activeSection === 'hero' || activeSection === 'contact') && (
           <div className="pt-3 border-t border-border">
             <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Brand Accent Color</label>
