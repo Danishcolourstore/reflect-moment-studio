@@ -257,7 +257,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Main content */}
       <main className="lg:ml-[260px] pb-24 lg:pb-0" style={{ paddingTop: '64px' }}>
-        <div className="mx-auto max-w-[1100px] px-5 py-8 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-[1400px] px-5 py-8 sm:px-8 lg:px-12 xl:px-16">
           {children}
 
           <div className="mt-16 pb-8 text-center">
