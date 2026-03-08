@@ -29,7 +29,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Draft',
-  review: 'Sent for Review',
+  review: 'In Review',
   approved: 'Approved',
   print: 'Sent to Print',
 };
