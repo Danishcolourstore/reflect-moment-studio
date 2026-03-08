@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
   Heart, Download, Trash2, Share2, Upload, X,
-  PackageOpen, Loader2, FolderDown, Settings, FileArchive, LayoutGrid,
+  PackageOpen, Loader2, FolderDown, Settings, FileArchive, LayoutGrid, Image,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
