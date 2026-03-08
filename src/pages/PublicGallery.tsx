@@ -325,7 +325,7 @@ const PublicGallery = () => {
 
     // Fetch extended studio profile
     const { data: studioExt } = await (supabase.from('studio_profiles')
-      .select('bio, display_name, instagram, website, whatsapp, footer_text, cover_url, font_style, username') as any)
+      .select('bio, display_name, instagram, website, whatsapp, footer_text, cover_url, font_style, username, heading_font, body_font') as any)
       .eq('user_id', ev.user_id).maybeSingle();
     if (studioExt) setStudioExtended(studioExt as unknown as StudioExtended);
 
