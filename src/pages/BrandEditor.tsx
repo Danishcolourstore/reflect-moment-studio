@@ -446,6 +446,21 @@ const BrandEditor = () => {
               </div>
             ))}
           </div>
+
+          {/* ── LIVE STUDIO PREVIEW ── */}
+          {user && (
+            <StudioLivePreview
+              branding={combinedBranding}
+              template={websiteTemplate}
+              sections={sections.map(s => ({ id: s.id, enabled: s.enabled }))}
+              accent={data.accentColor}
+              services={data.services}
+              testimonials={data.testimonials}
+              featuredGalleryIds={data.featuredGalleryIds}
+              portfolioLayout={data.portfolioLayout as 'grid' | 'masonry' | 'large'}
+              userId={user.id}
+            />
+          )}
         </div>
       ) : (
         /* ── PREVIEW MODE ── */
