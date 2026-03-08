@@ -55,6 +55,8 @@ const EMPTY_TEMPLATE: WebsiteTemplateConfig = {
   value: '',
   label: '',
   description: '',
+  category: 'wedding',
+  previewImageUrl: null,
   fontFamily: 'serif',
   uiFontFamily: 'sans-serif',
   bg: '#000000',
