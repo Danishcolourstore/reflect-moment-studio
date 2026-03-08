@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileSectionDrawer } from '@/components/website-editor/MobileSectionDrawer';
+import { MobileEditorPanel } from '@/components/website-editor/MobileEditorPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
