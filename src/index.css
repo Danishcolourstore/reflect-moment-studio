@@ -301,6 +301,15 @@
     font-family: 'Jost', sans-serif;
     @apply text-[12px] text-muted-foreground;
   }
+
+  /* Classic theme — Pixieset-style clean card shadows */
+  .classic .hover-lift:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .classic .glass-surface {
+    @apply bg-card border border-border backdrop-blur-none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
 }
 
 @keyframes fade-in {
