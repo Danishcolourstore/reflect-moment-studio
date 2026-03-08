@@ -491,6 +491,7 @@ const AppRoutes = () => {
       />
 
       <Route path="/find/:token" element={<GuestFinder />} />
+      <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
       <Route path="/p/:username" element={<PhotographerFeed />} />
       <Route
         path="/storybook"
