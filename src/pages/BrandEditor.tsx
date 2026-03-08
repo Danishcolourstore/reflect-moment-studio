@@ -201,6 +201,9 @@ const BrandEditor = () => {
       featured_gallery_ids: d.featuredGalleryIds,
       section_order: sectionOrder,
       section_visibility: sectionVisibility,
+      testimonials_data: d.testimonials,
+      location: d.location || null,
+      phone: d.phone || null,
     };
 
     const { data: existing } = await (supabase.from('studio_profiles').select('id') as any).eq('user_id', user.id).maybeSingle();
