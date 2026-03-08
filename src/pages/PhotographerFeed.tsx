@@ -92,6 +92,18 @@ function useFeedData(username: string | undefined) {
       const sd = studioData as unknown as StudioData;
       setStudio(sd);
 
+      // Load portfolio photos
+      const portfolioIds = (sd as any).portfolio_photo_ids as string[] || [];
+      if (portfolioIds.length > 0) {
+        const { data: pPhotos } = await (supabase.from('photos').select('id, url') as any)
+          .in('id', portfolioIds);
+        if (!cancelled && pPhotos) {
+          // Preserve order from portfolioIds
+          const photoMap = new Map((pPhotos as any[]).map(p => [p.id, p]));
+          setPortfolioPhotos(portfolioIds.map(id => photoMap.get(id)).filter(Boolean) as { id: string; url: string }[]);
+        }
+      }
+
       const { data: profileData } = await (supabase
         .from('profiles')
         .select('studio_name, studio_logo_url, studio_accent_color, email') as any)
