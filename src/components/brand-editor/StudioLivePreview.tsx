@@ -11,6 +11,7 @@ import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
 import { WebsiteAlbums, type PortfolioAlbum } from '@/components/website/WebsiteAlbums';
+import { getTemplate, type WebsiteTemplateValue } from '@/lib/website-templates';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SectionConfig {
