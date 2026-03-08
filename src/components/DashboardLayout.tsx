@@ -108,8 +108,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       });
   }, [user, location.pathname, navigate]);
 
-  const toggleTheme = useCallback(() => {
-    const next = theme === 'dark' ? 'editorial' : 'dark';
+  const switchTheme = useCallback((next: ThemeMode) => {
+    if (next === theme) return;
     const overlay = overlayRef.current;
     if (overlay) {
       overlay.classList.add('active');
@@ -117,14 +117,21 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         applyThemeClass(next);
         localStorage.setItem('mirrorai-theme', next);
         setTheme(next);
+        // Persist to DB
+        if (user) {
+          (supabase.from('profiles').update({ theme_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
+        }
         setTimeout(() => overlay.classList.remove('active'), 100);
       }, 300);
     } else {
       applyThemeClass(next);
       localStorage.setItem('mirrorai-theme', next);
       setTheme(next);
+      if (user) {
+        (supabase.from('profiles').update({ theme_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
+      }
     }
-  }, [theme]);
+  }, [theme, user]);
 
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MS';
 
