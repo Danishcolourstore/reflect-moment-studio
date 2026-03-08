@@ -214,6 +214,7 @@ export type Database = {
           leaf_count: number
           name: string
           page_count: number
+          share_token: string | null
           size: string
           status: string
           updated_at: string
@@ -227,6 +228,7 @@ export type Database = {
           leaf_count?: number
           name?: string
           page_count?: number
+          share_token?: string | null
           size?: string
           status?: string
           updated_at?: string
@@ -240,6 +242,7 @@ export type Database = {
           leaf_count?: number
           name?: string
           page_count?: number
+          share_token?: string | null
           size?: string
           status?: string
           updated_at?: string
