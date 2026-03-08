@@ -1640,6 +1640,7 @@ export type Database = {
           studio_logo_url: string | null
           studio_name: string
           suspended: boolean
+          theme_preference: string
           updated_at: string
           user_id: string
           watermark_opacity: number | null
@@ -1660,6 +1661,7 @@ export type Database = {
           studio_logo_url?: string | null
           studio_name?: string
           suspended?: boolean
+          theme_preference?: string
           updated_at?: string
           user_id: string
           watermark_opacity?: number | null
@@ -1680,6 +1682,7 @@ export type Database = {
           studio_logo_url?: string | null
           studio_name?: string
           suspended?: boolean
+          theme_preference?: string
           updated_at?: string
           user_id?: string
           watermark_opacity?: number | null

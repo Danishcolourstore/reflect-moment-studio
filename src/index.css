@@ -151,6 +151,45 @@
     --editorial-heading: 'Playfair Display', serif;
     --editorial-body: 'DM Sans', sans-serif;
   }
+
+  /* Classic theme — Pixieset-inspired clean white */
+  .classic {
+    --background: 0 0% 100%;           /* #FFFFFF */
+    --foreground: 40 5% 10%;           /* #1C1C1A */
+    --card: 0 0% 100%;                 /* #FFFFFF */
+    --card-foreground: 40 5% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 40 5% 10%;
+    --primary: 38 40% 61%;             /* #C9A96E — MirrorAI gold */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 10% 96%;           /* #F5F5F3 */
+    --secondary-foreground: 40 5% 10%;
+    --muted: 40 10% 96%;               /* #F5F5F3 */
+    --muted-foreground: 40 3% 41%;     /* #6B6B67 */
+    --accent: 38 40% 61%;              /* #C9A96E */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 10% 90%;              /* #E5E5E0 */
+    --input: 40 10% 90%;
+    --ring: 38 40% 61%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 40 5% 10%;
+    --sidebar-primary: 40 5% 10%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 10% 96%;
+    --sidebar-accent-foreground: 40 5% 10%;
+    --sidebar-border: 40 10% 90%;
+    --sidebar-ring: 38 40% 61%;
+    --gold: 38 40% 61%;
+    --gold-hover: 38 44% 53%;
+    --accent-subtle: 40 10% 96%;
+    --overlay-tint: 40 5% 60%;
+    --overlay-warm: 0 0% 100%;
+
+    --editorial-heading: 'Cormorant Garamond', serif;
+    --editorial-body: 'Jost', sans-serif;
+  }
 }
 
 @layer base {
@@ -191,6 +230,11 @@
   .editorial h1 { font-size: 36px; font-weight: 600; }
   .editorial h2 { font-size: 24px; font-weight: 500; }
   .editorial h3 { font-size: 20px; font-weight: 500; }
+
+  /* Classic theme overrides */
+  .classic h1 { font-size: 28px; font-weight: 300; }
+  .classic h2 { font-size: 22px; font-weight: 400; }
+  .classic h3 { font-size: 18px; font-weight: 400; }
 
   ::selection {
     background: hsl(var(--gold));
@@ -256,6 +300,15 @@
   .caption-text {
     font-family: 'Jost', sans-serif;
     @apply text-[12px] text-muted-foreground;
+  }
+
+  /* Classic theme — Pixieset-style clean card shadows */
+  .classic .hover-lift:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .classic .glass-surface {
+    @apply bg-card border border-border backdrop-blur-none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   }
 }
 

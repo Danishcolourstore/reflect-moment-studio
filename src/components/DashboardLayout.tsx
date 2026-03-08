@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Moon, Sun, Bell, ChevronRight, Menu,
+  LogOut, Moon, Sun, Sparkles, Bell, ChevronRight, Menu,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -61,10 +61,11 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-function applyThemeClass(t: 'dark' | 'editorial') {
-  document.documentElement.classList.remove('dark', 'editorial');
+type ThemeMode = 'dark' | 'editorial' | 'classic';
+
+function applyThemeClass(t: ThemeMode) {
+  document.documentElement.classList.remove('dark', 'editorial', 'classic');
   document.documentElement.classList.add(t);
-  // Keep legacy keys in sync
   localStorage.setItem('andhakaar-mode', t === 'dark' ? 'on' : 'off');
   localStorage.setItem('theme', t);
 }
@@ -74,9 +75,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [theme, setTheme] = useState<'dark' | 'editorial'>(() => {
+  const [theme, setTheme] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('mirrorai-theme') || 'dark';
-    const t = saved === 'editorial' ? 'editorial' : 'dark';
+    const t = (['dark', 'editorial', 'classic'].includes(saved) ? saved : 'dark') as ThemeMode;
     applyThemeClass(t);
     return t;
   });
@@ -84,14 +85,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const storage = useStorageUsage();
 
+  // Load profile + theme preference from DB
   useEffect(() => {
     if (!user) return;
-    (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed') as any)
+    (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed, theme_preference') as any)
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }: any) => {
         if (data) {
           setProfile(data);
+          // Sync theme from DB if different from localStorage
+          const dbTheme = data.theme_preference as ThemeMode;
+          if (dbTheme && ['dark', 'editorial', 'classic'].includes(dbTheme)) {
+            applyThemeClass(dbTheme);
+            localStorage.setItem('mirrorai-theme', dbTheme);
+            setTheme(dbTheme);
+          }
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
             navigate('/dashboard/onboarding', { replace: true });
           }
@@ -99,8 +108,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       });
   }, [user, location.pathname, navigate]);
 
-  const toggleTheme = useCallback(() => {
-    const next = theme === 'dark' ? 'editorial' : 'dark';
+  const switchTheme = useCallback((next: ThemeMode) => {
+    if (next === theme) return;
     const overlay = overlayRef.current;
     if (overlay) {
       overlay.classList.add('active');
@@ -108,14 +117,21 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         applyThemeClass(next);
         localStorage.setItem('mirrorai-theme', next);
         setTheme(next);
+        // Persist to DB
+        if (user) {
+          (supabase.from('profiles').update({ theme_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
+        }
         setTimeout(() => overlay.classList.remove('active'), 100);
       }, 300);
     } else {
       applyThemeClass(next);
       localStorage.setItem('mirrorai-theme', next);
       setTheme(next);
+      if (user) {
+        (supabase.from('profiles').update({ theme_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
+      }
     }
-  }, [theme]);
+  }, [theme, user]);
 
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MS';
 
@@ -219,24 +235,29 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {PAGE_TITLES[location.pathname] || ''}
         </h2>
         <div className="flex items-center gap-3">
-          {/* Theme toggle — Dark / Editorial */}
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 transition-all duration-200 hover:border-primary/40 bg-card"
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? (
-              <>
-                <Moon className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-                <span className="font-sans text-muted-foreground" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' as const }}>Dark</span>
-              </>
-            ) : (
-              <>
-                <Sun className="h-3.5 w-3.5 text-foreground" strokeWidth={2} />
-                <span className="font-sans text-foreground" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' as const }}>Editorial</span>
-              </>
-            )}
-          </button>
+          {/* Theme switcher — Dark / Editorial / Classic */}
+          <div className="flex items-center rounded-full border border-border bg-card overflow-hidden">
+            {([
+              { key: 'dark' as ThemeMode, icon: Moon, label: 'Dark', emoji: '🌙' },
+              { key: 'editorial' as ThemeMode, icon: Sun, label: 'Editorial', emoji: '☀' },
+              { key: 'classic' as ThemeMode, icon: Sparkles, label: 'Classic', emoji: '✦' },
+            ]).map(({ key, label, emoji }) => (
+              <button
+                key={key}
+                onClick={() => switchTheme(key)}
+                className={`flex items-center gap-1 px-2.5 py-1.5 transition-all duration-200 font-sans ${
+                  theme === key
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase' }}
+                aria-label={`Switch to ${label} theme`}
+              >
+                <span className="text-[11px]">{emoji}</span>
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            ))}
+          </div>
           <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
