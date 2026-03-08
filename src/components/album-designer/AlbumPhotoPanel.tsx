@@ -4,13 +4,14 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, FileArchive, Search, Check, Image as ImageIcon, Link2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Upload, FileArchive, Search, Check, Image as ImageIcon, Link2, X, RefreshCw, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import browserImageCompression from 'browser-image-compression';
+import { getOptimizedUrl } from '@/lib/image-utils';
 import JSZip from 'jszip';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 
 interface Photo {
   id: string;
@@ -33,7 +34,12 @@ interface EventOption {
   id: string;
   name: string;
   photo_count: number;
+  cover_url: string | null;
 }
+
+const IMAGE_ACCEPT = '.jpg,.jpeg,.png,.webp';
+const IMAGE_MIME_ACCEPT = 'image/jpeg,image/png,image/webp';
+const IMAGE_RE = /\.(jpe?g|png|webp)$/i;
 
 export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, placedPhotoUrls, placedPhotoCounts, onDragStart }: Props) {
   const { user } = useAuth();
@@ -41,21 +47,32 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
+
+  // Upload state
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState('');
+  const [uploadTotal, setUploadTotal] = useState(0);
+  const [uploadDone, setUploadDone] = useState(0);
+  const [uploadFailed, setUploadFailed] = useState<string[]>([]);
+  const [uploadPhase, setUploadPhase] = useState('');
+
+  // Link gallery
+  const [linkOpen, setLinkOpen] = useState(false);
   const [events, setEvents] = useState<EventOption[]>([]);
-  const [showLinkGallery, setShowLinkGallery] = useState(false);
+  const [eventsLoading, setEventsLoading] = useState(false);
+
   const fileRef = useRef<HTMLInputElement>(null);
   const zipRef = useRef<HTMLInputElement>(null);
 
+  const uploadPercent = uploadTotal > 0 ? Math.round((uploadDone / uploadTotal) * 100) : 0;
+
   // Fetch available events for linking
-  useEffect(() => {
+  const loadEvents = useCallback(async () => {
     if (!user) return;
-    (async () => {
-      const { data } = await supabase.from('events').select('id, name, photo_count')
-        .eq('user_id', user.id).order('event_date', { ascending: false });
-      setEvents((data || []) as EventOption[]);
-    })();
+    setEventsLoading(true);
+    const { data } = await supabase.from('events').select('id, name, photo_count, cover_url')
+      .eq('user_id', user.id).order('event_date', { ascending: false });
+    setEvents((data || []) as EventOption[]);
+    setEventsLoading(false);
   }, [user]);
 
   // Fetch photos: from linked event OR album-specific uploads
@@ -64,20 +81,24 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
     setLoading(true);
 
     if (eventId) {
-      // Load photos from the linked event
       const { data, error } = await supabase.from('photos').select('id, url, file_name')
         .eq('event_id', eventId).order('sort_order', { ascending: true });
       if (!error) setPhotos(data || []);
+      else { console.error('Fetch photos error:', error); setPhotos([]); }
     } else {
       // No event linked — load photos uploaded directly to this album's storage folder
-      const { data: storageFiles } = await supabase.storage.from('gallery-photos').list(`album-${albumId}`, {
+      const folderPath = `${user.id}/${albumId}`;
+      const { data: storageFiles, error } = await supabase.storage.from('gallery-photos').list(folderPath, {
         limit: 1000, sortBy: { column: 'created_at', order: 'asc' },
       });
-      if (storageFiles && storageFiles.length > 0) {
+      if (error) {
+        console.error('Storage list error:', error);
+        setPhotos([]);
+      } else if (storageFiles && storageFiles.length > 0) {
         const albumPhotos: Photo[] = storageFiles
-          .filter(f => /\.(jpe?g|png|webp)$/i.test(f.name))
+          .filter(f => IMAGE_RE.test(f.name))
           .map(f => {
-            const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(`album-${albumId}/${f.name}`);
+            const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(`${folderPath}/${f.name}`);
             return { id: f.id || f.name, url: publicUrl, file_name: f.name };
           });
         setPhotos(albumPhotos);
@@ -90,40 +111,72 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
 
   useEffect(() => { fetchPhotos(); }, [fetchPhotos]);
 
-  // Upload files — to event if linked, or to album-specific storage folder
+  // Core upload function
   const uploadFiles = async (files: File[]) => {
-    if (!user) return;
+    if (!user || files.length === 0) return;
     setUploading(true);
+    setUploadTotal(files.length);
+    setUploadDone(0);
+    setUploadFailed([]);
+    setUploadPhase('Uploading');
+
     let done = 0;
-    for (const file of files) {
-      setUploadProgress(`Uploading ${++done} of ${files.length}…`);
-      try {
-        const compressed = await browserImageCompression(file, { maxSizeMB: 2, maxWidthOrHeight: 4096, useWebWorker: true });
-        
-        if (eventId) {
-          // Upload to event folder and save photo record
-          const path = `${eventId}/${Date.now()}-${file.name}`;
-          const { error: upErr } = await supabase.storage.from('gallery-photos').upload(path, compressed);
-          if (upErr) throw upErr;
-          const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(path);
-          await supabase.from('photos').insert({ event_id: eventId, user_id: user.id, url: publicUrl, file_name: file.name } as any);
-        } else {
-          // Upload to album-specific folder (no event linked)
-          const path = `album-${albumId}/${Date.now()}-${file.name}`;
-          const { error: upErr } = await supabase.storage.from('gallery-photos').upload(path, compressed);
-          if (upErr) throw upErr;
+    const failed: string[] = [];
+    const BATCH = 3;
+
+    for (let i = 0; i < files.length; i += BATCH) {
+      const batch = files.slice(i, i + BATCH);
+      const results = await Promise.allSettled(
+        batch.map(async (file) => {
+          const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+          const contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+
+          if (eventId) {
+            const path = `${user.id}/${eventId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            const { error: upErr } = await supabase.storage.from('gallery-photos').upload(path, file, { contentType });
+            if (upErr) throw new Error(`Storage: ${upErr.message}`);
+            const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(path);
+            const { error: insertErr } = await supabase.from('photos').insert({
+              event_id: eventId, user_id: user.id, url: publicUrl, file_name: file.name,
+            } as any);
+            if (insertErr) throw new Error(`DB: ${insertErr.message}`);
+          } else {
+            const path = `${user.id}/${albumId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            const { error: upErr } = await supabase.storage.from('gallery-photos').upload(path, file, { contentType });
+            if (upErr) throw new Error(`Storage: ${upErr.message}`);
+          }
+        }),
+      );
+
+      results.forEach((r, idx) => {
+        done++;
+        if (r.status === 'rejected') {
+          failed.push(batch[idx].name);
+          console.error('Upload failed:', batch[idx].name, r.reason);
         }
-      } catch (e) { console.error('Upload failed:', file.name, e); }
+      });
+      setUploadDone(done);
+      setUploadFailed([...failed]);
     }
+
     setUploading(false);
-    setUploadProgress('');
-    toast.success(`${done} photos uploaded`);
+    setUploadPhase('');
+
+    if (failed.length === 0) {
+      toast.success(`${files.length} photo${files.length > 1 ? 's' : ''} uploaded`);
+    } else {
+      toast.error(`${failed.length} of ${files.length} failed to upload`);
+    }
     fetchPhotos();
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []).filter(f => /\.(jpe?g|png|webp)$/i.test(f.name));
-    if (files.length) uploadFiles(files);
+    const files = Array.from(e.target.files || []).filter(f => IMAGE_RE.test(f.name));
+    if (files.length === 0) {
+      toast.error('No supported image files selected');
+      return;
+    }
+    uploadFiles(files);
     e.target.value = '';
   };
 
@@ -131,31 +184,58 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = '';
+
     setUploading(true);
-    setUploadProgress('Extracting ZIP…');
+    setUploadPhase('Reading ZIP file…');
+    setUploadTotal(0);
+    setUploadDone(0);
+    setUploadFailed([]);
+
     try {
       const zip = await JSZip.loadAsync(file);
-      const imageFiles: File[] = [];
-      const entries = Object.values(zip.files).filter(f => !f.dir && /\.(jpe?g|png|webp)$/i.test(f.name));
-      for (const entry of entries) {
-        const blob = await entry.async('blob');
-        imageFiles.push(new File([blob], entry.name.split('/').pop() || entry.name, { type: blob.type || 'image/jpeg' }));
+      const imageEntries = Object.values(zip.files).filter(f => {
+        if (f.dir) return false;
+        const segments = f.name.split('/');
+        if (segments.some(s => s.startsWith('.') || s.startsWith('__'))) return false;
+        return IMAGE_RE.test(f.name);
+      });
+
+      if (imageEntries.length === 0) {
+        toast.error('No images found in ZIP (supported: jpg, png, webp)');
+        setUploading(false);
+        setUploadPhase('');
+        return;
       }
-      if (imageFiles.length === 0) { toast.error('No images found in ZIP'); setUploading(false); return; }
+
+      setUploadPhase('Extracting images…');
+      const imageFiles: File[] = [];
+      for (const entry of imageEntries) {
+        const blob = await entry.async('blob');
+        const name = entry.name.split('/').pop() || entry.name;
+        const ext = name.split('.').pop()?.toLowerCase() || 'jpg';
+        const type = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+        imageFiles.push(new File([blob], name, { type }));
+      }
+
+      setUploadPhase('Uploading');
       await uploadFiles(imageFiles);
     } catch (err) {
-      toast.error('Failed to process ZIP');
+      console.error('ZIP processing error:', err);
+      toast.error('Failed to process ZIP file');
       setUploading(false);
-      setUploadProgress('');
+      setUploadPhase('');
     }
   };
 
   const handleLinkEvent = async (selectedEventId: string) => {
-    // Save event_id to album
-    await (supabase.from('albums' as any).update({ event_id: selectedEventId } as any).eq('id', albumId) as any);
+    const { error } = await (supabase.from('albums' as any).update({ event_id: selectedEventId } as any).eq('id', albumId) as any);
+    if (error) {
+      toast.error('Failed to link gallery');
+      return;
+    }
     onEventLinked(selectedEventId);
-    setShowLinkGallery(false);
-    toast.success('Gallery linked! Photos loading…');
+    setLinkOpen(false);
+    toast.success('Gallery linked! Loading photos…');
   };
 
   const getPhotoCount = (photo: Photo) => placedPhotoCounts.get(photo.url) || 0;
@@ -166,20 +246,17 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
     return true;
   });
 
-  const getThumbnail = (url: string) => {
-    if (url.includes('supabase')) return url + '?width=300&quality=60';
-    return url;
-  };
+  const getThumbnail = (url: string) => getOptimizedUrl(url, 'thumbnail');
 
   return (
     <div className="w-64 xl:w-72 border-r border-border bg-card flex flex-col shrink-0 h-full overflow-hidden">
       {/* Upload buttons */}
       <div className="p-3 space-y-2 border-b border-border">
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex-1 text-xs gap-1.5 h-8" onClick={() => fileRef.current?.click()} disabled={uploading}>
+          <Button variant="outline" size="sm" className="flex-1 text-xs gap-1.5 h-9 min-h-[44px]" onClick={() => fileRef.current?.click()} disabled={uploading}>
             <Upload className="h-3.5 w-3.5" /> Photos
           </Button>
-          <Button variant="outline" size="sm" className="flex-1 text-xs gap-1.5 h-8" onClick={() => zipRef.current?.click()} disabled={uploading}>
+          <Button variant="outline" size="sm" className="flex-1 text-xs gap-1.5 h-9 min-h-[44px]" onClick={() => zipRef.current?.click()} disabled={uploading}>
             <FileArchive className="h-3.5 w-3.5" /> ZIP
           </Button>
         </div>
@@ -189,39 +266,52 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
           <Button
             variant="ghost"
             size="sm"
-            className="w-full text-xs gap-1.5 h-8 text-muted-foreground hover:text-foreground"
-            onClick={() => setShowLinkGallery(!showLinkGallery)}
+            className="w-full text-xs gap-1.5 h-9 min-h-[44px] text-muted-foreground hover:text-foreground"
+            onClick={() => { setLinkOpen(true); loadEvents(); }}
           >
             <Link2 className="h-3.5 w-3.5" /> Link Existing Gallery
           </Button>
         )}
 
-        {showLinkGallery && !eventId && (
-          <Select onValueChange={handleLinkEvent}>
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue placeholder="Select a gallery…" />
-            </SelectTrigger>
-            <SelectContent>
-              {events.map(ev => (
-                <SelectItem key={ev.id} value={ev.id} className="text-xs">
-                  {ev.name} ({ev.photo_count} photos)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
         {eventId && (
           <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 px-1">
             <Link2 className="h-3 w-3" />
-            <span>Gallery linked • {photos.length} photos</span>
+            <span>Gallery linked · {photos.length} photos</span>
           </div>
         )}
 
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={handleFileUpload} />
+        <input ref={fileRef} type="file" accept={IMAGE_MIME_ACCEPT} multiple className="sr-only" onChange={handleFileUpload} />
         <input ref={zipRef} type="file" accept=".zip" className="sr-only" onChange={handleZipUpload} />
+
+        {/* Upload progress */}
         {uploading && (
-          <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">{uploadProgress}</div>
+          <div className="space-y-1.5 bg-muted/50 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-3 w-3 animate-spin text-primary shrink-0" />
+              <span className="text-[11px] text-foreground">
+                {uploadPhase === 'Uploading' ? `Uploading ${uploadDone} of ${uploadTotal}…` : uploadPhase}
+              </span>
+            </div>
+            {uploadTotal > 0 && <Progress value={uploadPercent} className="h-1" />}
+          </div>
+        )}
+
+        {/* Upload results (failed files) */}
+        {!uploading && uploadFailed.length > 0 && (
+          <div className="bg-destructive/10 rounded-lg px-3 py-2 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-destructive font-medium">{uploadFailed.length} failed</span>
+              <button onClick={() => setUploadFailed([])} className="text-muted-foreground hover:text-foreground">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+            {uploadFailed.slice(0, 5).map(name => (
+              <p key={name} className="text-[9px] text-destructive/80 truncate">{name}</p>
+            ))}
+            {uploadFailed.length > 5 && (
+              <p className="text-[9px] text-destructive/60">+{uploadFailed.length - 5} more</p>
+            )}
+          </div>
         )}
       </div>
 
@@ -236,7 +326,7 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={cn('px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-medium transition-all',
+              className={cn('px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-medium transition-all cursor-pointer',
                 filter === f ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
               )}
             >
@@ -250,13 +340,17 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
       {/* Photo grid */}
       <div className="flex-1 overflow-y-auto p-2">
         {loading ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground text-xs">Loading…</div>
+          <div className="grid grid-cols-3 gap-1">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="aspect-square rounded-md bg-muted animate-pulse" />
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground text-center px-4">
             <ImageIcon className="h-8 w-8 mb-3 opacity-30" />
             <span className="text-xs font-medium mb-1">Upload photos to get started</span>
             <span className="text-[10px] opacity-60">
-              {eventId ? 'No photos in this gallery yet' : 'Or link an existing gallery below'}
+              {eventId ? 'No photos in this gallery yet' : 'Or link an existing gallery'}
             </span>
           </div>
         ) : (
@@ -293,6 +387,46 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
           </div>
         )}
       </div>
+
+      {/* Link Gallery Modal */}
+      <Dialog open={linkOpen} onOpenChange={setLinkOpen}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Link Existing Gallery</DialogTitle>
+          </DialogHeader>
+          {eventsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : events.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">No galleries found. Create an event first.</p>
+          ) : (
+            <div className="space-y-2">
+              {events.map(ev => (
+                <button
+                  key={ev.id}
+                  onClick={() => handleLinkEvent(ev.id)}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer text-left"
+                >
+                  <div className="h-12 w-12 rounded-md bg-muted overflow-hidden shrink-0">
+                    {ev.cover_url ? (
+                      <img src={ev.cover_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center">
+                        <ImageIcon className="h-5 w-5 text-muted-foreground/40" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{ev.name}</p>
+                    <p className="text-[11px] text-muted-foreground">{ev.photo_count} photos</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
