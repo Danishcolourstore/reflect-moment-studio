@@ -318,7 +318,7 @@ const EventGallery = () => {
   };
 
   // Map photos for grid components that expect the old shape
-  const gridPhotos = displayPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
+  const gridPhotos = paginatedPhotos.map(p => toGridPhoto(p, isFavorite(p.id)));
 
   return (
     <DashboardLayout>
