@@ -3,7 +3,7 @@
  * Always returns the clean production domain for user-facing links.
  */
 
-const PRODUCTION_DOMAIN = 'https://reflect-moment-studio.lovable.app';
+const PRODUCTION_DOMAIN = 'https://www.mirroraigallery.com';
 
 /** Generate a URL-safe slug from a studio name */
 export function generateStudioSlug(name: string): string {
