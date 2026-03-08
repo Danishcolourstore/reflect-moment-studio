@@ -126,6 +126,8 @@ export default function SuperAdminTemplates() {
         toast.success('Template updated');
       }
       setEditing(null); setCreating(false);
+      clearTemplateCache();
+      invalidateTemplates();
       await loadTemplates();
     } catch (e: any) {
       toast.error(e.message || 'Save failed');
