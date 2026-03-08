@@ -615,6 +615,8 @@ const PublicGallery = () => {
       isSelected={selectedPhotos.has(photo.id)}
       onToggleSelect={() => toggleSelect(photo.id)}
       commentCount={commentCounts[photo.id] || 0}
+      canDownload={canDownload}
+      onDownload={canDownload ? () => guardedDownload(() => handleDownloadPhoto(photo)) : undefined}
     />
   );
 
