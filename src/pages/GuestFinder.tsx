@@ -186,10 +186,21 @@ const GuestFinder = () => {
                 {matchedPhotos.map((photo: any) => (
                   <div key={photo.id} className="relative group rounded-lg overflow-hidden">
                     <img src={photo.url} alt="" className="w-full aspect-square object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <a href={photo.url} download className="w-9 h-9 bg-white rounded-full flex items-center justify-center">
+                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => {
+                          fetch(photo.url).then(r => r.blob()).then(blob => {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url; a.download = photo.file_name || 'photo.jpg';
+                            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          });
+                        }}
+                        className="w-9 h-9 bg-white rounded-full flex items-center justify-center"
+                      >
                         <Download className="h-4 w-4 text-black" />
-                      </a>
+                      </button>
                       <button
                         onClick={() => navigator.share?.({ url: photo.url })}
                         className="w-9 h-9 bg-white rounded-full flex items-center justify-center"
@@ -204,16 +215,21 @@ const GuestFinder = () => {
 
             {matchedPhotos.length > 0 && (
               <button
-                onClick={() =>
-                  matchedPhotos.forEach((p: any, i: number) =>
-                    setTimeout(() => {
+                onClick={async () => {
+                  for (let i = 0; i < matchedPhotos.length; i++) {
+                    const p = matchedPhotos[i] as any;
+                    try {
+                      const res = await fetch(p.url);
+                      const blob = await res.blob();
+                      const url = URL.createObjectURL(blob);
                       const a = document.createElement('a');
-                      a.href = p.url;
-                      a.download = `photo-${i + 1}.jpg`;
-                      a.click();
-                    }, i * 300)
-                  )
-                }
+                      a.href = url; a.download = p.file_name || `photo-${i + 1}.jpg`;
+                      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      await new Promise(r => setTimeout(r, 300));
+                    } catch {}
+                  }
+                }}
                 className="w-full py-3.5 bg-[#C9A96E] text-[#0A0A0A] rounded-xl text-sm font-medium tracking-wide flex items-center justify-center gap-2"
               >
                 <Download className="h-4 w-4" /> Download All Photos

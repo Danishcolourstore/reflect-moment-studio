@@ -328,18 +328,25 @@ const PublicGallery = () => {
       .eq('user_id', ev.user_id).maybeSingle();
     if (studioExt) setStudioExtended(studioExt as unknown as StudioExtended);
 
-    // Fetch photos — use session cache
+    // Fetch photos — use session cache, paginate past 1000-row limit
     const cached = getCachedPhotos<Photo[]>(ev.id);
     if (cached) {
       setPhotos(cached);
     } else {
-      const { data: photoData } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
-        .eq('event_id', ev.id).order('sort_order', { ascending: true, nullsFirst: false });
-      if (photoData) {
-        const typedPhotos = photoData as unknown as Photo[];
-        setPhotos(typedPhotos);
-        setCachedPhotos(ev.id, typedPhotos);
+      let allPhotos: Photo[] = [];
+      let from = 0;
+      const PAGE = 1000;
+      while (true) {
+        const { data: photoData } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
+          .eq('event_id', ev.id).order('sort_order', { ascending: true, nullsFirst: false })
+          .range(from, from + PAGE - 1);
+        if (!photoData || photoData.length === 0) break;
+        allPhotos = allPhotos.concat(photoData as unknown as Photo[]);
+        if (photoData.length < PAGE) break;
+        from += PAGE;
       }
+      setPhotos(allPhotos);
+      if (allPhotos.length > 0) setCachedPhotos(ev.id, allPhotos);
     }
 
     // Fetch text blocks
@@ -379,9 +386,7 @@ const PublicGallery = () => {
   const handleDownloadPhoto = async (photo: Photo) => {
     if (!event?.downloads_enabled) return;
     try {
-      const { data: signed, error } = await supabase.storage.from('gallery-photos').createSignedUrl(photo.url, 60);
-      if (error || !signed?.signedUrl) { toast({ title: 'Download failed' }); return; }
-      const res = await fetch(signed.signedUrl);
+      const res = await fetch(photo.url);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -403,9 +408,7 @@ const PublicGallery = () => {
         setDownloadProgress(`${i + 1} / ${targetPhotos.length}`);
         setZipPercent(Math.round(((i + 1) / targetPhotos.length) * 100));
         const p = targetPhotos[i];
-        const { data: signed } = await supabase.storage.from('gallery-photos').createSignedUrl(p.url, 120);
-        if (!signed?.signedUrl) continue;
-        const res = await fetch(signed.signedUrl);
+        const res = await fetch(p.url);
         const blob = await res.blob();
         folder?.file(p.file_name ?? `photo-${i + 1}.jpg`, blob);
       }

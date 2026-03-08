@@ -55,8 +55,8 @@ const GalleryCover = () => {
 
     // Check password gate
     if (ev.gallery_pin) {
-      const unlocked = sessionStorage.getItem(`unlocked_${ev.id}`);
-      if (unlocked === 'true') {
+      const storedPin = localStorage.getItem(`mirrorai_pin_${ev.id}`);
+      if (storedPin === ev.gallery_pin) {
         setPinRequired(false);
       } else {
         setPinRequired(true);
@@ -72,7 +72,7 @@ const GalleryCover = () => {
     e.preventDefault();
     if (!event) return;
     if (pinInput === event.gallery_pin) {
-      sessionStorage.setItem(`unlocked_${event.id}`, 'true');
+      localStorage.setItem(`mirrorai_pin_${event.id}`, pinInput);
       setPinRequired(false);
       setPinError(false);
     } else {
