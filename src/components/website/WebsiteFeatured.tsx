@@ -25,7 +25,7 @@ export function WebsiteFeatured({
   accent,
   onNavigate,
   id,
-  template = 'dark-portfolio',
+  template = 'vows-elegance',
 }: WebsiteFeaturedProps) {
   if (events.length === 0) return null;
   const tmpl = getTemplate(template);

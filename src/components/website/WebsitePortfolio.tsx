@@ -30,7 +30,7 @@ export function WebsitePortfolio({
   layout = 'grid',
   onNavigate,
   id,
-  template = 'dark-portfolio',
+  template = 'vows-elegance',
 }: WebsitePortfolioProps) {
   const tmpl = getTemplate(template);
 

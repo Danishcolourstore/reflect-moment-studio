@@ -14,7 +14,7 @@ interface WebsitePortfolioImagesProps {
   id?: string;
 }
 
-export function WebsitePortfolioImages({ photos, accent, template = 'dark-portfolio', id }: WebsitePortfolioImagesProps) {
+export function WebsitePortfolioImages({ photos, accent, template = 'vows-elegance', id }: WebsitePortfolioImagesProps) {
   if (photos.length === 0) return null;
   const tmpl = getTemplate(template);
 

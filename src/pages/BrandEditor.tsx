@@ -510,7 +510,7 @@ const BrandEditor = () => {
                 case 'branding':
                   return null; // branding is meta, not visual
                 case 'footer':
-                  return <WebsiteFooter key="footer" template="dark-portfolio" branding={combinedBranding} />;
+                  return <WebsiteFooter key="footer" template="vows-elegance" branding={combinedBranding} />;
                 default:
                   return null;
               }

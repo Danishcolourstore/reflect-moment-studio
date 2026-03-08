@@ -11,7 +11,7 @@ interface WebsiteSocialBarProps {
   id?: string;
 }
 
-export function WebsiteSocialBar({ instagram, website, whatsapp, email, accent, template = 'dark-portfolio', id }: WebsiteSocialBarProps) {
+export function WebsiteSocialBar({ instagram, website, whatsapp, email, accent, template = 'vows-elegance', id }: WebsiteSocialBarProps) {
   const hasAny = instagram || website || whatsapp || email;
   if (!hasAny) return null;
 
