@@ -12,6 +12,7 @@ import { WebsiteContact } from '@/components/website/WebsiteContact';
 import { WebsiteSocialBar } from '@/components/website/WebsiteSocialBar';
 import { WebsiteTestimonials, type Testimonial } from '@/components/website/WebsiteTestimonials';
 import { WebsiteAlbums, type PortfolioAlbum } from '@/components/website/WebsiteAlbums';
+import { WebsitePortfolioImages } from '@/components/website/WebsitePortfolioImages';
 import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 
 // ── Types ──────────────────────────────────────────────
