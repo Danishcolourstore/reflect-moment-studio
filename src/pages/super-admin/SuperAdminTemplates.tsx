@@ -144,6 +144,8 @@ export default function SuperAdminTemplates() {
   const handleToggleActive = async (tmpl: TemplateRow) => {
     await (supabase.from('website_templates').update({ is_active: !tmpl.is_active } as any) as any).eq('id', tmpl.id);
     loadTemplates();
+    clearTemplateCache();
+    invalidateTemplates();
   };
 
   const uploadDemoImage = async (file: File, folder: string): Promise<string | null> => {
