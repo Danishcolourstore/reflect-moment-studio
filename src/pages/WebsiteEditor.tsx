@@ -580,6 +580,34 @@ const WebsiteEditor = () => {
           </Button>
 
           <div className="flex items-center gap-1.5">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-destructive" /> Delete Portfolio Website
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete your current portfolio website? This will remove the website layout, content, and unpublish it. Your galleries, events, and photos will not be affected.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteWebsite}
+                    disabled={deleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleting ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
+                    Delete Website
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             {username && (
               <Button variant="ghost" size="sm" className="text-[10px] h-8 px-2" onClick={() => window.open(`/studio/${username}`, '_blank')}>
                 <Eye className="h-3.5 w-3.5" />
