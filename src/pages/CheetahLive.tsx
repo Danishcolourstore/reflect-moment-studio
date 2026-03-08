@@ -451,10 +451,12 @@ export default function CheetahLive() {
                     ? `Watching: ${folderWatcher.folderName}`
                     : 'Auto-Upload from Folder'}
                 </p>
-                {folderWatcher.isWatching && (
+              {folderWatcher.isWatching && (
                   <p className="text-[10px] text-muted-foreground">
                     {folderWatcher.filesDetected} detected · {folderWatcher.filesUploaded} uploaded
-                    {folderWatcher.filesQueued > 0 && ` · ${folderWatcher.filesQueued} queued`}
+                    {folderWatcher.filesQueued > 0 && ` · ${folderWatcher.filesQueued} remaining`}
+                    {folderWatcher.uploadSpeedMBps !== null && ` · ${folderWatcher.uploadSpeedMBps} MB/s`}
+                    {folderWatcher.etaSeconds !== null && folderWatcher.etaSeconds > 0 && ` · ~${folderWatcher.etaSeconds}s remaining`}
                   </p>
                 )}
                 {!folderWatcher.isWatching && (
