@@ -614,11 +614,26 @@ const EventGallery = () => {
                     return (
                       <div key={photo.id} className={`group ${getItemClass(layout)}`}>
                         <ProgressiveImage src={photo.url} alt="" className={getImgClass(layout)} context="grid" />
+                        {/* Favorite button */}
                         <button onClick={() => { toggleGuestFavorite(photo.id); if (!fav) toast({ title: 'Added to Favorites', description: 'Photo saved to selections.' }); }}
                           className="absolute top-1.5 right-1.5 z-10 rounded-full bg-card/60 backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125">
                           <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${fav ? 'text-primary scale-110' : 'text-foreground/50 hover:text-foreground/70'}`}
                             fill={fav ? 'hsl(var(--primary))' : 'none'} />
                         </button>
+                        {/* Portfolio image button (owner only) */}
+                        {isOwner && (
+                          <button
+                            onClick={() => togglePortfolioPhoto(photo.id)}
+                            className={`absolute top-1.5 left-1.5 z-10 rounded-full backdrop-blur-sm p-1.5 transition-all duration-200 hover:bg-card/80 active:scale-125 ${
+                              isPortfolioPhoto(photo.id) ? 'bg-primary/80' : 'bg-card/60 opacity-0 group-hover:opacity-100'
+                            }`}
+                            title={isPortfolioPhoto(photo.id) ? 'Remove from Portfolio' : 'Set as Portfolio Image'}
+                          >
+                            <Image className={`h-3.5 w-3.5 transition-all duration-200 ${
+                              isPortfolioPhoto(photo.id) ? 'text-primary-foreground' : 'text-foreground/50 hover:text-foreground/70'
+                            }`} />
+                          </button>
+                        )}
                         <div className="absolute inset-0 transition-colors duration-200 group-hover:bg-foreground/10 pointer-events-none" />
                         <div className="absolute bottom-1.5 right-1.5 flex gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                           <button onClick={() => setSharePhoto(photo)}
