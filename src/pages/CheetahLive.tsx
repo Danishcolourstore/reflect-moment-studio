@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useCheetah, type CheetahPhoto } from '@/hooks/use-cheetah';
+import { useFolderWatcher } from '@/hooks/use-folder-watcher';
 import {
   Zap, Plus, Upload, Star, X as XIcon, Heart, ArrowLeft, ArrowRight,
   Eye, Camera, Activity, Loader2, ChevronDown, Sparkles, Image,
+  FolderOpen, FolderSync, Square, Radio,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
