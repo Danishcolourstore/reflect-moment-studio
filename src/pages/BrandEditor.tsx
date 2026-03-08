@@ -721,6 +721,7 @@ const BrandEditor = () => {
                 </div>
                 <Input value={svc.title} onChange={(e) => updateService(idx, { title: e.target.value })} placeholder="Service name" className="h-10" />
                 <Textarea value={svc.description} onChange={(e) => updateService(idx, { description: e.target.value })} placeholder="Brief description" className="min-h-[60px]" />
+                <Input value={svc.price || ''} onChange={(e) => updateService(idx, { price: e.target.value })} placeholder="Price (optional) e.g. ₹25,000" className="h-10" />
                 <Select value={svc.icon || 'camera'} onValueChange={(v) => updateService(idx, { icon: v })}>
                   <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
                   <SelectContent>
