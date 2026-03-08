@@ -1229,10 +1229,10 @@ function FilterPill({ active, onClick, accent, children }: {
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 flex items-center px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border whitespace-nowrap ${
+      className={`shrink-0 flex items-center px-5 py-2 rounded-full text-[13px] font-medium transition-all duration-300 border whitespace-nowrap ${
         active
-          ? 'text-white border-transparent shadow-sm'
-          : 'bg-transparent text-muted-foreground border-border/60 hover:border-foreground/40 hover:text-foreground/80'
+          ? 'text-white border-transparent shadow-md'
+          : 'bg-transparent text-muted-foreground border-border/50 hover:border-foreground/30 hover:text-foreground/80 hover:bg-muted/30'
       }`}
       style={active ? { backgroundColor: accent || 'hsl(var(--primary))' } : undefined}
     >
