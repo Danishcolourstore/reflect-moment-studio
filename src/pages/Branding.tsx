@@ -6,7 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Globe, ExternalLink, Sparkles, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
-import { WEBSITE_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { STATIC_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
+import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { getStudioDisplayUrl } from '@/lib/studio-url';
 
 const Branding = () => {
