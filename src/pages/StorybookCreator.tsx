@@ -201,7 +201,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
             <button
               key={tool.name}
               onClick={tool.onClick}
-              className="text-left rounded-2xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.15)] transition-all group"
+              className="text-left rounded-2xl border border-border bg-card p-5 hover:border-accent/40 hover:shadow-[0_0_20px_-6px_hsl(var(--accent)/0.15)] transition-all group"
             >
               <tool.icon className="h-5 w-5 text-primary/70 mb-3 group-hover:text-primary transition-colors" strokeWidth={1.5} />
               <p className="text-foreground text-sm font-medium">{tool.name}</p>
