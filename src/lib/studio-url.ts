@@ -22,5 +22,5 @@ export function getStudioUrl(username: string): string {
 
 /** Get just the display-friendly domain + path (no protocol) */
 export function getStudioDisplayUrl(username: string): string {
-  return `reflect-moment-studio.lovable.app/studio/${username}`;
+  return `www.mirroraigallery.com/studio/${username}`;
 }
