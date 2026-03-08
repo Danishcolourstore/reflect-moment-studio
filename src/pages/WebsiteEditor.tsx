@@ -96,6 +96,9 @@ const WebsiteEditor = () => {
   const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>([]);
   const [featuredGalleryIds, setFeaturedGalleryIds] = useState<string[]>([]);
 
+  // ── Website images (independent of events/galleries) ──
+  const [websiteImages, setWebsiteImages] = useState<WebsiteImages>({});
+
   // ── Live data from DB ──
   const [events, setEvents] = useState<any[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
