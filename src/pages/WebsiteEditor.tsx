@@ -57,6 +57,11 @@ import { WebsiteFooter } from '@/components/website/WebsiteFooter';
 import { WebsiteLatestWorks } from '@/components/website/WebsiteLatestWorks';
 import { WebsiteNewsletter } from '@/components/website/WebsiteNewsletter';
 import { WebsiteImageStrip } from '@/components/website/WebsiteImageStrip';
+import { WebsiteFeaturedGalleries, type FeaturedGalleryItem } from '@/components/website/WebsiteFeaturedGalleries';
+import { WebsiteStorytelling } from '@/components/website/WebsiteStorytelling';
+import { WebsiteProcessSection, type ProcessBlock } from '@/components/website/WebsiteProcessSection';
+import { WebsiteJournal, type JournalEntry } from '@/components/website/WebsiteJournal';
+import { WebsiteInquiryForm } from '@/components/website/WebsiteInquiryForm';
 
 // ── Section metadata ──
 const ALL_SECTIONS = [
