@@ -398,6 +398,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         <InstagramCarouselPreview
           images={cells.filter((c) => c.imageUrl).map((c) => c.imageUrl!)}
           onClose={() => setShowIgPreview(false)}
+          canvasRatio={format.ratio}
         />
       )}
     </div>
