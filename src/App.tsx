@@ -342,6 +342,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/dashboard/album-designer"
+        element={
+          <ProtectedRoute>
+            <AlbumDesigner />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/clients"
         element={
           <ProtectedRoute>
