@@ -306,6 +306,18 @@ const PhotographerFeed = () => {
         return (
           <WebsiteContact key="contact" id="contact" template={templateValue} branding={branding} photographerId={studio.user_id} />
         );
+      case 'latest_works': {
+        const wi = (studio as any).website_images || {};
+        return <WebsiteLatestWorks key="latest_works" id="latest-works" template={templateValue} images={wi.latest_works_photos || []} accent={accent} title={wi.latest_works_title || 'My Latest Works'} maxImages={30} />;
+      }
+      case 'newsletter': {
+        const wi2 = (studio as any).website_images || {};
+        return <WebsiteNewsletter key="newsletter" id="newsletter" template={templateValue} title={wi2.newsletter_title} description={wi2.newsletter_description} buttonText={wi2.newsletter_button_text} />;
+      }
+      case 'image_strip': {
+        const wi3 = (studio as any).website_images || {};
+        return <WebsiteImageStrip key="image_strip" id="image-strip" template={templateValue} images={wi3.image_strip_photos || []} />;
+      }
       default:
         return null;
     }
