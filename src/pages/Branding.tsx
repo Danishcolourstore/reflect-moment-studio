@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, X, Loader2, Instagram, Globe, MessageCircle, Mail, ExternalLink, Camera, Type, Droplets, FolderOpen, Link2 } from 'lucide-react';
+import { Upload, X, Loader2, Instagram, Globe, MessageCircle, Mail, ExternalLink, Camera, Type, Droplets, FolderOpen, Link2, Copy } from 'lucide-react';
+import { getStudioUrl, getStudioDisplayUrl } from '@/lib/studio-url';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -225,7 +226,7 @@ const Branding = () => {
                     <Input value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="mt-1 bg-card" />
                     {username && (
                       <p className="text-[10px] text-muted-foreground/50 mt-1">
-                        Your studio page: <span className="text-foreground/70 font-medium">{window.location.origin}/studio/{username}</span>
+                        Your studio page: <span className="text-foreground/70 font-medium">{getStudioDisplayUrl(username)}</span>
                       </p>
                     )}
                   </div>
@@ -349,12 +350,12 @@ const Branding = () => {
                     <div>
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground/40 font-medium mb-1">Your Studio Page</p>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm text-foreground font-medium">{window.location.origin}/studio/{username}</p>
+                        <p className="text-sm text-foreground font-medium">{getStudioDisplayUrl(username)}</p>
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/studio/${username}`);
-                          toast.success('Link copied!');
+                          navigator.clipboard.writeText(getStudioUrl(username));
+                          toast.success('Studio link copied!');
                         }}>
-                          <Link2 className="h-3.5 w-3.5" />
+                          <Copy className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -435,7 +436,7 @@ const Branding = () => {
                       )}
                     </div>
                     <div className="p-3 border-t border-border">
-                      <p className="text-[10px] text-muted-foreground/40 truncate">{customDomain || `${window.location.host}/studio/${username}`}</p>
+                      <p className="text-[10px] text-muted-foreground/40 truncate">{customDomain || getStudioDisplayUrl(username)}</p>
                       <p className="text-sm font-medium text-foreground mt-0.5">{studioName || 'Studio Name'} — Photography</p>
                       <p className="text-[11px] text-muted-foreground/60 mt-0.5 line-clamp-2">{bio || tagline || 'Professional photography portfolio'}</p>
                     </div>

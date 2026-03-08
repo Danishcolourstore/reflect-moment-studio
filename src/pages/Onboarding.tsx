@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getStudioDisplayUrl } from '@/lib/studio-url';
 import { Check, Camera, Copy, Sparkles, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
@@ -139,7 +140,7 @@ const Onboarding = () => {
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Slug</label>
                 <Input value={slug} onChange={e => setSlug(e.target.value)} className="mt-1 bg-background" />
-                <p className="text-[10px] text-muted-foreground/50 mt-1">mirrorai.app/studio/{slug || 'your-studio'}</p>
+                <p className="text-[10px] text-muted-foreground/50 mt-1">{getStudioDisplayUrl(slug || 'your-studio')}</p>
               </div>
               <Button onClick={handleNext} className="w-full bg-primary text-primary-foreground">Next</Button>
             </div>
