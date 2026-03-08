@@ -160,19 +160,21 @@
     --card-foreground: 40 5% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 40 5% 10%;
-    --primary: 38 40% 61%;             /* #C9A96E — MirrorAI gold */
+    /* Primary = dark for buttons (#1C1C1A) */
+    --primary: 40 5% 10%;
     --primary-foreground: 0 0% 100%;
     --secondary: 40 10% 96%;           /* #F5F5F3 */
     --secondary-foreground: 40 5% 10%;
     --muted: 40 10% 96%;               /* #F5F5F3 */
     --muted-foreground: 40 3% 41%;     /* #6B6B67 */
-    --accent: 38 40% 61%;              /* #C9A96E */
+    /* Accent = MirrorAI gold #C9A96E */
+    --accent: 38 40% 61%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 50%;
+    --destructive: 0 55% 55%;
     --destructive-foreground: 0 0% 100%;
     --border: 40 10% 90%;              /* #E5E5E0 */
-    --input: 40 10% 90%;
-    --ring: 38 40% 61%;
+    --input: 0 0% 100%;               /* white input bg */
+    --ring: 38 40% 61%;               /* gold ring */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 40 5% 10%;
     --sidebar-primary: 40 5% 10%;
@@ -181,6 +183,7 @@
     --sidebar-accent-foreground: 40 5% 10%;
     --sidebar-border: 40 10% 90%;
     --sidebar-ring: 38 40% 61%;
+    /* Gold kept as separate token */
     --gold: 38 40% 61%;
     --gold-hover: 38 44% 53%;
     --accent-subtle: 40 10% 96%;
