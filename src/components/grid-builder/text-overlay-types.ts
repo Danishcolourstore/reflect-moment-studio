@@ -36,6 +36,11 @@ export interface TextShadow {
   color: string;
 }
 
+export interface TextStroke {
+  width: number;
+  color: string;
+}
+
 // ─── Font Groups ───────────────────────────────
 
 export interface FontOption {
