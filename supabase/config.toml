@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.send-storybook-otp]
 verify_jwt = false
+
+[functions.generate-caption]
+verify_jwt = false
+
+[functions.suggest-layout]
+verify_jwt = false
