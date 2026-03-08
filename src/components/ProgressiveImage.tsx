@@ -52,11 +52,13 @@ export const ProgressiveImage = memo(function ProgressiveImage({
 
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`} onClick={onClick}>
-      {/* Phase 1: Neutral muted placeholder */}
+      {/* Phase 1: Elegant shimmer placeholder */}
       <div
-        className="absolute inset-0 bg-muted/30 transition-opacity duration-500"
+        className="absolute inset-0 bg-muted/20 transition-opacity duration-700"
         style={{ opacity: thumbLoaded ? 0 : 1 }}
-      />
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
+      </div>
 
       {inView && (
         <img
@@ -64,7 +66,7 @@ export const ProgressiveImage = memo(function ProgressiveImage({
           srcSet={srcSet}
           sizes={sizes}
           alt={alt}
-          className={`${className} transition-all duration-500 ${thumbLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}
+          className={`${className} transition-all duration-700 ease-out ${thumbLoaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-sm scale-[1.02]'}`}
           draggable={draggable}
           loading="lazy"
           decoding="async"

@@ -231,15 +231,15 @@ export function PhotoLightbox({
       : undefined;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col"
+    <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-200"
       onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
       {/* Top bar */}
-      <div className="flex items-center justify-between px-5 py-4 shrink-0">
-        <span className="text-white/40 text-[13px] tracking-[0.1em] font-sans font-light">
+      <div className="flex items-center justify-between px-5 py-4 shrink-0 bg-gradient-to-b from-black/40 to-transparent">
+        <span className="text-white/50 text-[13px] tracking-[0.12em] font-sans font-light">
           {currentIndex + 1} / {photos.length}
         </span>
         <button onClick={onClose}
-          className="min-w-[48px] min-h-[48px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-all duration-200">
+          className="min-w-[48px] min-h-[48px] rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-all duration-300 active:scale-90">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -257,14 +257,14 @@ export function PhotoLightbox({
       >
         {currentIndex > 0 && zoom <= 1 && (
           <button onClick={goPrev}
-            className="absolute left-2 sm:left-6 z-10 min-w-[48px] min-h-[48px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 transition-all duration-200">
+            className="absolute left-3 sm:left-8 z-10 min-w-[52px] min-h-[52px] rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 active:scale-90 shadow-lg shadow-black/20">
             <ChevronLeft className="h-7 w-7" />
           </button>
         )}
 
         {currentIndex < photos.length - 1 && zoom <= 1 && (
           <button onClick={goNext}
-            className="absolute right-2 sm:right-6 z-10 min-w-[48px] min-h-[48px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 transition-all duration-200">
+            className="absolute right-3 sm:right-8 z-10 min-w-[52px] min-h-[52px] rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all duration-300 active:scale-90 shadow-lg shadow-black/20">
             <ChevronRight className="h-7 w-7" />
           </button>
         )}
@@ -272,7 +272,7 @@ export function PhotoLightbox({
         <img
           src={fullLoaded ? photo.url : getOptimizedUrl(photo.url, 'medium')}
           alt=""
-          className="max-h-full max-w-[95vw] object-contain select-none transition-transform duration-200"
+          className="max-h-full max-w-[95vw] object-contain select-none transition-all duration-300 rounded-sm"
           style={imgTransform ? { transform: imgTransform } : undefined}
           draggable={false}
         />
@@ -297,16 +297,16 @@ export function PhotoLightbox({
       </div>
 
       {/* Bottom toolbar */}
-      <div className="shrink-0 flex items-center justify-center gap-5 px-6 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+      <div className="shrink-0 flex items-center justify-center gap-4 px-6 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-black/40 to-transparent">
         {toggleFavorite && (
           <button onClick={() => { toggleFavorite(photo.id); if (navigator.vibrate) navigator.vibrate(10); }}
-            className="min-w-[52px] min-h-[52px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/15 transition-all duration-200 active:scale-105">
-            <Heart className={`h-6 w-6 ${fav ? 'text-red-400' : ''}`} fill={fav ? 'currentColor' : 'none'} />
+            className="min-w-[56px] min-h-[56px] rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white/90 hover:bg-white/20 transition-all duration-300 active:scale-95 shadow-lg shadow-black/20">
+            <Heart className={`h-6 w-6 transition-all duration-300 ${fav ? 'text-red-400 scale-110' : ''}`} fill={fav ? 'currentColor' : 'none'} />
           </button>
         )}
         {canDownload && onDownload && (
           <button onClick={() => onDownload(photo)}
-            className="min-w-[52px] min-h-[52px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/15 transition-all duration-200">
+            className="min-w-[56px] min-h-[56px] rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white/90 hover:bg-white/20 transition-all duration-300 active:scale-95 shadow-lg shadow-black/20">
             <Download className="h-6 w-6" />
           </button>
         )}
@@ -314,27 +314,27 @@ export function PhotoLightbox({
         <Popover>
           <PopoverTrigger asChild>
             <button
-              className="min-w-[52px] min-h-[52px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/15 transition-all duration-200 md:block hidden">
+              className="min-w-[56px] min-h-[56px] rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white/90 hover:bg-white/20 transition-all duration-300 active:scale-95 shadow-lg shadow-black/20 md:flex hidden">
               <Share2 className="h-6 w-6" />
             </button>
           </PopoverTrigger>
-          <PopoverContent className="w-56 p-3" align="center" side="top">
+          <PopoverContent className="w-56 p-3 rounded-xl" align="center" side="top">
             <p className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium mb-2">SHARE THIS PHOTO</p>
             <div className="space-y-0.5">
-              <button onClick={handleCopyLink} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-md transition-colors">
+              <button onClick={handleCopyLink} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-lg transition-colors">
                 <Link2 className="h-3.5 w-3.5 text-muted-foreground" /> Copy Photo Link
               </button>
-              <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(shareUrl)}`, '_blank')} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-md transition-colors">
+              <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(shareUrl)}`, '_blank')} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-lg transition-colors">
                 <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" /> Share on WhatsApp
               </button>
-              <button onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank')} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-md transition-colors">
+              <button onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank')} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-lg transition-colors">
                 <span className="h-3.5 w-3.5 text-muted-foreground flex items-center justify-center text-[10px] font-bold">F</span> Share on Facebook
               </button>
-              <button onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out this photo from ${eventTitle || 'gallery'}`)}`, '_blank')} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-md transition-colors">
+              <button onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Check out this photo from ${eventTitle || 'gallery'}`)}`, '_blank')} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-lg transition-colors">
                 <span className="h-3.5 w-3.5 text-muted-foreground flex items-center justify-center text-[10px] font-bold">X</span> Share on Twitter
               </button>
               {canDownload && onDownload && (
-                <button onClick={() => onDownload(photo)} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-md transition-colors">
+                <button onClick={() => onDownload(photo)} className="w-full flex items-center gap-2.5 px-2 py-2 text-[12px] text-foreground hover:bg-secondary rounded-lg transition-colors">
                   <Download className="h-3.5 w-3.5 text-muted-foreground" /> Download Photo
                 </button>
               )}
@@ -343,7 +343,7 @@ export function PhotoLightbox({
         </Popover>
         {/* Mobile share - native */}
         <button onClick={handleNativeShare}
-          className="min-w-[52px] min-h-[52px] rounded-full bg-white/8 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/15 transition-all duration-200 md:hidden">
+          className="min-w-[56px] min-h-[56px] rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center text-white/90 hover:bg-white/20 transition-all duration-300 active:scale-95 shadow-lg shadow-black/20 md:hidden">
           <Share2 className="h-6 w-6" />
         </button>
       </div>

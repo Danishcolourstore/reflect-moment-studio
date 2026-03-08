@@ -167,45 +167,44 @@ function PhotoCard({
   const isMasonry = layout === 'masonry' || layout === 'editorial-item' || layout === 'timeline';
   const heartColor = accentColor ? accentColor : 'hsl(var(--primary))';
 
-
   return (
     <div
-      className={`group relative cursor-pointer overflow-hidden ${aspectClass} ${isMasonry ? 'break-inside-avoid' : ''}`}
-      style={{ borderRadius: 0, marginBottom: isMasonry ? '2px' : undefined }}
+      className={`group relative cursor-pointer overflow-hidden rounded-lg ${aspectClass} ${isMasonry ? 'break-inside-avoid' : ''} transition-all duration-300 hover:shadow-lg hover:shadow-black/8`}
+      style={{ marginBottom: isMasonry ? '8px' : undefined }}
       onClick={onOpenLightbox}
     >
       <ProgressiveImage
         src={photo.url}
         alt=""
-        className={`${aspectClass ? 'h-full w-full object-cover' : 'w-full h-auto object-cover block'}`}
+        className={`${aspectClass ? 'h-full w-full object-cover' : 'w-full h-auto object-cover block'} transition-transform duration-500 group-hover:scale-[1.03]`}
         draggable={false}
       />
 
-      {/* Hover overlay */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 pointer-events-none" />
+      {/* Hover overlay — subtle gradient from bottom */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
       {/* Heart button — top right */}
       <button
         onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-        className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/50"
+        className="absolute top-3 right-3 z-10 min-w-[44px] min-h-[44px] rounded-full bg-black/25 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/40 active:scale-90"
         style={isFav ? { opacity: 1 } : undefined}
       >
         <Heart
-          className="h-4.5 w-4.5 transition-all duration-200"
-          style={isFav ? { color: heartColor, fill: heartColor } : { color: 'white' }}
+          className="h-5 w-5 transition-all duration-300"
+          style={isFav ? { color: heartColor, fill: heartColor, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' } : { color: 'white', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
         />
       </button>
 
       {/* Selection checkbox — top left */}
       {selectionMode && (
         <div
-          className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          className="absolute top-3 left-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}
           style={isSelected ? { opacity: 1 } : undefined}
         >
           <Checkbox
             checked={isSelected}
-            className="h-5 w-5 border-white data-[state=checked]:border-transparent"
+            className="h-5 w-5 border-white/80 data-[state=checked]:border-transparent shadow-sm"
             style={isSelected && accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : undefined}
           />
         </div>
@@ -213,7 +212,7 @@ function PhotoCard({
 
       {/* Comment badge — bottom left */}
       {commentCount > 0 && (
-        <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-card/80 backdrop-blur-sm text-foreground text-[10px] font-medium px-2 py-1 rounded-full">
+        <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-md text-foreground text-[10px] font-medium px-2.5 py-1 rounded-full shadow-sm">
           <MessageCircle className="h-3 w-3" />
           {commentCount}
         </div>
@@ -222,7 +221,7 @@ function PhotoCard({
       {/* Watermark */}
       {showWatermark && watermarkText && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <span className="font-serif text-white/30 text-lg sm:text-2xl whitespace-nowrap tracking-[0.15em]">
+          <span className="font-serif text-white/20 text-lg sm:text-2xl whitespace-nowrap tracking-[0.15em]">
             {watermarkText}
           </span>
         </div>
@@ -530,7 +529,20 @@ const PublicGallery = () => {
   if (loading) {
     return (
       <div className="min-h-[100dvh] bg-background">
-        <Skeleton className="h-[100vh] w-full rounded-none" />
+        {/* Hero skeleton */}
+        <Skeleton className="h-[70vh] w-full rounded-none" />
+        {/* Gallery skeleton grid */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <div className="flex items-center gap-3 mb-8">
+            <Skeleton className="h-9 w-24 rounded-full" />
+            <Skeleton className="h-9 w-28 rounded-full" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <Skeleton key={i} className="rounded-lg" style={{ height: `${180 + (i % 3) * 60}px` }} />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -592,10 +604,12 @@ const PublicGallery = () => {
   const renderGallery = () => {
     if (displayPhotos.length === 0 && filter === 'favorites') {
       return (
-        <div className="py-24 text-center">
-          <Heart className="mx-auto h-8 w-8 text-muted-foreground/12" />
-          <p className="mt-2 font-serif text-sm text-muted-foreground/50">No favorites yet</p>
-          <p className="mt-1 text-[11px] text-muted-foreground/40">Click the heart icon on any photo</p>
+        <div className="py-32 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/40 mb-5">
+            <Heart className="h-7 w-7 text-muted-foreground/25" />
+          </div>
+          <p className="font-serif text-lg text-muted-foreground/60">No favorites yet</p>
+          <p className="mt-2 text-sm text-muted-foreground/40 max-w-xs mx-auto">Tap the heart icon on any photo to save it to your favorites</p>
         </div>
       );
     }
@@ -633,7 +647,7 @@ const PublicGallery = () => {
       case 'classic':
         return (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {visiblePhotos.map(p => renderPhotoCard(p, 'classic'))}
             </div>
             {infiniteSentinel}
@@ -644,8 +658,8 @@ const PublicGallery = () => {
         return (
           <>
             <div style={{
-              columns: isTimeless ? '4 200px' : '3 240px',
-              columnGap: isTimeless ? '2px' : '1rem',
+              columns: isTimeless ? '4 200px' : '3 260px',
+              columnGap: isTimeless ? '4px' : '12px',
             }}>
               {visiblePhotos.map(p => renderPhotoCard(p, 'masonry'))}
             </div>
@@ -851,8 +865,8 @@ const PublicGallery = () => {
         return (
           <>
             <div style={{
-              columns: isTimeless ? '4 200px' : '3 240px',
-              columnGap: isTimeless ? '2px' : '1rem',
+              columns: isTimeless ? '4 200px' : '3 260px',
+              columnGap: isTimeless ? '4px' : '12px',
             }}>
               {visiblePhotos.map(p => renderPhotoCard(p, 'masonry'))}
             </div>
@@ -1038,14 +1052,14 @@ const PublicGallery = () => {
       </div>
 
       {/* ── GALLERY SECTION ── */}
-      <div ref={galleryRef} className={`max-w-7xl mx-auto ${isStoryLayout ? '' : isTimeless ? 'px-0 sm:px-0 py-6' : 'px-4 sm:px-6 py-8'}`}>
+      <div ref={galleryRef} className={`max-w-7xl mx-auto ${isStoryLayout ? '' : isTimeless ? 'px-2 sm:px-4 py-8' : 'px-4 sm:px-8 py-10 sm:py-14'}`}>
 
         {/* Filter / Sort bar */}
         {!isStoryLayout && (
-          <div className="mb-6 space-y-3">
+          <div className="mb-8 sm:mb-10 space-y-4">
             <div className="flex items-center justify-between gap-4">
               {/* Filter pills */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide min-w-0">
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-hide min-w-0">
                 <FilterPill active={filter === 'all' && !sectionFilter} onClick={() => { setFilter('all'); setSectionFilter(null); }} accent={accentColor}>
                   All Photos
                 </FilterPill>
@@ -1055,13 +1069,13 @@ const PublicGallery = () => {
                   </FilterPill>
                 ))}
                 <FilterPill active={filter === 'favorites'} onClick={() => { setFilter(f => f === 'favorites' ? 'all' : 'favorites'); setSectionFilter(null); }} accent={accentColor}>
-                  <Heart className="h-3 w-3 mr-1" /> Favorites {favoriteCount > 0 && `(${favoriteCount})`}
+                  <Heart className="h-3.5 w-3.5 mr-1.5" /> Favorites {favoriteCount > 0 && `(${favoriteCount})`}
                 </FilterPill>
               </div>
 
               {/* Sort */}
               <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as any)}>
-                <SelectTrigger className="h-8 w-[140px] text-xs border-border/50 rounded-full bg-transparent shrink-0">
+                <SelectTrigger className="h-9 w-[140px] text-xs border-border/40 rounded-full bg-transparent shrink-0 shadow-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1074,16 +1088,16 @@ const PublicGallery = () => {
             {/* Search bar */}
             {searchOpen && (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search photos by name or section…"
-                  className="pl-9 pr-9 bg-background"
+                  className="pl-10 pr-10 bg-background/60 backdrop-blur-sm border-border/40 rounded-full h-11 shadow-none"
                   autoFocus
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                     <X className="h-4 w-4" />
                   </button>
                 )}
@@ -1215,10 +1229,10 @@ function FilterPill({ active, onClick, accent, children }: {
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 flex items-center px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border whitespace-nowrap ${
+      className={`shrink-0 flex items-center px-5 py-2 rounded-full text-[13px] font-medium transition-all duration-300 border whitespace-nowrap ${
         active
-          ? 'text-white border-transparent shadow-sm'
-          : 'bg-transparent text-muted-foreground border-border/60 hover:border-foreground/40 hover:text-foreground/80'
+          ? 'text-white border-transparent shadow-md'
+          : 'bg-transparent text-muted-foreground border-border/50 hover:border-foreground/30 hover:text-foreground/80 hover:bg-muted/30'
       }`}
       style={active ? { backgroundColor: accent || 'hsl(var(--primary))' } : undefined}
     >
