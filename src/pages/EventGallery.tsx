@@ -137,12 +137,21 @@ const EventGallery = () => {
     // Try session cache first
     const cached = getCachedPhotos<Photo[]>(id);
     if (cached) { setPhotos(cached); return; }
-    const { data } = await (supabase.from('photos').select('*') as any).eq('event_id', id).order('sort_order', { ascending: true, nullsFirst: false });
-    if (data) {
-      const typedPhotos = data as unknown as Photo[];
-      setPhotos(typedPhotos);
-      setCachedPhotos(id, typedPhotos);
+    // Paginate to bypass 1000-row limit
+    let allPhotos: Photo[] = [];
+    let from = 0;
+    const PAGE = 1000;
+    while (true) {
+      const { data } = await (supabase.from('photos').select('*') as any)
+        .eq('event_id', id).order('sort_order', { ascending: true, nullsFirst: false })
+        .range(from, from + PAGE - 1);
+      if (!data || data.length === 0) break;
+      allPhotos = allPhotos.concat(data as unknown as Photo[]);
+      if (data.length < PAGE) break;
+      from += PAGE;
     }
+    setPhotos(allPhotos);
+    if (allPhotos.length > 0) setCachedPhotos(id, allPhotos);
   }, [id]);
 
   const fetchFavStats = useCallback(async () => {
