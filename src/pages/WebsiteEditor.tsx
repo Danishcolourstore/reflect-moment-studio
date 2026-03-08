@@ -448,9 +448,9 @@ const WebsiteEditor = () => {
                   <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Testimonial {i + 1}</span>
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeTestimonial(i)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                 </div>
-                <Input value={t.name} onChange={e => updateTestimonial(i, 'name', e.target.value)} className="h-8 text-xs bg-background" placeholder="Client name" />
-                <Textarea value={t.text} onChange={e => updateTestimonial(i, 'text', e.target.value)} className="text-xs bg-background min-h-[60px]" placeholder="Testimonial text" />
-                <Input value={t.event || ''} onChange={e => updateTestimonial(i, 'event', e.target.value)} className="h-8 text-xs bg-background" placeholder="Event name (optional)" />
+                <Input value={t.clientName} onChange={e => updateTestimonial(i, 'clientName', e.target.value)} className="h-8 text-xs bg-background" placeholder="Client name" />
+                <Textarea value={t.review} onChange={e => updateTestimonial(i, 'review', e.target.value)} className="text-xs bg-background min-h-[60px]" placeholder="Testimonial text" />
+              </div>
               </div>
             ))}
             <Button variant="outline" size="sm" className="w-full text-[10px] h-8" onClick={addTestimonial}>
