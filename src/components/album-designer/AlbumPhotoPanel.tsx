@@ -367,7 +367,23 @@ export default function AlbumPhotoPanel({ albumId, eventId, onEventLinked, place
                   }}
                   className="relative aspect-square rounded-md overflow-hidden cursor-grab active:cursor-grabbing group border border-border/50 hover:border-primary/50 transition-colors"
                 >
-                  <img src={getThumbnail(photo.url)} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  <img
+                    src={getThumbnail(photo.url)}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      // If optimized URL failed, try original
+                      if (target.src !== photo.url) {
+                        target.src = photo.url;
+                      } else {
+                        // Hide broken icon, show grey placeholder
+                        target.style.display = 'none';
+                        target.parentElement?.classList.add('bg-muted');
+                      }
+                    }}
+                  />
                   {count > 0 && (
                     <div className="absolute top-0.5 right-0.5 flex items-center gap-0.5">
                       {count === 1 ? (

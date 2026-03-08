@@ -84,11 +84,12 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
 
   return (
     <div
-      className="relative overflow-hidden bg-muted/20 group transition-colors duration-200 hover:bg-muted/30"
+      className={`relative overflow-hidden group transition-colors duration-200 ${cell.imageUrl ? '' : 'bg-[#F0F0F0] dark:bg-muted/40'}`}
       style={{
         gridArea,
         minHeight: "44px",
         touchAction: "none",
+        border: cell.imageUrl ? 'none' : '1px dashed #AAAAAA',
       }}
     >
       <input ref={inputRef} type="file" accept="image/*" className="sr-only" onChange={handleFile} tabIndex={-1} />
