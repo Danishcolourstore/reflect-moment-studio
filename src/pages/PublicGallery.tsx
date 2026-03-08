@@ -167,45 +167,44 @@ function PhotoCard({
   const isMasonry = layout === 'masonry' || layout === 'editorial-item' || layout === 'timeline';
   const heartColor = accentColor ? accentColor : 'hsl(var(--primary))';
 
-
   return (
     <div
-      className={`group relative cursor-pointer overflow-hidden ${aspectClass} ${isMasonry ? 'break-inside-avoid' : ''}`}
-      style={{ borderRadius: 0, marginBottom: isMasonry ? '2px' : undefined }}
+      className={`group relative cursor-pointer overflow-hidden rounded-lg ${aspectClass} ${isMasonry ? 'break-inside-avoid' : ''} transition-all duration-300 hover:shadow-lg hover:shadow-black/8`}
+      style={{ marginBottom: isMasonry ? '8px' : undefined }}
       onClick={onOpenLightbox}
     >
       <ProgressiveImage
         src={photo.url}
         alt=""
-        className={`${aspectClass ? 'h-full w-full object-cover' : 'w-full h-auto object-cover block'}`}
+        className={`${aspectClass ? 'h-full w-full object-cover' : 'w-full h-auto object-cover block'} transition-transform duration-500 group-hover:scale-[1.03]`}
         draggable={false}
       />
 
-      {/* Hover overlay */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 pointer-events-none" />
+      {/* Hover overlay — subtle gradient from bottom */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
       {/* Heart button — top right */}
       <button
         onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-        className="absolute top-2 right-2 z-10 min-w-[40px] min-h-[40px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/50"
+        className="absolute top-3 right-3 z-10 min-w-[44px] min-h-[44px] rounded-full bg-black/25 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/40 active:scale-90"
         style={isFav ? { opacity: 1 } : undefined}
       >
         <Heart
-          className="h-4.5 w-4.5 transition-all duration-200"
-          style={isFav ? { color: heartColor, fill: heartColor } : { color: 'white' }}
+          className="h-5 w-5 transition-all duration-300"
+          style={isFav ? { color: heartColor, fill: heartColor, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' } : { color: 'white', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
         />
       </button>
 
       {/* Selection checkbox — top left */}
       {selectionMode && (
         <div
-          className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          className="absolute top-3 left-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}
           style={isSelected ? { opacity: 1 } : undefined}
         >
           <Checkbox
             checked={isSelected}
-            className="h-5 w-5 border-white data-[state=checked]:border-transparent"
+            className="h-5 w-5 border-white/80 data-[state=checked]:border-transparent shadow-sm"
             style={isSelected && accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : undefined}
           />
         </div>
@@ -213,7 +212,7 @@ function PhotoCard({
 
       {/* Comment badge — bottom left */}
       {commentCount > 0 && (
-        <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-card/80 backdrop-blur-sm text-foreground text-[10px] font-medium px-2 py-1 rounded-full">
+        <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-md text-foreground text-[10px] font-medium px-2.5 py-1 rounded-full shadow-sm">
           <MessageCircle className="h-3 w-3" />
           {commentCount}
         </div>
@@ -222,7 +221,7 @@ function PhotoCard({
       {/* Watermark */}
       {showWatermark && watermarkText && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <span className="font-serif text-white/30 text-lg sm:text-2xl whitespace-nowrap tracking-[0.15em]">
+          <span className="font-serif text-white/20 text-lg sm:text-2xl whitespace-nowrap tracking-[0.15em]">
             {watermarkText}
           </span>
         </div>
