@@ -1155,6 +1155,61 @@ const PublicGallery = () => {
       {/* ── WEBSITE FOOTER ── */}
       <WebsiteFooter template={websiteTemplate} branding={combinedBranding} photographerUsername={studioExtended?.username} />
 
+      {/* ── Floating Favorites Bar ── */}
+      {favoriteCount > 0 && !lightboxOpen && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-3 rounded-full shadow-2xl shadow-black/20 border border-white/10 backdrop-blur-xl animate-in slide-in-from-bottom-4 fade-in duration-300"
+          style={{ backgroundColor: accentColor ? `${accentColor}ee` : 'hsl(var(--primary) / 0.93)' }}
+        >
+          <div className="flex items-center gap-2">
+            <Heart className="h-4.5 w-4.5 text-white" fill="white" />
+            <span className="text-white text-sm font-semibold">{favoriteCount}</span>
+            <span className="text-white/70 text-sm hidden sm:inline">
+              {favoriteCount === 1 ? 'favorite' : 'favorites'}
+            </span>
+          </div>
+
+          <div className="w-px h-5 bg-white/25" />
+
+          <button
+            onClick={() => setFilter(f => f === 'favorites' ? 'all' : 'favorites')}
+            className="text-white/90 hover:text-white text-sm font-medium transition-colors px-1"
+          >
+            {filter === 'favorites' ? 'Show All' : 'View'}
+          </button>
+
+          {canDownload && (
+            <>
+              <div className="w-px h-5 bg-white/25" />
+              <button
+                onClick={() => guardedDownload(() => buildZip(photos.filter(p => isFavorite(p.id)), 'favorites'))}
+                disabled={downloading}
+                className="flex items-center gap-1.5 text-white/90 hover:text-white text-sm font-medium transition-colors px-1 disabled:opacity-50"
+              >
+                {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                <span className="hidden sm:inline">Download</span>
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={() => setSendFavOpen(true)}
+            className="flex items-center gap-1.5 text-white/90 hover:text-white text-sm font-medium transition-colors px-1"
+          >
+            <Mail className="h-4 w-4" />
+            <span className="hidden sm:inline">Send</span>
+          </button>
+
+          <button
+            onClick={() => { photos.forEach(p => { if (isFavorite(p.id)) rawToggleFavorite(p.id); }); }}
+            className="text-white/50 hover:text-white/80 transition-colors ml-1"
+            title="Clear all favorites"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* ── Lightbox ── */}
       <PhotoLightbox
         photos={displayPhotos}
