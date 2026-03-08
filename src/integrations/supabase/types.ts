@@ -236,6 +236,137 @@ export type Database = {
           },
         ]
       }
+      cheetah_photos: {
+        Row: {
+          ai_recommendation: string | null
+          ai_score: number | null
+          ai_status: string
+          burst_group: string | null
+          captured_at: string | null
+          composition: number | null
+          created_at: string
+          cull_status: string
+          event_id: string | null
+          exposure: string | null
+          eyes_open: boolean | null
+          file_name: string
+          file_size: number | null
+          id: string
+          is_best_in_burst: boolean | null
+          original_url: string
+          preview_url: string | null
+          processed_at: string | null
+          session_id: string
+          sharpness: number | null
+          thumbnail_url: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_recommendation?: string | null
+          ai_score?: number | null
+          ai_status?: string
+          burst_group?: string | null
+          captured_at?: string | null
+          composition?: number | null
+          created_at?: string
+          cull_status?: string
+          event_id?: string | null
+          exposure?: string | null
+          eyes_open?: boolean | null
+          file_name: string
+          file_size?: number | null
+          id?: string
+          is_best_in_burst?: boolean | null
+          original_url: string
+          preview_url?: string | null
+          processed_at?: string | null
+          session_id: string
+          sharpness?: number | null
+          thumbnail_url?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_recommendation?: string | null
+          ai_score?: number | null
+          ai_status?: string
+          burst_group?: string | null
+          captured_at?: string | null
+          composition?: number | null
+          created_at?: string
+          cull_status?: string
+          event_id?: string | null
+          exposure?: string | null
+          eyes_open?: boolean | null
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          is_best_in_burst?: boolean | null
+          original_url?: string
+          preview_url?: string | null
+          processed_at?: string | null
+          session_id?: string
+          sharpness?: number | null
+          thumbnail_url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cheetah_photos_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cheetah_photos_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "cheetah_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cheetah_sessions: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          id: string
+          status: string
+          title: string
+          total_photos: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          status?: string
+          title?: string
+          total_photos?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          status?: string
+          title?: string
+          total_photos?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cheetah_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_downloads: {
         Row: {
           client_id: string
