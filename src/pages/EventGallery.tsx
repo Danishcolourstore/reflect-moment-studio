@@ -109,6 +109,7 @@ const EventGallery = () => {
   const upload = usePhotoUpload(id, user?.id);
   const zipUpload = useZipUpload(id, user?.id);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
+  const { isPortfolioPhoto, togglePortfolioPhoto, count: portfolioCount, max: portfolioMax } = usePortfolioPhotos(user?.id);
 
   const fetchEvent = useCallback(async () => {
     if (!id || !user) return;
