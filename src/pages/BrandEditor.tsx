@@ -800,6 +800,62 @@ const BrandEditor = () => {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Testimonials Drawer */}
+      <Drawer open={activeDrawer === 'testimonials'} onOpenChange={(open) => !open && setActiveDrawer(null)}>
+        <DrawerContent className="max-h-[88dvh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-base">Testimonials</DrawerTitle>
+            <DrawerDescription>Add client reviews</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-8 space-y-4 overflow-y-auto">
+            {data.testimonials.map((t, idx) => (
+              <div key={idx} className="p-4 bg-card border border-border rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-medium">Review {idx + 1}</span>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeTestimonial(idx)}>
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
+                </div>
+                <Input value={t.clientName} onChange={(e) => updateTestimonial(idx, { clientName: e.target.value })} placeholder="Client name" className="h-10" />
+                <Textarea value={t.review} onChange={(e) => updateTestimonial(idx, { review: e.target.value })} placeholder="Their review..." className="min-h-[60px]" />
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-medium">Rating</label>
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(r => (
+                      <button key={r} onClick={() => updateTestimonial(idx, { rating: r })}
+                        className="p-1 transition-colors">
+                        <Star className="h-5 w-5" fill={r <= t.rating ? '#D4AF37' : 'transparent'} style={{ color: r <= t.rating ? '#D4AF37' : 'rgba(255,255,255,0.15)' }} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Button variant="outline" onClick={addTestimonial} className="w-full h-12 border-dashed text-[12px]">
+              <Plus className="mr-1.5 h-4 w-4" /> Add Testimonial
+            </Button>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Albums Drawer */}
+      <Drawer open={activeDrawer === 'albums'} onOpenChange={(open) => !open && setActiveDrawer(null)}>
+        <DrawerContent className="max-h-[88dvh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-base">Portfolio Albums</DrawerTitle>
+            <DrawerDescription>Organize work into categories</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-8 space-y-4 overflow-y-auto">
+            <p className="text-[10px] text-muted-foreground/40">
+              Portfolio albums are managed separately. Enable this section to display your album categories on your public portfolio page.
+            </p>
+            <p className="text-[10px] text-muted-foreground/40">
+              Categories: Weddings, Pre-Wedding, Engagement, Fashion, Portraits, and more.
+            </p>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
