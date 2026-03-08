@@ -231,7 +231,7 @@ const PhotographerFeed = () => {
         );
       case 'contact':
         return (
-          <WebsiteContact key="contact" id="contact" template="modern-portfolio" branding={branding} />
+          <WebsiteContact key="contact" id="contact" template="dark-portfolio" branding={branding} />
         );
       default:
         return null;
