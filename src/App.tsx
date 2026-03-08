@@ -21,6 +21,7 @@ import Branding from "./pages/Branding";
 import MorePage from "./pages/MorePage";
 import BrandEditor from "./pages/BrandEditor";
 import WebsiteEditor from "./pages/WebsiteEditor";
+import TemplatePreview from "./pages/TemplatePreview";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Onboarding from "./pages/Onboarding";
@@ -420,6 +421,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <WebsiteEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/template-preview"
+        element={
+          <ProtectedRoute>
+            <TemplatePreview />
           </ProtectedRoute>
         }
       />

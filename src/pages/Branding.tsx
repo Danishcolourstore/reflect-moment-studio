@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, Globe, ExternalLink, Sparkles } from 'lucide-react';
+import { Check, Globe, ExternalLink, Sparkles, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { WEBSITE_TEMPLATES, type WebsiteTemplateValue } from '@/lib/website-templates';
@@ -160,14 +160,24 @@ const Branding = () => {
                     </span>
                   )}
                 </div>
-                <Button
-                  onClick={() => handleUseTemplate(tmpl.value as WebsiteTemplateValue)}
-                  variant={isActive ? 'default' : 'outline'}
-                  size="sm"
-                  className="w-full text-[10px] uppercase tracking-wider h-9"
-                >
-                  {isActive ? 'Edit Template' : 'Use Template'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => navigate(`/dashboard/template-preview?template=${tmpl.value}`)}
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 text-[10px] uppercase tracking-wider h-9 gap-1.5"
+                  >
+                    <Eye className="h-3 w-3" /> Preview
+                  </Button>
+                  <Button
+                    onClick={() => handleUseTemplate(tmpl.value as WebsiteTemplateValue)}
+                    variant={isActive ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1 text-[10px] uppercase tracking-wider h-9"
+                  >
+                    {isActive ? 'Edit Template' : 'Use Template'}
+                  </Button>
+                </div>
               </div>
             </div>
           );
