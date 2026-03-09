@@ -147,12 +147,12 @@ export default function SuperAdminAIDeveloper() {
 
   const applyMutation = useMutation({
     mutationFn: async (promptId: string) => {
-      const snapshot = currentResponse ? {
+      const snapshot = currentResponse ? JSON.parse(JSON.stringify({
         files: currentResponse.files?.map(f => ({ path: f.path, action: f.action })) || [],
         database: currentResponse.database?.map(d => ({ name: d.name, type: d.type })) || [],
         routes: currentResponse.routes || [],
         applied_by: user?.id,
-      } : null;
+      })) : null;
 
       const { error } = await supabase
         .from('ai_developer_prompts')
