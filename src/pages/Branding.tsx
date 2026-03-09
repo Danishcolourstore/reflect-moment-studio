@@ -79,19 +79,19 @@ const Branding = () => {
         </div>
       </div>
 
-      {/* Active site info */}
+      {/* Active site info - responsive */}
       {username && (
-        <div className="mb-6 p-3 rounded-lg border border-border bg-card/50 flex items-center justify-between">
+        <div className="mb-6 p-3 sm:p-4 rounded-lg border border-border bg-card/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <Globe className="h-4 w-4 text-primary" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-medium text-foreground">Your Studio Website</p>
-              <p className="text-[10px] text-muted-foreground/50">{getStudioDisplayUrl(username)}</p>
+              <p className="text-[10px] text-muted-foreground/50 truncate">{getStudioDisplayUrl(username)}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="text-[10px] h-7" onClick={() => navigate('/dashboard/website-editor')}>
+          <Button variant="outline" size="sm" className="text-[10px] h-9 sm:h-7 w-full sm:w-auto min-h-[44px] sm:min-h-0" onClick={() => navigate('/dashboard/website-editor')}>
             Edit Website
           </Button>
         </div>
