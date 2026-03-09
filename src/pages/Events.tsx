@@ -132,56 +132,60 @@ const Events = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-10">
-        <h1 className="font-serif text-3xl text-foreground" style={{ fontWeight: 300 }}>Events</h1>
-        <Button onClick={() => setCreateOpen(true)}>
+      {/* Header - responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 lg:mb-10">
+        <h1 className="font-serif text-2xl sm:text-3xl text-foreground" style={{ fontWeight: 300 }}>Events</h1>
+        <Button onClick={() => setCreateOpen(true)} className="w-full sm:w-auto min-h-[44px]">
           <Plus className="mr-1.5 h-3.5 w-3.5" /> New Event
         </Button>
       </div>
 
-      <Tabs value={archiveTab} onValueChange={(v) => setArchiveTab(v as any)} className="mb-6">
+      <Tabs value={archiveTab} onValueChange={(v) => setArchiveTab(v as any)} className="mb-4 sm:mb-6">
         <TabsList className="bg-transparent border-b border-border/30 rounded-none w-full justify-start h-auto p-0 gap-0">
-          <TabsTrigger value="active" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground/40 data-[state=active]:text-foreground">Active</TabsTrigger>
-          <TabsTrigger value="archived" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground/40 data-[state=active]:text-foreground">Archived</TabsTrigger>
+          <TabsTrigger value="active" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 py-2.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground/40 data-[state=active]:text-foreground min-h-[44px]">Active</TabsTrigger>
+          <TabsTrigger value="archived" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 py-2.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground/40 data-[state=active]:text-foreground min-h-[44px]">Archived</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-8">
+      {/* Filters - responsive stack */}
+      <div className="flex flex-col gap-3 mb-6 sm:mb-8">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events..." className="pl-9 bg-card/50 h-9 text-[13px] border-border/20" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search events..." className="pl-9 bg-card/50 h-11 sm:h-9 text-[13px] border-border/20" />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px] h-9 text-[11px] bg-card/50 border-border/20"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="published">Published</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[150px] h-9 text-[11px] bg-card/50 border-border/20"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="oldest">Oldest First</SelectItem>
-            <SelectItem value="name">Name A-Z</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="flex-1 sm:w-[140px] sm:flex-none h-11 sm:h-9 text-[11px] bg-card/50 border-border/20"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="flex-1 sm:w-[150px] sm:flex-none h-11 sm:h-9 text-[11px] bg-card/50 border-border/20"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="oldest">Oldest First</SelectItem>
+              <SelectItem value="name">Name A-Z</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-72 rounded-[14px]" />)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-60 sm:h-72 rounded-[14px]" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-28 text-center">
+        <div className="py-16 sm:py-28 text-center">
           {isArchived ? <Archive className="mx-auto h-10 w-10 text-muted-foreground/10" /> : <Camera className="mx-auto h-10 w-10 text-muted-foreground/10" />}
           <p className="mt-5 font-serif text-lg text-muted-foreground/40">{isArchived ? 'No archived events' : 'No events yet'}</p>
-          <p className="mt-2 text-[10px] text-muted-foreground/30 tracking-wide">{isArchived ? 'Archived events will appear here.' : 'Create your first event to start delivering photos.'}</p>
-          {!isArchived && <Button onClick={() => setCreateOpen(true)} className="mt-6">Create New Event</Button>}
+          <p className="mt-2 text-[10px] text-muted-foreground/30 tracking-wide px-4">{isArchived ? 'Archived events will appear here.' : 'Create your first event to start delivering photos.'}</p>
+          {!isArchived && <Button onClick={() => setCreateOpen(true)} className="mt-6 min-h-[44px]">Create New Event</Button>}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {filtered.map(renderEventCard)}
         </div>
       )}

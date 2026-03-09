@@ -75,33 +75,33 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      {/* Greeting */}
-      <div className="mb-8 lg:mb-10" style={{ padding: '8px 0 0' }}>
+      {/* Greeting - responsive text */}
+      <div className="mb-6 sm:mb-8 lg:mb-10" style={{ padding: '8px 0 0' }}>
         <h1
-          className="text-foreground"
-          style={{ fontFamily: 'var(--editorial-heading)', fontSize: '32px', fontWeight: 400, letterSpacing: '-0.3px', lineHeight: 1.3 }}
+          className="text-foreground text-2xl sm:text-[28px] lg:text-[32px]"
+          style={{ fontFamily: 'var(--editorial-heading)', fontWeight: 400, letterSpacing: '-0.3px', lineHeight: 1.3 }}
         >
           {greeting()}
         </h1>
       </div>
 
-      {/* Quick Actions Row */}
-      <div className="flex gap-3 mb-8 lg:mb-10">
-        <Button onClick={() => setCreateOpen(true)} className="flex-1 lg:flex-none h-11 lg:h-12 lg:px-8 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
+      {/* Quick Actions Row - responsive */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:mb-8 lg:mb-10">
+        <Button onClick={() => setCreateOpen(true)} className="flex-1 sm:flex-none h-12 sm:h-11 lg:h-12 lg:px-8 rounded-lg gap-2 min-h-[44px]" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
           <Plus className="h-4 w-4" /> New Event
         </Button>
-        <Button variant="outline" onClick={() => navigate('/dashboard/upload')} className="flex-1 lg:flex-none h-11 lg:h-12 lg:px-8 rounded-lg gap-2" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
+        <Button variant="outline" onClick={() => navigate('/dashboard/upload')} className="flex-1 sm:flex-none h-12 sm:h-11 lg:h-12 lg:px-8 rounded-lg gap-2 min-h-[44px]" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
           <Upload className="h-4 w-4" /> Upload Photos
         </Button>
       </div>
 
-      {/* Stats Grid — 2×2 mobile, 4×1 desktop */}
+      {/* Stats Grid — responsive: 2×2 mobile, 4×1 tablet+, larger on desktop */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-10">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 lg:h-44 rounded-2xl" />)}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8 lg:mb-10">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 sm:h-32 lg:h-44 rounded-xl sm:rounded-2xl" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8 lg:mb-10">
           <PixisetStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
           <PixisetStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
@@ -118,19 +118,19 @@ const Dashboard = () => {
 function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
   return (
     <div
-      className="bg-card border border-border rounded-2xl p-5 lg:p-8 cursor-pointer active:scale-[0.97] transition-all duration-300 hover:border-accent/30 hover-lift"
+      className="bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-8 cursor-pointer active:scale-[0.97] transition-all duration-300 hover:border-accent/30 hover-lift min-h-[44px]"
       onClick={onClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onClick?.(); }}
     >
-      <div className="flex items-center gap-2 mb-4 lg:mb-6">
-        <Icon className="h-[18px] w-[18px] text-accent" strokeWidth={1.5} />
-        <p className="text-muted-foreground" style={{ fontFamily: 'var(--editorial-body)', fontSize: '11px', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
+      <div className="flex items-center gap-2 mb-3 sm:mb-4 lg:mb-6">
+        <Icon className="h-4 w-4 sm:h-[18px] sm:w-[18px] text-accent" strokeWidth={1.5} />
+        <p className="text-muted-foreground text-[10px] sm:text-[11px]" style={{ fontFamily: 'var(--editorial-body)', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
           {label}
         </p>
       </div>
-      <p className="text-foreground leading-none" style={{ fontFamily: 'var(--editorial-heading)', fontSize: '64px', fontWeight: 300 }}>
+      <p className="text-foreground leading-none text-[40px] sm:text-[52px] lg:text-[64px]" style={{ fontFamily: 'var(--editorial-heading)', fontWeight: 300 }}>
         {value}
       </p>
     </div>
