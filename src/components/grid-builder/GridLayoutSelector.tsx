@@ -1,64 +1,65 @@
-import { useState, useMemo } from 'react';
-import { useGridTemplates } from '@/hooks/use-grid-templates';
-import { GRID_LAYOUTS, type GridLayout } from './types';
-import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
+}import { useState, useMemo } from "react";
+import { useGridTemplates } from "@/hooks/use-grid-templates";
+import { GRID_LAYOUTS, type GridLayout } from "./types";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   onSelect: (layout: GridLayout) => void;
 }
 
 const CATEGORIES = [
-  { key: 'single', label: 'Single' },
-  { key: 'basic', label: 'Basic' },
-  { key: 'instagram', label: 'Instagram' },
-  { key: 'creative', label: 'Creative' },
+  { key: "single", label: "Single" },
+  { key: "basic", label: "Basic" },
+  { key: "instagram", label: "Instagram" },
+  { key: "creative", label: "Creative" },
 ] as const;
 
-/** Visual wireframe thumbnail for each layout */
+/* ---------- Layout Preview ---------- */
+
 function LayoutPreview({ layout }: { layout: GridLayout }) {
   const hasFrame = !!layout.frame;
-  const ratio = layout.canvasRatio || 1;
 
   return (
-    <div
-      className="w-full overflow-hidden rounded-lg bg-muted/20 relative"
-      style={{ aspectRatio: ratio }}
-    >
+    <div className="w-full aspect-square overflow-hidden rounded-lg bg-muted/20 relative">
       {hasFrame ? (
         <div
           className="w-full h-full flex items-center justify-center relative"
           style={{
             padding: `${layout.frame!.padding[0]}% ${layout.frame!.padding[1]}% ${layout.frame!.padding[2]}% ${layout.frame!.padding[3]}%`,
-            background: layout.frame!.background === '#ffffff' ? 'hsl(var(--muted) / 0.3)' : layout.frame!.background,
+            background:
+              layout.frame!.background === "#ffffff"
+                ? "hsl(var(--muted) / 0.3)"
+                : layout.frame!.background,
           }}
         >
           <div
             className="w-full h-full bg-primary/20"
             style={{
-              borderRadius: layout.frame!.imageRadius ? `${Math.min(layout.frame!.imageRadius, 6)}px` : undefined,
-              boxShadow: layout.frame!.shadow ? '0 2px 8px rgba(0,0,0,0.15)' : undefined,
-              border: layout.frame!.borderWidth ? `${Math.max(1, layout.frame!.borderWidth)}px solid hsl(var(--border))` : undefined,
+              borderRadius: layout.frame!.imageRadius
+                ? `${Math.min(layout.frame!.imageRadius, 6)}px`
+                : undefined,
+              boxShadow: layout.frame!.shadow
+                ? "0 2px 8px rgba(0,0,0,0.15)"
+                : undefined,
+              border: layout.frame!.borderWidth
+                ? `${Math.max(
+                    1,
+                    layout.frame!.borderWidth
+                  )}px solid hsl(var(--border))`
+                : undefined,
             }}
           />
-          {/* Caption area indicator for editorial frames */}
-          {(layout.frame!.padding[2] > 15 || layout.frame!.padding[0] > 15) && (
-            <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-[2px]"
-              style={layout.frame!.padding[2] > 15 ? { bottom: '6%' } : { top: '6%' }}>
-              <div className="h-[2px] w-6 bg-muted-foreground/20 rounded-full" />
-              <div className="h-[2px] w-4 bg-muted-foreground/15 rounded-full" />
-            </div>
-          )}
         </div>
       ) : (
         <div
           className="w-full h-full"
           style={{
-            display: 'grid',
+            display: "grid",
             gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
             gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-            gap: '2px',
-            padding: '2px',
+            gap: "2px",
+            padding: "2px",
           }}
         >
           {layout.cells.map((cell, i) => (
@@ -77,28 +78,31 @@ function LayoutPreview({ layout }: { layout: GridLayout }) {
   );
 }
 
-/** Cell count badge */
+/* ---------- Cell Count Badge ---------- */
+
 function CellCount({ layout }: { layout: GridLayout }) {
   const count = layout.cells.length;
+
   return (
     <span className="text-[8px] tracking-wider text-muted-foreground/40 tabular-nums">
-      {count} {count === 1 ? 'cell' : 'cells'}
+      {count} {count === 1 ? "cell" : "cells"}
     </span>
   );
 }
 
+/* ---------- Main Selector ---------- */
+
 export default function GridLayoutSelector({ onSelect }: Props) {
-  const [cat, setCat] = useState<'single' | 'basic' | 'instagram' | 'creative'>('single');
-  
-  // Fetch templates from database
+  const [cat, setCat] = useState<
+    "single" | "basic" | "instagram" | "creative"
+  >("single");
+
   const { data: dbTemplates, isLoading } = useGridTemplates();
-  
-  // Merge DB templates with fallback hardcoded layouts
+
   const layouts = useMemo(() => {
     if (dbTemplates && dbTemplates.length > 0) {
       return dbTemplates;
     }
-    // Fallback to hardcoded layouts if DB is empty
     return GRID_LAYOUTS;
   }, [dbTemplates]);
 
@@ -106,17 +110,18 @@ export default function GridLayoutSelector({ onSelect }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Category tabs */}
+      {/* Category Tabs */}
+
       <div className="flex gap-1 bg-muted/30 rounded-full p-1">
         {CATEGORIES.map((c) => (
           <button
             key={c.key}
             onClick={() => setCat(c.key)}
             className={cn(
-              'flex-1 text-[10px] tracking-wider uppercase font-medium py-2 rounded-full transition-all duration-200',
+              "flex-1 text-[10px] tracking-wider uppercase font-medium py-2 rounded-full transition-all duration-200",
               cat === c.key
-                ? 'bg-foreground text-background shadow-sm'
-                : 'text-muted-foreground/50 hover:text-foreground'
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground/50 hover:text-foreground"
             )}
           >
             {c.label}
@@ -124,7 +129,8 @@ export default function GridLayoutSelector({ onSelect }: Props) {
         ))}
       </div>
 
-      {/* Loading state */}
+      {/* Loading State */}
+
       {isLoading ? (
         <div className="grid grid-cols-3 gap-3">
           {[...Array(6)].map((_, i) => (
@@ -133,25 +139,28 @@ export default function GridLayoutSelector({ onSelect }: Props) {
         </div>
       ) : filtered.length === 0 ? (
         <div className="py-12 text-center">
-          <p className="text-sm text-muted-foreground">No layouts in this category</p>
+          <p className="text-sm text-muted-foreground">
+            No layouts in this category
+          </p>
         </div>
       ) : (
-        /* Layout grid */
         <div className="grid grid-cols-3 gap-3">
           {filtered.map((layout) => (
             <button
               key={layout.id}
               onClick={() => onSelect(layout)}
               className={cn(
-                'group flex flex-col items-center gap-2 p-3 rounded-xl border bg-card transition-all duration-200 active:scale-95',
-                'border-border/60 hover:border-primary/50 hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.25)]'
+                "group flex flex-col items-center gap-2 p-3 rounded-xl border bg-card transition-all duration-200 active:scale-95",
+                "border-border/60 hover:border-primary/50 hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.25)]"
               )}
             >
               <LayoutPreview layout={layout} />
+
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-[9px] tracking-wider uppercase text-muted-foreground/70 font-medium group-hover:text-foreground transition-colors">
                   {layout.name}
                 </span>
+
                 <CellCount layout={layout} />
               </div>
             </button>
