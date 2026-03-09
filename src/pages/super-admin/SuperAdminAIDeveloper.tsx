@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
+import AgentChat from '@/components/ai-developer/AgentChat';
 
 // ──────────── Types ────────────
 interface FileChange {
@@ -412,7 +413,6 @@ const QUICK_PROMPTS = [
 
 const PROTECTED_PATHS = ['src/lib/auth.tsx', 'src/lib/AuthContext.tsx', 'src/integrations/supabase/client.ts', 'src/integrations/supabase/types.ts'];
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 const DEV_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-developer`;
 
 // ──────────── Folder Tree Component ────────────
@@ -445,13 +445,9 @@ export default function SuperAdminAIDeveloper() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'chat' | 'generator' | 'codebase'>('chat');
-
-  // Chat state
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatInput, setChatInput] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState('lovable');
-  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Generator state
 
   // Generator state
   const [prompt, setPrompt] = useState('');
@@ -475,8 +471,6 @@ export default function SuperAdminAIDeveloper() {
   // Codebase search
   const [codeSearch, setCodeSearch] = useState('');
 
-  // Auto-scroll chat
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);
 
   // Fetch history
   const { data: history = [], isLoading: historyLoading } = useQuery({
@@ -498,59 +492,6 @@ export default function SuperAdminAIDeveloper() {
     const q = codeSearch.toLowerCase();
     return DB_TABLES.filter(t => t.name.includes(q) || t.desc.toLowerCase().includes(q));
   }, [codeSearch]);
-
-  // ──── Stream chat ────
-  const streamChat = async (messages: ChatMessage[]) => {
-    setIsStreaming(true);
-    let assistantContent = '';
-    const lastUserMsg = messages[messages.length - 1]?.content || '';
-    const codebaseContext = getRelevantContext(lastUserMsg);
-    try {
-      const resp = await fetch(CHAT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-        body: JSON.stringify({ messages, provider: selectedProvider, mode: 'chat', codebaseContext }),
-      });
-      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Request failed'); }
-      const reader = resp.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let nl: number;
-        while ((nl = buffer.indexOf('\n')) !== -1) {
-          let line = buffer.slice(0, nl); buffer = buffer.slice(nl + 1);
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (!line.startsWith('data: ')) continue;
-          const j = line.slice(6).trim();
-          if (j === '[DONE]') continue;
-          try {
-            const p = JSON.parse(j);
-            const d = p.choices?.[0]?.delta?.content;
-            if (d) {
-              assistantContent += d;
-              setChatMessages(prev => {
-                const last = prev[prev.length - 1];
-                if (last?.role === 'assistant') return [...prev.slice(0, -1), { role: 'assistant', content: assistantContent }];
-                return [...prev, { role: 'assistant', content: assistantContent }];
-              });
-            }
-          } catch { /* skip */ }
-        }
-      }
-    } catch (e) { toast.error(e instanceof Error ? e.message : 'Chat failed'); }
-    finally { setIsStreaming(false); }
-  };
-
-  const sendChatMessage = () => {
-    if (!chatInput.trim() || isStreaming) return;
-    const userMsg: ChatMessage = { role: 'user', content: chatInput.trim() };
-    setChatMessages(prev => [...prev, userMsg]);
-    setChatInput('');
-    streamChat([...chatMessages, userMsg]);
-  };
 
   // ──── Generate structured code ────
   const generateMutation = useMutation({
@@ -797,7 +738,7 @@ export default function SuperAdminAIDeveloper() {
         <div className="border-b border-border px-4">
           <TabsList className="h-9 bg-transparent">
             <TabsTrigger value="chat" className="gap-1.5 text-xs data-[state=active]:bg-muted">
-              <MessageSquare className="h-3.5 w-3.5" />Chat
+              <Bot className="h-3.5 w-3.5" />Agent Chat
             </TabsTrigger>
             <TabsTrigger value="generator" className="gap-1.5 text-xs data-[state=active]:bg-muted">
               <Code className="h-3.5 w-3.5" />Code Generator
@@ -808,69 +749,9 @@ export default function SuperAdminAIDeveloper() {
           </TabsList>
         </div>
 
-        {/* ══════ Chat Tab ══════ */}
+        {/* ══════ Chat Tab (Agent) ══════ */}
         <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0">
-          <div className="flex-1 flex flex-col">
-            <ScrollArea className="flex-1 p-4">
-              {chatMessages.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center max-w-lg">
-                    <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 flex items-center justify-center mx-auto mb-4">
-                      <MessageSquare className="h-7 w-7 text-violet-500" />
-                    </div>
-                    <h2 className="text-base font-semibold mb-1">AI Developer Chat</h2>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Ask anything about the codebase, get architecture advice, or discuss features with {selectedProvider === 'lovable' ? 'Gemini' : 'Claude'}.
-                      The AI has full knowledge of MirrorAI's structure.
-                    </p>
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {['How is authentication implemented?', 'What tables does the gallery system use?', 'Suggest a booking feature architecture', 'How do I add a new dashboard widget?'].map(q => (
-                        <button key={q} onClick={() => setChatInput(q)}
-                          className="text-[11px] px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors">
-                          {q}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3 max-w-3xl mx-auto">
-                  {chatMessages.map((msg, i) => (
-                    <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
-                      <div className={cn('max-w-[85%] rounded-lg px-4 py-2', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                        {msg.role === 'assistant' ? (
-                          <div className="prose prose-sm dark:prose-invert max-w-none">
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
-                          </div>
-                        ) : <p className="text-sm whitespace-pre-wrap">{msg.content}</p>}
-                      </div>
-                    </div>
-                  ))}
-                  {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && (
-                    <div className="flex justify-start">
-                      <div className="bg-muted rounded-lg px-4 py-2"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
-                    </div>
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
-              )}
-            </ScrollArea>
-            <div className="border-t border-border p-3">
-              <div className="flex gap-2 max-w-3xl mx-auto">
-                <Textarea value={chatInput} onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
-                  placeholder="Ask the AI anything about MirrorAI's codebase..." className="min-h-[40px] max-h-28 resize-none text-sm" disabled={isStreaming} />
-                <div className="flex flex-col gap-1">
-                  <Button onClick={sendChatMessage} disabled={!chatInput.trim() || isStreaming} size="icon" className="h-10 w-10">
-                    {isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </Button>
-                  {chatMessages.length > 0 && (
-                    <Button onClick={() => setChatMessages([])} variant="ghost" size="icon" className="h-7 w-7"><Trash2 className="h-3 w-3" /></Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <AgentChat selectedProvider={selectedProvider} getRelevantContext={getRelevantContext} />
         </TabsContent>
 
         {/* ══════ Generator Tab ══════ */}
