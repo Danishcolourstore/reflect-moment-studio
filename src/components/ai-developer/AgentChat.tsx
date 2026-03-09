@@ -44,6 +44,12 @@ const TOOL_REGISTRY: ToolDefinition[] = [
   { name: 'check_routes', label: 'Check routes', description: 'Detect broken or misconfigured routes', icon: 'route', category: 'analyze' },
   { name: 'debug_query', label: 'Debug query', description: 'Analyze database query errors and RLS issues', icon: 'searchcode', category: 'analyze' },
   { name: 'suggest_fix', label: 'Suggest fix', description: 'Generate corrected code for detected issues', icon: 'code', category: 'generate' },
+  // Feature generator tools
+  { name: 'generate_schema', label: 'Generate schema', description: 'Design database tables, columns, and RLS policies', icon: 'database', category: 'generate' },
+  { name: 'generate_backend', label: 'Generate backend', description: 'Generate edge functions and API endpoints', icon: 'server', category: 'generate' },
+  { name: 'generate_page', label: 'Generate page', description: 'Generate a full page with routing and layout', icon: 'layout', category: 'generate' },
+  { name: 'generate_components', label: 'Generate components', description: 'Generate UI components with props and styling', icon: 'layers', category: 'generate' },
+  { name: 'generate_docs', label: 'Generate docs', description: 'Generate feature documentation and usage guide', icon: 'book', category: 'generate' },
 ];
 
 const TOOL_ICON_MAP: Record<string, typeof Database> = {
@@ -63,6 +69,8 @@ const TOOL_ICON_MAP: Record<string, typeof Database> = {
   link: Link2,
   route: Route,
   searchcode: SearchCode,
+  layout: LayoutList,
+  book: BookOpen,
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -131,7 +139,7 @@ interface AgentChatProps {
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 
 const SUGGESTIONS = [
-  { icon: '🏗️', label: 'Build a feature', prompt: 'Help me plan and build a new feature for the platform.' },
+  { icon: '🏗️', label: 'Build a feature', prompt: 'Create a complete client review feature for galleries with database, API, page, components, and documentation.' },
   { icon: '🐛', label: 'Debug an error', prompt: 'I have an error in my code. Help me analyze the stack trace, find the root cause, and suggest a fix.' },
   { icon: '📊', label: 'Design database', prompt: 'Help me design a database schema for a new feature.' },
   { icon: '🔍', label: 'Fix broken imports', prompt: 'Analyze my project for missing imports, broken routes, or database query errors and suggest fixes.' },
@@ -197,6 +205,14 @@ const generateToolDetail = (toolName: string, userText: string): string => {
       return 'Inspecting database query…';
     }
     case 'suggest_fix': return 'Generating corrected code…';
+    case 'generate_schema': {
+      const entity = lower.match(/(review|booking|invoice|payment|comment|rating|testimonial|message|order)/i);
+      return entity ? `Designing ${entity[1]} database schema…` : 'Designing database schema with RLS…';
+    }
+    case 'generate_backend': return 'Generating edge function endpoints…';
+    case 'generate_page': return 'Generating page with routing and layout…';
+    case 'generate_components': return 'Generating UI components…';
+    case 'generate_docs': return 'Generating feature documentation…';
     default: return `Running ${toolName}…`;
   }
 };
@@ -216,6 +232,23 @@ const shouldGeneratePlan = (text: string): boolean => {
   return /create|build|implement|add new|develop|make|set up|design/.test(lower) &&
     lower.split(/\s+/).length >= 4;
 };
+
+const isFeatureRequest = (text: string): boolean => {
+  const lower = text.toLowerCase();
+  return /create|build|implement|add/.test(lower) &&
+    /feature|system|module|functionality|capability|tool|section/.test(lower) &&
+    lower.split(/\s+/).length >= 3;
+};
+
+const FEATURE_TOOLS_SEQUENCE = [
+  'analyze_structure',
+  'generate_schema',
+  'generate_backend',
+  'generate_page',
+  'generate_components',
+  'generate_docs',
+  'review_security',
+];
 
 const parsePlanFromResponse = (content: string): PlanStep[] => {
   const steps: PlanStep[] = [];
@@ -469,7 +502,20 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     await simulateToolPhase(convId, 'plan_task', 400 + Math.random() * 400);
     setAgentPhase('generating');
 
-    const planPrompt = `You are a task planner. Given this request, create a numbered step-by-step development plan. Each step should be a single clear action. Only output the numbered list, nothing else.\n\nRequest: ${userText}`;
+    const isFeature = isFeatureRequest(userText);
+    const planPrompt = isFeature
+      ? `You are a full-stack feature planner for a photography SaaS platform (React + Supabase). Given this feature request, create a numbered step-by-step plan covering ALL of these categories:
+
+1. Database schema — tables, columns, types, foreign keys, RLS policies
+2. Backend API — edge functions or API endpoints needed
+3. Frontend page — new page with route registration
+4. UI components — forms, lists, modals, cards needed
+5. Documentation — feature description, API docs, usage guide
+
+Each step must be a single clear action prefixed with its category. Output ONLY the numbered list.
+
+Feature request: ${userText}`
+      : `You are a task planner. Given this request, create a numbered step-by-step development plan. Each step should be a single clear action. Only output the numbered list, nothing else.\n\nRequest: ${userText}`;
 
     const resp = await fetch(CHAT_URL, {
       method: 'POST',
@@ -563,15 +609,29 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
         }
       }
 
-      // Now generate the full response
-      const tools = detectTools(userMsg?.content || '');
-      for (const tool of tools.filter(t => t !== 'plan_task')) {
-        await simulateToolPhase(convId, tool, 200 + Math.random() * 300, userMsg?.content || '');
+      // Now generate the full response — use feature tool sequence if it's a feature request
+      const userText = userMsg?.content || '';
+      const featureMode = isFeatureRequest(userText);
+      const toolsToRun = featureMode
+        ? FEATURE_TOOLS_SEQUENCE
+        : detectTools(userText).filter(t => t !== 'plan_task');
+
+      for (const tool of toolsToRun) {
+        await simulateToolPhase(convId, tool, 300 + Math.random() * 500, userText);
       }
       setAgentPhase('generating');
 
       const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
-      await streamResponse(convId, currentMsgs.filter(m => m.role === 'user' || m.role === 'assistant'));
+      // For feature requests, inject a system hint to generate all artifacts
+      const featureHint = featureMode
+        ? `\n\n[SYSTEM: This is a FULL FEATURE request. Generate complete artifacts: 1) Database schema (CREATE TABLE with RLS), 2) Edge function API, 3) Frontend page component, 4) UI sub-components, 5) Feature documentation. Output each as a separate code block with filename comments.]`
+        : '';
+      const msgsForApi = currentMsgs.filter(m => m.role === 'user' || m.role === 'assistant');
+      if (featureHint && msgsForApi.length > 0) {
+        const lastIdx = msgsForApi.length - 1;
+        msgsForApi[lastIdx] = { ...msgsForApi[lastIdx], content: msgsForApi[lastIdx].content + featureHint };
+      }
+      await streamResponse(convId, msgsForApi);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Execution failed');
     } finally {
