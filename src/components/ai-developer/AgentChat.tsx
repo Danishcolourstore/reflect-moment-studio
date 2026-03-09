@@ -683,6 +683,102 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
                       </div>
                     )}
 
+                    {/* Plan approval card */}
+                    {msg.role === 'plan' && msg.planSteps && (
+                      <div className="flex gap-3">
+                        <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                          <ListChecks className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="max-w-[85%] min-w-0 flex-1">
+                          <div className="rounded-2xl rounded-tl-md border border-border bg-card overflow-hidden">
+                            {/* Header */}
+                            <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 border-b border-border">
+                              <Brain className="h-3.5 w-3.5 text-primary" />
+                              <span className="text-xs font-semibold text-foreground">Development Plan</span>
+                              {msg.planStatus === 'approved' && (
+                                <Badge variant="default" className="text-[8px] h-4 ml-auto gap-1">
+                                  <CheckCircle2 className="h-2.5 w-2.5" />Approved
+                                </Badge>
+                              )}
+                              {msg.planStatus === 'rejected' && (
+                                <Badge variant="destructive" className="text-[8px] h-4 ml-auto gap-1">
+                                  <XCircle className="h-2.5 w-2.5" />Rejected
+                                </Badge>
+                              )}
+                              {msg.planStatus === 'pending' && (
+                                <Badge variant="secondary" className="text-[8px] h-4 ml-auto">Awaiting approval</Badge>
+                              )}
+                            </div>
+
+                            {/* Steps */}
+                            <div className="p-3 space-y-1.5">
+                              {msg.planSteps.map((step, i) => {
+                                const StepIcon = PLAN_STEP_ICONS[step.type] || ListChecks;
+                                return (
+                                  <div
+                                    key={step.id}
+                                    className={cn(
+                                      'flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors',
+                                      step.status === 'running' && 'bg-primary/5 border border-primary/20',
+                                      step.status === 'done' && 'bg-muted/30',
+                                      step.status === 'pending' && 'bg-transparent',
+                                      step.status === 'skipped' && 'opacity-50',
+                                    )}
+                                  >
+                                    <span className="text-[10px] text-muted-foreground font-mono w-4 text-right flex-shrink-0">{i + 1}</span>
+                                    {step.status === 'running' ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin text-primary flex-shrink-0" />
+                                    ) : step.status === 'done' ? (
+                                      <CheckCircle2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                                    ) : (
+                                      <StepIcon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                                    )}
+                                    <span className={cn(
+                                      'text-xs flex-1',
+                                      step.status === 'done' ? 'text-foreground' : 'text-muted-foreground',
+                                      step.status === 'running' && 'text-foreground font-medium',
+                                    )}>{step.label}</span>
+                                    <Badge variant="outline" className="text-[7px] h-4 flex-shrink-0">{step.type}</Badge>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Approval buttons */}
+                            {msg.planStatus === 'pending' && (
+                              <div className="flex items-center gap-2 px-4 py-3 border-t border-border bg-muted/30">
+                                <Button
+                                  size="sm"
+                                  onClick={() => approvePlan(msg.id)}
+                                  disabled={isProcessing}
+                                  className="h-8 text-xs gap-1.5"
+                                >
+                                  <ThumbsUp className="h-3 w-3" />
+                                  Approve & Execute
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => rejectPlan(msg.id)}
+                                  disabled={isProcessing}
+                                  className="h-8 text-xs gap-1.5"
+                                >
+                                  <XCircle className="h-3 w-3" />
+                                  Reject
+                                </Button>
+                                <span className="text-[9px] text-muted-foreground ml-auto">
+                                  {msg.planSteps.length} steps
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-[9px] text-muted-foreground mt-1 ml-1">
+                            {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Assistant bubble */}
                     {msg.role === 'assistant' && (
                       <div className="flex gap-3">
