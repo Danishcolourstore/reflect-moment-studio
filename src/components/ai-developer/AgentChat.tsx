@@ -528,7 +528,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
       // Now generate the full response
       const tools = detectTools(userMsg?.content || '');
       for (const tool of tools.filter(t => t !== 'plan_task')) {
-        await simulateToolPhase(convId, tool, 200 + Math.random() * 300);
+        await simulateToolPhase(convId, tool, 200 + Math.random() * 300, userMsg?.content || '');
       }
       setAgentPhase('generating');
 
