@@ -52,7 +52,7 @@ interface PromptHistory {
   generated_code: string | null;
   status: string;
   created_at: string;
-  file_changes: FileChange[];
+  file_changes: unknown;
 }
 
 export default function SuperAdminAIDeveloper() {
