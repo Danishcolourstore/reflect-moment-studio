@@ -61,6 +61,7 @@ import SuperAdminSettings from "./pages/super-admin/SuperAdminSettings";
 import TemplateBuilder from "./pages/super-admin/TemplateBuilder";
 import SuperAdminGridManager from "./pages/super-admin/SuperAdminGridManager";
 import SuperAdminGalleries from "./pages/super-admin/SuperAdminGalleries";
+import SuperAdminDashboardEditor from "./pages/super-admin/SuperAdminDashboardEditor";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
 import AdminEvents from "./pages/admin/AdminEvents";
