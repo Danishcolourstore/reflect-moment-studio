@@ -12,7 +12,8 @@ if (savedTheme === 'editorial') {
 
 // Register service worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(() => {
+  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then((registration) => {
+    registration.update();
     console.log('SW registered');
   }).catch((err) => {
     console.log('SW registration failed:', err);
