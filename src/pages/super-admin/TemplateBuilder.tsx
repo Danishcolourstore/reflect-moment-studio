@@ -1,11 +1,25 @@
-import { useState, useEffect, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  LayoutTemplate, Image, Users, Briefcase, MessageSquare, Mail,
-  Instagram, Video, GripVertical, Trash2, Plus, Save, Eye, ArrowLeft,
-  Settings2, Copy, Globe, Camera
+  LayoutTemplate,
+  Camera,
+  Users,
+  Briefcase,
+  MessageSquare,
+  Mail,
+  Instagram,
+  Video,
+  GripVertical,
+  Trash2,
+  Plus,
+  Save,
+  ArrowLeft,
+  Settings2,
+  Copy,
+  Globe,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,62 +29,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-/* ─────────────────────────────────────────────────────────────────────
-   SECTION LIBRARY
-─────────────────────────────────────────────────────────────────────── */
-
 const SECTION_LIBRARY = [
-  { type: 'hero', label: 'Hero Section', icon: LayoutTemplate, color: 'text-amber-500' },
-  { type: 'gallery', label: 'Gallery Section', icon: Camera, color: 'text-rose-500' },
-  { type: 'about', label: 'About Section', icon: Users, color: 'text-blue-500' },
-  { type: 'services', label: 'Services Section', icon: Briefcase, color: 'text-emerald-500' },
-  { type: 'testimonials', label: 'Testimonials Section', icon: MessageSquare, color: 'text-violet-500' },
-  { type: 'contact', label: 'Contact Section', icon: Mail, color: 'text-orange-500' },
-  { type: 'instagram', label: 'Instagram Feed', icon: Instagram, color: 'text-pink-500' },
-  { type: 'video', label: 'Video Section', icon: Video, color: 'text-cyan-500' },
+  { type: 'hero', label: 'Hero Section', icon: LayoutTemplate, tone: 'text-primary' },
+  { type: 'gallery', label: 'Gallery Section', icon: Camera, tone: 'text-accent-foreground' },
+  { type: 'about', label: 'About Section', icon: Users, tone: 'text-foreground' },
+  { type: 'services', label: 'Services Section', icon: Briefcase, tone: 'text-muted-foreground' },
+  { type: 'testimonials', label: 'Testimonials Section', icon: MessageSquare, tone: 'text-foreground' },
+  { type: 'contact', label: 'Contact Section', icon: Mail, tone: 'text-accent-foreground' },
+  { type: 'instagram', label: 'Instagram Feed Section', icon: Instagram, tone: 'text-primary' },
+  { type: 'video', label: 'Video Section', icon: Video, tone: 'text-foreground' },
 ] as const;
 
-type SectionType = typeof SECTION_LIBRARY[number]['type'];
-
-/* ─────────────────────────────────────────────────────────────────────
-   TYPES
-─────────────────────────────────────────────────────────────────────── */
+type SectionType = (typeof SECTION_LIBRARY)[number]['type'];
 
 interface TemplateSectionSettings {
-  // Hero
   hero_background_image?: string;
   hero_title?: string;
   hero_subtitle?: string;
   hero_button_text?: string;
 
-  // Gallery
   gallery_layout?: 'masonry' | 'grid' | 'carousel';
   gallery_columns?: number;
   gallery_image_style?: 'cover' | 'contain';
 
-  // About
   about_profile_image?: string;
   about_bio_text?: string;
   about_social_links?: { platform: string; url: string }[];
 
-  // Services
-  services_list?: { title: string; description: string }[];
-
-  // Testimonials
-  testimonials_list?: { name: string; text: string; location?: string }[];
-
-  // Contact
   contact_heading?: string;
   contact_email?: string;
   contact_phone?: string;
 
-  // Instagram
   instagram_username?: string;
-
-  // Video
   video_url?: string;
   video_thumbnail?: string;
 }
@@ -81,257 +73,259 @@ interface TemplateSection {
   settings: TemplateSectionSettings;
 }
 
-interface Template {
-  id?: string;
-  name: string;
-  category: string;
-  sections: TemplateSection[];
-  created_by: string;
-  created_at?: string;
-  published: boolean;
-}
-
-const CATEGORIES = [
-  'Wedding', 'Portrait', 'Studio', 'Fashion', 'Commercial', 'Editorial', 'Lifestyle'
-];
-
-/* ─────────────────────────────────────────────────────────────────────
-   MAIN COMPONENT
-─────────────────────────────────────────────────────────────────────── */
+const CATEGORIES = ['Wedding', 'Portrait', 'Studio', 'Fashion', 'Commercial', 'Editorial', 'Lifestyle'];
 
 export default function TemplateBuilder() {
   const { user } = useAuth();
-
-  // Template metadata
+  const [templateId, setTemplateId] = useState<string | null>(null);
   const [templateName, setTemplateName] = useState('Untitled Template');
   const [templateCategory, setTemplateCategory] = useState('Wedding');
   const [published, setPublished] = useState(false);
-
-  // Sections array
+  const [previewMode, setPreviewMode] = useState(false);
   const [sections, setSections] = useState<TemplateSection[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-
-  // Drag state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const selectedSection = sections.find(s => s.id === selectedSectionId);
+  const selectedSection = useMemo(
+    () => sections.find((section) => section.id === selectedSectionId) ?? null,
+    [sections, selectedSectionId]
+  );
 
-  /* ────────────────── ACTIONS ────────────────── */
+  const getMeta = (type: SectionType) => SECTION_LIBRARY.find((item) => item.type === type);
 
-  const handleAddSection = (type: SectionType) => {
-    const newSection: TemplateSection = {
-      id: crypto.randomUUID(),
-      type,
-      settings: {},
-    };
-    setSections(prev => [...prev, newSection]);
-    setSelectedSectionId(newSection.id);
-    toast.success(`${SECTION_LIBRARY.find(s => s.type === type)?.label} added`);
+  const addSection = (type: SectionType) => {
+    const next: TemplateSection = { id: crypto.randomUUID(), type, settings: {} };
+    setSections((prev) => [...prev, next]);
+    setSelectedSectionId(next.id);
+    toast.success(`${getMeta(type)?.label ?? 'Section'} added`);
   };
 
-  const handleRemoveSection = (id: string) => {
-    setSections(prev => prev.filter(s => s.id !== id));
+  const removeSection = (id: string) => {
+    setSections((prev) => prev.filter((section) => section.id !== id));
     if (selectedSectionId === id) setSelectedSectionId(null);
   };
 
-  const handleDuplicateSection = (id: string) => {
-    const section = sections.find(s => s.id === id);
-    if (!section) return;
-    const duplicate: TemplateSection = { ...section, id: crypto.randomUUID() };
-    const index = sections.findIndex(s => s.id === id);
-    const newSections = [...sections];
-    newSections.splice(index + 1, 0, duplicate);
-    setSections(newSections);
+  const duplicateSection = (id: string) => {
+    const source = sections.find((section) => section.id === id);
+    if (!source) return;
+    const duplicate: TemplateSection = {
+      ...source,
+      id: crypto.randomUUID(),
+      settings: { ...source.settings },
+    };
+    const sourceIndex = sections.findIndex((section) => section.id === id);
+    setSections((prev) => {
+      const next = [...prev];
+      next.splice(sourceIndex + 1, 0, duplicate);
+      return next;
+    });
     toast.success('Section duplicated');
   };
 
-  const handleUpdateSettings = (key: keyof TemplateSectionSettings, value: any) => {
+  const updateSelectedSettings = (key: keyof TemplateSectionSettings, value: unknown) => {
     if (!selectedSection) return;
-    setSections(prev => prev.map(s => s.id === selectedSection.id
-      ? { ...s, settings: { ...s.settings, [key]: value } }
-      : s
-    ));
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id === selectedSection.id
+          ? { ...section, settings: { ...section.settings, [key]: value } }
+          : section
+      )
+    );
   };
 
-  const handleSaveTemplate = async () => {
-    if (!user) return;
+  const persistTemplate = async (nextPublished = published) => {
+    if (!user) return false;
     if (!templateName.trim()) {
-      toast.error('Please enter a template name');
-      return;
+      toast.error('Template name is required');
+      return false;
     }
 
-    const template: Template = {
-      name: templateName,
+    setSaving(true);
+    const payload = {
+      name: templateName.trim(),
       category: templateCategory,
       sections,
       created_by: user.id,
-      published,
+      published: nextPublished,
     };
 
-    const { error } = await supabase.from('templates').insert(template as any);
-    if (error) {
-      toast.error(`Save failed: ${error.message}`);
-      return;
+    try {
+      if (templateId) {
+        const { error } = await (supabase.from('templates' as any) as any).update(payload).eq('id', templateId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await (supabase.from('templates' as any) as any)
+          .insert(payload)
+          .select('id')
+          .single();
+        if (error) throw error;
+        setTemplateId(data.id);
+      }
+
+      setPublished(nextPublished);
+      toast.success('Template saved');
+      return true;
+    } catch (error: any) {
+      toast.error(error.message ?? 'Failed to save template');
+      return false;
+    } finally {
+      setSaving(false);
     }
-
-    toast.success('Template saved successfully');
   };
 
-  const handlePublishTemplate = async () => {
-    setPublished(prev => !prev);
-    toast.success(published ? 'Template unpublished' : 'Template published');
+  const onSave = async () => {
+    await persistTemplate(published);
   };
 
-  /* ────────────────── DRAG & DROP ────────────────── */
-
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
+  const onPublish = async () => {
+    const next = !published;
+    const success = await persistTemplate(next);
+    if (success) toast.success(next ? 'Template published' : 'Template unpublished');
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
+  const onDragStart = (index: number) => setDraggedIndex(index);
 
-    const newSections = [...sections];
-    const [removed] = newSections.splice(draggedIndex, 1);
-    newSections.splice(index, 0, removed);
-    setSections(newSections);
-    setDraggedIndex(index);
+  const onDragOver = (event: React.DragEvent, overIndex: number) => {
+    event.preventDefault();
+    if (draggedIndex === null || draggedIndex === overIndex) return;
+
+    setSections((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(draggedIndex, 1);
+      next.splice(overIndex, 0, moved);
+      return next;
+    });
+
+    setDraggedIndex(overIndex);
   };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
-
-  /* ────────────────── RENDER HELPERS ────────────────── */
-
-  const getSectionMeta = (type: SectionType) => SECTION_LIBRARY.find(s => s.type === type);
 
   const renderSectionPreview = (section: TemplateSection) => {
-    const meta = getSectionMeta(section.type);
+    const meta = getMeta(section.type);
     if (!meta) return null;
 
     return (
       <Card
         className={cn(
-          'p-6 border-2 cursor-pointer transition-all',
+          'p-6 border-2 transition-all cursor-pointer',
           selectedSectionId === section.id
-            ? 'border-amber-500 bg-amber-500/5'
-            : 'border-border hover:border-amber-500/30 hover:bg-muted/30'
+            ? 'border-primary bg-primary/5'
+            : 'border-border hover:border-primary/30 hover:bg-muted/30'
         )}
         onClick={() => setSelectedSectionId(section.id)}
       >
-        <div className="flex items-center gap-3 mb-4">
-          <meta.icon className={cn('h-5 w-5', meta.color)} />
-          <h3 className="font-semibold text-foreground">{meta.label}</h3>
+        <div className="flex items-center gap-2.5 mb-4">
+          <meta.icon className={cn('h-5 w-5', meta.tone)} />
+          <h3 className="text-sm font-semibold text-foreground">{meta.label}</h3>
         </div>
 
-        {/* Mini preview based on type */}
         {section.type === 'hero' && (
-          <div className="bg-muted rounded p-4 text-sm text-muted-foreground">
-            <p className="font-bold mb-1">{section.settings.hero_title || 'Hero Title'}</p>
-            <p className="text-xs">{section.settings.hero_subtitle || 'Subtitle here'}</p>
-          </div>
-        )}
-        {section.type === 'gallery' && (
-          <div className="grid grid-cols-3 gap-2">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="aspect-square bg-muted rounded" />
-            ))}
-          </div>
-        )}
-        {section.type === 'about' && (
-          <div className="flex gap-4">
-            <div className="h-16 w-16 rounded-full bg-muted" />
-            <div className="flex-1">
-              <div className="h-3 bg-muted rounded mb-2 w-3/4" />
-              <div className="h-3 bg-muted rounded w-1/2" />
+          <div className="rounded-md border border-border bg-card p-4">
+            <div className="h-24 rounded bg-muted mb-3" />
+            <p className="text-sm font-medium text-foreground">{section.settings.hero_title || 'Studio Name'}</p>
+            <p className="text-xs text-muted-foreground mt-1">{section.settings.hero_subtitle || 'Tagline goes here'}</p>
+            <div className="mt-3 inline-flex rounded px-3 py-1 text-xs bg-primary text-primary-foreground">
+              {section.settings.hero_button_text || 'Book Now'}
             </div>
           </div>
         )}
-        {!['hero', 'gallery', 'about'].includes(section.type) && (
-          <div className="bg-muted rounded p-3 text-xs text-muted-foreground">
-            Section preview
+
+        {section.type === 'gallery' && (
+          <div className="grid grid-cols-3 gap-2">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <div key={item} className="aspect-square rounded bg-muted" />
+            ))}
           </div>
+        )}
+
+        {section.type === 'about' && (
+          <div className="flex items-start gap-3">
+            <div className="h-16 w-16 rounded-full bg-muted" />
+            <div className="flex-1 space-y-2">
+              <div className="h-2.5 w-3/4 rounded bg-muted" />
+              <div className="h-2.5 w-full rounded bg-muted" />
+              <div className="h-2.5 w-2/3 rounded bg-muted" />
+            </div>
+          </div>
+        )}
+
+        {!['hero', 'gallery', 'about'].includes(section.type) && (
+          <div className="rounded-md border border-border bg-card px-3 py-4 text-xs text-muted-foreground">Section placeholder layout</div>
         )}
       </Card>
     );
   };
 
-  const renderSettingsPanel = () => {
+  const settingsPanel = () => {
     if (!selectedSection) {
       return (
-        <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-          <Settings2 className="h-12 w-12 mb-3 opacity-20" />
-          <p className="text-sm">Select a section to edit its settings</p>
+        <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
+          <Settings2 className="h-10 w-10 mb-3 opacity-50" />
+          <p className="text-sm">Select a section to edit settings.</p>
         </div>
       );
     }
 
-    const meta = getSectionMeta(selectedSection.type);
+    const meta = getMeta(selectedSection.type);
     if (!meta) return null;
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-2 pb-3 border-b border-border">
-          <meta.icon className={cn('h-5 w-5', meta.color)} />
-          <h3 className="font-semibold text-foreground">{meta.label}</h3>
+        <div className="flex items-center gap-2 pb-2 border-b border-border">
+          <meta.icon className={cn('h-4 w-4', meta.tone)} />
+          <p className="text-sm font-semibold text-foreground">{meta.label} Settings</p>
         </div>
 
-        {/* Hero Settings */}
         {selectedSection.type === 'hero' && (
           <>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Background Image URL</Label>
+              <Label className="text-xs text-muted-foreground">Background Image</Label>
               <Input
+                className="mt-1.5"
                 value={selectedSection.settings.hero_background_image || ''}
-                onChange={(e) => handleUpdateSettings('hero_background_image', e.target.value)}
+                onChange={(event) => updateSelectedSettings('hero_background_image', event.target.value)}
                 placeholder="https://..."
-                className="mt-1.5"
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Title</Label>
+              <Label className="text-xs text-muted-foreground">Title</Label>
               <Input
+                className="mt-1.5"
                 value={selectedSection.settings.hero_title || ''}
-                onChange={(e) => handleUpdateSettings('hero_title', e.target.value)}
-                placeholder="Your Studio Name"
-                className="mt-1.5"
+                onChange={(event) => updateSelectedSettings('hero_title', event.target.value)}
+                placeholder="Studio Name"
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Subtitle</Label>
+              <Label className="text-xs text-muted-foreground">Subtitle</Label>
               <Input
+                className="mt-1.5"
                 value={selectedSection.settings.hero_subtitle || ''}
-                onChange={(e) => handleUpdateSettings('hero_subtitle', e.target.value)}
+                onChange={(event) => updateSelectedSettings('hero_subtitle', event.target.value)}
                 placeholder="Capturing timeless moments"
-                className="mt-1.5"
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Button Text</Label>
+              <Label className="text-xs text-muted-foreground">Button Text</Label>
               <Input
-                value={selectedSection.settings.hero_button_text || ''}
-                onChange={(e) => handleUpdateSettings('hero_button_text', e.target.value)}
-                placeholder="View Portfolio"
                 className="mt-1.5"
+                value={selectedSection.settings.hero_button_text || ''}
+                onChange={(event) => updateSelectedSettings('hero_button_text', event.target.value)}
+                placeholder="View Portfolio"
               />
             </div>
           </>
         )}
 
-        {/* Gallery Settings */}
         {selectedSection.type === 'gallery' && (
           <>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Layout Type</Label>
+              <Label className="text-xs text-muted-foreground">Layout Type</Label>
               <Select
                 value={selectedSection.settings.gallery_layout || 'masonry'}
-                onValueChange={(val) => handleUpdateSettings('gallery_layout', val)}
+                onValueChange={(value) => updateSelectedSettings('gallery_layout', value)}
               >
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="masonry">Masonry</SelectItem>
                   <SelectItem value="grid">Grid</SelectItem>
@@ -340,30 +334,26 @@ export default function TemplateBuilder() {
               </Select>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Grid Columns</Label>
+              <Label className="text-xs text-muted-foreground">Grid Columns</Label>
               <Select
                 value={String(selectedSection.settings.gallery_columns || 3)}
-                onValueChange={(val) => handleUpdateSettings('gallery_columns', Number(val))}
+                onValueChange={(value) => updateSelectedSettings('gallery_columns', Number(value))}
               >
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2">2 Columns</SelectItem>
-                  <SelectItem value="3">3 Columns</SelectItem>
-                  <SelectItem value="4">4 Columns</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Image Style</Label>
+              <Label className="text-xs text-muted-foreground">Image Style</Label>
               <Select
                 value={selectedSection.settings.gallery_image_style || 'cover'}
-                onValueChange={(val) => handleUpdateSettings('gallery_image_style', val)}
+                onValueChange={(value) => updateSelectedSettings('gallery_image_style', value)}
               >
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cover">Cover</SelectItem>
                   <SelectItem value="contain">Contain</SelectItem>
@@ -373,229 +363,156 @@ export default function TemplateBuilder() {
           </>
         )}
 
-        {/* About Settings */}
         {selectedSection.type === 'about' && (
           <>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Profile Image URL</Label>
+              <Label className="text-xs text-muted-foreground">Profile Image</Label>
               <Input
+                className="mt-1.5"
                 value={selectedSection.settings.about_profile_image || ''}
-                onChange={(e) => handleUpdateSettings('about_profile_image', e.target.value)}
+                onChange={(event) => updateSelectedSettings('about_profile_image', event.target.value)}
                 placeholder="https://..."
-                className="mt-1.5"
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Bio Text</Label>
+              <Label className="text-xs text-muted-foreground">Bio Text</Label>
               <Textarea
+                className="mt-1.5"
+                rows={5}
                 value={selectedSection.settings.about_bio_text || ''}
-                onChange={(e) => handleUpdateSettings('about_bio_text', e.target.value)}
-                placeholder="Tell your story..."
-                rows={6}
+                onChange={(event) => updateSelectedSettings('about_bio_text', event.target.value)}
+                placeholder="Write a short studio bio"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Social Links (one URL per line)</Label>
+              <Textarea
                 className="mt-1.5"
+                rows={4}
+                value={(selectedSection.settings.about_social_links || []).map((item) => item.url).join('\n')}
+                onChange={(event) =>
+                  updateSelectedSettings(
+                    'about_social_links',
+                    event.target.value
+                      .split('\n')
+                      .map((url) => url.trim())
+                      .filter(Boolean)
+                      .map((url) => ({ platform: 'social', url }))
+                  )
+                }
+                placeholder="https://instagram.com/yourstudio"
               />
             </div>
           </>
         )}
 
-        {/* Contact Settings */}
-        {selectedSection.type === 'contact' && (
-          <>
-            <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Heading</Label>
-              <Input
-                value={selectedSection.settings.contact_heading || ''}
-                onChange={(e) => handleUpdateSettings('contact_heading', e.target.value)}
-                placeholder="Get In Touch"
-                className="mt-1.5"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Email</Label>
-              <Input
-                value={selectedSection.settings.contact_email || ''}
-                onChange={(e) => handleUpdateSettings('contact_email', e.target.value)}
-                placeholder="hello@studio.com"
-                className="mt-1.5"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Phone</Label>
-              <Input
-                value={selectedSection.settings.contact_phone || ''}
-                onChange={(e) => handleUpdateSettings('contact_phone', e.target.value)}
-                placeholder="+1 234 567 8900"
-                className="mt-1.5"
-              />
-            </div>
-          </>
-        )}
-
-        {/* Instagram Settings */}
-        {selectedSection.type === 'instagram' && (
-          <div>
-            <Label className="text-xs text-muted-foreground uppercase tracking-wide">Instagram Username</Label>
-            <Input
-              value={selectedSection.settings.instagram_username || ''}
-              onChange={(e) => handleUpdateSettings('instagram_username', e.target.value)}
-              placeholder="@yourstudio"
-              className="mt-1.5"
-            />
-          </div>
-        )}
-
-        {/* Video Settings */}
-        {selectedSection.type === 'video' && (
-          <>
-            <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Video URL</Label>
-              <Input
-                value={selectedSection.settings.video_url || ''}
-                onChange={(e) => handleUpdateSettings('video_url', e.target.value)}
-                placeholder="https://vimeo.com/..."
-                className="mt-1.5"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">Thumbnail URL</Label>
-              <Input
-                value={selectedSection.settings.video_thumbnail || ''}
-                onChange={(e) => handleUpdateSettings('video_thumbnail', e.target.value)}
-                placeholder="https://..."
-                className="mt-1.5"
-              />
-            </div>
-          </>
-        )}
-
-        {/* Generic fallback for other types */}
-        {!['hero', 'gallery', 'about', 'contact', 'instagram', 'video'].includes(selectedSection.type) && (
-          <p className="text-sm text-muted-foreground">No configurable settings for this section type.</p>
+        {!['hero', 'gallery', 'about'].includes(selectedSection.type) && (
+          <p className="text-sm text-muted-foreground">Settings for this section can be added as needed.</p>
         )}
       </div>
     );
   };
 
-  /* ────────────────── RENDER ────────────────── */
-
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Top Bar */}
-      <header className="h-14 border-b border-border bg-card/50 flex items-center justify-between px-4">
-        <div className="flex items-center gap-3">
+      <header className="h-14 border-b border-border bg-card/50 px-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
           <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <Input
+            className="h-8 w-64"
             value={templateName}
-            onChange={(e) => setTemplateName(e.target.value)}
-            className="w-64 h-8 bg-background"
+            onChange={(event) => setTemplateName(event.target.value)}
             placeholder="Template Name"
           />
           <Select value={templateCategory} onValueChange={setTemplateCategory}>
-            <SelectTrigger className="w-40 h-8 bg-background">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {CATEGORIES.map(cat => (
-                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              {CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant={published ? 'default' : 'secondary'} className="text-xs">
-            {published ? 'Published' : 'Draft'}
-          </Badge>
-          <Button variant="outline" size="sm" onClick={handlePublishTemplate}>
-            <Globe className="h-4 w-4 mr-1.5" />
-            {published ? 'Unpublish' : 'Publish'}
+          <Badge variant={published ? 'default' : 'secondary'}>{published ? 'Published' : 'Draft'}</Badge>
+          <Button variant="outline" size="sm" onClick={() => setPreviewMode((prev) => !prev)}>
+            <Eye className="h-4 w-4 mr-1.5" />
+            {previewMode ? 'Exit Preview' : 'Preview Template'}
           </Button>
-          <Button size="sm" onClick={handleSaveTemplate}>
+          <Button variant="outline" size="sm" onClick={onPublish} disabled={saving}>
+            <Globe className="h-4 w-4 mr-1.5" />
+            Publish Template
+          </Button>
+          <Button size="sm" onClick={onSave} disabled={saving}>
             <Save className="h-4 w-4 mr-1.5" />
             Save Template
           </Button>
         </div>
       </header>
 
-      {/* Body: 3-Column Layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* LEFT PANEL: Section Library */}
-        <aside className="w-64 border-r border-border bg-card/30">
-          <ScrollArea className="h-full">
-            <div className="p-4 space-y-3">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Section Library
-              </h3>
-              {SECTION_LIBRARY.map(section => (
-                <Button
-                  key={section.type}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddSection(section.type)}
-                  className="w-full justify-start text-sm h-auto py-2.5"
-                >
-                  <section.icon className={cn('h-4 w-4 mr-2', section.color)} />
-                  <span className="truncate">{section.label}</span>
-                  <Plus className="h-3.5 w-3.5 ml-auto opacity-50" />
-                </Button>
-              ))}
-            </div>
-          </ScrollArea>
-        </aside>
+        {!previewMode && (
+          <aside className="w-64 border-r border-border bg-card/30">
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Section Library</h3>
+                {SECTION_LIBRARY.map((section) => (
+                  <Button
+                    key={section.type}
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start h-auto py-2.5"
+                    onClick={() => addSection(section.type)}
+                  >
+                    <section.icon className={cn('h-4 w-4 mr-2', section.tone)} />
+                    <span className="truncate">{section.label}</span>
+                    <Plus className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
+                  </Button>
+                ))}
+              </div>
+            </ScrollArea>
+          </aside>
+        )}
 
-        {/* CENTER AREA: Page Builder Canvas */}
         <main className="flex-1 overflow-auto bg-muted/20">
           <ScrollArea className="h-full">
             <div className="p-8 max-w-5xl mx-auto">
               {sections.length === 0 ? (
                 <div className="border-2 border-dashed border-border rounded-lg p-12 text-center">
-                  <LayoutTemplate className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-30" />
-                  <p className="text-sm text-muted-foreground">
-                    No sections yet. Add sections from the library on the left.
-                  </p>
+                  <LayoutTemplate className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Add sections from the left panel to start building this template.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {sections.map((section, index) => {
-                    const meta = getSectionMeta(section.type);
+                    const meta = getMeta(section.type);
                     if (!meta) return null;
 
                     return (
                       <div
                         key={section.id}
-                        draggable
-                        onDragStart={() => handleDragStart(index)}
-                        onDragOver={(e) => handleDragOver(e, index)}
-                        onDragEnd={handleDragEnd}
-                        className={cn(
-                          'group relative',
-                          draggedIndex === index && 'opacity-50'
-                        )}
+                        draggable={!previewMode}
+                        onDragStart={() => onDragStart(index)}
+                        onDragOver={(event) => onDragOver(event, index)}
+                        onDragEnd={() => setDraggedIndex(null)}
+                        className={cn('relative group', draggedIndex === index && 'opacity-60')}
                       >
-                        {/* Section Tools */}
-                        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() => handleDuplicateSection(section.id)}
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() => handleRemoveSection(section.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
-                          <div className="h-7 w-7 flex items-center justify-center cursor-grab active:cursor-grabbing bg-secondary rounded text-muted-foreground">
-                            <GripVertical className="h-4 w-4" />
+                        {!previewMode && (
+                          <div className="absolute top-2 right-2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="secondary" size="sm" className="h-7 w-7 p-0" onClick={() => duplicateSection(section.id)}>
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button variant="secondary" size="sm" className="h-7 w-7 p-0" onClick={() => removeSection(section.id)}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                            <div className="h-7 w-7 rounded bg-secondary flex items-center justify-center text-muted-foreground cursor-grab active:cursor-grabbing">
+                              <GripVertical className="h-4 w-4" />
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {renderSectionPreview(section)}
                       </div>
@@ -607,17 +524,16 @@ export default function TemplateBuilder() {
           </ScrollArea>
         </main>
 
-        {/* RIGHT PANEL: Section Settings */}
-        <aside className="w-80 border-l border-border bg-card/30">
-          <ScrollArea className="h-full">
-            <div className="p-4">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                Section Settings
-              </h3>
-              {renderSettingsPanel()}
-            </div>
-          </ScrollArea>
-        </aside>
+        {!previewMode && (
+          <aside className="w-80 border-l border-border bg-card/30">
+            <ScrollArea className="h-full">
+              <div className="p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">Section Settings</h3>
+                {settingsPanel()}
+              </div>
+            </ScrollArea>
+          </aside>
+        )}
       </div>
     </div>
   );
