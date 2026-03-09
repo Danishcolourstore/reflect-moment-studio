@@ -96,6 +96,14 @@ interface TaskStep {
   status: 'pending' | 'running' | 'done' | 'error';
 }
 
+interface PlanStep {
+  id: string;
+  label: string;
+  type: 'database' | 'api' | 'page' | 'component' | 'config' | 'test' | 'general';
+  description?: string;
+  status: 'pending' | 'running' | 'done' | 'skipped';
+}
+
 interface Conversation {
   id: string;
   title: string;
