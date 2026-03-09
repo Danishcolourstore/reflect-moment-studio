@@ -1915,6 +1915,132 @@ export type Database = {
           },
         ]
       }
+      platform_features: {
+        Row: {
+          allowed_roles: string[] | null
+          created_at: string
+          feature_description: string | null
+          feature_icon: string | null
+          feature_key: string
+          feature_name: string
+          feature_route: string | null
+          feature_type: string
+          id: string
+          is_enabled: boolean
+          is_premium: boolean
+          settings_json: Json | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_roles?: string[] | null
+          created_at?: string
+          feature_description?: string | null
+          feature_icon?: string | null
+          feature_key: string
+          feature_name: string
+          feature_route?: string | null
+          feature_type?: string
+          id?: string
+          is_enabled?: boolean
+          is_premium?: boolean
+          settings_json?: Json | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_roles?: string[] | null
+          created_at?: string
+          feature_description?: string | null
+          feature_icon?: string | null
+          feature_key?: string
+          feature_name?: string
+          feature_route?: string | null
+          feature_type?: string
+          id?: string
+          is_enabled?: boolean
+          is_premium?: boolean
+          settings_json?: Json | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_layouts: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          layout_config: Json
+          layout_name: string
+          layout_type: string
+          page_key: string
+          responsive_config: Json | null
+          target_roles: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          layout_config?: Json
+          layout_name?: string
+          layout_type?: string
+          page_key: string
+          responsive_config?: Json | null
+          target_roles?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          layout_config?: Json
+          layout_name?: string
+          layout_type?: string
+          page_key?: string
+          responsive_config?: Json | null
+          target_roles?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_permissions: {
+        Row: {
+          can_create: boolean
+          can_delete: boolean
+          can_edit: boolean
+          can_view: boolean
+          created_at: string
+          custom_permissions: Json | null
+          feature_key: string
+          id: string
+          role: string
+        }
+        Insert: {
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          custom_permissions?: Json | null
+          feature_key: string
+          id?: string
+          role: string
+        }
+        Update: {
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          custom_permissions?: Json | null
+          feature_key?: string
+          id?: string
+          role?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           id: string
@@ -1933,6 +2059,33 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string
+        }
+        Relationships: []
+      }
+      platform_ui_settings: {
+        Row: {
+          description: string | null
+          id: string
+          setting_category: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          setting_category: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          setting_category?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
         }
         Relationships: []
       }
