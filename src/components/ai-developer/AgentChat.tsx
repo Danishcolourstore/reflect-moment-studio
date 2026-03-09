@@ -59,6 +59,10 @@ const TOOL_ICON_MAP: Record<string, typeof Database> = {
   brain: Brain,
   test: TestTube2,
   shield: Shield,
+  bug: Bug,
+  link: Link2,
+  route: Route,
+  searchcode: SearchCode,
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
