@@ -15,6 +15,119 @@ import { createTextLayer, FONTS, FONT_GROUPS } from "@/components/grid-builder/t
 
 import { cn } from "@/lib/utils";
 
+/* -----------------------------
+ALBUM TEMPLATES (FIXED)
+cells must be tuple
+[number, number, number, number]
+------------------------------ */
+
+const ALBUM_TEMPLATES: {
+  id: string;
+  name: string;
+  desc: string;
+  layout: {
+    gridCols: number;
+    gridRows: number;
+    cells: [number, number, number, number][];
+  };
+}[] = [
+  {
+    id: "full-bleed",
+    name: "1 Photo — Full Bleed",
+    desc: "Single photo fills the page",
+    layout: {
+      gridCols: 1,
+      gridRows: 1,
+      cells: [[1, 1, 2, 2]],
+    },
+  },
+
+  {
+    id: "h-split",
+    name: "2 Photos — H Split",
+    desc: "Two photos side by side",
+    layout: {
+      gridCols: 2,
+      gridRows: 1,
+      cells: [
+        [1, 1, 2, 2],
+        [1, 2, 2, 3],
+      ],
+    },
+  },
+
+  {
+    id: "v-split",
+    name: "2 Photos — V Split",
+    desc: "Two photos stacked",
+    layout: {
+      gridCols: 1,
+      gridRows: 2,
+      cells: [
+        [1, 1, 2, 2],
+        [2, 1, 3, 2],
+      ],
+    },
+  },
+
+  {
+    id: "grid-3",
+    name: "3 Photos — Grid",
+    desc: "Three photo layout",
+    layout: {
+      gridCols: 1,
+      gridRows: 3,
+      cells: [
+        [1, 1, 2, 2],
+        [2, 1, 3, 2],
+        [3, 1, 4, 2],
+      ],
+    },
+  },
+
+  {
+    id: "collage-4",
+    name: "4 Photos — Collage",
+    desc: "Four photo grid",
+    layout: {
+      gridCols: 2,
+      gridRows: 2,
+      cells: [
+        [1, 1, 2, 2],
+        [1, 2, 2, 3],
+        [2, 1, 3, 2],
+        [2, 2, 3, 3],
+      ],
+    },
+  },
+
+  {
+    id: "story",
+    name: "Story Layout",
+    desc: "Large photo + strip",
+    layout: {
+      gridCols: 2,
+      gridRows: 3,
+      cells: [
+        [1, 1, 3, 3],
+        [3, 1, 4, 2],
+        [3, 2, 4, 3],
+      ],
+    },
+  },
+];
+
+/* -----------------------------
+PAPER TEXTURES
+------------------------------ */
+
+const PAPER_TEXTURES = [
+  { id: "white", label: "White", color: "#ffffff" },
+  { id: "cream", label: "Cream", color: "#F5F0E8" },
+  { id: "linen", label: "Linen", color: "#EDE8DE" },
+  { id: "dark", label: "Dark", color: "#1a1a1a" },
+];
+
 interface Props {
   onApplyTemplate: (layout: Partial<GridLayout>) => void;
 
@@ -41,49 +154,6 @@ interface Props {
   onPaperTextureChange: (t: string) => void;
 }
 
-/* ---------------- Templates ---------------- */
-
-const ALBUM_TEMPLATES = [
-  { id: "full", name: "Full Photo", layout: { gridCols: 1, gridRows: 1, cells: [[1, 1, 2, 2]] } },
-  {
-    id: "split",
-    name: "2 Split",
-    layout: {
-      gridCols: 2,
-      gridRows: 1,
-      cells: [
-        [1, 1, 2, 2],
-        [1, 2, 2, 3],
-      ],
-    },
-  },
-  {
-    id: "grid4",
-    name: "4 Grid",
-    layout: {
-      gridCols: 2,
-      gridRows: 2,
-      cells: [
-        [1, 1, 2, 2],
-        [1, 2, 2, 3],
-        [2, 1, 3, 2],
-        [2, 2, 3, 3],
-      ],
-    },
-  },
-];
-
-/* ---------------- Paper textures ---------------- */
-
-const PAPER_TEXTURES = [
-  { id: "white", label: "White", color: "#ffffff" },
-  { id: "cream", label: "Cream", color: "#F5F0E8" },
-  { id: "linen", label: "Linen", color: "#EDE8DE" },
-  { id: "dark", label: "Dark", color: "#1a1a1a" },
-];
-
-/* ---------------- Component ---------------- */
-
 export default function AlbumRightPanel({
   onApplyTemplate,
 
@@ -109,9 +179,7 @@ export default function AlbumRightPanel({
   paperTexture,
   onPaperTextureChange,
 }: Props) {
-  const selectedText = textLayers.find((l) => l.id === selectedTextId) || null;
-
-  /* -------- reorder text layers (correct stacking) -------- */
+  const selectedText = textLayers.find((l) => l.id === selectedTextId);
 
   const moveTextLayer = (direction: "up" | "down") => {
     if (!selectedText) return;
@@ -136,7 +204,7 @@ export default function AlbumRightPanel({
   return (
     <div className="w-64 xl:w-72 border-l border-border bg-card flex flex-col">
       <Tabs defaultValue="layout" className="flex flex-col h-full">
-        {/* TAB HEADER */}
+        {/* Tabs header */}
 
         <TabsList className="border-b h-10 rounded-none">
           <TabsTrigger value="layout" className="flex-1 text-xs">
@@ -160,7 +228,7 @@ export default function AlbumRightPanel({
           </TabsTrigger>
         </TabsList>
 
-        {/* -------- Layout Tab -------- */}
+        {/* Layout tab */}
 
         <TabsContent value="layout" className="p-3 space-y-2">
           {ALBUM_TEMPLATES.map((t) => (
@@ -176,7 +244,7 @@ export default function AlbumRightPanel({
           ))}
         </TabsContent>
 
-        {/* -------- Text Tab -------- */}
+        {/* Text tab */}
 
         <TabsContent value="text" className="p-3 space-y-3">
           <Button
@@ -279,26 +347,26 @@ export default function AlbumRightPanel({
           )}
         </TabsContent>
 
-        {/* -------- Guides Tab -------- */}
+        {/* Guides tab */}
 
         <TabsContent value="guides" className="p-3 space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between">
             <Label className="text-xs">Bleed</Label>
             <Switch checked={showBleed} onCheckedChange={onToggleBleed} />
           </div>
 
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between">
             <Label className="text-xs">Safe Margin</Label>
             <Switch checked={showSafeMargin} onCheckedChange={onToggleSafe} />
           </div>
 
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between">
             <Label className="text-xs">Spine</Label>
             <Switch checked={showSpine} onCheckedChange={onToggleSpine} />
           </div>
         </TabsContent>
 
-        {/* -------- Page Tab -------- */}
+        {/* Page tab */}
 
         <TabsContent value="page" className="p-3 space-y-4">
           <Label className="text-xs">Background</Label>
@@ -318,6 +386,7 @@ export default function AlbumRightPanel({
                 className={cn("border rounded p-2", paperTexture === t.id && "border-primary")}
               >
                 <div className="h-6 rounded" style={{ background: t.color }} />
+
                 <span className="text-[10px]">{t.label}</span>
               </button>
             ))}
