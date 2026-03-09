@@ -275,14 +275,21 @@ async function handleAnthropic(messages: { role: string; content: string }[], sy
     const errorText = await response.text();
     console.error("Anthropic error:", response.status, errorText);
     if (response.status === 429) {
-      return new Response(JSON.stringify({ error: "Anthropic rate limit exceeded." }),
+      return new Response(JSON.stringify({ error: "Anthropic rate limit exceeded. Please try again later." }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     if (response.status === 401) {
-      return new Response(JSON.stringify({ error: "Invalid Anthropic API key." }),
+      return new Response(JSON.stringify({ error: "Invalid Anthropic API key. Check your Cloud secrets." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    return new Response(JSON.stringify({ error: "Anthropic API request failed" }),
+    // Handle credit balance exhausted error
+    if (response.status === 400 && errorText.includes("credit balance is too low")) {
+      return new Response(JSON.stringify({ 
+        error: "Anthropic API credits exhausted. Please add credits at console.anthropic.com or switch to Lovable AI (Gemini)." 
+      }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify({ error: "Anthropic API request failed: " + errorText }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
