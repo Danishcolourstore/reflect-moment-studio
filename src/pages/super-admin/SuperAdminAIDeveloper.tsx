@@ -82,7 +82,7 @@ interface PromptHistory {
 interface ChatMessage { role: 'user' | 'assistant'; content: string; }
 
 // ──────────── Codebase Index ────────────
-interface FolderNode { name: string; type: 'folder' | 'file'; children?: FolderNode[]; icon?: string; }
+interface FolderNode { name: string; type: 'folder' | 'file'; children?: FolderNode[]; icon?: string; path?: string; }
 
 // ──────────── Codebase Memory System ────────────
 interface MemoryEntry {
