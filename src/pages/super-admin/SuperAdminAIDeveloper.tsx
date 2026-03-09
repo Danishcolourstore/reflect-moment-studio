@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
+import AgentChat from '@/components/ai-developer/AgentChat';
 
 // ──────────── Types ────────────
 interface FileChange {
