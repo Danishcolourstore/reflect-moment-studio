@@ -1,5 +1,5 @@
-const CACHE_NAME = 'mirrorai-v1';
-const SHELL_URLS = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
+const CACHE_NAME = 'mirrorai-v2';
+const SHELL_URLS = ['/', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -18,14 +18,42 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  // Network-first for API calls
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Never cache API/backend calls
   if (url.hostname.includes('supabase') || url.pathname.startsWith('/rest/') || url.pathname.startsWith('/functions/')) {
-    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+    event.respondWith(fetch(request));
     return;
   }
-  // Cache-first for shell
+
+  // Always fetch fresh HTML first (prevents stale deployed UI)
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('/')))
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for static assets
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    caches.match(request).then((cached) => {
+      const networkFetch = fetch(request)
+        .then((response) => {
+          if (response && response.status === 200 && request.method === 'GET') {
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+          }
+          return response;
+        })
+        .catch(() => cached);
+
+      return cached || networkFetch;
+    })
   );
 });
