@@ -10,6 +10,7 @@ import { GalleryShell } from "./components/GalleryShell";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
+import { SUPER_ADMIN_ROUTES } from "@/config/super-admin-routes";
 
 // ─── Lazy-loaded pages ───
 const Auth = lazy(() => import("./pages/Auth"));
