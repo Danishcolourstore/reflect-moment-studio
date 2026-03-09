@@ -7,6 +7,7 @@ import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
   LogOut, Moon, Sparkles, Bell, ChevronRight, Menu,
 } from 'lucide-react';
+import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -238,6 +239,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {PAGE_TITLES[location.pathname] || ''}
         </h2>
         <div className="flex items-center gap-3">
+          {/* Realtime status indicator */}
+          <RealtimeStatusIndicator />
           {/* Theme switcher — Dark / Editorial / Classic */}
           <div className="flex items-center rounded-full border border-border bg-card overflow-hidden">
             {([
