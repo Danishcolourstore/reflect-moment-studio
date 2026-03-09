@@ -739,19 +739,39 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
                 {messages.map((msg) => (
                   <div key={msg.id}>
                     {/* Tool indicator */}
-                    {msg.role === 'tool' && msg.toolName && (
-                      <div className="flex items-center gap-2 py-1 ml-11">
-                        {msg.toolStatus === 'running' ? (
-                          <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                        ) : (
-                          <CheckCircle2 className="h-3 w-3 text-green-500" />
-                        )}
-                        <span className="text-[10px] text-muted-foreground">
-                          {TOOL_LABELS[msg.toolName] || msg.toolName}
-                          {msg.toolStatus === 'done' && ' ✓'}
-                        </span>
-                      </div>
-                    )}
+                    {msg.role === 'tool' && msg.toolName && (() => {
+                      const ToolIcon = getToolIcon(msg.toolName!);
+                      const catColor = CATEGORY_COLORS[getToolCategory(msg.toolName!)] || 'text-muted-foreground';
+                      return (
+                        <div className="flex items-center gap-2 py-1.5 ml-11 group">
+                          <div className={cn('h-5 w-5 rounded flex items-center justify-center', msg.toolStatus === 'running' ? 'bg-primary/10' : 'bg-muted/50')}>
+                            {msg.toolStatus === 'running' ? (
+                              <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                            ) : (
+                              <ToolIcon className={cn('h-3 w-3', catColor)} />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-[10px] font-medium text-foreground/70">
+                              {getToolLabel(msg.toolName!)}
+                            </span>
+                            {msg.toolDetail && (
+                              <span className="text-[9px] text-muted-foreground truncate">
+                                — {msg.toolDetail}
+                              </span>
+                            )}
+                          </div>
+                          {msg.toolStatus === 'done' && (
+                            <div className="flex items-center gap-1 ml-auto">
+                              <CheckCircle2 className="h-3 w-3 text-primary" />
+                              {msg.toolDuration && (
+                                <span className="text-[8px] text-muted-foreground">{msg.toolDuration}ms</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* User bubble */}
                     {msg.role === 'user' && (
