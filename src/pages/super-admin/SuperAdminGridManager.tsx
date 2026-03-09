@@ -54,7 +54,7 @@ const GRID_TYPES = ['basic', 'instagram', 'creative', 'single', 'custom'];
 
 const DEFAULT_TEMPLATE: Partial<GridTemplate> = {
   name: '',
-  category: 'Instagram Grid',
+  category: 'basic',
   grid_type: 'basic',
   columns: 3,
   rows: 3,
