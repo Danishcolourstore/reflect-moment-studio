@@ -956,6 +956,32 @@ export default function SuperAdminAIDeveloper() {
                         <span className="text-[10px] font-medium text-orange-500">Rolled Back</span>
                       </div>
                     )}
+                    {/* Validation Banner */}
+                    {clientValidation && (
+                      <div className={cn('px-3 py-2 border-b flex items-center gap-3 flex-wrap',
+                        clientValidation.passesAll ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20')}>
+                        <div className="flex items-center gap-1.5">
+                          <Gauge className={cn('h-3.5 w-3.5', confidenceColor(clientValidation.score))} />
+                          <span className={cn('text-[10px] font-bold', confidenceColor(clientValidation.score))}>{clientValidation.score}%</span>
+                          <span className="text-[9px] text-muted-foreground">confidence</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {[
+                            { label: 'Syntax', ok: clientValidation.syntaxValid },
+                            { label: 'Imports', ok: clientValidation.importsValid },
+                            { label: 'Types', ok: clientValidation.typesValid },
+                            { label: 'Security', ok: clientValidation.securityIssues.length === 0 },
+                          ].map(c => (
+                            <div key={c.label} className="flex items-center gap-0.5">
+                              {c.ok ? <CheckCircle2 className="h-2.5 w-2.5 text-green-500" /> : <XCircle className="h-2.5 w-2.5 text-red-500" />}
+                              <span className="text-[9px] text-muted-foreground">{c.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {clientValidation.hasTests && <Badge variant="outline" className="text-[8px] gap-0.5 h-4"><TestTube2 className="h-2 w-2" />Tests</Badge>}
+                        {clientValidation.hasDocs && <Badge variant="outline" className="text-[8px] gap-0.5 h-4"><BookOpen className="h-2 w-2" />Docs</Badge>}
+                      </div>
+                    )}
                     <div className="p-2.5 border-b border-border flex items-center justify-between">
                       <div className="min-w-0">
                         <h3 className="text-xs font-medium truncate">{selectedLabel}</h3>
