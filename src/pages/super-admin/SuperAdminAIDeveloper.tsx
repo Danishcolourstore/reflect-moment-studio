@@ -140,8 +140,6 @@ export default function SuperAdminAIDeveloper() {
   const [safetyMode, setSafetyMode] = useState(true);
   const [sandboxMode, setSandboxMode] = useState(true);
 
-  // Codebase search
-  const [codeSearch, setCodeSearch] = useState('');
 
 
   // Fetch history
