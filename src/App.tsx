@@ -58,6 +58,7 @@ import SuperAdminTemplates from "./pages/super-admin/SuperAdminTemplates";
 import SuperAdminMirrorAI from "./pages/super-admin/SuperAdminMirrorAI";
 import SuperAdminStorybooks from "./pages/super-admin/SuperAdminStorybooks";
 import SuperAdminSettings from "./pages/super-admin/SuperAdminSettings";
+import SuperAdminTemplateBuilder from "./pages/super-admin/SuperAdminTemplateBuilder";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
 import AdminEvents from "./pages/admin/AdminEvents";
@@ -252,6 +253,7 @@ const AppRoutes = () => {
         <Route path="mirrorai" element={<SuperAdminMirrorAI />} />
         <Route path="storybooks" element={<SuperAdminStorybooks />} />
         <Route path="settings" element={<SuperAdminSettings />} />
+        <Route path="template-builder" element={<SuperAdminTemplateBuilder />} />
       </Route>
 
       <Route
