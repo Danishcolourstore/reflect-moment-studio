@@ -73,17 +73,66 @@ Respond ONLY with valid JSON:
   "edge_functions": [
     { "name": "function-name", "content": "// edge function code", "description": "What it does" }
   ],
+  "tests": [
+    {
+      "path": "src/components/__tests__/Component.test.tsx",
+      "content": "// vitest test code using @testing-library/react",
+      "description": "What this test covers"
+    }
+  ],
+  "documentation": {
+    "feature_description": "What this feature does",
+    "api_endpoints": ["POST /api/endpoint - description"],
+    "database_changes": ["Added table X with columns Y"],
+    "usage_instructions": "How to use this feature"
+  },
+  "validation": {
+    "syntax_valid": true,
+    "imports_valid": true,
+    "types_valid": true,
+    "security_issues": [],
+    "performance_warnings": [],
+    "missing_dependencies": [],
+    "confidence_score": 92,
+    "confidence_reasons": ["All imports verified", "TypeScript types complete", "RLS policies included"]
+  },
   "instructions": "Manual steps needed",
   "safety_warnings": ["Any risks"],
   "affected_files": ["Existing files impacted"]
 }
 
-## Rules
+## Validation Rules
+When generating the "validation" field:
+- Check all imports reference existing packages (@tanstack/react-query, lucide-react, sonner, etc.) or local paths
+- Verify no hardcoded API keys or secrets in code
+- Check for SQL injection risks in database queries
+- Flag SELECT * or unbounded queries as performance warnings
+- Verify all React components have proper TypeScript types
+- Check that new tables include RLS policies
+- Set confidence_score 0-100 based on code quality assessment
+
+## Test Generation Rules
+For every new component or feature, generate at minimum:
+- A render test verifying the component mounts
+- Tests for key user interactions
+- Use vitest + @testing-library/react
+- Import from "vitest" for describe/it/expect
+
+## Documentation Rules
+Always populate the documentation field with:
+- Clear feature description
+- List of API endpoints if any
+- Database changes summary
+- Step-by-step usage instructions
+
+## Code Rules
 - Generate complete, production-ready TypeScript code
 - Use existing patterns and semantic Tailwind tokens
 - Include RLS policies for new tables
 - Flag breaking changes in safety_warnings
-- Never modify auth or payment logic without warning`;
+- Never modify auth or payment logic without warning
+- Check for proper error handling in all async operations
+- Ensure proper loading and error states in components`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

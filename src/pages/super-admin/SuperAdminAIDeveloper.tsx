@@ -21,7 +21,9 @@ import {
   Plus, Pencil, AlertTriangle, CheckCircle2, XCircle, MessageSquare, Send,
   Settings2, Shield, ShieldAlert, FileWarning, FolderOpen, ChevronRight,
   ChevronDown, File, Layers, Globe, Server, LayoutGrid, Package, Search,
-  RefreshCw, Download, ExternalLink, FlaskConical, Lock, Cpu
+  RefreshCw, Download, ExternalLink, FlaskConical, Lock, Cpu, FileText,
+  TestTube2, Gauge, BookOpen, ShieldCheck, Bug, Zap as ZapIcon, CircleCheck,
+  CircleX, Info, Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
@@ -41,12 +43,32 @@ interface DatabaseChange {
 }
 interface RouteChange { path: string; component: string; description: string; }
 interface EdgeFnChange { name: string; content: string; description: string; }
+interface TestFile { path: string; content: string; description: string; }
+interface Documentation {
+  feature_description?: string;
+  api_endpoints?: string[];
+  database_changes?: string[];
+  usage_instructions?: string;
+}
+interface ValidationResult {
+  syntax_valid?: boolean;
+  imports_valid?: boolean;
+  types_valid?: boolean;
+  security_issues?: string[];
+  performance_warnings?: string[];
+  missing_dependencies?: string[];
+  confidence_score?: number;
+  confidence_reasons?: string[];
+}
 interface AIResponse {
   summary: string;
   files: FileChange[];
   database: DatabaseChange[];
   routes: RouteChange[];
   edge_functions?: EdgeFnChange[];
+  tests?: TestFile[];
+  documentation?: Documentation;
+  validation?: ValidationResult;
   instructions: string;
   raw_content?: string;
   safety_warnings?: string[];
@@ -466,6 +488,47 @@ export default function SuperAdminAIDeveloper() {
   const hasSafetyWarnings = (currentResponse?.safety_warnings?.length || 0) > 0;
   const hasProtectedFiles = currentResponse?.files?.some(f => PROTECTED_PATHS.includes(f.path));
 
+  // ──── Client-side validation engine ────
+  const clientValidation = useMemo(() => {
+    if (!currentResponse) return null;
+    const issues: string[] = [];
+    const warnings: string[] = [];
+    let score = currentResponse.validation?.confidence_score ?? 0;
+    currentResponse.files?.forEach(f => {
+      if (PROTECTED_PATHS.includes(f.path)) issues.push(`Modifies protected file: ${f.path}`);
+      if (f.action === 'delete' && f.path.includes('/lib/')) issues.push(`Deletes core library: ${f.path}`);
+      if (f.content && /(['"])(sk[-_]|api[-_]?key|secret|password)\w*\1\s*[:=]/i.test(f.content)) issues.push(`Possible hardcoded secret in ${f.path}`);
+      if (f.content && f.path.endsWith('.tsx')) {
+        if (f.content.includes('useState') && !f.content.includes("from 'react'") && !f.content.includes('from "react"')) warnings.push(`${f.path.split('/').pop()}: Missing React import`);
+        if (f.content.includes('supabase') && !f.content.includes('@/integrations/supabase')) warnings.push(`${f.path.split('/').pop()}: Missing supabase import`);
+      }
+      if (f.content && /\.select\(\s*['"]?\*['"]?\s*\)/.test(f.content)) warnings.push(`${f.path.split('/').pop()}: Uses SELECT *`);
+    });
+    currentResponse.database?.forEach(d => {
+      if (d.sql && /DROP\s+(TABLE|DATABASE)/i.test(d.sql) && !d.sql.includes('IF EXISTS')) issues.push(`Unsafe DROP: ${d.name}`);
+      if (d.sql && d.type === 'table' && !d.sql.toLowerCase().includes('enable row level security')) warnings.push(`Table ${d.name}: Missing RLS`);
+    });
+    const allSecurity = [...issues, ...(currentResponse.validation?.security_issues || [])];
+    const allPerf = [...warnings, ...(currentResponse.validation?.performance_warnings || [])];
+    if (allSecurity.length > 0) score = Math.min(score || 40, 40);
+    else if (allPerf.length > 0) score = Math.max((score || 70) - allPerf.length * 5, 50);
+    else if (score === 0) score = 75;
+    return {
+      score: Math.max(0, Math.min(100, score)),
+      syntaxValid: currentResponse.validation?.syntax_valid ?? true,
+      importsValid: currentResponse.validation?.imports_valid !== false && !warnings.some(w => w.includes('Missing')),
+      typesValid: currentResponse.validation?.types_valid ?? true,
+      securityIssues: allSecurity, performanceWarnings: allPerf,
+      missingDeps: currentResponse.validation?.missing_dependencies || [],
+      reasons: currentResponse.validation?.confidence_reasons || [],
+      hasTests: (currentResponse.tests?.length || 0) > 0,
+      hasDocs: !!currentResponse.documentation?.feature_description,
+      passesAll: allSecurity.length === 0,
+    };
+  }, [currentResponse]);
+  const confidenceColor = (s: number) => s >= 80 ? 'text-green-500' : s >= 60 ? 'text-amber-500' : 'text-red-500';
+  const confidenceBg = (s: number) => s >= 80 ? 'bg-green-500' : s >= 60 ? 'bg-amber-500' : 'bg-red-500';
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* ══════ Header ══════ */}
@@ -784,6 +847,97 @@ export default function SuperAdminAIDeveloper() {
                             ))}
                           </>
                         )}
+                        {/* ── Validation & Confidence ── */}
+                        {clientValidation && (
+                          <>
+                            <Separator className="my-1.5" />
+                            <p className="text-[9px] font-semibold text-muted-foreground px-1.5 py-0.5">VALIDATION</p>
+                            <div className="p-2 rounded-md bg-muted/30 space-y-1.5">
+                              {/* Confidence Score */}
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] text-muted-foreground">Confidence</span>
+                                <span className={cn('text-sm font-bold', confidenceColor(clientValidation.score))}>{clientValidation.score}%</span>
+                              </div>
+                              <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                                <div className={cn('h-full rounded-full transition-all', confidenceBg(clientValidation.score))}
+                                  style={{ width: `${clientValidation.score}%` }} />
+                              </div>
+                              {/* Check items */}
+                              <div className="space-y-0.5">
+                                {[
+                                  { label: 'Syntax', ok: clientValidation.syntaxValid },
+                                  { label: 'Imports', ok: clientValidation.importsValid },
+                                  { label: 'Types', ok: clientValidation.typesValid },
+                                  { label: 'Security', ok: clientValidation.securityIssues.length === 0 },
+                                  { label: 'Tests', ok: clientValidation.hasTests },
+                                  { label: 'Docs', ok: clientValidation.hasDocs },
+                                ].map(c => (
+                                  <div key={c.label} className="flex items-center gap-1.5">
+                                    {c.ok ? <CheckCircle2 className="h-2.5 w-2.5 text-green-500" /> : <XCircle className="h-2.5 w-2.5 text-red-500" />}
+                                    <span className="text-[9px] text-muted-foreground">{c.label}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            {/* Security Issues */}
+                            {clientValidation.securityIssues.length > 0 && (
+                              <div className="p-2 rounded-md bg-red-500/10 border border-red-500/20">
+                                <div className="flex items-center gap-1 mb-0.5"><ShieldAlert className="h-3 w-3 text-red-500" /><span className="text-[8px] font-bold text-red-500">SECURITY</span></div>
+                                {clientValidation.securityIssues.map((s, i) => <p key={i} className="text-[8px] text-red-400">• {s}</p>)}
+                              </div>
+                            )}
+                            {/* Performance */}
+                            {clientValidation.performanceWarnings.length > 0 && (
+                              <div className="p-2 rounded-md bg-amber-500/10 border border-amber-500/20">
+                                <div className="flex items-center gap-1 mb-0.5"><Activity className="h-3 w-3 text-amber-500" /><span className="text-[8px] font-bold text-amber-500">PERFORMANCE</span></div>
+                                {clientValidation.performanceWarnings.map((w, i) => <p key={i} className="text-[8px] text-amber-400">• {w}</p>)}
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* ── Tests ── */}
+                        {currentResponse.tests && currentResponse.tests.length > 0 && (
+                          <>
+                            <Separator className="my-1.5" />
+                            <p className="text-[9px] font-semibold text-muted-foreground px-1.5 py-0.5">TESTS</p>
+                            {currentResponse.tests.map((t, idx) => (
+                              <button key={idx} onClick={() => { setSelectedFile(-1); setSelectedDbIdx(null); setSelectedEdgeFnIdx(null); }}
+                                className="w-full flex items-center gap-1.5 p-1.5 rounded-md text-left hover:bg-muted/50 text-muted-foreground">
+                                <TestTube2 className="h-3 w-3 flex-shrink-0 text-violet-500" />
+                                <div className="min-w-0"><p className="text-[10px] font-medium truncate">{t.path.split('/').pop()}</p><p className="text-[9px]">{t.description}</p></div>
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {/* ── Documentation ── */}
+                        {currentResponse.documentation?.feature_description && (
+                          <>
+                            <Separator className="my-1.5" />
+                            <p className="text-[9px] font-semibold text-muted-foreground px-1.5 py-0.5">DOCUMENTATION</p>
+                            <div className="p-2 rounded-md bg-muted/30 space-y-1">
+                              <div className="flex items-center gap-1"><BookOpen className="h-3 w-3 text-blue-500" /><span className="text-[9px] font-medium">Feature Docs</span></div>
+                              <p className="text-[8px] text-muted-foreground">{currentResponse.documentation.feature_description}</p>
+                              {currentResponse.documentation.api_endpoints && currentResponse.documentation.api_endpoints.length > 0 && (
+                                <div>
+                                  <p className="text-[8px] font-semibold text-muted-foreground mt-1">API Endpoints:</p>
+                                  {currentResponse.documentation.api_endpoints.map((ep, i) => <p key={i} className="text-[8px] text-muted-foreground font-mono">• {ep}</p>)}
+                                </div>
+                              )}
+                              {currentResponse.documentation.database_changes && currentResponse.documentation.database_changes.length > 0 && (
+                                <div>
+                                  <p className="text-[8px] font-semibold text-muted-foreground mt-1">DB Changes:</p>
+                                  {currentResponse.documentation.database_changes.map((dc, i) => <p key={i} className="text-[8px] text-muted-foreground">• {dc}</p>)}
+                                </div>
+                              )}
+                              {currentResponse.documentation.usage_instructions && (
+                                <div>
+                                  <p className="text-[8px] font-semibold text-muted-foreground mt-1">Usage:</p>
+                                  <p className="text-[8px] text-muted-foreground">{currentResponse.documentation.usage_instructions}</p>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </ScrollArea>
                   </div>
@@ -800,6 +954,32 @@ export default function SuperAdminAIDeveloper() {
                       <div className="px-3 py-1.5 bg-orange-500/10 border-b border-orange-500/20 flex items-center gap-2">
                         <RotateCcw className="h-3.5 w-3.5 text-orange-500" />
                         <span className="text-[10px] font-medium text-orange-500">Rolled Back</span>
+                      </div>
+                    )}
+                    {/* Validation Banner */}
+                    {clientValidation && (
+                      <div className={cn('px-3 py-2 border-b flex items-center gap-3 flex-wrap',
+                        clientValidation.passesAll ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20')}>
+                        <div className="flex items-center gap-1.5">
+                          <Gauge className={cn('h-3.5 w-3.5', confidenceColor(clientValidation.score))} />
+                          <span className={cn('text-[10px] font-bold', confidenceColor(clientValidation.score))}>{clientValidation.score}%</span>
+                          <span className="text-[9px] text-muted-foreground">confidence</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {[
+                            { label: 'Syntax', ok: clientValidation.syntaxValid },
+                            { label: 'Imports', ok: clientValidation.importsValid },
+                            { label: 'Types', ok: clientValidation.typesValid },
+                            { label: 'Security', ok: clientValidation.securityIssues.length === 0 },
+                          ].map(c => (
+                            <div key={c.label} className="flex items-center gap-0.5">
+                              {c.ok ? <CheckCircle2 className="h-2.5 w-2.5 text-green-500" /> : <XCircle className="h-2.5 w-2.5 text-red-500" />}
+                              <span className="text-[9px] text-muted-foreground">{c.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {clientValidation.hasTests && <Badge variant="outline" className="text-[8px] gap-0.5 h-4"><TestTube2 className="h-2 w-2" />Tests</Badge>}
+                        {clientValidation.hasDocs && <Badge variant="outline" className="text-[8px] gap-0.5 h-4"><BookOpen className="h-2 w-2" />Docs</Badge>}
                       </div>
                     )}
                     <div className="p-2.5 border-b border-border flex items-center justify-between">
@@ -847,11 +1027,19 @@ export default function SuperAdminAIDeveloper() {
                       </div>
                     )}
                     <div className="border-t border-border p-3 flex items-center justify-between bg-card/50">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground"><FileCode className="h-3 w-3" />{currentResponse.files?.length || 0} files</div>
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground"><Database className="h-3 w-3" />{currentResponse.database?.length || 0} migrations</div>
                         {(currentResponse.edge_functions?.length || 0) > 0 && (
                           <div className="flex items-center gap-1 text-[10px] text-muted-foreground"><Server className="h-3 w-3" />{currentResponse.edge_functions?.length} APIs</div>
+                        )}
+                        {(currentResponse.tests?.length || 0) > 0 && (
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground"><TestTube2 className="h-3 w-3" />{currentResponse.tests?.length} tests</div>
+                        )}
+                        {clientValidation && (
+                          <div className={cn('flex items-center gap-1 text-[10px] font-medium', confidenceColor(clientValidation.score))}>
+                            <Gauge className="h-3 w-3" />{clientValidation.score}%
+                          </div>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -864,7 +1052,8 @@ export default function SuperAdminAIDeveloper() {
                             onClick={() => { setRollbackTargetId(currentPromptId); setRollbackDialogOpen(true); }}><RotateCcw className="h-3 w-3" />Rollback</Button>
                         )}
                         {!isApplied && !isRolledBack && currentPromptId && (
-                          <Button size="sm" onClick={() => setApplyDialogOpen(true)} disabled={hasProtectedFiles && safetyMode}
+                          <Button size="sm" onClick={() => setApplyDialogOpen(true)}
+                            disabled={(hasProtectedFiles && safetyMode) || (safetyMode && clientValidation && !clientValidation.passesAll)}
                             className="gap-1 h-7 text-[10px] bg-green-600 hover:bg-green-700"><Play className="h-3 w-3" />{sandboxMode ? 'Deploy to Sandbox' : 'Apply'}</Button>
                         )}
                       </div>
