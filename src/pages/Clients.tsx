@@ -115,26 +115,28 @@ const Clients = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-serif text-2xl font-semibold text-foreground">Clients</h1>
-        <Button onClick={() => setInviteOpen(true)} className="bg-primary text-primary-foreground text-[10px] uppercase tracking-wider">
+      {/* Header - responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground">Clients</h1>
+        <Button onClick={() => setInviteOpen(true)} className="bg-primary text-primary-foreground text-[10px] uppercase tracking-wider w-full sm:w-auto min-h-[44px]">
           <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Invite Client
         </Button>
       </div>
 
+      {/* Search - responsive */}
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." className="pl-9 bg-card h-9 text-[13px]" />
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." className="pl-9 bg-card h-11 sm:h-9 text-[13px]" />
       </div>
 
       {loading ? (
         <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="border border-dashed border-border/60 py-24 text-center rounded-xl">
+        <div className="border border-dashed border-border/60 py-16 sm:py-24 text-center rounded-xl px-4">
           <Users className="mx-auto h-12 w-12 text-muted-foreground/15" />
           <p className="mt-4 font-serif text-lg text-muted-foreground/60">No clients yet</p>
           <p className="mt-1 text-[11px] text-muted-foreground/40">Invite clients to give them access to their event galleries.</p>
-          <Button onClick={() => setInviteOpen(true)} className="mt-4 bg-primary text-primary-foreground text-[10px] uppercase tracking-wider">
+          <Button onClick={() => setInviteOpen(true)} className="mt-4 bg-primary text-primary-foreground text-[10px] uppercase tracking-wider min-h-[44px]">
             <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Invite Your First Client
           </Button>
         </div>
