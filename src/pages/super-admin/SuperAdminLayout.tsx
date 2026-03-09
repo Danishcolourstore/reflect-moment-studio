@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   Crown, Users, Camera, BookOpen, Settings, BarChart3,
   LogOut, Shield, Home, Layout, HardDrive, DollarSign,
-  Mail, Activity, Grid3X3, Images, LayoutDashboard, Code,
+  Mail, Activity, Grid3X3, Images, LayoutDashboard, Code, Bot,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
