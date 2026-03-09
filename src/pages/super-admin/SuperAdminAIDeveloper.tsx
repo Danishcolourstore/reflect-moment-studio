@@ -1316,7 +1316,7 @@ export default function SuperAdminAIDeveloper() {
                 <div className="relative">
                   <Search className="h-3 w-3 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <input value={codeSearch} onChange={(e) => setCodeSearch(e.target.value)}
-                    placeholder="Search..."
+                    placeholder="Search memory, tables, features..."
                     className="w-full text-[10px] pl-6 pr-2 py-1 rounded bg-muted/50 border border-border focus:outline-none focus:ring-1 focus:ring-primary/30" />
                 </div>
               </div>
@@ -1325,51 +1325,150 @@ export default function SuperAdminAIDeveloper() {
               </ScrollArea>
             </div>
 
-            {/* Database & APIs */}
+            {/* Memory & Index */}
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="p-3 border-b border-border">
-                <h3 className="text-sm font-semibold flex items-center gap-2"><Database className="h-4 w-4 text-blue-500" />Database Schema</h3>
-                <p className="text-[10px] text-muted-foreground">{DB_TABLES.length} tables indexed • All with RLS policies</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold flex items-center gap-2">
+                      <Cpu className="h-4 w-4 text-violet-500" />Codebase Memory
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground">
+                      {CODEBASE_MEMORY.length} feature modules indexed • {DB_TABLES.length} tables • Read-only intelligence
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="gap-1 text-[9px]">
+                    <Lock className="h-2.5 w-2.5" />Read-Only
+                  </Badge>
+                </div>
               </div>
               <ScrollArea className="flex-1">
-                <div className="p-3">
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                    {filteredTables.map(table => (
-                      <div key={table.name} className="p-2.5 rounded-lg border border-border bg-card/50 hover:bg-muted/30 transition-colors">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Database className="h-3 w-3 text-blue-500" />
-                          <span className="text-[11px] font-medium font-mono">{table.name}</span>
+                <div className="p-3 space-y-4">
+                  {/* Feature Memory Index */}
+                  <div>
+                    <h4 className="text-xs font-semibold flex items-center gap-1.5 mb-2">
+                      <Package className="h-3.5 w-3.5 text-primary" />Feature Memory Index
+                    </h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                      {CODEBASE_MEMORY.filter(m => {
+                        if (!codeSearch) return true;
+                        const q = codeSearch.toLowerCase();
+                        return m.feature.toLowerCase().includes(q) ||
+                          m.keywords.some(k => k.includes(q)) ||
+                          m.dbTables.some(t => t.includes(q)) ||
+                          m.description.toLowerCase().includes(q);
+                      }).map(m => (
+                        <div key={m.feature} className="p-2.5 rounded-lg border border-border bg-card/50 hover:bg-muted/30 transition-colors">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[11px] font-semibold text-foreground">{m.feature}</span>
+                            <div className="flex gap-1">
+                              {m.pages.length > 0 && <Badge variant="secondary" className="text-[7px] px-1 h-3.5">{m.pages.length} pages</Badge>}
+                              {m.components.length > 0 && <Badge variant="secondary" className="text-[7px] px-1 h-3.5">{m.components.length} comp</Badge>}
+                              {m.dbTables.length > 0 && <Badge variant="secondary" className="text-[7px] px-1 h-3.5">{m.dbTables.length} tables</Badge>}
+                            </div>
+                          </div>
+                          <p className="text-[9px] text-muted-foreground mb-1.5">{m.description}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {m.keywords.map(kw => (
+                              <span key={kw} className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{kw}</span>
+                            ))}
+                          </div>
+                          {m.dbTables.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-1">
+                              {m.dbTables.map(t => (
+                                <span key={t} className="text-[8px] px-1.5 py-0.5 rounded bg-muted font-mono text-muted-foreground">{t}</span>
+                              ))}
+                            </div>
+                          )}
+                          {m.apis.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {m.apis.map(a => (
+                                <span key={a} className="text-[8px] px-1.5 py-0.5 rounded bg-green-500/10 font-mono text-green-600">{a}</span>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <p className="text-[9px] text-muted-foreground">{table.desc}</p>
-                        <Badge variant="outline" className="text-[8px] mt-1">{table.columns} columns</Badge>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
 
-                  <Separator className="my-4" />
+                  <Separator />
 
-                  <h3 className="text-sm font-semibold flex items-center gap-2 mb-2"><Server className="h-4 w-4 text-green-500" />Edge Functions</h3>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                    {['ai-chat', 'ai-developer', 'cheetah-analyze', 'cheetah-ingest', 'generate-caption', 'invite-client', 'send-access-pin', 'send-welcome-email', 'process-guest-selfie', 'suggest-layout', 'analyze-grid-layout'].map(fn => (
-                      <div key={fn} className="p-2.5 rounded-lg border border-border bg-card/50">
-                        <div className="flex items-center gap-1.5">
-                          <Server className="h-3 w-3 text-green-500" />
-                          <span className="text-[11px] font-medium font-mono">{fn}</span>
+                  {/* Database Schema */}
+                  <div>
+                    <h4 className="text-xs font-semibold flex items-center gap-1.5 mb-2">
+                      <Database className="h-3.5 w-3.5 text-blue-500" />Database Schema
+                    </h4>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                      {filteredTables.map(table => (
+                        <div key={table.name} className="p-2.5 rounded-lg border border-border bg-card/50 hover:bg-muted/30 transition-colors">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Database className="h-3 w-3 text-blue-500" />
+                            <span className="text-[11px] font-medium font-mono">{table.name}</span>
+                          </div>
+                          <p className="text-[9px] text-muted-foreground">{table.desc}</p>
+                          <Badge variant="outline" className="text-[8px] mt-1">{table.columns} columns</Badge>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
 
-                  <Separator className="my-4" />
+                  <Separator />
 
-                  <h3 className="text-sm font-semibold flex items-center gap-2 mb-2"><Globe className="h-4 w-4 text-violet-500" />Routes</h3>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5">
-                    {['/auth', '/dashboard', '/events', '/events/:slug', '/gallery/:slug', '/upload', '/analytics', '/clients', '/billing', '/branding', '/brand-editor', '/website-editor', '/album-designer', '/cheetah', '/storybook-creator', '/profile', '/admin/*', '/super-admin/*', '/client/*'].map(r => (
-                      <div key={r} className="flex items-center gap-1.5 p-1.5 rounded bg-muted/30">
-                        <Globe className="h-2.5 w-2.5 text-violet-500" />
-                        <span className="text-[10px] font-mono text-muted-foreground">{r}</span>
-                      </div>
-                    ))}
+                  {/* Edge Functions */}
+                  <div>
+                    <h4 className="text-xs font-semibold flex items-center gap-1.5 mb-2">
+                      <Server className="h-3.5 w-3.5 text-green-500" />Edge Functions
+                    </h4>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                      {['ai-chat', 'ai-developer', 'cheetah-analyze', 'cheetah-ingest', 'generate-caption', 'invite-client', 'send-access-pin', 'send-welcome-email', 'process-guest-selfie', 'suggest-layout', 'analyze-grid-layout', 'send-comment-notification', 'send-favorites-notification', 'send-gallery-view-notification', 'send-selection-notification', 'send-storybook-otp'].map(fn => (
+                        <div key={fn} className="p-2.5 rounded-lg border border-border bg-card/50">
+                          <div className="flex items-center gap-1.5">
+                            <Server className="h-3 w-3 text-green-500" />
+                            <span className="text-[11px] font-medium font-mono">{fn}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Routes */}
+                  <div>
+                    <h4 className="text-xs font-semibold flex items-center gap-1.5 mb-2">
+                      <Globe className="h-3.5 w-3.5 text-violet-500" />Routes
+                    </h4>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5">
+                      {['/auth', '/dashboard', '/events', '/events/:slug', '/gallery/:slug', '/upload', '/analytics', '/clients', '/billing', '/branding', '/brand-editor', '/website-editor', '/album-designer', '/cheetah', '/storybook-creator', '/profile', '/notifications', '/admin/*', '/super-admin/*', '/client/*'].map(r => (
+                        <div key={r} className="flex items-center gap-1.5 p-1.5 rounded bg-muted/30">
+                          <Globe className="h-2.5 w-2.5 text-violet-500" />
+                          <span className="text-[10px] font-mono text-muted-foreground">{r}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Context Preview */}
+                  <Separator />
+                  <div>
+                    <h4 className="text-xs font-semibold flex items-center gap-1.5 mb-2">
+                      <Info className="h-3.5 w-3.5 text-amber-500" />Context Injection Preview
+                    </h4>
+                    <p className="text-[9px] text-muted-foreground mb-2">
+                      Type a prompt keyword below to preview what context the AI receives automatically.
+                    </p>
+                    <input
+                      value={codeSearch}
+                      onChange={(e) => setCodeSearch(e.target.value)}
+                      placeholder="Try: gallery, booking, client..."
+                      className="w-full text-[10px] px-3 py-1.5 rounded bg-muted/50 border border-border focus:outline-none focus:ring-1 focus:ring-primary/30 mb-2"
+                    />
+                    {codeSearch && (
+                      <pre className="text-[9px] font-mono bg-muted/30 rounded-lg p-3 max-h-48 overflow-auto text-muted-foreground whitespace-pre-wrap">
+                        {getRelevantContext(codeSearch) || '(No matching features found for this keyword)'}
+                      </pre>
+                    )}
                   </div>
                 </div>
               </ScrollArea>
