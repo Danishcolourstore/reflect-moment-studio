@@ -39,6 +39,11 @@ const TOOL_REGISTRY: ToolDefinition[] = [
   { name: 'plan_task', label: 'Plan task', description: 'Break down a request into development steps', icon: 'brain', category: 'analyze' },
   { name: 'run_tests', label: 'Run tests', description: 'Execute test suites', icon: 'test', category: 'analyze' },
   { name: 'review_security', label: 'Review security', description: 'Audit RLS policies, auth, and permissions', icon: 'shield', category: 'analyze' },
+  { name: 'debug_error', label: 'Debug error', description: 'Analyze error messages, stack traces, and runtime failures', icon: 'bug', category: 'analyze' },
+  { name: 'check_imports', label: 'Check imports', description: 'Detect missing or broken import statements', icon: 'link', category: 'analyze' },
+  { name: 'check_routes', label: 'Check routes', description: 'Detect broken or misconfigured routes', icon: 'route', category: 'analyze' },
+  { name: 'debug_query', label: 'Debug query', description: 'Analyze database query errors and RLS issues', icon: 'searchcode', category: 'analyze' },
+  { name: 'suggest_fix', label: 'Suggest fix', description: 'Generate corrected code for detected issues', icon: 'code', category: 'generate' },
 ];
 
 const TOOL_ICON_MAP: Record<string, typeof Database> = {
