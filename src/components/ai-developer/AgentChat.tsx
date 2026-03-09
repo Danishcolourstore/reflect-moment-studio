@@ -1030,7 +1030,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
             {isProcessing && agentPhase && agentPhase !== 'generating' && (
               <div className="flex items-center gap-2 mb-2 px-3 py-1.5 rounded-lg bg-muted/50">
                 <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                <span className="text-[10px] text-muted-foreground">{TOOL_LABELS[agentPhase] || agentPhase}…</span>
+                <span className="text-[10px] text-muted-foreground">{getToolLabel(agentPhase)}…</span>
               </div>
             )}
 
