@@ -1027,11 +1027,19 @@ export default function SuperAdminAIDeveloper() {
                       </div>
                     )}
                     <div className="border-t border-border p-3 flex items-center justify-between bg-card/50">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground"><FileCode className="h-3 w-3" />{currentResponse.files?.length || 0} files</div>
                         <div className="flex items-center gap-1 text-[10px] text-muted-foreground"><Database className="h-3 w-3" />{currentResponse.database?.length || 0} migrations</div>
                         {(currentResponse.edge_functions?.length || 0) > 0 && (
                           <div className="flex items-center gap-1 text-[10px] text-muted-foreground"><Server className="h-3 w-3" />{currentResponse.edge_functions?.length} APIs</div>
+                        )}
+                        {(currentResponse.tests?.length || 0) > 0 && (
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground"><TestTube2 className="h-3 w-3" />{currentResponse.tests?.length} tests</div>
+                        )}
+                        {clientValidation && (
+                          <div className={cn('flex items-center gap-1 text-[10px] font-medium', confidenceColor(clientValidation.score))}>
+                            <Gauge className="h-3 w-3" />{clientValidation.score}%
+                          </div>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -1044,7 +1052,8 @@ export default function SuperAdminAIDeveloper() {
                             onClick={() => { setRollbackTargetId(currentPromptId); setRollbackDialogOpen(true); }}><RotateCcw className="h-3 w-3" />Rollback</Button>
                         )}
                         {!isApplied && !isRolledBack && currentPromptId && (
-                          <Button size="sm" onClick={() => setApplyDialogOpen(true)} disabled={hasProtectedFiles && safetyMode}
+                          <Button size="sm" onClick={() => setApplyDialogOpen(true)}
+                            disabled={(hasProtectedFiles && safetyMode) || (safetyMode && clientValidation && !clientValidation.passesAll)}
                             className="gap-1 h-7 text-[10px] bg-green-600 hover:bg-green-700"><Play className="h-3 w-3" />{sandboxMode ? 'Deploy to Sandbox' : 'Apply'}</Button>
                         )}
                       </div>
