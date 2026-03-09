@@ -2111,6 +2111,36 @@ export type Database = {
         }
         Relationships: []
       }
+      templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          published: boolean
+          sections: Json
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          published?: boolean
+          sections?: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          published?: boolean
+          sections?: Json
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
