@@ -360,6 +360,76 @@
   .classic .animate-pulse {
     background-color: #F0F0EE;
   }
+  /* Safe area utilities for mobile */
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Touch-friendly targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Responsive text utilities */
+  .text-responsive-sm {
+    @apply text-xs sm:text-sm;
+  }
+  .text-responsive-base {
+    @apply text-sm sm:text-base;
+  }
+  .text-responsive-lg {
+    @apply text-base sm:text-lg lg:text-xl;
+  }
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
+  }
+  .text-responsive-2xl {
+    @apply text-xl sm:text-2xl lg:text-3xl xl:text-4xl;
+  }
+
+  /* Responsive padding utilities */
+  .p-responsive {
+    @apply p-4 sm:p-5 md:p-6 lg:p-8;
+  }
+  .px-responsive {
+    @apply px-4 sm:px-5 md:px-6 lg:px-8;
+  }
+  .py-responsive {
+    @apply py-4 sm:py-5 md:py-6 lg:py-8;
+  }
+
+  /* Responsive gap utilities */
+  .gap-responsive {
+    @apply gap-3 sm:gap-4 md:gap-5 lg:gap-6;
+  }
+  .gap-responsive-sm {
+    @apply gap-2 sm:gap-3 md:gap-4;
+  }
+
+  /* Card responsive styles */
+  .card-responsive {
+    @apply rounded-lg sm:rounded-xl lg:rounded-2xl;
+  }
+
+  /* Hide on specific breakpoints */
+  .hide-mobile {
+    @apply hidden sm:block;
+  }
+  .hide-desktop {
+    @apply block lg:hidden;
+  }
+  .show-desktop {
+    @apply hidden lg:block;
+  }
 }
 
 @keyframes fade-in {
@@ -396,4 +466,21 @@
 
 html.theme-transitioning * {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* Responsive breakpoint debug (remove in production) */
+@media (max-width: 639px) {
+  .responsive-debug::before { content: 'mobile'; }
+}
+@media (min-width: 640px) and (max-width: 767px) {
+  .responsive-debug::before { content: 'sm'; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .responsive-debug::before { content: 'tablet (md)'; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .responsive-debug::before { content: 'laptop (lg)'; }
+}
+@media (min-width: 1280px) {
+  .responsive-debug::before { content: 'desktop (xl)'; }
 }

@@ -115,71 +115,113 @@ const Clients = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-serif text-2xl font-semibold text-foreground">Clients</h1>
-        <Button onClick={() => setInviteOpen(true)} className="bg-primary text-primary-foreground text-[10px] uppercase tracking-wider">
+      {/* Header - responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground">Clients</h1>
+        <Button onClick={() => setInviteOpen(true)} className="bg-primary text-primary-foreground text-[10px] uppercase tracking-wider w-full sm:w-auto min-h-[44px]">
           <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Invite Client
         </Button>
       </div>
 
+      {/* Search - responsive */}
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." className="pl-9 bg-card h-9 text-[13px]" />
+        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." className="pl-9 bg-card h-11 sm:h-9 text-[13px]" />
       </div>
 
       {loading ? (
         <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="border border-dashed border-border/60 py-24 text-center rounded-xl">
+        <div className="border border-dashed border-border/60 py-16 sm:py-24 text-center rounded-xl px-4">
           <Users className="mx-auto h-12 w-12 text-muted-foreground/15" />
           <p className="mt-4 font-serif text-lg text-muted-foreground/60">No clients yet</p>
           <p className="mt-1 text-[11px] text-muted-foreground/40">Invite clients to give them access to their event galleries.</p>
-          <Button onClick={() => setInviteOpen(true)} className="mt-4 bg-primary text-primary-foreground text-[10px] uppercase tracking-wider">
+          <Button onClick={() => setInviteOpen(true)} className="mt-4 bg-primary text-primary-foreground text-[10px] uppercase tracking-wider min-h-[44px]">
             <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Invite Your First Client
           </Button>
         </div>
       ) : (
-        <div className="border border-border rounded-xl overflow-hidden">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-border bg-secondary/30">
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Client</th>
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-center hidden sm:table-cell">Events</th>
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-center hidden sm:table-cell">Favorites</th>
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-center hidden md:table-cell">Downloads</th>
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium hidden md:table-cell">Joined</th>
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((c) => (
-                <tr key={c.id} className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors">
-                  <td className="px-4 py-3 flex items-center gap-3">
-                    <Avatar className="h-8 w-8"><AvatarFallback className="text-[10px] bg-secondary">{c.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
-                    <div>
-                      <p className="text-[13px] font-medium text-foreground">{c.name}</p>
-                      <p className="text-[11px] text-muted-foreground">{c.email}</p>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-[13px] text-foreground text-center hidden sm:table-cell">{c.event_count}</td>
-                  <td className="px-4 py-3 text-[13px] text-foreground text-center hidden sm:table-cell">{c.favorite_count}</td>
-                  <td className="px-4 py-3 text-[13px] text-foreground text-center hidden md:table-cell">{c.download_count}</td>
-                  <td className="px-4 py-3 text-[11px] text-muted-foreground hidden md:table-cell">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center gap-1 justify-end">
-                      <Button size="sm" variant="ghost" className="h-7 text-[10px]" onClick={() => setAssignOpen(c)}>
-                        <Camera className="h-3 w-3 mr-1" /> Assign
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-7 text-[10px] text-destructive" onClick={() => revokeAccess(c.id)}>
-                        <Shield className="h-3 w-3 mr-1" /> Revoke
-                      </Button>
-                    </div>
-                  </td>
+        <>
+          {/* Desktop: Table view */}
+          <div className="hidden sm:block border border-border rounded-xl overflow-hidden overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-border bg-secondary/30">
+                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Client</th>
+                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-center hidden md:table-cell">Events</th>
+                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-center hidden md:table-cell">Favorites</th>
+                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-center hidden lg:table-cell">Downloads</th>
+                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium hidden lg:table-cell">Joined</th>
+                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((c) => (
+                  <tr key={c.id} className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors">
+                    <td className="px-4 py-3 flex items-center gap-3">
+                      <Avatar className="h-8 w-8"><AvatarFallback className="text-[10px] bg-secondary">{c.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                      <div>
+                        <p className="text-[13px] font-medium text-foreground">{c.name}</p>
+                        <p className="text-[11px] text-muted-foreground">{c.email}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-[13px] text-foreground text-center hidden md:table-cell">{c.event_count}</td>
+                    <td className="px-4 py-3 text-[13px] text-foreground text-center hidden md:table-cell">{c.favorite_count}</td>
+                    <td className="px-4 py-3 text-[13px] text-foreground text-center hidden lg:table-cell">{c.download_count}</td>
+                    <td className="px-4 py-3 text-[11px] text-muted-foreground hidden lg:table-cell">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center gap-1 justify-end">
+                        <Button size="sm" variant="ghost" className="h-8 text-[10px]" onClick={() => setAssignOpen(c)}>
+                          <Camera className="h-3 w-3 mr-1" /> Assign
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-8 text-[10px] text-destructive" onClick={() => revokeAccess(c.id)}>
+                          <Shield className="h-3 w-3 mr-1" /> Revoke
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile: Card view */}
+          <div className="sm:hidden space-y-3">
+            {filtered.map((c) => (
+              <div key={c.id} className="border border-border rounded-xl p-4 bg-card">
+                <div className="flex items-center gap-3 mb-3">
+                  <Avatar className="h-10 w-10"><AvatarFallback className="text-[11px] bg-secondary">{c.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{c.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{c.email}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+                  <div className="bg-secondary/30 rounded-lg py-2">
+                    <p className="text-lg font-semibold text-foreground">{c.event_count}</p>
+                    <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Events</p>
+                  </div>
+                  <div className="bg-secondary/30 rounded-lg py-2">
+                    <p className="text-lg font-semibold text-foreground">{c.favorite_count}</p>
+                    <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Favorites</p>
+                  </div>
+                  <div className="bg-secondary/30 rounded-lg py-2">
+                    <p className="text-lg font-semibold text-foreground">{c.download_count}</p>
+                    <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Downloads</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1 h-11 text-[10px] min-h-[44px]" onClick={() => setAssignOpen(c)}>
+                    <Camera className="h-3 w-3 mr-1" /> Assign Event
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-11 text-[10px] text-destructive min-h-[44px] px-3" onClick={() => revokeAccess(c.id)}>
+                    <Shield className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       <InviteClientModal open={inviteOpen} onOpenChange={setInviteOpen} onInvited={loadClients} />

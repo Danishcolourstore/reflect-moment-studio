@@ -5,8 +5,9 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Moon, Sparkles, Bell, ChevronRight, Menu,
+  LogOut, Moon, Sparkles, Bell, ChevronRight, Menu, Search,
 } from 'lucide-react';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -298,13 +299,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </main>
 
+      {/* Mobile Floating Action Button */}
+      <FloatingActionButton />
+
       {/* Mobile bottom nav — 72px, Pixiset style */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border" style={{ height: '72px', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border safe-area-pb" style={{ height: '72px' }}>
         {MOBILE_NAV.map((item) => {
           const isClassic = theme === 'classic';
           return (
             <NavLink key={item.url} to={item.url} end={item.end}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative pt-0.5`}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative pt-0.5 min-h-[44px]`}
               activeClassName={isClassic ? 'nav-active-gold [&>.nav-top-bar]:opacity-100' : 'text-foreground [&>.nav-top-bar]:opacity-100'}
             >
               <div className={`nav-top-bar absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 opacity-0 transition-opacity ${isClassic ? 'nav-bar-gold' : 'bg-primary'}`} />
@@ -315,17 +319,17 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         })}
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
-            <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground pt-0.5">
+            <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground pt-0.5 min-h-[44px]">
               <Menu className="h-5 w-5" strokeWidth={1.5} />
               <span className="font-sans whitespace-nowrap" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>More</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetContent side="bottom" className="rounded-t-2xl safe-area-pb">
             <div className="space-y-1 pt-4 pb-6">
               {MORE_NAV.map((item) => (
                 <button key={item.url}
                   onClick={() => { navigate(item.url); setMoreOpen(false); }}
-                  className="flex items-center gap-3.5 w-full px-5 py-4 text-foreground hover:bg-secondary rounded-xl transition-colors font-sans"
+                  className="flex items-center gap-3.5 w-full px-5 py-4 text-foreground hover:bg-secondary rounded-xl transition-colors font-sans min-h-[44px]"
                   style={{ fontSize: '13px', letterSpacing: '0.5px' }}
                 >
                   <item.icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
@@ -334,7 +338,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 </button>
               ))}
               <button onClick={handleSignOut}
-                className="flex items-center gap-3.5 w-full px-5 py-4 text-destructive hover:bg-destructive/5 rounded-xl transition-colors mt-4 font-sans"
+                className="flex items-center gap-3.5 w-full px-5 py-4 text-destructive hover:bg-destructive/5 rounded-xl transition-colors mt-4 font-sans min-h-[44px]"
                 style={{ fontSize: '13px', letterSpacing: '0.5px' }}
               >
                 <LogOut className="h-4 w-4" />

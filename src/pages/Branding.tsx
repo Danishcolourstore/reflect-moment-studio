@@ -59,51 +59,51 @@ const Branding = () => {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      {/* Header - responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-2">
         <div>
-          <h1 className="font-serif text-2xl font-semibold text-foreground">Brand Studio</h1>
+          <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground">Brand Studio</h1>
           <p className="text-xs text-muted-foreground/50 mt-1">Choose a template and build your portfolio website</p>
         </div>
         <div className="flex items-center gap-2">
           {username && (
-            <Button variant="ghost" size="sm" className="text-[10px] h-8 gap-1.5" onClick={() => window.open(`/studio/${username}`, '_blank')}>
+            <Button variant="ghost" size="sm" className="text-[10px] h-9 sm:h-8 gap-1.5 flex-1 sm:flex-none min-h-[44px] sm:min-h-0" onClick={() => window.open(`/studio/${username}`, '_blank')}>
               <ExternalLink className="h-3 w-3" /> View Live Site
             </Button>
           )}
           {hasStudio && (
-            <Button size="sm" className="text-[10px] h-8 gap-1.5 bg-primary text-primary-foreground" onClick={() => navigate('/dashboard/website-editor')}>
+            <Button size="sm" className="text-[10px] h-9 sm:h-8 gap-1.5 bg-primary text-primary-foreground flex-1 sm:flex-none min-h-[44px] sm:min-h-0" onClick={() => navigate('/dashboard/website-editor')}>
               <Sparkles className="h-3 w-3" /> Open Editor
             </Button>
           )}
         </div>
       </div>
 
-      {/* Active site info */}
+      {/* Active site info - responsive */}
       {username && (
-        <div className="mb-6 p-3 rounded-lg border border-border bg-card/50 flex items-center justify-between">
+        <div className="mb-6 p-3 sm:p-4 rounded-lg border border-border bg-card/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <Globe className="h-4 w-4 text-primary" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-medium text-foreground">Your Studio Website</p>
-              <p className="text-[10px] text-muted-foreground/50">{getStudioDisplayUrl(username)}</p>
+              <p className="text-[10px] text-muted-foreground/50 truncate">{getStudioDisplayUrl(username)}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="text-[10px] h-7" onClick={() => navigate('/dashboard/website-editor')}>
+          <Button variant="outline" size="sm" className="text-[10px] h-9 sm:h-7 w-full sm:w-auto min-h-[44px] sm:min-h-0" onClick={() => navigate('/dashboard/website-editor')}>
             Edit Website
           </Button>
         </div>
       )}
 
-      {/* Template Gallery */}
+      {/* Template Gallery - responsive */}
       <div className="mb-4">
         <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium">CHOOSE A TEMPLATE</p>
         <p className="text-[11px] text-muted-foreground/30 mt-0.5">Select a template to start building. All your data auto-fills instantly.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
         {templates.map((tmpl) => {
           const isActive = selectedTemplate === tmpl.value;
           return (
