@@ -48,10 +48,7 @@ interface GridCell {
   colEnd: number;
 }
 
-const CATEGORIES = [
-  'Instagram Grid', 'Story Layout', 'Album Layout', 'Social Media Post',
-  'Portfolio Layout', 'Marketing Poster', 'Collage', 'Creative',
-];
+const CATEGORIES = ['basic', 'instagram', 'creative', 'single'];
 
 const GRID_TYPES = ['basic', 'instagram', 'creative', 'single', 'custom'];
 
