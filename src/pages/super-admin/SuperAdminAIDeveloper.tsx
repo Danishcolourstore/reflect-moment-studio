@@ -488,6 +488,47 @@ export default function SuperAdminAIDeveloper() {
   const hasSafetyWarnings = (currentResponse?.safety_warnings?.length || 0) > 0;
   const hasProtectedFiles = currentResponse?.files?.some(f => PROTECTED_PATHS.includes(f.path));
 
+  // ──── Client-side validation engine ────
+  const clientValidation = useMemo(() => {
+    if (!currentResponse) return null;
+    const issues: string[] = [];
+    const warnings: string[] = [];
+    let score = currentResponse.validation?.confidence_score ?? 0;
+    currentResponse.files?.forEach(f => {
+      if (PROTECTED_PATHS.includes(f.path)) issues.push(`Modifies protected file: ${f.path}`);
+      if (f.action === 'delete' && f.path.includes('/lib/')) issues.push(`Deletes core library: ${f.path}`);
+      if (f.content && /(['"])(sk[-_]|api[-_]?key|secret|password)\w*\1\s*[:=]/i.test(f.content)) issues.push(`Possible hardcoded secret in ${f.path}`);
+      if (f.content && f.path.endsWith('.tsx')) {
+        if (f.content.includes('useState') && !f.content.includes("from 'react'") && !f.content.includes('from "react"')) warnings.push(`${f.path.split('/').pop()}: Missing React import`);
+        if (f.content.includes('supabase') && !f.content.includes('@/integrations/supabase')) warnings.push(`${f.path.split('/').pop()}: Missing supabase import`);
+      }
+      if (f.content && /\.select\(\s*['"]?\*['"]?\s*\)/.test(f.content)) warnings.push(`${f.path.split('/').pop()}: Uses SELECT *`);
+    });
+    currentResponse.database?.forEach(d => {
+      if (d.sql && /DROP\s+(TABLE|DATABASE)/i.test(d.sql) && !d.sql.includes('IF EXISTS')) issues.push(`Unsafe DROP: ${d.name}`);
+      if (d.sql && d.type === 'table' && !d.sql.toLowerCase().includes('enable row level security')) warnings.push(`Table ${d.name}: Missing RLS`);
+    });
+    const allSecurity = [...issues, ...(currentResponse.validation?.security_issues || [])];
+    const allPerf = [...warnings, ...(currentResponse.validation?.performance_warnings || [])];
+    if (allSecurity.length > 0) score = Math.min(score || 40, 40);
+    else if (allPerf.length > 0) score = Math.max((score || 70) - allPerf.length * 5, 50);
+    else if (score === 0) score = 75;
+    return {
+      score: Math.max(0, Math.min(100, score)),
+      syntaxValid: currentResponse.validation?.syntax_valid ?? true,
+      importsValid: currentResponse.validation?.imports_valid !== false && !warnings.some(w => w.includes('Missing')),
+      typesValid: currentResponse.validation?.types_valid ?? true,
+      securityIssues: allSecurity, performanceWarnings: allPerf,
+      missingDeps: currentResponse.validation?.missing_dependencies || [],
+      reasons: currentResponse.validation?.confidence_reasons || [],
+      hasTests: (currentResponse.tests?.length || 0) > 0,
+      hasDocs: !!currentResponse.documentation?.feature_description,
+      passesAll: allSecurity.length === 0,
+    };
+  }, [currentResponse]);
+  const confidenceColor = (s: number) => s >= 80 ? 'text-green-500' : s >= 60 ? 'text-amber-500' : 'text-red-500';
+  const confidenceBg = (s: number) => s >= 80 ? 'bg-green-500' : s >= 60 ? 'bg-amber-500' : 'bg-red-500';
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* ══════ Header ══════ */}
