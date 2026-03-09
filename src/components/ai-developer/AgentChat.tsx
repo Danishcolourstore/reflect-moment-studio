@@ -9,7 +9,8 @@ import {
   Database, Globe, Server, Layers, FolderTree, ChevronDown, ChevronRight,
   Sparkles, Wrench, Brain, Code, Play, Eye, Terminal, Cpu, BookOpen,
   ArrowRight, Plus, Pencil, CheckCircle2, AlertTriangle, MessageSquare,
-  PanelRightOpen, PanelRightClose, CornerDownLeft, ArrowUp
+  PanelRightOpen, PanelRightClose, CornerDownLeft, ArrowUp, ListChecks,
+  XCircle, ThumbsUp, LayoutList, Zap, Shield, TestTube2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
@@ -17,7 +18,7 @@ import ReactMarkdown from 'react-markdown';
 // ─── Types ───
 interface AgentMessage {
   id: string;
-  role: 'user' | 'assistant' | 'tool';
+  role: 'user' | 'assistant' | 'tool' | 'plan';
   content: string;
   timestamp: Date;
   toolName?: string;
@@ -26,6 +27,16 @@ interface AgentMessage {
   fileChanges?: FilePreview[];
   taskPlan?: TaskStep[];
   isStreaming?: boolean;
+  planStatus?: 'pending' | 'approved' | 'rejected';
+  planSteps?: PlanStep[];
+}
+
+interface PlanStep {
+  id: string;
+  label: string;
+  type: 'database' | 'api' | 'page' | 'component' | 'config' | 'test' | 'general';
+  description?: string;
+  status: 'pending' | 'running' | 'done' | 'skipped';
 }
 
 interface CodeBlock {
@@ -80,6 +91,43 @@ const TOOL_LABELS: Record<string, string> = {
   plan_task: 'Planning steps',
   run_tests: 'Running tests',
   review_security: 'Reviewing security',
+};
+
+const PLAN_STEP_ICONS: Record<string, typeof Database> = {
+  database: Database,
+  api: Server,
+  page: LayoutList,
+  component: Layers,
+  config: Zap,
+  test: TestTube2,
+  general: ListChecks,
+};
+
+const shouldGeneratePlan = (text: string): boolean => {
+  const lower = text.toLowerCase();
+  return /create|build|implement|add new|develop|make|set up|design/.test(lower) &&
+    lower.split(/\s+/).length >= 4;
+};
+
+const parsePlanFromResponse = (content: string): PlanStep[] => {
+  const steps: PlanStep[] = [];
+  const lines = content.split('\n');
+  for (const line of lines) {
+    const match = line.match(/^\s*(?:\d+[.)]\s*|[-*]\s*)(.{8,120})/);
+    if (match && steps.length < 12) {
+      const label = match[1].replace(/\*{1,2}/g, '').trim();
+      let type: PlanStep['type'] = 'general';
+      const l = label.toLowerCase();
+      if (/database|table|migration|schema|sql/.test(l)) type = 'database';
+      else if (/api|endpoint|edge function|backend/.test(l)) type = 'api';
+      else if (/page|route|screen|view/.test(l)) type = 'page';
+      else if (/component|widget|form|modal|ui/.test(l)) type = 'component';
+      else if (/config|setting|env|setup/.test(l)) type = 'config';
+      else if (/test|spec|validate/.test(l)) type = 'test';
+      steps.push({ id: `step-${steps.length}`, label, type, status: 'pending' });
+    }
+  }
+  return steps;
 };
 
 let msgCounter = 0;
@@ -291,6 +339,130 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     return fullContent;
   };
 
+  // ─── Plan generation ───
+  const generatePlan = async (convId: string, userText: string): Promise<void> => {
+    await simulateToolPhase(convId, 'plan_task', 400 + Math.random() * 400);
+    setAgentPhase('generating');
+
+    const planPrompt = `You are a task planner. Given this request, create a numbered step-by-step development plan. Each step should be a single clear action. Only output the numbered list, nothing else.\n\nRequest: ${userText}`;
+
+    const resp = await fetch(CHAT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: planPrompt }],
+        provider: selectedProvider,
+        mode: 'chat',
+        codebaseContext: getRelevantContext(userText),
+      }),
+    });
+
+    if (!resp.ok) throw new Error('Plan generation failed');
+
+    let fullContent = '';
+    const reader = resp.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let nl: number;
+      while ((nl = buffer.indexOf('\n')) !== -1) {
+        let line = buffer.slice(0, nl);
+        buffer = buffer.slice(nl + 1);
+        if (line.endsWith('\r')) line = line.slice(0, -1);
+        if (!line.startsWith('data: ')) continue;
+        const j = line.slice(6).trim();
+        if (j === '[DONE]') continue;
+        try {
+          const p = JSON.parse(j);
+          const d = p.choices?.[0]?.delta?.content;
+          if (d) fullContent += d;
+        } catch { /* partial */ }
+      }
+    }
+
+    const steps = parsePlanFromResponse(fullContent);
+    if (steps.length === 0) {
+      steps.push({ id: 'step-0', label: 'Execute requested changes', type: 'general', status: 'pending' });
+    }
+
+    const planMsg: AgentMessage = {
+      id: newId(),
+      role: 'plan',
+      content: fullContent,
+      timestamp: new Date(),
+      planStatus: 'pending',
+      planSteps: steps,
+    };
+    updateMessages(convId, msgs => [...msgs, planMsg]);
+  };
+
+  // ─── Approve / Reject plan ───
+  const approvePlan = useCallback(async (planMsgId: string) => {
+    const convId = activeConvId;
+    if (!convId || isProcessing) return;
+
+    updateMessages(convId, msgs => msgs.map(m =>
+      m.id === planMsgId ? { ...m, planStatus: 'approved' as const } : m
+    ));
+
+    setIsProcessing(true);
+    try {
+      const conv = conversations.find(c => c.id === convId);
+      const planMsg = conv?.messages.find(m => m.id === planMsgId);
+      const userMsg = [...(conv?.messages || [])].reverse().find(m => m.role === 'user');
+
+      // Simulate executing each plan step
+      if (planMsg?.planSteps) {
+        for (let i = 0; i < planMsg.planSteps.length; i++) {
+          const step = planMsg.planSteps[i];
+          updateMessages(convId, msgs => msgs.map(m =>
+            m.id === planMsgId ? {
+              ...m,
+              planSteps: m.planSteps?.map((s, idx) => idx === i ? { ...s, status: 'running' as const } : s),
+            } : m
+          ));
+          await new Promise(r => setTimeout(r, 300 + Math.random() * 300));
+          updateMessages(convId, msgs => msgs.map(m =>
+            m.id === planMsgId ? {
+              ...m,
+              planSteps: m.planSteps?.map((s, idx) => idx === i ? { ...s, status: 'done' as const } : s),
+            } : m
+          ));
+        }
+      }
+
+      // Now generate the full response
+      const tools = detectTools(userMsg?.content || '');
+      for (const tool of tools.filter(t => t !== 'plan_task')) {
+        await simulateToolPhase(convId, tool, 200 + Math.random() * 300);
+      }
+      setAgentPhase('generating');
+
+      const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
+      await streamResponse(convId, currentMsgs.filter(m => m.role === 'user' || m.role === 'assistant'));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Execution failed');
+    } finally {
+      setIsProcessing(false);
+      setAgentPhase(null);
+    }
+  }, [activeConvId, conversations, isProcessing, selectedProvider]);
+
+  const rejectPlan = useCallback((planMsgId: string) => {
+    if (!activeConvId) return;
+    updateMessages(activeConvId, msgs => msgs.map(m =>
+      m.id === planMsgId ? { ...m, planStatus: 'rejected' as const } : m
+    ));
+    toast.info('Plan rejected. Modify your prompt and try again.');
+  }, [activeConvId]);
+
   // ─── Send ───
   const sendMessage = useCallback(async (overrideText?: string) => {
     const text = (overrideText || input).trim();
@@ -309,14 +481,20 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     setIsProcessing(true);
 
     try {
-      const tools = detectTools(text);
-      for (const tool of tools) {
-        await simulateToolPhase(convId, tool, 300 + Math.random() * 500);
+      // If the prompt is complex enough, generate a plan first
+      if (shouldGeneratePlan(text)) {
+        await generatePlan(convId, text);
+        // Stop here — wait for admin approval before executing
+      } else {
+        // Simple query — go straight to response
+        const tools = detectTools(text);
+        for (const tool of tools) {
+          await simulateToolPhase(convId, tool, 300 + Math.random() * 500);
+        }
+        setAgentPhase('generating');
+        const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
+        await streamResponse(convId, [...currentMsgs, userMsg]);
       }
-      setAgentPhase('generating');
-
-      const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
-      await streamResponse(convId, [...currentMsgs, userMsg]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Agent failed');
     } finally {
@@ -501,6 +679,102 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
                         </div>
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <User className="h-4 w-4 text-primary" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Plan approval card */}
+                    {msg.role === 'plan' && msg.planSteps && (
+                      <div className="flex gap-3">
+                        <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                          <ListChecks className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="max-w-[85%] min-w-0 flex-1">
+                          <div className="rounded-2xl rounded-tl-md border border-border bg-card overflow-hidden">
+                            {/* Header */}
+                            <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 border-b border-border">
+                              <Brain className="h-3.5 w-3.5 text-primary" />
+                              <span className="text-xs font-semibold text-foreground">Development Plan</span>
+                              {msg.planStatus === 'approved' && (
+                                <Badge variant="default" className="text-[8px] h-4 ml-auto gap-1">
+                                  <CheckCircle2 className="h-2.5 w-2.5" />Approved
+                                </Badge>
+                              )}
+                              {msg.planStatus === 'rejected' && (
+                                <Badge variant="destructive" className="text-[8px] h-4 ml-auto gap-1">
+                                  <XCircle className="h-2.5 w-2.5" />Rejected
+                                </Badge>
+                              )}
+                              {msg.planStatus === 'pending' && (
+                                <Badge variant="secondary" className="text-[8px] h-4 ml-auto">Awaiting approval</Badge>
+                              )}
+                            </div>
+
+                            {/* Steps */}
+                            <div className="p-3 space-y-1.5">
+                              {msg.planSteps.map((step, i) => {
+                                const StepIcon = PLAN_STEP_ICONS[step.type] || ListChecks;
+                                return (
+                                  <div
+                                    key={step.id}
+                                    className={cn(
+                                      'flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors',
+                                      step.status === 'running' && 'bg-primary/5 border border-primary/20',
+                                      step.status === 'done' && 'bg-muted/30',
+                                      step.status === 'pending' && 'bg-transparent',
+                                      step.status === 'skipped' && 'opacity-50',
+                                    )}
+                                  >
+                                    <span className="text-[10px] text-muted-foreground font-mono w-4 text-right flex-shrink-0">{i + 1}</span>
+                                    {step.status === 'running' ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin text-primary flex-shrink-0" />
+                                    ) : step.status === 'done' ? (
+                                      <CheckCircle2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                                    ) : (
+                                      <StepIcon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                                    )}
+                                    <span className={cn(
+                                      'text-xs flex-1',
+                                      step.status === 'done' ? 'text-foreground' : 'text-muted-foreground',
+                                      step.status === 'running' && 'text-foreground font-medium',
+                                    )}>{step.label}</span>
+                                    <Badge variant="outline" className="text-[7px] h-4 flex-shrink-0">{step.type}</Badge>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Approval buttons */}
+                            {msg.planStatus === 'pending' && (
+                              <div className="flex items-center gap-2 px-4 py-3 border-t border-border bg-muted/30">
+                                <Button
+                                  size="sm"
+                                  onClick={() => approvePlan(msg.id)}
+                                  disabled={isProcessing}
+                                  className="h-8 text-xs gap-1.5"
+                                >
+                                  <ThumbsUp className="h-3 w-3" />
+                                  Approve & Execute
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => rejectPlan(msg.id)}
+                                  disabled={isProcessing}
+                                  className="h-8 text-xs gap-1.5"
+                                >
+                                  <XCircle className="h-3 w-3" />
+                                  Reject
+                                </Button>
+                                <span className="text-[9px] text-muted-foreground ml-auto">
+                                  {msg.planSteps.length} steps
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-[9px] text-muted-foreground mt-1 ml-1">
+                            {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
                         </div>
                       </div>
                     )}
