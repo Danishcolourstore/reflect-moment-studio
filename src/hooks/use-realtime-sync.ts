@@ -11,6 +11,7 @@ const TABLE_QUERY_KEYS: Record<string, readonly (readonly unknown[])[]> = {
   website_templates:    [TEMPLATES_QUERY_KEY],
   platform_settings:   [PLATFORM_SETTINGS_KEY],
   templates:           [['templates']],          // super-admin template builder
+  grid_templates:      [['grid_templates']],     // super-admin grid builder manager
   profiles:            [['profiles'], ['profile'], ['storage-usage']],
   user_roles:          [['profiles'], ['profile']],
   events:              [['events'], ['event'], ['storage-usage']],
