@@ -617,16 +617,21 @@ export function getRelevantContext(promptText: string): string {
 
 // ─── Tree Node Component ───
 function TreeNode({ node, depth = 0, searchFilter }: { node: FolderNode; depth?: number; searchFilter?: string }) {
-  const [open, setOpen] = useState(depth < 1);
   const isFolder = node.type === 'folder';
   const matchesSearch = searchFilter ? node.name.toLowerCase().includes(searchFilter.toLowerCase()) : true;
   const childMatches = searchFilter && isFolder && node.children?.some(c =>
     c.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
     (c.children?.some(gc => gc.name.toLowerCase().includes(searchFilter.toLowerCase())))
   );
+  const [open, setOpen] = useState(depth < 1 || !!(searchFilter && childMatches));
+
+  // Auto-expand when search matches children
+  const shouldAutoExpand = !!(searchFilter && childMatches);
+  useEffect(() => {
+    if (shouldAutoExpand) setOpen(true);
+  }, [shouldAutoExpand]);
 
   if (searchFilter && !matchesSearch && !childMatches) return null;
-  if (searchFilter && childMatches && !open) setOpen(true);
 
   return (
     <div>
