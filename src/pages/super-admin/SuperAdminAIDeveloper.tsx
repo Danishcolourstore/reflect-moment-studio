@@ -43,12 +43,32 @@ interface DatabaseChange {
 }
 interface RouteChange { path: string; component: string; description: string; }
 interface EdgeFnChange { name: string; content: string; description: string; }
+interface TestFile { path: string; content: string; description: string; }
+interface Documentation {
+  feature_description?: string;
+  api_endpoints?: string[];
+  database_changes?: string[];
+  usage_instructions?: string;
+}
+interface ValidationResult {
+  syntax_valid?: boolean;
+  imports_valid?: boolean;
+  types_valid?: boolean;
+  security_issues?: string[];
+  performance_warnings?: string[];
+  missing_dependencies?: string[];
+  confidence_score?: number;
+  confidence_reasons?: string[];
+}
 interface AIResponse {
   summary: string;
   files: FileChange[];
   database: DatabaseChange[];
   routes: RouteChange[];
   edge_functions?: EdgeFnChange[];
+  tests?: TestFile[];
+  documentation?: Documentation;
+  validation?: ValidationResult;
   instructions: string;
   raw_content?: string;
   safety_warnings?: string[];
