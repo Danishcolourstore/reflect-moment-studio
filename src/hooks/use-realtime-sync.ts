@@ -9,7 +9,7 @@ import { setRealtimeStatus } from '@/lib/realtime-status';
 /** Tables → React Query keys that should be invalidated on change. */
 const TABLE_QUERY_KEYS: Record<string, readonly (readonly unknown[])[]> = {
   website_templates:    [TEMPLATES_QUERY_KEY],
-  platform_settings:   [PLATFORM_SETTINGS_KEY],
+  platform_settings:   [PLATFORM_SETTINGS_KEY, ['gallery-admin-settings']],
   templates:           [['templates']],          // super-admin template builder
   grid_templates:      [['grid_templates']],     // super-admin grid builder manager
   profiles:            [['profiles'], ['profile'], ['storage-usage']],
