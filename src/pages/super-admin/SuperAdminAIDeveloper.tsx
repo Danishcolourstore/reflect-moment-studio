@@ -21,7 +21,9 @@ import {
   Plus, Pencil, AlertTriangle, CheckCircle2, XCircle, MessageSquare, Send,
   Settings2, Shield, ShieldAlert, FileWarning, FolderOpen, ChevronRight,
   ChevronDown, File, Layers, Globe, Server, LayoutGrid, Package, Search,
-  RefreshCw, Download, ExternalLink, FlaskConical, Lock, Cpu
+  RefreshCw, Download, ExternalLink, FlaskConical, Lock, Cpu, FileText,
+  TestTube2, Gauge, BookOpen, ShieldCheck, Bug, Zap as ZapIcon, CircleCheck,
+  CircleX, Info, Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
