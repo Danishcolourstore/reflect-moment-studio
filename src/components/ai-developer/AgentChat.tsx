@@ -205,6 +205,14 @@ const generateToolDetail = (toolName: string, userText: string): string => {
       return 'Inspecting database query…';
     }
     case 'suggest_fix': return 'Generating corrected code…';
+    case 'generate_schema': {
+      const entity = lower.match(/(review|booking|invoice|payment|comment|rating|testimonial|message|order)/i);
+      return entity ? `Designing ${entity[1]} database schema…` : 'Designing database schema with RLS…';
+    }
+    case 'generate_backend': return 'Generating edge function endpoints…';
+    case 'generate_page': return 'Generating page with routing and layout…';
+    case 'generate_components': return 'Generating UI components…';
+    case 'generate_docs': return 'Generating feature documentation…';
     default: return `Running ${toolName}…`;
   }
 };
