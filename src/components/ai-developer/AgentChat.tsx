@@ -269,17 +269,21 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     ));
   };
 
-  // ─── Tool simulation ───
-  const simulateToolPhase = (convId: string, toolName: string, duration: number): Promise<void> => {
+  // ─── Tool execution ───
+  const simulateToolPhase = (convId: string, toolName: string, duration: number, userText = ''): Promise<void> => {
     return new Promise((resolve) => {
+      const detail = generateToolDetail(toolName, userText);
+      const startTime = Date.now();
       const toolMsg: AgentMessage = {
         id: newId(), role: 'tool', content: '', timestamp: new Date(),
-        toolName, toolStatus: 'running',
+        toolName, toolStatus: 'running', toolDetail: detail,
       };
       updateMessages(convId, msgs => [...msgs, toolMsg]);
       setAgentPhase(toolName);
       setTimeout(() => {
-        updateMessages(convId, msgs => msgs.map(m => m.id === toolMsg.id ? { ...m, toolStatus: 'done' } : m));
+        updateMessages(convId, msgs => msgs.map(m =>
+          m.id === toolMsg.id ? { ...m, toolStatus: 'done', toolDuration: Date.now() - startTime } : m
+        ));
         resolve();
       }, duration);
     });
@@ -289,18 +293,19 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     const lower = text.toLowerCase();
     const tools: string[] = [];
     if (/analyz|review|audit|check|inspect/.test(lower)) tools.push('analyze_structure');
-    if (/search|find|where|locate/.test(lower)) tools.push('search_codebase');
+    if (/search|find|where|locate/.test(lower)) tools.push('search_files');
     if (/read|open|show me|view file/.test(lower)) tools.push('read_file');
+    if (/component/.test(lower) && /analyz|review|inspect/.test(lower)) tools.push('analyze_component');
     if (/create|build|generate|add new|implement/.test(lower)) {
       tools.push('plan_task');
-      if (/database|table|migration|schema/.test(lower)) tools.push('create_migration');
+      if (/database|table|migration|schema/.test(lower)) tools.push('create_database_migration');
       if (/api|endpoint|edge function/.test(lower)) tools.push('generate_api');
       if (/page|component|feature|module/.test(lower)) tools.push('generate_code');
     }
-    if (/modify|update|change|fix|refactor/.test(lower)) tools.push('modify_file');
+    if (/modify|update|change|fix|refactor/.test(lower)) tools.push('update_file');
     if (/security|rls|auth|permission/.test(lower)) tools.push('review_security');
     if (/test|spec/.test(lower)) tools.push('run_tests');
-    if (/database|table|query|sql/.test(lower) && !tools.includes('create_migration')) tools.push('query_database');
+    if (/database|table|query|sql/.test(lower) && !tools.includes('create_database_migration')) tools.push('query_database');
     if (tools.length === 0) tools.push('analyze_structure');
     return tools;
   };
