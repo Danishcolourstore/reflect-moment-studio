@@ -162,6 +162,18 @@ serve(async (req) => {
       case "refactor":
         modeInstruction = "Analyze the described code and suggest refactoring improvements.";
         break;
+      case "full_feature":
+        modeInstruction = `Generate a COMPLETE feature with ALL of the following artifacts:
+
+1. **Database Schema** — CREATE TABLE SQL with columns, types, defaults, foreign keys, and RLS policies (USING + WITH CHECK).
+2. **Backend API** — A Deno edge function with CORS headers, input validation, error handling, and Supabase client usage.
+3. **Frontend Page** — A React page component with data fetching (useQuery), loading/error states, and proper layout.
+4. **UI Components** — Reusable sub-components (forms, cards, lists, modals) with TypeScript props and Tailwind semantic tokens.
+5. **Documentation** — Feature description, API endpoints, database changes, and usage instructions.
+
+Each artifact MUST be in its own labeled code block with a filename comment on the first line.
+Use existing patterns: @tanstack/react-query, supabase client from @/integrations/supabase/client, shadcn/ui components, lucide-react icons.`;
+        break;
       default:
         modeInstruction = "Generate whatever is needed based on the prompt.";
     }

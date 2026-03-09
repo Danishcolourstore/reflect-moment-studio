@@ -609,15 +609,29 @@ Feature request: ${userText}`
         }
       }
 
-      // Now generate the full response
-      const tools = detectTools(userMsg?.content || '');
-      for (const tool of tools.filter(t => t !== 'plan_task')) {
-        await simulateToolPhase(convId, tool, 200 + Math.random() * 300, userMsg?.content || '');
+      // Now generate the full response — use feature tool sequence if it's a feature request
+      const userText = userMsg?.content || '';
+      const featureMode = isFeatureRequest(userText);
+      const toolsToRun = featureMode
+        ? FEATURE_TOOLS_SEQUENCE
+        : detectTools(userText).filter(t => t !== 'plan_task');
+
+      for (const tool of toolsToRun) {
+        await simulateToolPhase(convId, tool, 300 + Math.random() * 500, userText);
       }
       setAgentPhase('generating');
 
       const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
-      await streamResponse(convId, currentMsgs.filter(m => m.role === 'user' || m.role === 'assistant'));
+      // For feature requests, inject a system hint to generate all artifacts
+      const featureHint = featureMode
+        ? `\n\n[SYSTEM: This is a FULL FEATURE request. Generate complete artifacts: 1) Database schema (CREATE TABLE with RLS), 2) Edge function API, 3) Frontend page component, 4) UI sub-components, 5) Feature documentation. Output each as a separate code block with filename comments.]`
+        : '';
+      const msgsForApi = currentMsgs.filter(m => m.role === 'user' || m.role === 'assistant');
+      if (featureHint && msgsForApi.length > 0) {
+        const lastIdx = msgsForApi.length - 1;
+        msgsForApi[lastIdx] = { ...msgsForApi[lastIdx], content: msgsForApi[lastIdx].content + featureHint };
+      }
+      await streamResponse(convId, msgsForApi);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Execution failed');
     } finally {
