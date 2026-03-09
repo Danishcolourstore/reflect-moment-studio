@@ -84,6 +84,34 @@ interface PromptHistory {
 interface ChatMessage { role: 'user' | 'assistant'; content: string; }
 
 // Codebase memory, PROJECT_TREE, DB_TABLES now in CodebaseMemory.tsx
+
+const AI_PROVIDERS = [
+  { value: 'lovable', label: 'Gemini (Lovable AI)', icon: '✨' },
+  { value: 'anthropic', label: 'Claude (Anthropic)', icon: '🧠' },
+];
+
+const GENERATION_MODES = [
+  { value: 'feature', label: 'Full Feature', icon: Package, desc: 'Complete feature with all layers' },
+  { value: 'page', label: 'Page', icon: LayoutGrid, desc: 'New page with route & layout' },
+  { value: 'component', label: 'Component', icon: Layers, desc: 'Reusable UI component' },
+  { value: 'api', label: 'API / Edge Function', icon: Server, desc: 'Backend endpoint' },
+  { value: 'database', label: 'Database', icon: Database, desc: 'Tables, migrations, policies' },
+  { value: 'module', label: 'Module', icon: FolderOpen, desc: 'Feature module package' },
+  { value: 'refactor', label: 'Refactor', icon: RefreshCw, desc: 'Improve existing code' },
+];
+
+const QUICK_PROMPTS = [
+  { label: 'Booking System', prompt: 'Create a complete booking system for photographers with calendar, client info, status tracking, and notifications', mode: 'module' },
+  { label: 'Client Reviews', prompt: 'Create a client review/testimonial feature where clients can rate and review photographers after events', mode: 'feature' },
+  { label: 'Marketing Analytics', prompt: 'Create a marketing analytics dashboard page with visitor tracking, conversion rates, and social media stats', mode: 'page' },
+  { label: 'Event Timeline', prompt: 'Create an interactive event timeline component showing key moments with photos and timestamps', mode: 'component' },
+  { label: 'Pricing API', prompt: 'Create an edge function for managing photographer pricing packages with CRUD operations', mode: 'api' },
+  { label: 'Invoices Table', prompt: 'Create an invoices table with client_id, amount, status, due_date, and proper RLS policies', mode: 'database' },
+];
+
+const PROTECTED_PATHS = ['src/lib/auth.tsx', 'src/lib/AuthContext.tsx', 'src/integrations/supabase/client.ts', 'src/integrations/supabase/types.ts'];
+
+const DEV_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-developer`;
 // ──────────── Main Component ────────────
 export default function SuperAdminAIDeveloper() {
   const { user } = useAuth();
