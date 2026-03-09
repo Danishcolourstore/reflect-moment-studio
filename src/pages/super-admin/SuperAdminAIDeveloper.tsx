@@ -472,82 +472,8 @@ export default function SuperAdminAIDeveloper() {
   // Codebase search
   const [codeSearch, setCodeSearch] = useState('');
 
-  // Auto-scroll chat
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);
 
   // Fetch history
-  const { data: history = [], isLoading: historyLoading } = useQuery({
-    queryKey: ['ai-developer-history'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ai_developer_prompts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data as PromptHistory[];
-    },
-  });
-
-  // Filtered DB tables
-  const filteredTables = useMemo(() => {
-    if (!codeSearch) return DB_TABLES;
-    const q = codeSearch.toLowerCase();
-    return DB_TABLES.filter(t => t.name.includes(q) || t.desc.toLowerCase().includes(q));
-  }, [codeSearch]);
-
-  // ──── Stream chat ────
-  const streamChat = async (messages: ChatMessage[]) => {
-    setIsStreaming(true);
-    let assistantContent = '';
-    const lastUserMsg = messages[messages.length - 1]?.content || '';
-    const codebaseContext = getRelevantContext(lastUserMsg);
-    try {
-      const resp = await fetch(CHAT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-        body: JSON.stringify({ messages, provider: selectedProvider, mode: 'chat', codebaseContext }),
-      });
-      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Request failed'); }
-      const reader = resp.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let nl: number;
-        while ((nl = buffer.indexOf('\n')) !== -1) {
-          let line = buffer.slice(0, nl); buffer = buffer.slice(nl + 1);
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (!line.startsWith('data: ')) continue;
-          const j = line.slice(6).trim();
-          if (j === '[DONE]') continue;
-          try {
-            const p = JSON.parse(j);
-            const d = p.choices?.[0]?.delta?.content;
-            if (d) {
-              assistantContent += d;
-              setChatMessages(prev => {
-                const last = prev[prev.length - 1];
-                if (last?.role === 'assistant') return [...prev.slice(0, -1), { role: 'assistant', content: assistantContent }];
-                return [...prev, { role: 'assistant', content: assistantContent }];
-              });
-            }
-          } catch { /* skip */ }
-        }
-      }
-    } catch (e) { toast.error(e instanceof Error ? e.message : 'Chat failed'); }
-    finally { setIsStreaming(false); }
-  };
-
-  const sendChatMessage = () => {
-    if (!chatInput.trim() || isStreaming) return;
-    const userMsg: ChatMessage = { role: 'user', content: chatInput.trim() };
-    setChatMessages(prev => [...prev, userMsg]);
-    setChatInput('');
-    streamChat([...chatMessages, userMsg]);
-  };
 
   // ──── Generate structured code ────
   const generateMutation = useMutation({
