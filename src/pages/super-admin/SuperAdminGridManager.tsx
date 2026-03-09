@@ -191,7 +191,7 @@ export default function SuperAdminGridManager() {
 
     const payload = {
       name: editingTemplate.name,
-      category: editingTemplate.category || 'Instagram Grid',
+      category: editingTemplate.category || 'basic',
       grid_type: editingTemplate.grid_type || 'basic',
       columns: editingTemplate.columns || 3,
       rows: editingTemplate.rows || 3,
