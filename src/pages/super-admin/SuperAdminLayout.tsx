@@ -19,6 +19,7 @@ const navItems = [
   { to: '/super-admin/revenue', icon: DollarSign, label: 'Revenue' },
   { to: '/super-admin/templates', icon: Layout, label: 'Templates' },
   { to: '/super-admin/grid-manager', icon: Grid3X3, label: 'Grid Builder' },
+  { to: '/super-admin/galleries', icon: Camera, label: 'Galleries' },
   { to: '/super-admin/emails', icon: Mail, label: 'Bulk Email' },
   { to: '/super-admin/activity', icon: Activity, label: 'Activity Log' },
   { to: '/super-admin/settings', icon: Settings, label: 'Settings' },
