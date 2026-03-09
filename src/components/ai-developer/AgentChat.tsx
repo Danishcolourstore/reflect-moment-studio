@@ -16,6 +16,52 @@ import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 
 // ─── Types ───
+interface ToolDefinition {
+  name: string;
+  label: string;
+  description: string;
+  icon: string;
+  category: 'read' | 'write' | 'analyze' | 'generate';
+}
+
+const TOOL_REGISTRY: ToolDefinition[] = [
+  { name: 'search_files', label: 'Search files', description: 'Search the codebase for files, patterns, and references', icon: 'search', category: 'read' },
+  { name: 'read_file', label: 'Read file', description: 'Read and analyze a specific file', icon: 'file', category: 'read' },
+  { name: 'analyze_component', label: 'Analyze component', description: 'Deep-analyze a React component structure and dependencies', icon: 'layers', category: 'analyze' },
+  { name: 'analyze_structure', label: 'Analyze project', description: 'Analyze the overall project architecture', icon: 'folder', category: 'analyze' },
+  { name: 'generate_code', label: 'Generate code', description: 'Generate new TypeScript/React code', icon: 'code', category: 'generate' },
+  { name: 'create_file', label: 'Create file', description: 'Create a new file in the project', icon: 'plus', category: 'write' },
+  { name: 'update_file', label: 'Update file', description: 'Modify an existing file', icon: 'pencil', category: 'write' },
+  { name: 'generate_api', label: 'Generate API', description: 'Generate an edge function / API endpoint', icon: 'server', category: 'generate' },
+  { name: 'create_database_migration', label: 'Create migration', description: 'Generate a database migration with tables and policies', icon: 'database', category: 'write' },
+  { name: 'query_database', label: 'Query database', description: 'Inspect database schema and data', icon: 'database', category: 'read' },
+  { name: 'plan_task', label: 'Plan task', description: 'Break down a request into development steps', icon: 'brain', category: 'analyze' },
+  { name: 'run_tests', label: 'Run tests', description: 'Execute test suites', icon: 'test', category: 'analyze' },
+  { name: 'review_security', label: 'Review security', description: 'Audit RLS policies, auth, and permissions', icon: 'shield', category: 'analyze' },
+];
+
+const TOOL_ICON_MAP: Record<string, typeof Database> = {
+  search: Search,
+  file: FileCode,
+  layers: Layers,
+  folder: FolderTree,
+  code: Code,
+  plus: Plus,
+  pencil: Pencil,
+  server: Server,
+  database: Database,
+  brain: Brain,
+  test: TestTube2,
+  shield: Shield,
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  read: 'text-blue-400',
+  write: 'text-amber-400',
+  analyze: 'text-purple-400',
+  generate: 'text-primary',
+};
+
 interface AgentMessage {
   id: string;
   role: 'user' | 'assistant' | 'tool' | 'plan';
@@ -23,20 +69,14 @@ interface AgentMessage {
   timestamp: Date;
   toolName?: string;
   toolStatus?: 'running' | 'done' | 'error';
+  toolDetail?: string;
+  toolDuration?: number;
   codeBlocks?: CodeBlock[];
   fileChanges?: FilePreview[];
   taskPlan?: TaskStep[];
   isStreaming?: boolean;
   planStatus?: 'pending' | 'approved' | 'rejected';
   planSteps?: PlanStep[];
-}
-
-interface PlanStep {
-  id: string;
-  label: string;
-  type: 'database' | 'api' | 'page' | 'component' | 'config' | 'test' | 'general';
-  description?: string;
-  status: 'pending' | 'running' | 'done' | 'skipped';
 }
 
 interface CodeBlock {
