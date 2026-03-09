@@ -447,12 +447,7 @@ export default function SuperAdminAIDeveloper() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'chat' | 'generator' | 'codebase'>('chat');
 
-  // Chat state
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatInput, setChatInput] = useState('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState('lovable');
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  // Generator state
 
   // Generator state
   const [prompt, setPrompt] = useState('');
