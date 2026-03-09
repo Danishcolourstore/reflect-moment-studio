@@ -16,6 +16,52 @@ import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 
 // ─── Types ───
+interface ToolDefinition {
+  name: string;
+  label: string;
+  description: string;
+  icon: string;
+  category: 'read' | 'write' | 'analyze' | 'generate';
+}
+
+const TOOL_REGISTRY: ToolDefinition[] = [
+  { name: 'search_files', label: 'Search files', description: 'Search the codebase for files, patterns, and references', icon: 'search', category: 'read' },
+  { name: 'read_file', label: 'Read file', description: 'Read and analyze a specific file', icon: 'file', category: 'read' },
+  { name: 'analyze_component', label: 'Analyze component', description: 'Deep-analyze a React component structure and dependencies', icon: 'layers', category: 'analyze' },
+  { name: 'analyze_structure', label: 'Analyze project', description: 'Analyze the overall project architecture', icon: 'folder', category: 'analyze' },
+  { name: 'generate_code', label: 'Generate code', description: 'Generate new TypeScript/React code', icon: 'code', category: 'generate' },
+  { name: 'create_file', label: 'Create file', description: 'Create a new file in the project', icon: 'plus', category: 'write' },
+  { name: 'update_file', label: 'Update file', description: 'Modify an existing file', icon: 'pencil', category: 'write' },
+  { name: 'generate_api', label: 'Generate API', description: 'Generate an edge function / API endpoint', icon: 'server', category: 'generate' },
+  { name: 'create_database_migration', label: 'Create migration', description: 'Generate a database migration with tables and policies', icon: 'database', category: 'write' },
+  { name: 'query_database', label: 'Query database', description: 'Inspect database schema and data', icon: 'database', category: 'read' },
+  { name: 'plan_task', label: 'Plan task', description: 'Break down a request into development steps', icon: 'brain', category: 'analyze' },
+  { name: 'run_tests', label: 'Run tests', description: 'Execute test suites', icon: 'test', category: 'analyze' },
+  { name: 'review_security', label: 'Review security', description: 'Audit RLS policies, auth, and permissions', icon: 'shield', category: 'analyze' },
+];
+
+const TOOL_ICON_MAP: Record<string, typeof Database> = {
+  search: Search,
+  file: FileCode,
+  layers: Layers,
+  folder: FolderTree,
+  code: Code,
+  plus: Plus,
+  pencil: Pencil,
+  server: Server,
+  database: Database,
+  brain: Brain,
+  test: TestTube2,
+  shield: Shield,
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  read: 'text-blue-400',
+  write: 'text-amber-400',
+  analyze: 'text-purple-400',
+  generate: 'text-primary',
+};
+
 interface AgentMessage {
   id: string;
   role: 'user' | 'assistant' | 'tool' | 'plan';
@@ -23,20 +69,14 @@ interface AgentMessage {
   timestamp: Date;
   toolName?: string;
   toolStatus?: 'running' | 'done' | 'error';
+  toolDetail?: string;
+  toolDuration?: number;
   codeBlocks?: CodeBlock[];
   fileChanges?: FilePreview[];
   taskPlan?: TaskStep[];
   isStreaming?: boolean;
   planStatus?: 'pending' | 'approved' | 'rejected';
   planSteps?: PlanStep[];
-}
-
-interface PlanStep {
-  id: string;
-  label: string;
-  type: 'database' | 'api' | 'page' | 'component' | 'config' | 'test' | 'general';
-  description?: string;
-  status: 'pending' | 'running' | 'done' | 'skipped';
 }
 
 interface CodeBlock {
@@ -54,6 +94,14 @@ interface FilePreview {
 interface TaskStep {
   label: string;
   status: 'pending' | 'running' | 'done' | 'error';
+}
+
+interface PlanStep {
+  id: string;
+  label: string;
+  type: 'database' | 'api' | 'page' | 'component' | 'config' | 'test' | 'general';
+  description?: string;
+  status: 'pending' | 'running' | 'done' | 'skipped';
 }
 
 interface Conversation {
@@ -78,19 +126,53 @@ const SUGGESTIONS = [
   { icon: '⚡', label: 'Optimize code', prompt: 'Analyze the platform for performance bottlenecks.' },
 ];
 
-const TOOL_LABELS: Record<string, string> = {
-  search_codebase: 'Searching codebase',
-  read_file: 'Reading files',
-  analyze_structure: 'Analyzing project',
-  generate_code: 'Generating code',
-  create_file: 'Creating files',
-  modify_file: 'Modifying files',
-  query_database: 'Querying database',
-  create_migration: 'Preparing migration',
-  generate_api: 'Generating API',
-  plan_task: 'Planning steps',
-  run_tests: 'Running tests',
-  review_security: 'Reviewing security',
+const getToolDef = (name: string): ToolDefinition | undefined => TOOL_REGISTRY.find(t => t.name === name);
+const getToolLabel = (name: string): string => {
+  const def = getToolDef(name);
+  return def ? def.label : name;
+};
+const getToolIcon = (name: string) => {
+  const def = getToolDef(name);
+  return def ? (TOOL_ICON_MAP[def.icon] || Wrench) : Wrench;
+};
+const getToolCategory = (name: string) => {
+  const def = getToolDef(name);
+  return def?.category || 'analyze';
+};
+
+// Context-aware detail messages for each tool
+const generateToolDetail = (toolName: string, userText: string): string => {
+  const lower = userText.toLowerCase();
+  switch (toolName) {
+    case 'search_files': {
+      if (/gallery/i.test(lower)) return 'Searching for gallery-related files…';
+      if (/booking/i.test(lower)) return 'Searching for booking components…';
+      if (/dashboard/i.test(lower)) return 'Searching dashboard modules…';
+      return 'Scanning project files…';
+    }
+    case 'read_file': {
+      const fileMatch = lower.match(/(\w+\.tsx?|\w+\.ts)/);
+      return fileMatch ? `Reading ${fileMatch[1]}…` : 'Reading relevant files…';
+    }
+    case 'analyze_component': {
+      const comp = lower.match(/(\w+card|\w+modal|\w+form|\w+page|\w+list)/i);
+      return comp ? `Analyzing ${comp[1]} component…` : 'Analyzing component structure…';
+    }
+    case 'analyze_structure': return 'Mapping project architecture…';
+    case 'generate_code': return 'Generating TypeScript code…';
+    case 'create_file': return 'Preparing new file…';
+    case 'update_file': {
+      const fMatch = lower.match(/(\w+\.tsx?)/);
+      return fMatch ? `Updating ${fMatch[1]}…` : 'Updating file…';
+    }
+    case 'generate_api': return 'Generating edge function endpoint…';
+    case 'create_database_migration': return 'Preparing database migration…';
+    case 'query_database': return 'Inspecting database schema…';
+    case 'plan_task': return 'Breaking down into development steps…';
+    case 'run_tests': return 'Running test suite…';
+    case 'review_security': return 'Auditing RLS policies and auth…';
+    default: return `Running ${toolName}…`;
+  }
 };
 
 const PLAN_STEP_ICONS: Record<string, typeof Database> = {
@@ -187,17 +269,21 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     ));
   };
 
-  // ─── Tool simulation ───
-  const simulateToolPhase = (convId: string, toolName: string, duration: number): Promise<void> => {
+  // ─── Tool execution ───
+  const simulateToolPhase = (convId: string, toolName: string, duration: number, userText = ''): Promise<void> => {
     return new Promise((resolve) => {
+      const detail = generateToolDetail(toolName, userText);
+      const startTime = Date.now();
       const toolMsg: AgentMessage = {
         id: newId(), role: 'tool', content: '', timestamp: new Date(),
-        toolName, toolStatus: 'running',
+        toolName, toolStatus: 'running', toolDetail: detail,
       };
       updateMessages(convId, msgs => [...msgs, toolMsg]);
       setAgentPhase(toolName);
       setTimeout(() => {
-        updateMessages(convId, msgs => msgs.map(m => m.id === toolMsg.id ? { ...m, toolStatus: 'done' } : m));
+        updateMessages(convId, msgs => msgs.map(m =>
+          m.id === toolMsg.id ? { ...m, toolStatus: 'done', toolDuration: Date.now() - startTime } : m
+        ));
         resolve();
       }, duration);
     });
@@ -207,18 +293,19 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     const lower = text.toLowerCase();
     const tools: string[] = [];
     if (/analyz|review|audit|check|inspect/.test(lower)) tools.push('analyze_structure');
-    if (/search|find|where|locate/.test(lower)) tools.push('search_codebase');
+    if (/search|find|where|locate/.test(lower)) tools.push('search_files');
     if (/read|open|show me|view file/.test(lower)) tools.push('read_file');
+    if (/component/.test(lower) && /analyz|review|inspect/.test(lower)) tools.push('analyze_component');
     if (/create|build|generate|add new|implement/.test(lower)) {
       tools.push('plan_task');
-      if (/database|table|migration|schema/.test(lower)) tools.push('create_migration');
+      if (/database|table|migration|schema/.test(lower)) tools.push('create_database_migration');
       if (/api|endpoint|edge function/.test(lower)) tools.push('generate_api');
       if (/page|component|feature|module/.test(lower)) tools.push('generate_code');
     }
-    if (/modify|update|change|fix|refactor/.test(lower)) tools.push('modify_file');
+    if (/modify|update|change|fix|refactor/.test(lower)) tools.push('update_file');
     if (/security|rls|auth|permission/.test(lower)) tools.push('review_security');
     if (/test|spec/.test(lower)) tools.push('run_tests');
-    if (/database|table|query|sql/.test(lower) && !tools.includes('create_migration')) tools.push('query_database');
+    if (/database|table|query|sql/.test(lower) && !tools.includes('create_database_migration')) tools.push('query_database');
     if (tools.length === 0) tools.push('analyze_structure');
     return tools;
   };
@@ -441,7 +528,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
       // Now generate the full response
       const tools = detectTools(userMsg?.content || '');
       for (const tool of tools.filter(t => t !== 'plan_task')) {
-        await simulateToolPhase(convId, tool, 200 + Math.random() * 300);
+        await simulateToolPhase(convId, tool, 200 + Math.random() * 300, userMsg?.content || '');
       }
       setAgentPhase('generating');
 
@@ -489,7 +576,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
         // Simple query — go straight to response
         const tools = detectTools(text);
         for (const tool of tools) {
-          await simulateToolPhase(convId, tool, 300 + Math.random() * 500);
+          await simulateToolPhase(convId, tool, 300 + Math.random() * 500, text);
         }
         setAgentPhase('generating');
         const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
@@ -652,19 +739,39 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
                 {messages.map((msg) => (
                   <div key={msg.id}>
                     {/* Tool indicator */}
-                    {msg.role === 'tool' && msg.toolName && (
-                      <div className="flex items-center gap-2 py-1 ml-11">
-                        {msg.toolStatus === 'running' ? (
-                          <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                        ) : (
-                          <CheckCircle2 className="h-3 w-3 text-green-500" />
-                        )}
-                        <span className="text-[10px] text-muted-foreground">
-                          {TOOL_LABELS[msg.toolName] || msg.toolName}
-                          {msg.toolStatus === 'done' && ' ✓'}
-                        </span>
-                      </div>
-                    )}
+                    {msg.role === 'tool' && msg.toolName && (() => {
+                      const ToolIcon = getToolIcon(msg.toolName!);
+                      const catColor = CATEGORY_COLORS[getToolCategory(msg.toolName!)] || 'text-muted-foreground';
+                      return (
+                        <div className="flex items-center gap-2 py-1.5 ml-11 group">
+                          <div className={cn('h-5 w-5 rounded flex items-center justify-center', msg.toolStatus === 'running' ? 'bg-primary/10' : 'bg-muted/50')}>
+                            {msg.toolStatus === 'running' ? (
+                              <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                            ) : (
+                              <ToolIcon className={cn('h-3 w-3', catColor)} />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-[10px] font-medium text-foreground/70">
+                              {getToolLabel(msg.toolName!)}
+                            </span>
+                            {msg.toolDetail && (
+                              <span className="text-[9px] text-muted-foreground truncate">
+                                — {msg.toolDetail}
+                              </span>
+                            )}
+                          </div>
+                          {msg.toolStatus === 'done' && (
+                            <div className="flex items-center gap-1 ml-auto">
+                              <CheckCircle2 className="h-3 w-3 text-primary" />
+                              {msg.toolDuration && (
+                                <span className="text-[8px] text-muted-foreground">{msg.toolDuration}ms</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* User bubble */}
                     {msg.role === 'user' && (
@@ -923,7 +1030,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
             {isProcessing && agentPhase && agentPhase !== 'generating' && (
               <div className="flex items-center gap-2 mb-2 px-3 py-1.5 rounded-lg bg-muted/50">
                 <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                <span className="text-[10px] text-muted-foreground">{TOOL_LABELS[agentPhase] || agentPhase}…</span>
+                <span className="text-[10px] text-muted-foreground">{getToolLabel(agentPhase)}…</span>
               </div>
             )}
 
