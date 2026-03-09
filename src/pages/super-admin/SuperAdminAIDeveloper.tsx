@@ -803,7 +803,7 @@ export default function SuperAdminAIDeveloper() {
               <Code className="h-3.5 w-3.5" />Code Generator
             </TabsTrigger>
             <TabsTrigger value="codebase" className="gap-1.5 text-xs data-[state=active]:bg-muted">
-              <FolderTree className="h-3.5 w-3.5" />Codebase Map
+              <Cpu className="h-3.5 w-3.5" />Codebase Memory
             </TabsTrigger>
           </TabsList>
         </div>
