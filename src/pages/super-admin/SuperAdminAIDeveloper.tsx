@@ -809,69 +809,9 @@ export default function SuperAdminAIDeveloper() {
           </TabsList>
         </div>
 
-        {/* ══════ Chat Tab ══════ */}
+        {/* ══════ Chat Tab (Agent) ══════ */}
         <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0">
-          <div className="flex-1 flex flex-col">
-            <ScrollArea className="flex-1 p-4">
-              {chatMessages.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center max-w-lg">
-                    <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 flex items-center justify-center mx-auto mb-4">
-                      <MessageSquare className="h-7 w-7 text-violet-500" />
-                    </div>
-                    <h2 className="text-base font-semibold mb-1">AI Developer Chat</h2>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Ask anything about the codebase, get architecture advice, or discuss features with {selectedProvider === 'lovable' ? 'Gemini' : 'Claude'}.
-                      The AI has full knowledge of MirrorAI's structure.
-                    </p>
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {['How is authentication implemented?', 'What tables does the gallery system use?', 'Suggest a booking feature architecture', 'How do I add a new dashboard widget?'].map(q => (
-                        <button key={q} onClick={() => setChatInput(q)}
-                          className="text-[11px] px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors">
-                          {q}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3 max-w-3xl mx-auto">
-                  {chatMessages.map((msg, i) => (
-                    <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
-                      <div className={cn('max-w-[85%] rounded-lg px-4 py-2', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                        {msg.role === 'assistant' ? (
-                          <div className="prose prose-sm dark:prose-invert max-w-none">
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
-                          </div>
-                        ) : <p className="text-sm whitespace-pre-wrap">{msg.content}</p>}
-                      </div>
-                    </div>
-                  ))}
-                  {isStreaming && chatMessages[chatMessages.length - 1]?.role !== 'assistant' && (
-                    <div className="flex justify-start">
-                      <div className="bg-muted rounded-lg px-4 py-2"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
-                    </div>
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
-              )}
-            </ScrollArea>
-            <div className="border-t border-border p-3">
-              <div className="flex gap-2 max-w-3xl mx-auto">
-                <Textarea value={chatInput} onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
-                  placeholder="Ask the AI anything about MirrorAI's codebase..." className="min-h-[40px] max-h-28 resize-none text-sm" disabled={isStreaming} />
-                <div className="flex flex-col gap-1">
-                  <Button onClick={sendChatMessage} disabled={!chatInput.trim() || isStreaming} size="icon" className="h-10 w-10">
-                    {isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </Button>
-                  {chatMessages.length > 0 && (
-                    <Button onClick={() => setChatMessages([])} variant="ghost" size="icon" className="h-7 w-7"><Trash2 className="h-3 w-3" /></Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <AgentChat selectedProvider={selectedProvider} getRelevantContext={getRelevantContext} />
         </TabsContent>
 
         {/* ══════ Generator Tab ══════ */}
