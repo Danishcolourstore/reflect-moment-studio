@@ -48,16 +48,13 @@ interface GridCell {
   colEnd: number;
 }
 
-const CATEGORIES = [
-  'Instagram Grid', 'Story Layout', 'Album Layout', 'Social Media Post',
-  'Portfolio Layout', 'Marketing Poster', 'Collage', 'Creative',
-];
+const CATEGORIES = ['basic', 'instagram', 'creative', 'single'];
 
 const GRID_TYPES = ['basic', 'instagram', 'creative', 'single', 'custom'];
 
 const DEFAULT_TEMPLATE: Partial<GridTemplate> = {
   name: '',
-  category: 'Instagram Grid',
+  category: 'basic',
   grid_type: 'basic',
   columns: 3,
   rows: 3,
@@ -194,7 +191,7 @@ export default function SuperAdminGridManager() {
 
     const payload = {
       name: editingTemplate.name,
-      category: editingTemplate.category || 'Instagram Grid',
+      category: editingTemplate.category || 'basic',
       grid_type: editingTemplate.grid_type || 'basic',
       columns: editingTemplate.columns || 3,
       rows: editingTemplate.rows || 3,
