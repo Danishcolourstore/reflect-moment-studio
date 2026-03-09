@@ -233,6 +233,23 @@ const shouldGeneratePlan = (text: string): boolean => {
     lower.split(/\s+/).length >= 4;
 };
 
+const isFeatureRequest = (text: string): boolean => {
+  const lower = text.toLowerCase();
+  return /create|build|implement|add/.test(lower) &&
+    /feature|system|module|functionality|capability|tool|section/.test(lower) &&
+    lower.split(/\s+/).length >= 3;
+};
+
+const FEATURE_TOOLS_SEQUENCE = [
+  'analyze_structure',
+  'generate_schema',
+  'generate_backend',
+  'generate_page',
+  'generate_components',
+  'generate_docs',
+  'review_security',
+];
+
 const parsePlanFromResponse = (content: string): PlanStep[] => {
   const steps: PlanStep[] = [];
   const lines = content.split('\n');
