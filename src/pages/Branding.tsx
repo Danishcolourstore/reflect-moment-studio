@@ -59,20 +59,20 @@ const Branding = () => {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      {/* Header - responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-2">
         <div>
-          <h1 className="font-serif text-2xl font-semibold text-foreground">Brand Studio</h1>
+          <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground">Brand Studio</h1>
           <p className="text-xs text-muted-foreground/50 mt-1">Choose a template and build your portfolio website</p>
         </div>
         <div className="flex items-center gap-2">
           {username && (
-            <Button variant="ghost" size="sm" className="text-[10px] h-8 gap-1.5" onClick={() => window.open(`/studio/${username}`, '_blank')}>
+            <Button variant="ghost" size="sm" className="text-[10px] h-9 sm:h-8 gap-1.5 flex-1 sm:flex-none min-h-[44px] sm:min-h-0" onClick={() => window.open(`/studio/${username}`, '_blank')}>
               <ExternalLink className="h-3 w-3" /> View Live Site
             </Button>
           )}
           {hasStudio && (
-            <Button size="sm" className="text-[10px] h-8 gap-1.5 bg-primary text-primary-foreground" onClick={() => navigate('/dashboard/website-editor')}>
+            <Button size="sm" className="text-[10px] h-9 sm:h-8 gap-1.5 bg-primary text-primary-foreground flex-1 sm:flex-none min-h-[44px] sm:min-h-0" onClick={() => navigate('/dashboard/website-editor')}>
               <Sparkles className="h-3 w-3" /> Open Editor
             </Button>
           )}
