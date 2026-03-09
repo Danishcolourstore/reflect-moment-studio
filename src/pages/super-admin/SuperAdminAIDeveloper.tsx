@@ -564,7 +564,7 @@ export default function SuperAdminAIDeveloper() {
       const resp = await fetch(DEV_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-        body: JSON.stringify({ prompt: promptText, context: 'MirrorAI photography studio management platform', provider: selectedProvider, mode }),
+        body: JSON.stringify({ prompt: promptText + getRelevantContext(promptText), context: 'MirrorAI photography studio management platform', provider: selectedProvider, mode }),
       });
       if (!resp.ok) { const e = await resp.json(); throw new Error(e.error || 'Generation failed'); }
 
