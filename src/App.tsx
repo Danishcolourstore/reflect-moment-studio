@@ -37,6 +37,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import GalleryCover from "./pages/GalleryCover";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import BuilderTest from "./pages/BuilderTest";
 import { GalleryShell } from "./components/GalleryShell";
 import LandingPage from "./pages/LandingPage";
 import GuestFinder from "./pages/GuestFinder";
