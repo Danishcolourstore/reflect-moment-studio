@@ -332,6 +332,18 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     if (/security|rls|auth|permission/.test(lower)) tools.push('review_security');
     if (/test|spec/.test(lower)) tools.push('run_tests');
     if (/database|table|query|sql/.test(lower) && !tools.includes('create_database_migration')) tools.push('query_database');
+
+    // Debug tools
+    if (/error|bug|issue|broken|fail|crash|exception|stack trace|traceback|not working|doesn.t work/.test(lower)) {
+      tools.push('debug_error');
+      if (/import|module|cannot find|not found.*module/.test(lower)) tools.push('check_imports');
+      if (/route|404|page not found|navigation/.test(lower)) tools.push('check_routes');
+      if (/query|database|rls|supabase|permission denied|row.level/.test(lower)) tools.push('debug_query');
+      tools.push('suggest_fix');
+    }
+    if (/import.*error|missing.*import|cannot find module/.test(lower) && !tools.includes('check_imports')) tools.push('check_imports');
+    if (/route.*broken|404|page.*not.*found/.test(lower) && !tools.includes('check_routes')) tools.push('check_routes');
+
     if (tools.length === 0) tools.push('analyze_structure');
     return tools;
   };
