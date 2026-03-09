@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useGridTemplates } from '@/hooks/use-grid-templates';
 import { GRID_LAYOUTS, type GridLayout } from './types';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Props {
   onSelect: (layout: GridLayout) => void;
@@ -17,17 +19,6 @@ const CATEGORIES = [
 function LayoutPreview({ layout }: { layout: GridLayout }) {
   const hasFrame = !!layout.frame;
   const ratio = layout.canvasRatio || 1;
-
-  // Determine a descriptive icon/badge
-  const badge = hasFrame
-    ? layout.frame!.padding[2] > 12
-      ? '📷' // Polaroid-style (big bottom padding)
-      : layout.frame!.shadow
-        ? '✦'  // floating/shadow
-        : layout.frame!.borderWidth
-          ? '▣'  // editorial border
-          : '◻'  // white frame
-    : null;
 
   return (
     <div
@@ -98,7 +89,20 @@ function CellCount({ layout }: { layout: GridLayout }) {
 
 export default function GridLayoutSelector({ onSelect }: Props) {
   const [cat, setCat] = useState<'single' | 'basic' | 'instagram' | 'creative'>('single');
-  const filtered = GRID_LAYOUTS.filter((l) => l.category === cat);
+  
+  // Fetch templates from database
+  const { data: dbTemplates, isLoading } = useGridTemplates();
+  
+  // Merge DB templates with fallback hardcoded layouts
+  const layouts = useMemo(() => {
+    if (dbTemplates && dbTemplates.length > 0) {
+      return dbTemplates;
+    }
+    // Fallback to hardcoded layouts if DB is empty
+    return GRID_LAYOUTS;
+  }, [dbTemplates]);
+
+  const filtered = layouts.filter((l) => l.category === cat);
 
   return (
     <div className="flex flex-col gap-6">
@@ -120,27 +124,40 @@ export default function GridLayoutSelector({ onSelect }: Props) {
         ))}
       </div>
 
-      {/* Layout grid */}
-      <div className="grid grid-cols-3 gap-3">
-        {filtered.map((layout) => (
-          <button
-            key={layout.id}
-            onClick={() => onSelect(layout)}
-            className={cn(
-              'group flex flex-col items-center gap-2 p-3 rounded-xl border bg-card transition-all duration-200 active:scale-95',
-              'border-border/60 hover:border-primary/50 hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.25)]'
-            )}
-          >
-            <LayoutPreview layout={layout} />
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="text-[9px] tracking-wider uppercase text-muted-foreground/70 font-medium group-hover:text-foreground transition-colors">
-                {layout.name}
-              </span>
-              <CellCount layout={layout} />
-            </div>
-          </button>
-        ))}
-      </div>
+      {/* Loading state */}
+      {isLoading ? (
+        <div className="grid grid-cols-3 gap-3">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="aspect-square rounded-xl" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="py-12 text-center">
+          <p className="text-sm text-muted-foreground">No layouts in this category</p>
+        </div>
+      ) : (
+        /* Layout grid */
+        <div className="grid grid-cols-3 gap-3">
+          {filtered.map((layout) => (
+            <button
+              key={layout.id}
+              onClick={() => onSelect(layout)}
+              className={cn(
+                'group flex flex-col items-center gap-2 p-3 rounded-xl border bg-card transition-all duration-200 active:scale-95',
+                'border-border/60 hover:border-primary/50 hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.25)]'
+              )}
+            >
+              <LayoutPreview layout={layout} />
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-[9px] tracking-wider uppercase text-muted-foreground/70 font-medium group-hover:text-foreground transition-colors">
+                  {layout.name}
+                </span>
+                <CellCount layout={layout} />
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
