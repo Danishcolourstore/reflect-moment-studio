@@ -815,6 +815,224 @@ export type Database = {
           },
         ]
       }
+      dashboard_layouts: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          layout_config: Json
+          layout_name: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          layout_config?: Json
+          layout_name?: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          layout_config?: Json
+          layout_name?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dashboard_modules: {
+        Row: {
+          created_at: string
+          id: string
+          is_enabled: boolean
+          module_description: string | null
+          module_key: string
+          module_name: string
+          roles: string[] | null
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          module_description?: string | null
+          module_key: string
+          module_name: string
+          roles?: string[] | null
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          module_description?: string | null
+          module_key?: string
+          module_name?: string
+          roles?: string[] | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      dashboard_navigation: {
+        Row: {
+          created_at: string
+          id: string
+          is_visible: boolean
+          nav_icon: string
+          nav_key: string
+          nav_label: string
+          nav_route: string
+          parent_id: string | null
+          roles: string[] | null
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          nav_icon?: string
+          nav_key: string
+          nav_label: string
+          nav_route: string
+          parent_id?: string | null
+          roles?: string[] | null
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          nav_icon?: string
+          nav_key?: string
+          nav_label?: string
+          nav_route?: string
+          parent_id?: string | null
+          roles?: string[] | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_navigation_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_navigation"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dashboard_quick_actions: {
+        Row: {
+          action_icon: string
+          action_key: string
+          action_label: string
+          action_route: string | null
+          action_type: string
+          created_at: string
+          id: string
+          is_visible: boolean
+          roles: string[] | null
+          sort_order: number
+        }
+        Insert: {
+          action_icon?: string
+          action_key: string
+          action_label: string
+          action_route?: string | null
+          action_type?: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          roles?: string[] | null
+          sort_order?: number
+        }
+        Update: {
+          action_icon?: string
+          action_key?: string
+          action_label?: string
+          action_route?: string | null
+          action_type?: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          roles?: string[] | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      dashboard_settings: {
+        Row: {
+          category: string
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dashboard_widgets: {
+        Row: {
+          created_at: string
+          default_height: number
+          default_width: number
+          id: string
+          is_active: boolean
+          min_height: number | null
+          min_width: number | null
+          sort_order: number
+          widget_description: string | null
+          widget_icon: string | null
+          widget_key: string
+          widget_name: string
+        }
+        Insert: {
+          created_at?: string
+          default_height?: number
+          default_width?: number
+          id?: string
+          is_active?: boolean
+          min_height?: number | null
+          min_width?: number | null
+          sort_order?: number
+          widget_description?: string | null
+          widget_icon?: string | null
+          widget_key: string
+          widget_name: string
+        }
+        Update: {
+          created_at?: string
+          default_height?: number
+          default_width?: number
+          id?: string
+          is_active?: boolean
+          min_height?: number | null
+          min_width?: number | null
+          sort_order?: number
+          widget_description?: string | null
+          widget_icon?: string | null
+          widget_key?: string
+          widget_name?: string
+        }
+        Relationships: []
+      }
       event_analytics: {
         Row: {
           downloads_count: number
