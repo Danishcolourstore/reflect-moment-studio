@@ -70,6 +70,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   write: 'text-amber-400',
   analyze: 'text-purple-400',
   generate: 'text-primary',
+  debug: 'text-destructive',
 };
 
 interface AgentMessage {
