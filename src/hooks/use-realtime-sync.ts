@@ -53,7 +53,7 @@ const ADMIN_TABLE_KEYS: Record<string, readonly (readonly unknown[])[]> = {
 
 /**
  * Global realtime sync:
- * - Subscribes to all admin-managed tables.
+ * - Subscribes to core tables always, admin tables only on admin routes.
  * - Invalidates React Query caches on every change.
  * - Tracks channel status and broadcasts via `mirrorai:realtime-status` events.
  * - Falls back to polling every 30 s when the socket is not connected.
@@ -64,18 +64,24 @@ export function useRealtimeSync(enabled = true) {
   useEffect(() => {
     if (!enabled) return;
 
+    // Determine whether to include admin tables based on current path
+    const isAdmin = window.location.pathname.startsWith('/super-admin') || window.location.pathname.startsWith('/admin');
+    const allTableKeys: Record<string, readonly (readonly unknown[])[]> = {
+      ...CORE_TABLE_KEYS,
+      ...(isAdmin ? ADMIN_TABLE_KEYS : {}),
+    };
+
     let channel = supabase.channel('platform-live-sync');
 
-    // Attach postgres_changes listeners for every tracked table
-    Object.keys(TABLE_QUERY_KEYS).forEach((table) => {
+    // Attach postgres_changes listeners for tracked tables
+    Object.keys(allTableKeys).forEach((table) => {
       channel = channel.on(
         'postgres_changes',
         { event: '*', schema: 'public', table },
         (payload) => {
-          // Extra: bust template image cache on website_templates changes
           if (table === 'website_templates') clearTemplateCache();
 
-          for (const key of TABLE_QUERY_KEYS[table]) {
+          for (const key of allTableKeys[table]) {
             queryClient.invalidateQueries({ queryKey: [...key] });
           }
 
@@ -100,21 +106,18 @@ export function useRealtimeSync(enabled = true) {
       } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
         setRealtimeStatus('offline');
       } else {
-        // JOINING, TIMED_OUT, etc.
         setRealtimeStatus('reconnecting');
       }
     });
 
     // ── Fallback polling: re-fetch lightweight tables every 30 s when offline ──
-    const POLL_TABLES = ['website_templates', 'platform_settings', 'templates'] as const;
+    const POLL_TABLES = ['website_templates', 'platform_settings'] as const;
 
     const fallbackInterval = setInterval(() => {
-      // Only poll when the realtime socket isn't reliably connected
-      // We import getRealtimeStatus lazily to avoid a circular dep
       import('@/lib/realtime-status').then(({ getRealtimeStatus }) => {
         if (getRealtimeStatus() !== 'connected') {
           for (const table of POLL_TABLES) {
-            for (const key of TABLE_QUERY_KEYS[table]) {
+            for (const key of CORE_TABLE_KEYS[table]) {
               queryClient.invalidateQueries({ queryKey: [...key] });
             }
           }
