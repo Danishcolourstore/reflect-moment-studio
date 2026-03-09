@@ -255,6 +255,7 @@ const AppRoutes = () => {
         <Route path="storybooks" element={<SuperAdminStorybooks />} />
         <Route path="settings" element={<SuperAdminSettings />} />
         <Route path="template-builder" element={<TemplateBuilder />} />
+        <Route path="grid-manager" element={<SuperAdminGridManager />} />
       </Route>
 
       <Route
