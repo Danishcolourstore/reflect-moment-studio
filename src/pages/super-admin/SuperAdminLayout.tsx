@@ -89,8 +89,12 @@ export default function SuperAdminLayout() {
           </button>
         </div>
 
-        <div className="p-3 border-t border-border">
-          <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
+        <div className="p-3 border-t border-border space-y-1.5">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
+            <RealtimeStatusIndicator showLabel={false} />
+          </div>
+          <RealtimeStatusIndicator showLabel className="justify-center" />
         </div>
       </aside>
 
