@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+// Dashboard Editor tables added for realtime sync
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearTemplateCache } from '@/lib/website-templates';
