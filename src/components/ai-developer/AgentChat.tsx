@@ -864,3 +864,5 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
         </div>
       )}
     </div>
+  );
+}
