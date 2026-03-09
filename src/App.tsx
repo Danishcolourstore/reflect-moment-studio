@@ -10,6 +10,7 @@ import { GalleryShell } from "./components/GalleryShell";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
+import { SUPER_ADMIN_ROUTES } from "@/config/super-admin-routes";
 
 // ─── Lazy-loaded pages ───
 const Auth = lazy(() => import("./pages/Auth"));
@@ -58,6 +59,7 @@ const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const SuperAdminGate = lazy(() => import("./pages/SuperAdminGate"));
 const SuperAdminLayout = lazy(() => import("./pages/super-admin/SuperAdminLayout"));
 const SuperAdminOverview = lazy(() => import("./pages/super-admin/SuperAdminOverview"));
+const SuperAdminAnalytics = lazy(() => import("./pages/super-admin/SuperAdminAnalytics"));
 const SuperAdminUsers = lazy(() => import("./pages/super-admin/SuperAdminUsers"));
 const SuperAdminTemplates = lazy(() => import("./pages/super-admin/SuperAdminTemplates"));
 const SuperAdminMirrorAI = lazy(() => import("./pages/super-admin/SuperAdminMirrorAI"));
@@ -77,6 +79,27 @@ const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
 const AdminEmails = lazy(() => import("./pages/admin/AdminEmails"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+
+const SUPER_ADMIN_ROUTE_ELEMENTS: Record<string, React.ReactNode> = {
+  overview: <SuperAdminOverview />,
+  users: <SuperAdminUsers />,
+  events: <AdminEvents />,
+  storage: <AdminStorage />,
+  revenue: <AdminRevenue />,
+  analytics: <SuperAdminAnalytics />,
+  templates: <SuperAdminTemplates />,
+  emails: <AdminEmails />,
+  activity: <AdminActivity />,
+  mirrorai: <SuperAdminMirrorAI />,
+  storybooks: <SuperAdminStorybooks />,
+  settings: <SuperAdminSettings />,
+  'studio-templates': <TemplateBuilder />,
+  'grid-manager': <SuperAdminGridManager />,
+  galleries: <SuperAdminGalleries />,
+  'dashboard-editor': <SuperAdminDashboardEditor />,
+  'platform-builder': <SuperAdminPlatformBuilder />,
+  'ai-developer': <SuperAdminAIDeveloper />,
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -265,23 +288,16 @@ const AppRoutes = () => {
             </SuperAdminGate>
           }
         >
-          <Route index element={<SuperAdminOverview />} />
-          <Route path="users" element={<SuperAdminUsers />} />
-          <Route path="events" element={<AdminEvents />} />
-          <Route path="storage" element={<AdminStorage />} />
-          <Route path="revenue" element={<AdminRevenue />} />
-          <Route path="templates" element={<SuperAdminTemplates />} />
-          <Route path="emails" element={<AdminEmails />} />
-          <Route path="activity" element={<AdminActivity />} />
-          <Route path="mirrorai" element={<SuperAdminMirrorAI />} />
-          <Route path="storybooks" element={<SuperAdminStorybooks />} />
-          <Route path="settings" element={<SuperAdminSettings />} />
-          <Route path="template-builder" element={<TemplateBuilder />} />
-          <Route path="grid-manager" element={<SuperAdminGridManager />} />
-          <Route path="galleries" element={<SuperAdminGalleries />} />
-          <Route path="dashboard-editor" element={<SuperAdminDashboardEditor />} />
-          <Route path="platform-builder" element={<SuperAdminPlatformBuilder />} />
-          <Route path="ai-developer" element={<SuperAdminAIDeveloper />} />
+          {SUPER_ADMIN_ROUTES.map((route) => {
+            const element = SUPER_ADMIN_ROUTE_ELEMENTS[route.key];
+            if (!element) return null;
+
+            if (route.path === '') {
+              return <Route key={route.key} index element={element} />;
+            }
+
+            return <Route key={route.key} path={route.path} element={element} />;
+          })}
         </Route>
 
         <Route
