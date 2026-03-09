@@ -190,7 +190,7 @@ export default function SuperAdminAIDeveloper() {
       } catch {
         setCurrentResponse({
           summary: 'Previous generation',
-          files: item.file_changes || [],
+          files: (item.file_changes as FileChange[]) || [],
           database: [],
           routes: [],
           instructions: '',
