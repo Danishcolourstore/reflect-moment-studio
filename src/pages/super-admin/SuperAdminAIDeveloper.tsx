@@ -446,6 +446,7 @@ export default function SuperAdminAIDeveloper() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'chat' | 'generator' | 'codebase'>('chat');
+  const [selectedProvider, setSelectedProvider] = useState('lovable');
 
   // Generator state
 
