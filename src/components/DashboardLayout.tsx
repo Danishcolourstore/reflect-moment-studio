@@ -7,6 +7,7 @@ import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
   LogOut, Moon, Sparkles, Bell, ChevronRight, Menu,
 } from 'lucide-react';
+import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

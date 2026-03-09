@@ -9,6 +9,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 
 const navItems = [
   { to: '/super-admin', icon: Home, label: 'Dashboard', end: true },
