@@ -65,6 +65,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_developer_prompts: {
+        Row: {
+          applied_at: string | null
+          created_at: string
+          file_changes: Json | null
+          generated_code: string | null
+          id: string
+          prompt: string
+          rollback_snapshot: Json | null
+          rolled_back_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          created_at?: string
+          file_changes?: Json | null
+          generated_code?: string | null
+          id?: string
+          prompt: string
+          rollback_snapshot?: Json | null
+          rolled_back_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          created_at?: string
+          file_changes?: Json | null
+          generated_code?: string | null
+          id?: string
+          prompt?: string
+          rollback_snapshot?: Json | null
+          rolled_back_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       album_layers: {
         Row: {
           created_at: string
