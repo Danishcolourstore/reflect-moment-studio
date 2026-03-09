@@ -10,14 +10,24 @@ if (savedTheme === 'editorial') {
   document.documentElement.classList.add('dark');
 }
 
-// Register service worker
+// One-time cleanup of legacy service workers/caches that can keep stale UI in production
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then((registration) => {
-    registration.update();
-    console.log('SW registered');
-  }).catch((err) => {
-    console.log('SW registration failed:', err);
-  });
+  const cleanupKey = 'mirrorai_sw_cleanup_v2';
+  if (!localStorage.getItem(cleanupKey)) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister();
+      });
+    });
+
+    if ('caches' in window) {
+      caches.keys().then((keys) => {
+        keys.forEach((key) => caches.delete(key));
+      });
+    }
+
+    localStorage.setItem(cleanupKey, '1');
+  }
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
