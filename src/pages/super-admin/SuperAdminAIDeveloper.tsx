@@ -847,6 +847,97 @@ export default function SuperAdminAIDeveloper() {
                             ))}
                           </>
                         )}
+                        {/* ── Validation & Confidence ── */}
+                        {clientValidation && (
+                          <>
+                            <Separator className="my-1.5" />
+                            <p className="text-[9px] font-semibold text-muted-foreground px-1.5 py-0.5">VALIDATION</p>
+                            <div className="p-2 rounded-md bg-muted/30 space-y-1.5">
+                              {/* Confidence Score */}
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] text-muted-foreground">Confidence</span>
+                                <span className={cn('text-sm font-bold', confidenceColor(clientValidation.score))}>{clientValidation.score}%</span>
+                              </div>
+                              <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                                <div className={cn('h-full rounded-full transition-all', confidenceBg(clientValidation.score))}
+                                  style={{ width: `${clientValidation.score}%` }} />
+                              </div>
+                              {/* Check items */}
+                              <div className="space-y-0.5">
+                                {[
+                                  { label: 'Syntax', ok: clientValidation.syntaxValid },
+                                  { label: 'Imports', ok: clientValidation.importsValid },
+                                  { label: 'Types', ok: clientValidation.typesValid },
+                                  { label: 'Security', ok: clientValidation.securityIssues.length === 0 },
+                                  { label: 'Tests', ok: clientValidation.hasTests },
+                                  { label: 'Docs', ok: clientValidation.hasDocs },
+                                ].map(c => (
+                                  <div key={c.label} className="flex items-center gap-1.5">
+                                    {c.ok ? <CheckCircle2 className="h-2.5 w-2.5 text-green-500" /> : <XCircle className="h-2.5 w-2.5 text-red-500" />}
+                                    <span className="text-[9px] text-muted-foreground">{c.label}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            {/* Security Issues */}
+                            {clientValidation.securityIssues.length > 0 && (
+                              <div className="p-2 rounded-md bg-red-500/10 border border-red-500/20">
+                                <div className="flex items-center gap-1 mb-0.5"><ShieldAlert className="h-3 w-3 text-red-500" /><span className="text-[8px] font-bold text-red-500">SECURITY</span></div>
+                                {clientValidation.securityIssues.map((s, i) => <p key={i} className="text-[8px] text-red-400">• {s}</p>)}
+                              </div>
+                            )}
+                            {/* Performance */}
+                            {clientValidation.performanceWarnings.length > 0 && (
+                              <div className="p-2 rounded-md bg-amber-500/10 border border-amber-500/20">
+                                <div className="flex items-center gap-1 mb-0.5"><Activity className="h-3 w-3 text-amber-500" /><span className="text-[8px] font-bold text-amber-500">PERFORMANCE</span></div>
+                                {clientValidation.performanceWarnings.map((w, i) => <p key={i} className="text-[8px] text-amber-400">• {w}</p>)}
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* ── Tests ── */}
+                        {currentResponse.tests && currentResponse.tests.length > 0 && (
+                          <>
+                            <Separator className="my-1.5" />
+                            <p className="text-[9px] font-semibold text-muted-foreground px-1.5 py-0.5">TESTS</p>
+                            {currentResponse.tests.map((t, idx) => (
+                              <button key={idx} onClick={() => { setSelectedFile(-1); setSelectedDbIdx(null); setSelectedEdgeFnIdx(null); }}
+                                className="w-full flex items-center gap-1.5 p-1.5 rounded-md text-left hover:bg-muted/50 text-muted-foreground">
+                                <TestTube2 className="h-3 w-3 flex-shrink-0 text-violet-500" />
+                                <div className="min-w-0"><p className="text-[10px] font-medium truncate">{t.path.split('/').pop()}</p><p className="text-[9px]">{t.description}</p></div>
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {/* ── Documentation ── */}
+                        {currentResponse.documentation?.feature_description && (
+                          <>
+                            <Separator className="my-1.5" />
+                            <p className="text-[9px] font-semibold text-muted-foreground px-1.5 py-0.5">DOCUMENTATION</p>
+                            <div className="p-2 rounded-md bg-muted/30 space-y-1">
+                              <div className="flex items-center gap-1"><BookOpen className="h-3 w-3 text-blue-500" /><span className="text-[9px] font-medium">Feature Docs</span></div>
+                              <p className="text-[8px] text-muted-foreground">{currentResponse.documentation.feature_description}</p>
+                              {currentResponse.documentation.api_endpoints && currentResponse.documentation.api_endpoints.length > 0 && (
+                                <div>
+                                  <p className="text-[8px] font-semibold text-muted-foreground mt-1">API Endpoints:</p>
+                                  {currentResponse.documentation.api_endpoints.map((ep, i) => <p key={i} className="text-[8px] text-muted-foreground font-mono">• {ep}</p>)}
+                                </div>
+                              )}
+                              {currentResponse.documentation.database_changes && currentResponse.documentation.database_changes.length > 0 && (
+                                <div>
+                                  <p className="text-[8px] font-semibold text-muted-foreground mt-1">DB Changes:</p>
+                                  {currentResponse.documentation.database_changes.map((dc, i) => <p key={i} className="text-[8px] text-muted-foreground">• {dc}</p>)}
+                                </div>
+                              )}
+                              {currentResponse.documentation.usage_instructions && (
+                                <div>
+                                  <p className="text-[8px] font-semibold text-muted-foreground mt-1">Usage:</p>
+                                  <p className="text-[8px] text-muted-foreground">{currentResponse.documentation.usage_instructions}</p>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </ScrollArea>
                   </div>
