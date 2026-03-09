@@ -97,13 +97,13 @@ const Branding = () => {
         </div>
       )}
 
-      {/* Template Gallery */}
+      {/* Template Gallery - responsive */}
       <div className="mb-4">
         <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium">CHOOSE A TEMPLATE</p>
         <p className="text-[11px] text-muted-foreground/30 mt-0.5">Select a template to start building. All your data auto-fills instantly.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
         {templates.map((tmpl) => {
           const isActive = selectedTemplate === tmpl.value;
           return (
