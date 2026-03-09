@@ -1,12 +1,18 @@
-import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { X, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+import { X, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 interface SpreadData {
   spreadIndex: number;
-  pages: { id: string; pageNumber: number; bgColor: string }[];
-  layers: any[];
+  pages: {
+    id: string;
+    pageNumber: number;
+    bgColor: string;
+    layers: any[];
+  }[];
 }
 
 interface Props {
@@ -21,121 +27,178 @@ export default function AlbumPreviewModal({ albumId, albumName, onClose, onShare
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data: pagesData } = await (supabase.from('album_pages' as any)
-        .select('id, page_number, spread_index, background_color')
-        .eq('album_id', albumId).order('page_number', { ascending: true }) as any);
-      if (!pagesData) { setLoading(false); return; }
+  /* ---------------- Load spreads ---------------- */
 
-      // Group pages by spread
-      const spreadMap = new Map<number, any[]>();
-      for (const p of pagesData) {
-        const si = p.spread_index;
-        if (!spreadMap.has(si)) spreadMap.set(si, []);
-        spreadMap.get(si)!.push({ id: p.id, pageNumber: p.page_number, bgColor: p.background_color || '#ffffff' });
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+
+      const { data: pages } = await supabase
+        .from("album_pages")
+        .select("id,page_number,spread_index,background_color")
+        .eq("album_id", albumId)
+        .order("page_number");
+
+      if (!pages) {
+        setSpreads([]);
+        setLoading(false);
+        return;
       }
 
-      // Load layers for all pages
-      const pageIds = pagesData.map((p: any) => p.id);
-      const { data: layersData } = await (supabase.from('album_layers' as any)
-        .select('*').in('page_id', pageIds).order('z_index', { ascending: true }) as any);
+      const pageIds = pages.map((p) => p.id);
+
+      const { data: layers } = await supabase.from("album_layers").select("*").in("page_id", pageIds).order("z_index");
 
       const layersByPage = new Map<string, any[]>();
-      for (const l of (layersData || [])) {
+
+      (layers || []).forEach((l) => {
         if (!layersByPage.has(l.page_id)) layersByPage.set(l.page_id, []);
+
         layersByPage.get(l.page_id)!.push(l);
-      }
+      });
+
+      const spreadMap = new Map<number, any[]>();
+
+      pages.forEach((p) => {
+        if (!spreadMap.has(p.spread_index)) spreadMap.set(p.spread_index, []);
+
+        spreadMap.get(p.spread_index)!.push({
+          id: p.id,
+          pageNumber: p.page_number,
+          bgColor: p.background_color || "#ffffff",
+          layers: layersByPage.get(p.id) || [],
+        });
+      });
 
       const result: SpreadData[] = [];
-      for (const [si, pages] of Array.from(spreadMap.entries()).sort((a, b) => a[0] - b[0])) {
-        const allLayers = pages.flatMap((p: any) => layersByPage.get(p.id) || []);
-        result.push({ spreadIndex: si, pages, layers: allLayers });
-      }
+
+      Array.from(spreadMap.entries())
+        .sort((a, b) => a[0] - b[0])
+        .forEach(([index, pages]) => {
+          result.push({
+            spreadIndex: index,
+            pages,
+          });
+        });
 
       setSpreads(result);
       setLoading(false);
-    })();
+    };
+
+    load();
   }, [albumId]);
 
-  // Keyboard navigation
+  /* ---------------- Keyboard nav ---------------- */
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight') setCurrent(c => Math.min(c + 1, spreads.length - 1));
-      if (e.key === 'ArrowLeft') setCurrent(c => Math.max(c - 1, 0));
+      if (e.key === "Escape") onClose();
+
+      if (e.key === "ArrowRight") setCurrent((c) => Math.min(c + 1, spreads.length - 1));
+
+      if (e.key === "ArrowLeft") setCurrent((c) => Math.max(c - 1, 0));
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+
+    window.addEventListener("keydown", handler);
+
+    return () => window.removeEventListener("keydown", handler);
   }, [spreads.length, onClose]);
 
   const spread = spreads[current];
 
-  // Count placed photos for preview
-  const getPhotoUrls = (layers: any[]) =>
-    layers.filter(l => l.layer_type === 'photo' && l.settings_json?.imageUrl).map(l => l.settings_json.imageUrl);
+  /* ---------------- Render photos ---------------- */
+
+  const renderPhotos = (layers: any[]) => {
+    const photos = layers.filter((l) => l.layer_type === "photo");
+
+    if (!photos.length)
+      return <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">Empty</div>;
+
+    const cols = Math.ceil(Math.sqrt(photos.length));
+    const rows = Math.ceil(photos.length / cols);
+
+    return (
+      <div
+        className="w-full h-full grid gap-[2px]"
+        style={{
+          gridTemplateColumns: `repeat(${cols},1fr)`,
+          gridTemplateRows: `repeat(${rows},1fr)`,
+        }}
+      >
+        {photos.map((p, i) => {
+          const url = p.settings_json?.imageUrl;
+
+          return <img key={i} src={url} className="w-full h-full object-cover" alt="" />;
+        })}
+      </div>
+    );
+  };
+
+  /* ---------------- UI ---------------- */
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col">
-      {/* Top bar */}
-      <div className="h-12 flex items-center justify-between px-4 shrink-0">
+      {/* Header */}
+
+      <div className="h-12 flex items-center justify-between px-4">
         <h2 className="text-white/90 text-sm font-medium">{albumName}</h2>
+
         <div className="flex items-center gap-2">
           <span className="text-white/50 text-xs">
-            {spreads.length > 0 ? `Spread ${current + 1} of ${spreads.length}` : ''}
+            {spreads.length ? `Spread ${current + 1} of ${spreads.length}` : ""}
           </span>
-          <Button variant="ghost" size="sm" className="text-white/70 hover:text-white gap-1.5 text-xs" onClick={onSharePreview}>
-            <Share2 className="h-3.5 w-3.5" /> Share Preview
+
+          <Button variant="ghost" size="sm" className="text-white/70 hover:text-white text-xs" onClick={onSharePreview}>
+            <Share2 className="h-3.5 w-3.5 mr-1" />
+            Share
           </Button>
-          <Button variant="ghost" size="icon" className="text-white/70 hover:text-white h-8 w-8" onClick={onClose}>
+
+          <Button variant="ghost" size="icon" className="text-white/70 hover:text-white" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* Content */}
+
       <div className="flex-1 flex items-center justify-center relative px-16">
         {loading ? (
           <div className="text-white/50 text-sm animate-pulse">Loading preview…</div>
         ) : spread ? (
           <div className="flex gap-1 max-w-[80vw] max-h-[80vh]">
-            {spread.pages.map((page) => {
-              const pageLayers = spread.layers.filter(l => l.page_id === page.id);
-              const photos = getPhotoUrls(pageLayers);
-              return (
-                <div
-                  key={page.id}
-                  className="aspect-square relative rounded-sm overflow-hidden transition-all duration-500"
-                  style={{
-                    background: page.bgColor,
-                    width: spread.pages.length > 1 ? '40vw' : '50vw',
-                    maxHeight: '75vh',
-                  }}
-                >
-                  {photos.length > 0 ? (
-                    <img src={photos[0]} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
-                      Page {page.pageNumber}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {spread.pages.map((page) => (
+              <div
+                key={page.id}
+                className="aspect-square relative rounded-sm overflow-hidden"
+                style={{
+                  background: page.bgColor,
+                  width: spread.pages.length > 1 ? "40vw" : "50vw",
+                }}
+              >
+                {renderPhotos(page.layers)}
+              </div>
+            ))}
           </div>
         ) : (
-          <div className="text-white/50 text-sm">No spreads to preview</div>
+          <div className="text-white/50 text-sm">No pages to preview</div>
         )}
 
-        {/* Nav arrows */}
+        {/* Navigation */}
+
         {current > 0 && (
-          <button onClick={() => setCurrent(c => c - 1)} className="absolute left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
+          <button
+            onClick={() => setCurrent((c) => c - 1)}
+            className="absolute left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
+          >
             <ChevronLeft className="h-6 w-6" />
           </button>
         )}
+
         {current < spreads.length - 1 && (
-          <button onClick={() => setCurrent(c => c + 1)} className="absolute right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
+          <button
+            onClick={() => setCurrent((c) => c + 1)}
+            className="absolute right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
+          >
             <ChevronRight className="h-6 w-6" />
           </button>
         )}
