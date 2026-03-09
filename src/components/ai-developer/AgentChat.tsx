@@ -182,6 +182,21 @@ const generateToolDetail = (toolName: string, userText: string): string => {
     case 'plan_task': return 'Breaking down into development steps…';
     case 'run_tests': return 'Running test suite…';
     case 'review_security': return 'Auditing RLS policies and auth…';
+    case 'debug_error': {
+      if (/typeerror|referenceerror|syntaxerror/i.test(lower)) return 'Analyzing JavaScript runtime error…';
+      if (/404|not found/i.test(lower)) return 'Checking for broken routes…';
+      if (/500|server error/i.test(lower)) return 'Analyzing server-side error…';
+      if (/stack trace|traceback/i.test(lower)) return 'Parsing stack trace…';
+      return 'Analyzing error details…';
+    }
+    case 'check_imports': return 'Scanning for missing or broken imports…';
+    case 'check_routes': return 'Validating route configuration…';
+    case 'debug_query': {
+      if (/rls|permission|denied/i.test(lower)) return 'Checking RLS policy conflicts…';
+      if (/join|relation/i.test(lower)) return 'Analyzing query joins and relations…';
+      return 'Inspecting database query…';
+    }
+    case 'suggest_fix': return 'Generating corrected code…';
     default: return `Running ${toolName}…`;
   }
 };
