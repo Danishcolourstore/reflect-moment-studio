@@ -738,7 +738,7 @@ export default function SuperAdminAIDeveloper() {
         <div className="border-b border-border px-4">
           <TabsList className="h-9 bg-transparent">
             <TabsTrigger value="chat" className="gap-1.5 text-xs data-[state=active]:bg-muted">
-              <MessageSquare className="h-3.5 w-3.5" />Chat
+              <Bot className="h-3.5 w-3.5" />Agent Chat
             </TabsTrigger>
             <TabsTrigger value="generator" className="gap-1.5 text-xs data-[state=active]:bg-muted">
               <Code className="h-3.5 w-3.5" />Code Generator
