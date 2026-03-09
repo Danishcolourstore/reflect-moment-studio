@@ -44,6 +44,12 @@ const TOOL_REGISTRY: ToolDefinition[] = [
   { name: 'check_routes', label: 'Check routes', description: 'Detect broken or misconfigured routes', icon: 'route', category: 'analyze' },
   { name: 'debug_query', label: 'Debug query', description: 'Analyze database query errors and RLS issues', icon: 'searchcode', category: 'analyze' },
   { name: 'suggest_fix', label: 'Suggest fix', description: 'Generate corrected code for detected issues', icon: 'code', category: 'generate' },
+  // Feature generator tools
+  { name: 'generate_schema', label: 'Generate schema', description: 'Design database tables, columns, and RLS policies', icon: 'database', category: 'generate' },
+  { name: 'generate_backend', label: 'Generate backend', description: 'Generate edge functions and API endpoints', icon: 'server', category: 'generate' },
+  { name: 'generate_page', label: 'Generate page', description: 'Generate a full page with routing and layout', icon: 'layout', category: 'generate' },
+  { name: 'generate_components', label: 'Generate components', description: 'Generate UI components with props and styling', icon: 'layers', category: 'generate' },
+  { name: 'generate_docs', label: 'Generate docs', description: 'Generate feature documentation and usage guide', icon: 'book', category: 'generate' },
 ];
 
 const TOOL_ICON_MAP: Record<string, typeof Database> = {
@@ -63,6 +69,8 @@ const TOOL_ICON_MAP: Record<string, typeof Database> = {
   link: Link2,
   route: Route,
   searchcode: SearchCode,
+  layout: LayoutList,
+  book: BookOpen,
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
