@@ -261,6 +261,7 @@ const AppRoutes = () => {
         <Route path="grid-manager" element={<SuperAdminGridManager />} />
         <Route path="galleries" element={<SuperAdminGalleries />} />
         <Route path="dashboard-editor" element={<SuperAdminDashboardEditor />} />
+        <Route path="platform-builder" element={<SuperAdminPlatformBuilder />} />
       </Route>
 
       <Route

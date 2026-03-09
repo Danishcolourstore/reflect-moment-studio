@@ -38,6 +38,11 @@ const TABLE_QUERY_KEYS: Record<string, readonly (readonly unknown[])[]> = {
   dashboard_settings:  [['dashboard-settings']],
   dashboard_navigation: [['dashboard-navigation']],
   dashboard_quick_actions: [['dashboard-quick-actions']],
+  // Platform Builder tables
+  platform_features:   [['platform-features']],
+  platform_layouts:    [['platform-layouts']],
+  platform_ui_settings: [['platform-ui-settings']],
+  platform_permissions: [['platform-permissions']],
 };
 
 /**

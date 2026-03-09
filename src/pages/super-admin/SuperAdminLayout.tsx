@@ -13,6 +13,8 @@ import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 
 const navItems = [
   { to: '/super-admin', icon: Home, label: 'Dashboard', end: true },
+  { to: '/super-admin/platform-builder', icon: Code, label: 'Platform Builder' },
+  { to: '/super-admin/dashboard-editor', icon: LayoutDashboard, label: 'Dashboard Editor' },
   { to: '/super-admin/users', icon: Users, label: 'Photographers' },
   { to: '/super-admin/events', icon: Camera, label: 'Events' },
   { to: '/super-admin/storage', icon: HardDrive, label: 'Storage' },
@@ -20,7 +22,6 @@ const navItems = [
   { to: '/super-admin/templates', icon: Layout, label: 'Templates' },
   { to: '/super-admin/grid-manager', icon: Grid3X3, label: 'Grid Builder' },
   { to: '/super-admin/galleries', icon: Images, label: 'Client Galleries' },
-  { to: '/super-admin/dashboard-editor', icon: LayoutDashboard, label: 'Dashboard Editor' },
   { to: '/super-admin/emails', icon: Mail, label: 'Bulk Email' },
   { to: '/super-admin/activity', icon: Activity, label: 'Activity Log' },
   { to: '/super-admin/settings', icon: Settings, label: 'Settings' },
