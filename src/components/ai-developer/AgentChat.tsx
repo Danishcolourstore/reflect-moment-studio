@@ -10,7 +10,8 @@ import {
   Sparkles, Wrench, Brain, Code, Play, Eye, Terminal, Cpu, BookOpen,
   ArrowRight, Plus, Pencil, CheckCircle2, AlertTriangle, MessageSquare,
   PanelRightOpen, PanelRightClose, CornerDownLeft, ArrowUp, ListChecks,
-  XCircle, ThumbsUp, LayoutList, Zap, Shield, TestTube2
+  XCircle, ThumbsUp, LayoutList, Zap, Shield, TestTube2, Bug, AlertOctagon,
+  Link2, Route, SearchCode
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
@@ -38,6 +39,11 @@ const TOOL_REGISTRY: ToolDefinition[] = [
   { name: 'plan_task', label: 'Plan task', description: 'Break down a request into development steps', icon: 'brain', category: 'analyze' },
   { name: 'run_tests', label: 'Run tests', description: 'Execute test suites', icon: 'test', category: 'analyze' },
   { name: 'review_security', label: 'Review security', description: 'Audit RLS policies, auth, and permissions', icon: 'shield', category: 'analyze' },
+  { name: 'debug_error', label: 'Debug error', description: 'Analyze error messages, stack traces, and runtime failures', icon: 'bug', category: 'analyze' },
+  { name: 'check_imports', label: 'Check imports', description: 'Detect missing or broken import statements', icon: 'link', category: 'analyze' },
+  { name: 'check_routes', label: 'Check routes', description: 'Detect broken or misconfigured routes', icon: 'route', category: 'analyze' },
+  { name: 'debug_query', label: 'Debug query', description: 'Analyze database query errors and RLS issues', icon: 'searchcode', category: 'analyze' },
+  { name: 'suggest_fix', label: 'Suggest fix', description: 'Generate corrected code for detected issues', icon: 'code', category: 'generate' },
 ];
 
 const TOOL_ICON_MAP: Record<string, typeof Database> = {
@@ -53,6 +59,10 @@ const TOOL_ICON_MAP: Record<string, typeof Database> = {
   brain: Brain,
   test: TestTube2,
   shield: Shield,
+  bug: Bug,
+  link: Link2,
+  route: Route,
+  searchcode: SearchCode,
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -60,6 +70,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   write: 'text-amber-400',
   analyze: 'text-purple-400',
   generate: 'text-primary',
+  debug: 'text-destructive',
 };
 
 interface AgentMessage {
@@ -121,9 +132,9 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 
 const SUGGESTIONS = [
   { icon: '🏗️', label: 'Build a feature', prompt: 'Help me plan and build a new feature for the platform.' },
-  { icon: '🐛', label: 'Debug an issue', prompt: 'Help me debug an issue. Describe the problem and I\'ll analyze the relevant code.' },
+  { icon: '🐛', label: 'Debug an error', prompt: 'I have an error in my code. Help me analyze the stack trace, find the root cause, and suggest a fix.' },
   { icon: '📊', label: 'Design database', prompt: 'Help me design a database schema for a new feature.' },
-  { icon: '⚡', label: 'Optimize code', prompt: 'Analyze the platform for performance bottlenecks.' },
+  { icon: '🔍', label: 'Fix broken imports', prompt: 'Analyze my project for missing imports, broken routes, or database query errors and suggest fixes.' },
 ];
 
 const getToolDef = (name: string): ToolDefinition | undefined => TOOL_REGISTRY.find(t => t.name === name);
@@ -171,6 +182,21 @@ const generateToolDetail = (toolName: string, userText: string): string => {
     case 'plan_task': return 'Breaking down into development steps…';
     case 'run_tests': return 'Running test suite…';
     case 'review_security': return 'Auditing RLS policies and auth…';
+    case 'debug_error': {
+      if (/typeerror|referenceerror|syntaxerror/i.test(lower)) return 'Analyzing JavaScript runtime error…';
+      if (/404|not found/i.test(lower)) return 'Checking for broken routes…';
+      if (/500|server error/i.test(lower)) return 'Analyzing server-side error…';
+      if (/stack trace|traceback/i.test(lower)) return 'Parsing stack trace…';
+      return 'Analyzing error details…';
+    }
+    case 'check_imports': return 'Scanning for missing or broken imports…';
+    case 'check_routes': return 'Validating route configuration…';
+    case 'debug_query': {
+      if (/rls|permission|denied/i.test(lower)) return 'Checking RLS policy conflicts…';
+      if (/join|relation/i.test(lower)) return 'Analyzing query joins and relations…';
+      return 'Inspecting database query…';
+    }
+    case 'suggest_fix': return 'Generating corrected code…';
     default: return `Running ${toolName}…`;
   }
 };
@@ -306,6 +332,18 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     if (/security|rls|auth|permission/.test(lower)) tools.push('review_security');
     if (/test|spec/.test(lower)) tools.push('run_tests');
     if (/database|table|query|sql/.test(lower) && !tools.includes('create_database_migration')) tools.push('query_database');
+
+    // Debug tools
+    if (/error|bug|issue|broken|fail|crash|exception|stack trace|traceback|not working|doesn.t work/.test(lower)) {
+      tools.push('debug_error');
+      if (/import|module|cannot find|not found.*module/.test(lower)) tools.push('check_imports');
+      if (/route|404|page not found|navigation/.test(lower)) tools.push('check_routes');
+      if (/query|database|rls|supabase|permission denied|row.level/.test(lower)) tools.push('debug_query');
+      tools.push('suggest_fix');
+    }
+    if (/import.*error|missing.*import|cannot find module/.test(lower) && !tools.includes('check_imports')) tools.push('check_imports');
+    if (/route.*broken|404|page.*not.*found/.test(lower) && !tools.includes('check_routes')) tools.push('check_routes');
+
     if (tools.length === 0) tools.push('analyze_structure');
     return tools;
   };
