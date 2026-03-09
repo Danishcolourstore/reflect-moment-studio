@@ -339,6 +339,130 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     return fullContent;
   };
 
+  // ─── Plan generation ───
+  const generatePlan = async (convId: string, userText: string): Promise<void> => {
+    await simulateToolPhase(convId, 'plan_task', 400 + Math.random() * 400);
+    setAgentPhase('generating');
+
+    const planPrompt = `You are a task planner. Given this request, create a numbered step-by-step development plan. Each step should be a single clear action. Only output the numbered list, nothing else.\n\nRequest: ${userText}`;
+
+    const resp = await fetch(CHAT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: planPrompt }],
+        provider: selectedProvider,
+        mode: 'chat',
+        codebaseContext: getRelevantContext(userText),
+      }),
+    });
+
+    if (!resp.ok) throw new Error('Plan generation failed');
+
+    let fullContent = '';
+    const reader = resp.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let nl: number;
+      while ((nl = buffer.indexOf('\n')) !== -1) {
+        let line = buffer.slice(0, nl);
+        buffer = buffer.slice(nl + 1);
+        if (line.endsWith('\r')) line = line.slice(0, -1);
+        if (!line.startsWith('data: ')) continue;
+        const j = line.slice(6).trim();
+        if (j === '[DONE]') continue;
+        try {
+          const p = JSON.parse(j);
+          const d = p.choices?.[0]?.delta?.content;
+          if (d) fullContent += d;
+        } catch { /* partial */ }
+      }
+    }
+
+    const steps = parsePlanFromResponse(fullContent);
+    if (steps.length === 0) {
+      steps.push({ id: 'step-0', label: 'Execute requested changes', type: 'general', status: 'pending' });
+    }
+
+    const planMsg: AgentMessage = {
+      id: newId(),
+      role: 'plan',
+      content: fullContent,
+      timestamp: new Date(),
+      planStatus: 'pending',
+      planSteps: steps,
+    };
+    updateMessages(convId, msgs => [...msgs, planMsg]);
+  };
+
+  // ─── Approve / Reject plan ───
+  const approvePlan = useCallback(async (planMsgId: string) => {
+    const convId = activeConvId;
+    if (!convId || isProcessing) return;
+
+    updateMessages(convId, msgs => msgs.map(m =>
+      m.id === planMsgId ? { ...m, planStatus: 'approved' as const } : m
+    ));
+
+    setIsProcessing(true);
+    try {
+      const conv = conversations.find(c => c.id === convId);
+      const planMsg = conv?.messages.find(m => m.id === planMsgId);
+      const userMsg = [...(conv?.messages || [])].reverse().find(m => m.role === 'user');
+
+      // Simulate executing each plan step
+      if (planMsg?.planSteps) {
+        for (let i = 0; i < planMsg.planSteps.length; i++) {
+          const step = planMsg.planSteps[i];
+          updateMessages(convId, msgs => msgs.map(m =>
+            m.id === planMsgId ? {
+              ...m,
+              planSteps: m.planSteps?.map((s, idx) => idx === i ? { ...s, status: 'running' as const } : s),
+            } : m
+          ));
+          await new Promise(r => setTimeout(r, 300 + Math.random() * 300));
+          updateMessages(convId, msgs => msgs.map(m =>
+            m.id === planMsgId ? {
+              ...m,
+              planSteps: m.planSteps?.map((s, idx) => idx === i ? { ...s, status: 'done' as const } : s),
+            } : m
+          ));
+        }
+      }
+
+      // Now generate the full response
+      const tools = detectTools(userMsg?.content || '');
+      for (const tool of tools.filter(t => t !== 'plan_task')) {
+        await simulateToolPhase(convId, tool, 200 + Math.random() * 300);
+      }
+      setAgentPhase('generating');
+
+      const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
+      await streamResponse(convId, currentMsgs.filter(m => m.role === 'user' || m.role === 'assistant'));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Execution failed');
+    } finally {
+      setIsProcessing(false);
+      setAgentPhase(null);
+    }
+  }, [activeConvId, conversations, isProcessing, selectedProvider]);
+
+  const rejectPlan = useCallback((planMsgId: string) => {
+    if (!activeConvId) return;
+    updateMessages(activeConvId, msgs => msgs.map(m =>
+      m.id === planMsgId ? { ...m, planStatus: 'rejected' as const } : m
+    ));
+    toast.info('Plan rejected. Modify your prompt and try again.');
+  }, [activeConvId]);
+
   // ─── Send ───
   const sendMessage = useCallback(async (overrideText?: string) => {
     const text = (overrideText || input).trim();
@@ -357,14 +481,20 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     setIsProcessing(true);
 
     try {
-      const tools = detectTools(text);
-      for (const tool of tools) {
-        await simulateToolPhase(convId, tool, 300 + Math.random() * 500);
+      // If the prompt is complex enough, generate a plan first
+      if (shouldGeneratePlan(text)) {
+        await generatePlan(convId, text);
+        // Stop here — wait for admin approval before executing
+      } else {
+        // Simple query — go straight to response
+        const tools = detectTools(text);
+        for (const tool of tools) {
+          await simulateToolPhase(convId, tool, 300 + Math.random() * 500);
+        }
+        setAgentPhase('generating');
+        const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
+        await streamResponse(convId, [...currentMsgs, userMsg]);
       }
-      setAgentPhase('generating');
-
-      const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
-      await streamResponse(convId, [...currentMsgs, userMsg]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Agent failed');
     } finally {
