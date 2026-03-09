@@ -126,19 +126,53 @@ const SUGGESTIONS = [
   { icon: '⚡', label: 'Optimize code', prompt: 'Analyze the platform for performance bottlenecks.' },
 ];
 
-const TOOL_LABELS: Record<string, string> = {
-  search_codebase: 'Searching codebase',
-  read_file: 'Reading files',
-  analyze_structure: 'Analyzing project',
-  generate_code: 'Generating code',
-  create_file: 'Creating files',
-  modify_file: 'Modifying files',
-  query_database: 'Querying database',
-  create_migration: 'Preparing migration',
-  generate_api: 'Generating API',
-  plan_task: 'Planning steps',
-  run_tests: 'Running tests',
-  review_security: 'Reviewing security',
+const getToolDef = (name: string): ToolDefinition | undefined => TOOL_REGISTRY.find(t => t.name === name);
+const getToolLabel = (name: string): string => {
+  const def = getToolDef(name);
+  return def ? def.label : name;
+};
+const getToolIcon = (name: string) => {
+  const def = getToolDef(name);
+  return def ? (TOOL_ICON_MAP[def.icon] || Wrench) : Wrench;
+};
+const getToolCategory = (name: string) => {
+  const def = getToolDef(name);
+  return def?.category || 'analyze';
+};
+
+// Context-aware detail messages for each tool
+const generateToolDetail = (toolName: string, userText: string): string => {
+  const lower = userText.toLowerCase();
+  switch (toolName) {
+    case 'search_files': {
+      if (/gallery/i.test(lower)) return 'Searching for gallery-related files…';
+      if (/booking/i.test(lower)) return 'Searching for booking components…';
+      if (/dashboard/i.test(lower)) return 'Searching dashboard modules…';
+      return 'Scanning project files…';
+    }
+    case 'read_file': {
+      const fileMatch = lower.match(/(\w+\.tsx?|\w+\.ts)/);
+      return fileMatch ? `Reading ${fileMatch[1]}…` : 'Reading relevant files…';
+    }
+    case 'analyze_component': {
+      const comp = lower.match(/(\w+card|\w+modal|\w+form|\w+page|\w+list)/i);
+      return comp ? `Analyzing ${comp[1]} component…` : 'Analyzing component structure…';
+    }
+    case 'analyze_structure': return 'Mapping project architecture…';
+    case 'generate_code': return 'Generating TypeScript code…';
+    case 'create_file': return 'Preparing new file…';
+    case 'update_file': {
+      const fMatch = lower.match(/(\w+\.tsx?)/);
+      return fMatch ? `Updating ${fMatch[1]}…` : 'Updating file…';
+    }
+    case 'generate_api': return 'Generating edge function endpoint…';
+    case 'create_database_migration': return 'Preparing database migration…';
+    case 'query_database': return 'Inspecting database schema…';
+    case 'plan_task': return 'Breaking down into development steps…';
+    case 'run_tests': return 'Running test suite…';
+    case 'review_security': return 'Auditing RLS policies and auth…';
+    default: return `Running ${toolName}…`;
+  }
 };
 
 const PLAN_STEP_ICONS: Record<string, typeof Database> = {
