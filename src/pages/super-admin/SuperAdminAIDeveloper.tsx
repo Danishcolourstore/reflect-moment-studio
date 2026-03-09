@@ -503,11 +503,13 @@ export default function SuperAdminAIDeveloper() {
   const streamChat = async (messages: ChatMessage[]) => {
     setIsStreaming(true);
     let assistantContent = '';
+    const lastUserMsg = messages[messages.length - 1]?.content || '';
+    const codebaseContext = getRelevantContext(lastUserMsg);
     try {
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-        body: JSON.stringify({ messages, provider: selectedProvider, mode: 'chat' }),
+        body: JSON.stringify({ messages, provider: selectedProvider, mode: 'chat', codebaseContext }),
       });
       if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'Request failed'); }
       const reader = resp.body!.getReader();
