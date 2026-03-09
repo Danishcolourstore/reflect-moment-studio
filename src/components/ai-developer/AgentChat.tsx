@@ -502,7 +502,20 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
     await simulateToolPhase(convId, 'plan_task', 400 + Math.random() * 400);
     setAgentPhase('generating');
 
-    const planPrompt = `You are a task planner. Given this request, create a numbered step-by-step development plan. Each step should be a single clear action. Only output the numbered list, nothing else.\n\nRequest: ${userText}`;
+    const isFeature = isFeatureRequest(userText);
+    const planPrompt = isFeature
+      ? `You are a full-stack feature planner for a photography SaaS platform (React + Supabase). Given this feature request, create a numbered step-by-step plan covering ALL of these categories:
+
+1. Database schema — tables, columns, types, foreign keys, RLS policies
+2. Backend API — edge functions or API endpoints needed
+3. Frontend page — new page with route registration
+4. UI components — forms, lists, modals, cards needed
+5. Documentation — feature description, API docs, usage guide
+
+Each step must be a single clear action prefixed with its category. Output ONLY the numbered list.
+
+Feature request: ${userText}`
+      : `You are a task planner. Given this request, create a numbered step-by-step development plan. Each step should be a single clear action. Only output the numbered list, nothing else.\n\nRequest: ${userText}`;
 
     const resp = await fetch(CHAT_URL, {
       method: 'POST',
