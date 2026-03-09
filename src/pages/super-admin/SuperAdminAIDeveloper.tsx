@@ -413,7 +413,6 @@ const QUICK_PROMPTS = [
 
 const PROTECTED_PATHS = ['src/lib/auth.tsx', 'src/lib/AuthContext.tsx', 'src/integrations/supabase/client.ts', 'src/integrations/supabase/types.ts'];
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 const DEV_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-developer`;
 
 // ──────────── Folder Tree Component ────────────
