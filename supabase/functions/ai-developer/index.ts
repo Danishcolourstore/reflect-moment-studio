@@ -5,54 +5,85 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are an expert AI Developer Assistant for MirrorAI, a photography studio management platform built with React, TypeScript, Tailwind CSS, and Supabase.
+const CODEBASE_MAP = `
+## MirrorAI Codebase Map
 
-When given a prompt, you generate production-ready code following these guidelines:
+### Pages (src/pages/)
+Auth, Dashboard, Events, EventGallery, PublicGallery, Analytics, Clients, Profile, Billing, 
+Branding, BrandEditor, WebsiteEditor, AlbumDesigner, AlbumEditorPage, AlbumPreviewPage,
+Cheetah, CheetahLive, StorybookCreator, GalleryCover, GuestFinder, UploadPage, 
+LandingPage, Notifications, Onboarding, PhotographerFeed, StudioSettings, TemplatePreview,
+SuperAdmin, admin/*, super-admin/*, client/*
 
-## Project Structure
-- Pages go in /src/pages/
-- Components go in /src/components/
-- Hooks go in /src/hooks/
-- Database tables use Supabase
+### Components (src/components/)
+UI: shadcn/ui primitives (Button, Card, Dialog, Sheet, Tabs, Select, etc.)
+Gallery: GalleryShell, PhotoLightbox, GalleryPasswordGate, PhotoSlideshow, ProgressiveImage
+Website: WebsiteHero, WebsiteAbout, WebsitePortfolio, WebsiteContact, WebsiteFooter, etc.
+Album: AlbumCanvas, AlbumTimeline, AlbumEditorToolbar, AlbumPhotoPanel
+Grid: GridBuilder, GridEditor, GridCell, TextOverlay, LogoOverlay
+Brand: BrandAssets, BrandTypography, BrandWatermark
+Events: SmartQRAccess, EventCard, EventSettingsModal
 
-## Code Standards
-- Use TypeScript with proper types
-- Use Tailwind CSS for styling with semantic tokens (bg-background, text-foreground, etc.)
-- Use shadcn/ui components from @/components/ui/
-- Use React Query for data fetching
-- Follow existing patterns in the codebase
+### Database Tables
+profiles, events, photos, favorites, guest_sessions, guest_selections, clients, 
+client_events, albums, album_pages, album_layers, storybooks, storybook_blocks,
+notifications, photo_comments, event_analytics, gallery_chapters, grid_templates,
+studio_profiles, portfolio_albums, blog_posts, contact_inquiries, platform_settings,
+user_roles, ai_developer_prompts, cheetah_sessions, cheetah_photos
 
-## Response Format
-Always respond with a JSON object containing:
+### Edge Functions
+ai-chat, ai-developer, cheetah-analyze, cheetah-ingest, generate-caption, 
+invite-client, send-access-pin, send-welcome-email, process-guest-selfie, suggest-layout
+
+### Patterns
+- Auth: useAuth() from @/lib/auth, Supabase email+password
+- Data: @tanstack/react-query with supabase client
+- Styling: Tailwind semantic tokens, shadcn/ui
+- State: React hooks, no Redux
+- Icons: lucide-react
+`;
+
+const SYSTEM_PROMPT = `You are MirrorAI's AI Developer — a senior full-stack engineer.
+
+${CODEBASE_MAP}
+
+## Response Format (STRICT JSON)
+Respond ONLY with valid JSON:
 {
-  "summary": "Brief description of what was generated",
+  "summary": "What was generated/modified",
   "files": [
     {
-      "path": "src/pages/Example.tsx",
-      "action": "create" | "modify",
-      "content": "// Full file content here",
+      "path": "src/pages/NewPage.tsx",
+      "action": "create" | "modify" | "delete",
+      "content": "// Complete file content",
       "description": "What this file does"
     }
   ],
   "database": [
     {
-      "type": "table" | "policy" | "function",
+      "type": "table" | "policy" | "function" | "migration",
       "name": "table_name",
       "sql": "CREATE TABLE...",
       "description": "What this creates"
     }
   ],
   "routes": [
-    {
-      "path": "/example",
-      "component": "Example",
-      "description": "Route description"
-    }
+    { "path": "/route", "component": "ComponentName", "description": "Route purpose" }
   ],
-  "instructions": "Any manual steps the admin needs to take"
+  "edge_functions": [
+    { "name": "function-name", "content": "// edge function code", "description": "What it does" }
+  ],
+  "instructions": "Manual steps needed",
+  "safety_warnings": ["Any risks"],
+  "affected_files": ["Existing files impacted"]
 }
 
-Generate complete, working code that follows MirrorAI's design patterns and can be directly used in the project.`;
+## Rules
+- Generate complete, production-ready TypeScript code
+- Use existing patterns and semantic Tailwind tokens
+- Include RLS policies for new tables
+- Flag breaking changes in safety_warnings
+- Never modify auth or payment logic without warning`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -60,94 +91,52 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, context } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const { prompt, context, provider = "lovable", mode = "feature" } = await req.json();
     
-    if (!LOVABLE_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY is not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    let modeInstruction = "";
+    switch (mode) {
+      case "page":
+        modeInstruction = "Generate a complete page with route, layout, components, and data fetching.";
+        break;
+      case "api":
+        modeInstruction = "Generate edge function(s) with proper CORS, error handling, and types.";
+        break;
+      case "database":
+        modeInstruction = "Generate safe migration SQL with tables, policies, and functions.";
+        break;
+      case "module":
+        modeInstruction = "Generate a complete feature module with pages, components, hooks, and data layer.";
+        break;
+      case "component":
+        modeInstruction = "Generate a reusable React component with proper TypeScript props and styling.";
+        break;
+      case "refactor":
+        modeInstruction = "Analyze the described code and suggest refactoring improvements.";
+        break;
+      default:
+        modeInstruction = "Generate whatever is needed based on the prompt.";
     }
 
     const messages = [
       { role: "system", content: SYSTEM_PROMPT },
       { 
         role: "user", 
-        content: `Project Context: ${context || "MirrorAI photography platform"}
+        content: `## Mode: ${mode.toUpperCase()}
+${modeInstruction}
 
-Developer Request: ${prompt}
+## Context: ${context || "MirrorAI photography platform"}
 
-Generate the code following the specified JSON format.`
+## Request:
+${prompt}
+
+Respond with valid JSON only.`
       }
     ];
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages,
-        temperature: 0.7,
-        max_tokens: 8000,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      return new Response(
-        JSON.stringify({ error: "AI generation failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (provider === "anthropic") {
+      return await callAnthropic(messages);
     }
-
-    const data = await response.json();
-    const generatedContent = data.choices?.[0]?.message?.content || "";
-
-    // Try to parse JSON from the response
-    let parsedResponse;
-    try {
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch = generatedContent.match(/```json\s*([\s\S]*?)\s*```/) || 
-                        generatedContent.match(/```\s*([\s\S]*?)\s*```/);
-      const jsonStr = jsonMatch ? jsonMatch[1] : generatedContent;
-      parsedResponse = JSON.parse(jsonStr);
-    } catch {
-      // If not valid JSON, wrap the content
-      parsedResponse = {
-        summary: "Generated code response",
-        raw_content: generatedContent,
-        files: [],
-        database: [],
-        routes: [],
-        instructions: "Review the generated content above."
-      };
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        result: parsedResponse,
-        raw: generatedContent 
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return await callLovable(messages);
 
   } catch (error) {
     console.error("ai-developer error:", error);
@@ -157,3 +146,99 @@ Generate the code following the specified JSON format.`
     );
   }
 });
+
+async function callLovable(messages: { role: string; content: string }[]) {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  if (!LOVABLE_API_KEY) {
+    return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages,
+      temperature: 0.7,
+      max_tokens: 16000,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Lovable error:", response.status, errorText);
+    return new Response(JSON.stringify({ error: `AI generation failed (${response.status})` }),
+      { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+
+  const data = await response.json();
+  return parseAndRespond(data.choices?.[0]?.message?.content || "");
+}
+
+async function callAnthropic(messages: { role: string; content: string }[]) {
+  const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+
+  const systemMsg = messages.find(m => m.role === "system")?.content || "";
+  const userMsgs = messages.filter(m => m.role !== "system");
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 8192,
+      system: systemMsg,
+      messages: userMsgs,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Anthropic error:", response.status, errorText);
+    return new Response(JSON.stringify({ error: `Anthropic API failed (${response.status})` }),
+      { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+
+  const data = await response.json();
+  const content = data.content?.[0]?.text || "";
+  return parseAndRespond(content);
+}
+
+function parseAndRespond(generatedContent: string) {
+  let parsedResponse;
+  try {
+    const jsonMatch = generatedContent.match(/```json\s*([\s\S]*?)\s*```/) || 
+                      generatedContent.match(/```\s*([\s\S]*?)\s*```/);
+    const jsonStr = jsonMatch ? jsonMatch[1] : generatedContent;
+    parsedResponse = JSON.parse(jsonStr);
+  } catch {
+    parsedResponse = {
+      summary: "Generated code response",
+      raw_content: generatedContent,
+      files: [],
+      database: [],
+      routes: [],
+      edge_functions: [],
+      instructions: "Review the generated content above.",
+      safety_warnings: [],
+      affected_files: [],
+    };
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, result: parsedResponse, raw: generatedContent }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
