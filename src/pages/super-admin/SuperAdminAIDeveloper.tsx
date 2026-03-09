@@ -158,12 +158,6 @@ export default function SuperAdminAIDeveloper() {
     },
   });
 
-  // Filtered DB tables
-  const filteredTables = useMemo(() => {
-    if (!codeSearch) return DB_TABLES;
-    const q = codeSearch.toLowerCase();
-    return DB_TABLES.filter(t => t.name.includes(q) || t.desc.toLowerCase().includes(q));
-  }, [codeSearch]);
 
   // ──── Generate structured code ────
   const generateMutation = useMutation({
