@@ -576,7 +576,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
         // Simple query — go straight to response
         const tools = detectTools(text);
         for (const tool of tools) {
-          await simulateToolPhase(convId, tool, 300 + Math.random() * 500);
+          await simulateToolPhase(convId, tool, 300 + Math.random() * 500, text);
         }
         setAgentPhase('generating');
         const currentMsgs = conversations.find(c => c.id === convId)?.messages || [];
