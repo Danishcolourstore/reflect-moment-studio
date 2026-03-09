@@ -690,33 +690,30 @@ export default function SuperAdminAIDeveloper() {
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* ══════ Header ══════ */}
-      <div className="border-b border-border px-4 py-3 flex-shrink-0">
+      <div className="border-b border-border px-4 py-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
-              <Bot className="h-5 w-5 text-white" />
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/80 to-accent/80 flex items-center justify-center">
+              <Bot className="h-4 w-4 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground font-serif">AI Developer Console</h1>
-              <p className="text-[10px] text-muted-foreground">Full-stack development assistant with codebase intelligence</p>
+              <h1 className="text-sm font-bold text-foreground">AI Developer Console</h1>
+              <p className="text-[9px] text-muted-foreground">Full-stack development assistant</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Safety Mode */}
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
-              <Shield className="h-3.5 w-3.5 text-green-500" />
-              <span className="text-[10px] text-muted-foreground">Safety</span>
-              <Switch checked={safetyMode} onCheckedChange={setSafetyMode} className="scale-75" />
+              <Shield className="h-3 w-3 text-green-500" />
+              <span className="text-[9px] text-muted-foreground">Safety</span>
+              <Switch checked={safetyMode} onCheckedChange={setSafetyMode} className="scale-[0.65]" />
             </div>
-            {/* Sandbox Mode */}
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
-              <FlaskConical className="h-3.5 w-3.5 text-blue-500" />
-              <span className="text-[10px] text-muted-foreground">Sandbox</span>
-              <Switch checked={sandboxMode} onCheckedChange={setSandboxMode} className="scale-75" />
+              <FlaskConical className="h-3 w-3 text-blue-500" />
+              <span className="text-[9px] text-muted-foreground">Sandbox</span>
+              <Switch checked={sandboxMode} onCheckedChange={setSandboxMode} className="scale-[0.65]" />
             </div>
-            {/* Provider */}
             <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-              <SelectTrigger className="w-[160px] h-7 text-[11px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[140px] h-7 text-[10px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {AI_PROVIDERS.map(p => (
                   <SelectItem key={p.value} value={p.value}>
@@ -725,10 +722,6 @@ export default function SuperAdminAIDeveloper() {
                 ))}
               </SelectContent>
             </Select>
-            <Badge variant="outline" className="gap-1 text-[10px]">
-              <Zap className="h-3 w-3 text-amber-500" />
-              {selectedProvider === 'lovable' ? 'Gemini' : 'Claude'}
-            </Badge>
           </div>
         </div>
       </div>
@@ -736,20 +729,20 @@ export default function SuperAdminAIDeveloper() {
       {/* ══════ Tabs ══════ */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="flex-1 flex flex-col overflow-hidden">
         <div className="border-b border-border px-4">
-          <TabsList className="h-9 bg-transparent">
-            <TabsTrigger value="chat" className="gap-1.5 text-xs data-[state=active]:bg-muted">
-              <Bot className="h-3.5 w-3.5" />Agent Chat
+          <TabsList className="h-8 bg-transparent gap-0">
+            <TabsTrigger value="chat" className="gap-1.5 text-[11px] data-[state=active]:bg-muted rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+              <MessageSquare className="h-3 w-3" />Chat
             </TabsTrigger>
-            <TabsTrigger value="generator" className="gap-1.5 text-xs data-[state=active]:bg-muted">
-              <Code className="h-3.5 w-3.5" />Code Generator
+            <TabsTrigger value="generator" className="gap-1.5 text-[11px] data-[state=active]:bg-muted rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+              <Code className="h-3 w-3" />Generator
             </TabsTrigger>
-            <TabsTrigger value="codebase" className="gap-1.5 text-xs data-[state=active]:bg-muted">
-              <Cpu className="h-3.5 w-3.5" />Codebase Memory
+            <TabsTrigger value="codebase" className="gap-1.5 text-[11px] data-[state=active]:bg-muted rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+              <Cpu className="h-3 w-3" />Memory
             </TabsTrigger>
           </TabsList>
         </div>
 
-        {/* ══════ Chat Tab (Agent) ══════ */}
+        {/* ══════ Chat Tab ══════ */}
         <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0">
           <AgentChat selectedProvider={selectedProvider} getRelevantContext={getRelevantContext} />
         </TabsContent>
