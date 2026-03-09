@@ -239,6 +239,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           {PAGE_TITLES[location.pathname] || ''}
         </h2>
         <div className="flex items-center gap-3">
+          {/* Realtime status indicator */}
+          <RealtimeStatusIndicator />
           {/* Theme switcher — Dark / Editorial / Classic */}
           <div className="flex items-center rounded-full border border-border bg-card overflow-hidden">
             {([
