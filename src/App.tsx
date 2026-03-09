@@ -63,6 +63,7 @@ import SuperAdminGridManager from "./pages/super-admin/SuperAdminGridManager";
 import SuperAdminGalleries from "./pages/super-admin/SuperAdminGalleries";
 import SuperAdminDashboardEditor from "./pages/super-admin/SuperAdminDashboardEditor";
 import SuperAdminPlatformBuilder from "./pages/super-admin/SuperAdminPlatformBuilder";
+import SuperAdminAIDeveloper from "./pages/super-admin/SuperAdminAIDeveloper";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPhotographers from "./pages/admin/AdminPhotographers";
 import AdminEvents from "./pages/admin/AdminEvents";
@@ -262,6 +263,7 @@ const AppRoutes = () => {
         <Route path="galleries" element={<SuperAdminGalleries />} />
         <Route path="dashboard-editor" element={<SuperAdminDashboardEditor />} />
         <Route path="platform-builder" element={<SuperAdminPlatformBuilder />} />
+        <Route path="ai-developer" element={<SuperAdminAIDeveloper />} />
       </Route>
 
       <Route

@@ -43,6 +43,8 @@ const TABLE_QUERY_KEYS: Record<string, readonly (readonly unknown[])[]> = {
   platform_layouts:    [['platform-layouts']],
   platform_ui_settings: [['platform-ui-settings']],
   platform_permissions: [['platform-permissions']],
+  // AI Developer
+  ai_developer_prompts: [['ai-developer-history']],
 };
 
 /**
