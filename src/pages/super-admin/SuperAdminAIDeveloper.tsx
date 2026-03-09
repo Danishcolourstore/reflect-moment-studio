@@ -28,6 +28,7 @@ import {
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import AgentChat from '@/components/ai-developer/AgentChat';
+import CodebaseMemory, { getRelevantContext } from '@/components/ai-developer/CodebaseMemory';
 
 // ──────────── Types ────────────
 interface FileChange {
