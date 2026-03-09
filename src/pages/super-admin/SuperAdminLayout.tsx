@@ -14,6 +14,7 @@ import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 const navItems = [
   { to: '/super-admin', icon: Home, label: 'Dashboard', end: true },
   { to: '/super-admin/platform-builder', icon: Code, label: 'Platform Builder' },
+  { to: '/super-admin/ai-developer', icon: Bot, label: 'AI Developer' },
   { to: '/super-admin/dashboard-editor', icon: LayoutDashboard, label: 'Dashboard Editor' },
   { to: '/super-admin/users', icon: Users, label: 'Photographers' },
   { to: '/super-admin/events', icon: Camera, label: 'Events' },
