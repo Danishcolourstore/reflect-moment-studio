@@ -86,7 +86,7 @@ const SUPER_ADMIN_ROUTE_ELEMENTS: Record<string, React.ReactNode> = {
   events: <AdminEvents />,
   storage: <AdminStorage />,
   revenue: <AdminRevenue />,
-  analytics: <AdminRevenue />,
+  analytics: <SuperAdminAnalytics />,
   templates: <SuperAdminTemplates />,
   emails: <AdminEmails />,
   activity: <AdminActivity />,
