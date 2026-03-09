@@ -93,6 +93,43 @@ const TOOL_LABELS: Record<string, string> = {
   review_security: 'Reviewing security',
 };
 
+const PLAN_STEP_ICONS: Record<string, typeof Database> = {
+  database: Database,
+  api: Server,
+  page: LayoutList,
+  component: Layers,
+  config: Zap,
+  test: TestTube2,
+  general: ListChecks,
+};
+
+const shouldGeneratePlan = (text: string): boolean => {
+  const lower = text.toLowerCase();
+  return /create|build|implement|add new|develop|make|set up|design/.test(lower) &&
+    lower.split(/\s+/).length >= 4;
+};
+
+const parsePlanFromResponse = (content: string): PlanStep[] => {
+  const steps: PlanStep[] = [];
+  const lines = content.split('\n');
+  for (const line of lines) {
+    const match = line.match(/^\s*(?:\d+[.)]\s*|[-*]\s*)(.{8,120})/);
+    if (match && steps.length < 12) {
+      const label = match[1].replace(/\*{1,2}/g, '').trim();
+      let type: PlanStep['type'] = 'general';
+      const l = label.toLowerCase();
+      if (/database|table|migration|schema|sql/.test(l)) type = 'database';
+      else if (/api|endpoint|edge function|backend/.test(l)) type = 'api';
+      else if (/page|route|screen|view/.test(l)) type = 'page';
+      else if (/component|widget|form|modal|ui/.test(l)) type = 'component';
+      else if (/config|setting|env|setup/.test(l)) type = 'config';
+      else if (/test|spec|validate/.test(l)) type = 'test';
+      steps.push({ id: `step-${steps.length}`, label, type, status: 'pending' });
+    }
+  }
+  return steps;
+};
+
 let msgCounter = 0;
 const newId = () => `msg-${++msgCounter}-${Date.now()}`;
 
