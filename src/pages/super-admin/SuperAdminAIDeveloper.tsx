@@ -474,6 +474,25 @@ export default function SuperAdminAIDeveloper() {
 
 
   // Fetch history
+  const { data: history = [], isLoading: historyLoading } = useQuery({
+    queryKey: ['ai-developer-history'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_developer_prompts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data as PromptHistory[];
+    },
+  });
+
+  // Filtered DB tables
+  const filteredTables = useMemo(() => {
+    if (!codeSearch) return DB_TABLES;
+    const q = codeSearch.toLowerCase();
+    return DB_TABLES.filter(t => t.name.includes(q) || t.desc.toLowerCase().includes(q));
+  }, [codeSearch]);
 
   // ──── Generate structured code ────
   const generateMutation = useMutation({
