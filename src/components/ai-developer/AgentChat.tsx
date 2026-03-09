@@ -17,7 +17,7 @@ import ReactMarkdown from 'react-markdown';
 // ─── Types ───
 interface AgentMessage {
   id: string;
-  role: 'user' | 'assistant' | 'tool';
+  role: 'user' | 'assistant' | 'tool' | 'plan';
   content: string;
   timestamp: Date;
   toolName?: string;
@@ -26,6 +26,16 @@ interface AgentMessage {
   fileChanges?: FilePreview[];
   taskPlan?: TaskStep[];
   isStreaming?: boolean;
+  planStatus?: 'pending' | 'approved' | 'rejected';
+  planSteps?: PlanStep[];
+}
+
+interface PlanStep {
+  id: string;
+  label: string;
+  type: 'database' | 'api' | 'page' | 'component' | 'config' | 'test' | 'general';
+  description?: string;
+  status: 'pending' | 'running' | 'done' | 'skipped';
 }
 
 interface CodeBlock {
