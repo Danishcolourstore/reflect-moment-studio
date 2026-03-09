@@ -9,7 +9,8 @@ import {
   Database, Globe, Server, Layers, FolderTree, ChevronDown, ChevronRight,
   Sparkles, Wrench, Brain, Code, Play, Eye, Terminal, Cpu, BookOpen,
   ArrowRight, Plus, Pencil, CheckCircle2, AlertTriangle, MessageSquare,
-  PanelRightOpen, PanelRightClose, CornerDownLeft, ArrowUp
+  PanelRightOpen, PanelRightClose, CornerDownLeft, ArrowUp, ListChecks,
+  XCircle, ThumbsUp, LayoutList, Zap, Shield, TestTube2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
