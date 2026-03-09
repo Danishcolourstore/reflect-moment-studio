@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+// Dashboard Editor tables added for realtime sync
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearTemplateCache } from '@/lib/website-templates';
@@ -30,6 +31,13 @@ const TABLE_QUERY_KEYS: Record<string, readonly (readonly unknown[])[]> = {
   client_favorites:    [['client_favorites']],
   client_downloads:    [['client_downloads']],
   event_analytics:     [['event_analytics']],
+  // Dashboard Editor tables
+  dashboard_layouts:   [['dashboard-layouts']],
+  dashboard_widgets:   [['dashboard-widgets']],
+  dashboard_modules:   [['dashboard-modules']],
+  dashboard_settings:  [['dashboard-settings']],
+  dashboard_navigation: [['dashboard-navigation']],
+  dashboard_quick_actions: [['dashboard-quick-actions']],
 };
 
 /**

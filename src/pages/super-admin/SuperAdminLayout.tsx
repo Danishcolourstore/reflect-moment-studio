@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   Crown, Users, Camera, BookOpen, Settings, BarChart3,
   LogOut, Shield, Home, Layout, HardDrive, DollarSign,
-  Mail, Activity, Grid3X3, Images,
+  Mail, Activity, Grid3X3, Images, LayoutDashboard,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ const navItems = [
   { to: '/super-admin/templates', icon: Layout, label: 'Templates' },
   { to: '/super-admin/grid-manager', icon: Grid3X3, label: 'Grid Builder' },
   { to: '/super-admin/galleries', icon: Images, label: 'Client Galleries' },
+  { to: '/super-admin/dashboard-editor', icon: LayoutDashboard, label: 'Dashboard Editor' },
   { to: '/super-admin/emails', icon: Mail, label: 'Bulk Email' },
   { to: '/super-admin/activity', icon: Activity, label: 'Activity Log' },
   { to: '/super-admin/settings', icon: Settings, label: 'Settings' },
