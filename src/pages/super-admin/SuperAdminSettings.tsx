@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -36,6 +37,8 @@ const FEATURE_TOGGLES = [
 
 export default function SuperAdminSettings() {
   const { user: me } = useAuth();
+
+  const queryClient = useQueryClient();
 
   const [settings, setSettings] = useState<SettingsMap>({});
   const [loading, setLoading] = useState(true);
@@ -130,6 +133,10 @@ export default function SuperAdminSettings() {
         ...prev,
         [key]: newValue,
       }));
+
+      // Invalidate all settings caches
+      queryClient.invalidateQueries({ queryKey: ['platform-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['gallery-admin-settings'] });
 
       toast.success(`${key} updated`);
     } catch (err) {
