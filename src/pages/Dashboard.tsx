@@ -1,140 +1,304 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Camera, Image, Eye, Download, Plus, Upload } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
-import { CreateEventModal } from '@/components/CreateEventModal';
-import { ShareModal } from '@/components/ShareModal';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/lib/auth';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Users, Search, UserPlus, Camera, Shield, Eye } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
+import { InviteClientModal } from "@/components/InviteClientModal";
 
-
-interface DashEvent {
-  id: string; name: string; slug: string; event_date: string; location: string | null;
-  is_published: boolean; cover_url: string | null; gallery_pin: string | null; photo_count: number;
+interface ManagedClient {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  created_at: string;
+  event_count: number;
+  favorite_count: number;
+  download_count: number;
 }
 
-interface ActivityItem {
-  id: string; description: string; time: string;
-}
-
-const Dashboard = () => {
+const Clients = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
-  const [events, setEvents] = useState<DashEvent[]>([]);
-  const [totalPhotos, setTotalPhotos] = useState(0);
-  const [totalViews, setTotalViews] = useState(0);
-  const [totalDownloads, setTotalDownloads] = useState(0);
-  const [activity, setActivity] = useState<ActivityItem[]>([]);
+
+  const [clients, setClients] = useState<ManagedClient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [shareEvent, setShareEvent] = useState<DashEvent | null>(null);
+  const [search, setSearch] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [assignOpen, setAssignOpen] = useState<ManagedClient | null>(null);
+  const [events, setEvents] = useState<any[]>([]);
+  const [assignEventId, setAssignEventId] = useState("");
+  const [assigning, setAssigning] = useState(false);
+
+  const loadClients = async () => {
+    if (!user) return;
+    setLoading(true);
+
+    const { data: rawClients } = await (
+      supabase.from("clients").select("id, user_id, name, email, phone, created_at") as any
+    )
+      .eq("photographer_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (!rawClients || rawClients.length === 0) {
+      setClients([]);
+      setLoading(false);
+      return;
+    }
+
+    const clientIds = rawClients.map((c: any) => c.id);
+
+    const { data: eventAccess } = await (supabase.from("client_events").select("client_id") as any).in(
+      "client_id",
+      clientIds,
+    );
+
+    const eventCounts = new Map<string, number>();
+    (eventAccess || []).forEach((a: any) => {
+      eventCounts.set(a.client_id, (eventCounts.get(a.client_id) || 0) + 1);
+    });
+
+    const { data: favs } = await (supabase.from("client_favorites").select("client_id") as any).in(
+      "client_id",
+      clientIds,
+    );
+
+    const favCounts = new Map<string, number>();
+    (favs || []).forEach((f: any) => {
+      favCounts.set(f.client_id, (favCounts.get(f.client_id) || 0) + 1);
+    });
+
+    const { data: dls } = await (supabase.from("client_downloads").select("client_id") as any).in(
+      "client_id",
+      clientIds,
+    );
+
+    const dlCounts = new Map<string, number>();
+    (dls || []).forEach((d: any) => {
+      dlCounts.set(d.client_id, (dlCounts.get(d.client_id) || 0) + 1);
+    });
+
+    setClients(
+      rawClients.map((c: any) => ({
+        ...c,
+        event_count: eventCounts.get(c.id) || 0,
+        favorite_count: favCounts.get(c.id) || 0,
+        download_count: dlCounts.get(c.id) || 0,
+      })),
+    );
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadClients();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      setLoading(true);
-      const { data: prof } = await (supabase.from('profiles').select('*') as any).eq('user_id', user.id).maybeSingle();
-      if (prof) setProfile(prof);
-      const { data: evts } = await (supabase.from('events').select('id, name, slug, event_date, location, is_published, cover_url, gallery_pin, photos(count)') as any)
-        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(5);
-      if (evts) {
-        setEvents((evts as any[]).map((e: any) => ({ ...e, photo_count: e.photos?.[0]?.count ?? 0 })));
-      }
-      const { count: pc } = await supabase.from('photos').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
-      setTotalPhotos(pc ?? 0);
-      const { data: vd } = await (supabase.from('events').select('views') as any).eq('user_id', user.id);
-      if (vd) setTotalViews((vd as any[]).reduce((s: number, e: any) => s + (e.views ?? 0), 0));
-      const { data: evtIds } = await (supabase.from('events').select('id') as any).eq('user_id', user.id);
-      if (evtIds && (evtIds as any[]).length > 0) {
-        const ids = (evtIds as any[]).map((e: any) => e.id);
-        const { data: analytics } = await (supabase.from('event_analytics').select('downloads_count') as any).in('event_id', ids);
-        if (analytics) setTotalDownloads((analytics as any[]).reduce((s: number, a: any) => s + (a.downloads_count ?? 0), 0));
-        const { data: views } = await (supabase.from('event_views').select('id, viewed_at, event_id') as any).in('event_id', ids).order('viewed_at', { ascending: false }).limit(5);
-        const { data: comments } = await (supabase.from('photo_comments').select('id, created_at, guest_name') as any).in('event_id', ids).order('created_at', { ascending: false }).limit(5);
-        const items: ActivityItem[] = [];
-        if (views) (views as any[]).forEach((v: any) => items.push({ id: v.id, description: 'Gallery viewed by a guest', time: v.viewed_at }));
-        if (comments) (comments as any[]).forEach((c: any) => items.push({ id: c.id, description: `New comment from ${c.guest_name || 'Guest'}`, time: c.created_at }));
-        items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-        setActivity(items.slice(0, 10));
-      }
-      setLoading(false);
-    };
-    load();
+
+    (supabase.from("events").select("id, name") as any)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .then(({ data }: any) => {
+        if (data) setEvents(data);
+      });
   }, [user]);
 
-  const greeting = () => {
-    const h = new Date().getHours();
-    if (h >= 5 && h < 12) return 'Hello bro, good morning ☀️';
-    if (h >= 12 && h < 17) return 'Hello bro, good afternoon 👋';
-    if (h >= 17 && h < 22) return 'Hello bro, good evening 🌙';
-    return 'Hello bro, good evening 🌙';
+  const filtered = clients.filter(
+    (c) =>
+      !search ||
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.email.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const grantAccess = async () => {
+    if (!assignOpen || !assignEventId) return;
+
+    setAssigning(true);
+
+    const { error } = await supabase
+      .from("client_events")
+      .insert({ client_id: assignOpen.id, event_id: assignEventId } as any);
+
+    if (error) {
+      if (error.code === "23505") toast.info("Access already granted");
+      else toast.error("Failed to grant access");
+    } else {
+      toast.success("Gallery access granted");
+      loadClients();
+    }
+
+    setAssigning(false);
+    setAssignOpen(null);
+    setAssignEventId("");
+  };
+
+  const removeAccess = async (clientId: string) => {
+    await (supabase.from("client_events").delete() as any).eq("client_id", clientId);
+
+    toast.success("Gallery access removed");
+    loadClients();
   };
 
   return (
     <DashboardLayout>
-      {/* Greeting - responsive text */}
-      <div className="mb-6 sm:mb-8 lg:mb-10" style={{ padding: '8px 0 0' }}>
-        <h1
-          className="text-foreground text-2xl sm:text-[28px] lg:text-[32px]"
-          style={{ fontFamily: 'var(--editorial-heading)', fontWeight: 400, letterSpacing: '-0.3px', lineHeight: 1.3 }}
-        >
-          {greeting()}
-        </h1>
-      </div>
+      {/* Header */}
 
-      {/* Quick Actions Row - responsive */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:mb-8 lg:mb-10">
-        <Button onClick={() => setCreateOpen(true)} className="flex-1 sm:flex-none h-12 sm:h-11 lg:h-12 lg:px-8 rounded-lg gap-2 min-h-[44px]" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
-          <Plus className="h-4 w-4" /> New Event
-        </Button>
-        <Button variant="outline" onClick={() => navigate('/dashboard/upload')} className="flex-1 sm:flex-none h-12 sm:h-11 lg:h-12 lg:px-8 rounded-lg gap-2 min-h-[44px]" style={{ fontSize: '12px', letterSpacing: '1.5px' }}>
-          <Upload className="h-4 w-4" /> Upload Photos
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="font-serif text-2xl">Client Manager</h1>
+          <p className="text-sm text-muted-foreground">Manage clients and grant access to galleries</p>
+        </div>
+
+        <Button onClick={() => setInviteOpen(true)} className="text-[11px] uppercase tracking-wider">
+          <UserPlus className="h-4 w-4 mr-1" />
+          Add Client
         </Button>
       </div>
 
-      {/* Stats Grid — responsive: 2×2 mobile, 4×1 tablet+, larger on desktop */}
+      {/* Search */}
+
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search clients..."
+          className="pl-9"
+        />
+      </div>
+
+      {/* Loading */}
+
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8 lg:mb-10">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 sm:h-32 lg:h-44 rounded-xl sm:rounded-2xl" />)}
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-14" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        /* Empty */
+
+        <div className="text-center py-24 border border-dashed rounded-xl">
+          <Users className="mx-auto h-12 w-12 text-muted-foreground/20" />
+
+          <p className="mt-4 font-serif text-lg">No clients added yet</p>
+
+          <p className="text-sm text-muted-foreground">Add clients to grant access to galleries</p>
+
+          <Button className="mt-4" onClick={() => setInviteOpen(true)}>
+            Add Client
+          </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8 lg:mb-10">
-          <PixisetStatCard icon={Camera} label="Events" value={events.length} onClick={() => navigate('/dashboard/events')} />
-          <PixisetStatCard icon={Image} label="Photos" value={totalPhotos} onClick={() => navigate('/dashboard/events')} />
-          <PixisetStatCard icon={Eye} label="Views" value={totalViews} onClick={() => navigate('/dashboard/analytics')} />
-          <PixisetStatCard icon={Download} label="Downloads" value={totalDownloads} onClick={() => navigate('/dashboard/analytics')} />
+        <div className="border rounded-xl overflow-hidden">
+          <table className="w-full text-left">
+            <thead className="bg-secondary/30 border-b">
+              <tr>
+                <th className="px-4 py-3 text-xs uppercase">Client</th>
+                <th className="px-4 py-3 text-xs uppercase text-center">Galleries</th>
+                <th className="px-4 py-3 text-xs uppercase text-center">Favorites</th>
+                <th className="px-4 py-3 text-xs uppercase text-center">Downloads</th>
+                <th className="px-4 py-3 text-xs uppercase">Last Activity</th>
+                <th className="px-4 py-3 text-xs uppercase text-right">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {filtered.map((c) => (
+                <tr key={c.id} className="border-b last:border-0">
+                  <td className="px-4 py-3 flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>{c.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+
+                    <div>
+                      <p className="text-sm font-medium">{c.name}</p>
+                      <p className="text-xs text-muted-foreground">{c.email}</p>
+                      {c.phone && <p className="text-xs text-muted-foreground">{c.phone}</p>}
+                    </div>
+                  </td>
+
+                  <td className="text-center">{c.event_count}</td>
+
+                  <td className="text-center">{c.favorite_count}</td>
+
+                  <td className="text-center">{c.download_count}</td>
+
+                  <td className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(c.created_at), {
+                      addSuffix: true,
+                    })}
+                  </td>
+
+                  <td className="text-right px-4">
+                    <div className="flex justify-end gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => setAssignOpen(c)}>
+                        <Camera className="h-3 w-3 mr-1" />
+                        Grant Access
+                      </Button>
+
+                      <Button size="sm" variant="ghost" onClick={() => window.open(`/client/${c.id}`, "_blank")}>
+                        <Eye className="h-3 w-3 mr-1" />
+                        View
+                      </Button>
+
+                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => removeAccess(c.id)}>
+                        <Shield className="h-3 w-3 mr-1" />
+                        Remove Access
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
-      {shareEvent && <ShareModal open={!!shareEvent} onOpenChange={() => setShareEvent(null)} eventSlug={shareEvent.slug} eventName={shareEvent.name} pin={shareEvent.gallery_pin} />}
+      <InviteClientModal open={inviteOpen} onOpenChange={setInviteOpen} onInvited={loadClients} />
+
+      {/* Grant Access Dialog */}
+
+      <Dialog open={!!assignOpen} onOpenChange={() => setAssignOpen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Grant Gallery Access to {assignOpen?.name}</DialogTitle>
+
+            <DialogDescription>Select gallery to grant access</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Select value={assignEventId} onValueChange={setAssignEventId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select gallery" />
+              </SelectTrigger>
+
+              <SelectContent>
+                {events.map((evt) => (
+                  <SelectItem key={evt.id} value={evt.id}>
+                    {evt.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button onClick={grantAccess} disabled={!assignEventId || assigning} className="w-full">
+              {assigning ? "Granting..." : "Grant Access"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
 
-function PixisetStatCard({ icon: Icon, label, value, onClick }: { icon: any; label: string; value: number | string; onClick?: () => void }) {
-  return (
-    <div
-      className="bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-8 cursor-pointer active:scale-[0.97] transition-all duration-300 hover:border-accent/30 hover-lift min-h-[44px]"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter') onClick?.(); }}
-    >
-      <div className="flex items-center gap-2 mb-3 sm:mb-4 lg:mb-6">
-        <Icon className="h-4 w-4 sm:h-[18px] sm:w-[18px] text-accent" strokeWidth={1.5} />
-        <p className="text-muted-foreground text-[10px] sm:text-[11px]" style={{ fontFamily: 'var(--editorial-body)', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
-          {label}
-        </p>
-      </div>
-      <p className="text-foreground leading-none text-[40px] sm:text-[52px] lg:text-[64px]" style={{ fontFamily: 'var(--editorial-heading)', fontWeight: 300 }}>
-        {value}
-      </p>
-    </div>
-  );
-}
-
-export default Dashboard;
+export default Clients;
