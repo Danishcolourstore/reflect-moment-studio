@@ -38,6 +38,8 @@ const FEATURE_TOGGLES = [
 export default function SuperAdminSettings() {
   const { user: me } = useAuth();
 
+  const queryClient = useQueryClient();
+
   const [settings, setSettings] = useState<SettingsMap>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
