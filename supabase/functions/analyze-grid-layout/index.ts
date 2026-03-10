@@ -80,7 +80,7 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
               content: [
                 {
                   type: "text",
-                  text: "Analyze this screenshot. Detect the photo grid layout structure AND all typography/text elements. Return both the grid cells and text blocks with full styling details.",
+                  text: "Analyze this screenshot. Detect the photo grid layout AND all design typography overlays. Return precise positions (x,y as center-point percentage), exact text content, accurate font classification, and full styling. Be precise with fontSize relative to 440px canvas width.",
                 },
                 {
                   type: "image_url",
