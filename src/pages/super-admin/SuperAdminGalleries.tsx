@@ -43,7 +43,10 @@ function useUpsertSetting() {
         .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['gallery-admin-settings'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['gallery-admin-settings'] });
+      qc.invalidateQueries({ queryKey: ['platform-settings'] });
+    },
     onError: (err: any) => {
       console.error('Failed to save setting:', err);
       toast.error('Failed to save setting: ' + (err?.message || 'Unknown error'));
