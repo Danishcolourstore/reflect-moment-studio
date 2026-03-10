@@ -20,9 +20,28 @@ interface Props {
   onComplete: () => Promise<void>;
 }
 
-/* ---------- Layout Templates ---------- */
-
 const TEMPLATES = {
+  fullBleed: {
+    gridCols: 1,
+    gridRows: 1,
+    cells: [[1, 1, 2, 2]],
+  },
+  hSplit: {
+    gridCols: 2,
+    gridRows: 1,
+    cells: [
+      [1, 1, 2, 2],
+      [1, 2, 2, 3],
+    ],
+  },
+  vSplit: {
+    gridCols: 1,
+    gridRows: 2,
+    cells: [
+      [1, 1, 2, 2],
+      [2, 1, 3, 2],
+    ],
+  },
   story: {
     gridCols: 2,
     gridRows: 3,
@@ -32,16 +51,6 @@ const TEMPLATES = {
       [3, 2, 4, 3],
     ],
   },
-
-  hSplit: {
-    gridCols: 2,
-    gridRows: 1,
-    cells: [
-      [1, 1, 2, 2],
-      [1, 2, 2, 3],
-    ],
-  },
-
   collage: {
     gridCols: 2,
     gridRows: 2,
@@ -52,13 +61,16 @@ const TEMPLATES = {
       [2, 2, 3, 3],
     ],
   },
-
-  fullBleed: {
-    gridCols: 1,
-    gridRows: 1,
-    cells: [[1, 1, 2, 2]],
-  },
 };
+
+function pickTemplate(remaining: number, pageNum: number): { template: typeof TEMPLATES.fullBleed; count: number } {
+  if (remaining === 1) return { template: TEMPLATES.fullBleed, count: 1 };
+  if (remaining === 2) return { template: TEMPLATES.hSplit, count: 2 };
+  if (remaining === 3) return { template: TEMPLATES.story, count: 3 };
+  if (remaining >= 4 && pageNum % 3 === 0) return { template: TEMPLATES.collage, count: 4 };
+  if (pageNum % 2 === 0) return { template: TEMPLATES.hSplit, count: 2 };
+  return { template: TEMPLATES.story, count: 3 };
+}
 
 export default function AlbumAutoLayoutDialog({ open, onOpenChange, album, onComplete }: Props) {
   const [running, setRunning] = useState(false);
@@ -67,7 +79,7 @@ export default function AlbumAutoLayoutDialog({ open, onOpenChange, album, onCom
 
   const handleRun = async () => {
     if (!album.event_id) {
-      toast.error("Album has no linked event");
+      toast.error("Link a gallery event to this album first");
       return;
     }
 
@@ -75,7 +87,6 @@ export default function AlbumAutoLayoutDialog({ open, onOpenChange, album, onCom
 
     try {
       /* ---------- Step 1: Clear existing pages ---------- */
-
       setStep("Clearing existing pages…");
       setProgress(10);
 
@@ -88,146 +99,116 @@ export default function AlbumAutoLayoutDialog({ open, onOpenChange, album, onCom
         await supabase.from("album_pages").delete().eq("album_id", album.id);
       }
 
-      /* ---------- Step 2: Load Photos ---------- */
-
+      /* ---------- Step 2: Load photos ---------- */
       setStep("Loading photos…");
       setProgress(20);
 
-      const { data: photos } = await supabase
+      const { data: photos, error: photosError } = await supabase
         .from("photos")
         .select("id,url,created_at")
         .eq("event_id", album.event_id)
         .order("created_at", { ascending: true });
 
+      if (photosError) throw photosError;
+
       if (!photos || photos.length === 0) {
-        toast.error("No photos found for event");
+        toast.error("No photos found — upload photos to this event first");
         setRunning(false);
         return;
       }
 
-      /* ---------- Step 3: Split Photos ---------- */
-
-      setStep("Grouping photos…");
-      setProgress(35);
-
-      const third = Math.ceil(photos.length / 3);
-
-      const groups = [photos.slice(0, third), photos.slice(third, third * 2), photos.slice(third * 2)];
-
-      /* ---------- Step 4: Generate Pages ---------- */
-
-      setStep("Generating layout…");
-      setProgress(50);
+      /* ---------- Step 3: Build pages ---------- */
+      setStep("Building layout…");
+      setProgress(40);
 
       const pagesToInsert: any[] = [];
       const layersBatch: any[] = [];
 
-      /* Cover page */
-
+      // Cover page — full bleed with first photo
       pagesToInsert.push({
         album_id: album.id,
         page_number: 1,
         spread_index: 1,
       });
 
-      if (photos[0]) {
-        layersBatch.push({
-          pageIndex: 0,
-          layers: [
-            {
-              layer_type: "photo",
-              photo_id: null,
-              text_content: null,
-              x: 0,
-              y: 0,
-              width: 100,
-              height: 100,
-              rotation: 0,
-              z_index: 0,
-              settings_json: {
-                imageUrl: photos[0].url,
-                offsetX: 0,
-                offsetY: 0,
-                scale: 1,
-                layout: TEMPLATES.fullBleed,
-              },
+      layersBatch.push({
+        pageIndex: 0,
+        layers: [
+          {
+            layer_type: "photo",
+            photo_id: photos[0].id,
+            text_content: null,
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 100,
+            rotation: 0,
+            z_index: 0,
+            settings_json: {
+              imageUrl: photos[0].url,
+              offsetX: 0,
+              offsetY: 0,
+              scale: 1,
+              layout: TEMPLATES.fullBleed,
             },
-          ],
-        });
-      }
+          },
+        ],
+      });
 
+      // Inner pages — place remaining photos
+      let photoIdx = 1;
       let pageNum = 2;
 
-      for (let g = 0; g < groups.length; g++) {
-        const group = groups[g];
-        let groupPhotoIdx = 0;
+      while (photoIdx < photos.length) {
+        const remaining = photos.length - photoIdx;
+        const { template, count } = pickTemplate(remaining, pageNum);
+        const actualCount = Math.min(count, remaining);
 
-        while (groupPhotoIdx < group.length) {
-          const remaining = group.length - groupPhotoIdx;
+        const spreadIndex = Math.ceil(pageNum / 2);
 
-          let template;
-          let photoCount;
+        pagesToInsert.push({
+          album_id: album.id,
+          page_number: pageNum,
+          spread_index: spreadIndex,
+        });
 
-          if (groupPhotoIdx === 0) {
-            template = TEMPLATES.story;
-            photoCount = Math.min(3, remaining);
-          } else if (remaining <= 1) {
-            template = TEMPLATES.fullBleed;
-            photoCount = 1;
-          } else if (pageNum % 2 === 0) {
-            template = TEMPLATES.hSplit;
-            photoCount = Math.min(2, remaining);
-          } else {
-            template = TEMPLATES.collage;
-            photoCount = Math.min(4, remaining);
-          }
+        const pageLayers: any[] = [];
 
-          const spreadIndex = Math.ceil(pageNum / 2);
-
-          pagesToInsert.push({
-            album_id: album.id,
-            page_number: pageNum,
-            spread_index: spreadIndex,
+        for (let i = 0; i < actualCount; i++) {
+          const photo = photos[photoIdx];
+          pageLayers.push({
+            layer_type: "photo",
+            photo_id: photo.id,
+            text_content: null,
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 100,
+            rotation: 0,
+            z_index: i,
+            settings_json: {
+              imageUrl: photo.url,
+              offsetX: 0,
+              offsetY: 0,
+              scale: 1,
+              layout: template,
+              cellIndex: i,
+            },
           });
-
-          const pageLayers: any[] = [];
-
-          for (let i = 0; i < photoCount && groupPhotoIdx < group.length; i++) {
-            pageLayers.push({
-              layer_type: "photo",
-              photo_id: null,
-              text_content: null,
-              x: 0,
-              y: 0,
-              width: 100,
-              height: 100,
-              rotation: 0,
-              z_index: i,
-              settings_json: {
-                imageUrl: group[groupPhotoIdx].url,
-                offsetX: 0,
-                offsetY: 0,
-                scale: 1,
-                layout: template,
-              },
-            });
-
-            groupPhotoIdx++;
-          }
-
-          layersBatch.push({
-            pageIndex: pagesToInsert.length - 1,
-            layers: pageLayers,
-          });
-
-          pageNum++;
+          photoIdx++;
         }
+
+        layersBatch.push({
+          pageIndex: pagesToInsert.length - 1,
+          layers: pageLayers,
+        });
+
+        pageNum++;
       }
 
-      /* ---------- Step 5: Insert Pages ---------- */
-
+      /* ---------- Step 4: Insert pages ---------- */
       setStep("Creating pages…");
-      setProgress(70);
+      setProgress(60);
 
       const { data: insertedPages, error: pagesError } = await supabase
         .from("album_pages")
@@ -235,45 +216,40 @@ export default function AlbumAutoLayoutDialog({ open, onOpenChange, album, onCom
         .select("id");
 
       if (pagesError || !insertedPages) {
-        toast.error("Failed to create album pages");
-        setRunning(false);
-        return;
+        throw new Error("Failed to create album pages");
       }
 
-      /* ---------- Step 6: Insert Layers ---------- */
-
-      setProgress(85);
+      /* ---------- Step 5: Insert layers ---------- */
+      setStep("Placing photos…");
+      setProgress(80);
 
       const allLayers: any[] = [];
 
       for (const batch of layersBatch) {
         const pageId = insertedPages[batch.pageIndex]?.id;
-
         if (!pageId) continue;
 
         for (const layer of batch.layers) {
-          allLayers.push({
-            ...layer,
-            page_id: pageId,
-          });
+          allLayers.push({ ...layer, page_id: pageId });
         }
       }
 
       if (allLayers.length) {
-        await supabase.from("album_layers").insert(allLayers);
+        const { error: layersError } = await supabase.from("album_layers").insert(allLayers);
+
+        if (layersError) throw layersError;
       }
 
-      /* ---------- Step 7: Update Album ---------- */
-
+      /* ---------- Step 6: Update album page count ---------- */
       await supabase
         .from("albums")
         .update({ page_count: pageNum - 1 })
         .eq("id", album.id);
 
-      setStep(`Done! ${pageNum - 1} pages created`);
+      setStep(`Done! ${pageNum - 1} pages created with ${photos.length} photos`);
       setProgress(100);
 
-      toast.success(`Album layout generated`);
+      toast.success(`Album layout generated — ${pageNum - 1} pages`);
 
       await onComplete();
 
@@ -282,11 +258,13 @@ export default function AlbumAutoLayoutDialog({ open, onOpenChange, album, onCom
         onOpenChange(false);
         setStep("");
         setProgress(0);
-      }, 1200);
-    } catch (error) {
-      console.error(error);
-      toast.error("Auto layout failed");
+      }, 1500);
+    } catch (error: any) {
+      console.error("Auto layout error:", error);
+      toast.error(error?.message || "Auto layout failed");
       setRunning(false);
+      setStep("");
+      setProgress(0);
     }
   };
 
@@ -295,26 +273,27 @@ export default function AlbumAutoLayoutDialog({ open, onOpenChange, album, onCom
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Auto Layout Album</DialogTitle>
-
           {!running && (
             <DialogDescription>
-              This will automatically build your album layout using the event photos.
+              Automatically builds your full album using event photos. Existing pages will be replaced.
             </DialogDescription>
           )}
         </DialogHeader>
 
         {running ? (
           <div className="space-y-4 py-4">
-            <p className="text-sm text-foreground">{step}</p>
+            <p className="text-sm text-foreground font-medium">{step}</p>
             <Progress value={progress} className="h-2" />
+            <p className="text-xs text-muted-foreground text-center">{progress}%</p>
           </div>
         ) : (
-          <DialogFooter className="gap-2">
+          <DialogFooter className="gap-2 pt-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-
-            <Button onClick={handleRun}>Generate Layout</Button>
+            <Button onClick={handleRun} disabled={!album.event_id}>
+              Generate Layout
+            </Button>
           </DialogFooter>
         )}
       </DialogContent>
