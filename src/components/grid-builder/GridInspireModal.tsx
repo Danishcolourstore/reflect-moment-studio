@@ -36,14 +36,28 @@ interface DetectedTextBlock {
   hasShadow: boolean;
 }
 
-/** Map detected fontGroup to the best matching font from our library */
-function mapFontFamily(group: 'serif' | 'sans' | 'script'): string {
-  const defaults: Record<string, string> = {
-    serif: 'Cormorant Garamond',
-    sans: 'Montserrat',
-    script: 'Great Vibes',
-  };
-  return defaults[group] || 'Cormorant Garamond';
+/** Map detected fontGroup + characteristics to the best matching font */
+function mapFontFamily(
+  group: 'serif' | 'sans' | 'script',
+  weight: number,
+  textTransform: string,
+  fontSize: number
+): string {
+  if (group === 'script') {
+    // Larger script → more expressive
+    return fontSize > 28 ? 'Great Vibes' : 'Allura';
+  }
+  if (group === 'serif') {
+    // Bold/heavy serif → Playfair; light/medium → Cormorant
+    if (weight >= 600) return 'Playfair Display';
+    if (fontSize > 24) return 'Bodoni Moda';
+    return 'Cormorant Garamond';
+  }
+  // Sans
+  if (textTransform === 'uppercase' && fontSize <= 14) return 'Montserrat'; // small caps style
+  if (weight >= 600) return 'Poppins';
+  if (weight <= 300) return 'Inter';
+  return 'DM Sans';
 }
 
 /** Snap weight to the nearest available weight for the chosen font */
@@ -55,64 +69,50 @@ function snapWeight(family: string, weight: number): number {
   );
 }
 
-/** Convert detected text blocks to TextLayer objects with de-overlapping */
+/** Convert detected text blocks to TextLayer objects — preserves AI positions faithfully */
 function textBlocksToLayers(blocks: DetectedTextBlock[]): TextLayer[] {
-  // First pass: create layers with raw positions
   const layers = blocks.map((block) => {
-    const fontFamily = mapFontFamily(block.fontGroup);
+    const fontFamily = mapFontFamily(block.fontGroup, block.fontWeight, block.textTransform, block.fontSize);
     const fontWeight = snapWeight(fontFamily, block.fontWeight);
-    // Estimate height in % based on fontSize (rough: fontSize px → ~N% of canvas)
-    const estimatedHeightPct = Math.max(4, (block.fontSize / 400) * 100 * (block.lineHeight || 1.3));
 
-    return {
-      layer: createTextLayer({
-        text: block.text,
-        fontFamily,
-        fontWeight,
-        fontSize: Math.max(8, Math.min(48, block.fontSize)),
-        color: block.color || '#ffffff',
-        letterSpacing: Math.max(0, Math.min(20, block.letterSpacing)),
-        lineHeight: Math.max(0.8, Math.min(3, block.lineHeight)),
-        alignment: block.alignment,
-        textTransform: block.textTransform,
-        fontStyle: block.fontStyle,
-        x: Math.max(5, Math.min(95, block.x)),
-        y: Math.max(5, Math.min(95, block.y)),
-        opacity: 1,
-        rotation: 0,
-        scale: 1,
-        shadow: block.hasShadow
-          ? { x: 0, y: 2, blur: 10, color: 'rgba(0,0,0,0.45)' }
-          : null,
-      }),
-      estimatedHeightPct,
-    };
+    // The AI returns fontSize relative to a 440px-wide canvas.
+    // TextOverlay renders in absolute px inside the grid canvas which varies.
+    // Scale up slightly for readability — the grid canvas is typically ~380-440px on mobile,
+    // but can be larger on desktop. We keep the AI value as-is since the prompt is calibrated.
+    const fontSize = Math.max(8, Math.min(56, block.fontSize));
+
+    return createTextLayer({
+      text: block.text,
+      fontFamily,
+      fontWeight,
+      fontSize,
+      color: block.color || '#ffffff',
+      letterSpacing: Math.max(0, Math.min(20, block.letterSpacing)),
+      lineHeight: Math.max(0.8, Math.min(3, block.lineHeight)),
+      alignment: block.alignment,
+      textTransform: block.textTransform,
+      fontStyle: block.fontStyle,
+      // Preserve the AI-detected positions directly — they are already in % of canvas
+      x: Math.max(2, Math.min(98, block.x)),
+      y: Math.max(2, Math.min(98, block.y)),
+      opacity: 1,
+      rotation: 0,
+      scale: 1,
+      shadow: block.hasShadow
+        ? { x: 0, y: 2, blur: 10, color: 'rgba(0,0,0,0.45)' }
+        : null,
+    });
   });
 
-  // Second pass: de-overlap — ensure minimum vertical gap between layers
-  // Sort by y position first
-  layers.sort((a, b) => a.layer.y - b.layer.y);
-
-  const MIN_GAP_PCT = 4; // minimum 4% gap between text block centers
+  // Light de-overlap: only nudge if two layers have near-identical Y (within 2%)
+  layers.sort((a, b) => a.y - b.y);
   for (let i = 1; i < layers.length; i++) {
-    const prev = layers[i - 1];
-    const minY = prev.layer.y + prev.estimatedHeightPct + MIN_GAP_PCT;
-    if (layers[i].layer.y < minY) {
-      layers[i].layer.y = Math.min(95, minY);
+    if (Math.abs(layers[i].y - layers[i - 1].y) < 2) {
+      layers[i].y = Math.min(96, layers[i - 1].y + 3);
     }
   }
 
-  // If all layers got pushed past 95%, redistribute evenly
-  const lastY = layers[layers.length - 1]?.layer.y ?? 0;
-  if (lastY >= 95 && layers.length > 1) {
-    const startY = 8;
-    const spacing = Math.min(16, (90 - startY) / (layers.length - 1 || 1));
-    layers.forEach((item, i) => {
-      item.layer.y = Math.min(95, startY + i * spacing);
-    });
-  }
-
-  return layers.map(l => l.layer);
+  return layers;
 }
 
 export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) {
