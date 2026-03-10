@@ -4,9 +4,10 @@ import type { TextLayer } from "@/components/grid-builder/text-overlay-types";
 import GridCell from "@/components/grid-builder/GridCell";
 import TextOverlay from "@/components/grid-builder/TextOverlay";
 import { ALBUM_SIZES, type AlbumSize } from "./types";
+import { ImageIcon } from "lucide-react";
 
 interface Props {
-  layout: GridLayout;
+  layout: GridLayout | null;
   cells: GridCellData[];
   onCellsChange: (cells: GridCellData[]) => void;
   textLayers: TextLayer[];
@@ -49,14 +50,9 @@ export default function AlbumCanvas({
 
   const dim = ALBUM_SIZES[albumSize];
 
-  /* ---------- Spread logic ---------- */
-
   const isCover = currentPageNumber === 0;
   const showAsSpread = spreadView && !isCover;
-
   const aspectRatio = showAsSpread ? (dim.widthIn * 2) / dim.heightIn : dim.widthIn / dim.heightIn;
-
-  /* ---------- Cell updates ---------- */
 
   const updateCell = useCallback(
     (index: number, patch: Partial<GridCellData>) => {
@@ -66,19 +62,10 @@ export default function AlbumCanvas({
     [cells, onCellsChange],
   );
 
-  /* ---------- Image handlers ---------- */
-
   const handleImageAdd = useCallback(
     (index: number, file: File) => {
       const url = URL.createObjectURL(file);
-
-      updateCell(index, {
-        imageUrl: url,
-        file,
-        offsetX: 0,
-        offsetY: 0,
-        scale: 1,
-      });
+      updateCell(index, { imageUrl: url, file, offsetX: 0, offsetY: 0, scale: 1 });
     },
     [updateCell],
   );
@@ -86,23 +73,11 @@ export default function AlbumCanvas({
   const handleImageRemove = useCallback(
     (index: number) => {
       const old = cells[index];
-
-      if (old?.imageUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(old.imageUrl);
-      }
-
-      updateCell(index, {
-        imageUrl: null,
-        file: null,
-        offsetX: 0,
-        offsetY: 0,
-        scale: 1,
-      });
+      if (old?.imageUrl?.startsWith("blob:")) URL.revokeObjectURL(old.imageUrl);
+      updateCell(index, { imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 });
     },
     [cells, updateCell],
   );
-
-  /* ---------- Drag Drop ---------- */
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -111,11 +86,8 @@ export default function AlbumCanvas({
 
   const handleDrop = (e: React.DragEvent, cellIndex: number) => {
     e.preventDefault();
-
     const data = e.dataTransfer.getData("application/album-photo");
-
     if (!data) return;
-
     try {
       const photo = JSON.parse(data);
       onDropPhoto(photo, cellIndex);
@@ -123,8 +95,6 @@ export default function AlbumCanvas({
       console.warn("Invalid photo drag data");
     }
   };
-
-  /* ---------- Text Layers ---------- */
 
   const updateTextLayer = useCallback(
     (id: string, patch: Partial<TextLayer>) => {
@@ -141,33 +111,31 @@ export default function AlbumCanvas({
     [textLayers, onTextLayersChange, onSelectText],
   );
 
-  /* ---------- Zoom ---------- */
-
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-
         const delta = e.deltaY > 0 ? -10 : 10;
-
         const next = Math.max(25, Math.min(200, zoom + delta));
-
         onZoomChange(next);
       }
     },
     [zoom, onZoomChange],
   );
 
-  /* ---------- Bleed + Safe ---------- */
-
   const bleedPct = (dim.bleedMm / (dim.widthIn * 25.4)) * 100;
   const safePct = (dim.safeMarginMm / (dim.widthIn * 25.4)) * 100;
+
+  // FIX: safely handle null/undefined layout
+  const layoutCells = layout?.cells ?? [];
+  const hasLayout = layoutCells.length > 0;
 
   return (
     <div
       ref={containerRef}
       className="flex-1 flex items-center justify-center overflow-auto bg-muted/30 p-8"
       onWheel={handleWheel}
+      style={{ minHeight: 0 }}
     >
       <div
         ref={canvasRef}
@@ -177,83 +145,74 @@ export default function AlbumCanvas({
           width: `${Math.min(900, 600 * (zoom / 100))}px`,
           maxWidth: "90%",
           maxHeight: "85vh",
+          minWidth: "280px",
+          minHeight: "200px",
           background: bgColor,
         }}
       >
-        {/* Bleed guide */}
-
         {showBleed && (
           <div
             className="absolute pointer-events-none z-40"
-            style={{
-              inset: `-${bleedPct}%`,
-              border: "2px dashed rgba(239,68,68,0.5)",
-            }}
+            style={{ inset: `-${bleedPct}%`, border: "2px dashed rgba(239,68,68,0.5)" }}
           />
         )}
-
-        {/* Safe margin */}
 
         {showSafeMargin && (
           <div
             className="absolute pointer-events-none z-40"
-            style={{
-              inset: `${safePct}%`,
-              border: "1.5px dashed rgba(59,130,246,0.5)",
-            }}
+            style={{ inset: `${safePct}%`, border: "1.5px dashed rgba(59,130,246,0.5)" }}
           />
         )}
-
-        {/* Spine */}
 
         {showSpine && showAsSpread && (
           <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-foreground/20 z-40 pointer-events-none" />
         )}
 
-        {/* Grid */}
-
-        <div
-          className="w-full h-full relative"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
-            gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-            gap: "3px",
-            padding: "3px",
-          }}
-        >
-          {layout.cells.map((area, i) => {
-            const cell = cells[i] || {
-              id: `cell-${i}`,
-              imageUrl: null,
-              file: null,
-              offsetX: 0,
-              offsetY: 0,
-              scale: 1,
-            };
-
-            return (
-              <div
-                key={cell.id}
-                style={{
-                  gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
-                }}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, i)}
-              >
-                <GridCell
-                  cell={cell}
-                  gridArea=""
-                  onImageAdd={(f) => handleImageAdd(i, f)}
-                  onImageRemove={() => handleImageRemove(i)}
-                  onOffsetChange={(x, y) => updateCell(i, { offsetX: x, offsetY: y })}
-                />
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Text Layers */}
+        {/* FIX: show helpful placeholder when no layout selected */}
+        {!hasLayout ? (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-muted-foreground select-none">
+            <ImageIcon className="h-10 w-10 opacity-30" />
+            <p className="text-sm font-medium opacity-50">Select a layout from the right panel</p>
+          </div>
+        ) : (
+          <div
+            className="w-full h-full relative"
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${layout!.gridCols}, 1fr)`,
+              gridTemplateRows: `repeat(${layout!.gridRows}, 1fr)`,
+              gap: "3px",
+              padding: "3px",
+            }}
+          >
+            {layoutCells.map((area, i) => {
+              const cell = cells[i] || {
+                id: `cell-${i}`,
+                imageUrl: null,
+                file: null,
+                offsetX: 0,
+                offsetY: 0,
+                scale: 1,
+              };
+              return (
+                <div
+                  key={cell.id}
+                  style={{ gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}` }}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, i)}
+                >
+                  <GridCell
+                    cell={cell}
+                    gridArea=""
+                    onImageAdd={(f) => handleImageAdd(i, f)}
+                    onImageRemove={() => handleImageRemove(i)}
+                    onOffsetChange={(x, y) => updateCell(i, { offsetX: x, offsetY: y })}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {textLayers.map((layer) => (
           <TextOverlay
