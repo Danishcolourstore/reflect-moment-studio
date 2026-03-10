@@ -38,18 +38,16 @@ function useUpsertSetting() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ key, value }: { key: string; value: string }) => {
-      const { data: existing } = await supabase
+      const { error } = await supabase
         .from('platform_settings')
-        .select('id')
-        .eq('key', key)
-        .maybeSingle();
-      if (existing) {
-        await supabase.from('platform_settings').update({ value, updated_at: new Date().toISOString() }).eq('key', key);
-      } else {
-        await supabase.from('platform_settings').insert({ key, value });
-      }
+        .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['gallery-admin-settings'] }),
+    onError: (err: any) => {
+      console.error('Failed to save setting:', err);
+      toast.error('Failed to save setting: ' + (err?.message || 'Unknown error'));
+    },
   });
 }
 
