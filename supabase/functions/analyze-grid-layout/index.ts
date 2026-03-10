@@ -22,64 +22,44 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are a layout and typography analysis expert specializing in Instagram post design. You receive a cropped screenshot of a photo grid or design layout. Your job is to detect BOTH the grid structure AND any DESIGN typography elements, returning them as structured JSON.
+    const systemPrompt = `You are an expert at analyzing Instagram post screenshots to extract grid layouts and design typography. You receive a cropped screenshot and must return BOTH the grid structure AND all overlay text as structured JSON.
 
-GRID DETECTION RULES:
-- Analyze the visual grid structure — how many rows, columns, and how cells span.
-- Each cell is defined as [rowStart, colStart, rowEnd, colEnd] using 1-based CSS grid positioning.
-- rowEnd and colEnd are EXCLUSIVE (like CSS grid-row / grid-column).
-- Cells can span multiple rows or columns for larger image areas.
-- Ignore social media UI elements (usernames, icons, nav bars) — focus on the design content.
-- The grid should use the minimum number of rows and columns needed to represent the layout.
-- canvasRatio is width/height of the overall layout. Use 1 for square, values like 0.8 for portrait, 1.33 for landscape.
+GRID DETECTION:
+- Detect grid rows, columns, and how cells span using 1-based CSS grid coordinates.
+- Each cell: [rowStart, colStart, rowEnd, colEnd] with exclusive end values.
+- Use minimum rows/columns needed. Ignore social media UI chrome.
+- canvasRatio = width/height (1 for square, 0.8 portrait, 1.33 landscape).
 
-TEXT/TYPOGRAPHY DETECTION — CRITICAL DISTINCTION:
-You MUST only detect text that is part of the DESIGN OVERLAY — typography intentionally placed on top of images as part of the graphic design composition.
+TEXT DETECTION — ONLY DESIGN OVERLAY TEXT:
+Detect ONLY text that is deliberately overlaid on the design as typography (titles, dates, locations, names, quotes, captions, watermarks). Do NOT detect text that is part of photographed scenes (signs, clothing, products, license plates).
 
-✅ DETECT these (design typography):
-- Titles, headings, and subheadings overlaid on the design
-- Date text, location text, event names placed as design elements
-- Quotes, captions, or taglines that are part of the layout composition
-- Watermarks or branding text added by the designer
-- Any text with consistent styling that appears to be a deliberate design layer (often with shadows, outlines, or contrasting color against the background)
+CRITICAL POSITIONING RULES — READ CAREFULLY:
+- x and y represent the CENTER POINT of the text block as a percentage (0-100) of the CROPPED AREA dimensions.
+- x=50 means horizontally centered. x=15 means near the left edge. x=85 means near the right edge.
+- y=10 means near the top. y=50 means vertically centered. y=90 means near the bottom.
+- Measure positions PRECISELY by estimating pixel positions relative to the total canvas dimensions.
+- For centered text spanning the full width, x should be 50.
+- For text near margins/edges, use values like 10-20 or 80-90.
+- Multiple lines of text at the same position should be returned as ONE text block with newlines.
 
-❌ DO NOT DETECT these (in-photo / environmental text):
-- Text on signs, billboards, or street boards visible in photographs
-- Text on clothing, products, packaging, or labels within photos
-- Store names, license plates, or any text that is part of the photographed scene
-- Watermarks from stock photo services embedded in the photo itself
-- Any text that is part of the physical world captured by the camera
-- Social media UI chrome (usernames, like counts, timestamps, navigation)
+FONT ANALYSIS — BE PRECISE:
+- fontGroup: "serif" for fonts with serifs (Times, Garamond, Playfair, Bodoni style), "sans" for clean geometric fonts (Helvetica, Montserrat, Inter style), "script" for cursive/handwritten fonts.
+- fontWeight: Use 300 for thin/light, 400 for regular, 500 for medium, 600 for semibold, 700 for bold. Match the visual thickness precisely.
+- fontSize: Size in px assuming a 440px wide canvas. Measure the actual cap height and convert:
+  - Very small labels/dates: 9-12px
+  - Small subtitles: 13-16px  
+  - Body text: 17-22px
+  - Subheadings: 23-30px
+  - Main titles: 31-42px
+  - Large hero text: 43-56px
+- letterSpacing: 0 for normal, 1-3 for slightly spaced, 4-8 for heavily spaced uppercase, 10+ for very wide tracking.
+- color: Exact hex color. "#ffffff" for white, "#000000" for black, etc. Sample the actual text color.
+- textTransform: "uppercase" if ALL CAPS, "lowercase" if all lowercase, "none" for mixed case.
+- hasShadow: true ONLY if text has a visible drop shadow or glow effect for readability.
 
-HOW TO DISTINGUISH: Design typography is typically:
-1. Overlaid on top of images with consistent font styling across the layout
-2. Uses clean, professional fonts (serif, sans-serif, or script) with deliberate sizing
-3. Has uniform color, often with shadow/outline for readability over photos
-4. Positioned deliberately in margins, borders, or framing areas of the design
-5. Relates to the design's message (event name, date, couple names, location)
+IMPORTANT: Return the EXACT text content as it appears — preserve casing, punctuation, special characters (•, &, etc.), and line breaks.
 
-In-photo text is typically:
-1. Part of the 3D scene — follows perspective, lighting, and camera angle
-2. Has irregular styling dictated by the physical object it's on
-3. Appears at various angles and depths within the photograph
-4. Is incidental to the design's purpose
-
-For each DESIGN text block detected, analyze and return:
-  - text: the exact text content
-  - fontGroup: classify as "serif", "sans", or "script" based on visual appearance
-  - fontWeight: 300 (light), 400 (regular), 500 (medium), 600 (semibold), 700 (bold)
-  - fontSize: approximate size in px relative to a 440px wide canvas (range 8-48)
-  - color: hex color string (e.g. "#ffffff")
-  - letterSpacing: approximate in px (0 normal, 2-8 for spaced uppercase)
-  - lineHeight: multiplier (1.0-2.0)
-  - alignment: "left", "center", or "right"
-  - textTransform: "none", "uppercase", or "lowercase"
-  - fontStyle: "normal" or "italic"
-  - x: horizontal position as % of canvas width (0-100)
-  - y: vertical position as % of canvas height (0-100)
-  - hasShadow: true if text has visible drop shadow or glow
-
-If NO design typography is found, return an empty textBlocks array. Do NOT force text detection.
+If NO design typography is found, return an empty textBlocks array.
 
 You MUST respond by calling the "grid_layout_with_text" tool.`;
 
@@ -100,7 +80,7 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
               content: [
                 {
                   type: "text",
-                  text: "Analyze this screenshot. Detect the photo grid layout structure AND all typography/text elements. Return both the grid cells and text blocks with full styling details.",
+                  text: "Analyze this screenshot. Detect the photo grid layout AND all design typography overlays. Return precise positions (x,y as center-point percentage), exact text content, accurate font classification, and full styling. Be precise with fontSize relative to 440px canvas width.",
                 },
                 {
                   type: "image_url",
