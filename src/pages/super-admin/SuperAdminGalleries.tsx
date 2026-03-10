@@ -557,18 +557,25 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function SettingSlider({ settingsKey, label, min, max, defaultVal }: { settingsKey: string; label: string; min: number; max: number; defaultVal: number }) {
   const { data: settings } = useGallerySettings();
   const upsert = useUpsertSetting();
-  const val = parseInt(settings?.[`${SETTINGS_PREFIX}${settingsKey}`] ?? String(defaultVal), 10);
+  const stored = parseInt(settings?.[`${SETTINGS_PREFIX}${settingsKey}`] ?? String(defaultVal), 10);
+  const [local, setLocal] = useState(stored);
+
+  useEffect(() => { setLocal(stored); }, [stored]);
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label className="text-xs text-muted-foreground">{label}</Label>
-        <span className="text-xs font-mono text-foreground">{val}px</span>
+        <span className="text-xs font-mono text-foreground">{local}px</span>
       </div>
       <Slider
-        min={min} max={max} step={1} value={[val]}
+        min={min} max={max} step={1} value={[local]}
+        onValueChange={([v]) => setLocal(v)}
         onValueCommit={([v]) => {
-          upsert.mutate({ key: `${SETTINGS_PREFIX}${settingsKey}`, value: String(v) });
+          upsert.mutate(
+            { key: `${SETTINGS_PREFIX}${settingsKey}`, value: String(v) },
+            { onSuccess: () => toast.success(`${label} saved`) }
+          );
         }}
       />
     </div>
