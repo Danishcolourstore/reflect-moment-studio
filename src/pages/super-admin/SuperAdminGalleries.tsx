@@ -38,18 +38,16 @@ function useUpsertSetting() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ key, value }: { key: string; value: string }) => {
-      const { data: existing } = await supabase
+      const { error } = await supabase
         .from('platform_settings')
-        .select('id')
-        .eq('key', key)
-        .maybeSingle();
-      if (existing) {
-        await supabase.from('platform_settings').update({ value, updated_at: new Date().toISOString() }).eq('key', key);
-      } else {
-        await supabase.from('platform_settings').insert({ key, value });
-      }
+        .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['gallery-admin-settings'] }),
+    onError: (err: any) => {
+      console.error('Failed to save setting:', err);
+      toast.error('Failed to save setting: ' + (err?.message || 'Unknown error'));
+    },
   });
 }
 
@@ -249,8 +247,11 @@ function LayoutsTab() {
   const { data: settings } = useGallerySettings();
   const upsert = useUpsertSetting();
 
+  const allIds = LAYOUT_PRESETS.map(l => l.id);
   const enabledLayouts: string[] = (() => {
-    try { return JSON.parse(settings?.[`${SETTINGS_PREFIX}enabled_layouts`] ?? '[]'); } catch { return LAYOUT_PRESETS.map(l => l.id); }
+    const raw = settings?.[`${SETTINGS_PREFIX}enabled_layouts`];
+    if (!raw) return allIds;
+    try { const parsed = JSON.parse(raw); return parsed.length === 0 ? allIds : parsed; } catch { return allIds; }
   })();
 
   const toggle = async (id: string) => {
@@ -556,18 +557,25 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function SettingSlider({ settingsKey, label, min, max, defaultVal }: { settingsKey: string; label: string; min: number; max: number; defaultVal: number }) {
   const { data: settings } = useGallerySettings();
   const upsert = useUpsertSetting();
-  const val = parseInt(settings?.[`${SETTINGS_PREFIX}${settingsKey}`] ?? String(defaultVal), 10);
+  const stored = parseInt(settings?.[`${SETTINGS_PREFIX}${settingsKey}`] ?? String(defaultVal), 10);
+  const [local, setLocal] = useState(stored);
+
+  useEffect(() => { setLocal(stored); }, [stored]);
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label className="text-xs text-muted-foreground">{label}</Label>
-        <span className="text-xs font-mono text-foreground">{val}px</span>
+        <span className="text-xs font-mono text-foreground">{local}px</span>
       </div>
       <Slider
-        min={min} max={max} step={1} value={[val]}
+        min={min} max={max} step={1} value={[local]}
+        onValueChange={([v]) => setLocal(v)}
         onValueCommit={([v]) => {
-          upsert.mutate({ key: `${SETTINGS_PREFIX}${settingsKey}`, value: String(v) });
+          upsert.mutate(
+            { key: `${SETTINGS_PREFIX}${settingsKey}`, value: String(v) },
+            { onSuccess: () => toast.success(`${label} saved`) }
+          );
         }}
       />
     </div>
