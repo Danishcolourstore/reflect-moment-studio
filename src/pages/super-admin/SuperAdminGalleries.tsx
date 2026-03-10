@@ -247,8 +247,11 @@ function LayoutsTab() {
   const { data: settings } = useGallerySettings();
   const upsert = useUpsertSetting();
 
+  const allIds = LAYOUT_PRESETS.map(l => l.id);
   const enabledLayouts: string[] = (() => {
-    try { return JSON.parse(settings?.[`${SETTINGS_PREFIX}enabled_layouts`] ?? '[]'); } catch { return LAYOUT_PRESETS.map(l => l.id); }
+    const raw = settings?.[`${SETTINGS_PREFIX}enabled_layouts`];
+    if (!raw) return allIds;
+    try { const parsed = JSON.parse(raw); return parsed.length === 0 ? allIds : parsed; } catch { return allIds; }
   })();
 
   const toggle = async (id: string) => {
