@@ -134,6 +134,10 @@ export default function SuperAdminSettings() {
         [key]: newValue,
       }));
 
+      // Invalidate all settings caches
+      queryClient.invalidateQueries({ queryKey: ['platform-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['gallery-admin-settings'] });
+
       toast.success(`${key} updated`);
     } catch (err) {
       toast.error("Failed to update setting");
