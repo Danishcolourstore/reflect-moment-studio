@@ -1,33 +1,39 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Eye, Download, Wand2 } from "lucide-react";
-
+import {
+  ArrowLeft,
+  Undo2,
+  Redo2,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  Eye,
+  Download,
+  Wand2,
+  Save,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
 import type { AlbumStatus } from "./types";
 
 const STATUS_BADGE: Record<AlbumStatus, { label: string; className: string }> = {
-  draft: {
-    label: "Draft",
-    className: "bg-muted text-muted-foreground",
-  },
+  draft: { label: "Draft", className: "bg-muted text-muted-foreground" },
   review: {
     label: "In Review",
     className: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
   },
   approved: {
     label: "Approved",
-    className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+    className:
+      "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
   },
-  print: {
-    label: "Sent to Print",
-    className: "bg-primary/10 text-primary",
-  },
+  print: { label: "Sent to Print", className: "bg-primary/10 text-primary" },
 };
 
-const STATUS_ACTIONS: Partial<Record<AlbumStatus, { label: string; next: AlbumStatus }>> = {
+const STATUS_ACTIONS: Partial<
+  Record<AlbumStatus, { label: string; next: AlbumStatus }>
+> = {
   draft: { label: "Send for Review", next: "review" },
   review: { label: "Mark Approved", next: "approved" },
   approved: { label: "Send to Print", next: "print" },
@@ -37,23 +43,17 @@ interface Props {
   albumName: string;
   onNameChange: (name: string) => void;
   onBack: () => void;
-
   spreadView: boolean;
   onToggleSpread: () => void;
-
   zoom: number;
   onZoomChange: (z: number) => void;
-
   onUndo: () => void;
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-
   saveStatus: "saved" | "saving" | "unsaved";
-
   albumStatus: AlbumStatus;
   onStatusChange: (status: AlbumStatus) => void;
-
   onAutoLayout: () => void;
   onPreview: () => void;
   onExport: () => void;
@@ -84,27 +84,25 @@ export default function AlbumEditorToolbar({
   const badge = STATUS_BADGE[albumStatus];
   const action = STATUS_ACTIONS[albumStatus];
 
-  /* Sync album name when prop changes */
-
   useEffect(() => {
     setDraft(albumName);
   }, [albumName]);
 
-  /* Handle name save */
-
   const saveName = () => {
-    if (draft.trim() && draft !== albumName) {
-      onNameChange(draft.trim());
-    }
+    if (draft.trim() && draft !== albumName) onNameChange(draft.trim());
     setEditing(false);
   };
 
   return (
     <header className="h-12 flex items-center justify-between px-3 bg-card/95 backdrop-blur-xl border-b border-border/60 z-50 shrink-0">
       {/* LEFT */}
-
       <div className="flex items-center gap-2 min-w-0">
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0"
+          onClick={onBack}
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
 
@@ -132,95 +130,142 @@ export default function AlbumEditorToolbar({
           </button>
         )}
 
-        <Badge variant="secondary" className={cn("text-[10px] shrink-0", badge.className)}>
+        <Badge
+          variant="secondary"
+          className={cn("text-[10px] shrink-0", badge.className)}
+        >
           {badge.label}
         </Badge>
 
-        <span
+        <div
           className={cn(
-            "text-[10px] px-2 py-0.5 rounded-full tracking-wide uppercase font-medium shrink-0",
+            "flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full tracking-wide uppercase font-medium shrink-0",
             saveStatus === "saved"
               ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400"
               : saveStatus === "saving"
                 ? "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400"
-                : "text-muted-foreground bg-muted",
+                : "text-muted-foreground bg-muted"
           )}
         >
-          {saveStatus === "saved" ? "Saved ✓" : saveStatus === "saving" ? "Saving…" : "Unsaved"}
-        </span>
+          {saveStatus === "saved"
+            ? "Saved ✓"
+            : saveStatus === "saving"
+              ? "Saving…"
+              : "Unsaved"}
+        </div>
       </div>
 
       {/* CENTER */}
-
       <div className="flex items-center gap-2">
         <div className="flex bg-muted/50 rounded-lg p-0.5">
           <button
             onClick={() => !spreadView && onToggleSpread()}
             className={cn(
               "px-3 py-1 rounded-md text-xs font-medium transition-all",
-              !spreadView ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground",
+              !spreadView
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
-            Single Page
+            Page
           </button>
-
           <button
             onClick={() => spreadView && onToggleSpread()}
             className={cn(
               "px-3 py-1 rounded-md text-xs font-medium transition-all",
-              spreadView ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground",
+              spreadView
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
-            Spread View
+            Spread
           </button>
         </div>
 
-        <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={onAutoLayout}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 text-xs gap-1.5"
+          onClick={onAutoLayout}
+        >
           <Wand2 className="h-3.5 w-3.5" />
-          Auto Layout
+          Auto
         </Button>
       </div>
 
       {/* RIGHT */}
-
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onUndo} disabled={!canUndo}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={onUndo}
+          disabled={!canUndo}
+        >
           <Undo2 className="h-3.5 w-3.5" />
         </Button>
-
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRedo} disabled={!canRedo}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={onRedo}
+          disabled={!canRedo}
+        >
           <Redo2 className="h-3.5 w-3.5" />
         </Button>
 
         <div className="h-5 w-px bg-border mx-1" />
 
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onZoomChange(Math.max(25, zoom - 25))}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onZoomChange(Math.max(25, zoom - 25))}
+        >
           <ZoomOut className="h-3.5 w-3.5" />
         </Button>
-
-        <span className="text-xs text-muted-foreground w-10 text-center tabular-nums">{zoom}%</span>
-
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onZoomChange(Math.min(200, zoom + 25))}>
+        <span className="text-xs text-muted-foreground w-10 text-center tabular-nums">
+          {zoom}%
+        </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onZoomChange(Math.min(200, zoom + 25))}
+        >
           <ZoomIn className="h-3.5 w-3.5" />
         </Button>
-
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onZoomChange(100)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onZoomChange(100)}
+        >
           <Maximize className="h-3.5 w-3.5" />
         </Button>
 
         <div className="h-5 w-px bg-border mx-1" />
 
         {action && (
-          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => onStatusChange(action.next)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => onStatusChange(action.next)}
+          >
             {action.label}
           </Button>
         )}
 
-        <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={onPreview}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 text-xs gap-1.5"
+          onClick={onPreview}
+        >
           <Eye className="h-3.5 w-3.5" />
           Preview
         </Button>
-
         <Button size="sm" className="h-8 text-xs gap-1.5" onClick={onExport}>
           <Download className="h-3.5 w-3.5" />
           Export

@@ -4,7 +4,7 @@ import type { TextLayer } from "@/components/grid-builder/text-overlay-types";
 import GridCell from "@/components/grid-builder/GridCell";
 import TextOverlay from "@/components/grid-builder/TextOverlay";
 import { ALBUM_SIZES, type AlbumSize } from "./types";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, Layers } from "lucide-react";
 
 interface Props {
   layout: GridLayout | null;
@@ -22,7 +22,7 @@ interface Props {
   showSafeMargin: boolean;
   showSpine: boolean;
   bgColor: string;
-  onDropPhoto: (photo: any, cellIndex: number) => void;
+  onDropPhoto: (photo: { url: string }, cellIndex: number) => void;
   currentPageNumber: number;
 }
 
@@ -46,20 +46,20 @@ export default function AlbumCanvas({
   currentPageNumber,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const dim = ALBUM_SIZES[albumSize];
-
   const isCover = currentPageNumber === 0;
   const showAsSpread = spreadView && !isCover;
-  const aspectRatio = showAsSpread ? (dim.widthIn * 2) / dim.heightIn : dim.widthIn / dim.heightIn;
+  const aspectRatio = showAsSpread
+    ? (dim.widthIn * 2) / dim.heightIn
+    : dim.widthIn / dim.heightIn;
 
   const updateCell = useCallback(
     (index: number, patch: Partial<GridCellData>) => {
       const updated = cells.map((c, i) => (i === index ? { ...c, ...patch } : c));
       onCellsChange(updated);
     },
-    [cells, onCellsChange],
+    [cells, onCellsChange]
   );
 
   const handleImageAdd = useCallback(
@@ -67,7 +67,7 @@ export default function AlbumCanvas({
       const url = URL.createObjectURL(file);
       updateCell(index, { imageUrl: url, file, offsetX: 0, offsetY: 0, scale: 1 });
     },
-    [updateCell],
+    [updateCell]
   );
 
   const handleImageRemove = useCallback(
@@ -76,7 +76,7 @@ export default function AlbumCanvas({
       if (old?.imageUrl?.startsWith("blob:")) URL.revokeObjectURL(old.imageUrl);
       updateCell(index, { imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 });
     },
-    [cells, updateCell],
+    [cells, updateCell]
   );
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -100,7 +100,7 @@ export default function AlbumCanvas({
     (id: string, patch: Partial<TextLayer>) => {
       onTextLayersChange(textLayers.map((l) => (l.id === id ? { ...l, ...patch } : l)));
     },
-    [textLayers, onTextLayersChange],
+    [textLayers, onTextLayersChange]
   );
 
   const deleteTextLayer = useCallback(
@@ -108,7 +108,7 @@ export default function AlbumCanvas({
       onTextLayersChange(textLayers.filter((l) => l.id !== id));
       onSelectText(null);
     },
-    [textLayers, onTextLayersChange, onSelectText],
+    [textLayers, onTextLayersChange, onSelectText]
   );
 
   const handleWheel = useCallback(
@@ -116,30 +116,31 @@ export default function AlbumCanvas({
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -10 : 10;
-        const next = Math.max(25, Math.min(200, zoom + delta));
-        onZoomChange(next);
+        onZoomChange(Math.max(25, Math.min(200, zoom + delta)));
       }
     },
-    [zoom, onZoomChange],
+    [zoom, onZoomChange]
   );
 
   const bleedPct = (dim.bleedMm / (dim.widthIn * 25.4)) * 100;
   const safePct = (dim.safeMarginMm / (dim.widthIn * 25.4)) * 100;
 
-  // FIX: safely handle null/undefined layout
   const layoutCells = layout?.cells ?? [];
   const hasLayout = layoutCells.length > 0;
 
   return (
     <div
-      ref={containerRef}
-      className="flex-1 flex items-center justify-center overflow-auto bg-muted/30 p-8"
+      className="flex-1 flex items-center justify-center overflow-auto p-8"
+      style={{
+        minHeight: 0,
+        background:
+          "radial-gradient(circle at 50% 50%, hsl(var(--muted) / 0.5), hsl(var(--muted) / 0.2))",
+      }}
       onWheel={handleWheel}
-      style={{ minHeight: 0 }}
     >
       <div
         ref={canvasRef}
-        className="relative rounded-sm overflow-visible shadow-2xl transition-transform duration-200"
+        className="relative rounded-sm overflow-visible transition-transform duration-200"
         style={{
           aspectRatio,
           width: `${Math.min(900, 600 * (zoom / 100))}px`,
@@ -148,31 +149,45 @@ export default function AlbumCanvas({
           minWidth: "280px",
           minHeight: "200px",
           background: bgColor,
+          boxShadow:
+            "0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05)",
         }}
       >
+        {/* Bleed guide */}
         {showBleed && (
           <div
             className="absolute pointer-events-none z-40"
-            style={{ inset: `-${bleedPct}%`, border: "2px dashed rgba(239,68,68,0.5)" }}
+            style={{
+              inset: `-${bleedPct}%`,
+              border: "2px dashed rgba(239,68,68,0.5)",
+            }}
           />
         )}
 
+        {/* Safe margin guide */}
         {showSafeMargin && (
           <div
             className="absolute pointer-events-none z-40"
-            style={{ inset: `${safePct}%`, border: "1.5px dashed rgba(59,130,246,0.5)" }}
+            style={{
+              inset: `${safePct}%`,
+              border: "1.5px dashed rgba(59,130,246,0.5)",
+            }}
           />
         )}
 
+        {/* Spine guide */}
         {showSpine && showAsSpread && (
           <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-foreground/20 z-40 pointer-events-none" />
         )}
 
-        {/* FIX: show helpful placeholder when no layout selected */}
+        {/* Content */}
         {!hasLayout ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-muted-foreground select-none">
-            <ImageIcon className="h-10 w-10 opacity-30" />
+            <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center">
+              <Layers className="h-8 w-8 opacity-30" />
+            </div>
             <p className="text-sm font-medium opacity-50">Select a layout from the right panel</p>
+            <p className="text-xs opacity-30">Or drag photos from the left panel</p>
           </div>
         ) : (
           <div
@@ -197,7 +212,9 @@ export default function AlbumCanvas({
               return (
                 <div
                   key={cell.id}
-                  style={{ gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}` }}
+                  style={{
+                    gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
+                  }}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, i)}
                 >
@@ -214,6 +231,7 @@ export default function AlbumCanvas({
           </div>
         )}
 
+        {/* Text overlays */}
         {textLayers.map((layer) => (
           <TextOverlay
             key={layer.id}
