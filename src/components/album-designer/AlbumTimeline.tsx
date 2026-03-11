@@ -40,7 +40,7 @@ export default function AlbumTimeline({
   const slots = [...pages].sort((a, b) => a.pageNumber - b.pageNumber);
 
   const scroll = (dir: number) => {
-    scrollRef.current?.scrollBy({ left: dir * 200, behavior: "smooth" });
+    scrollRef.current?.scrollBy({ left: dir * 160, behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -52,11 +52,14 @@ export default function AlbumTimeline({
   }, [currentPageId]);
 
   return (
-    <div className="h-[88px] border-t border-border bg-card/95 backdrop-blur flex items-center shrink-0 relative">
+    <div className="border-t border-border bg-card/95 backdrop-blur flex items-center shrink-0 relative"
+      style={{ height: "72px" }}
+    >
+      {/* Left scroll arrow — hidden on touch devices where swipe works */}
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 shrink-0 ml-1"
+        className="h-7 w-7 shrink-0 ml-1 hidden sm:flex"
         onClick={() => scroll(-1)}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -64,7 +67,8 @@ export default function AlbumTimeline({
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-x-auto flex items-center gap-1.5 px-2 scrollbar-thin"
+        className="flex-1 overflow-x-auto flex items-center gap-1.5 px-2 scrollbar-none"
+        style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
       >
         {slots.map((page) => {
           const isCover = page.pageNumber === 0;
@@ -84,7 +88,9 @@ export default function AlbumTimeline({
                   }}
                   onContextMenu={(e) => e.preventDefault()}
                   className={cn(
-                    "shrink-0 w-14 h-16 rounded-lg border-2 flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer",
+                    "shrink-0 rounded-lg border-2 flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer",
+                    // Slightly smaller on mobile, normal on desktop
+                    "w-12 h-14 sm:w-14 sm:h-16",
                     isActive
                       ? "border-primary bg-primary/10 shadow-sm"
                       : isSpreadActive
@@ -94,7 +100,7 @@ export default function AlbumTimeline({
                 >
                   <div
                     className={cn(
-                      "w-8 h-8 rounded flex items-center justify-center text-[10px] font-medium",
+                      "w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center text-[10px] font-medium",
                       isActive
                         ? "bg-primary/20 text-primary"
                         : "bg-muted/50 text-muted-foreground"
@@ -127,20 +133,21 @@ export default function AlbumTimeline({
           );
         })}
 
-        {/* Add page */}
+        {/* Add page button */}
         <button
           onClick={onAddPage}
-          className="shrink-0 w-14 h-16 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-0.5 hover:border-primary/50 hover:bg-primary/5 transition-all"
+          className="shrink-0 w-12 h-14 sm:w-14 sm:h-16 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-0.5 hover:border-primary/50 hover:bg-primary/5 transition-all"
         >
           <Plus className="h-4 w-4 text-muted-foreground" />
           <span className="text-[8px] text-muted-foreground">Add</span>
         </button>
       </div>
 
+      {/* Right scroll arrow — hidden on touch devices */}
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 shrink-0 mr-1"
+        className="h-7 w-7 shrink-0 mr-1 hidden sm:flex"
         onClick={() => scroll(1)}
       >
         <ChevronRight className="h-4 w-4" />
