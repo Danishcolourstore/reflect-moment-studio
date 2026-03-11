@@ -4,27 +4,40 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-import { LayoutGrid, Type, Ruler, Palette, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  LayoutGrid,
+  Type,
+  Ruler,
+  Palette,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 
 import type { GridLayout } from "@/components/grid-builder/types";
 import type { TextLayer } from "@/components/grid-builder/text-overlay-types";
-
-import { createTextLayer, FONTS, FONT_GROUPS } from "@/components/grid-builder/text-overlay-types";
-
+import {
+  createTextLayer,
+  FONTS,
+  FONT_GROUPS,
+} from "@/components/grid-builder/text-overlay-types";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-/* -----------------------------
-ALBUM TEMPLATES (FIXED)
-cells must be tuple
-[number, number, number, number]
------------------------------- */
+/* ─── Album Layout Templates ─── */
 
 const ALBUM_TEMPLATES: {
   id: string;
   name: string;
-  desc: string;
   layout: {
     gridCols: number;
     gridRows: number;
@@ -33,19 +46,12 @@ const ALBUM_TEMPLATES: {
 }[] = [
   {
     id: "full-bleed",
-    name: "1 Photo — Full Bleed",
-    desc: "Single photo fills the page",
-    layout: {
-      gridCols: 1,
-      gridRows: 1,
-      cells: [[1, 1, 2, 2]],
-    },
+    name: "Full Bleed",
+    layout: { gridCols: 1, gridRows: 1, cells: [[1, 1, 2, 2]] },
   },
-
   {
     id: "h-split",
-    name: "2 Photos — H Split",
-    desc: "Two photos side by side",
+    name: "2 — Side by Side",
     layout: {
       gridCols: 2,
       gridRows: 1,
@@ -55,11 +61,9 @@ const ALBUM_TEMPLATES: {
       ],
     },
   },
-
   {
     id: "v-split",
-    name: "2 Photos — V Split",
-    desc: "Two photos stacked",
+    name: "2 — Stacked",
     layout: {
       gridCols: 1,
       gridRows: 2,
@@ -69,11 +73,9 @@ const ALBUM_TEMPLATES: {
       ],
     },
   },
-
   {
-    id: "grid-3",
-    name: "3 Photos — Grid",
-    desc: "Three photo layout",
+    id: "trio",
+    name: "3 — Rows",
     layout: {
       gridCols: 1,
       gridRows: 3,
@@ -84,11 +86,9 @@ const ALBUM_TEMPLATES: {
       ],
     },
   },
-
   {
-    id: "collage-4",
-    name: "4 Photos — Collage",
-    desc: "Four photo grid",
+    id: "grid-4",
+    name: "4 — Grid",
     layout: {
       gridCols: 2,
       gridRows: 2,
@@ -100,11 +100,9 @@ const ALBUM_TEMPLATES: {
       ],
     },
   },
-
   {
-    id: "story",
-    name: "Story Layout",
-    desc: "Large photo + strip",
+    id: "hero-strip",
+    name: "Hero + Strip",
     layout: {
       gridCols: 2,
       gridRows: 3,
@@ -115,11 +113,93 @@ const ALBUM_TEMPLATES: {
       ],
     },
   },
+  {
+    id: "hero-4",
+    name: "Hero + 4",
+    layout: {
+      gridCols: 2,
+      gridRows: 3,
+      cells: [
+        [1, 1, 2, 3],
+        [2, 1, 3, 2],
+        [2, 2, 3, 3],
+        [3, 1, 4, 2],
+        [3, 2, 4, 3],
+      ],
+    },
+  },
+  {
+    id: "magazine",
+    name: "Magazine",
+    layout: {
+      gridCols: 3,
+      gridRows: 2,
+      cells: [
+        [1, 1, 3, 2],
+        [1, 2, 2, 4],
+        [2, 2, 3, 3],
+        [2, 3, 3, 4],
+      ],
+    },
+  },
+  {
+    id: "collage-6",
+    name: "6 — Collage",
+    layout: {
+      gridCols: 3,
+      gridRows: 2,
+      cells: [
+        [1, 1, 2, 2],
+        [1, 2, 2, 3],
+        [1, 3, 2, 4],
+        [2, 1, 3, 2],
+        [2, 2, 3, 3],
+        [2, 3, 3, 4],
+      ],
+    },
+  },
 ];
 
-/* -----------------------------
-PAPER TEXTURES
------------------------------- */
+/* ─── Mini Grid Preview ─── */
+
+function LayoutMini({
+  layout,
+  active,
+}: {
+  layout: { gridCols: number; gridRows: number; cells: [number, number, number, number][] };
+  active: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "w-10 h-10 rounded border-2 transition-colors",
+        active ? "border-primary bg-primary/10" : "border-border bg-muted/30"
+      )}
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
+        gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
+        gap: "1px",
+        padding: "2px",
+      }}
+    >
+      {layout.cells.map((area, i) => (
+        <div
+          key={i}
+          className={cn(
+            "rounded-[1px]",
+            active ? "bg-primary/40" : "bg-muted-foreground/20"
+          )}
+          style={{
+            gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Paper Textures ─── */
 
 const PAPER_TEXTURES = [
   { id: "white", label: "White", color: "#ffffff" },
@@ -128,54 +208,44 @@ const PAPER_TEXTURES = [
   { id: "dark", label: "Dark", color: "#1a1a1a" },
 ];
 
+/* ─── Props ─── */
+
 interface Props {
   onApplyTemplate: (layout: Partial<GridLayout>) => void;
-
   textLayers: TextLayer[];
   selectedTextId: string | null;
-
   onAddText: (layer: TextLayer) => void;
   onUpdateText: (id: string, patch: Partial<TextLayer>) => void;
   onDeleteText: (id: string) => void;
   onReorderTextLayers: (layers: TextLayer[]) => void;
-
   showBleed: boolean;
   showSafeMargin: boolean;
   showSpine: boolean;
-
   onToggleBleed: () => void;
   onToggleSafe: () => void;
   onToggleSpine: () => void;
-
   bgColor: string;
   onBgColorChange: (c: string) => void;
-
   paperTexture: string;
   onPaperTextureChange: (t: string) => void;
 }
 
 export default function AlbumRightPanel({
   onApplyTemplate,
-
   textLayers,
   selectedTextId,
-
   onAddText,
   onUpdateText,
   onDeleteText,
   onReorderTextLayers,
-
   showBleed,
   showSafeMargin,
   showSpine,
-
   onToggleBleed,
   onToggleSafe,
   onToggleSpine,
-
   bgColor,
   onBgColorChange,
-
   paperTexture,
   onPaperTextureChange,
 }: Props) {
@@ -183,213 +253,278 @@ export default function AlbumRightPanel({
 
   const moveTextLayer = (direction: "up" | "down") => {
     if (!selectedText) return;
-
     const index = textLayers.findIndex((l) => l.id === selectedText.id);
-
     const newLayers = [...textLayers];
-
     if (direction === "up" && index > 0) {
       [newLayers[index - 1], newLayers[index]] = [newLayers[index], newLayers[index - 1]];
     }
-
     if (direction === "down" && index < textLayers.length - 1) {
       [newLayers[index + 1], newLayers[index]] = [newLayers[index], newLayers[index + 1]];
     }
-
     onReorderTextLayers(newLayers);
   };
 
   const textColor = bgColor === "#1a1a1a" ? "#ffffff" : "#1a1a1a";
 
   return (
-    <div className="w-64 xl:w-72 border-l border-border bg-card flex flex-col">
+    <div className="w-64 xl:w-72 border-l border-border bg-card flex flex-col h-full">
       <Tabs defaultValue="layout" className="flex flex-col h-full">
-        {/* Tabs header */}
-
-        <TabsList className="border-b h-10 rounded-none">
-          <TabsTrigger value="layout" className="flex-1 text-xs">
-            <LayoutGrid className="h-3 w-3 mr-1" />
+        <TabsList className="border-b h-10 rounded-none shrink-0">
+          <TabsTrigger value="layout" className="flex-1 text-xs gap-1">
+            <LayoutGrid className="h-3 w-3" />
             Layout
           </TabsTrigger>
-
-          <TabsTrigger value="text" className="flex-1 text-xs">
-            <Type className="h-3 w-3 mr-1" />
+          <TabsTrigger value="text" className="flex-1 text-xs gap-1">
+            <Type className="h-3 w-3" />
             Text
           </TabsTrigger>
-
-          <TabsTrigger value="guides" className="flex-1 text-xs">
-            <Ruler className="h-3 w-3 mr-1" />
+          <TabsTrigger value="guides" className="flex-1 text-xs gap-1">
+            <Ruler className="h-3 w-3" />
             Guides
           </TabsTrigger>
-
-          <TabsTrigger value="page" className="flex-1 text-xs">
-            <Palette className="h-3 w-3 mr-1" />
+          <TabsTrigger value="page" className="flex-1 text-xs gap-1">
+            <Palette className="h-3 w-3" />
             Page
           </TabsTrigger>
         </TabsList>
 
-        {/* Layout tab */}
-
-        <TabsContent value="layout" className="p-3 space-y-2">
-          {ALBUM_TEMPLATES.map((t) => (
-            <Button
-              key={t.id}
-              variant="outline"
-              size="sm"
-              className="w-full justify-start"
-              onClick={() => onApplyTemplate(t.layout)}
-            >
-              {t.name}
-            </Button>
-          ))}
+        {/* ─── Layout Tab ─── */}
+        <TabsContent value="layout" className="flex-1 overflow-hidden m-0">
+          <ScrollArea className="h-full">
+            <div className="p-3 space-y-1.5">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">
+                Page Layouts
+              </p>
+              {ALBUM_TEMPLATES.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => onApplyTemplate(t.layout)}
+                  className="w-full flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-accent/50 transition-colors text-left group"
+                >
+                  <LayoutMini layout={t.layout} active={false} />
+                  <div>
+                    <p className="text-xs font-medium group-hover:text-primary transition-colors">
+                      {t.name}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {t.layout.cells.length} {t.layout.cells.length === 1 ? "photo" : "photos"}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
         </TabsContent>
 
-        {/* Text tab */}
-
-        <TabsContent value="text" className="p-3 space-y-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() =>
-              onAddText(
-                createTextLayer({
-                  text: "New Text",
-                  color: textColor,
-                }),
-              )
-            }
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Add Text
-          </Button>
-
-          {selectedText && (
-            <div className="space-y-3">
-              <Input
-                value={selectedText.text}
-                onChange={(e) =>
-                  onUpdateText(selectedText.id, {
-                    text: e.target.value,
-                  })
-                }
-              />
-
-              <Label className="text-xs">Font</Label>
-
-              <Select
-                value={selectedText.fontFamily}
-                onValueChange={(v) =>
-                  onUpdateText(selectedText.id, {
-                    fontFamily: v,
-                  })
+        {/* ─── Text Tab ─── */}
+        <TabsContent value="text" className="flex-1 overflow-hidden m-0">
+          <ScrollArea className="h-full">
+            <div className="p-3 space-y-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() =>
+                  onAddText(createTextLayer({ text: "New Text", color: textColor }))
                 }
               >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
+                <Plus className="h-3 w-3 mr-1" />
+                Add Text
+              </Button>
 
-                <SelectContent>
-                  {FONT_GROUPS.map((g) => (
-                    <div key={g.key}>
-                      <div className="text-[10px] px-2 py-1 text-muted-foreground">{g.label}</div>
-
-                      {FONTS.filter((f) => f.group === g.key).map((f) => (
-                        <SelectItem key={f.family} value={f.family}>
-                          {f.label}
-                        </SelectItem>
-                      ))}
-                    </div>
+              {/* Text layers list */}
+              {textLayers.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                    Layers
+                  </p>
+                  {textLayers.map((layer) => (
+                    <button
+                      key={layer.id}
+                      onClick={() =>
+                        onUpdateText === undefined
+                          ? undefined
+                          : undefined
+                      }
+                      className={cn(
+                        "w-full text-left px-2 py-1.5 rounded text-xs truncate transition-colors",
+                        layer.id === selectedTextId
+                          ? "bg-primary/10 text-primary"
+                          : "hover:bg-muted/50 text-muted-foreground"
+                      )}
+                    >
+                      {layer.text}
+                    </button>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
 
-              <Label className="text-xs">Size {selectedText.fontSize}px</Label>
+              {/* Selected text editor */}
+              {selectedText && (
+                <div className="space-y-3 border-t pt-3">
+                  <Input
+                    value={selectedText.text}
+                    onChange={(e) =>
+                      onUpdateText(selectedText.id, { text: e.target.value })
+                    }
+                    className="text-sm"
+                    placeholder="Enter text…"
+                  />
 
-              <Slider
-                value={[selectedText.fontSize]}
-                min={8}
-                max={80}
-                step={1}
-                onValueChange={([v]) =>
-                  onUpdateText(selectedText.id, {
-                    fontSize: v,
-                  })
-                }
-              />
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Font</Label>
+                    <Select
+                      value={selectedText.fontFamily}
+                      onValueChange={(v) =>
+                        onUpdateText(selectedText.id, { fontFamily: v })
+                      }
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FONT_GROUPS.map((g) => (
+                          <div key={g.key}>
+                            <div className="text-[10px] px-2 py-1 text-muted-foreground font-medium">
+                              {g.label}
+                            </div>
+                            {FONTS.filter((f) => f.group === g.key).map((f) => (
+                              <SelectItem key={f.family} value={f.family}>
+                                {f.label}
+                              </SelectItem>
+                            ))}
+                          </div>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <Label className="text-xs">Color</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">
+                      Size — {selectedText.fontSize}px
+                    </Label>
+                    <Slider
+                      value={[selectedText.fontSize]}
+                      min={8}
+                      max={80}
+                      step={1}
+                      onValueChange={([v]) =>
+                        onUpdateText(selectedText.id, { fontSize: v })
+                      }
+                    />
+                  </div>
 
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Color</Label>
+                    <Input
+                      type="color"
+                      value={selectedText.color}
+                      onChange={(e) =>
+                        onUpdateText(selectedText.id, { color: e.target.value })
+                      }
+                      className="h-8 w-full"
+                    />
+                  </div>
+
+                  <div className="flex gap-1 pt-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      onClick={() => moveTextLayer("up")}
+                    >
+                      <ArrowUp className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      onClick={() => moveTextLayer("down")}
+                    >
+                      <ArrowDown className="h-3 w-3" />
+                    </Button>
+                    <div className="flex-1" />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      onClick={() => onDeleteText(selectedText.id)}
+                    >
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        {/* ─── Guides Tab ─── */}
+        <TabsContent value="guides" className="m-0">
+          <div className="p-3 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-xs">Bleed Line</Label>
+                <p className="text-[10px] text-muted-foreground">3mm bleed area</p>
+              </div>
+              <Switch checked={showBleed} onCheckedChange={onToggleBleed} />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-xs">Safe Margin</Label>
+                <p className="text-[10px] text-muted-foreground">5mm safe zone</p>
+              </div>
+              <Switch checked={showSafeMargin} onCheckedChange={onToggleSafe} />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-xs">Spine Line</Label>
+                <p className="text-[10px] text-muted-foreground">Center spine in spread view</p>
+              </div>
+              <Switch checked={showSpine} onCheckedChange={onToggleSpine} />
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* ─── Page Tab ─── */}
+        <TabsContent value="page" className="m-0">
+          <div className="p-3 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Background Color</Label>
               <Input
                 type="color"
-                value={selectedText.color}
-                onChange={(e) =>
-                  onUpdateText(selectedText.id, {
-                    color: e.target.value,
-                  })
-                }
+                value={bgColor}
+                onChange={(e) => onBgColorChange(e.target.value)}
+                className="h-8 w-full"
               />
+            </div>
 
-              <div className="flex gap-2">
-                <Button size="icon" variant="ghost" onClick={() => moveTextLayer("up")}>
-                  <ArrowUp className="h-3 w-3" />
-                </Button>
-
-                <Button size="icon" variant="ghost" onClick={() => moveTextLayer("down")}>
-                  <ArrowDown className="h-3 w-3" />
-                </Button>
-
-                <Button size="icon" variant="ghost" onClick={() => onDeleteText(selectedText.id)}>
-                  <Trash2 className="h-3 w-3 text-red-500" />
-                </Button>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Paper Texture</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {PAPER_TEXTURES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      onPaperTextureChange(t.id);
+                      onBgColorChange(t.color);
+                    }}
+                    className={cn(
+                      "border-2 rounded-lg p-2.5 transition-all text-center",
+                      paperTexture === t.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/30"
+                    )}
+                  >
+                    <div
+                      className="h-6 rounded mb-1"
+                      style={{ background: t.color }}
+                    />
+                    <span className="text-[10px] font-medium">{t.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
-          )}
-        </TabsContent>
-
-        {/* Guides tab */}
-
-        <TabsContent value="guides" className="p-3 space-y-4">
-          <div className="flex justify-between">
-            <Label className="text-xs">Bleed</Label>
-            <Switch checked={showBleed} onCheckedChange={onToggleBleed} />
-          </div>
-
-          <div className="flex justify-between">
-            <Label className="text-xs">Safe Margin</Label>
-            <Switch checked={showSafeMargin} onCheckedChange={onToggleSafe} />
-          </div>
-
-          <div className="flex justify-between">
-            <Label className="text-xs">Spine</Label>
-            <Switch checked={showSpine} onCheckedChange={onToggleSpine} />
-          </div>
-        </TabsContent>
-
-        {/* Page tab */}
-
-        <TabsContent value="page" className="p-3 space-y-4">
-          <Label className="text-xs">Background</Label>
-
-          <Input type="color" value={bgColor} onChange={(e) => onBgColorChange(e.target.value)} />
-
-          <Label className="text-xs">Paper</Label>
-
-          <div className="grid grid-cols-2 gap-2">
-            {PAPER_TEXTURES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => {
-                  onPaperTextureChange(t.id);
-                  onBgColorChange(t.color);
-                }}
-                className={cn("border rounded p-2", paperTexture === t.id && "border-primary")}
-              >
-                <div className="h-6 rounded" style={{ background: t.color }} />
-
-                <span className="text-[10px]">{t.label}</span>
-              </button>
-            ))}
           </div>
         </TabsContent>
       </Tabs>
