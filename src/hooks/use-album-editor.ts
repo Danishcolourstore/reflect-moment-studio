@@ -25,7 +25,7 @@ export function useClientFavourites(
         .select("photo_id")
         .eq("event_id", eventId)
         .eq("client_token", clientToken);
-      if (data) setFavourites(new Set(data.map((r) => r.photo_id)));
+      if (data) setFavourites(new Set(data.map((r: any) => r.photo_id)));
     })();
   }, [eventId, clientToken]);
 
@@ -49,11 +49,13 @@ export function useClientFavourites(
           .eq("event_id", eventId)
           .eq("client_token", clientToken);
       } else {
-        await supabase.from("photo_favourites").insert({
-          photo_id: photoId,
-          event_id: eventId,
-          client_token: clientToken,
-        });
+        await supabase
+          .from("photo_favourites")
+          .insert({
+            photo_id: photoId,
+            event_id: eventId,
+            client_token: clientToken,
+          });
       }
     },
     [eventId, clientToken, favourites]
@@ -71,34 +73,58 @@ export function useEventFavourites(eventId: string | null) {
   const loadFavourites = useCallback(async () => {
     if (!eventId) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("photo_favourites")
-      .select("id, photo_id, event_id, client_token, created_at, photos(url)")
-      .eq("event_id", eventId)
-      .order("created_at", { ascending: true });
 
-    if (data) {
-      const mapped: FavouritePhoto[] = data.map((r: any) => ({
-        id: r.id,
-        photo_id: r.photo_id,
-        event_id: r.event_id,
-        client_token: r.client_token,
-        url: r.photos?.url || "",
-        created_at: r.created_at,
-      }));
+    try {
+      // Step 1: fetch favourites (no join)
+      const { data: favData } = await supabase
+        .from("photo_favourites")
+        .select("id, photo_id, event_id, client_token, created_at")
+        .eq("event_id", eventId)
+        .order("created_at", { ascending: true });
 
-      // Deduplicate by photo_id
+      if (!favData || favData.length === 0) {
+        setFavouritePhotos([]);
+        setFavouriteCount(0);
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: deduplicate by photo_id
       const seen = new Set<string>();
-      const unique = mapped.filter((p) => {
+      const unique = favData.filter((p: any) => {
         if (seen.has(p.photo_id)) return false;
         seen.add(p.photo_id);
         return true;
       });
 
-      setFavouritePhotos(unique);
-      setFavouriteCount(unique.length);
+      // Step 3: fetch photo URLs separately
+      const photoIds = unique.map((f: any) => f.photo_id);
+      const { data: photoData } = await supabase
+        .from("photos")
+        .select("id, url")
+        .in("id", photoIds);
+
+      const urlMap = new Map(
+        (photoData || []).map((p: any) => [p.id, p.url])
+      );
+
+      // Step 4: combine
+      const mapped: FavouritePhoto[] = unique.map((r: any) => ({
+        id: r.id,
+        photo_id: r.photo_id,
+        event_id: r.event_id,
+        client_token: r.client_token,
+        url: urlMap.get(r.photo_id) || "",
+        created_at: r.created_at,
+      }));
+
+      setFavouritePhotos(mapped);
+      setFavouriteCount(mapped.length);
+    } catch (err) {
+      console.error("Failed to load favourites", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [eventId]);
 
   useEffect(() => {
