@@ -4,7 +4,7 @@ import type { TextLayer } from "@/components/grid-builder/text-overlay-types";
 import GridCell from "@/components/grid-builder/GridCell";
 import TextOverlay from "@/components/grid-builder/TextOverlay";
 import { ALBUM_SIZES, type AlbumSize } from "./types";
-import { ImageIcon, Layers } from "lucide-react";
+import { Layers } from "lucide-react";
 
 interface Props {
   layout: GridLayout | null;
@@ -128,11 +128,16 @@ export default function AlbumCanvas({
   const layoutCells = layout?.cells ?? [];
   const hasLayout = layoutCells.length > 0;
 
+  // Calculate canvas size based on zoom, properly centered
+  const baseWidth = 560;
+  const scaledWidth = baseWidth * (zoom / 100);
+
   return (
     <div
-      className="flex-1 flex items-center justify-center overflow-auto p-8"
+      className="flex-1 flex items-center justify-center overflow-auto"
       style={{
         minHeight: 0,
+        padding: "32px",
         background:
           "radial-gradient(circle at 50% 50%, hsl(var(--muted) / 0.5), hsl(var(--muted) / 0.2))",
       }}
@@ -140,14 +145,11 @@ export default function AlbumCanvas({
     >
       <div
         ref={canvasRef}
-        className="relative rounded-sm overflow-visible transition-transform duration-200"
+        className="relative rounded-sm overflow-visible transition-transform duration-200 flex-shrink-0"
         style={{
           aspectRatio,
-          width: `${Math.min(900, 600 * (zoom / 100))}px`,
-          maxWidth: "90%",
-          maxHeight: "85vh",
-          minWidth: "280px",
-          minHeight: "200px",
+          width: `${scaledWidth}px`,
+          maxWidth: "calc(100% - 64px)",
           background: bgColor,
           boxShadow:
             "0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05)",
@@ -191,7 +193,7 @@ export default function AlbumCanvas({
           </div>
         ) : (
           <div
-            className="w-full h-full relative"
+            className="absolute inset-0"
             style={{
               display: "grid",
               gridTemplateColumns: `repeat(${layout!.gridCols}, 1fr)`,
@@ -212,6 +214,7 @@ export default function AlbumCanvas({
               return (
                 <div
                   key={cell.id}
+                  className="w-full h-full"
                   style={{
                     gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
                   }}
