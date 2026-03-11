@@ -38,6 +38,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const ALBUM_TEMPLATES: {
   id: string;
   name: string;
+  photoCount: number;
   layout: {
     gridCols: number;
     gridRows: number;
@@ -47,11 +48,13 @@ const ALBUM_TEMPLATES: {
   {
     id: "full-bleed",
     name: "Full Bleed",
+    photoCount: 1,
     layout: { gridCols: 1, gridRows: 1, cells: [[1, 1, 2, 2]] },
   },
   {
     id: "h-split",
     name: "2 — Side by Side",
+    photoCount: 2,
     layout: {
       gridCols: 2,
       gridRows: 1,
@@ -64,6 +67,7 @@ const ALBUM_TEMPLATES: {
   {
     id: "v-split",
     name: "2 — Stacked",
+    photoCount: 2,
     layout: {
       gridCols: 1,
       gridRows: 2,
@@ -76,6 +80,7 @@ const ALBUM_TEMPLATES: {
   {
     id: "trio",
     name: "3 — Rows",
+    photoCount: 3,
     layout: {
       gridCols: 1,
       gridRows: 3,
@@ -89,6 +94,7 @@ const ALBUM_TEMPLATES: {
   {
     id: "grid-4",
     name: "4 — Grid",
+    photoCount: 4,
     layout: {
       gridCols: 2,
       gridRows: 2,
@@ -103,6 +109,7 @@ const ALBUM_TEMPLATES: {
   {
     id: "hero-strip",
     name: "Hero + Strip",
+    photoCount: 3,
     layout: {
       gridCols: 2,
       gridRows: 3,
@@ -116,6 +123,7 @@ const ALBUM_TEMPLATES: {
   {
     id: "hero-4",
     name: "Hero + 4",
+    photoCount: 5,
     layout: {
       gridCols: 2,
       gridRows: 3,
@@ -131,6 +139,7 @@ const ALBUM_TEMPLATES: {
   {
     id: "magazine",
     name: "Magazine",
+    photoCount: 4,
     layout: {
       gridCols: 3,
       gridRows: 2,
@@ -145,6 +154,7 @@ const ALBUM_TEMPLATES: {
   {
     id: "collage-6",
     name: "6 — Collage",
+    photoCount: 6,
     layout: {
       gridCols: 3,
       gridRows: 2,
@@ -172,15 +182,17 @@ function LayoutMini({
   return (
     <div
       className={cn(
-        "w-10 h-10 rounded border-2 transition-colors",
+        "rounded border-2 transition-colors flex-shrink-0",
         active ? "border-primary bg-primary/10" : "border-border bg-muted/30"
       )}
       style={{
+        width: "56px",
+        height: "40px",
         display: "grid",
         gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
         gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-        gap: "1px",
-        padding: "2px",
+        gap: "2px",
+        padding: "3px",
       }}
     >
       {layout.cells.map((area, i) => (
@@ -188,7 +200,7 @@ function LayoutMini({
           key={i}
           className={cn(
             "rounded-[1px]",
-            active ? "bg-primary/40" : "bg-muted-foreground/20"
+            active ? "bg-primary/50" : "bg-foreground/25"
           )}
           style={{
             gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
@@ -250,6 +262,7 @@ export default function AlbumRightPanel({
   onPaperTextureChange,
 }: Props) {
   const selectedText = textLayers.find((l) => l.id === selectedTextId);
+  const textColor = "#000000";
 
   const moveTextLayer = (direction: "up" | "down") => {
     if (!selectedText) return;
@@ -259,17 +272,15 @@ export default function AlbumRightPanel({
       [newLayers[index - 1], newLayers[index]] = [newLayers[index], newLayers[index - 1]];
     }
     if (direction === "down" && index < textLayers.length - 1) {
-      [newLayers[index + 1], newLayers[index]] = [newLayers[index], newLayers[index + 1]];
+      [newLayers[index], newLayers[index + 1]] = [newLayers[index + 1], newLayers[index]];
     }
     onReorderTextLayers(newLayers);
   };
 
-  const textColor = bgColor === "#1a1a1a" ? "#ffffff" : "#1a1a1a";
-
   return (
-    <div className="w-64 xl:w-72 border-l border-border bg-card flex flex-col h-full">
+    <div className="h-full flex flex-col bg-background border-l">
       <Tabs defaultValue="layout" className="flex flex-col h-full">
-        <TabsList className="border-b h-10 rounded-none shrink-0">
+        <TabsList className="w-full rounded-none border-b h-9 bg-muted/30 flex-shrink-0">
           <TabsTrigger value="layout" className="flex-1 text-xs gap-1">
             <LayoutGrid className="h-3 w-3" />
             Layout
@@ -299,7 +310,7 @@ export default function AlbumRightPanel({
                 <button
                   key={t.id}
                   onClick={() => onApplyTemplate(t.layout)}
-                  className="w-full flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-accent/50 transition-colors text-left group"
+                  className="w-full flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-accent/50 transition-colors text-left group border border-transparent hover:border-border"
                 >
                   <LayoutMini layout={t.layout} active={false} />
                   <div>
@@ -307,7 +318,7 @@ export default function AlbumRightPanel({
                       {t.name}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
-                      {t.layout.cells.length} {t.layout.cells.length === 1 ? "photo" : "photos"}
+                      {t.photoCount} {t.photoCount === 1 ? "photo" : "photos"}
                     </p>
                   </div>
                 </button>
@@ -332,7 +343,6 @@ export default function AlbumRightPanel({
                 Add Text
               </Button>
 
-              {/* Text layers list */}
               {textLayers.length > 0 && (
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
@@ -341,11 +351,6 @@ export default function AlbumRightPanel({
                   {textLayers.map((layer) => (
                     <button
                       key={layer.id}
-                      onClick={() =>
-                        onUpdateText === undefined
-                          ? undefined
-                          : undefined
-                      }
                       className={cn(
                         "w-full text-left px-2 py-1.5 rounded text-xs truncate transition-colors",
                         layer.id === selectedTextId
@@ -359,7 +364,6 @@ export default function AlbumRightPanel({
                 </div>
               )}
 
-              {/* Selected text editor */}
               {selectedText && (
                 <div className="space-y-3 border-t pt-3">
                   <Input
