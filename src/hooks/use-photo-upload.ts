@@ -141,7 +141,7 @@ function uploadWithSDK(bucket: string, path: string, file: File, timeoutMs: numb
   ]);
 }
 
-export function usePhotoUpload(eventId: string | undefined, userId: string | undefined) {
+export function usePhotoUpload(eventId: string | undefined, userId: string | undefined, optimizedUpload: boolean = true) {
   const [state, setState] = useState<UploadState>(INITIAL);
   const abortRef = useRef(false);
   const stateRef = useRef(state);
