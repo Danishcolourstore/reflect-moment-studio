@@ -208,6 +208,7 @@ export default function DomainSettings() {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       }
     } else {
+      localStorage.setItem("mirrorai_domain_onboarding_seen", "true");
       toast({ title: "Domain added", description: "Now configure your DNS records below." });
       setShowAddForm(false);
       setCustomInput("");
