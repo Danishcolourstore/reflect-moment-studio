@@ -77,6 +77,7 @@ const SuperAdminGalleries = lazy(() => import("./pages/super-admin/SuperAdminGal
 const SuperAdminDashboardEditor = lazy(() => import("./pages/super-admin/SuperAdminDashboardEditor"));
 const SuperAdminPlatformBuilder = lazy(() => import("./pages/super-admin/SuperAdminPlatformBuilder"));
 const SuperAdminAIDeveloper = lazy(() => import("./pages/super-admin/SuperAdminAIDeveloper"));
+const SuperAdminReflections = lazy(() => import("./pages/super-admin/SuperAdminReflections"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminPhotographers = lazy(() => import("./pages/admin/AdminPhotographers"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
