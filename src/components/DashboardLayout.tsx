@@ -9,6 +9,7 @@ import {
   LogOut, Bell, ChevronRight, Menu, Globe,
 } from 'lucide-react';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
+import { EntiranProvider } from '@/components/entiran/EntiranProvider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
