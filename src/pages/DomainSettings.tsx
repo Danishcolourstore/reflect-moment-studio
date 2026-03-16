@@ -144,7 +144,8 @@ export default function DomainSettings() {
   const subdomainRow = domains.find(d => !d.custom_domain);
   const customRow = domains.find(d => !!d.custom_domain);
   const subdomain = subdomainRow?.subdomain || "";
-
+  const onboardingSeen = !!customRow || localStorage.getItem("mirrorai_domain_onboarding_seen") === "true";
+  const showOnboarding = !onboardingSeen && !onboardingStarted;
   // Background polling for pending domains
   useEffect(() => {
     if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
