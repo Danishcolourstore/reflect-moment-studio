@@ -295,14 +295,14 @@ const AppRoutes = () => {
           }
         >
           {SUPER_ADMIN_ROUTES.map((route) => {
-            const element = SUPER_ADMIN_ROUTE_ELEMENTS[route.key];
-            if (!element) return null;
+            const Component = SUPER_ADMIN_ROUTE_MAP[route.key];
+            if (!Component) return null;
 
             if (route.path === '') {
-              return <Route key={route.key} index element={element} />;
+              return <Route key={route.key} index element={<Component />} />;
             }
 
-            return <Route key={route.key} path={route.path} element={element} />;
+            return <Route key={route.key} path={route.path} element={<Component />} />;
           })}
         </Route>
 
