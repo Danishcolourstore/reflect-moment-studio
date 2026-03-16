@@ -1,93 +1,30 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-interface PageData {
+interface PageLayout {
+  gridCols: number;
+  gridRows: number;
+  cells: [number, number, number, number][];
+}
+
+interface PageRenderData {
   id: string;
   pageNumber: number;
   bgColor: string;
-  layers: any[];
+  layout: PageLayout | null;
+  photos: { url: string; cellIndex: number }[];
 }
 
 interface SpreadData {
   spreadIndex: number;
-  pages: PageData[];
-}
-
-function renderPageContent(layers: any[]) {
-  const photos = layers.filter((l: any) => l.layer_type === 'photo');
-  if (!photos.length)
-    return (
-      <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
-        Empty
-      </div>
-    );
-
-  // Read layout from first photo layer
-  const firstSettings = photos[0]?.settings_json as Record<string, any> | null;
-  const layout = firstSettings?.layout;
-
-  if (layout?.gridCols && layout?.gridRows && layout?.cells) {
-    return (
-      <div
-        className="w-full h-full grid gap-[2px]"
-        style={{
-          gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
-          gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-        }}
-      >
-        {(layout.cells as number[][]).map((area: number[], i: number) => {
-          const photo = photos[i];
-          const s = photo?.settings_json as Record<string, any> | null;
-          const url = s?.imageUrl;
-          return (
-            <div
-              key={i}
-              className="overflow-hidden"
-              style={{
-                gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
-              }}
-            >
-              {url ? (
-                <img src={url} className="w-full h-full object-cover" alt="" />
-              ) : (
-                <div className="w-full h-full bg-white/5" />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // Fallback
-  const cols = Math.ceil(Math.sqrt(photos.length));
-  const rows = Math.ceil(photos.length / cols);
-  return (
-    <div
-      className="w-full h-full grid gap-[2px]"
-      style={{
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gridTemplateRows: `repeat(${rows}, 1fr)`,
-      }}
-    >
-      {photos.map((p: any, i: number) => {
-        const s = p.settings_json as Record<string, any> | null;
-        const url = s?.imageUrl;
-        return url ? (
-          <img key={i} src={url} className="w-full h-full object-cover" alt="" />
-        ) : (
-          <div key={i} className="w-full h-full bg-white/5" />
-        );
-      })}
-    </div>
-  );
+  pages: PageRenderData[];
 }
 
 export default function AlbumPreviewPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
-  const [albumName, setAlbumName] = useState('');
+  const [albumName, setAlbumName] = useState("");
   const [spreads, setSpreads] = useState<SpreadData[]>([]);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -97,38 +34,79 @@ export default function AlbumPreviewPage() {
     if (!shareToken) return;
     (async () => {
       setLoading(true);
-      const { data: album } = await (supabase.from('albums' as any)
-        .select('id, name').eq('share_token', shareToken).single() as any);
+      const { data: album } = await (supabase
+        .from("albums" as any)
+        .select("id, name")
+        .eq("share_token", shareToken)
+        .single() as any);
 
-      if (!album) { setNotFound(true); setLoading(false); return; }
+      if (!album) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
       setAlbumName(album.name);
 
-      const { data: pagesData } = await (supabase.from('album_pages' as any)
-        .select('id, page_number, spread_index, background_color')
-        .eq('album_id', album.id).order('page_number', { ascending: true }) as any);
+      const { data: pagesData } = await (supabase
+        .from("album_pages" as any)
+        .select("id, page_number, spread_index, background_color")
+        .eq("album_id", album.id)
+        .order("page_number", { ascending: true }) as any);
 
-      if (!pagesData) { setLoading(false); return; }
-
-      const pageIds = pagesData.map((p: any) => p.id);
-      const { data: layersData } = await (supabase.from('album_layers' as any)
-        .select('*').in('page_id', pageIds).order('z_index', { ascending: true }) as any);
-
-      // Group layers by page
-      const layersByPage = new Map<string, any[]>();
-      for (const l of (layersData || [])) {
-        if (!layersByPage.has(l.page_id)) layersByPage.set(l.page_id, []);
-        layersByPage.get(l.page_id)!.push(l);
+      if (!pagesData) {
+        setLoading(false);
+        return;
       }
 
-      // Group pages by spread
-      const spreadMap = new Map<number, PageData[]>();
+      const pageIds = pagesData.map((p: any) => p.id);
+      const { data: layersData } = await (supabase
+        .from("album_layers" as any)
+        .select("page_id, settings_json, layer_type, z_index")
+        .in("page_id", pageIds)
+        .order("z_index", { ascending: true }) as any);
+
+      // FIX: Group layers by page_id
+      const layersByPage = new Map<string, any[]>();
+      (layersData || []).forEach((l: any) => {
+        if (!layersByPage.has(l.page_id)) layersByPage.set(l.page_id, []);
+        layersByPage.get(l.page_id)!.push(l);
+      });
+
+      const spreadMap = new Map<number, PageRenderData[]>();
       for (const p of pagesData) {
         if (!spreadMap.has(p.spread_index)) spreadMap.set(p.spread_index, []);
+
+        const pageLayers = layersByPage.get(p.id) || [];
+        const photoLayers = pageLayers.filter((l: any) => l.layer_type === "photo");
+
+        // FIX: Extract saved layout from first photo layer's settings_json
+        let layout: PageLayout | null = null;
+        if (photoLayers.length > 0) {
+          const firstSettings = photoLayers[0]?.settings_json as Record<string, any> | null;
+          const savedLayout = firstSettings?.layout;
+          if (savedLayout && savedLayout.gridCols && savedLayout.gridRows && savedLayout.cells) {
+            layout = {
+              gridCols: savedLayout.gridCols,
+              gridRows: savedLayout.gridRows,
+              cells: savedLayout.cells,
+            };
+          }
+        }
+
+        // FIX: Collect ALL photos with cell indices (not just first one)
+        const photos = photoLayers
+          .map((pl: any, i: number) => {
+            const s = pl.settings_json as Record<string, any> | null;
+            return s?.imageUrl ? { url: s.imageUrl, cellIndex: i } : null;
+          })
+          .filter(Boolean) as { url: string; cellIndex: number }[];
+
         spreadMap.get(p.spread_index)!.push({
           id: p.id,
           pageNumber: p.page_number,
-          bgColor: p.background_color || '#ffffff',
-          layers: layersByPage.get(p.id) || [],
+          bgColor: p.background_color || "#ffffff",
+          layout,
+          photos,
         });
       }
 
@@ -143,12 +121,80 @@ export default function AlbumPreviewPage() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') setCurrent(c => Math.min(c + 1, spreads.length - 1));
-      if (e.key === 'ArrowLeft') setCurrent(c => Math.max(c - 1, 0));
+      if (e.key === "ArrowRight") setCurrent((c) => Math.min(c + 1, spreads.length - 1));
+      if (e.key === "ArrowLeft") setCurrent((c) => Math.max(c - 1, 0));
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [spreads.length]);
+
+  // FIX: Render page with correct layout grid and ALL photos
+  const renderPage = (page: PageRenderData) => {
+    if (page.photos.length === 0) {
+      return (
+        <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
+          Page {page.pageNumber}
+        </div>
+      );
+    }
+
+    // Use saved layout if available
+    if (page.layout && page.layout.cells.length > 0) {
+      return (
+        <div
+          className="w-full h-full"
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${page.layout.gridCols}, 1fr)`,
+            gridTemplateRows: `repeat(${page.layout.gridRows}, 1fr)`,
+            gap: "2px",
+          }}
+        >
+          {page.layout.cells.map((area, i) => {
+            const photo = page.photos.find((p) => p.cellIndex === i);
+            const url = photo?.url || page.photos[i]?.url;
+            return url ? (
+              <img
+                key={i}
+                src={url}
+                className="w-full h-full object-cover"
+                style={{
+                  gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
+                }}
+                alt=""
+              />
+            ) : (
+              <div
+                key={i}
+                className="w-full h-full bg-white/5"
+                style={{
+                  gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
+                }}
+              />
+            );
+          })}
+        </div>
+      );
+    }
+
+    // Fallback: naive grid
+    const cols = Math.ceil(Math.sqrt(page.photos.length));
+    const rows = Math.ceil(page.photos.length / cols);
+
+    return (
+      <div
+        className="w-full h-full grid gap-[2px]"
+        style={{
+          gridTemplateColumns: `repeat(${cols},1fr)`,
+          gridTemplateRows: `repeat(${rows},1fr)`,
+        }}
+      >
+        {page.photos.map((p, i) => (
+          <img key={i} src={p.url} className="w-full h-full object-cover" alt="" />
+        ))}
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -176,7 +222,7 @@ export default function AlbumPreviewPage() {
       <header className="h-14 flex items-center justify-between px-6 border-b border-white/10">
         <h1 className="text-white/90 font-serif text-lg">{albumName}</h1>
         <span className="text-white/40 text-xs">
-          {spreads.length > 0 ? `Spread ${current + 1} of ${spreads.length}` : ''}
+          {spreads.length > 0 ? `Spread ${current + 1} of ${spreads.length}` : ""}
         </span>
       </header>
 
@@ -189,11 +235,11 @@ export default function AlbumPreviewPage() {
                 className="aspect-square relative rounded-sm overflow-hidden transition-all duration-500"
                 style={{
                   background: page.bgColor,
-                  width: spread.pages.length > 1 ? '40vw' : '50vw',
-                  maxHeight: '75vh',
+                  width: spread.pages.length > 1 ? "40vw" : "50vw",
+                  maxHeight: "75vh",
                 }}
               >
-                {renderPageContent(page.layers)}
+                {renderPage(page)}
               </div>
             ))}
           </div>
@@ -202,12 +248,18 @@ export default function AlbumPreviewPage() {
         )}
 
         {current > 0 && (
-          <button onClick={() => setCurrent(c => c - 1)} className="absolute left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
+          <button
+            onClick={() => setCurrent((c) => c - 1)}
+            className="absolute left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          >
             <ChevronLeft className="h-6 w-6" />
           </button>
         )}
         {current < spreads.length - 1 && (
-          <button onClick={() => setCurrent(c => c + 1)} className="absolute right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors">
+          <button
+            onClick={() => setCurrent((c) => c + 1)}
+            className="absolute right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          >
             <ChevronRight className="h-6 w-6" />
           </button>
         )}
