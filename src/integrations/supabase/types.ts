@@ -2175,6 +2175,114 @@ export type Database = {
           },
         ]
       }
+      instagram_competitors: {
+        Row: {
+          avg_comments: number
+          avg_likes: number
+          content_focus: string | null
+          created_at: string
+          display_name: string | null
+          followers: number
+          id: string
+          last_updated: string
+          photographer_id: string
+          posts_per_week: number
+          reels_percentage: number
+          username: string
+        }
+        Insert: {
+          avg_comments?: number
+          avg_likes?: number
+          content_focus?: string | null
+          created_at?: string
+          display_name?: string | null
+          followers?: number
+          id?: string
+          last_updated?: string
+          photographer_id: string
+          posts_per_week?: number
+          reels_percentage?: number
+          username: string
+        }
+        Update: {
+          avg_comments?: number
+          avg_likes?: number
+          content_focus?: string | null
+          created_at?: string
+          display_name?: string | null
+          followers?: number
+          id?: string
+          last_updated?: string
+          photographer_id?: string
+          posts_per_week?: number
+          reels_percentage?: number
+          username?: string
+        }
+        Relationships: []
+      }
+      instagram_snapshots: {
+        Row: {
+          comments: number
+          created_at: string
+          followers: number
+          followers_gained: number
+          id: string
+          likes: number
+          link_clicks: number
+          notes: string | null
+          period: string
+          photographer_id: string
+          posts_count: number
+          profile_visits: number
+          reach: number
+          reels_count: number
+          saves: number
+          shares: number
+          snapshot_date: string
+          stories_count: number
+        }
+        Insert: {
+          comments?: number
+          created_at?: string
+          followers?: number
+          followers_gained?: number
+          id?: string
+          likes?: number
+          link_clicks?: number
+          notes?: string | null
+          period?: string
+          photographer_id: string
+          posts_count?: number
+          profile_visits?: number
+          reach?: number
+          reels_count?: number
+          saves?: number
+          shares?: number
+          snapshot_date?: string
+          stories_count?: number
+        }
+        Update: {
+          comments?: number
+          created_at?: string
+          followers?: number
+          followers_gained?: number
+          id?: string
+          likes?: number
+          link_clicks?: number
+          notes?: string | null
+          period?: string
+          photographer_id?: string
+          posts_count?: number
+          profile_visits?: number
+          reach?: number
+          reels_count?: number
+          saves?: number
+          shares?: number
+          snapshot_date?: string
+          stories_count?: number
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string
