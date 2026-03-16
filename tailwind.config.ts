@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         sans: ['"Inter"', '"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['"Playfair Display"', 'serif'],
+        typewriter: ['"Special Elite"', '"Courier New"', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
