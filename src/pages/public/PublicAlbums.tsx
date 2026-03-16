@@ -21,6 +21,10 @@ export default function PublicAlbums() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] px-6 py-16">
+      <SiteHead
+        title={`Albums | ${profile?.studio_name || "Photography"}`}
+        ogTitle={`Albums — ${profile?.studio_name || "Photography"}`}
+      />
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl text-[#1A1A1A] text-center mb-12" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Albums</h1>
         {loading ? (
