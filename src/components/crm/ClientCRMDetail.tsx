@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Camera, Heart, Download, Mail, Phone, Calendar, Trash2, ExternalLink, Plus, Copy, Check } from "lucide-react";
+import { Camera, Heart, Download, Mail, Phone, Calendar, Trash2, ExternalLink, Plus, Copy, Check, Gift, MessageCircle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import type { CRMClient } from "@/pages/Clients";
+import { AddMilestoneDialog } from "./AddMilestoneDialog";
+import { useClientIntelligence } from "@/hooks/use-client-intelligence";
 
 interface Props {
   client: CRMClient | null;
