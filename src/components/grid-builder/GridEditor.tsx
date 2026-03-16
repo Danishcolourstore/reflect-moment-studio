@@ -328,7 +328,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                   gridArea={`${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`}
                   onImageAdd={(f) => handleImageAdd(i, f)}
                   onImageRemove={() => handleImageRemove(i)}
-                  onOffsetChange={(x, y) => handleOffsetChange(i, x, y)}
+                  onOffsetChange={(x, y, scale) => handleOffsetChange(i, x, y, scale)}
                 />
               ))}
             </div>
