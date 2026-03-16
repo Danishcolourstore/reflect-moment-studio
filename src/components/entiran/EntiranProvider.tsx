@@ -98,11 +98,11 @@ function EntiranInner() {
             <div
               className="fixed text-[10px] px-2.5 py-1.5 rounded-lg shadow-md whitespace-nowrap motion-safe:animate-in motion-safe:fade-in"
               style={{
-                bottom: isMobile ? 156 : 86,
+                bottom: isMobile ? 148 : 86,
                 right: isMobile ? 16 : 24,
                 backgroundColor: '#1A1A1A',
                 color: 'white',
-                zIndex: 9999,
+                zIndex: 10001,
               }}
             >
               Tip: Ctrl+Shift+E to open
