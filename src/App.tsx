@@ -260,8 +260,10 @@ const LegacyEventRedirect = () => {
 };
 
 const AppRoutes = () => {
-  useRealtimeSync(true);
+  const { user } = useAuth();
+  useRealtimeSync(!!user);
   return (
+    <SuspendedProvider>
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route
