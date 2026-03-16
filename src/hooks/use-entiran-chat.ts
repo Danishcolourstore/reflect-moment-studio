@@ -2,13 +2,13 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { usePageContext, type PageContext } from './use-page-context';
-import { matchKnowledge, matchTroubleshooting, isBugReportTrigger } from '@/lib/entiran-knowledge';
+import { matchKnowledge, matchTroubleshooting, isBugReportTrigger, getRelatedQuestions } from '@/lib/entiran-knowledge';
 
 export type ChatMessage = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  message_type: 'chat' | 'suggestion' | 'bug_report' | 'action_prompt';
+  message_type: 'chat' | 'suggestion' | 'bug_report' | 'action_prompt' | 'related_questions' | 'welcome';
   metadata?: any;
   created_at: string;
 };
@@ -24,12 +24,50 @@ export function useEntiranChat() {
   const [typing, setTyping] = useState(false);
   const [bugStep, setBugStep] = useState<BugReportStep>('idle');
   const [bugData, setBugData] = useState<any>({});
+  const [isFirstTime, setIsFirstTime] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<any[]>([]);
   const lastPageRef = useRef(pageContext.page);
 
-  // Load or create conversation for current page context
   const initConversation = useCallback(async () => {
     if (!user) return;
     setLoading(true);
+
+    // Check if user has any conversations (first time check)
+    const { count: totalConvs } = await supabase
+      .from('entiran_conversations')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id) as any;
+
+    const firstTime = !totalConvs || totalConvs === 0;
+    setIsFirstTime(firstTime);
+
+    // Load conversation history (last 10)
+    const { data: historyData } = await supabase
+      .from('entiran_conversations')
+      .select('id, page_context, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(10) as any;
+    
+    if (historyData && historyData.length > 0) {
+      // Load first message preview for each
+      const historyWithPreview = await Promise.all(
+        historyData.map(async (conv: any) => {
+          const { data: firstMsg } = await supabase
+            .from('entiran_messages')
+            .select('content')
+            .eq('conversation_id', conv.id)
+            .eq('role', 'user')
+            .order('created_at', { ascending: true })
+            .limit(1) as any;
+          return {
+            ...conv,
+            preview: firstMsg?.[0]?.content?.slice(0, 40) || 'No messages',
+          };
+        })
+      );
+      setConversationHistory(historyWithPreview);
+    }
 
     // Find recent conversation for this page
     const { data: existing } = await supabase
@@ -55,7 +93,6 @@ export function useEntiranChat() {
 
     if (convId) {
       setConversationId(convId);
-      // Load messages
       const { data: msgs } = await supabase
         .from('entiran_messages')
         .select('*')
@@ -77,7 +114,7 @@ export function useEntiranChat() {
     }
   }, [pageContext.page]);
 
-  const addMessage = useCallback(async (role: 'user' | 'assistant', content: string, type: 'chat' | 'suggestion' | 'bug_report' | 'action_prompt' = 'chat', metadata?: any) => {
+  const addMessage = useCallback(async (role: 'user' | 'assistant', content: string, type: ChatMessage['message_type'] = 'chat', metadata?: any) => {
     if (!conversationId) return;
     const msg: ChatMessage = {
       id: crypto.randomUUID(),
@@ -89,13 +126,16 @@ export function useEntiranChat() {
     };
     setMessages(prev => [...prev, msg]);
 
-    await supabase.from('entiran_messages').insert({
-      conversation_id: conversationId,
-      role,
-      content,
-      message_type: type,
-      metadata,
-    } as any);
+    // Only persist chat/suggestion/bug_report types to DB
+    if (type !== 'related_questions' && type !== 'welcome') {
+      await supabase.from('entiran_messages').insert({
+        conversation_id: conversationId,
+        role,
+        content,
+        message_type: type === 'welcome' ? 'chat' : type,
+        metadata,
+      } as any);
+    }
 
     return msg;
   }, [conversationId]);
@@ -121,14 +161,12 @@ export function useEntiranChat() {
 
     // Check for bug report trigger
     if (isBugReportTrigger(text)) {
-      // Check troubleshooting first
       const troubleshoot = matchTroubleshooting(text);
       if (troubleshoot) {
         setTyping(true);
         setTimeout(async () => {
           await addMessage('assistant', troubleshoot);
           setTyping(false);
-          // After troubleshooting, if user says yes/still, trigger bug report
         }, 600);
         return;
       }
@@ -155,6 +193,13 @@ export function useEntiranChat() {
             setTimeout(async () => {
               await addMessage('assistant', match.entry.followUp!, 'action_prompt');
             }, 400);
+          }
+          // Show related questions
+          const related = getRelatedQuestions(match.entry, pageContext.page);
+          if (related.length > 0) {
+            setTimeout(async () => {
+              await addMessage('assistant', JSON.stringify(related), 'related_questions');
+            }, 600);
           }
         }
       } else {
@@ -196,6 +241,36 @@ export function useEntiranChat() {
     setBugStep('confirm');
   }, []);
 
+  const clearConversation = useCallback(async () => {
+    if (!conversationId) return;
+    await supabase.from('entiran_messages').delete().eq('conversation_id', conversationId) as any;
+    setMessages([]);
+  }, [conversationId]);
+
+  const startNewConversation = useCallback(async () => {
+    if (!user) return;
+    const { data: newConv } = await supabase
+      .from('entiran_conversations')
+      .insert({ user_id: user.id, page_context: pageContext.page } as any)
+      .select('id')
+      .single() as any;
+    if (newConv?.id) {
+      setConversationId(newConv.id);
+      setMessages([]);
+    }
+  }, [user, pageContext.page]);
+
+  const loadConversation = useCallback(async (convId: string) => {
+    setConversationId(convId);
+    const { data: msgs } = await supabase
+      .from('entiran_messages')
+      .select('*')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true })
+      .limit(20) as any;
+    setMessages(msgs || []);
+  }, []);
+
   return {
     messages,
     loading,
@@ -204,6 +279,8 @@ export function useEntiranChat() {
     pageContext,
     bugStep,
     bugData,
+    isFirstTime,
+    conversationHistory,
     initConversation,
     sendMessage,
     addMessage,
@@ -211,5 +288,8 @@ export function useEntiranChat() {
     skipScreenshot,
     setBugStep,
     setBugData,
+    clearConversation,
+    startNewConversation,
+    loadConversation,
   };
 }

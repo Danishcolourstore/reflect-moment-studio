@@ -1,13 +1,13 @@
 import { usePageContext } from '@/hooks/use-page-context';
 
 const CHIPS: Record<string, string[]> = {
-  dashboard: ['Create new event', 'View recent activity', 'Check client selections'],
-  album_builder: ['Fix empty frames', 'Suggest better layout', 'Export this album', 'Report a bug'],
-  event_gallery: ['Share this gallery', 'View client favorites', 'Send selection reminder', 'Report a bug'],
-  gallery_delivery: ['Share this gallery', 'View client favorites', 'Report a bug'],
-  settings: ['Connect custom domain', 'Update branding', 'Help with settings'],
-  domains: ['Connect custom domain', 'Help with DNS setup', 'Report a bug'],
-  other: ['What is Mirror AI?', 'Report a bug'],
+  dashboard: ['Create new event', 'View recent activity', 'Check client selections', 'What can you do?'],
+  album_builder: ['Fix empty frames', 'Suggest better layout', 'Export this album', 'Report a bug', 'What can you do?'],
+  event_gallery: ['Share this gallery', 'View client favorites', 'Send selection reminder', 'Report a bug', 'What can you do?'],
+  gallery_delivery: ['Share this gallery', 'View client favorites', 'Report a bug', 'What can you do?'],
+  settings: ['Connect custom domain', 'Update branding', 'Help with settings', 'What can you do?'],
+  domains: ['Connect custom domain', 'Help with DNS setup', 'Report a bug', 'What can you do?'],
+  other: ['What is Mirror AI?', 'Report a bug', 'What can you do?'],
 };
 
 interface SuggestionChipsProps {
@@ -26,6 +26,7 @@ export function SuggestionChips({ onChipClick }: SuggestionChipsProps) {
           onClick={() => onChipClick(chip)}
           className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-colors hover:bg-[#C9A96E]/10 whitespace-nowrap"
           style={{ borderColor: '#E8E0D4', color: '#1A1A1A' }}
+          aria-label={`Quick action: ${chip}`}
         >
           {chip}
         </button>
