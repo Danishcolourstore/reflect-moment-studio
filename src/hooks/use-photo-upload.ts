@@ -45,7 +45,7 @@ const INITIAL: UploadState = {
   estimatedTimeRemaining: null,
 };
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
 const MAX_RETRIES = 3;
 const UPLOAD_TIMEOUT = 300_000;
 const KEEPALIVE_INTERVAL = 30_000;
@@ -67,7 +67,8 @@ function classifyError(err: any): { message: string; type: ErrorType } {
   return { message: err?.message || 'Upload failed — please retry', type: 'unknown' };
 }
 
-async function compressImage(file: File): Promise<File> {
+async function compressImage(file: File, optimized: boolean): Promise<File> {
+  if (!optimized) return file;
   if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) return file;
   try {
     const compressed = await imageCompression(file, {
@@ -140,7 +141,7 @@ function uploadWithSDK(bucket: string, path: string, file: File, timeoutMs: numb
   ]);
 }
 
-export function usePhotoUpload(eventId: string | undefined, userId: string | undefined) {
+export function usePhotoUpload(eventId: string | undefined, userId: string | undefined, optimizedUpload: boolean = true) {
   const [state, setState] = useState<UploadState>(INITIAL);
   const abortRef = useRef(false);
   const stateRef = useRef(state);
@@ -171,11 +172,11 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
       existingHashes.add(hash);
     } catch {}
 
-    // Compress
-    updateFileInfo(id, { status: 'compressing', originalSize: file.size });
+    // Compress (only if optimized upload is enabled)
+    updateFileInfo(id, { status: optimizedUpload ? 'compressing' : 'uploading', originalSize: file.size });
     let processedFile: File;
     try {
-      processedFile = await compressImage(file);
+      processedFile = await compressImage(file, optimizedUpload);
     } catch {
       processedFile = file;
     }

@@ -159,6 +159,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [galleryLayout, setGalleryLayout] = useState('classic');
   const [downloadsEnabled, setDownloadsEnabled] = useState(true);
+  const [optimizedUpload, setOptimizedUpload] = useState(true);
   const [loading, setLoading] = useState(false);
   const mutexRef = useRef(false);
   const lastSubmitRef = useRef(0);
@@ -314,6 +315,22 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
             <div className="flex items-center justify-between">
               <Label className="text-[12px] text-foreground/80 font-normal">Allow downloads</Label>
               <Switch checked={downloadsEnabled} onCheckedChange={setDownloadsEnabled} />
+            </div>
+          </div>
+
+          {/* Upload Settings */}
+          <div className="pt-2 border-t border-border space-y-3">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Upload Settings</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-[12px] text-foreground/80 font-normal">Optimized Upload</Label>
+                <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                  {optimizedUpload
+                    ? 'Faster uploads with optimized size. No visible quality loss.'
+                    : 'Upload original files. Best for print and archive.'}
+                </p>
+              </div>
+              <Switch checked={optimizedUpload} onCheckedChange={setOptimizedUpload} />
             </div>
           </div>
 
