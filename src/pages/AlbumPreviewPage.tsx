@@ -3,10 +3,86 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+interface PageData {
+  id: string;
+  pageNumber: number;
+  bgColor: string;
+  layers: any[];
+}
+
 interface SpreadData {
   spreadIndex: number;
-  pages: { id: string; pageNumber: number; bgColor: string }[];
-  photos: string[];
+  pages: PageData[];
+}
+
+function renderPageContent(layers: any[]) {
+  const photos = layers.filter((l: any) => l.layer_type === 'photo');
+  if (!photos.length)
+    return (
+      <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
+        Empty
+      </div>
+    );
+
+  // Read layout from first photo layer
+  const firstSettings = photos[0]?.settings_json as Record<string, any> | null;
+  const layout = firstSettings?.layout;
+
+  if (layout?.gridCols && layout?.gridRows && layout?.cells) {
+    return (
+      <div
+        className="w-full h-full grid gap-[2px]"
+        style={{
+          gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
+          gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
+        }}
+      >
+        {(layout.cells as number[][]).map((area: number[], i: number) => {
+          const photo = photos[i];
+          const s = photo?.settings_json as Record<string, any> | null;
+          const url = s?.imageUrl;
+          return (
+            <div
+              key={i}
+              className="overflow-hidden"
+              style={{
+                gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
+              }}
+            >
+              {url ? (
+                <img src={url} className="w-full h-full object-cover" alt="" />
+              ) : (
+                <div className="w-full h-full bg-white/5" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Fallback
+  const cols = Math.ceil(Math.sqrt(photos.length));
+  const rows = Math.ceil(photos.length / cols);
+  return (
+    <div
+      className="w-full h-full grid gap-[2px]"
+      style={{
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateRows: `repeat(${rows}, 1fr)`,
+      }}
+    >
+      {photos.map((p: any, i: number) => {
+        const s = p.settings_json as Record<string, any> | null;
+        const url = s?.imageUrl;
+        return url ? (
+          <img key={i} src={url} className="w-full h-full object-cover" alt="" />
+        ) : (
+          <div key={i} className="w-full h-full bg-white/5" />
+        );
+      })}
+    </div>
+  );
 }
 
 export default function AlbumPreviewPage() {
@@ -35,28 +111,30 @@ export default function AlbumPreviewPage() {
 
       const pageIds = pagesData.map((p: any) => p.id);
       const { data: layersData } = await (supabase.from('album_layers' as any)
-        .select('page_id, settings_json, layer_type').in('page_id', pageIds).order('z_index', { ascending: true }) as any);
+        .select('*').in('page_id', pageIds).order('z_index', { ascending: true }) as any);
 
-      const spreadMap = new Map<number, { pages: any[]; photos: string[] }>();
-      for (const p of pagesData) {
-        if (!spreadMap.has(p.spread_index)) spreadMap.set(p.spread_index, { pages: [], photos: [] });
-        spreadMap.get(p.spread_index)!.pages.push({ id: p.id, pageNumber: p.page_number, bgColor: p.background_color || '#ffffff' });
+      // Group layers by page
+      const layersByPage = new Map<string, any[]>();
+      for (const l of (layersData || [])) {
+        if (!layersByPage.has(l.page_id)) layersByPage.set(l.page_id, []);
+        layersByPage.get(l.page_id)!.push(l);
       }
 
-      for (const l of (layersData || [])) {
-        if (l.layer_type === 'photo' && l.settings_json?.imageUrl) {
-          for (const [, sd] of spreadMap) {
-            if (sd.pages.some((p: any) => p.id === l.page_id)) {
-              sd.photos.push(l.settings_json.imageUrl);
-              break;
-            }
-          }
-        }
+      // Group pages by spread
+      const spreadMap = new Map<number, PageData[]>();
+      for (const p of pagesData) {
+        if (!spreadMap.has(p.spread_index)) spreadMap.set(p.spread_index, []);
+        spreadMap.get(p.spread_index)!.push({
+          id: p.id,
+          pageNumber: p.page_number,
+          bgColor: p.background_color || '#ffffff',
+          layers: layersByPage.get(p.id) || [],
+        });
       }
 
       const result: SpreadData[] = Array.from(spreadMap.entries())
         .sort((a, b) => a[0] - b[0])
-        .map(([si, data]) => ({ spreadIndex: si, pages: data.pages, photos: data.photos }));
+        .map(([si, pages]) => ({ spreadIndex: si, pages }));
 
       setSpreads(result);
       setLoading(false);
@@ -115,13 +193,7 @@ export default function AlbumPreviewPage() {
                   maxHeight: '75vh',
                 }}
               >
-                {spread.photos.length > 0 ? (
-                  <img src={spread.photos[0]} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
-                    Page {page.pageNumber}
-                  </div>
-                )}
+                {renderPageContent(page.layers)}
               </div>
             ))}
           </div>

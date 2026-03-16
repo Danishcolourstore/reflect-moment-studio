@@ -233,9 +233,9 @@ interface Props {
   showBleed: boolean;
   showSafeMargin: boolean;
   showSpine: boolean;
-  onToggleBleed: () => void;
-  onToggleSafe: () => void;
-  onToggleSpine: () => void;
+  onToggleBleed: (v: boolean) => void;
+  onToggleSafe: (v: boolean) => void;
+  onToggleSpine: (v: boolean) => void;
   bgColor: string;
   onBgColorChange: (c: string) => void;
   paperTexture: string;

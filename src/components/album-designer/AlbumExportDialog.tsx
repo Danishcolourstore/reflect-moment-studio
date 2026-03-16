@@ -20,6 +20,14 @@ import { ALBUM_SIZES, type AlbumSize } from "./types";
 import type { PageSlot } from "./AlbumTimeline";
 import type { AlbumData } from "@/hooks/use-album-editor";
 
+interface PageRenderData {
+  pageNum: number;
+  bgColor: string;
+  layout: { gridCols: number; gridRows: number; cells: number[][] } | null;
+  photos: { url: string; cellIndex?: number }[];
+  textLayers: { text: string; x: number; y: number; fontSize: number; fontFamily: string; color: string; rotation: number }[];
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,13 +47,13 @@ export default function AlbumExportDialog({
   const [progress, setProgress] = useState({ current: 0, total: 0, label: "" });
   const [cmyk, setCmyk] = useState(false);
 
-  const loadPageImages = async () => {
+  const loadPageImages = async (): Promise<PageRenderData[]> => {
     const sortedPages = [...pages].sort((a, b) => a.pageNumber - b.pageNumber);
     const pageIds = sortedPages.map((p) => p.id);
 
     const { data: layersData } = await supabase
       .from("album_layers")
-      .select("page_id,settings_json,layer_type")
+      .select("page_id,settings_json,layer_type,text_content,x,y,rotation")
       .in("page_id", pageIds)
       .order("z_index", { ascending: true });
 
@@ -59,27 +67,49 @@ export default function AlbumExportDialog({
     );
 
     return sortedPages.map((p) => {
-      const pageLayers = (layersData || []).filter(
-        (l) => l.page_id === p.id && l.layer_type === "photo"
-      );
-      const photos = pageLayers
+      const allLayers = (layersData || []).filter((l) => l.page_id === p.id);
+      const photoLayers = allLayers.filter((l) => l.layer_type === "photo");
+      const textLayerRows = allLayers.filter((l) => l.layer_type === "text");
+
+      // Read layout from first photo layer
+      const firstSettings = photoLayers[0]?.settings_json as Record<string, any> | null;
+      const layout = firstSettings?.layout || null;
+
+      const photos = photoLayers
         .filter((l) => {
           const s = l.settings_json as Record<string, any> | null;
           return s?.imageUrl;
         })
-        .map((l) => (l.settings_json as Record<string, any>).imageUrl as string);
+        .map((l, i) => {
+          const s = l.settings_json as Record<string, any>;
+          return { url: s.imageUrl as string, cellIndex: i };
+        });
+
+      const textLayers = textLayerRows.map((tl) => {
+        const s = tl.settings_json as Record<string, any> | null;
+        return {
+          text: s?.text || tl.text_content || "",
+          x: s?.x ?? tl.x ?? 50,
+          y: s?.y ?? tl.y ?? 50,
+          fontSize: s?.fontSize ?? 24,
+          fontFamily: s?.fontFamily ?? "serif",
+          color: s?.color ?? "#000000",
+          rotation: s?.rotation ?? tl.rotation ?? 0,
+        };
+      });
 
       return {
         pageNum: p.pageNumber,
         bgColor: bgMap.get(p.id) || "#ffffff",
+        layout,
         photos,
+        textLayers,
       };
     });
   };
 
   const renderCanvas = async (
-    bgColor: string,
-    photos: string[],
+    page: PageRenderData,
     width: number,
     height: number
   ) => {
@@ -87,42 +117,85 @@ export default function AlbumExportDialog({
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = bgColor;
+    ctx.fillStyle = page.bgColor;
     ctx.fillRect(0, 0, width, height);
 
-    if (!photos.length) return canvas;
+    if (page.photos.length > 0) {
+      const layout = page.layout;
+      const gridCols = layout?.gridCols || Math.ceil(Math.sqrt(page.photos.length));
+      const gridRows = layout?.gridRows || Math.ceil(page.photos.length / gridCols);
+      const cells = layout?.cells;
 
-    const cols = Math.ceil(Math.sqrt(photos.length));
-    const rows = Math.ceil(photos.length / cols);
-    const cellW = width / cols;
-    const cellH = height / rows;
+      await Promise.all(
+        page.photos.map(
+          (photo, i) =>
+            new Promise<void>((resolve) => {
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              img.onload = () => {
+                let cellX: number, cellY: number, cellW: number, cellH: number;
 
-    await Promise.all(
-      photos.map(
-        (url, i) =>
-          new Promise<void>((resolve) => {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.onload = () => {
-              const col = i % cols;
-              const row = Math.floor(i / cols);
-              const scale = Math.max(cellW / img.width, cellH / img.height);
-              const w = img.width * scale;
-              const h = img.height * scale;
-              ctx.drawImage(
-                img,
-                col * cellW + (cellW - w) / 2,
-                row * cellH + (cellH - h) / 2,
-                w,
-                h
-              );
-              resolve();
-            };
-            img.onerror = () => resolve();
-            img.src = url;
-          })
-      )
-    );
+                if (cells && cells[i]) {
+                  const [rowStart, colStart, rowEnd, colEnd] = cells[i];
+                  cellX = ((colStart - 1) / gridCols) * width;
+                  cellY = ((rowStart - 1) / gridRows) * height;
+                  cellW = ((colEnd - colStart) / gridCols) * width;
+                  cellH = ((rowEnd - rowStart) / gridRows) * height;
+                } else {
+                  const col = i % gridCols;
+                  const row = Math.floor(i / gridCols);
+                  cellW = width / gridCols;
+                  cellH = height / gridRows;
+                  cellX = col * cellW;
+                  cellY = row * cellH;
+                }
+
+                // Cover-fit math
+                const scale = Math.max(cellW / img.width, cellH / img.height);
+                const w = img.width * scale;
+                const h = img.height * scale;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(cellX, cellY, cellW, cellH);
+                ctx.clip();
+                ctx.drawImage(
+                  img,
+                  cellX + (cellW - w) / 2,
+                  cellY + (cellH - h) / 2,
+                  w,
+                  h
+                );
+                ctx.restore();
+                resolve();
+              };
+              img.onerror = () => resolve();
+              img.src = photo.url;
+            })
+        )
+      );
+    }
+
+    // Render text layers
+    for (const tl of page.textLayers) {
+      ctx.save();
+      ctx.font = `${tl.fontSize}px ${tl.fontFamily}`;
+      ctx.fillStyle = tl.color;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const px = (tl.x / 100) * width;
+      const py = (tl.y / 100) * height;
+
+      if (tl.rotation) {
+        ctx.translate(px, py);
+        ctx.rotate((tl.rotation * Math.PI) / 180);
+        ctx.fillText(tl.text, 0, 0);
+      } else {
+        ctx.fillText(tl.text, px, py);
+      }
+      ctx.restore();
+    }
 
     return canvas;
   };
@@ -142,12 +215,7 @@ export default function AlbumExportDialog({
           label: `Rendering page ${i + 1}`,
         });
         const page = data[i];
-        const canvas = await renderCanvas(
-          page.bgColor,
-          page.photos,
-          dim.widthPx,
-          dim.heightPx
-        );
+        const canvas = await renderCanvas(page, dim.widthPx, dim.heightPx);
         const blob = await new Promise<Blob>((res) =>
           canvas.toBlob((b) => res(b!), "image/jpeg", 0.92)
         );
@@ -188,7 +256,7 @@ export default function AlbumExportDialog({
         });
         if (i > 0) pdf.addPage();
         const page = data[i];
-        const canvas = await renderCanvas(page.bgColor, page.photos, pxW, pxH);
+        const canvas = await renderCanvas(page, pxW, pxH);
         const img = canvas.toDataURL("image/jpeg", printReady ? 1 : 0.85);
         pdf.addImage(img, "JPEG", 0, 0, mmW, mmH);
       }

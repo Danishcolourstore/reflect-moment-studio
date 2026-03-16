@@ -77,13 +77,15 @@ function pickTemplate(
 
 // Upload a file to Supabase storage and return public URL
 async function uploadFileToStorage(file: File, albumId: string): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
   const ext = file.name.split(".").pop() || "jpg";
-  const path = `albums/${albumId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const path = `${user.id}/albums/${albumId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase.storage
-    .from("album-photos")
+    .from("gallery-photos")
     .upload(path, file, { contentType: file.type, upsert: false });
   if (error) throw new Error(`Upload failed: ${error.message}`);
-  const { data } = supabase.storage.from("album-photos").getPublicUrl(path);
+  const { data } = supabase.storage.from("gallery-photos").getPublicUrl(path);
   return data.publicUrl;
 }
 
@@ -197,7 +199,7 @@ export default function AlbumAutoLayoutDialog({
     const layersBatch: Array<{ pageIndex: number; layers: any[] }> = [];
 
     // Cover page — first photo full bleed
-    pagesToInsert.push({ album_id: album.id, page_number: 1, spread_index: 1 });
+    pagesToInsert.push({ album_id: album.id, page_number: 0, spread_index: 0 });
     layersBatch.push({
       pageIndex: 0,
       layers: [
@@ -216,7 +218,7 @@ export default function AlbumAutoLayoutDialog({
     });
 
     let photoIdx = 1;
-    let pageNum = 2;
+    let pageNum = 1;
 
     while (photoIdx < photos.length) {
       const remaining = photos.length - photoIdx;
@@ -282,10 +284,10 @@ export default function AlbumAutoLayoutDialog({
 
     await supabase
       .from("albums")
-      .update({ page_count: pageNum - 1 })
+      .update({ page_count: pageNum })
       .eq("id", album.id);
 
-    return pageNum - 1;
+    return pageNum;
   };
 
   // ── Run: Event gallery ──

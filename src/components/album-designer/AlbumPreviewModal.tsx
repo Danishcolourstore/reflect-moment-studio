@@ -20,6 +20,83 @@ interface Props {
   onSharePreview: () => Promise<string>;
 }
 
+function renderPageContent(layers: any[]) {
+  const photos = layers.filter((l) => l.layer_type === "photo");
+  if (!photos.length)
+    return (
+      <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
+        Empty
+      </div>
+    );
+
+  // Bug 1: Read layout from first photo layer's settings_json
+  const firstSettings = photos[0]?.settings_json as Record<string, any> | null;
+  const layout = firstSettings?.layout;
+
+  if (layout?.gridCols && layout?.gridRows && layout?.cells) {
+    return (
+      <div
+        className="w-full h-full grid gap-[2px]"
+        style={{
+          gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
+          gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
+        }}
+      >
+        {(layout.cells as number[][]).map((area: number[], i: number) => {
+          const photo = photos[i];
+          const s = photo?.settings_json as Record<string, any> | null;
+          const url = s?.imageUrl;
+          return (
+            <div
+              key={i}
+              className="overflow-hidden"
+              style={{
+                gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
+              }}
+            >
+              {url ? (
+                <img src={url} className="w-full h-full object-cover" alt="" />
+              ) : (
+                <div className="w-full h-full bg-white/5 flex items-center justify-center text-white/10 text-[10px]">
+                  Empty
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Fallback: naive grid
+  const cols = Math.ceil(Math.sqrt(photos.length));
+  const rows = Math.ceil(photos.length / cols);
+  return (
+    <div
+      className="w-full h-full grid gap-[2px]"
+      style={{
+        gridTemplateColumns: `repeat(${cols},1fr)`,
+        gridTemplateRows: `repeat(${rows},1fr)`,
+      }}
+    >
+      {photos.map((p: any, i: number) => {
+        const s = p.settings_json as Record<string, any> | null;
+        const url = s?.imageUrl;
+        return url ? (
+          <img key={i} src={url} className="w-full h-full object-cover" alt="" />
+        ) : (
+          <div
+            key={i}
+            className="w-full h-full bg-white/5 flex items-center justify-center text-white/10 text-[10px]"
+          >
+            Empty
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AlbumPreviewModal({
   albumId,
   albumName,
@@ -97,44 +174,6 @@ export default function AlbumPreviewModal({
 
   const spread = spreads[current];
 
-  const renderPhotos = (layers: any[]) => {
-    const photos = layers.filter((l) => l.layer_type === "photo");
-    if (!photos.length)
-      return (
-        <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
-          Empty
-        </div>
-      );
-
-    const cols = Math.ceil(Math.sqrt(photos.length));
-    const rows = Math.ceil(photos.length / cols);
-
-    return (
-      <div
-        className="w-full h-full grid gap-[2px]"
-        style={{
-          gridTemplateColumns: `repeat(${cols},1fr)`,
-          gridTemplateRows: `repeat(${rows},1fr)`,
-        }}
-      >
-        {photos.map((p, i) => {
-          const s = p.settings_json as Record<string, any> | null;
-          const url = s?.imageUrl;
-          return url ? (
-            <img key={i} src={url} className="w-full h-full object-cover" alt="" />
-          ) : (
-            <div
-              key={i}
-              className="w-full h-full bg-white/5 flex items-center justify-center text-white/10 text-[10px]"
-            >
-              Empty
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col">
       <div className="h-12 flex items-center justify-between px-4">
@@ -181,7 +220,7 @@ export default function AlbumPreviewModal({
                   width: spread.pages.length > 1 ? "40vw" : "50vw",
                 }}
               >
-                {renderPhotos(page.layers)}
+                {renderPageContent(page.layers)}
               </div>
             ))}
           </div>
