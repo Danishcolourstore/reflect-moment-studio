@@ -23,20 +23,19 @@ import { useStorageUsage, formatBytes, PLAN_LIMITS } from '@/hooks/use-storage-u
 const NAV_ITEMS = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
-  { title: 'Website', url: '/dashboard/website', icon: Globe },
+  { title: 'Website', url: '/dashboard/website-editor', icon: Globe },
   { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
   { title: 'Clients', url: '/dashboard/clients', icon: Users },
   { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart2 },
   { title: 'Notifications', url: '/dashboard/notifications', icon: Bell },
-  { title: 'Branding', url: '/dashboard/branding', icon: Palette },
   { title: 'Profile', url: '/dashboard/profile', icon: User },
 ];
 
 const MOBILE_NAV = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
-  { title: 'Website', url: '/dashboard/website', icon: Globe },
+  { title: 'Website', url: '/dashboard/website-editor', icon: Globe },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
 ];
 const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));
@@ -52,7 +51,7 @@ interface Profile {
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/events': 'Events',
-  '/dashboard/website': 'Website Builder',
+  '/dashboard/website-editor': 'Website Builder',
   '/dashboard/storybook': 'Storybook',
   '/dashboard/album-designer': 'Album Designer',
   '/dashboard/cheetah-live': 'Cheetah',
