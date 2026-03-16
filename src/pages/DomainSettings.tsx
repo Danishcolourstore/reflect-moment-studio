@@ -306,6 +306,43 @@ export default function DomainSettings() {
         </p>
       </div>
 
+      {/* Onboarding Card */}
+      {showOnboarding && (
+        <Card className="border-[#E8E0D4] bg-white shadow-sm overflow-hidden">
+          <CardContent className="p-6 sm:p-8 flex flex-col items-center text-center space-y-5">
+            <DomainOnboardingSvg />
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-[#1A1A1A]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                Connect Your Own Domain
+              </h2>
+              <p className="text-sm text-[#1A1A1A]/60 max-w-md" style={{ fontFamily: "Inter, sans-serif" }}>
+                Give your photography website a professional address. Your clients will see your brand, not ours.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FDFBF7] border border-[#E8E0D4] text-xs font-medium text-[#1A1A1A]/70" style={{ fontFamily: "Inter, sans-serif" }}>
+                <Link className="w-3.5 h-3.5 text-[#C9A96E]" /> Custom URL
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FDFBF7] border border-[#E8E0D4] text-xs font-medium text-[#1A1A1A]/70" style={{ fontFamily: "Inter, sans-serif" }}>
+                <Lock className="w-3.5 h-3.5 text-[#C9A96E]" /> Free SSL
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FDFBF7] border border-[#E8E0D4] text-xs font-medium text-[#1A1A1A]/70" style={{ fontFamily: "Inter, sans-serif" }}>
+                <Search className="w-3.5 h-3.5 text-[#C9A96E]" /> SEO Friendly
+              </span>
+            </div>
+            <Button
+              onClick={() => { setOnboardingStarted(true); setShowAddForm(true); }}
+              className="min-h-[44px] px-8 text-white font-medium hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: "#C9A96E", fontFamily: "Inter, sans-serif" }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#B8964E")}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#C9A96E")}
+            >
+              Get Started
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Section 1: Subdomain */}
       <Card className="border-[#E8E0D4] bg-white shadow-sm">
         <CardHeader className="pb-3">
