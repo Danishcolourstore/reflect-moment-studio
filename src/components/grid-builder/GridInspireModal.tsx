@@ -44,17 +44,17 @@ function mapFontFamily(
   fontSize: number
 ): string {
   if (group === 'script') {
-    // Larger script → more expressive
-    return fontSize > 28 ? 'Great Vibes' : 'Allura';
+    return fontSize > 28 ? 'Great Vibes' : 'Parisienne';
   }
   if (group === 'serif') {
-    // Bold/heavy serif → Playfair; light/medium → Cormorant
-    if (weight >= 600) return 'Playfair Display';
-    if (fontSize > 24) return 'Bodoni Moda';
+    if (weight >= 700) return 'Playfair Display';
+    if (weight >= 500 && fontSize > 20) return 'Bodoni Moda';
+    if (fontSize > 28) return 'EB Garamond';
     return 'Cormorant Garamond';
   }
   // Sans
-  if (textTransform === 'uppercase' && fontSize <= 14) return 'Montserrat'; // small caps style
+  if (textTransform === 'uppercase' && weight >= 500) return 'Montserrat';
+  if (textTransform === 'uppercase' && fontSize <= 14) return 'Jost';
   if (weight >= 600) return 'Poppins';
   if (weight <= 300) return 'Inter';
   return 'DM Sans';
