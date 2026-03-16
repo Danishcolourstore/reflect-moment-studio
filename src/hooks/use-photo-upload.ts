@@ -45,7 +45,7 @@ const INITIAL: UploadState = {
   estimatedTimeRemaining: null,
 };
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
 const MAX_RETRIES = 3;
 const UPLOAD_TIMEOUT = 300_000;
 const KEEPALIVE_INTERVAL = 30_000;
