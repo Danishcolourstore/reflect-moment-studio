@@ -312,7 +312,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       <FloatingActionButton />
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav — phones only */}
+      {showBottomNav && (
       <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border safe-area-pb h-16">
         {MOBILE_NAV.map((item) => (
           <NavLink key={item.url} to={item.url} end={item.end}
