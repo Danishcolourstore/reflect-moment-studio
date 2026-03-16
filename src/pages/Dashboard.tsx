@@ -30,6 +30,7 @@ interface ManagedClient {
 
 const Clients = () => {
   const { user } = useAuth();
+  const { suggestions, dismissSuggestion, actOnSuggestion } = useStudioBrain();
 
   const [clients, setClients] = useState<ManagedClient[]>([]);
   const [loading, setLoading] = useState(true);
