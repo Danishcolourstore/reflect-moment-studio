@@ -174,6 +174,52 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     setStep('crop');
   }, []);
 
+  const handleInstagramLink = useCallback(async () => {
+    const url = linkValue.trim();
+    if (!url) { toast.error('Please paste an Instagram link'); return; }
+    // Accept instagram.com/p/... or instagram.com/reel/... URLs
+    if (!/instagram\.com\/(p|reel|tv)\/[A-Za-z0-9_-]+/i.test(url)) {
+      toast.error('Please paste a valid Instagram post or reel link');
+      return;
+    }
+    setLinkLoading(true);
+    try {
+      // Use a public oEmbed endpoint to get the post thumbnail
+      const oembedUrl = `https://graph.facebook.com/v18.0/instagram_oembed?url=${encodeURIComponent(url)}&access_token=public&fields=thumbnail_url`;
+      // Try direct image proxy approach - fetch the post page for og:image
+      const proxyResp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-instagram-image`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ url }),
+        }
+      );
+      if (!proxyResp.ok) throw new Error('Could not fetch Instagram image');
+      const { imageBase64 } = await proxyResp.json();
+      if (!imageBase64) throw new Error('No image found in post');
+      
+      // Convert base64 to blob URL for the crop view
+      const byteString = atob(imageBase64.split(',').pop() || imageBase64);
+      const mimeType = 'image/jpeg';
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+      const blob = new Blob([ab], { type: mimeType });
+      setImageSrc(URL.createObjectURL(blob));
+      setStep('crop');
+      setShowLinkInput(false);
+      setLinkValue('');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to load Instagram image. Try uploading a screenshot instead.');
+    } finally {
+      setLinkLoading(false);
+    }
+  }, [linkValue]);
+
   const handleAutoGenerate = useCallback(() => {
     setStep('analyzing');
     setTimeout(() => {
