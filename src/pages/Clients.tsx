@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ClientCRMHeader } from "@/components/crm/ClientCRMHeader";
 import { ClientCRMStats } from "@/components/crm/ClientCRMStats";
@@ -6,6 +6,9 @@ import { ClientCRMGrid } from "@/components/crm/ClientCRMGrid";
 import { ClientCRMTable } from "@/components/crm/ClientCRMTable";
 import { ClientCRMDetail } from "@/components/crm/ClientCRMDetail";
 import { InviteClientModal } from "@/components/InviteClientModal";
+import { ClientRelationshipPanel } from "@/components/crm/ClientRelationshipPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
