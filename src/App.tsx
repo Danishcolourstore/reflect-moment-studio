@@ -359,6 +359,7 @@ const AppRoutes = () => {
         <Route path="/widget/:slug" element={<WidgetPage />} />
         <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
         <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
+        <Route path="/gallery-view/:id" element={<PublicGalleryView />} />
 
         <Route path="/find/:token" element={<GuestFinder />} />
         <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
