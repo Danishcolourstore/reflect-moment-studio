@@ -26,18 +26,17 @@ function FallbackButton() {
   return (
     <button
       onClick={() => window.location.reload()}
-      className="fixed rounded-full shadow-lg flex items-center justify-center"
+      className="fixed rounded-2xl shadow-lg flex items-center justify-center bg-primary text-primary-foreground"
       style={{
-        bottom: isMobile ? 88 : 24,
+        bottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom, 0px))' : 24,
         right: isMobile ? 16 : 24,
-        width: 56,
-        height: 56,
-        backgroundColor: '#C9A96E',
+        width: isMobile ? 52 : 56,
+        height: isMobile ? 52 : 56,
         zIndex: 10001,
       }}
       aria-label="Open Entiran AI Assistant"
     >
-      <Sparkles className="h-6 w-6 text-white" />
+      <Sparkles className="h-5 w-5" />
     </button>
   );
 }
