@@ -63,6 +63,14 @@ function LayoutInner() {
         <Outlet />
       </main>
 
+      {/* Floating WhatsApp CTA */}
+      {(profile as any)?.whatsapp && (
+        <WhatsAppFloatingButton
+          phoneNumber={(profile as any).whatsapp}
+          studioName={studioName}
+        />
+      )}
+
       <footer className="border-t border-[#E8E0D4] py-8 px-4">
         <div className="max-w-6xl mx-auto flex flex-col items-center gap-4">
           {(profile?.instagram_url || profile?.facebook_url) && (

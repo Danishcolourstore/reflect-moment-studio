@@ -117,7 +117,7 @@ export function WebsiteHeader({ template, branding, eventName, onScrollToGallery
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 sm:h-20">
         <div className="flex items-center gap-3">
           {branding?.studio_logo_url ? (
-            <img src={branding.studio_logo_url} alt="" className="h-8 sm:h-9 object-contain drop-shadow-md" />
+            <img src={branding.studio_logo_url} alt={`${branding?.studio_name || 'Studio'} logo`} className="h-8 sm:h-9 object-contain drop-shadow-md" />
           ) : (
             <span className="text-sm font-medium text-white/80 tracking-[0.15em] uppercase drop-shadow-md">
               {branding?.studio_name || 'Studio'}
