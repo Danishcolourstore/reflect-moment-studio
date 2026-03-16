@@ -199,7 +199,7 @@ export default function AlbumAutoLayoutDialog({
     const layersBatch: Array<{ pageIndex: number; layers: any[] }> = [];
 
     // Cover page — first photo full bleed
-    pagesToInsert.push({ album_id: album.id, page_number: 1, spread_index: 1 });
+    pagesToInsert.push({ album_id: album.id, page_number: 0, spread_index: 0 });
     layersBatch.push({
       pageIndex: 0,
       layers: [
