@@ -48,16 +48,16 @@ export default function PublicGalleryView() {
   const { favs, toggle } = useFavorites(galleryId);
 
   useEffect(() => {
-    if (!id) return;
+    if (!galleryId) return;
     Promise.all([
-      (supabase.from("events").select("id, name, event_date, photo_count, downloads_enabled, cover_url").eq("id", id).maybeSingle() as any),
-      (supabase.from("photos").select("id, url").eq("event_id", id).order("sort_order", { ascending: true }).limit(500) as any),
+      (supabase.from("events").select("id, name, event_date, photo_count, downloads_enabled, cover_url").eq("id", galleryId).maybeSingle() as any),
+      (supabase.from("photos").select("id, url").eq("event_id", galleryId).order("sort_order", { ascending: true }).limit(500) as any),
     ]).then(([gRes, pRes]: any) => {
       setGallery(gRes.data);
       setPhotos((pRes.data || []) as Photo[]);
       setLoading(false);
     });
-  }, [id]);
+  }, [galleryId]);
 
   const displayPhotos = showFavsOnly ? photos.filter(p => favs.has(p.id)) : photos;
   const favCount = photos.filter(p => favs.has(p.id)).length;
