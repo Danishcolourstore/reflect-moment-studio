@@ -56,6 +56,7 @@ const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
 const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
 const DomainSettings = lazy(() => import("./pages/DomainSettings"));
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
+const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
 const Reflections = lazy(() => import("./pages/Reflections"));
 const PublicGalleryView = lazy(() => import("./pages/public/PublicGalleryView"));
 const VerifyAccess = lazy(() => import("./pages/VerifyAccess"));
