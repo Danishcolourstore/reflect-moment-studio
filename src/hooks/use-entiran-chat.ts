@@ -4,11 +4,14 @@ import { useAuth } from '@/lib/auth';
 import { usePageContext, type PageContext } from './use-page-context';
 import { matchKnowledge, matchTroubleshooting, isBugReportTrigger, getRelatedQuestions } from '@/lib/entiran-knowledge';
 
+// DB types + UI-only types
+export type MessageType = 'chat' | 'suggestion' | 'bug_report' | 'action_prompt' | 'related_questions' | 'welcome';
+
 export type ChatMessage = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  message_type: 'chat' | 'suggestion' | 'bug_report' | 'action_prompt' | 'related_questions' | 'welcome';
+  message_type: MessageType;
   metadata?: any;
   created_at: string;
 };
