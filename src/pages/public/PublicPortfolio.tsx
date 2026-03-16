@@ -15,6 +15,7 @@ interface GalleryItem {
 
 export default function PublicPortfolio() {
   const { siteOwnerId } = useSiteContext();
+  const { profile: siteProfile } = useSiteProfile();
   const [profile, setProfile] = useState<any>(null);
   const [galleries, setGalleries] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
