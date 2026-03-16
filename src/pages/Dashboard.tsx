@@ -12,6 +12,9 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { InviteClientModal } from "@/components/InviteClientModal";
+import { StudioBrainCards } from "@/components/entiran/StudioBrainCards";
+import { EventLifecycle } from "@/components/entiran/EventLifecycle";
+import { useStudioBrain } from "@/hooks/use-studio-brain";
 
 interface ManagedClient {
   id: string;
@@ -27,6 +30,7 @@ interface ManagedClient {
 
 const Clients = () => {
   const { user } = useAuth();
+  const { suggestions, dismissSuggestion, actOnSuggestion } = useStudioBrain();
 
   const [clients, setClients] = useState<ManagedClient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,8 +154,13 @@ const Clients = () => {
 
   return (
     <DashboardLayout>
-      {/* Header */}
+      {/* Studio Brain Suggestions */}
+      <StudioBrainCards suggestions={suggestions} onDismiss={dismissSuggestion} onAct={actOnSuggestion} />
+      
+      {/* Event Lifecycle Timeline */}
+      <EventLifecycle />
 
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="font-serif text-2xl">Client Manager</h1>
