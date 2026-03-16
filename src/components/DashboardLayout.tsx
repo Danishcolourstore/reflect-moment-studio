@@ -187,11 +187,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-2">
           {/* Theme toggle */}
           <button
-            onClick={() => switchTheme(theme === 'dark' ? 'classic' : 'dark')}
+            onClick={() => {
+              const idx = THEME_ORDER.indexOf(theme);
+              switchTheme(THEME_ORDER[(idx + 1) % THEME_ORDER.length]);
+            }}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            title="Toggle theme"
+            title={`Theme: ${theme}`}
           >
-            {theme === 'dark' ? '☀️' : '🌙'}
+            {THEME_ICONS[theme]}
           </button>
           <NotificationBell />
           <DropdownMenu>
