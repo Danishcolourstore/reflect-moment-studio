@@ -101,6 +101,7 @@ function applyAccentClass(a: AccentMode) {
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
+  const showDomainNudge = useDomainNudge(user?.id);
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
