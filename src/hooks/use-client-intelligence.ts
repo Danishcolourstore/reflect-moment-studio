@@ -97,20 +97,19 @@ export function useClientIntelligence() {
       .limit(50) as any);
 
     if (data) {
-      // Enrich with client info
-      const clientIds: string[] = [...new Set(data.map((r: any) => r.client_id as string))];
-      const { data: clients } = await (supabase
+      const ids = data.map((r: any) => String(r.client_id));
+      const clientIds = Array.from(new Set(ids));
+      const { data: clientsRaw } = await (supabase
         .from('clients')
         .select('id, name, phone, email')
         .in('id', clientIds) as any);
-      const clientMap = new Map((clients || []).map((c: any) => [c.id as string, c as { id: string; name: string; phone: string | null; email: string }]));
+      const clientList = (clientsRaw || []) as Array<{ id: string; name: string; phone: string | null; email: string }>;
+      const clientMap = new Map(clientList.map(c => [c.id, c]));
 
-      setReminders(data.map((r: any) => ({
-        ...r,
-        client_name: clientMap.get(r.client_id)?.name,
-        client_phone: clientMap.get(r.client_id)?.phone,
-        client_email: clientMap.get(r.client_id)?.email,
-      })));
+      setReminders(data.map((r: any) => {
+        const cl = clientMap.get(r.client_id);
+        return { ...r, client_name: cl?.name, client_phone: cl?.phone, client_email: cl?.email };
+      }));
     }
   }, [user]);
 
