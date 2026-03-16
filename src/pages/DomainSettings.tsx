@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Copy, Plus, Globe, Check, Trash2, Loader2, Lightbulb, Info, ExternalLink, Lock, ShieldCheck } from "lucide-react";
+import { Copy, Plus, Globe, Check, Trash2, Loader2, Lightbulb, Info, ExternalLink, Lock, ShieldCheck, Link, Search } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
