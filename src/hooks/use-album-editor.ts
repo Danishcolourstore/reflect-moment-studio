@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -78,6 +78,11 @@ export function useAlbumEditor(albumId: string | undefined) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
 
+  // Album-wide photo tracking (Bug 6)
+  const [allPagesPhotoMap, setAllPagesPhotoMap] = useState<Map<string, string[]>>(new Map());
+  const [pageThumbnails, setPageThumbnails] = useState<Map<string, string>>(new Map());
+  const [uploadingCells, setUploadingCells] = useState<Set<number>>(new Set());
+
   // Undo/redo
   const [undoStack, setUndoStack] = useState<HistoryEntry[]>([]);
   const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
@@ -101,13 +106,24 @@ export function useAlbumEditor(albumId: string | undefined) {
   const currentSpreadIndex = pages.find((p) => p.id === currentPageId)?.spreadIndex ?? -1;
   const currentPageNumber = pages.find((p) => p.id === currentPageId)?.pageNumber ?? 0;
 
-  const placedPhotoCounts = new Map<string, number>();
-  cells.forEach((cell) => {
-    if (cell.imageUrl) {
-      placedPhotoCounts.set(cell.imageUrl, (placedPhotoCounts.get(cell.imageUrl) || 0) + 1);
+  // Bug 6: Album-wide placed photo counts
+  const placedPhotoCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const [pageId, urls] of allPagesPhotoMap) {
+      if (pageId === currentPageId) continue;
+      for (const url of urls) {
+        if (url) counts.set(url, (counts.get(url) || 0) + 1);
+      }
     }
-  });
-  const placedPhotoUrls = new Set(placedPhotoCounts.keys());
+    for (const cell of cells) {
+      if (cell.imageUrl) {
+        counts.set(cell.imageUrl, (counts.get(cell.imageUrl) || 0) + 1);
+      }
+    }
+    return counts;
+  }, [allPagesPhotoMap, currentPageId, cells]);
+
+  const placedPhotoUrls = useMemo(() => new Set(placedPhotoCounts.keys()), [placedPhotoCounts]);
 
   /* ─── Load Album ─── */
 
@@ -164,6 +180,34 @@ export function useAlbumEditor(albumId: string | undefined) {
       setLoading(false);
     })();
   }, [albumId, user, navigate]);
+
+  /* ─── Load All Layers for Album-Wide Tracking (Bug 6) ─── */
+
+  useEffect(() => {
+    if (pages.length === 0) return;
+    (async () => {
+      const pageIds = pages.map((p) => p.id);
+      const { data } = await supabase
+        .from("album_layers")
+        .select("page_id,settings_json,layer_type")
+        .in("page_id", pageIds)
+        .eq("layer_type", "photo");
+
+      const photoMap = new Map<string, string[]>();
+      const thumbs = new Map<string, string>();
+
+      for (const l of data || []) {
+        const s = l.settings_json as Record<string, any> | null;
+        if (!s?.imageUrl) continue;
+        if (!photoMap.has(l.page_id)) photoMap.set(l.page_id, []);
+        photoMap.get(l.page_id)!.push(s.imageUrl);
+        if (!thumbs.has(l.page_id)) thumbs.set(l.page_id, s.imageUrl);
+      }
+
+      setAllPagesPhotoMap(photoMap);
+      setPageThumbnails(thumbs);
+    })();
+  }, [pages]);
 
   /* ─── Load Layers on Page Change ─── */
 
@@ -317,6 +361,27 @@ export function useAlbumEditor(albumId: string | undefined) {
 
       dirtyRef.current = false;
       setSaveStatus("saved");
+
+      // Update album-wide tracking after save
+      const urls = currentCells.filter((c) => c.imageUrl).map((c) => c.imageUrl!);
+      setAllPagesPhotoMap((prev) => {
+        const n = new Map(prev);
+        n.set(pageId, urls);
+        return n;
+      });
+      if (urls.length > 0) {
+        setPageThumbnails((prev) => {
+          const n = new Map(prev);
+          n.set(pageId, urls[0]);
+          return n;
+        });
+      } else {
+        setPageThumbnails((prev) => {
+          const n = new Map(prev);
+          n.delete(pageId);
+          return n;
+        });
+      }
     } catch (e) {
       console.error("Save failed", e);
       setSaveStatus("unsaved");
@@ -456,6 +521,52 @@ export function useAlbumEditor(albumId: string | undefined) {
     [pushUndo, markDirty]
   );
 
+  /* ─── Bug 7: Place Photo File with Upload ─── */
+
+  const placePhotoFile = useCallback(
+    async (index: number, file: File) => {
+      if (!user || !album) return;
+      const blobUrl = URL.createObjectURL(file);
+      pushUndo();
+      setCells((prev) => {
+        const c = [...prev];
+        if (index < c.length)
+          c[index] = { ...c[index], imageUrl: blobUrl, file, offsetX: 0, offsetY: 0, scale: 1 };
+        return c;
+      });
+      markDirty();
+
+      setUploadingCells((prev) => new Set(prev).add(index));
+      try {
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `${user.id}/albums/${album.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error } = await supabase.storage
+          .from("gallery-photos")
+          .upload(path, file, { contentType: file.type });
+        if (error) throw error;
+        const { data } = supabase.storage.from("gallery-photos").getPublicUrl(path);
+        URL.revokeObjectURL(blobUrl);
+        setCells((prev) => {
+          const c = [...prev];
+          if (c[index]?.imageUrl === blobUrl)
+            c[index] = { ...c[index], imageUrl: data.publicUrl, file: null };
+          return c;
+        });
+        markDirty();
+      } catch (e) {
+        console.error("Upload failed", e);
+        toast.error("Failed to upload photo");
+      } finally {
+        setUploadingCells((prev) => {
+          const n = new Set(prev);
+          n.delete(index);
+          return n;
+        });
+      }
+    },
+    [user, album, pushUndo, markDirty]
+  );
+
   const updateAlbumName = useCallback(
     async (name: string) => {
       if (!album) return;
@@ -585,6 +696,34 @@ export function useAlbumEditor(albumId: string | undefined) {
       setCurrentPageId(pageId);
     },
     [saveLayers]
+  );
+
+  /* ─── Page Reorder ─── */
+
+  const reorderPages = useCallback(
+    async (draggedPageId: string, targetIndex: number) => {
+      const sorted = [...pages].sort((a, b) => a.pageNumber - b.pageNumber);
+      const nonCover = sorted.filter((p) => p.pageNumber > 0);
+      const cover = sorted.find((p) => p.pageNumber === 0);
+      const fromIdx = nonCover.findIndex((p) => p.id === draggedPageId);
+      if (fromIdx === -1 || fromIdx === targetIndex) return;
+      const reordered = [...nonCover];
+      const [moved] = reordered.splice(fromIdx, 1);
+      reordered.splice(targetIndex, 0, moved);
+      const updated = reordered.map((p, i) => ({
+        ...p,
+        pageNumber: i + 1,
+        spreadIndex: Math.ceil((i + 1) / 2),
+      }));
+      setPages(cover ? [cover, ...updated] : [...updated]);
+      for (const u of updated) {
+        await supabase
+          .from("album_pages")
+          .update({ page_number: u.pageNumber, spread_index: u.spreadIndex })
+          .eq("id", u.id);
+      }
+    },
+    [pages]
   );
 
   /* ─── Status Workflow ─── */
@@ -728,9 +867,9 @@ export function useAlbumEditor(albumId: string | undefined) {
     setSelectedTextId,
     setSpreadView,
     setZoom,
-    setShowBleed: () => setShowBleed((v) => !v),
-    setShowSafeMargin: () => setShowSafeMargin((v) => !v),
-    setShowSpine: () => setShowSpine((v) => !v),
+    setShowBleed: (v: boolean) => setShowBleed(v),
+    setShowSafeMargin: (v: boolean) => setShowSafeMargin(v),
+    setShowSpine: (v: boolean) => setShowSpine(v),
     saveLayers,
 
     // Page management
@@ -738,6 +877,7 @@ export function useAlbumEditor(albumId: string | undefined) {
     duplicatePage,
     deletePage,
     selectPage,
+    reorderPages,
 
     // Status/sharing
     updateStatus,
@@ -745,5 +885,12 @@ export function useAlbumEditor(albumId: string | undefined) {
     linkEvent,
     reloadPages,
     goBack,
+
+    // Bug 7: Upload
+    placePhotoFile,
+    uploadingCells,
+
+    // Thumbnails
+    pageThumbnails,
   };
 }

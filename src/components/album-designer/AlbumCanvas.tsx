@@ -4,7 +4,7 @@ import type { TextLayer } from "@/components/grid-builder/text-overlay-types";
 import GridCell from "@/components/grid-builder/GridCell";
 import TextOverlay from "@/components/grid-builder/TextOverlay";
 import { ALBUM_SIZES, type AlbumSize } from "./types";
-import { Layers } from "lucide-react";
+import { Layers, Loader2 } from "lucide-react";
 
 interface Props {
   layout: GridLayout | null;
@@ -23,6 +23,8 @@ interface Props {
   showSpine: boolean;
   bgColor: string;
   onDropPhoto: (photo: { url: string }, cellIndex: number) => void;
+  onPlacePhotoFile: (index: number, file: File) => void;
+  uploadingCells: Set<number>;
   currentPageNumber: number;
 }
 
@@ -43,6 +45,8 @@ export default function AlbumCanvas({
   showSpine,
   bgColor,
   onDropPhoto,
+  onPlacePhotoFile,
+  uploadingCells,
   currentPageNumber,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -64,10 +68,9 @@ export default function AlbumCanvas({
 
   const handleImageAdd = useCallback(
     (index: number, file: File) => {
-      const url = URL.createObjectURL(file);
-      updateCell(index, { imageUrl: url, file, offsetX: 0, offsetY: 0, scale: 1 });
+      onPlacePhotoFile(index, file);
     },
-    [updateCell]
+    [onPlacePhotoFile]
   );
 
   const handleImageRemove = useCallback(
@@ -128,7 +131,6 @@ export default function AlbumCanvas({
   const layoutCells = layout?.cells ?? [];
   const hasLayout = layoutCells.length > 0;
 
-  // Calculate canvas size based on zoom, properly centered
   const baseWidth = 560;
   const scaledWidth = baseWidth * (zoom / 100);
 
@@ -211,10 +213,11 @@ export default function AlbumCanvas({
                 offsetY: 0,
                 scale: 1,
               };
+              const isUploading = uploadingCells.has(i);
               return (
                 <div
                   key={cell.id}
-                  className="w-full h-full"
+                  className="w-full h-full relative"
                   style={{
                     gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
                   }}
@@ -228,6 +231,12 @@ export default function AlbumCanvas({
                     onImageRemove={() => handleImageRemove(i)}
                     onOffsetChange={(x, y) => updateCell(i, { offsetX: x, offsetY: y })}
                   />
+                  {/* Upload spinner overlay */}
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-30 pointer-events-none rounded">
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    </div>
+                  )}
                 </div>
               );
             })}

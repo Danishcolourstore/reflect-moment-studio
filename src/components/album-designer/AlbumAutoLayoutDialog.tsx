@@ -284,10 +284,10 @@ export default function AlbumAutoLayoutDialog({
 
     await supabase
       .from("albums")
-      .update({ page_count: pageNum - 1 })
+      .update({ page_count: pageNum })
       .eq("id", album.id);
 
-    return pageNum - 1;
+    return pageNum;
   };
 
   // ── Run: Event gallery ──

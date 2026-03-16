@@ -287,6 +287,26 @@ export default function AlbumPhotoPanel({
         />
       </div>
 
+      {/* Photo Progress Summary */}
+      {photos.length > 0 && (
+        <div className="px-3 py-2 border-b">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+            <span>
+              {placedPhotoUrls.size} of {photos.length} placed (
+              {Math.round((placedPhotoUrls.size / photos.length) * 100)}%)
+            </span>
+          </div>
+          <div className="h-1 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-300"
+              style={{
+                width: `${(placedPhotoUrls.size / photos.length) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Search + Filter */}
       <div className="p-2 border-b flex gap-1.5">
         <div className="relative flex-1">

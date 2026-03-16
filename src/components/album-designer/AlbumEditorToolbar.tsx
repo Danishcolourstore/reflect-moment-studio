@@ -140,7 +140,7 @@ export default function AlbumEditorToolbar({
 
           <div
             className={cn(
-              "hidden sm:flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full tracking-wide uppercase font-medium shrink-0",
+              "flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full tracking-wide uppercase font-medium shrink-0",
               saveStatus === "saved"
                 ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400"
                 : saveStatus === "saving"
