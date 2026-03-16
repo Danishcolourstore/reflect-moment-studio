@@ -174,7 +174,7 @@ export function WebsiteFooter({ template, branding, photographerUsername }: Webs
         <div className="border-t py-16 px-6 text-center" style={{ borderColor: 'rgba(245,240,234,0.06)' }}>
           <div className="max-w-4xl mx-auto space-y-6">
             {branding.studio_logo_url ? (
-              <img src={branding.studio_logo_url} alt="" className="h-14 sm:h-16 mx-auto object-contain opacity-70" />
+              <img src={branding.studio_logo_url} alt={`${branding.studio_name} logo`} className="h-14 sm:h-16 mx-auto object-contain opacity-70" />
             ) : (
               <h3
                 className="text-2xl sm:text-3xl font-light italic"
