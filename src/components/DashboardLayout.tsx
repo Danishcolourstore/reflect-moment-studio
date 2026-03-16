@@ -53,6 +53,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/events': 'Events',
   '/dashboard/website-editor': 'Website Builder',
+  '/dashboard/domains': 'Website Domains',
   '/dashboard/storybook': 'Storybook',
   '/dashboard/album-designer': 'Album Designer',
   '/dashboard/cheetah-live': 'Cheetah',
