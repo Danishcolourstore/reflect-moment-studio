@@ -72,7 +72,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
     const navItems = ['Home', 'About', 'Portfolio', 'Journal', 'Contact'];
     const textColor = coverUrl ? '#FAF8F5' : '#1A1715';
     return (
-      <section id={id} className="relative" style={{ minHeight: '100dvh', minHeight: '100vh' }}>
+      <section id={id} className="relative min-h-screen" style={{ minHeight: '100dvh' }}>
         {coverUrl ? (
           <>
             <div className="absolute inset-0 overflow-hidden">
