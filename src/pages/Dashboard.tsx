@@ -12,6 +12,9 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { InviteClientModal } from "@/components/InviteClientModal";
+import { StudioBrainCards } from "@/components/entiran/StudioBrainCards";
+import { EventLifecycle } from "@/components/entiran/EventLifecycle";
+import { useStudioBrain } from "@/hooks/use-studio-brain";
 
 interface ManagedClient {
   id: string;
