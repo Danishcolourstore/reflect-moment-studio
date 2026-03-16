@@ -39,6 +39,7 @@ export default function AlbumTimeline({
   onReorderSpread,
   spreadThumbnails,
   albumSize,
+  compact,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const sorted = [...spreads].sort((a, b) => a.spreadIndex - b.spreadIndex);
