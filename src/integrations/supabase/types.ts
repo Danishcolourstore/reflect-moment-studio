@@ -369,6 +369,59 @@ export type Database = {
         }
         Relationships: []
       }
+      bug_reports: {
+        Row: {
+          browser: string | null
+          conversation_id: string | null
+          created_at: string
+          description: string
+          device_type: string | null
+          id: string
+          os: string | null
+          page_context: string
+          screen_resolution: string | null
+          screenshot_url: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          description: string
+          device_type?: string | null
+          id?: string
+          os?: string | null
+          page_context: string
+          screen_resolution?: string | null
+          screenshot_url?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          description?: string
+          device_type?: string | null
+          id?: string
+          os?: string | null
+          page_context?: string
+          screen_resolution?: string | null
+          screenshot_url?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bug_reports_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "entiran_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bulk_emails: {
         Row: {
           id: string
@@ -1149,6 +1202,65 @@ export type Database = {
           verified_at?: string | null
         }
         Relationships: []
+      }
+      entiran_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          page_context: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_context: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_context?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      entiran_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          message_type: string
+          metadata: Json | null
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entiran_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "entiran_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_analytics: {
         Row: {
@@ -2599,6 +2711,42 @@ export type Database = {
           website_images?: Json | null
           website_template?: string | null
           whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      studio_suggestions: {
+        Row: {
+          action_data: Json | null
+          body: string
+          created_at: string
+          id: string
+          is_acted: boolean
+          is_dismissed: boolean
+          suggestion_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_data?: Json | null
+          body: string
+          created_at?: string
+          id?: string
+          is_acted?: boolean
+          is_dismissed?: boolean
+          suggestion_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_data?: Json | null
+          body?: string
+          created_at?: string
+          id?: string
+          is_acted?: boolean
+          is_dismissed?: boolean
+          suggestion_type?: string
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
