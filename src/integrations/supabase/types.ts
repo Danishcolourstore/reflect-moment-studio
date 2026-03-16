@@ -2960,50 +2960,74 @@ export type Database = {
         Row: {
           body: string | null
           card_type: string
+          content_type: string
           created_at: string
           cta_action: string | null
           cta_label: string | null
+          cta_link: string | null
           cta_route: string | null
+          cta_text: string | null
+          description: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
+          is_pinned: boolean
+          is_published: boolean
           is_today: boolean | null
+          scheduled_at: string | null
           sort_order: number | null
           tab: string
           tag: string | null
           title: string
+          updated_at: string
         }
         Insert: {
           body?: string | null
           card_type?: string
+          content_type?: string
           created_at?: string
           cta_action?: string | null
           cta_label?: string | null
+          cta_link?: string | null
           cta_route?: string | null
+          cta_text?: string | null
+          description?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_pinned?: boolean
+          is_published?: boolean
           is_today?: boolean | null
+          scheduled_at?: string | null
           sort_order?: number | null
           tab?: string
           tag?: string | null
           title: string
+          updated_at?: string
         }
         Update: {
           body?: string | null
           card_type?: string
+          content_type?: string
           created_at?: string
           cta_action?: string | null
           cta_label?: string | null
+          cta_link?: string | null
           cta_route?: string | null
+          cta_text?: string | null
+          description?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_pinned?: boolean
+          is_published?: boolean
           is_today?: boolean | null
+          scheduled_at?: string | null
           sort_order?: number | null
           tab?: string
           tag?: string | null
           title?: string
+          updated_at?: string
         }
         Relationships: []
       }
