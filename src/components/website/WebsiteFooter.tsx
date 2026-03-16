@@ -103,7 +103,7 @@ export function WebsiteFooter({ template, branding, photographerUsername }: Webs
             {/* Logo / name */}
             <div>
               {branding.studio_logo_url ? (
-                <img src={branding.studio_logo_url} alt="" className="h-8 object-contain brightness-0 invert opacity-80" />
+                <img src={branding.studio_logo_url} alt={`${branding.studio_name} logo`} className="h-8 object-contain brightness-0 invert opacity-80" />
               ) : (
                 <span className="text-sm font-semibold tracking-[0.02em]" style={{ color: '#FFFFFF', opacity: 0.9 }}>
                   {branding.studio_name}
