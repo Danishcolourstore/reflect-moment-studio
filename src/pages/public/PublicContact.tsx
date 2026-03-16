@@ -46,6 +46,7 @@ export default function PublicContact() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center px-4 py-16">
+      <SiteHead title={`Contact ${studioName}`} ogTitle={`Contact ${studioName}`} />
       <div className="max-w-lg w-full space-y-8">
         <div className="text-center">
           <h1 className="text-3xl text-[#1A1A1A]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
