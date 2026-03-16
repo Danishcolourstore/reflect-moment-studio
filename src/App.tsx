@@ -358,6 +358,7 @@ const AppRoutes = () => {
         <Route path="/dashboard/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="/dashboard/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
         <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+        <Route path="/dashboard/business" element={<ProtectedRoute><BusinessSuite /></ProtectedRoute>} />
 
         <Route path="/event/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
         <Route path="/event/:slug/gallery" element={<GalleryShell><PublicGallery /></GalleryShell>} />
