@@ -11,6 +11,7 @@ import { Instagram, Facebook, Globe, Loader2, CheckCircle } from "lucide-react";
 
 export default function PublicContact() {
   const { siteOwnerId } = useSiteContext();
+  const { profile: siteProfile } = useSiteProfile();
   const [profile, setProfile] = useState<any>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sending, setSending] = useState(false);
