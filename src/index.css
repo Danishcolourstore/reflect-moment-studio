@@ -47,6 +47,46 @@
     --sidebar-ring: 43 76% 53%;
   }
 
+  /* ── Versace / Luxe ── black + gold Medusa opulence ── */
+  .versace {
+    --background: 0 0% 2%;              /* #050505 */
+    --foreground: 44 30% 88%;           /* #E8DFC8 warm ivory */
+
+    --card: 0 0% 5%;                    /* #0D0D0D */
+    --card-foreground: 44 30% 88%;
+
+    --popover: 0 0% 5%;
+    --popover-foreground: 44 30% 88%;
+
+    --primary: 46 100% 50%;             /* #FFD700 pure gold */
+    --primary-foreground: 0 0% 2%;
+
+    --secondary: 0 0% 8%;              /* #141414 */
+    --secondary-foreground: 44 30% 88%;
+
+    --muted: 0 0% 8%;
+    --muted-foreground: 44 10% 50%;    /* muted gold-gray */
+
+    --accent: 46 100% 50%;             /* gold */
+    --accent-foreground: 0 0% 2%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 46 50% 18%;              /* dark gold border */
+    --input: 0 0% 8%;
+    --ring: 46 100% 50%;
+
+    --sidebar-background: 0 0% 2%;
+    --sidebar-foreground: 44 30% 88%;
+    --sidebar-primary: 46 100% 50%;
+    --sidebar-primary-foreground: 0 0% 2%;
+    --sidebar-accent: 0 0% 8%;
+    --sidebar-accent-foreground: 44 30% 88%;
+    --sidebar-border: 46 50% 18%;
+    --sidebar-ring: 46 100% 50%;
+  }
+
   /* ── Classic / Editorial ── warm neutral Pixieset ── */
   .classic {
     --background: 34 23% 93%;           /* #F3EFE9 */

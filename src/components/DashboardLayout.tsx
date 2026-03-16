@@ -64,11 +64,14 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-type ThemeMode = 'dark' | 'classic';
+type ThemeMode = 'dark' | 'versace' | 'classic';
+
+const THEME_ORDER: ThemeMode[] = ['dark', 'versace', 'classic'];
+const THEME_ICONS: Record<ThemeMode, string> = { dark: '🌙', versace: '👑', classic: '☀️' };
 
 function applyThemeClass(t: ThemeMode) {
-  document.documentElement.classList.remove('dark', 'editorial', 'classic');
-  if (t === 'classic') document.documentElement.classList.add('classic');
+  document.documentElement.classList.remove('dark', 'editorial', 'classic', 'versace');
+  if (t !== 'dark') document.documentElement.classList.add(t);
   localStorage.setItem('theme', t);
 }
 
@@ -79,7 +82,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('theme') || 'dark';
-    const t: ThemeMode = saved === 'classic' ? 'classic' : 'dark';
+    const t: ThemeMode = THEME_ORDER.includes(saved as ThemeMode) ? (saved as ThemeMode) : 'dark';
     applyThemeClass(t);
     return t;
   });
@@ -94,7 +97,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       .then(({ data }: any) => {
         if (data) {
           setProfile(data);
-          const dbTheme: ThemeMode = data.theme_preference === 'classic' ? 'classic' : 'dark';
+          const dbTheme: ThemeMode = THEME_ORDER.includes(data.theme_preference as ThemeMode) ? (data.theme_preference as ThemeMode) : 'dark';
           applyThemeClass(dbTheme);
           setTheme(dbTheme);
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
@@ -184,11 +187,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-2">
           {/* Theme toggle */}
           <button
-            onClick={() => switchTheme(theme === 'dark' ? 'classic' : 'dark')}
+            onClick={() => {
+              const idx = THEME_ORDER.indexOf(theme);
+              switchTheme(THEME_ORDER[(idx + 1) % THEME_ORDER.length]);
+            }}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            title="Toggle theme"
+            title={`Theme: ${theme}`}
           >
-            {theme === 'dark' ? '☀️' : '🌙'}
+            {THEME_ICONS[theme]}
           </button>
           <NotificationBell />
           <DropdownMenu>
