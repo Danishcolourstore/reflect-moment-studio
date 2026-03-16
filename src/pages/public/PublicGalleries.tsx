@@ -52,7 +52,7 @@ export default function PublicGalleries() {
               {visible.map(g => (
                 <Link
                   key={g.id}
-                  to={`/gallery/${g.id}`}
+                  to={`/gallery-view/${g.id}`}
                   className="block mb-5 break-inside-avoid group"
                 >
                   <div className="relative rounded-lg overflow-hidden bg-[#E8E0D4] shadow-sm transition-shadow duration-300 ease-out group-hover:shadow-lg">
