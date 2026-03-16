@@ -355,6 +355,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </Sheet>
       </nav>
       )}
+      <EntiranProvider />
     </div>
   );
 }
