@@ -120,11 +120,11 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: EntiranP
   // Mobile: bottom sheet
   if (isMobile) {
     return (
-      <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Entiran AI Assistant">
+      <div className="fixed inset-0" style={{ zIndex: 10000 }} role="dialog" aria-modal="true" aria-label="Entiran AI Assistant">
         <div className="absolute inset-0 bg-black/40" onClick={onClose} />
         <div
           className="absolute bottom-0 left-0 right-0 flex flex-col rounded-t-2xl shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-bottom motion-safe:duration-300"
-          style={{ height: '85vh', backgroundColor: '#FDFBF7' }}
+          style={{ height: '80vh', backgroundColor: '#FDFBF7' }}
         >
           {panelContent}
         </div>
