@@ -172,6 +172,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const storageLimit = storage.data?.limit ?? PLAN_LIMITS.free;
   const storagePct = Math.min((storageUsed / storageLimit) * 100, 100);
 
+  // Tablet: use sidebar + wider content; Phone: bottom nav; Desktop: sidebar
+  const showSidebar = device.isDesktop || device.isTablet;
+  const showBottomNav = device.isPhone;
+  const sidebarWidth = device.isTablet ? 200 : 240;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
