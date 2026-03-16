@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
+import { useDeviceDetect } from '@/hooks/use-device-detect';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
   LogOut, Bell, ChevronRight, Menu, Globe,
@@ -101,6 +102,7 @@ function applyAccentClass(a: AccentMode) {
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
+  const device = useDeviceDetect();
   const showDomainNudge = useDomainNudge(user?.id);
   const navigate = useNavigate();
   const location = useLocation();
@@ -170,10 +172,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const storageLimit = storage.data?.limit ?? PLAN_LIMITS.free;
   const storagePct = Math.min((storageUsed / storageLimit) * 100, 100);
 
+  // Tablet: use sidebar + wider content; Phone: bottom nav; Desktop: sidebar
+  const showSidebar = device.isDesktop || device.isTablet;
+  const showBottomNav = device.isPhone;
+  const sidebarWidth = device.isTablet ? 200 : 240;
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[240px] flex-col lg:flex border-r border-border bg-card">
+      {/* Sidebar — desktop and tablet */}
+      {showSidebar && (
+      <aside className="fixed left-0 top-0 z-30 h-screen flex-col flex border-r border-border bg-card" style={{ width: sidebarWidth }}>
         <div className="px-6 pt-7 pb-5">
           <h1 className="text-lg font-semibold text-foreground tracking-tight">Mirror AI</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Photography Platform</p>
@@ -223,13 +231,19 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </aside>
+      )}
 
       {/* Header */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[240px] z-20 flex items-center justify-between px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14">
-        <h2 className="text-foreground font-semibold lg:hidden text-lg tracking-tight">Mirror AI</h2>
-        <h2 className="hidden lg:block text-sm font-medium text-foreground">
-          {PAGE_TITLES[location.pathname] || ''}
-        </h2>
+      <header
+        className="fixed top-0 right-0 z-20 flex items-center justify-between px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14"
+        style={{ left: showSidebar ? sidebarWidth : 0 }}
+      >
+        {!showSidebar && <h2 className="text-foreground font-semibold text-lg tracking-tight">Mirror AI</h2>}
+        {showSidebar && (
+          <h2 className="text-sm font-medium text-foreground">
+            {PAGE_TITLES[location.pathname] || ''}
+          </h2>
+        )}
         <div className="flex items-center gap-1.5">
           {/* Accent toggle: Red ↔ Gold */}
           <button
@@ -287,7 +301,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Main */}
-      <main className="lg:ml-[240px] pb-24 lg:pb-0 pt-14">
+      <main
+        className="pb-24 lg:pb-0 pt-14"
+        style={{ marginLeft: showSidebar ? sidebarWidth : 0 }}
+      >
         <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {children}
         </div>
@@ -295,8 +312,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       <FloatingActionButton />
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border safe-area-pb h-16">
+      {/* Mobile bottom nav — phones only */}
+      {showBottomNav && (
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch bg-card border-t border-border safe-area-pb h-16">
         {MOBILE_NAV.map((item) => (
           <NavLink key={item.url} to={item.url} end={item.end}
             className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors min-h-[44px]"
@@ -335,6 +353,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </SheetContent>
         </Sheet>
       </nav>
+      )}
     </div>
   );
 }

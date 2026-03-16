@@ -286,6 +286,128 @@
   .show-desktop { @apply hidden lg:block; }
 }
 
+/* ═══════════════════════════════════════════════════════
+   Platform-Adaptive Styles
+   Classes applied by useDeviceDetect hook
+   ═══════════════════════════════════════════════════════ */
+
+/* ── iOS: Smooth transitions, safe areas, native feel ── */
+.platform-ios {
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.platform-ios button,
+.platform-ios a,
+.platform-ios [role="button"] {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.platform-ios button:active,
+.platform-ios a:active,
+.platform-ios [role="button"]:active {
+  opacity: 0.7;
+  transform: scale(0.97);
+}
+
+.platform-ios.has-safe-area {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Android: Material-style ripple feel ── */
+.platform-android {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.platform-android button,
+.platform-android a,
+.platform-android [role="button"] {
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.platform-android button:active,
+.platform-android a:active,
+.platform-android [role="button"]:active {
+  transform: scale(0.98);
+  background-color: hsl(var(--secondary) / 0.8);
+}
+
+/* ── Touch devices: Larger tap targets ── */
+.input-touch button,
+.input-touch a,
+.input-touch [role="button"],
+.input-touch input,
+.input-touch select,
+.input-touch textarea {
+  min-height: 44px;
+}
+
+.input-touch .nav-item {
+  min-height: 48px;
+}
+
+/* ── Mouse/desktop: Hover states, finer spacing ── */
+.input-mouse button:hover,
+.input-mouse a:hover,
+.input-mouse [role="button"]:hover {
+  transition: all 0.15s ease;
+}
+
+/* ── Tablet layout helpers ── */
+.device-tablet .tablet-sidebar {
+  display: flex;
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.device-tablet .tablet-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.device-tablet .tablet-panel {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+/* ── Desktop layout enhancements ── */
+.device-desktop .desktop-wide {
+  max-width: 1400px;
+}
+
+/* ── Standalone PWA mode ── */
+.is-standalone {
+  /* Remove browser chrome space */
+  --header-offset: 0px;
+}
+
+.is-standalone.has-safe-area {
+  --header-offset: env(safe-area-inset-top, 0px);
+}
+
+/* ── Smooth scrolling per-platform ── */
+.platform-ios * {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.platform-android * {
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* ── Keyboard shortcut hint visibility ── */
+.input-touch .kbd-hint {
+  display: none;
+}
+
+.input-mouse .kbd-hint {
+  display: inline-flex;
+}
+
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
