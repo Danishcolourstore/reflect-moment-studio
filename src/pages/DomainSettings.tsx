@@ -113,10 +113,6 @@ export default function DomainSettings() {
   const [verifyAttempt, setVerifyAttempt] = useState(0);
   const [verifyMaxAttempts, setVerifyMaxAttempts] = useState(0);
   const [onboardingStarted, setOnboardingStarted] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [verifyAttempt, setVerifyAttempt] = useState(0);
-  const [verifyMaxAttempts, setVerifyMaxAttempts] = useState(0);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
