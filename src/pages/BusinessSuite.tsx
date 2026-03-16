@@ -8,6 +8,7 @@ import { BookingsPanel } from '@/components/business/BookingsPanel';
 import { PackagesPanel } from '@/components/business/PackagesPanel';
 import { InsightsPanel } from '@/components/business/InsightsPanel';
 import { BusinessSuggestions } from '@/components/business/BusinessSuggestions';
+import { SEOWebsitePanel } from '@/components/business/SEOWebsitePanel';
 import { PerformanceTracker } from '@/components/instagram/PerformanceTracker';
 import { CompetitorTracker } from '@/components/instagram/CompetitorTracker';
 import { GrowthScoreCard } from '@/components/instagram/GrowthScoreCard';
