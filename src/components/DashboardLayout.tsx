@@ -353,6 +353,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </SheetContent>
         </Sheet>
       </nav>
+      )}
     </div>
   );
 }
