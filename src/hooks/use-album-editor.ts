@@ -54,6 +54,10 @@ export function useAlbumEditor(albumId: string | undefined) {
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
+  const savingRef = useRef(false);
+
+  // Mobile tap-to-place state
+  const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
 
   // Album-wide photo tracking
   const [allSpreadsPhotoMap, setAllSpreadsPhotoMap] = useState<Map<string, string[]>>(new Map());
@@ -213,7 +217,8 @@ export function useAlbumEditor(albumId: string | undefined) {
 
   const saveLayers = useCallback(async () => {
     const spreadId = currentSpreadIdRef.current;
-    if (!spreadId) return;
+    if (!spreadId || savingRef.current) return;
+    savingRef.current = true;
     setSaveStatus("saving");
     try {
       await supabase.from("album_layers").delete().eq("page_id", spreadId);
@@ -224,7 +229,10 @@ export function useAlbumEditor(albumId: string | undefined) {
         layer_type: "photo",
         photo_id: null,
         text_content: null,
-        x: 0, y: 0, width: 100, height: 100,
+        x: Math.round(frame.x * 100) / 100,
+        y: Math.round(frame.y * 100) / 100,
+        width: Math.round(frame.w * 100) / 100,
+        height: Math.round(frame.h * 100) / 100,
         rotation: frame.rotation,
         z_index: i,
         settings_json: {
@@ -257,6 +265,8 @@ export function useAlbumEditor(albumId: string | undefined) {
       console.error("Save failed", e);
       setSaveStatus("unsaved");
       toast.error("Failed to save changes");
+    } finally {
+      savingRef.current = false;
     }
   }, []);
 
@@ -270,6 +280,26 @@ export function useAlbumEditor(albumId: string | undefined) {
     setSaveStatus("unsaved");
     scheduleSave();
   }, [scheduleSave]);
+
+  /* ─── Bug 1 Fix: beforeunload + unmount save ─── */
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (dirtyRef.current) {
+        e.preventDefault();
+        e.returnValue = "You have unsaved changes.";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      // Save on unmount
+      if (dirtyRef.current) {
+        saveLayers();
+      }
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [saveLayers]);
 
   /* ─── Undo/Redo ─── */
 
@@ -307,7 +337,6 @@ export function useAlbumEditor(albumId: string | undefined) {
   const applyPreset = useCallback((preset: LayoutPreset) => {
     pushUndo();
     const newFrames = preset.frames.map((f, i) => {
-      // Preserve existing image if available
       const existing = frames[i];
       return createFrame({
         ...f,
@@ -331,6 +360,33 @@ export function useAlbumEditor(albumId: string | undefined) {
     });
     markDirty();
   }, [pushUndo, markDirty]);
+
+  /* ─── Bug 7 Fix: Tap-to-place for mobile ─── */
+
+  const selectPhotoForPlacement = useCallback((url: string) => {
+    setPendingPhotoUrl(url);
+    toast.info("Tap a frame to place this photo", { duration: 3000 });
+  }, []);
+
+  const placePhotoInFrame = useCallback((frameIndex: number) => {
+    if (!pendingPhotoUrl) return false;
+    pushUndo();
+    setFrames(prev => {
+      const n = [...prev];
+      if (frameIndex < n.length) {
+        n[frameIndex] = { ...n[frameIndex], imageUrl: pendingPhotoUrl, panX: 0, panY: 0, zoom: 1 };
+      }
+      return n;
+    });
+    markDirty();
+    setPendingPhotoUrl(null);
+    toast.success("Photo placed");
+    return true;
+  }, [pendingPhotoUrl, pushUndo, markDirty]);
+
+  const cancelPhotoPlacement = useCallback(() => {
+    setPendingPhotoUrl(null);
+  }, []);
 
   const placePhotoFile = useCallback(async (index: number, file: File) => {
     if (!user || !album) return;
@@ -511,8 +567,12 @@ export function useAlbumEditor(albumId: string | undefined) {
     return () => window.removeEventListener("keydown", handler);
   }, [undo, redo, saveLayers]);
 
-  const goBack = useCallback(() => {
-    if (dirtyRef.current) saveLayers();
+  /* ─── Bug 1 Fix: goBack saves immediately and waits ─── */
+
+  const goBack = useCallback(async () => {
+    if (dirtyRef.current) {
+      await saveLayers();
+    }
     navigate("/dashboard/album-designer");
   }, [saveLayers, navigate]);
 
@@ -535,5 +595,7 @@ export function useAlbumEditor(albumId: string | undefined) {
     addSpread, duplicateSpread, deleteSpread, selectSpread, reorderSpreads,
     updateStatus, getShareLink, linkEvent, reloadSpreads, goBack,
     placePhotoFile, uploadingCells, spreadThumbnails,
+    // Bug 7: tap-to-place
+    pendingPhotoUrl, selectPhotoForPlacement, placePhotoInFrame, cancelPhotoPlacement,
   };
 }
