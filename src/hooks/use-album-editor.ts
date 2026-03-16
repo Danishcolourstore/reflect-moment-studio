@@ -204,7 +204,8 @@ export function useAlbumEditor(albumId: string | undefined) {
         });
       });
       setFrames(restoredFrames);
-      setCurrentPresetId(photoLayers[0]?.settings_json?.presetId || null);
+      const firstSettings = photoLayers[0]?.settings_json as Record<string, any> | null;
+      setCurrentPresetId(firstSettings?.presetId || null);
     })();
   }, [currentSpreadId]);
 
