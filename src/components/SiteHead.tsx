@@ -33,16 +33,39 @@ export function SiteHead({ title, description, ogTitle, ogDescription, ogImage }
   const finalOgDescription = ogDescription || truncatedBio;
   const finalOgImage = ogImage || coverImage;
 
+  // Structured data for LocalBusiness
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": name,
+    "description": finalDescription,
+    "url": canonicalUrl,
+    ...(finalOgImage && { "image": finalOgImage }),
+    ...(profile?.location && { "address": { "@type": "PostalAddress", "addressLocality": profile.location } }),
+    ...(profile?.email && { "email": profile.email }),
+    ...(profile?.phone && { "telephone": profile.phone }),
+    "priceRange": "$$",
+    "@id": canonicalUrl,
+  };
+
   return (
     <Helmet>
       <title>{finalTitle}</title>
       <meta name="description" content={finalDescription} />
 
+      {/* Open Graph */}
       <meta property="og:title" content={finalOgTitle} />
       <meta property="og:description" content={finalOgDescription} />
       {finalOgImage && <meta property="og:image" content={finalOgImage} />}
       <meta property="og:url" content={currentUrl} />
       <meta property="og:type" content="website" />
+      <meta property="og:site_name" content={name} />
+
+      {/* Twitter Card */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={finalOgTitle} />
+      <meta name="twitter:description" content={finalOgDescription} />
+      {finalOgImage && <meta name="twitter:image" content={finalOgImage} />}
 
       <link rel="canonical" href={canonicalUrl} />
 
@@ -51,6 +74,9 @@ export function SiteHead({ title, description, ogTitle, ogDescription, ogImage }
       ) : (
         <meta name="robots" content="index, follow" />
       )}
+
+      {/* JSON-LD Structured Data */}
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
     </Helmet>
   );
 }
