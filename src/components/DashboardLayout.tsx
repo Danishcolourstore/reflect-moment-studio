@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
   { title: 'Website', url: '/dashboard/website-editor', icon: Globe },
+  { title: 'Domains', url: '/dashboard/domains', icon: Globe },
   { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
   { title: 'Clients', url: '/dashboard/clients', icon: Users },
