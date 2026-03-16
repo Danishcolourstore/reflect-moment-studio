@@ -2597,6 +2597,75 @@ export type Database = {
           },
         ]
       }
+      photographer_websites: {
+        Row: {
+          about_bio: string | null
+          accent_color: string | null
+          build_status: string | null
+          city: string
+          created_at: string
+          custom_domain: string | null
+          email: string | null
+          id: string
+          is_published: boolean | null
+          phone: string | null
+          selected_photos: Json | null
+          seo_data: Json | null
+          specialty: string
+          studio_name: string
+          subdomain: string | null
+          tagline: string | null
+          theme_mode: string | null
+          updated_at: string
+          user_id: string
+          whatsapp: string | null
+        }
+        Insert: {
+          about_bio?: string | null
+          accent_color?: string | null
+          build_status?: string | null
+          city?: string
+          created_at?: string
+          custom_domain?: string | null
+          email?: string | null
+          id?: string
+          is_published?: boolean | null
+          phone?: string | null
+          selected_photos?: Json | null
+          seo_data?: Json | null
+          specialty?: string
+          studio_name?: string
+          subdomain?: string | null
+          tagline?: string | null
+          theme_mode?: string | null
+          updated_at?: string
+          user_id: string
+          whatsapp?: string | null
+        }
+        Update: {
+          about_bio?: string | null
+          accent_color?: string | null
+          build_status?: string | null
+          city?: string
+          created_at?: string
+          custom_domain?: string | null
+          email?: string | null
+          id?: string
+          is_published?: boolean | null
+          phone?: string | null
+          selected_photos?: Json | null
+          seo_data?: Json | null
+          specialty?: string
+          studio_name?: string
+          subdomain?: string | null
+          tagline?: string | null
+          theme_mode?: string | null
+          updated_at?: string
+          user_id?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       photos: {
         Row: {
           created_at: string
@@ -3455,6 +3524,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      website_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          photographer_id: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          photographer_id: string
+          website_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          photographer_id?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_leads_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "photographer_websites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       website_templates: {
         Row: {
