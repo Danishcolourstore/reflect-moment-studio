@@ -52,6 +52,7 @@ const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
 const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
 const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
+const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
 const VerifyAccess = lazy(() => import("./pages/VerifyAccess"));
 const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
 const AdminGate = lazy(() => import("./pages/admin/AdminGate"));
@@ -333,6 +334,7 @@ const AppRoutes = () => {
         <Route path="/dashboard/storybook" element={<ProtectedRoute><StorybookCreator /></ProtectedRoute>} />
         <Route path="/dashboard/album-designer" element={<ProtectedRoute><AlbumDesigner /></ProtectedRoute>} />
         <Route path="/dashboard/album-designer/:albumId/editor" element={<ProtectedRoute><AlbumEditorPage /></ProtectedRoute>} />
+        <Route path="/dashboard/ai-album" element={<ProtectedRoute><AIAlbumBuilder /></ProtectedRoute>} />
         <Route path="/dashboard/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
         <Route path="/dashboard/cheetah" element={<ProtectedRoute><Cheetah /></ProtectedRoute>} />
         <Route path="/dashboard/cheetah-live" element={<ProtectedRoute><CheetahLive /></ProtectedRoute>} />
