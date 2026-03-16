@@ -84,25 +84,26 @@ const AdminEmails = lazy(() => import("./pages/admin/AdminEmails"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 
-const SUPER_ADMIN_ROUTE_ELEMENTS: Record<string, React.ReactNode> = {
-  overview: <SuperAdminOverview />,
-  users: <SuperAdminUsers />,
-  events: <AdminEvents />,
-  storage: <AdminStorage />,
-  revenue: <AdminRevenue />,
-  analytics: <SuperAdminAnalytics />,
-  templates: <SuperAdminTemplates />,
-  emails: <AdminEmails />,
-  activity: <AdminActivity />,
-  mirrorai: <SuperAdminMirrorAI />,
-  storybooks: <SuperAdminStorybooks />,
-  settings: <SuperAdminSettings />,
-  'studio-templates': <TemplateBuilder />,
-  'grid-manager': <SuperAdminGridManager />,
-  galleries: <SuperAdminGalleries />,
-  'dashboard-editor': <SuperAdminDashboardEditor />,
-  'platform-builder': <SuperAdminPlatformBuilder />,
-  'ai-developer': <SuperAdminAIDeveloper />,
+// Lazy map – only instantiate on render, not at module scope
+const SUPER_ADMIN_ROUTE_MAP: Record<string, React.LazyExoticComponent<any>> = {
+  overview: SuperAdminOverview,
+  users: SuperAdminUsers,
+  events: AdminEvents,
+  storage: AdminStorage,
+  revenue: AdminRevenue,
+  analytics: SuperAdminAnalytics,
+  templates: SuperAdminTemplates,
+  emails: AdminEmails,
+  activity: AdminActivity,
+  mirrorai: SuperAdminMirrorAI,
+  storybooks: SuperAdminStorybooks,
+  settings: SuperAdminSettings,
+  'studio-templates': TemplateBuilder,
+  'grid-manager': SuperAdminGridManager,
+  galleries: SuperAdminGalleries,
+  'dashboard-editor': SuperAdminDashboardEditor,
+  'platform-builder': SuperAdminPlatformBuilder,
+  'ai-developer': SuperAdminAIDeveloper,
 };
 
 const queryClient = new QueryClient({
