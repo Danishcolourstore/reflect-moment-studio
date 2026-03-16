@@ -126,8 +126,9 @@ export function useEntiranChat() {
     };
     setMessages(prev => [...prev, msg]);
 
-    // Only persist chat/suggestion/bug_report types to DB
-    if (type !== 'related_questions' && type !== 'welcome') {
+    // Only persist standard types to DB (not UI-only types)
+    const skipPersist = type === 'related_questions' || type === 'welcome';
+    if (!skipPersist) {
       await supabase.from('entiran_messages').insert({
         conversation_id: conversationId,
         role,
