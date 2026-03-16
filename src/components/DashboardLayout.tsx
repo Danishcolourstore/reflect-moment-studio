@@ -179,8 +179,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[240px] flex-col lg:flex border-r border-border bg-card">
+      {/* Sidebar — desktop and tablet */}
+      {showSidebar && (
+      <aside className="fixed left-0 top-0 z-30 h-screen flex-col flex border-r border-border bg-card" style={{ width: sidebarWidth }}>
         <div className="px-6 pt-7 pb-5">
           <h1 className="text-lg font-semibold text-foreground tracking-tight">Mirror AI</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Photography Platform</p>
