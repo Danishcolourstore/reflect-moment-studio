@@ -154,8 +154,13 @@ const Clients = () => {
 
   return (
     <DashboardLayout>
-      {/* Header */}
+      {/* Studio Brain Suggestions */}
+      <StudioBrainCards suggestions={suggestions} onDismiss={dismissSuggestion} onAct={actOnSuggestion} />
+      
+      {/* Event Lifecycle Timeline */}
+      <EventLifecycle />
 
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="font-serif text-2xl">Client Manager</h1>
