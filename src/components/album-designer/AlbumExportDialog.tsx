@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -16,326 +11,165 @@ import { toast } from "sonner";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
-import { ALBUM_SIZES, type AlbumSize } from "./types";
-import type { PageSlot } from "./AlbumTimeline";
+import { SPREAD_SIZES, type AlbumSize } from "./types";
+import type { SpreadSlot } from "./AlbumTimeline";
 import type { AlbumData } from "@/hooks/use-album-editor";
 
-interface PageRenderData {
-  pageNum: number;
+interface SpreadRenderData {
+  spreadIndex: number;
   bgColor: string;
-  layout: { gridCols: number; gridRows: number; cells: number[][] } | null;
-  photos: { url: string; cellIndex?: number }[];
-  textLayers: { text: string; x: number; y: number; fontSize: number; fontFamily: string; color: string; rotation: number }[];
+  photos: { url: string; x: number; y: number; w: number; h: number }[];
 }
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   album: AlbumData;
-  pages: PageSlot[];
+  spreads: SpreadSlot[];
   onSharePreview: () => Promise<string>;
 }
 
-export default function AlbumExportDialog({
-  open,
-  onOpenChange,
-  album,
-  pages,
-  onSharePreview,
-}: Props) {
+export default function AlbumExportDialog({ open, onOpenChange, album, spreads, onSharePreview }: Props) {
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, label: "" });
   const [cmyk, setCmyk] = useState(false);
 
-  const loadPageImages = async (): Promise<PageRenderData[]> => {
-    const sortedPages = [...pages].sort((a, b) => a.pageNumber - b.pageNumber);
-    const pageIds = sortedPages.map((p) => p.id);
+  const loadSpreadsData = async (): Promise<SpreadRenderData[]> => {
+    const sorted = [...spreads].sort((a, b) => a.spreadIndex - b.spreadIndex);
+    const ids = sorted.map(s => s.id);
 
-    const { data: layersData } = await supabase
-      .from("album_layers")
-      .select("page_id,settings_json,layer_type,text_content,x,y,rotation")
-      .in("page_id", pageIds)
-      .order("z_index", { ascending: true });
+    const { data: layersData } = await supabase.from("album_layers")
+      .select("page_id,settings_json,layer_type").in("page_id", ids).order("z_index", { ascending: true });
+    const { data: pagesData } = await supabase.from("album_pages")
+      .select("id,background_color").in("id", ids);
 
-    const { data: pagesData } = await supabase
-      .from("album_pages")
-      .select("id,background_color")
-      .in("id", pageIds);
+    const bgMap = new Map((pagesData || []).map(p => [p.id, p.background_color || "#ffffff"]));
 
-    const bgMap = new Map(
-      (pagesData || []).map((p) => [p.id, p.background_color || "#ffffff"])
-    );
-
-    return sortedPages.map((p) => {
-      const allLayers = (layersData || []).filter((l) => l.page_id === p.id);
-      const photoLayers = allLayers.filter((l) => l.layer_type === "photo");
-      const textLayerRows = allLayers.filter((l) => l.layer_type === "text");
-
-      // Read layout from first photo layer
-      const firstSettings = photoLayers[0]?.settings_json as Record<string, any> | null;
-      const layout = firstSettings?.layout || null;
-
-      const photos = photoLayers
-        .filter((l) => {
-          const s = l.settings_json as Record<string, any> | null;
-          return s?.imageUrl;
-        })
-        .map((l, i) => {
-          const s = l.settings_json as Record<string, any>;
-          return { url: s.imageUrl as string, cellIndex: i };
-        });
-
-      const textLayers = textLayerRows.map((tl) => {
-        const s = tl.settings_json as Record<string, any> | null;
-        return {
-          text: s?.text || tl.text_content || "",
-          x: s?.x ?? tl.x ?? 50,
-          y: s?.y ?? tl.y ?? 50,
-          fontSize: s?.fontSize ?? 24,
-          fontFamily: s?.fontFamily ?? "serif",
-          color: s?.color ?? "#000000",
-          rotation: s?.rotation ?? tl.rotation ?? 0,
-        };
+    return sorted.map(s => {
+      const layers = (layersData || []).filter(l => l.page_id === s.id && l.layer_type === "photo");
+      const photos = layers.filter(l => {
+        const st = l.settings_json as any;
+        return st?.imageUrl;
+      }).map(l => {
+        const st = l.settings_json as any;
+        return { url: st.imageUrl, x: st.x || 0, y: st.y || 0, w: st.w || 100, h: st.h || 100 };
       });
-
-      return {
-        pageNum: p.pageNumber,
-        bgColor: bgMap.get(p.id) || "#ffffff",
-        layout,
-        photos,
-        textLayers,
-      };
+      return { spreadIndex: s.spreadIndex, bgColor: bgMap.get(s.id) || "#ffffff", photos };
     });
   };
 
-  const renderCanvas = async (
-    page: PageRenderData,
-    width: number,
-    height: number
-  ) => {
+  const renderCanvas = async (spread: SpreadRenderData, width: number, height: number) => {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = page.bgColor;
+    ctx.fillStyle = spread.bgColor;
     ctx.fillRect(0, 0, width, height);
 
-    if (page.photos.length > 0) {
-      const layout = page.layout;
-      const gridCols = layout?.gridCols || Math.ceil(Math.sqrt(page.photos.length));
-      const gridRows = layout?.gridRows || Math.ceil(page.photos.length / gridCols);
-      const cells = layout?.cells;
-
-      await Promise.all(
-        page.photos.map(
-          (photo, i) =>
-            new Promise<void>((resolve) => {
-              const img = new Image();
-              img.crossOrigin = "anonymous";
-              img.onload = () => {
-                let cellX: number, cellY: number, cellW: number, cellH: number;
-
-                if (cells && cells[i]) {
-                  const [rowStart, colStart, rowEnd, colEnd] = cells[i];
-                  cellX = ((colStart - 1) / gridCols) * width;
-                  cellY = ((rowStart - 1) / gridRows) * height;
-                  cellW = ((colEnd - colStart) / gridCols) * width;
-                  cellH = ((rowEnd - rowStart) / gridRows) * height;
-                } else {
-                  const col = i % gridCols;
-                  const row = Math.floor(i / gridCols);
-                  cellW = width / gridCols;
-                  cellH = height / gridRows;
-                  cellX = col * cellW;
-                  cellY = row * cellH;
-                }
-
-                // Cover-fit math
-                const scale = Math.max(cellW / img.width, cellH / img.height);
-                const w = img.width * scale;
-                const h = img.height * scale;
-
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(cellX, cellY, cellW, cellH);
-                ctx.clip();
-                ctx.drawImage(
-                  img,
-                  cellX + (cellW - w) / 2,
-                  cellY + (cellH - h) / 2,
-                  w,
-                  h
-                );
-                ctx.restore();
-                resolve();
-              };
-              img.onerror = () => resolve();
-              img.src = photo.url;
-            })
-        )
-      );
-    }
-
-    // Render text layers
-    for (const tl of page.textLayers) {
-      ctx.save();
-      ctx.font = `${tl.fontSize}px ${tl.fontFamily}`;
-      ctx.fillStyle = tl.color;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      const px = (tl.x / 100) * width;
-      const py = (tl.y / 100) * height;
-
-      if (tl.rotation) {
-        ctx.translate(px, py);
-        ctx.rotate((tl.rotation * Math.PI) / 180);
-        ctx.fillText(tl.text, 0, 0);
-      } else {
-        ctx.fillText(tl.text, px, py);
-      }
-      ctx.restore();
-    }
-
+    await Promise.all(spread.photos.map(photo =>
+      new Promise<void>(resolve => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const fx = (photo.x / 100) * width;
+          const fy = (photo.y / 100) * height;
+          const fw = (photo.w / 100) * width;
+          const fh = (photo.h / 100) * height;
+          const scale = Math.max(fw / img.width, fh / img.height);
+          const iw = img.width * scale;
+          const ih = img.height * scale;
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(fx, fy, fw, fh);
+          ctx.clip();
+          ctx.drawImage(img, fx + (fw - iw) / 2, fy + (fh - ih) / 2, iw, ih);
+          ctx.restore();
+          resolve();
+        };
+        img.onerror = () => resolve();
+        img.src = photo.url;
+      })
+    ));
     return canvas;
   };
+
+  const dim = SPREAD_SIZES[album.size] || SPREAD_SIZES["12x36"];
 
   const handleJpegExport = async () => {
     setExporting(true);
     try {
-      const data = await loadPageImages();
+      const data = await loadSpreadsData();
       const zip = new JSZip();
-      const dim = ALBUM_SIZES[album.size] || ALBUM_SIZES["12x12"];
       setProgress({ current: 0, total: data.length, label: "" });
-
       for (let i = 0; i < data.length; i++) {
-        setProgress({
-          current: i + 1,
-          total: data.length,
-          label: `Rendering page ${i + 1}`,
-        });
-        const page = data[i];
-        const canvas = await renderCanvas(page, dim.widthPx, dim.heightPx);
-        const blob = await new Promise<Blob>((res) =>
-          canvas.toBlob((b) => res(b!), "image/jpeg", 0.92)
-        );
-        zip.file(`page-${String(page.pageNum).padStart(3, "0")}.jpg`, blob);
+        setProgress({ current: i + 1, total: data.length, label: `Rendering spread ${i + 1}` });
+        const canvas = await renderCanvas(data[i], dim.spreadWidthPx, dim.spreadHeightPx);
+        const blob = await new Promise<Blob>(res => canvas.toBlob(b => res(b!), "image/jpeg", 0.92));
+        zip.file(`spread-${String(data[i].spreadIndex).padStart(3, "0")}.jpg`, blob);
       }
-
       const zipBlob = await zip.generateAsync({ type: "blob" });
       saveAs(zipBlob, `${album.name} Album Export.zip`);
       toast.success("JPEG export complete");
-    } catch (e) {
-      console.error(e);
-      toast.error("Export failed");
-    }
+    } catch (e) { console.error(e); toast.error("Export failed"); }
     setExporting(false);
   };
 
   const handlePdfExport = async (printReady: boolean) => {
     setExporting(true);
     try {
-      const data = await loadPageImages();
-      const dim = ALBUM_SIZES[album.size] || ALBUM_SIZES["12x12"];
-      const pxW = printReady ? dim.widthPx : dim.widthPx / 2;
-      const pxH = printReady ? dim.heightPx : dim.heightPx / 2;
-      const mmW = dim.widthIn * 25.4;
-      const mmH = dim.heightIn * 25.4;
+      const data = await loadSpreadsData();
+      const pxW = printReady ? dim.spreadWidthPx : dim.spreadWidthPx / 2;
+      const pxH = printReady ? dim.spreadHeightPx : dim.spreadHeightPx / 2;
+      const mmW = dim.spreadWidthIn * 25.4;
+      const mmH = dim.spreadHeightIn * 25.4;
 
-      const pdf = new jsPDF({
-        orientation: mmW > mmH ? "landscape" : "portrait",
-        unit: "mm",
-        format: [mmW, mmH],
-      });
-
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: [mmW, mmH] });
       for (let i = 0; i < data.length; i++) {
-        setProgress({
-          current: i + 1,
-          total: data.length,
-          label: `Rendering page ${i + 1}`,
-        });
+        setProgress({ current: i + 1, total: data.length, label: `Rendering spread ${i + 1}` });
         if (i > 0) pdf.addPage();
-        const page = data[i];
-        const canvas = await renderCanvas(page, pxW, pxH);
+        const canvas = await renderCanvas(data[i], pxW, pxH);
         const img = canvas.toDataURL("image/jpeg", printReady ? 1 : 0.85);
         pdf.addImage(img, "JPEG", 0, 0, mmW, mmH);
       }
-
       pdf.save(`${album.name} ${printReady ? "Print" : "Preview"}.pdf`);
       toast.success("PDF exported");
-    } catch (e) {
-      console.error(e);
-      toast.error("PDF export failed");
-    }
+    } catch (e) { console.error(e); toast.error("PDF export failed"); }
     setExporting(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Export Album</DialogTitle>
-        </DialogHeader>
-
+        <DialogHeader><DialogTitle>Export Album</DialogTitle></DialogHeader>
         {exporting ? (
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">{progress.label}</p>
-            <Progress
-              value={
-                progress.total ? (progress.current / progress.total) * 100 : 0
-              }
-            />
+            <Progress value={progress.total ? (progress.current / progress.total) * 100 : 0} />
           </div>
         ) : (
           <Tabs defaultValue="digital">
             <TabsList className="w-full">
-              <TabsTrigger value="digital" className="flex-1">
-                Digital
-              </TabsTrigger>
-              <TabsTrigger value="print" className="flex-1">
-                Print
-              </TabsTrigger>
+              <TabsTrigger value="digital" className="flex-1">Digital</TabsTrigger>
+              <TabsTrigger value="print" className="flex-1">Print</TabsTrigger>
             </TabsList>
-
             <TabsContent value="digital" className="space-y-3 mt-4">
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3 h-12"
-                onClick={handleJpegExport}
-              >
-                <ImageIcon className="h-4 w-4" />
-                JPEG Pages (ZIP)
+              <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={handleJpegExport}>
+                <ImageIcon className="h-4 w-4" /> JPEG Spreads (ZIP)
               </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3 h-12"
-                onClick={() => handlePdfExport(false)}
-              >
-                <FileText className="h-4 w-4" />
-                PDF Preview
+              <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => handlePdfExport(false)}>
+                <FileText className="h-4 w-4" /> PDF Preview
               </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3 h-12"
-                onClick={() =>
-                  onSharePreview().then(() => onOpenChange(false))
-                }
-              >
-                <Link2 className="h-4 w-4" />
-                Share Preview Link
+              <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => onSharePreview().then(() => onOpenChange(false))}>
+                <Link2 className="h-4 w-4" /> Share Preview Link
               </Button>
             </TabsContent>
-
             <TabsContent value="print" className="space-y-4 mt-4">
               <div className="flex justify-between items-center">
-                <Label className="text-xs">
-                  Color Profile: {cmyk ? "CMYK" : "sRGB"}
-                </Label>
+                <Label className="text-xs">Color Profile: {cmyk ? "CMYK" : "sRGB"}</Label>
                 <Switch checked={cmyk} onCheckedChange={setCmyk} />
               </div>
               <Button className="w-full" onClick={() => handlePdfExport(true)}>
-                <Download className="h-4 w-4 mr-2" />
-                Print-Ready PDF
+                <Download className="h-4 w-4 mr-2" /> Print-Ready PDF (300 DPI)
               </Button>
             </TabsContent>
           </Tabs>
