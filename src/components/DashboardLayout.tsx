@@ -231,6 +231,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </aside>
+      )}
 
       {/* Header */}
       <header className="fixed top-0 right-0 left-0 lg:left-[240px] z-20 flex items-center justify-between px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14">
