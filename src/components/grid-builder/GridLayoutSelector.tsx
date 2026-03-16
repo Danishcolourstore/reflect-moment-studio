@@ -16,8 +16,12 @@ const CATEGORIES = [
 ] as const;
 
 function LayoutPreview({ layout }: { layout: GridLayout }) {
+  const ratio = layout.canvasRatio ?? 1;
   return (
-    <div className="w-full aspect-square overflow-hidden rounded-lg bg-secondary/30">
+    <div
+      className="w-full overflow-hidden rounded-lg bg-secondary/30"
+      style={{ aspectRatio: `${ratio}` }}
+    >
       <div
         className="w-full h-full grid p-[3px]"
         style={{
