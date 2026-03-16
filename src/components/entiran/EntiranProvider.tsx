@@ -28,12 +28,12 @@ function FallbackButton() {
       onClick={() => window.location.reload()}
       className="fixed rounded-full shadow-lg flex items-center justify-center"
       style={{
-        bottom: isMobile ? 96 : 24,
+        bottom: isMobile ? 88 : 24,
         right: isMobile ? 16 : 24,
         width: 56,
         height: 56,
         backgroundColor: '#C9A96E',
-        zIndex: 9999,
+        zIndex: 10001,
       }}
       aria-label="Open Entiran AI Assistant"
     >
@@ -85,11 +85,11 @@ function EntiranInner() {
           <div
             className="fixed text-[10px] px-2 py-1 rounded-md shadow-sm pointer-events-none opacity-0 hover-parent-visible"
             style={{
-              bottom: isMobile ? 156 : 84,
+              bottom: isMobile ? 148 : 84,
               right: isMobile ? 16 : 24,
               backgroundColor: 'hsl(var(--popover))',
               color: 'hsl(var(--popover-foreground))',
-              zIndex: 9999,
+              zIndex: 10001,
             }}
           >
             Ask Entiran
@@ -98,11 +98,11 @@ function EntiranInner() {
             <div
               className="fixed text-[10px] px-2.5 py-1.5 rounded-lg shadow-md whitespace-nowrap motion-safe:animate-in motion-safe:fade-in"
               style={{
-                bottom: isMobile ? 156 : 86,
+                bottom: isMobile ? 148 : 86,
                 right: isMobile ? 16 : 24,
                 backgroundColor: '#1A1A1A',
                 color: 'white',
-                zIndex: 9999,
+                zIndex: 10001,
               }}
             >
               Tip: Ctrl+Shift+E to open

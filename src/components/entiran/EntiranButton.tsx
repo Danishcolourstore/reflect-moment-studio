@@ -14,12 +14,12 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
       onClick={onClick}
       className="fixed rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 hover:shadow-xl active:scale-95"
       style={{
-        bottom: isMobile ? 96 : 24,
+        bottom: isMobile ? 88 : 24,
         right: isMobile ? 16 : 24,
         width: 56,
         height: 56,
         backgroundColor: '#C9A96E',
-        zIndex: 9999,
+        zIndex: 10001,
       }}
       aria-label="Open Entiran AI Assistant"
     >
