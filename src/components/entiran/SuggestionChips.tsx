@@ -1,14 +1,66 @@
 import { usePageContext } from '@/hooks/use-page-context';
 
 const CHIPS: Record<string, string[]> = {
-  dashboard: ['Create new event', 'View recent activity', 'Check client selections', 'What can you do?'],
-  album_builder: ['Fix empty frames', 'Suggest better layout', 'Export this album', 'Report a bug', 'What can you do?'],
-  event_gallery: ['Share this gallery', 'View client favorites', 'Send selection reminder', 'Report a bug', 'What can you do?'],
-  gallery_delivery: ['Share this gallery', 'View client favorites', 'Report a bug', 'What can you do?'],
-  settings: ['Connect custom domain', 'Update branding', 'Help with settings', 'What can you do?'],
-  domains: ['Connect custom domain', 'Help with DNS setup', 'Report a bug', 'What can you do?'],
-  other: ['What is Mirror AI?', 'Report a bug', 'What can you do?'],
+  dashboard: [
+    'Create new event',
+    'Best camera for Indian weddings?',
+    'Tips for low-light mandap photography',
+    'What can you do?',
+  ],
+  album_builder: [
+    'Fix empty frames',
+    'Suggest better layout',
+    'Album design composition tips',
+    'Export this album',
+    'Report a bug',
+  ],
+  event_gallery: [
+    'Share this gallery',
+    'View client favorites',
+    'How to shoot a baraat in harsh sunlight?',
+    'Report a bug',
+  ],
+  gallery_delivery: [
+    'Share this gallery',
+    'Color grading for warm tones',
+    'Report a bug',
+    'What can you do?',
+  ],
+  settings: [
+    'Connect custom domain',
+    'Update branding',
+    'Help with settings',
+    'What can you do?',
+  ],
+  domains: [
+    'Connect custom domain',
+    'Help with DNS setup',
+    'Report a bug',
+    'What can you do?',
+  ],
+  other: [
+    'What is Mirror AI?',
+    'History of Indian wedding photography',
+    'Best lens for portraits?',
+    'Report a bug',
+  ],
 };
+
+// Rotating creative prompts shown as a bonus chip
+const CREATIVE_PROMPTS = [
+  'Explain the zone system by Ansel Adams',
+  'How does back-button focus work?',
+  'Best off-camera flash setup for receptions',
+  'Difference between CCD and CMOS sensors',
+  'How to shoot a cinematic pre-wedding',
+  'Explain golden hour vs blue hour lighting',
+  'Who was Raghu Rai?',
+  'How to price wedding photography in India',
+  'Tips for candid couple portraits',
+  'Explain frequency separation retouching',
+  'What is hyperfocal distance?',
+  'How to build a photography portfolio',
+];
 
 interface SuggestionChipsProps {
   onChipClick: (text: string) => void;
@@ -16,7 +68,12 @@ interface SuggestionChipsProps {
 
 export function SuggestionChips({ onChipClick }: SuggestionChipsProps) {
   const { page } = usePageContext();
-  const chips = CHIPS[page] || CHIPS.other;
+  const baseChips = CHIPS[page] || CHIPS.other;
+
+  // Add one rotating creative prompt
+  const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 4)) % CREATIVE_PROMPTS.length; // rotates every 4 hours
+  const creativeChip = CREATIVE_PROMPTS[dayIndex];
+  const chips = [...baseChips, creativeChip];
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 px-1 scrollbar-hide">
