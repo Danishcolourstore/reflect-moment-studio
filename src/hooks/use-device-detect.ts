@@ -128,13 +128,16 @@ export function useDeviceDetect(): DeviceInfo {
   }, [info]);
 
   useEffect(() => {
-    const handleChange = () => setInfo(detect());
-    // Re-detect on resize (orientation change, window resize)
+    let timer: ReturnType<typeof setTimeout>;
+    const handleChange = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => setInfo(detect()), 150);
+    };
     window.addEventListener('resize', handleChange);
-    // Re-detect when pointer type changes (dock/undock stylus etc.)
     const mql = window.matchMedia('(pointer: fine)');
     mql.addEventListener('change', handleChange);
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('resize', handleChange);
       mql.removeEventListener('change', handleChange);
     };

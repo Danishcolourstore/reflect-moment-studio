@@ -84,25 +84,26 @@ const AdminEmails = lazy(() => import("./pages/admin/AdminEmails"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 
-const SUPER_ADMIN_ROUTE_ELEMENTS: Record<string, React.ReactNode> = {
-  overview: <SuperAdminOverview />,
-  users: <SuperAdminUsers />,
-  events: <AdminEvents />,
-  storage: <AdminStorage />,
-  revenue: <AdminRevenue />,
-  analytics: <SuperAdminAnalytics />,
-  templates: <SuperAdminTemplates />,
-  emails: <AdminEmails />,
-  activity: <AdminActivity />,
-  mirrorai: <SuperAdminMirrorAI />,
-  storybooks: <SuperAdminStorybooks />,
-  settings: <SuperAdminSettings />,
-  'studio-templates': <TemplateBuilder />,
-  'grid-manager': <SuperAdminGridManager />,
-  galleries: <SuperAdminGalleries />,
-  'dashboard-editor': <SuperAdminDashboardEditor />,
-  'platform-builder': <SuperAdminPlatformBuilder />,
-  'ai-developer': <SuperAdminAIDeveloper />,
+// Lazy map – only instantiate on render, not at module scope
+const SUPER_ADMIN_ROUTE_MAP: Record<string, React.LazyExoticComponent<any>> = {
+  overview: SuperAdminOverview,
+  users: SuperAdminUsers,
+  events: AdminEvents,
+  storage: AdminStorage,
+  revenue: AdminRevenue,
+  analytics: SuperAdminAnalytics,
+  templates: SuperAdminTemplates,
+  emails: AdminEmails,
+  activity: AdminActivity,
+  mirrorai: SuperAdminMirrorAI,
+  storybooks: SuperAdminStorybooks,
+  settings: SuperAdminSettings,
+  'studio-templates': TemplateBuilder,
+  'grid-manager': SuperAdminGridManager,
+  galleries: SuperAdminGalleries,
+  'dashboard-editor': SuperAdminDashboardEditor,
+  'platform-builder': SuperAdminPlatformBuilder,
+  'ai-developer': SuperAdminAIDeveloper,
 };
 
 const queryClient = new QueryClient({
@@ -125,44 +126,45 @@ function PageLoader() {
   );
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+// ─── Shared suspended-user state via context to avoid per-route realtime channels ───
+import { createContext, useContext } from "react";
+
+const SuspendedContext = createContext<boolean | null>(null);
+
+function SuspendedProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [suspended, setSuspended] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!user) return;
-
+    if (!user) { setSuspended(null); return; }
     let mounted = true;
 
-    const loadProfileFlags = async () => {
+    (async () => {
       const { data, error } = await (supabase.from('profiles').select('suspended') as any)
         .eq('user_id', user.id)
         .maybeSingle();
-
       if (!mounted) return;
-      if (error || !data) {
-        setSuspended(false);
-        return;
-      }
-      setSuspended(data.suspended ?? false);
-    };
-
-    loadProfileFlags();
+      setSuspended(data?.suspended ?? false);
+    })();
 
     const channel = supabase
       .channel(`profile-live-${user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `user_id=eq.${user.id}` }, (payload: any) => {
-        const nextSuspended = payload?.new?.suspended;
-        if (typeof nextSuspended === 'boolean') setSuspended(nextSuspended);
+        const v = payload?.new?.suspended;
+        if (typeof v === 'boolean') setSuspended(v);
       })
       .subscribe();
 
-    return () => {
-      mounted = false;
-      supabase.removeChannel(channel);
-    };
+    return () => { mounted = false; supabase.removeChannel(channel); };
   }, [user]);
+
+  return <SuspendedContext.Provider value={suspended}>{children}</SuspendedContext.Provider>;
+}
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  const suspended = useContext(SuspendedContext);
 
   if (loading)
     return (
@@ -258,8 +260,10 @@ const LegacyEventRedirect = () => {
 };
 
 const AppRoutes = () => {
-  useRealtimeSync(true);
+  const { user } = useAuth();
+  useRealtimeSync(!!user);
   return (
+    <SuspendedProvider>
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route
@@ -293,14 +297,14 @@ const AppRoutes = () => {
           }
         >
           {SUPER_ADMIN_ROUTES.map((route) => {
-            const element = SUPER_ADMIN_ROUTE_ELEMENTS[route.key];
-            if (!element) return null;
+            const Component = SUPER_ADMIN_ROUTE_MAP[route.key];
+            if (!Component) return null;
 
             if (route.path === '') {
-              return <Route key={route.key} index element={element} />;
+              return <Route key={route.key} index element={<Component />} />;
             }
 
-            return <Route key={route.key} path={route.path} element={element} />;
+            return <Route key={route.key} path={route.path} element={<Component />} />;
           })}
         </Route>
 
@@ -393,6 +397,7 @@ const AppRoutes = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
+    </SuspendedProvider>
   );
 };
 
