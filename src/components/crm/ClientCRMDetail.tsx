@@ -30,10 +30,12 @@ const statusStyles: Record<string, string> = {
 
 export function ClientCRMDetail({ client, onClose, onRemove, onRefresh }: Props) {
   const { user } = useAuth();
+  const { addMilestone, getWhatsAppLink } = useClientIntelligence();
   const [events, setEvents] = useState<any[]>([]);
   const [assignEventId, setAssignEventId] = useState("");
   const [assigning, setAssigning] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [milestoneOpen, setMilestoneOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !client) return;
