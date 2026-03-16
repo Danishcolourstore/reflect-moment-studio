@@ -38,7 +38,7 @@ const NAV_ITEMS = [
 const MOBILE_NAV = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
-  { title: 'Website', url: '/dashboard/website-editor', icon: Globe },
+  { title: 'Reflections', url: '/dashboard/reflections', icon: Compass },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
 ];
 const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));
