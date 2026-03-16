@@ -34,9 +34,10 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
   const exportGrid = async (size: ExportSize) => {
     setExporting(true);
     try {
-      // Scale export to match format ratio
+      // Use the format's exact export dimensions to ensure pixel-perfect ratio
+      const canvasRatio = layout.canvasRatio || activeFormat.ratio;
       const exportW = size.width;
-      const exportH = Math.round(size.width / activeFormat.ratio);
+      const exportH = Math.round(exportW / canvasRatio);
       const canvas = await renderGridToCanvas(layout, cells, exportW, exportH, textLayers, elements, logo, background);
       const link = document.createElement('a');
       link.download = `grid-${exportW}x${exportH}.png`;

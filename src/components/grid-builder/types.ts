@@ -49,9 +49,11 @@ export type CanvasFormat = {
 };
 
 export const CANVAS_FORMATS: CanvasFormat[] = [
-  { id: '1:1', label: '1:1', ratio: 1, exportWidth: 1080, exportHeight: 1080 },
+  { id: '1:1', label: '1:1', ratio: 1 / 1, exportWidth: 1080, exportHeight: 1080 },
   { id: '4:5', label: '4:5', ratio: 4 / 5, exportWidth: 1080, exportHeight: 1350 },
   { id: '9:16', label: '9:16', ratio: 9 / 16, exportWidth: 1080, exportHeight: 1920 },
+  { id: '3:2', label: '3:2', ratio: 3 / 2, exportWidth: 3000, exportHeight: 2000 },
+  { id: '16:9', label: '16:9', ratio: 16 / 9, exportWidth: 1920, exportHeight: 1080 },
 ];
 
 export type ExportSize = {
