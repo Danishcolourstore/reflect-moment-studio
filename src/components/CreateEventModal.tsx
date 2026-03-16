@@ -159,6 +159,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [galleryLayout, setGalleryLayout] = useState('classic');
   const [downloadsEnabled, setDownloadsEnabled] = useState(true);
+  const [optimizedUpload, setOptimizedUpload] = useState(true);
   const [loading, setLoading] = useState(false);
   const mutexRef = useRef(false);
   const lastSubmitRef = useRef(0);
