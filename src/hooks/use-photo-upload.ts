@@ -67,7 +67,8 @@ function classifyError(err: any): { message: string; type: ErrorType } {
   return { message: err?.message || 'Upload failed — please retry', type: 'unknown' };
 }
 
-async function compressImage(file: File): Promise<File> {
+async function compressImage(file: File, optimized: boolean): Promise<File> {
+  if (!optimized) return file;
   if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) return file;
   try {
     const compressed = await imageCompression(file, {
