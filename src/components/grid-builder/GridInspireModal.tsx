@@ -279,13 +279,46 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           )}
 
           <div className="w-full max-w-sm space-y-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <EntryCard
-              icon={<Link2 className="h-5 w-5" />}
-              title="Paste Instagram Link"
-              subtitle="Analyze any post's grid"
-              onClick={() => toast.info('Coming soon — use Upload for now')}
-              disabled
-            />
+            {showLinkInput ? (
+              <div className="rounded-2xl bg-white/[0.04] border border-white/[0.06] p-4 space-y-3 animate-fade-in">
+                <p className="text-xs text-white/60 font-medium">Paste Instagram Post URL</p>
+                <input
+                  type="url"
+                  placeholder="https://www.instagram.com/p/..."
+                  value={linkValue}
+                  onChange={(e) => setLinkValue(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleInstagramLink()}
+                  autoFocus
+                  className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-primary/40"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 border-white/10 text-white/60 hover:bg-white/5"
+                    onClick={() => { setShowLinkInput(false); setLinkValue(''); }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 gap-1.5"
+                    onClick={handleInstagramLink}
+                    disabled={linkLoading || !linkValue.trim()}
+                  >
+                    {linkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    {linkLoading ? 'Loading…' : 'Analyze'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <EntryCard
+                icon={<Link2 className="h-5 w-5" />}
+                title="Paste Instagram Link"
+                subtitle="Analyze any post's grid"
+                onClick={() => setShowLinkInput(true)}
+              />
+            )}
             <EntryCard
               icon={<Upload className="h-5 w-5" />}
               title="Upload Screenshot"
