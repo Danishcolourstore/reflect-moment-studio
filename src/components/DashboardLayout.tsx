@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Bell, ChevronRight, Menu, Globe,
+  LogOut, Bell, ChevronRight, Menu, Globe, Compass,
 } from 'lucide-react';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 import { EntiranProvider } from '@/components/entiran/EntiranProvider';
@@ -38,7 +38,7 @@ const NAV_ITEMS = [
 const MOBILE_NAV = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
-  { title: 'Website', url: '/dashboard/website-editor', icon: Globe },
+  { title: 'Reflections', url: '/dashboard/reflections', icon: Compass },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
 ];
 const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));

@@ -2956,6 +2956,86 @@ export type Database = {
         }
         Relationships: []
       }
+      reflections_posts: {
+        Row: {
+          body: string | null
+          card_type: string
+          created_at: string
+          cta_action: string | null
+          cta_label: string | null
+          cta_route: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_today: boolean | null
+          sort_order: number | null
+          tab: string
+          tag: string | null
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          card_type?: string
+          created_at?: string
+          cta_action?: string | null
+          cta_label?: string | null
+          cta_route?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_today?: boolean | null
+          sort_order?: number | null
+          tab?: string
+          tag?: string | null
+          title: string
+        }
+        Update: {
+          body?: string | null
+          card_type?: string
+          created_at?: string
+          cta_action?: string | null
+          cta_label?: string | null
+          cta_route?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_today?: boolean | null
+          sort_order?: number | null
+          tab?: string
+          tag?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      reflections_saved: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reflections_saved_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "reflections_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seo_pages: {
         Row: {
           body_html: string | null
