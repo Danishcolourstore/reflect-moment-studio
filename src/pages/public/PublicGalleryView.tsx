@@ -45,7 +45,7 @@ export default function PublicGalleryView() {
   const [loading, setLoading] = useState(true);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showFavsOnly, setShowFavsOnly] = useState(false);
-  const { favs, toggle } = useFavorites(id);
+  const { favs, toggle } = useFavorites(galleryId);
 
   useEffect(() => {
     if (!id) return;
