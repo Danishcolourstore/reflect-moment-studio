@@ -111,7 +111,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
           )}
         </nav>
 
-        <div className="relative z-10 flex flex-col items-center justify-center px-6 sm:px-8 text-center" style={{ minHeight: '100dvh', minHeight: '100vh' }}>
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 sm:px-8 text-center" style={{ minHeight: '100dvh' }}>
           {tagline && (
             <p className="text-xs sm:text-sm tracking-[0.3em] uppercase mb-3 sm:mb-4" style={{ color: coverUrl ? 'rgba(250,248,245,0.6)' : '#7A756E', fontFamily: '"DM Sans", sans-serif' }}>
               ( {tagline} )
