@@ -188,6 +188,36 @@ export function ClientCRMDetail({ client, onClose, onRemove, onRefresh }: Props)
 
           <Separator />
 
+          {/* Milestones & Quick Actions */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Milestones</h3>
+              <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => setMilestoneOpen(true)}>
+                <Plus className="h-3 w-3" /> Add
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => setMilestoneOpen(true)}>
+                <Heart className="h-3 w-3 text-rose-500" /> Anniversary
+              </Button>
+              <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => setMilestoneOpen(true)}>
+                <Gift className="h-3 w-3 text-amber-500" /> Birthday
+              </Button>
+              {client.phone && (() => {
+                const link = getWhatsAppLink(client.phone, `Hi ${client.name}!`);
+                return link ? (
+                  <a href={link} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8">
+                      <MessageCircle className="h-3 w-3 text-emerald-500" /> WhatsApp
+                    </Button>
+                  </a>
+                ) : null;
+              })()}
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Timeline */}
           <div className="space-y-3">
             <h3 className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Activity</h3>
@@ -216,6 +246,16 @@ export function ClientCRMDetail({ client, onClose, onRemove, onRefresh }: Props)
             Remove Client
           </Button>
         </div>
+
+        {client && (
+          <AddMilestoneDialog
+            open={milestoneOpen}
+            onOpenChange={setMilestoneOpen}
+            clientId={client.id}
+            clientName={client.name}
+            onSave={addMilestone}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );
