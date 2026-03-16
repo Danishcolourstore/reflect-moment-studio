@@ -318,6 +318,22 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
             </div>
           </div>
 
+          {/* Upload Settings */}
+          <div className="pt-2 border-t border-border space-y-3">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Upload Settings</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-[12px] text-foreground/80 font-normal">Optimized Upload</Label>
+                <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                  {optimizedUpload
+                    ? 'Faster uploads with optimized size. No visible quality loss.'
+                    : 'Upload original files. Best for print and archive.'}
+                </p>
+              </div>
+              <Switch checked={optimizedUpload} onCheckedChange={setOptimizedUpload} />
+            </div>
+          </div>
+
           <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-9 text-[12px] tracking-wide uppercase font-medium mt-1" disabled={loading}>
             {loading ? 'Creating...' : 'Create Event'}
           </Button>

@@ -342,6 +342,25 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
 
           <div className="h-px bg-border/30" />
 
+          {/* ── Upload Settings ── */}
+          <section className="space-y-4">
+            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Upload Settings</h3>
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <Label className="text-[12px] text-foreground/70 font-normal">Optimized Upload</Label>
+                <p className="editorial-helper !mt-0.5">
+                  Compress images for faster uploads and delivery. No visible quality loss.
+                </p>
+                <p className="text-[9px] text-muted-foreground/50 mt-0.5">
+                  Turn off for print-quality originals. Max file size: 100MB.
+                </p>
+              </div>
+              <Switch checked={true} disabled />
+            </div>
+          </section>
+
+          <div className="h-px bg-border/30" />
+
           {/* ── Section 5: Guest & AI Features ── */}
           <section className="space-y-4">
             <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Guest & AI Features</h3>

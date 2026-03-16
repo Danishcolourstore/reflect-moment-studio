@@ -172,11 +172,11 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
       existingHashes.add(hash);
     } catch {}
 
-    // Compress
-    updateFileInfo(id, { status: 'compressing', originalSize: file.size });
+    // Compress (only if optimized upload is enabled)
+    updateFileInfo(id, { status: optimizedUpload ? 'compressing' : 'uploading', originalSize: file.size });
     let processedFile: File;
     try {
-      processedFile = await compressImage(file);
+      processedFile = await compressImage(file, optimizedUpload);
     } catch {
       processedFile = file;
     }
