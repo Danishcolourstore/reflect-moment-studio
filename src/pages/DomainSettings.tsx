@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Copy, Plus, Globe, Check, Trash2, Loader2, Lightbulb, Info, ExternalLink, Lock, ShieldCheck } from "lucide-react";
+import { Copy, Plus, Globe, Check, Trash2, Loader2, Lightbulb, Info, ExternalLink, Lock, ShieldCheck, Link, Search } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -76,6 +76,31 @@ function cleanDomain(raw: string): string {
     .toLowerCase();
 }
 
+function DomainOnboardingSvg() {
+  return (
+    <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-[200px] mx-auto">
+      {/* Browser frame */}
+      <rect x="20" y="10" width="160" height="100" rx="8" stroke="#C9A96E" strokeWidth="1.5" fill="none" />
+      <line x1="20" y1="30" x2="180" y2="30" stroke="#C9A96E" strokeWidth="1" opacity="0.5" />
+      {/* Dots */}
+      <circle cx="34" cy="20" r="3" fill="#E8E0D4" />
+      <circle cx="44" cy="20" r="3" fill="#E8E0D4" />
+      <circle cx="54" cy="20" r="3" fill="#E8E0D4" />
+      {/* URL bar */}
+      <rect x="65" y="15" width="100" height="10" rx="5" fill="#FDFBF7" stroke="#E8E0D4" strokeWidth="0.8" />
+      <text x="80" y="23" fill="#C9A96E" fontSize="6" fontFamily="Inter, sans-serif" fontWeight="500">yourdomain.com</text>
+      {/* Content lines */}
+      <rect x="40" y="45" width="120" height="6" rx="3" fill="#E8E0D4" opacity="0.6" />
+      <rect x="55" y="58" width="90" height="6" rx="3" fill="#E8E0D4" opacity="0.4" />
+      <rect x="70" y="71" width="60" height="6" rx="3" fill="#E8E0D4" opacity="0.3" />
+      {/* Lock icon */}
+      <rect x="88" y="84" width="24" height="18" rx="4" stroke="#C9A96E" strokeWidth="1.2" fill="none" />
+      <path d="M94 84V79a6 6 0 0 1 12 0v5" stroke="#C9A96E" strokeWidth="1.2" fill="none" />
+      <circle cx="100" cy="93" r="2" fill="#C9A96E" />
+    </svg>
+  );
+}
+
 export default function DomainSettings() {
   const { user } = useAuth();
   const [domains, setDomains] = useState<DomainRow[]>([]);
@@ -87,6 +112,7 @@ export default function DomainSettings() {
   const [verifying, setVerifying] = useState(false);
   const [verifyAttempt, setVerifyAttempt] = useState(0);
   const [verifyMaxAttempts, setVerifyMaxAttempts] = useState(0);
+  const [onboardingStarted, setOnboardingStarted] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
@@ -114,7 +140,8 @@ export default function DomainSettings() {
   const subdomainRow = domains.find(d => !d.custom_domain);
   const customRow = domains.find(d => !!d.custom_domain);
   const subdomain = subdomainRow?.subdomain || "";
-
+  const onboardingSeen = !!customRow || localStorage.getItem("mirrorai_domain_onboarding_seen") === "true";
+  const showOnboarding = !onboardingSeen && !onboardingStarted;
   // Background polling for pending domains
   useEffect(() => {
     if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
@@ -181,6 +208,7 @@ export default function DomainSettings() {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       }
     } else {
+      localStorage.setItem("mirrorai_domain_onboarding_seen", "true");
       toast({ title: "Domain added", description: "Now configure your DNS records below." });
       setShowAddForm(false);
       setCustomInput("");
@@ -277,6 +305,43 @@ export default function DomainSettings() {
           Manage your subdomain and connect a custom domain
         </p>
       </div>
+
+      {/* Onboarding Card */}
+      {showOnboarding && (
+        <Card className="border-[#E8E0D4] bg-white shadow-sm overflow-hidden">
+          <CardContent className="p-6 sm:p-8 flex flex-col items-center text-center space-y-5">
+            <DomainOnboardingSvg />
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-[#1A1A1A]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                Connect Your Own Domain
+              </h2>
+              <p className="text-sm text-[#1A1A1A]/60 max-w-md" style={{ fontFamily: "Inter, sans-serif" }}>
+                Give your photography website a professional address. Your clients will see your brand, not ours.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FDFBF7] border border-[#E8E0D4] text-xs font-medium text-[#1A1A1A]/70" style={{ fontFamily: "Inter, sans-serif" }}>
+                <Link className="w-3.5 h-3.5 text-[#C9A96E]" /> Custom URL
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FDFBF7] border border-[#E8E0D4] text-xs font-medium text-[#1A1A1A]/70" style={{ fontFamily: "Inter, sans-serif" }}>
+                <Lock className="w-3.5 h-3.5 text-[#C9A96E]" /> Free SSL
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FDFBF7] border border-[#E8E0D4] text-xs font-medium text-[#1A1A1A]/70" style={{ fontFamily: "Inter, sans-serif" }}>
+                <Search className="w-3.5 h-3.5 text-[#C9A96E]" /> SEO Friendly
+              </span>
+            </div>
+            <Button
+              onClick={() => { setOnboardingStarted(true); setShowAddForm(true); }}
+              className="min-h-[44px] px-8 text-white font-medium hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: "#C9A96E", fontFamily: "Inter, sans-serif" }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#B8964E")}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#C9A96E")}
+            >
+              Get Started
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Section 1: Subdomain */}
       <Card className="border-[#E8E0D4] bg-white shadow-sm">

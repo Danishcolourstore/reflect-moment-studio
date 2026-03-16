@@ -49,6 +49,19 @@ interface Profile {
   onboarding_completed: boolean;
 }
 
+function useDomainNudge(userId: string | undefined) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (!userId) return;
+    (supabase.from('domains').select('id, custom_domain').eq('user_id', userId) as any)
+      .then(({ data }: any) => {
+        const hasCustom = (data || []).some((d: any) => !!d.custom_domain);
+        setShow(!hasCustom);
+      });
+  }, [userId]);
+  return show;
+}
+
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/events': 'Events',
@@ -88,6 +101,7 @@ function applyAccentClass(a: AccentMode) {
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
+  const showDomainNudge = useDomainNudge(user?.id);
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -191,6 +205,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             >
               <item.icon className="h-4 w-4" strokeWidth={1.8} />
               <span>{item.title}</span>
+              {item.title === 'Domains' && showDomainNudge && (
+                <span className="ml-auto h-2 w-2 rounded-full" style={{ backgroundColor: '#C9A96E' }} />
+              )}
             </NavLink>
           ))}
         </nav>
