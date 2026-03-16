@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PublicAlbums() {
   const { siteOwnerId } = useSiteContext();
+  const { profile } = useSiteProfile();
   const [albums, setAlbums] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
