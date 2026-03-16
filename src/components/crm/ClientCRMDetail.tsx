@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Camera, Heart, Download, Mail, Phone, Calendar, Trash2, ExternalLink, Plus, Copy, Check } from "lucide-react";
+import { Camera, Heart, Download, Mail, Phone, Calendar, Trash2, ExternalLink, Plus, Copy, Check, Gift, MessageCircle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import type { CRMClient } from "@/pages/Clients";
+import { AddMilestoneDialog } from "./AddMilestoneDialog";
+import { useClientIntelligence } from "@/hooks/use-client-intelligence";
 
 interface Props {
   client: CRMClient | null;
@@ -28,10 +30,12 @@ const statusStyles: Record<string, string> = {
 
 export function ClientCRMDetail({ client, onClose, onRemove, onRefresh }: Props) {
   const { user } = useAuth();
+  const { addMilestone, getWhatsAppLink } = useClientIntelligence();
   const [events, setEvents] = useState<any[]>([]);
   const [assignEventId, setAssignEventId] = useState("");
   const [assigning, setAssigning] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [milestoneOpen, setMilestoneOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !client) return;
@@ -184,6 +188,36 @@ export function ClientCRMDetail({ client, onClose, onRemove, onRefresh }: Props)
 
           <Separator />
 
+          {/* Milestones & Quick Actions */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Milestones</h3>
+              <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => setMilestoneOpen(true)}>
+                <Plus className="h-3 w-3" /> Add
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => setMilestoneOpen(true)}>
+                <Heart className="h-3 w-3 text-rose-500" /> Anniversary
+              </Button>
+              <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8" onClick={() => setMilestoneOpen(true)}>
+                <Gift className="h-3 w-3 text-amber-500" /> Birthday
+              </Button>
+              {client.phone && (() => {
+                const link = getWhatsAppLink(client.phone, `Hi ${client.name}!`);
+                return link ? (
+                  <a href={link} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" variant="outline" className="text-xs gap-1.5 h-8">
+                      <MessageCircle className="h-3 w-3 text-emerald-500" /> WhatsApp
+                    </Button>
+                  </a>
+                ) : null;
+              })()}
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Timeline */}
           <div className="space-y-3">
             <h3 className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground">Activity</h3>
@@ -212,6 +246,16 @@ export function ClientCRMDetail({ client, onClose, onRemove, onRefresh }: Props)
             Remove Client
           </Button>
         </div>
+
+        {client && (
+          <AddMilestoneDialog
+            open={milestoneOpen}
+            onOpenChange={setMilestoneOpen}
+            clientId={client.id}
+            clientName={client.name}
+            onSave={addMilestone}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ClientCRMHeader } from "@/components/crm/ClientCRMHeader";
 import { ClientCRMStats } from "@/components/crm/ClientCRMStats";
@@ -6,6 +6,9 @@ import { ClientCRMGrid } from "@/components/crm/ClientCRMGrid";
 import { ClientCRMTable } from "@/components/crm/ClientCRMTable";
 import { ClientCRMDetail } from "@/components/crm/ClientCRMDetail";
 import { InviteClientModal } from "@/components/InviteClientModal";
+import { ClientRelationshipPanel } from "@/components/crm/ClientRelationshipPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -127,35 +130,52 @@ const Clients = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <ClientCRMHeader
-          search={search}
-          onSearchChange={setSearch}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          onInvite={() => setInviteOpen(true)}
-        />
+      <Tabs defaultValue="clients" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="clients" className="gap-1.5 text-xs">
+              <Users className="h-3.5 w-3.5" /> Clients
+            </TabsTrigger>
+            <TabsTrigger value="intelligence" className="gap-1.5 text-xs">
+              <Sparkles className="h-3.5 w-3.5" /> Intelligence
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <ClientCRMStats stats={stats} loading={loading} />
-
-        {viewMode === "grid" ? (
-          <ClientCRMGrid
-            clients={filtered}
-            loading={loading}
-            onSelect={setSelectedClient}
+        <TabsContent value="clients" className="space-y-6 mt-0">
+          <ClientCRMHeader
+            search={search}
+            onSearchChange={setSearch}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
             onInvite={() => setInviteOpen(true)}
           />
-        ) : (
-          <ClientCRMTable
-            clients={filtered}
-            loading={loading}
-            onSelect={setSelectedClient}
-            onInvite={() => setInviteOpen(true)}
-          />
-        )}
-      </div>
+
+          <ClientCRMStats stats={stats} loading={loading} />
+
+          {viewMode === "grid" ? (
+            <ClientCRMGrid
+              clients={filtered}
+              loading={loading}
+              onSelect={setSelectedClient}
+              onInvite={() => setInviteOpen(true)}
+            />
+          ) : (
+            <ClientCRMTable
+              clients={filtered}
+              loading={loading}
+              onSelect={setSelectedClient}
+              onInvite={() => setInviteOpen(true)}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="intelligence" className="mt-0">
+          <ClientRelationshipPanel />
+        </TabsContent>
+      </Tabs>
 
       <InviteClientModal open={inviteOpen} onOpenChange={setInviteOpen} onInvited={loadClients} />
 

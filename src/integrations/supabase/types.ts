@@ -727,6 +727,157 @@ export type Database = {
           },
         ]
       }
+      client_milestones: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          milestone_date: string
+          milestone_type: string
+          notes: string | null
+          partner_name: string | null
+          photographer_id: string
+          recurring: boolean
+          title: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          milestone_date: string
+          milestone_type?: string
+          notes?: string | null
+          partner_name?: string | null
+          photographer_id: string
+          recurring?: boolean
+          title: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          milestone_date?: string
+          milestone_type?: string
+          notes?: string | null
+          partner_name?: string | null
+          photographer_id?: string
+          recurring?: boolean
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_reminders: {
+        Row: {
+          action_data: Json | null
+          action_type: string | null
+          client_id: string
+          completed_at: string | null
+          created_at: string
+          due_date: string
+          id: string
+          message: string | null
+          milestone_id: string | null
+          photographer_id: string
+          reminder_type: string
+          status: string
+          title: string
+        }
+        Insert: {
+          action_data?: Json | null
+          action_type?: string | null
+          client_id: string
+          completed_at?: string | null
+          created_at?: string
+          due_date: string
+          id?: string
+          message?: string | null
+          milestone_id?: string | null
+          photographer_id: string
+          reminder_type?: string
+          status?: string
+          title: string
+        }
+        Update: {
+          action_data?: Json | null
+          action_type?: string | null
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string
+          id?: string
+          message?: string | null
+          milestone_id?: string | null
+          photographer_id?: string
+          reminder_type?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_reminders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_reminders_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "client_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_timeline: {
+        Row: {
+          client_id: string
+          description: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          photographer_id: string
+          title: string
+        }
+        Insert: {
+          client_id: string
+          description?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          photographer_id: string
+          title: string
+        }
+        Update: {
+          client_id?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          photographer_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_timeline_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
@@ -1568,6 +1719,47 @@ export type Database = {
           },
         ]
       }
+      follow_up_rules: {
+        Row: {
+          auto_send: boolean
+          created_at: string
+          id: string
+          is_active: boolean
+          photographer_id: string
+          rule_type: string
+          template_id: string | null
+          trigger_days: number
+        }
+        Insert: {
+          auto_send?: boolean
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          photographer_id: string
+          rule_type: string
+          template_id?: string | null
+          trigger_days?: number
+        }
+        Update: {
+          auto_send?: boolean
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          photographer_id?: string
+          rule_type?: string
+          template_id?: string | null
+          trigger_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_rules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery_chapters: {
         Row: {
           created_at: string
@@ -1913,6 +2105,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      message_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          message_body: string
+          photographer_id: string
+          template_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          message_body: string
+          photographer_id: string
+          template_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          message_body?: string
+          photographer_id?: string
+          template_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
