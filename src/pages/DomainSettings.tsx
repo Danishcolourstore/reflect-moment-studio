@@ -432,6 +432,51 @@ export default function DomainSettings() {
                   </a>
                 )}
               </div>
+
+              {/* SSL Certificate Status */}
+              <div className="flex items-center gap-2 p-3 rounded-lg border border-[#E8E0D4] bg-[#FDFBF7]" style={{ fontFamily: "Inter, sans-serif" }}>
+                {(() => {
+                  const vs = customRow.verification_status;
+                  const verifiedAt = customRow.verified_at;
+                  let sslStatus: "waiting" | "provisioning" | "active" = "waiting";
+                  if (vs === "verified" && verifiedAt) {
+                    const minsAgo = (Date.now() - new Date(verifiedAt).getTime()) / 60000;
+                    sslStatus = minsAgo > 5 ? "active" : "provisioning";
+                  }
+
+                  if (sslStatus === "waiting") {
+                    return (
+                      <>
+                        <Lock className="w-4 h-4 shrink-0" style={{ color: "#9CA3AF" }} />
+                        <div>
+                          <p className="text-sm font-medium" style={{ color: "#9CA3AF" }}>SSL Certificate</p>
+                          <p className="text-xs" style={{ color: "#9CA3AF" }}>Waiting for domain verification</p>
+                        </div>
+                      </>
+                    );
+                  }
+                  if (sslStatus === "provisioning") {
+                    return (
+                      <>
+                        <Loader2 className="w-4 h-4 shrink-0 animate-spin" style={{ color: "#C9A96E" }} />
+                        <div>
+                          <p className="text-sm font-medium text-[#1A1A1A]">SSL Certificate</p>
+                          <p className="text-xs text-[#1A1A1A]/60">SSL provisioning... this may take a few minutes</p>
+                        </div>
+                      </>
+                    );
+                  }
+                  return (
+                    <>
+                      <ShieldCheck className="w-4 h-4 shrink-0" style={{ color: "#22C55E" }} />
+                      <div>
+                        <p className="text-sm font-medium text-[#1A1A1A]">SSL Certificate</p>
+                        <p className="text-xs" style={{ color: "#22C55E" }}>SSL Active — HTTPS enabled</p>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           )}
         </CardContent>
