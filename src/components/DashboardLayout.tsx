@@ -64,6 +64,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 type ThemeMode = 'dark' | 'versace' | 'classic' | 'darkroom';
+type AccentMode = 'gold' | 'red';
 
 const THEME_ORDER: ThemeMode[] = ['dark', 'versace', 'classic', 'darkroom'];
 const THEME_ICONS: Record<ThemeMode, string> = { dark: '🌙', versace: '👑', classic: '☀️', darkroom: '🎞️' };
@@ -72,6 +73,15 @@ function applyThemeClass(t: ThemeMode) {
   document.documentElement.classList.remove('dark', 'editorial', 'classic', 'versace', 'darkroom');
   if (t !== 'dark') document.documentElement.classList.add(t);
   localStorage.setItem('theme', t);
+}
+
+function applyAccentClass(a: AccentMode) {
+  if (a === 'red') {
+    document.documentElement.classList.add('accent-red');
+  } else {
+    document.documentElement.classList.remove('accent-red');
+  }
+  localStorage.setItem('accent', a);
 }
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
