@@ -2956,6 +2956,60 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_pages: {
+        Row: {
+          body_html: string | null
+          created_at: string
+          heading: string | null
+          id: string
+          keywords: string[] | null
+          leads_captured: number | null
+          location: string | null
+          meta_description: string | null
+          page_type: string
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          views: number | null
+        }
+        Insert: {
+          body_html?: string | null
+          created_at?: string
+          heading?: string | null
+          id?: string
+          keywords?: string[] | null
+          leads_captured?: number | null
+          location?: string | null
+          meta_description?: string | null
+          page_type?: string
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          views?: number | null
+        }
+        Update: {
+          body_html?: string | null
+          created_at?: string
+          heading?: string | null
+          id?: string
+          keywords?: string[] | null
+          leads_captured?: number | null
+          location?: string | null
+          meta_description?: string | null
+          page_type?: string
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          views?: number | null
+        }
+        Relationships: []
+      }
       sneak_peeks: {
         Row: {
           created_at: string
