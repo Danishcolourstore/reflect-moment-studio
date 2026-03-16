@@ -70,7 +70,7 @@ const BusinessSuite = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-3 sm:grid-cols-6 mb-4">
+        <TabsList className="w-full grid grid-cols-4 sm:grid-cols-7 mb-4">
           <TabsTrigger value="leads" className="text-xs">
             Leads {leads.length > 0 && `(${leads.length})`}
           </TabsTrigger>
@@ -78,6 +78,7 @@ const BusinessSuite = () => {
             Bookings {bookings.length > 0 && `(${bookings.length})`}
           </TabsTrigger>
           <TabsTrigger value="packages" className="text-xs">Packages</TabsTrigger>
+          <TabsTrigger value="seo" className="text-xs">🌐 SEO & Web</TabsTrigger>
           <TabsTrigger value="insights" className="text-xs">Insights</TabsTrigger>
           <TabsTrigger value="instagram" className="text-xs">📸 Instagram</TabsTrigger>
           <TabsTrigger value="competitors" className="text-xs">🏆 Competitors</TabsTrigger>
