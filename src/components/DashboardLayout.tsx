@@ -95,12 +95,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     applyThemeClass(t);
     return t;
   });
+  const [accent, setAccent] = useState<AccentMode>(() => {
+    const saved = localStorage.getItem('accent') || 'gold';
+    const a: AccentMode = saved === 'red' ? 'red' : 'gold';
+    applyAccentClass(a);
+    return a;
+  });
   const [moreOpen, setMoreOpen] = useState(false);
   const storage = useStorageUsage();
 
   useEffect(() => {
     if (!user) return;
-    (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed, theme_preference') as any)
+    (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed, theme_preference, accent_preference') as any)
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }: any) => {
@@ -109,6 +115,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           const dbTheme: ThemeMode = THEME_ORDER.includes(data.theme_preference as ThemeMode) ? (data.theme_preference as ThemeMode) : 'dark';
           applyThemeClass(dbTheme);
           setTheme(dbTheme);
+          const dbAccent: AccentMode = data.accent_preference === 'red' ? 'red' : 'gold';
+          applyAccentClass(dbAccent);
+          setAccent(dbAccent);
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
             navigate('/dashboard/onboarding', { replace: true });
           }
