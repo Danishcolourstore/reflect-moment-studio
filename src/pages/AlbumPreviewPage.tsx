@@ -59,9 +59,13 @@ export default function AlbumPreviewPage() {
       setLayers(layersData || []);
 
       // Suggestion 2: Get first photo as OG image
-      const firstPhoto = (layersData || []).find(l => l.layer_type === "photo" && l.settings_json?.imageUrl);
+      const firstPhoto = (layersData || []).find(l => {
+        const sj = l.settings_json as Record<string, any> | null;
+        return l.layer_type === "photo" && sj?.imageUrl;
+      });
       if (firstPhoto) {
-        setOgImage(firstPhoto.settings_json.imageUrl);
+        const sj = firstPhoto.settings_json as Record<string, any>;
+        setOgImage(sj.imageUrl);
       }
 
       setLoading(false);
