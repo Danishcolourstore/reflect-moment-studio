@@ -88,6 +88,13 @@ const Auth = forwardRef<HTMLDivElement, AuthProps>(function Auth({ initialView }
 
   useEffect(() => {
     const t = setTimeout(() => setCardVisible(true), 80);
+    // Apply saved accent on login page
+    const savedAccent = localStorage.getItem('accent');
+    if (savedAccent === 'red') {
+      document.documentElement.classList.add('accent-red');
+    } else {
+      document.documentElement.classList.remove('accent-red');
+    }
     return () => clearTimeout(t);
   }, []);
 
