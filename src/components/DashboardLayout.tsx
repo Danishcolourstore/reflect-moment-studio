@@ -314,7 +314,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom nav — phones only */}
       {showBottomNav && (
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border safe-area-pb h-16">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch bg-card border-t border-border safe-area-pb h-16">
         {MOBILE_NAV.map((item) => (
           <NavLink key={item.url} to={item.url} end={item.end}
             className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors min-h-[44px]"
