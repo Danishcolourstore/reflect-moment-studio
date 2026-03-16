@@ -82,7 +82,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('theme') || 'dark';
-    const t: ThemeMode = saved === 'classic' ? 'classic' : 'dark';
+    const t: ThemeMode = THEME_ORDER.includes(saved as ThemeMode) ? (saved as ThemeMode) : 'dark';
     applyThemeClass(t);
     return t;
   });
