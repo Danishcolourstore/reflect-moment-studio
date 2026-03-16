@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Copy, Check, MessageSquare, Bug, Brain, Zap } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { type ChatMessage } from '@/hooks/use-entiran-chat';
 
 interface EntiranMessageProps {
@@ -14,6 +15,7 @@ export function EntiranMessage({ message, onFollowUp }: EntiranMessageProps) {
   const isActionPrompt = message.message_type === 'action_prompt';
   const isRelated = message.message_type === 'related_questions';
   const isWelcome = message.message_type === 'welcome';
+  const isAIStream = message.message_type === 'ai_stream';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -47,10 +49,10 @@ export function EntiranMessage({ message, onFollowUp }: EntiranMessageProps) {
   // Welcome feature cards
   if (isWelcome && message.metadata?.type === 'feature_cards') {
     const cards = [
-      { icon: MessageSquare, label: 'Ask anything', desc: 'Instant help with galleries, albums, and settings' },
+      { icon: MessageSquare, label: 'Ask anything', desc: 'Photography tips, history, gear advice & platform help' },
       { icon: Bug, label: 'Report issues', desc: 'I auto-collect device info and screenshots' },
       { icon: Brain, label: 'Studio Brain', desc: 'Proactive suggestions based on your studio activity' },
-      { icon: Zap, label: 'Quick actions', desc: 'Tap chips below for common tasks' },
+      { icon: Zap, label: 'Creative mentor', desc: 'Composition, lighting, color grading & more' },
     ];
     return (
       <div className="flex justify-start mb-3">
@@ -96,11 +98,14 @@ export function EntiranMessage({ message, onFollowUp }: EntiranMessageProps) {
     );
   }
 
+  // AI-streamed or regular messages — use markdown for assistant
+  const useMarkdown = !isUser && (isAIStream || message.content.includes('**') || message.content.includes('##') || message.content.includes('- '));
+
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3 group`}>
-      <div className="relative">
+      <div className="relative max-w-[85%]">
         <div
-          className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-line ${
+          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
             isUser ? 'text-white' : ''
           }`}
           style={{
@@ -108,10 +113,45 @@ export function EntiranMessage({ message, onFollowUp }: EntiranMessageProps) {
             color: isUser ? 'white' : '#1A1A1A',
           }}
         >
-          {renderFormattedContent(message.content)}
+          {useMarkdown ? (
+            <div className="entiran-markdown prose prose-sm max-w-none dark:prose-invert">
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+                  li: ({ children }) => <li className="text-sm">{children}</li>,
+                  h1: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
+                  h2: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2">{children}</h3>,
+                  h3: ({ children }) => <h4 className="text-sm font-bold mb-1 mt-2">{children}</h4>,
+                  code: ({ children, className }) => {
+                    const isBlock = className?.includes('language-');
+                    if (isBlock) {
+                      return (
+                        <pre className="bg-black/10 rounded-lg p-2 overflow-x-auto text-xs my-2">
+                          <code>{children}</code>
+                        </pre>
+                      );
+                    }
+                    return <code className="bg-black/10 rounded px-1 py-0.5 text-xs">{children}</code>;
+                  },
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-2 pl-3 italic opacity-80 my-2" style={{ borderColor: '#C9A96E' }}>
+                      {children}
+                    </blockquote>
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            renderFormattedContent(message.content)
+          )}
         </div>
         {/* Copy button for assistant messages */}
-        {!isUser && (
+        {!isUser && message.content && (
           <button
             onClick={handleCopy}
             className="absolute -right-2 top-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded bg-white shadow-sm border"
