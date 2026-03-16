@@ -50,6 +50,11 @@ export default function PublicPortfolio() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7]">
+      <SiteHead
+        title={`${studioName} | Wedding Photographer`}
+        ogTitle={`${studioName} — Portfolio`}
+        ogImage={coverUrl}
+      />
       {/* Hero */}
       <div className="relative h-[70vh] flex items-center justify-center overflow-hidden">
         {coverUrl && (

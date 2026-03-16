@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSiteContext } from "@/lib/SiteContext";
+import { useSiteProfile } from "@/lib/SiteProfileContext";
+import { SiteHead } from "@/components/SiteHead";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
