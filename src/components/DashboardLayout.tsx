@@ -205,6 +205,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             >
               <item.icon className="h-4 w-4" strokeWidth={1.8} />
               <span>{item.title}</span>
+              {item.title === 'Domains' && showDomainNudge && (
+                <span className="ml-auto h-2 w-2 rounded-full" style={{ backgroundColor: '#C9A96E' }} />
+              )}
             </NavLink>
           ))}
         </nav>
