@@ -129,12 +129,13 @@ export function useEntiranChat() {
     setMessages(prev => [...prev, msg]);
 
     // Only persist standard types to DB
-    if (type !== 'related_questions' && type !== 'welcome' && type !== 'ai_stream') {
+    const skipPersist = type === 'related_questions' || type === 'welcome' || type === 'ai_stream';
+    if (!skipPersist) {
       await supabase.from('entiran_messages').insert({
         conversation_id: conversationId,
         role,
         content,
-        message_type: type === 'ai_stream' ? 'chat' : type,
+        message_type: type,
         metadata,
       } as any);
     }
