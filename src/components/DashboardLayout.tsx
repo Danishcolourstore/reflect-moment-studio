@@ -234,11 +234,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       )}
 
       {/* Header */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[240px] z-20 flex items-center justify-between px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14">
-        <h2 className="text-foreground font-semibold lg:hidden text-lg tracking-tight">Mirror AI</h2>
-        <h2 className="hidden lg:block text-sm font-medium text-foreground">
-          {PAGE_TITLES[location.pathname] || ''}
-        </h2>
+      <header
+        className="fixed top-0 right-0 z-20 flex items-center justify-between px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14"
+        style={{ left: showSidebar ? sidebarWidth : 0 }}
+      >
+        {!showSidebar && <h2 className="text-foreground font-semibold text-lg tracking-tight">Mirror AI</h2>}
+        {showSidebar && (
+          <h2 className="text-sm font-medium text-foreground">
+            {PAGE_TITLES[location.pathname] || ''}
+          </h2>
+        )}
         <div className="flex items-center gap-1.5">
           {/* Accent toggle: Red ↔ Gold */}
           <button
