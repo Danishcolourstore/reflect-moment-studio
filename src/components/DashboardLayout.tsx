@@ -64,11 +64,14 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-type ThemeMode = 'dark' | 'classic';
+type ThemeMode = 'dark' | 'versace' | 'classic';
+
+const THEME_ORDER: ThemeMode[] = ['dark', 'versace', 'classic'];
+const THEME_ICONS: Record<ThemeMode, string> = { dark: '🌙', versace: '👑', classic: '☀️' };
 
 function applyThemeClass(t: ThemeMode) {
-  document.documentElement.classList.remove('dark', 'editorial', 'classic');
-  if (t === 'classic') document.documentElement.classList.add('classic');
+  document.documentElement.classList.remove('dark', 'editorial', 'classic', 'versace');
+  if (t !== 'dark') document.documentElement.classList.add(t);
   localStorage.setItem('theme', t);
 }
 
