@@ -112,6 +112,10 @@ const BusinessSuite = () => {
           />
         </TabsContent>
 
+        <TabsContent value="seo">
+          <SEOWebsitePanel />
+        </TabsContent>
+
         <TabsContent value="insights">
           <InsightsPanel insights={insights} />
         </TabsContent>
