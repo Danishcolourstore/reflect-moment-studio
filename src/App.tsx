@@ -77,6 +77,7 @@ const SuperAdminGalleries = lazy(() => import("./pages/super-admin/SuperAdminGal
 const SuperAdminDashboardEditor = lazy(() => import("./pages/super-admin/SuperAdminDashboardEditor"));
 const SuperAdminPlatformBuilder = lazy(() => import("./pages/super-admin/SuperAdminPlatformBuilder"));
 const SuperAdminAIDeveloper = lazy(() => import("./pages/super-admin/SuperAdminAIDeveloper"));
+const SuperAdminReflections = lazy(() => import("./pages/super-admin/SuperAdminReflections"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminPhotographers = lazy(() => import("./pages/admin/AdminPhotographers"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
@@ -106,6 +107,7 @@ const SUPER_ADMIN_ROUTE_MAP: Record<string, React.LazyExoticComponent<any>> = {
   'dashboard-editor': SuperAdminDashboardEditor,
   'platform-builder': SuperAdminPlatformBuilder,
   'ai-developer': SuperAdminAIDeveloper,
+  reflections: SuperAdminReflections,
 };
 
 const queryClient = new QueryClient({
