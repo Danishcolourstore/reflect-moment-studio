@@ -51,7 +51,7 @@ interface Profile {
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/events': 'Events',
-  '/dashboard/website': 'Website Builder',
+  '/dashboard/website-editor': 'Website Builder',
   '/dashboard/storybook': 'Storybook',
   '/dashboard/album-designer': 'Album Designer',
   '/dashboard/cheetah-live': 'Cheetah',
