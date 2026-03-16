@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSiteContext } from "@/lib/SiteContext";
+import { useSiteProfile } from "@/lib/SiteProfileContext";
+import { SiteHead } from "@/components/SiteHead";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +11,7 @@ import { Instagram, Facebook, Globe, Loader2, CheckCircle } from "lucide-react";
 
 export default function PublicContact() {
   const { siteOwnerId } = useSiteContext();
+  const { profile: siteProfile } = useSiteProfile();
   const [profile, setProfile] = useState<any>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [sending, setSending] = useState(false);
@@ -43,6 +46,7 @@ export default function PublicContact() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center px-4 py-16">
+      <SiteHead title={`Contact ${studioName}`} ogTitle={`Contact ${studioName}`} />
       <div className="max-w-lg w-full space-y-8">
         <div className="text-center">
           <h1 className="text-3xl text-[#1A1A1A]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>

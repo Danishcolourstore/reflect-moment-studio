@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useSiteContext } from "@/lib/SiteContext";
+import { SiteProfileProvider, useSiteProfile } from "@/lib/SiteProfileContext";
+import { SiteHead } from "@/components/SiteHead";
 import { supabase } from "@/integrations/supabase/client";
-import { Menu, X, Instagram, Facebook, Globe } from "lucide-react";
+import { Menu, X, Instagram, Facebook } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Portfolio", path: "/" },
@@ -11,22 +13,19 @@ const NAV_LINKS = [
   { label: "Contact", path: "/contact" },
 ];
 
-export default function PublicSiteLayout() {
+function LayoutInner() {
   const { siteOwnerId } = useSiteContext();
-  const [profile, setProfile] = useState<any>(null);
+  const { profile } = useSiteProfile();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-
-  useEffect(() => {
-    if (!siteOwnerId) return;
-    (supabase.from("profiles").select("*").eq("user_id", siteOwnerId).maybeSingle() as any)
-      .then(({ data }: any) => setProfile(data));
-  }, [siteOwnerId]);
 
   const studioName = profile?.studio_name || "Studio";
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFBF7]">
+      {/* Default SEO — pages override via their own <SiteHead> */}
+      <SiteHead />
+
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-[#FDFBF7]/95 backdrop-blur border-b border-[#E8E0D4]">
         <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-4">
@@ -59,12 +58,10 @@ export default function PublicSiteLayout() {
         )}
       </nav>
 
-      {/* Content */}
       <main className="flex-1">
         <Outlet />
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-[#E8E0D4] py-8 px-4">
         <div className="max-w-6xl mx-auto flex flex-col items-center gap-4">
           {(profile?.instagram_url || profile?.facebook_url) && (
@@ -90,5 +87,13 @@ export default function PublicSiteLayout() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function PublicSiteLayout() {
+  return (
+    <SiteProfileProvider>
+      <LayoutInner />
+    </SiteProfileProvider>
   );
 }

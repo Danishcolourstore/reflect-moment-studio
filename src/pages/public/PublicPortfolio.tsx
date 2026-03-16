@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSiteContext } from "@/lib/SiteContext";
+import { useSiteProfile } from "@/lib/SiteProfileContext";
+import { SiteHead } from "@/components/SiteHead";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +15,7 @@ interface GalleryItem {
 
 export default function PublicPortfolio() {
   const { siteOwnerId } = useSiteContext();
+  const { profile: siteProfile } = useSiteProfile();
   const [profile, setProfile] = useState<any>(null);
   const [galleries, setGalleries] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +50,11 @@ export default function PublicPortfolio() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7]">
+      <SiteHead
+        title={`${studioName} | Wedding Photographer`}
+        ogTitle={`${studioName} — Portfolio`}
+        ogImage={coverUrl}
+      />
       {/* Hero */}
       <div className="relative h-[70vh] flex items-center justify-center overflow-hidden">
         {coverUrl && (
