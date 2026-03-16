@@ -29,7 +29,6 @@ const NAV_ITEMS = [
   { title: 'Clients', url: '/dashboard/clients', icon: Users },
   { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart2 },
   { title: 'Notifications', url: '/dashboard/notifications', icon: Bell },
-  { title: 'Branding', url: '/dashboard/branding', icon: Palette },
   { title: 'Profile', url: '/dashboard/profile', icon: User },
 ];
 
