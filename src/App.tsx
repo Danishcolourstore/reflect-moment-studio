@@ -107,6 +107,7 @@ const SUPER_ADMIN_ROUTE_MAP: Record<string, React.LazyExoticComponent<any>> = {
   'dashboard-editor': SuperAdminDashboardEditor,
   'platform-builder': SuperAdminPlatformBuilder,
   'ai-developer': SuperAdminAIDeveloper,
+  reflections: SuperAdminReflections,
 };
 
 const queryClient = new QueryClient({

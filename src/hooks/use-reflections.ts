@@ -13,6 +13,7 @@ export interface ReflectionPost {
   cta_route: string | null;
   tab: string;
   is_today: boolean;
+  is_pinned: boolean;
   sort_order: number;
   created_at: string;
   saved?: boolean;
@@ -24,15 +25,16 @@ export function useReflections() {
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    const [postsRes, savedRes, userRes] = await Promise.all([
+    const [postsRes, savedRes] = await Promise.all([
       (supabase.from('reflections_posts' as any).select('*') as any)
+        .eq('is_published', true)
         .eq('is_active', true)
-        .order('sort_order'),
+        .order('is_pinned', { ascending: false })
+        .order('created_at', { ascending: false }),
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (!user) return { data: [] };
         return (supabase.from('reflections_saved' as any).select('post_id') as any).eq('user_id', user.id);
       }),
-      supabase.auth.getUser(),
     ]);
 
     const saved = new Set<string>((savedRes.data || []).map((s: any) => s.post_id));
