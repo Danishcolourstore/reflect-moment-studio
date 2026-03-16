@@ -44,6 +44,15 @@ function MobileNavOverlay({ items, isOpen, onClose, color }: { items: string[]; 
   );
 }
 
+/** Helper: meaningful alt text */
+function heroAlt(studioName: string, context?: string) {
+  return `${studioName} ${context || 'wedding photography'}`;
+}
+
+function logoAlt(studioName: string) {
+  return `${studioName} logo`;
+}
+
 export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   if (!branding) return null;
@@ -63,11 +72,11 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
     const navItems = ['Home', 'About', 'Portfolio', 'Journal', 'Contact'];
     const textColor = coverUrl ? '#FAF8F5' : '#1A1715';
     return (
-      <section id={id} className="relative" style={{ minHeight: '100vh' }}>
+      <section id={id} className="relative min-h-screen" style={{ minHeight: '100dvh' }}>
         {coverUrl ? (
           <>
             <div className="absolute inset-0 overflow-hidden">
-              <img src={coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" loading="eager" style={{ animation: 'cinematicZoom 25s ease-in-out infinite alternate' }} />
+              <img src={coverUrl} alt={heroAlt(studioName, 'cinematic wedding portfolio')} className="absolute inset-0 h-full w-full object-cover" loading="eager" style={{ animation: 'cinematicZoom 25s ease-in-out infinite alternate' }} />
             </div>
             <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(26,23,21,0.15) 0%, rgba(26,23,21,0.05) 30%, rgba(26,23,21,0.3) 70%, rgba(26,23,21,0.65) 100%)' }} />
           </>
@@ -79,7 +88,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
 
         <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-6 md:px-12 py-4 sm:py-6">
           {branding.studio_logo_url ? (
-            <img src={branding.studio_logo_url} alt="" className="h-8 sm:h-10 md:h-12 object-contain" loading="eager" />
+            <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-8 sm:h-10 md:h-12 object-contain" loading="eager" />
           ) : (
             <span className="text-base sm:text-lg md:text-xl tracking-[0.08em] font-light" style={{ color: textColor, fontFamily: '"Cormorant Garamond", Georgia, serif' }}>
               {studioName}
@@ -102,7 +111,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
           )}
         </nav>
 
-        <div className="relative z-10 flex flex-col items-center justify-center h-screen px-6 sm:px-8 text-center">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 sm:px-8 text-center" style={{ minHeight: '100dvh' }}>
           {tagline && (
             <p className="text-xs sm:text-sm tracking-[0.3em] uppercase mb-3 sm:mb-4" style={{ color: coverUrl ? 'rgba(250,248,245,0.6)' : '#7A756E', fontFamily: '"DM Sans", sans-serif' }}>
               ( {tagline} )
@@ -130,7 +139,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
 
         <nav className="flex items-center justify-between px-4 sm:px-6 md:px-12 py-4 sm:py-5" style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           {branding.studio_logo_url ? (
-            <img src={branding.studio_logo_url} alt="" className="h-7 sm:h-8 md:h-10 object-contain" loading="eager" />
+            <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-7 sm:h-8 md:h-10 object-contain" loading="eager" />
           ) : (
             <span className="text-sm sm:text-base font-semibold tracking-[0.02em]" style={{ color: '#1A1A1A', fontFamily: '"DM Sans", sans-serif' }}>
               {studioName}
@@ -175,7 +184,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
             <div className="order-1 lg:order-2">
               {coverUrl ? (
                 <div className="overflow-hidden rounded-sm">
-                  <img src={coverUrl} alt="" className="w-full aspect-[4/5] sm:aspect-[4/5] object-cover" loading="eager" />
+                  <img src={coverUrl} alt={heroAlt(studioName, 'featured wedding portrait')} className="w-full aspect-[4/5] sm:aspect-[4/5] object-cover" loading="eager" />
                 </div>
               ) : (
                 <div className="w-full aspect-[4/5] rounded-sm flex items-center justify-center" style={{ backgroundColor: '#F5F5F5' }}>
@@ -198,7 +207,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
 
         <nav className="flex items-center justify-between px-4 sm:px-6 md:px-12 py-4 sm:py-5" style={{ borderBottom: '1px solid #D5CEC5' }}>
           {branding.studio_logo_url ? (
-            <img src={branding.studio_logo_url} alt="" className="h-8 sm:h-10 md:h-12 object-contain" loading="eager" />
+            <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-8 sm:h-10 md:h-12 object-contain" loading="eager" />
           ) : (
             <span className="text-sm sm:text-base tracking-[0.15em] font-light" style={{ color: '#2B2A28', fontFamily: '"Playfair Display", Georgia, serif' }}>
               {studioName}
@@ -220,7 +229,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
           {coverUrl ? (
             <div className="w-full px-3 sm:px-4 md:px-8 pt-4 sm:pt-6 md:pt-8">
               <div className="relative overflow-hidden" style={{ height: 'clamp(300px, 60vh, calc(75vh - 80px))' }}>
-                <img src={coverUrl} alt="" className="h-full w-full object-cover" loading="eager" />
+                <img src={coverUrl} alt={heroAlt(studioName, 'editorial wedding photography')} className="h-full w-full object-cover" loading="eager" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-8 md:p-14" style={{ background: 'linear-gradient(to top, rgba(43,42,40,0.6) 0%, transparent 100%)' }}>
                   <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-light tracking-[0.04em] leading-[1.1]" style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#F5F0EA' }}>
                     {studioName}
@@ -256,11 +265,11 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
   const vowsNavItems = ['Home', 'About Us', 'Gallery', 'Contact'];
   const vowsTextColor = '#F2EDE4';
   return (
-    <section id={id} className="relative" style={{ height: '100vh', minHeight: '600px' }}>
+    <section id={id} className="relative min-h-screen" style={{ height: '100dvh', minHeight: '600px' }}>
       {coverUrl ? (
         <>
           <div className="absolute inset-0 overflow-hidden">
-            <img src={coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" loading="eager" style={{ animation: 'vowsHeroZoom 30s ease-in-out infinite alternate' }} />
+            <img src={coverUrl} alt={heroAlt(studioName, 'luxury wedding photography')} className="absolute inset-0 h-full w-full object-cover" loading="eager" style={{ animation: 'vowsHeroZoom 30s ease-in-out infinite alternate' }} />
           </div>
           <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(12,10,7,0.30) 0%, rgba(12,10,7,0.10) 25%, rgba(12,10,7,0.15) 50%, rgba(12,10,7,0.55) 80%, rgba(12,10,7,0.80) 100%)' }} />
         </>
@@ -272,7 +281,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
 
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-6 md:px-12 py-4 sm:py-6">
         {branding.studio_logo_url ? (
-          <img src={branding.studio_logo_url} alt="" className="h-10 sm:h-12 md:h-14 object-contain opacity-90" loading="eager" />
+          <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-10 sm:h-12 md:h-14 object-contain opacity-90" loading="eager" />
         ) : (
           <span className="text-xs sm:text-sm uppercase tracking-[0.3em] font-light" style={{ color: vowsTextColor, opacity: 0.8, fontFamily: '"Cormorant Garamond", Georgia, serif' }}>
             {studioName}

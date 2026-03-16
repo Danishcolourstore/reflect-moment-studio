@@ -48,7 +48,7 @@ export function WebsiteFooter({ template, branding, photographerUsername }: Webs
         <div className="border-t py-16 px-6 text-center" style={{ borderColor: 'rgba(250,248,245,0.04)' }}>
           <div className="max-w-4xl mx-auto space-y-6">
             {branding.studio_logo_url ? (
-              <img src={branding.studio_logo_url} alt="" className="h-14 sm:h-16 mx-auto object-contain opacity-70" />
+              <img src={branding.studio_logo_url} alt={`${branding.studio_name} logo`} className="h-14 sm:h-16 mx-auto object-contain opacity-70" />
             ) : (
               <h3
                 className="text-2xl sm:text-3xl font-light tracking-[0.04em]"
@@ -103,7 +103,7 @@ export function WebsiteFooter({ template, branding, photographerUsername }: Webs
             {/* Logo / name */}
             <div>
               {branding.studio_logo_url ? (
-                <img src={branding.studio_logo_url} alt="" className="h-8 object-contain brightness-0 invert opacity-80" />
+                <img src={branding.studio_logo_url} alt={`${branding.studio_name} logo`} className="h-8 object-contain brightness-0 invert opacity-80" />
               ) : (
                 <span className="text-sm font-semibold tracking-[0.02em]" style={{ color: '#FFFFFF', opacity: 0.9 }}>
                   {branding.studio_name}
@@ -174,7 +174,7 @@ export function WebsiteFooter({ template, branding, photographerUsername }: Webs
         <div className="border-t py-16 px-6 text-center" style={{ borderColor: 'rgba(245,240,234,0.06)' }}>
           <div className="max-w-4xl mx-auto space-y-6">
             {branding.studio_logo_url ? (
-              <img src={branding.studio_logo_url} alt="" className="h-14 sm:h-16 mx-auto object-contain opacity-70" />
+              <img src={branding.studio_logo_url} alt={`${branding.studio_name} logo`} className="h-14 sm:h-16 mx-auto object-contain opacity-70" />
             ) : (
               <h3
                 className="text-2xl sm:text-3xl font-light italic"
@@ -243,7 +243,7 @@ export function WebsiteFooter({ template, branding, photographerUsername }: Webs
       <div className="border-t py-16 px-6 text-center" style={{ borderColor: `${t.text}06` }}>
         <div className="max-w-4xl mx-auto space-y-6">
           {branding.studio_logo_url ? (
-            <img src={branding.studio_logo_url} alt="" className="h-14 sm:h-16 mx-auto object-contain opacity-70" />
+            <img src={branding.studio_logo_url} alt={`${branding.studio_name} logo`} className="h-14 sm:h-16 mx-auto object-contain opacity-70" />
           ) : (
             <h3 className="text-2xl sm:text-3xl font-light uppercase tracking-[0.08em]" style={{ color: t.text, opacity: 0.8, fontFamily: '"Cormorant Garamond", Georgia, serif' }}>
               {branding.studio_name}

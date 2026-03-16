@@ -5,6 +5,7 @@ import { SiteProfileProvider, useSiteProfile } from "@/lib/SiteProfileContext";
 import { SiteHead } from "@/components/SiteHead";
 import { supabase } from "@/integrations/supabase/client";
 import { Menu, X, Instagram, Facebook } from "lucide-react";
+import { WhatsAppFloatingButton } from "@/components/website/WhatsAppFloatingButton";
 
 const NAV_LINKS = [
   { label: "Portfolio", path: "/" },
@@ -61,6 +62,14 @@ function LayoutInner() {
       <main className="flex-1">
         <Outlet />
       </main>
+
+      {/* Floating WhatsApp CTA */}
+      {(profile as any)?.whatsapp && (
+        <WhatsAppFloatingButton
+          phoneNumber={(profile as any).whatsapp}
+          studioName={studioName}
+        />
+      )}
 
       <footer className="border-t border-[#E8E0D4] py-8 px-4">
         <div className="max-w-6xl mx-auto flex flex-col items-center gap-4">
