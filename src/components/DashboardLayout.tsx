@@ -64,11 +64,11 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = 'dark' | 'classic';
 
 function applyThemeClass(t: ThemeMode) {
   document.documentElement.classList.remove('dark', 'editorial', 'classic');
-  if (t === 'dark') document.documentElement.classList.add('dark');
+  if (t === 'classic') document.documentElement.classList.add('classic');
   localStorage.setItem('theme', t);
 }
 
@@ -78,8 +78,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem('theme') || 'light';
-    const t: ThemeMode = saved === 'dark' ? 'dark' : 'light';
+    const saved = localStorage.getItem('theme') || 'dark';
+    const t: ThemeMode = saved === 'classic' ? 'classic' : 'dark';
     applyThemeClass(t);
     return t;
   });
@@ -94,7 +94,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       .then(({ data }: any) => {
         if (data) {
           setProfile(data);
-          const dbTheme: ThemeMode = data.theme_preference === 'dark' ? 'dark' : 'light';
+          const dbTheme: ThemeMode = data.theme_preference === 'classic' ? 'classic' : 'dark';
           applyThemeClass(dbTheme);
           setTheme(dbTheme);
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
@@ -184,11 +184,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-2">
           {/* Theme toggle */}
           <button
-            onClick={() => switchTheme(theme === 'light' ? 'dark' : 'light')}
+            onClick={() => switchTheme(theme === 'dark' ? 'classic' : 'dark')}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             title="Toggle theme"
           >
-            {theme === 'light' ? '🌙' : '☀️'}
+            {theme === 'dark' ? '☀️' : '🌙'}
           </button>
           <NotificationBell />
           <DropdownMenu>
