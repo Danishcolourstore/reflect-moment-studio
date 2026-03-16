@@ -85,11 +85,11 @@ function EntiranInner() {
           <div
             className="fixed text-[10px] px-2 py-1 rounded-md shadow-sm pointer-events-none opacity-0 hover-parent-visible"
             style={{
-              bottom: isMobile ? 156 : 84,
+              bottom: isMobile ? 148 : 84,
               right: isMobile ? 16 : 24,
               backgroundColor: 'hsl(var(--popover))',
               color: 'hsl(var(--popover-foreground))',
-              zIndex: 9999,
+              zIndex: 10001,
             }}
           >
             Ask Entiran
