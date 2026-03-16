@@ -64,11 +64,11 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = 'dark' | 'classic';
 
 function applyThemeClass(t: ThemeMode) {
   document.documentElement.classList.remove('dark', 'editorial', 'classic');
-  if (t === 'dark') document.documentElement.classList.add('dark');
+  if (t === 'classic') document.documentElement.classList.add('classic');
   localStorage.setItem('theme', t);
 }
 
