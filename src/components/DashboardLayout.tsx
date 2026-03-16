@@ -64,10 +64,10 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-type ThemeMode = 'dark' | 'versace' | 'classic';
+type ThemeMode = 'dark' | 'versace' | 'classic' | 'darkroom';
 
-const THEME_ORDER: ThemeMode[] = ['dark', 'versace', 'classic'];
-const THEME_ICONS: Record<ThemeMode, string> = { dark: '🌙', versace: '👑', classic: '☀️' };
+const THEME_ORDER: ThemeMode[] = ['dark', 'versace', 'classic', 'darkroom'];
+const THEME_ICONS: Record<ThemeMode, string> = { dark: '🌙', versace: '👑', classic: '☀️', darkroom: '🎞️' };
 
 function applyThemeClass(t: ThemeMode) {
   document.documentElement.classList.remove('dark', 'editorial', 'classic', 'versace');
