@@ -767,28 +767,37 @@ export type Database = {
         Row: {
           created_at: string | null
           email: string
+          event_date: string | null
+          event_type: string | null
           id: string
           message: string
           name: string
           phone: string | null
+          referral_source: string | null
           site_owner_id: string
         }
         Insert: {
           created_at?: string | null
           email: string
+          event_date?: string | null
+          event_type?: string | null
           id?: string
           message: string
           name: string
           phone?: string | null
+          referral_source?: string | null
           site_owner_id: string
         }
         Update: {
           created_at?: string | null
           email?: string
+          event_date?: string | null
+          event_type?: string | null
           id?: string
           message?: string
           name?: string
           phone?: string | null
+          referral_source?: string | null
           site_owner_id?: string
         }
         Relationships: []
