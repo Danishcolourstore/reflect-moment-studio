@@ -11,9 +11,10 @@ import AlbumPreviewModal from "@/components/album-designer/AlbumPreviewModal";
 import AlbumExportDialog from "@/components/album-designer/AlbumExportDialog";
 import AlbumAutoLayoutDialog from "@/components/album-designer/AlbumAutoLayoutDialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ImageIcon, Settings, Layers, ChevronLeft, ChevronRight, Wand2, LayoutGrid, Crop, Replace } from "lucide-react";
+import { ImageIcon, Settings, Layers, ChevronLeft, ChevronRight, Wand2, LayoutGrid, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function AlbumEditorPage() {
   const { albumId } = useParams<{ albumId: string }>();
@@ -25,27 +26,22 @@ export default function AlbumEditorPage() {
   const [autoLayoutOpen, setAutoLayoutOpen] = useState(false);
   const [photosDrawerOpen, setPhotosDrawerOpen] = useState(false);
   const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
-  const [activeBottomTab, setActiveBottomTab] = useState<"tools" | "photos" | "settings" | null>(null);
 
   // Keyboard shortcuts (desktop/laptop only)
   useEffect(() => {
     if (device.isPhone) return;
     const handler = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
-
       const mod = e.ctrlKey || e.metaKey;
       if (mod && e.key === "z" && !e.shiftKey) { e.preventDefault(); editor.undo(); }
       if (mod && e.key === "z" && e.shiftKey) { e.preventDefault(); editor.redo(); }
       if (mod && e.key === "y") { e.preventDefault(); editor.redo(); }
-      if (e.key === "Delete" || e.key === "Backspace") {
-        // Could be used for frame deletion in future
-      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [device.isPhone, editor]);
 
-  // Swipe between spreads on phones
+  // Bug 5 fix: spread nav via buttons only, no invisible overlays
   const handleSwipeSpread = useCallback((direction: "next" | "prev") => {
     if (!editor.spreads || editor.spreads.length === 0) return;
     const sorted = [...editor.spreads].sort((a, b) => a.spreadIndex - b.spreadIndex);
@@ -78,6 +74,7 @@ export default function AlbumEditorPage() {
       placedPhotoUrls={editor.placedPhotoUrls}
       placedPhotoCounts={editor.placedPhotoCounts}
       onDragStart={() => {}}
+      onTapPhoto={device.isPhone ? editor.selectPhotoForPlacement : undefined}
     />
   );
 
@@ -98,14 +95,13 @@ export default function AlbumEditorPage() {
     />
   );
 
-  /* ─── PHONE LAYOUT (Android / iOS) ─── */
+  /* ─── PHONE LAYOUT ─── */
   if (device.isPhone) {
     return (
       <div className={cn(
         "h-screen flex flex-col bg-background overflow-hidden",
         device.hasSafeArea && "pb-safe"
       )}>
-        {/* Compact toolbar */}
         <AlbumEditorToolbar
           albumName={editor.album.name}
           onNameChange={editor.updateAlbumName}
@@ -128,7 +124,17 @@ export default function AlbumEditorPage() {
           onToggleGrid={() => editor.setShowGrid(!editor.showGrid)}
         />
 
-        {/* Canvas - fills most of the screen */}
+        {/* Pending photo placement banner */}
+        {editor.pendingPhotoUrl && (
+          <div className="flex items-center justify-between px-3 py-2 bg-primary/10 border-b border-primary/20">
+            <span className="text-xs text-primary font-medium">Tap a frame to place photo</span>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={editor.cancelPhotoPlacement}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
+
+        {/* Canvas - no invisible touch overlays (Bug 5 fix) */}
         <div className="flex-1 overflow-hidden relative">
           <AlbumCanvas
             frames={editor.frames}
@@ -144,13 +150,10 @@ export default function AlbumEditorPage() {
             uploadingCells={editor.uploadingCells}
             spreadLabel={editor.spreadLabel}
             enableTouchGestures
+            onFrameTap={editor.pendingPhotoUrl ? editor.placePhotoInFrame : undefined}
           />
 
-          {/* Spread swipe navigation overlay */}
-          <div className="absolute inset-y-0 left-0 w-10 z-20" onTouchEnd={() => handleSwipeSpread("prev")} />
-          <div className="absolute inset-y-0 right-0 w-10 z-20" onTouchEnd={() => handleSwipeSpread("next")} />
-
-          {/* Quick spread nav buttons */}
+          {/* Spread nav buttons only — no invisible overlays */}
           <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-3 z-20">
             <Button
               variant="secondary"
@@ -171,7 +174,6 @@ export default function AlbumEditorPage() {
           </div>
         </div>
 
-        {/* Compact spread strip */}
         <AlbumTimeline
           spreads={editor.spreads}
           currentSpreadId={editor.currentSpreadId}
@@ -185,7 +187,7 @@ export default function AlbumEditorPage() {
           compact
         />
 
-        {/* Bottom action bar - thumb-friendly */}
+        {/* Bottom action bar */}
         <div className={cn(
           "flex items-center justify-around border-t border-border bg-card/95 backdrop-blur-xl shrink-0",
           device.hasSafeArea ? "pb-safe pt-2" : "py-2"
@@ -196,7 +198,6 @@ export default function AlbumEditorPage() {
           <BottomAction icon={<Settings className="h-5 w-5" />} label="Settings" onClick={() => setSettingsDrawerOpen(true)} />
         </div>
 
-        {/* Bottom sheets for photos/settings */}
         <Sheet open={photosDrawerOpen} onOpenChange={setPhotosDrawerOpen}>
           <SheetContent side="bottom" className="h-[75vh] p-0 rounded-t-2xl">
             <SheetHeader className="px-4 pt-3 pb-0">
@@ -214,7 +215,6 @@ export default function AlbumEditorPage() {
           </SheetContent>
         </Sheet>
 
-        {/* Modals */}
         {previewOpen && (
           <AlbumPreviewModal
             albumId={editor.album.id}
@@ -229,7 +229,7 @@ export default function AlbumEditorPage() {
     );
   }
 
-  /* ─── TABLET LAYOUT (iPad / Android tablets / touch laptops) ─── */
+  /* ─── TABLET LAYOUT ─── */
   if (device.isTablet || device.isTouchLaptop) {
     return (
       <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -256,12 +256,9 @@ export default function AlbumEditorPage() {
         />
 
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Photo library (narrower on tablet) */}
           <div className="w-56 xl:w-64 shrink-0 hidden md:block">
             {photosPanel}
           </div>
-
-          {/* Center: Canvas */}
           <AlbumCanvas
             frames={editor.frames}
             onFramesChange={editor.updateFrames}
@@ -277,8 +274,6 @@ export default function AlbumEditorPage() {
             spreadLabel={editor.spreadLabel}
             enableTouchGestures
           />
-
-          {/* Right: Settings */}
           <div className="w-56 xl:w-64 shrink-0 hidden lg:block">
             {settingsPanel}
           </div>
@@ -296,7 +291,6 @@ export default function AlbumEditorPage() {
           albumSize={editor.album.size}
         />
 
-        {/* Floating FABs for panels not visible at current breakpoint */}
         <div className="absolute bottom-24 right-4 flex flex-col gap-2 z-30 md:hidden">
           <button onClick={() => setPhotosDrawerOpen(true)}
             className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform">
@@ -310,7 +304,6 @@ export default function AlbumEditorPage() {
           </button>
         </div>
 
-        {/* Drawers for tablet */}
         <Sheet open={photosDrawerOpen} onOpenChange={setPhotosDrawerOpen}>
           <SheetContent side="left" className="w-[80vw] max-w-xs p-0">
             <SheetHeader className="px-4 pt-3 pb-0"><SheetTitle className="text-sm">Photos</SheetTitle></SheetHeader>
@@ -333,7 +326,7 @@ export default function AlbumEditorPage() {
     );
   }
 
-  /* ─── DESKTOP LAYOUT (Mac / Windows / Linux) ─── */
+  /* ─── DESKTOP LAYOUT ─── */
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       <AlbumEditorToolbar
@@ -359,10 +352,7 @@ export default function AlbumEditorPage() {
       />
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Photo Library */}
         {photosPanel}
-
-        {/* Center: Album Canvas */}
         <AlbumCanvas
           frames={editor.frames}
           onFramesChange={editor.updateFrames}
@@ -377,8 +367,6 @@ export default function AlbumEditorPage() {
           uploadingCells={editor.uploadingCells}
           spreadLabel={editor.spreadLabel}
         />
-
-        {/* Right: Settings */}
         <div className="w-64 xl:w-72 shrink-0">{settingsPanel}</div>
       </div>
 

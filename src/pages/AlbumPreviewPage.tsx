@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import SiteHead from "@/components/SiteHead";
 
 type Page = {
   id: string;
@@ -27,6 +28,8 @@ export default function AlbumPreviewPage() {
   const [pages, setPages] = useState<Page[]>([]);
   const [layers, setLayers] = useState<Layer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [albumName, setAlbumName] = useState("Wedding Album Preview");
+  const [ogImage, setOgImage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadAlbum = async () => {
@@ -38,6 +41,8 @@ export default function AlbumPreviewPage() {
         setLoading(false);
         return;
       }
+
+      setAlbumName(album.name || "Wedding Album Preview");
 
       const { data: pagesData } = await supabase
         .from("album_pages")
@@ -52,6 +57,13 @@ export default function AlbumPreviewPage() {
 
       setPages(pagesData || []);
       setLayers(layersData || []);
+
+      // Suggestion 2: Get first photo as OG image
+      const firstPhoto = (layersData || []).find(l => l.layer_type === "photo" && l.settings_json?.imageUrl);
+      if (firstPhoto) {
+        setOgImage(firstPhoto.settings_json.imageUrl);
+      }
+
       setLoading(false);
     };
 
@@ -118,7 +130,6 @@ export default function AlbumPreviewPage() {
       >
         {photos.map((p, i) => {
           const url = p.settings_json?.imageUrl;
-
           return <img key={i} src={url} className="w-full h-full object-cover" alt="" />;
         })}
       </div>
@@ -157,24 +168,33 @@ export default function AlbumPreviewPage() {
   }
 
   return (
-    <div className="bg-black min-h-screen flex flex-col items-center gap-10 py-10">
-      {pages.map((page) => {
-        const pageLayers = getPageLayers(page.id);
+    <>
+      {/* Suggestion 2: OG meta tags for WhatsApp/social sharing */}
+      <SiteHead
+        title={albumName}
+        description={`Wedding Album Preview · ${pages.length} spreads`}
+        ogImage={ogImage || undefined}
+      />
+      <div className="bg-black min-h-screen flex flex-col items-center gap-10 py-10">
+        {pages.map((page) => {
+          const pageLayers = getPageLayers(page.id);
 
-        return (
-          <div
-            key={page.id}
-            className="relative bg-neutral-900 shadow-xl"
-            style={{
-              width: "1000px",
-              height: "350px",
-            }}
-          >
-            {renderPhotos(pageLayers)}
-            {renderTextLayers(pageLayers)}
-          </div>
-        );
-      })}
-    </div>
+          return (
+            <div
+              key={page.id}
+              className="relative bg-neutral-900 shadow-xl"
+              style={{
+                width: "1000px",
+                maxWidth: "95vw",
+                height: "350px",
+              }}
+            >
+              {renderPhotos(pageLayers)}
+              {renderTextLayers(pageLayers)}
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }

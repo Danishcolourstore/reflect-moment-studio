@@ -30,6 +30,31 @@ function autoSelectSize(count: number): IndianAlbumSize {
   return "12x36";
 }
 
+/* ─── Bug 3 Fix: Weighted random moment picker ─── */
+const MOMENT_WEIGHTS: Record<string, number> = {
+  ceremony: 25,
+  couple_portraits: 20,
+  candid: 15,
+  bride_preparation: 10,
+  family: 8,
+  reception: 8,
+  groom_preparation: 5,
+  detail_shots: 4,
+  opening: 3,
+  grand_finale: 2,
+};
+
+function pickWeightedMoment(): PhotoAnalysis["moment"] {
+  const moments = Object.keys(MOMENT_WEIGHTS) as PhotoAnalysis["moment"][];
+  const totalWeight = Object.values(MOMENT_WEIGHTS).reduce((s, w) => s + w, 0);
+  let rand = Math.random() * totalWeight;
+  for (const m of moments) {
+    rand -= MOMENT_WEIGHTS[m];
+    if (rand <= 0) return m;
+  }
+  return "candid";
+}
+
 export default function AIAlbumBuilder() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -122,15 +147,26 @@ export default function AIAlbumBuilder() {
           body: { photoUrls: batch, batchIndex: b, batchSize: AI_BATCH_SIZE },
         });
         if (!error && data?.analyses) all.push(...data.analyses);
-        else batch.forEach((url) => all.push(fallback(url, all.length)));
-      } catch { batch.forEach((url) => all.push(fallback(url, all.length))); }
+        else batch.forEach((url) => all.push(fallback(url)));
+      } catch { batch.forEach((url) => all.push(fallback(url))); }
     }
     return all;
   };
 
-  const fallback = (url: string, i: number): PhotoAnalysis => {
-    const moments: PhotoAnalysis["moment"][] = ["opening","bride_preparation","groom_preparation","detail_shots","ceremony","couple_portraits","family","candid","reception","grand_finale"];
-    return { url, qualityScore: 60 + Math.random() * 30, sharpness: 65 + Math.random() * 25, composition: 65 + Math.random() * 25, moment: moments[i % moments.length], isDuplicate: false, isBestInGroup: true, faces: Math.floor(Math.random() * 4), emotion: ["joy","love","celebration","serene"][i % 4], description: "" };
+  // Bug 3 fix: weighted random distribution instead of uniform
+  const fallback = (url: string): PhotoAnalysis => {
+    return {
+      url,
+      qualityScore: 60 + Math.random() * 30,
+      sharpness: 65 + Math.random() * 25,
+      composition: 65 + Math.random() * 25,
+      moment: pickWeightedMoment(),
+      isDuplicate: false,
+      isBestInGroup: true,
+      faces: Math.floor(Math.random() * 4),
+      emotion: ["joy", "love", "celebration", "serene"][Math.floor(Math.random() * 4)],
+      description: "",
+    };
   };
 
   // ── Save to DB ──
@@ -140,7 +176,14 @@ export default function AIAlbumBuilder() {
     const { data: album, error } = await supabase.from("albums").insert({ user_id: user.id, name: `AI Album — ${selectedPreset.name}`, size: autoSize, cover_type: "hardcover", leaf_count: Math.ceil(result.spreads.length / 2), page_count: result.spreads.length, status: "draft" }).select("id").single();
     if (error || !album) throw new Error("Failed to create album");
     setProgressLabel("Building pages…"); setProgress(80);
-    const pages = result.spreads.map((s, i) => ({ album_id: album.id, page_number: i, spread_index: Math.floor(i / 2), background_color: s.bgColor }));
+    
+    // Bug 2 fix: cover at spread_index 0, content starts at 1
+    const pages = result.spreads.map((s, i) => ({
+      album_id: album.id,
+      page_number: i,
+      spread_index: i === 0 ? 0 : Math.ceil(i / 2),
+      background_color: s.bgColor,
+    }));
     const { data: dbPages, error: pErr } = await supabase.from("album_pages").insert(pages).select("id");
     if (pErr || !dbPages) throw new Error("Failed to create pages");
     setProgressLabel("Placing photos…"); setProgress(85);
@@ -149,7 +192,46 @@ export default function AIAlbumBuilder() {
       const pid = dbPages[i]?.id; if (!pid) return;
       s.photos.forEach((photo, j) => {
         const cell = s.layout.cells[j]; if (!cell) return;
-        layers.push({ page_id: pid, layer_type: "photo", photo_id: null, text_content: null, x: 0, y: 0, width: 100, height: 100, rotation: 0, z_index: j, settings_json: { imageUrl: photo.url, offsetX: 0, offsetY: 0, scale: 1, layout: { gridCols: s.layout.gridCols, gridRows: s.layout.gridRows, cells: s.layout.cells.map((c) => ({ rowStart: c[0], colStart: c[1], rowEnd: c[2], colEnd: c[3] })) }, cellIndex: j, moment: s.moment, presetId: selectedPreset.id } });
+        // Bug 4 fix: calculate actual percentage positions from grid cells
+        const gridCols = s.layout.gridCols;
+        const gridRows = s.layout.gridRows;
+        const colStart = cell[1];
+        const rowStart = cell[0];
+        const colEnd = cell[3];
+        const rowEnd = cell[2];
+        const x = ((colStart - 1) / gridCols) * 100;
+        const y = ((rowStart - 1) / gridRows) * 100;
+        const w = ((colEnd - colStart) / gridCols) * 100;
+        const h = ((rowEnd - rowStart) / gridRows) * 100;
+
+        layers.push({
+          page_id: pid,
+          layer_type: "photo",
+          photo_id: null,
+          text_content: null,
+          x: Math.round(x * 100) / 100,
+          y: Math.round(y * 100) / 100,
+          width: Math.round(w * 100) / 100,
+          height: Math.round(h * 100) / 100,
+          rotation: 0,
+          z_index: j,
+          settings_json: {
+            imageUrl: photo.url,
+            x: Math.round(x * 100) / 100,
+            y: Math.round(y * 100) / 100,
+            w: Math.round(w * 100) / 100,
+            h: Math.round(h * 100) / 100,
+            panX: 0, panY: 0, zoom: 1,
+            layout: {
+              gridCols,
+              gridRows,
+              cells: s.layout.cells.map((c) => ({ rowStart: c[0], colStart: c[1], rowEnd: c[2], colEnd: c[3] })),
+            },
+            cellIndex: j,
+            moment: s.moment,
+            presetId: selectedPreset.id,
+          },
+        });
       });
     });
     for (let i = 0; i < layers.length; i += 200) {
@@ -195,12 +277,10 @@ export default function AIAlbumBuilder() {
   return (
     <DashboardLayout>
       <div className="relative min-h-[calc(100vh-140px)]">
-        {/* Processing overlay */}
         {isProcessing && (
           <AIAlbumProcessingOverlay progress={progress} label={progressLabel} />
         )}
 
-        {/* Step: Upload */}
         {step === "upload" && (
           <AIAlbumUploadStep
             files={files}
@@ -214,7 +294,6 @@ export default function AIAlbumBuilder() {
           />
         )}
 
-        {/* Step: Design Presets */}
         {step === "design" && (
           <AIAlbumDesignStep
             presets={DESIGN_PRESETS}
@@ -228,7 +307,6 @@ export default function AIAlbumBuilder() {
           />
         )}
 
-        {/* Step: Preview & Edit */}
         {step === "preview" && generationResult && (
           <AIAlbumPreviewStep
             result={generationResult}

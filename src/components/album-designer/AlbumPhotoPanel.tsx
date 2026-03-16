@@ -13,6 +13,9 @@ import {
   Image as ImageIcon,
   Link2,
   Filter,
+  Check,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getOptimizedUrl } from "@/lib/image-utils";
@@ -37,9 +40,11 @@ interface Props {
   placedPhotoUrls: Set<string>;
   placedPhotoCounts: Map<string, number>;
   onDragStart: (photo: Photo) => void;
+  /** Bug 7: tap-to-place callback for mobile */
+  onTapPhoto?: (url: string) => void;
 }
 
-type Filter = "all" | "unused";
+type FilterType = "all" | "unused";
 
 interface EventOption {
   id: string;
@@ -57,17 +62,22 @@ export default function AlbumPhotoPanel({
   placedPhotoUrls,
   placedPhotoCounts,
   onDragStart,
+  onTapPhoto,
 }: Props) {
   const { user } = useAuth();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<FilterType>("all");
   const [search, setSearch] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadTotal, setUploadTotal] = useState(0);
   const [uploadDone, setUploadDone] = useState(0);
   const [linkOpen, setLinkOpen] = useState(false);
   const [events, setEvents] = useState<EventOption[]>([]);
+
+  // Suggestion 5: Batch selection
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
 
   const fileRef = useRef<HTMLInputElement>(null);
   const zipRef = useRef<HTMLInputElement>(null);
@@ -97,9 +107,7 @@ export default function AlbumPhotoPanel({
         const list = data
           .filter((f) => IMAGE_RE.test(f.name))
           .map((f) => {
-            const {
-              data: { publicUrl },
-            } = supabase.storage
+            const { data: { publicUrl } } = supabase.storage
               .from("gallery-photos")
               .getPublicUrl(`${folder}/${f.name}`);
             return { id: f.name, url: publicUrl, file_name: f.name };
@@ -135,10 +143,7 @@ export default function AlbumPhotoPanel({
         if (error) throw error;
 
         if (eventId) {
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("gallery-photos").getPublicUrl(path);
-
+          const { data: { publicUrl } } = supabase.storage.from("gallery-photos").getPublicUrl(path);
           await supabase.from("photos").insert({
             event_id: eventId,
             user_id: user.id,
@@ -204,18 +209,26 @@ export default function AlbumPhotoPanel({
   const filtered = useMemo(() => {
     return photos.filter((p) => {
       if (filter === "unused" && placedPhotoUrls.has(p.url)) return false;
-      if (
-        search &&
-        p.file_name &&
-        !p.file_name.toLowerCase().includes(search.toLowerCase())
-      )
-        return false;
+      if (search && p.file_name && !p.file_name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
   }, [photos, filter, search, placedPhotoUrls]);
 
   const getPhotoCount = (p: Photo) => placedPhotoCounts.get(p.url) || 0;
   const thumb = (url: string) => getOptimizedUrl(url, "thumbnail");
+
+  /* ─── Batch Selection ─── */
+
+  const toggleSelect = (url: string) => {
+    setSelectedUrls(prev => {
+      const n = new Set(prev);
+      if (n.has(url)) n.delete(url); else n.add(url);
+      return n;
+    });
+  };
+
+  const selectAll = () => setSelectedUrls(new Set(filtered.map(p => p.url)));
+  const deselectAll = () => setSelectedUrls(new Set());
 
   /* ─── UI ─── */
 
@@ -234,34 +247,13 @@ export default function AlbumPhotoPanel({
 
         {/* Upload buttons */}
         <div className="flex gap-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 h-7 text-xs"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-          >
-            <Upload className="h-3 w-3 mr-1" />
-            Upload
+          <Button variant="outline" size="sm" className="flex-1 h-7 text-xs" onClick={() => fileRef.current?.click()} disabled={uploading}>
+            <Upload className="h-3 w-3 mr-1" /> Upload
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => zipRef.current?.click()}
-            disabled={uploading}
-          >
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => zipRef.current?.click()} disabled={uploading}>
             <FileArchive className="h-3 w-3" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => {
-              loadEvents();
-              setLinkOpen(true);
-            }}
-          >
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { loadEvents(); setLinkOpen(true); }}>
             <Link2 className="h-3 w-3" />
           </Button>
         </div>
@@ -270,21 +262,8 @@ export default function AlbumPhotoPanel({
           <Progress value={(uploadDone / uploadTotal) * 100} className="h-1" />
         )}
 
-        <input
-          ref={fileRef}
-          type="file"
-          multiple
-          className="hidden"
-          accept="image/*"
-          onChange={(e) => uploadFiles(Array.from(e.target.files || []))}
-        />
-        <input
-          ref={zipRef}
-          type="file"
-          className="hidden"
-          accept=".zip"
-          onChange={handleZipUpload}
-        />
+        <input ref={fileRef} type="file" multiple className="hidden" accept="image/*" onChange={(e) => uploadFiles(Array.from(e.target.files || []))} />
+        <input ref={zipRef} type="file" className="hidden" accept=".zip" onChange={handleZipUpload} />
       </div>
 
       {/* Photo Progress Summary */}
@@ -292,41 +271,45 @@ export default function AlbumPhotoPanel({
         <div className="px-3 py-2 border-b">
           <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
             <span>
-              {placedPhotoUrls.size} of {photos.length} placed (
-              {Math.round((placedPhotoUrls.size / photos.length) * 100)}%)
+              {placedPhotoUrls.size} of {photos.length} placed ({Math.round((placedPhotoUrls.size / photos.length) * 100)}%)
             </span>
           </div>
           <div className="h-1 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all duration-300"
-              style={{
-                width: `${(placedPhotoUrls.size / photos.length) * 100}%`,
-              }}
-            />
+            <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${(placedPhotoUrls.size / photos.length) * 100}%` }} />
           </div>
         </div>
       )}
 
-      {/* Search + Filter */}
-      <div className="p-2 border-b flex gap-1.5">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-1.5 h-3 w-3 text-muted-foreground" />
-          <Input
-            placeholder="Search…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-6 h-6 text-[11px]"
-          />
+      {/* Search + Filter + Select Mode */}
+      <div className="p-2 border-b space-y-1.5">
+        <div className="flex gap-1.5">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-1.5 h-3 w-3 text-muted-foreground" />
+            <Input placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-6 h-6 text-[11px]" />
+          </div>
+          <Button variant={filter === "unused" ? "default" : "ghost"} size="sm" className="h-6 text-[10px] px-2" onClick={() => setFilter(filter === "all" ? "unused" : "all")}>
+            <Filter className="h-2.5 w-2.5 mr-1" /> Unused
+          </Button>
         </div>
-        <Button
-          variant={filter === "unused" ? "default" : "ghost"}
-          size="sm"
-          className="h-6 text-[10px] px-2"
-          onClick={() => setFilter(filter === "all" ? "unused" : "all")}
-        >
-          <Filter className="h-2.5 w-2.5 mr-1" />
-          Unused
-        </Button>
+        {/* Suggestion 5: Select Mode toggle */}
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant={selectMode ? "default" : "outline"}
+            size="sm"
+            className="h-6 text-[10px] px-2"
+            onClick={() => { setSelectMode(!selectMode); if (selectMode) deselectAll(); }}
+          >
+            {selectMode ? <CheckSquare className="h-2.5 w-2.5 mr-1" /> : <Square className="h-2.5 w-2.5 mr-1" />}
+            Select
+          </Button>
+          {selectMode && (
+            <>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={selectAll}>All</Button>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={deselectAll}>None</Button>
+              <span className="text-[10px] text-muted-foreground ml-auto">{selectedUrls.size} selected</span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Photos Grid */}
@@ -349,30 +332,38 @@ export default function AlbumPhotoPanel({
             <div className="grid grid-cols-3 gap-1">
               {filtered.map((photo) => {
                 const count = getPhotoCount(photo);
+                const isSelected = selectMode && selectedUrls.has(photo.url);
                 return (
                   <div
                     key={photo.id}
-                    draggable
+                    draggable={!selectMode && !onTapPhoto}
                     onDragStart={(e) => {
-                      e.dataTransfer.setData(
-                        "application/album-photo",
-                        JSON.stringify(photo)
-                      );
+                      if (selectMode || onTapPhoto) return;
+                      e.dataTransfer.setData("application/album-photo", JSON.stringify(photo));
                       onDragStart(photo);
                     }}
+                    onClick={() => {
+                      if (selectMode) {
+                        toggleSelect(photo.url);
+                      } else if (onTapPhoto) {
+                        onTapPhoto(photo.url);
+                      }
+                    }}
                     className={cn(
-                      "relative aspect-square rounded overflow-hidden cursor-grab active:cursor-grabbing transition-all",
+                      "relative aspect-square rounded overflow-hidden cursor-pointer transition-all",
                       "hover:ring-2 hover:ring-primary/50 hover:scale-[1.02]",
-                      count > 0 && "opacity-60"
+                      count > 0 && !selectMode && "opacity-60",
+                      isSelected && "ring-2 ring-primary",
+                      !selectMode && !onTapPhoto && "cursor-grab active:cursor-grabbing"
                     )}
                   >
-                    <img
-                      src={thumb(photo.url)}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      alt=""
-                    />
-                    {count > 0 && (
+                    <img src={thumb(photo.url)} className="w-full h-full object-cover" loading="lazy" alt="" />
+                    {isSelected && (
+                      <div className="absolute top-1 left-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-3 w-3 text-primary-foreground" />
+                      </div>
+                    )}
+                    {count > 0 && !selectMode && (
                       <div className="absolute top-0.5 right-0.5 bg-primary text-primary-foreground text-[8px] font-bold px-1 rounded-sm">
                         {count}×
                       </div>
@@ -393,9 +384,7 @@ export default function AlbumPhotoPanel({
           </DialogHeader>
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {events.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No events found
-              </p>
+              <p className="text-sm text-muted-foreground text-center py-4">No events found</p>
             ) : (
               events.map((ev) => (
                 <button
@@ -404,11 +393,7 @@ export default function AlbumPhotoPanel({
                   className="flex items-center gap-3 w-full p-3 border rounded-lg hover:bg-accent/50 transition-colors text-left"
                 >
                   {ev.cover_url ? (
-                    <img
-                      src={ev.cover_url}
-                      className="h-10 w-10 rounded object-cover"
-                      alt=""
-                    />
+                    <img src={ev.cover_url} className="h-10 w-10 rounded object-cover" alt="" />
                   ) : (
                     <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
                       <ImageIcon className="h-4 w-4 text-muted-foreground" />
@@ -416,9 +401,7 @@ export default function AlbumPhotoPanel({
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{ev.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {ev.photo_count} photos
-                    </p>
+                    <p className="text-[10px] text-muted-foreground">{ev.photo_count} photos</p>
                   </div>
                 </button>
               ))

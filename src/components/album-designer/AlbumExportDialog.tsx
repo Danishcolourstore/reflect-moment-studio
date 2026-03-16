@@ -1,11 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Download, Image as ImageIcon, FileText, Link2 } from "lucide-react";
+import { Download, Image as ImageIcon, FileText, Link2, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import JSZip from "jszip";
@@ -32,7 +30,28 @@ interface Props {
 export default function AlbumExportDialog({ open, onOpenChange, album, spreads, onSharePreview }: Props) {
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, label: "" });
-  const [cmyk, setCmyk] = useState(false);
+
+  const dim = SPREAD_SIZES[album.size] || SPREAD_SIZES["12x36"];
+
+  // Suggestion 1: Print-ready dimensions
+  const printDpi = 300;
+  const screenDpi = 150;
+  const bleedPx = Math.round((3 / 25.4) * printDpi); // 3mm bleed ≈ 36px at 300 DPI
+
+  const printWidth = dim.spreadWidthIn * printDpi + bleedPx * 2;
+  const printHeight = dim.spreadHeightIn * printDpi + bleedPx * 2;
+  const screenWidth = dim.spreadWidthIn * screenDpi;
+  const screenHeight = dim.spreadHeightIn * screenDpi;
+
+  const estimatedPrintSize = useMemo(() => {
+    const sizePerSpread = (printWidth * printHeight * 3) / (1024 * 1024); // rough JPEG estimate
+    return Math.round(sizePerSpread * 0.15 * spreads.length); // ~15% compression
+  }, [printWidth, printHeight, spreads.length]);
+
+  const estimatedScreenSize = useMemo(() => {
+    const sizePerSpread = (screenWidth * screenHeight * 3) / (1024 * 1024);
+    return Math.round(sizePerSpread * 0.12 * spreads.length);
+  }, [screenWidth, screenHeight, spreads.length]);
 
   const loadSpreadsData = async (): Promise<SpreadRenderData[]> => {
     const sorted = [...spreads].sort((a, b) => a.spreadIndex - b.spreadIndex);
@@ -58,23 +77,27 @@ export default function AlbumExportDialog({ open, onOpenChange, album, spreads, 
     });
   };
 
-  const renderCanvas = async (spread: SpreadRenderData, width: number, height: number) => {
+  const renderCanvas = async (spread: SpreadRenderData, width: number, height: number, addBleed = false) => {
     const canvas = document.createElement("canvas");
+    const bx = addBleed ? bleedPx : 0;
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d")!;
     ctx.fillStyle = spread.bgColor;
     ctx.fillRect(0, 0, width, height);
 
+    const contentW = width - bx * 2;
+    const contentH = height - bx * 2;
+
     await Promise.all(spread.photos.map(photo =>
       new Promise<void>(resolve => {
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
-          const fx = (photo.x / 100) * width;
-          const fy = (photo.y / 100) * height;
-          const fw = (photo.w / 100) * width;
-          const fh = (photo.h / 100) * height;
+          const fx = bx + (photo.x / 100) * contentW;
+          const fy = bx + (photo.y / 100) * contentH;
+          const fw = (photo.w / 100) * contentW;
+          const fh = (photo.h / 100) * contentH;
           const scale = Math.max(fw / img.width, fh / img.height);
           const iw = img.width * scale;
           const ih = img.height * scale;
@@ -90,10 +113,28 @@ export default function AlbumExportDialog({ open, onOpenChange, album, spreads, 
         img.src = photo.url;
       })
     ));
+
+    // Draw crop marks for print-ready
+    if (addBleed && bx > 0) {
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 1;
+      const markLen = 20;
+      // Top-left
+      ctx.beginPath(); ctx.moveTo(bx, 0); ctx.lineTo(bx, markLen); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, bx); ctx.lineTo(markLen, bx); ctx.stroke();
+      // Top-right
+      ctx.beginPath(); ctx.moveTo(width - bx, 0); ctx.lineTo(width - bx, markLen); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(width, bx); ctx.lineTo(width - markLen, bx); ctx.stroke();
+      // Bottom-left
+      ctx.beginPath(); ctx.moveTo(bx, height); ctx.lineTo(bx, height - markLen); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, height - bx); ctx.lineTo(markLen, height - bx); ctx.stroke();
+      // Bottom-right
+      ctx.beginPath(); ctx.moveTo(width - bx, height); ctx.lineTo(width - bx, height - markLen); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(width, height - bx); ctx.lineTo(width - markLen, height - bx); ctx.stroke();
+    }
+
     return canvas;
   };
-
-  const dim = SPREAD_SIZES[album.size] || SPREAD_SIZES["12x36"];
 
   const handleJpegExport = async () => {
     setExporting(true);
@@ -118,20 +159,21 @@ export default function AlbumExportDialog({ open, onOpenChange, album, spreads, 
     setExporting(true);
     try {
       const data = await loadSpreadsData();
-      const pxW = printReady ? dim.spreadWidthPx : dim.spreadWidthPx / 2;
-      const pxH = printReady ? dim.spreadHeightPx : dim.spreadHeightPx / 2;
-      const mmW = dim.spreadWidthIn * 25.4;
-      const mmH = dim.spreadHeightIn * 25.4;
+      const pxW = printReady ? printWidth : screenWidth;
+      const pxH = printReady ? printHeight : screenHeight;
+      const bleedMm = printReady ? 3 : 0;
+      const mmW = dim.spreadWidthIn * 25.4 + bleedMm * 2;
+      const mmH = dim.spreadHeightIn * 25.4 + bleedMm * 2;
 
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: [mmW, mmH] });
       for (let i = 0; i < data.length; i++) {
         setProgress({ current: i + 1, total: data.length, label: `Rendering spread ${i + 1}` });
         if (i > 0) pdf.addPage();
-        const canvas = await renderCanvas(data[i], pxW, pxH);
+        const canvas = await renderCanvas(data[i], pxW, pxH, printReady);
         const img = canvas.toDataURL("image/jpeg", printReady ? 1 : 0.85);
         pdf.addImage(img, "JPEG", 0, 0, mmW, mmH);
       }
-      pdf.save(`${album.name} ${printReady ? "Print" : "Preview"}.pdf`);
+      pdf.save(`${album.name} ${printReady ? "Print-Ready 300DPI" : "Preview"}.pdf`);
       toast.success("PDF exported");
     } catch (e) { console.error(e); toast.error("PDF export failed"); }
     setExporting(false);
@@ -157,20 +199,29 @@ export default function AlbumExportDialog({ open, onOpenChange, album, spreads, 
                 <ImageIcon className="h-4 w-4" /> JPEG Spreads (ZIP)
               </Button>
               <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => handlePdfExport(false)}>
-                <FileText className="h-4 w-4" /> PDF Preview
+                <FileText className="h-4 w-4" />
+                <div className="flex flex-col items-start">
+                  <span>Screen Preview PDF (150 DPI)</span>
+                  <span className="text-[10px] text-muted-foreground">~{estimatedScreenSize} MB</span>
+                </div>
               </Button>
               <Button variant="outline" className="w-full justify-start gap-3 h-12" onClick={() => onSharePreview().then(() => onOpenChange(false))}>
                 <Link2 className="h-4 w-4" /> Share Preview Link
               </Button>
             </TabsContent>
             <TabsContent value="print" className="space-y-4 mt-4">
-              <div className="flex justify-between items-center">
-                <Label className="text-xs">Color Profile: {cmyk ? "CMYK" : "sRGB"}</Label>
-                <Switch checked={cmyk} onCheckedChange={setCmyk} />
-              </div>
-              <Button className="w-full" onClick={() => handlePdfExport(true)}>
-                <Download className="h-4 w-4 mr-2" /> Print-Ready PDF (300 DPI)
+              <Button className="w-full h-14" onClick={() => handlePdfExport(true)}>
+                <Download className="h-4 w-4 mr-2" />
+                <div className="flex flex-col items-start">
+                  <span>Print-Ready PDF (300 DPI + 3mm Bleed)</span>
+                  <span className="text-[10px] opacity-80">~{estimatedPrintSize} MB · Crop marks included</span>
+                </div>
               </Button>
+              {/* Bug 6 fix: removed non-functional CMYK toggle, added info note */}
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+                <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <span>Export is in RGB color space. For CMYK print files, contact your album printer for conversion.</span>
+              </div>
             </TabsContent>
           </Tabs>
         )}
