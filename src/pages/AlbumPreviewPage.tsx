@@ -1,10 +1,16 @@
-import React from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/lib/supabaseClient";
+
+type Page = {
+  id: string;
+  page_number: number;
+};
 
 type Layer = {
-  id?: string;
-  page_id?: string;
-  layer_type?: string;
+  id: string;
+  page_id: string;
+  layer_type: string;
   text_content?: string;
   x?: number;
   y?: number;
@@ -15,23 +21,43 @@ type Layer = {
   settings_json?: any;
 };
 
-type Page = {
-  id: string;
-};
+export default function AlbumPreviewPage() {
+  const { shareToken } = useParams();
 
-interface AlbumPreviewModalProps {
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  pages?: Page[];
-  layers?: Layer[];
-}
+  const [pages, setPages] = useState<Page[]>([]);
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function AlbumPreviewModal({
-  open = false,
-  onOpenChange = () => {},
-  pages = [],
-  layers = [],
-}: AlbumPreviewModalProps) {
+  useEffect(() => {
+    const loadAlbum = async () => {
+      if (!shareToken) return;
+
+      const { data: album } = await supabase.from("albums").select("*").eq("share_token", shareToken).single();
+
+      if (!album) {
+        setLoading(false);
+        return;
+      }
+
+      const { data: pagesData } = await supabase
+        .from("album_pages")
+        .select("*")
+        .eq("album_id", album.id)
+        .order("page_number", { ascending: true });
+
+      const { data: layersData } = await supabase
+        .from("album_layers")
+        .select("*")
+        .in("page_id", pagesData?.map((p: any) => p.id) || []);
+
+      setPages(pagesData || []);
+      setLayers(layersData || []);
+      setLoading(false);
+    };
+
+    loadAlbum();
+  }, [shareToken]);
+
   const getPageLayers = (pageId: string) =>
     layers.filter((l) => l.page_id === pageId).sort((a, b) => (a.z_index || 0) - (b.z_index || 0));
 
@@ -39,11 +65,11 @@ export default function AlbumPreviewModal({
     const photos = pageLayers.filter((l) => l.layer_type === "photo");
 
     if (!photos.length) {
-      return <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">Empty</div>;
+      return <div className="w-full h-full flex items-center justify-center text-neutral-500 text-xs">Empty</div>;
     }
 
     const firstSettings = photos[0]?.settings_json || {};
-    const layout = firstSettings?.layout;
+    const layout = firstSettings.layout;
 
     if (layout && layout.gridCols && layout.gridRows && layout.cells) {
       return (
@@ -56,8 +82,7 @@ export default function AlbumPreviewModal({
         >
           {layout.cells.map((cell: any, i: number) => {
             const photo = photos[i];
-            const settings = photo?.settings_json || {};
-            const url = settings?.imageUrl;
+            const url = photo?.settings_json?.imageUrl;
 
             return (
               <div
@@ -71,9 +96,7 @@ export default function AlbumPreviewModal({
                 {url ? (
                   <img src={url} className="w-full h-full object-cover" alt="" />
                 ) : (
-                  <div className="w-full h-full bg-white/5 flex items-center justify-center text-white/10 text-[10px]">
-                    Empty
-                  </div>
+                  <div className="w-full h-full bg-neutral-800" />
                 )}
               </div>
             );
@@ -87,26 +110,16 @@ export default function AlbumPreviewModal({
 
     return (
       <div
-        className="w-full h-full grid gap-[2px]"
+        className="w-full h-full grid"
         style={{
           gridTemplateColumns: `repeat(${cols},1fr)`,
           gridTemplateRows: `repeat(${rows},1fr)`,
         }}
       >
         {photos.map((p, i) => {
-          const s = p.settings_json || {};
-          const url = s?.imageUrl;
+          const url = p.settings_json?.imageUrl;
 
-          return url ? (
-            <img key={i} src={url} className="w-full h-full object-cover" alt="" />
-          ) : (
-            <div
-              key={i}
-              className="w-full h-full bg-white/5 flex items-center justify-center text-white/10 text-[10px]"
-            >
-              Empty
-            </div>
-          );
+          return <img key={i} src={url} className="w-full h-full object-cover" alt="" />;
         })}
       </div>
     );
@@ -116,7 +129,7 @@ export default function AlbumPreviewModal({
     const texts = pageLayers.filter((l) => l.layer_type === "text");
 
     return texts.map((t) => {
-      const settings = t.settings_json || {};
+      const s = t.settings_json || {};
 
       return (
         <div
@@ -128,9 +141,9 @@ export default function AlbumPreviewModal({
             width: `${t.width || 20}%`,
             height: `${t.height || 10}%`,
             transform: `rotate(${t.rotation || 0}deg)`,
-            color: settings.color || "#fff",
-            fontSize: settings.fontSize || "16px",
-            fontFamily: settings.fontFamily || "serif",
+            color: s.color || "#fff",
+            fontSize: s.fontSize || "18px",
+            fontFamily: s.fontFamily || "serif",
           }}
         >
           {t.text_content}
@@ -139,29 +152,29 @@ export default function AlbumPreviewModal({
     });
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[90vw] max-h-[90vh] bg-black border-none">
-        <div className="w-full h-full overflow-auto flex flex-col gap-8 p-6">
-          {pages.map((page) => {
-            const pageLayers = getPageLayers(page.id);
+  if (loading) {
+    return <div className="w-full h-screen flex items-center justify-center">Loading album...</div>;
+  }
 
-            return (
-              <div
-                key={page.id}
-                className="relative bg-neutral-900 shadow-xl mx-auto"
-                style={{
-                  width: "900px",
-                  height: "300px",
-                }}
-              >
-                {renderPhotos(pageLayers)}
-                {renderTextLayers(pageLayers)}
-              </div>
-            );
-          })}
-        </div>
-      </DialogContent>
-    </Dialog>
+  return (
+    <div className="bg-black min-h-screen flex flex-col items-center gap-10 py-10">
+      {pages.map((page) => {
+        const pageLayers = getPageLayers(page.id);
+
+        return (
+          <div
+            key={page.id}
+            className="relative bg-neutral-900 shadow-xl"
+            style={{
+              width: "1000px",
+              height: "350px",
+            }}
+          >
+            {renderPhotos(pageLayers)}
+            {renderTextLayers(pageLayers)}
+          </div>
+        );
+      })}
+    </div>
   );
 }
