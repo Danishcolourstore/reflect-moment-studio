@@ -5,10 +5,9 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Moon, Sparkles, Bell, ChevronRight, Menu, Search,
+  LogOut, Bell, ChevronRight, Menu, Globe,
 } from 'lucide-react';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
-import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,8 +23,9 @@ import { useStorageUsage, formatBytes, PLAN_LIMITS } from '@/hooks/use-storage-u
 const NAV_ITEMS = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
+  { title: 'Website', url: '/dashboard/website', icon: Globe },
   { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
-  { title: 'Cheetah Live', url: '/dashboard/cheetah-live', icon: Zap },
+  { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
   { title: 'Clients', url: '/dashboard/clients', icon: Users },
   { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart2 },
   { title: 'Notifications', url: '/dashboard/notifications', icon: Bell },
@@ -36,7 +36,7 @@ const NAV_ITEMS = [
 const MOBILE_NAV = [
   { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
-  { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
+  { title: 'Website', url: '/dashboard/website', icon: Globe },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
 ];
 const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));
@@ -52,9 +52,10 @@ interface Profile {
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/events': 'Events',
+  '/dashboard/website': 'Website Builder',
   '/dashboard/storybook': 'Storybook',
   '/dashboard/album-designer': 'Album Designer',
-  '/dashboard/cheetah-live': 'Cheetah Live',
+  '/dashboard/cheetah-live': 'Cheetah',
   '/dashboard/clients': 'Clients',
   '/dashboard/analytics': 'Analytics',
   '/dashboard/notifications': 'Notifications',
@@ -63,18 +64,12 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/onboarding': 'Welcome',
 };
 
-type ThemeMode = 'dark' | 'classic';
+type ThemeMode = 'light' | 'dark';
 
 function applyThemeClass(t: ThemeMode) {
   document.documentElement.classList.remove('dark', 'editorial', 'classic');
-  document.documentElement.classList.add(t);
-  localStorage.setItem('andhakaar-mode', t === 'dark' ? 'on' : 'off');
+  if (t === 'dark') document.documentElement.classList.add('dark');
   localStorage.setItem('theme', t);
-}
-
-function normalizeTheme(raw: string): ThemeMode {
-  if (raw === 'dark') return 'dark';
-  return 'classic'; // editorial or anything else → classic
 }
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -83,16 +78,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem('mirrorai-theme') || 'dark';
-    const t = normalizeTheme(saved);
+    const saved = localStorage.getItem('theme') || 'light';
+    const t: ThemeMode = saved === 'dark' ? 'dark' : 'light';
     applyThemeClass(t);
     return t;
   });
   const [moreOpen, setMoreOpen] = useState(false);
-  const overlayRef = useRef<HTMLDivElement>(null);
   const storage = useStorageUsage();
 
-  // Load profile + theme preference from DB
   useEffect(() => {
     if (!user) return;
     (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed, theme_preference') as any)
@@ -101,10 +94,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       .then(({ data }: any) => {
         if (data) {
           setProfile(data);
-          // Sync theme from DB if different from localStorage
-          const dbTheme = normalizeTheme(data.theme_preference || 'dark');
+          const dbTheme: ThemeMode = data.theme_preference === 'dark' ? 'dark' : 'light';
           applyThemeClass(dbTheme);
-          localStorage.setItem('mirrorai-theme', dbTheme);
           setTheme(dbTheme);
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
             navigate('/dashboard/onboarding', { replace: true });
@@ -115,30 +106,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const switchTheme = useCallback((next: ThemeMode) => {
     if (next === theme) return;
-    const overlay = overlayRef.current;
-    if (overlay) {
-      overlay.classList.add('active');
-      setTimeout(() => {
-        applyThemeClass(next);
-        localStorage.setItem('mirrorai-theme', next);
-        setTheme(next);
-        // Persist to DB
-        if (user) {
-          (supabase.from('profiles').update({ theme_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
-        }
-        setTimeout(() => overlay.classList.remove('active'), 100);
-      }, 300);
-    } else {
-      applyThemeClass(next);
-      localStorage.setItem('mirrorai-theme', next);
-      setTheme(next);
-      if (user) {
-        (supabase.from('profiles').update({ theme_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
-      }
+    applyThemeClass(next);
+    setTheme(next);
+    if (user) {
+      (supabase.from('profiles').update({ theme_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
     }
   }, [theme, user]);
 
-  const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MS';
+  const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MA';
 
   const handleSignOut = async () => {
     await signOut();
@@ -148,180 +123,120 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const storageUsed = storage.data?.used ?? 0;
   const storageLimit = storage.data?.limit ?? PLAN_LIMITS.free;
   const storagePct = Math.min((storageUsed / storageLimit) * 100, 100);
-  const storageColor = storagePct >= 100 ? 'bg-destructive' : storagePct >= 80 ? 'bg-gold-hover' : '';
 
   return (
     <div className="min-h-screen bg-background">
-      <div ref={overlayRef} className="andhakaar-overlay" />
-
       {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[260px] flex-col lg:flex border-r border-border bg-background/95 backdrop-blur-xl">
-        <div className="px-7 pt-9 pb-6">
-          <h1 className="text-foreground font-serif" style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.5px' }}>
-            MirrorAI
-          </h1>
-          <p className="text-muted-foreground mt-1.5 font-serif" style={{ fontSize: '11px', fontStyle: 'italic', fontWeight: 300 }}>
-            Mirror never lies
-          </p>
+      <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[240px] flex-col lg:flex border-r border-border bg-card">
+        <div className="px-6 pt-7 pb-5">
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">Mirror AI</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Photography Platform</p>
         </div>
 
-        <div className="mx-6 h-px bg-border" />
+        <div className="mx-5 h-px bg-border" />
 
-        <div className="px-6 py-7 flex flex-col items-center text-center">
-          <Avatar className="h-14 w-14 mb-3.5 ring-1 ring-border">
+        {/* User info */}
+        <div className="px-5 py-5 flex items-center gap-3">
+          <Avatar className="h-9 w-9">
             <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-muted text-muted-foreground text-xs font-sans font-semibold" style={{ letterSpacing: '1px' }}>{initials}</AvatarFallback>
+            <AvatarFallback className="bg-secondary text-muted-foreground text-xs font-medium">{initials}</AvatarFallback>
           </Avatar>
-          <p className="text-sm text-foreground leading-tight font-serif" style={{ letterSpacing: '0.04em' }}>
-            {user?.user_metadata?.full_name || profile?.email?.split('@')[0] || 'Photographer'}
-          </p>
-          <p className="mt-1.5 truncate max-w-full font-sans text-muted-foreground" style={{ fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 600 }}>
-            {profile?.studio_name || 'My Studio'}
-          </p>
-          <Badge variant="secondary"
-            className={`mt-3 px-3 py-0.5 font-sans ${profile?.plan === 'pro' ? 'bg-primary/15 text-primary border-primary/20' : 'bg-muted text-muted-foreground border-border'}`}
-            style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600 }}
-          >
-            {profile?.plan === 'pro' ? 'Pro' : 'Free'}
-          </Badge>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
+              {profile?.studio_name || 'My Studio'}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">{profile?.email || ''}</p>
+          </div>
         </div>
 
-        <div className="mx-6 h-px bg-border" />
+        <div className="mx-5 h-px bg-border" />
 
-        <nav className="flex-1 px-4 pt-6 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 px-3 pt-4 space-y-0.5 overflow-y-auto">
           {NAV_ITEMS.map((item) => (
             <NavLink key={item.url} to={item.url} end={item.end}
-              className="flex items-center gap-3.5 px-4 py-2.5 text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-muted/50 rounded-xl border-l-2 border-transparent font-sans"
-              activeClassName="text-foreground bg-muted border-l-2 !border-primary"
-              style={{ fontWeight: 500, fontSize: '12px', letterSpacing: '1.5px', textTransform: 'uppercase' as const }}
+              className="flex items-center gap-3 px-3 py-2 text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary rounded-lg text-sm"
+              activeClassName="text-foreground bg-secondary font-medium"
             >
-              <item.icon className="h-[15px] w-[15px] text-muted-foreground" strokeWidth={1.5} />
+              <item.icon className="h-4 w-4" strokeWidth={1.8} />
               <span>{item.title}</span>
             </NavLink>
           ))}
         </nav>
 
-        <div className="px-5 pb-3 pt-4">
-          {profile?.plan !== 'pro' ? (
-            <div className="bg-secondary rounded-xl p-5">
-              <p className="text-[13px] text-foreground font-serif" style={{ fontWeight: 500 }}>Upgrade to Pro</p>
-              <p className="mt-1.5 font-sans text-muted-foreground" style={{ fontSize: '10px', letterSpacing: '1px' }}>Unlimited events & storage</p>
-              <Button size="sm" className="mt-3.5 w-full h-9" style={{ fontSize: '10px', letterSpacing: '1.5px' }}>
-                Upgrade
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2.5 px-3 py-2.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary/60" />
-              <span className="font-sans text-muted-foreground" style={{ fontSize: '10px', letterSpacing: '1px' }}>Pro Active</span>
-            </div>
-          )}
-        </div>
-
-        <div className="px-5 pb-6">
-          <p className="mb-2.5 font-sans text-muted-foreground" style={{ fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 600 }}>Storage</p>
-          <p className="font-sans text-muted-foreground" style={{ fontSize: '11px' }}>
-            {formatBytes(storageUsed)} <span className="text-muted-foreground/60">of {formatBytes(storageLimit)}</span>
+        {/* Storage */}
+        <div className="px-5 pb-5 pt-3">
+          <p className="text-xs text-muted-foreground mb-2">Storage</p>
+          <p className="text-xs text-foreground">
+            {formatBytes(storageUsed)} <span className="text-muted-foreground">/ {formatBytes(storageLimit)}</span>
           </p>
-          <div className="mt-2.5 h-[2px] w-full rounded-full bg-border overflow-hidden">
-            <div className={`h-full rounded-full transition-all ${storageColor || 'bg-primary/40'}`} style={{ width: `${storagePct}%` }} />
+          <div className="mt-2 h-1 w-full rounded-full bg-border overflow-hidden">
+            <div className="h-full rounded-full bg-foreground/20 transition-all" style={{ width: `${storagePct}%` }} />
           </div>
-          {profile?.plan !== 'pro' && (
-            <button onClick={() => navigate('/dashboard/profile')} className="mt-1.5 hover:underline font-sans text-muted-foreground" style={{ fontSize: '9px', letterSpacing: '0.5px' }}>Upgrade for more</button>
-          )}
         </div>
       </aside>
 
-      {/* Fixed Header — 64px */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[260px] z-20 flex items-center justify-between px-5 lg:px-10 bg-background/80 backdrop-blur-xl border-b border-border" style={{ height: '64px' }}>
-        <h2 className="text-foreground font-serif lg:hidden" style={{ fontWeight: 700, fontSize: '28px', letterSpacing: '-0.5px' }}>MirrorAI</h2>
-        {/* Desktop page title */}
-        <h2 className="hidden lg:block text-foreground font-sans" style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' as const }}>
+      {/* Header */}
+      <header className="fixed top-0 right-0 left-0 lg:left-[240px] z-20 flex items-center justify-between px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14">
+        <h2 className="text-foreground font-semibold lg:hidden text-lg tracking-tight">Mirror AI</h2>
+        <h2 className="hidden lg:block text-sm font-medium text-foreground">
           {PAGE_TITLES[location.pathname] || ''}
         </h2>
-        <div className="flex items-center gap-3">
-          {/* Realtime status indicator */}
-          <RealtimeStatusIndicator />
-          {/* Theme switcher — Dark / Editorial / Classic */}
-          <div className="flex items-center rounded-full border border-border bg-card overflow-hidden">
-            {([
-              { key: 'dark' as ThemeMode, label: 'Dark', emoji: '🌙' },
-              { key: 'classic' as ThemeMode, label: 'Classic', emoji: '✦' },
-            ]).map(({ key, label, emoji }) => (
-              <button
-                key={key}
-                onClick={() => switchTheme(key)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 transition-all duration-200 font-sans ${
-                  theme === key
-                    ? 'bg-primary/15 text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase' }}
-                aria-label={`Switch to ${label} theme`}
-              >
-                <span className="text-[11px]">{emoji}</span>
-                <span className="hidden sm:inline">{label}</span>
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center gap-2">
+          {/* Theme toggle */}
+          <button
+            onClick={() => switchTheme(theme === 'light' ? 'dark' : 'light')}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            title="Toggle theme"
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
           <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="ml-0.5">
-                <Avatar className="h-9 w-9 ring-1 ring-border">
+              <button className="ml-1">
+                <Avatar className="h-8 w-8">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="font-sans text-muted-foreground bg-muted" style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px' }}>{initials}</AvatarFallback>
+                  <AvatarFallback className="bg-secondary text-muted-foreground text-xs font-medium">{initials}</AvatarFallback>
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => navigate('/dashboard/profile')}>
-                <User className="mr-2 h-3.5 w-3.5" /> Profile Settings
+                <User className="mr-2 h-4 w-4" /> Profile
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                <LogOut className="mr-2 h-3.5 w-3.5" /> Sign Out
+                <LogOut className="mr-2 h-4 w-4" /> Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="lg:ml-[260px] pb-24 lg:pb-0" style={{ paddingTop: '64px' }}>
-        <div className="mx-auto max-w-[1400px] px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+      {/* Main */}
+      <main className="lg:ml-[240px] pb-24 lg:pb-0 pt-14">
+        <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {children}
-
-          <div className="mt-16 pb-8 text-center">
-            <p className="font-sans text-muted-foreground" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase' }}>
-              Colour Store Preset Universe
-            </p>
-          </div>
         </div>
       </main>
 
-      {/* Mobile Floating Action Button */}
       <FloatingActionButton />
 
-      {/* Mobile bottom nav — 72px, Pixiset style */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border safe-area-pb" style={{ height: '72px' }}>
-        {MOBILE_NAV.map((item) => {
-          const isClassic = theme === 'classic';
-          return (
-            <NavLink key={item.url} to={item.url} end={item.end}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors relative pt-0.5 min-h-[44px]`}
-              activeClassName={isClassic ? 'nav-active-gold [&>.nav-top-bar]:opacity-100' : 'text-foreground [&>.nav-top-bar]:opacity-100'}
-            >
-              <div className={`nav-top-bar absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 opacity-0 transition-opacity ${isClassic ? 'nav-bar-gold' : 'bg-primary'}`} />
-              <item.icon className="h-5 w-5" strokeWidth={1.5} />
-              <span className="font-sans whitespace-nowrap" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>{item.title}</span>
-            </NavLink>
-          );
-        })}
+      {/* Mobile bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch lg:hidden bg-card border-t border-border safe-area-pb h-16">
+        {MOBILE_NAV.map((item) => (
+          <NavLink key={item.url} to={item.url} end={item.end}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors min-h-[44px]"
+            activeClassName="text-foreground"
+          >
+            <item.icon className="h-5 w-5" strokeWidth={1.8} />
+            <span className="text-[10px] font-medium">{item.title}</span>
+          </NavLink>
+        ))}
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
-            <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground pt-0.5 min-h-[44px]">
-              <Menu className="h-5 w-5" strokeWidth={1.5} />
-              <span className="font-sans whitespace-nowrap" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>More</span>
+            <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground min-h-[44px]">
+              <Menu className="h-5 w-5" strokeWidth={1.8} />
+              <span className="text-[10px] font-medium">More</span>
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl safe-area-pb">
@@ -329,17 +244,15 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               {MORE_NAV.map((item) => (
                 <button key={item.url}
                   onClick={() => { navigate(item.url); setMoreOpen(false); }}
-                  className="flex items-center gap-3.5 w-full px-5 py-4 text-foreground hover:bg-secondary rounded-xl transition-colors font-sans min-h-[44px]"
-                  style={{ fontSize: '13px', letterSpacing: '0.5px' }}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-foreground hover:bg-secondary rounded-lg transition-colors text-sm min-h-[44px]"
                 >
-                  <item.icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+                  <item.icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.8} />
                   {item.title}
-                  <ChevronRight className="ml-auto h-4 w-4 text-primary/40" />
+                  <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground/40" />
                 </button>
               ))}
               <button onClick={handleSignOut}
-                className="flex items-center gap-3.5 w-full px-5 py-4 text-destructive hover:bg-destructive/5 rounded-xl transition-colors mt-4 font-sans min-h-[44px]"
-                style={{ fontSize: '13px', letterSpacing: '0.5px' }}
+                className="flex items-center gap-3 w-full px-4 py-3 text-destructive hover:bg-destructive/5 rounded-lg transition-colors mt-3 text-sm min-h-[44px]"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out
