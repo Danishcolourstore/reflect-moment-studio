@@ -10,12 +10,7 @@ import AlbumTimeline from "@/components/album-designer/AlbumTimeline";
 import AlbumPreviewModal from "@/components/album-designer/AlbumPreviewModal";
 import AlbumExportDialog from "@/components/album-designer/AlbumExportDialog";
 import AlbumAutoLayoutDialog from "@/components/album-designer/AlbumAutoLayoutDialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ImageIcon, Settings } from "lucide-react";
 
 export default function AlbumEditorPage() {
@@ -55,19 +50,14 @@ export default function AlbumEditorPage() {
 
   const settingsPanel = (
     <AlbumRightPanel
-      onApplyTemplate={editor.applyTemplate}
-      textLayers={editor.textLayers}
-      selectedTextId={editor.selectedTextId}
-      onAddText={editor.addTextLayer}
-      onUpdateText={editor.updateText}
-      onDeleteText={editor.deleteText}
-      onReorderTextLayers={editor.updateTextLayers}
+      currentPresetId={editor.currentPresetId}
+      onApplyPreset={editor.applyPreset}
       showBleed={editor.showBleed}
       showSafeMargin={editor.showSafeMargin}
-      showSpine={editor.showSpine}
+      showGrid={editor.showGrid}
       onToggleBleed={editor.setShowBleed}
       onToggleSafe={editor.setShowSafeMargin}
-      onToggleSpine={editor.setShowSpine}
+      onToggleGrid={editor.setShowGrid}
       bgColor={editor.bgColor}
       onBgColorChange={editor.updateBgColor}
       paperTexture={editor.paperTexture}
@@ -77,13 +67,10 @@ export default function AlbumEditorPage() {
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
-      {/* Toolbar */}
       <AlbumEditorToolbar
         albumName={editor.album.name}
         onNameChange={editor.updateAlbumName}
         onBack={editor.goBack}
-        spreadView={editor.spreadView}
-        onToggleSpread={() => editor.setSpreadView(!editor.spreadView)}
         zoom={editor.zoom}
         onZoomChange={editor.setZoom}
         onUndo={editor.undo}
@@ -96,98 +83,75 @@ export default function AlbumEditorPage() {
         onAutoLayout={() => setAutoLayoutOpen(true)}
         onPreview={() => setPreviewOpen(true)}
         onExport={() => setExportOpen(true)}
+        showBleed={editor.showBleed}
+        showGrid={editor.showGrid}
+        onToggleBleed={() => editor.setShowBleed(!editor.showBleed)}
+        onToggleGrid={() => editor.setShowGrid(!editor.showGrid)}
       />
 
-      {/* Main editor area */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left: Photos — desktop only */}
         {!isMobile && photosPanel}
 
-        {/* Center: Canvas */}
         <AlbumCanvas
-          layout={editor.layout}
-          cells={editor.cells}
-          onCellsChange={editor.updateCells}
-          textLayers={editor.textLayers}
-          onTextLayersChange={editor.updateTextLayers}
-          selectedTextId={editor.selectedTextId}
-          onSelectText={editor.setSelectedTextId}
+          frames={editor.frames}
+          onFramesChange={editor.updateFrames}
           albumSize={editor.album.size}
           zoom={editor.zoom}
           onZoomChange={editor.setZoom}
-          spreadView={editor.spreadView}
           showBleed={editor.showBleed}
           showSafeMargin={editor.showSafeMargin}
-          showSpine={editor.showSpine}
+          showGrid={editor.showGrid}
           bgColor={editor.bgColor}
           onDropPhoto={editor.dropPhoto}
-          onPlacePhotoFile={editor.placePhotoFile}
           uploadingCells={editor.uploadingCells}
-          currentPageNumber={editor.currentPageNumber}
+          spreadLabel={editor.spreadLabel}
         />
 
-        {/* Right: Settings — desktop only */}
-        {!isMobile && (
-          <div className="w-64 xl:w-72 shrink-0">{settingsPanel}</div>
-        )}
+        {!isMobile && <div className="w-64 xl:w-72 shrink-0">{settingsPanel}</div>}
 
-        {/* Mobile FABs */}
         {isMobile && (
           <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-30">
-            <button
-              onClick={() => setPhotosDrawerOpen(true)}
-              className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center"
-            >
+            <button onClick={() => setPhotosDrawerOpen(true)}
+              className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center">
               <ImageIcon className="h-5 w-5" />
             </button>
-            <button
-              onClick={() => setSettingsDrawerOpen(true)}
-              className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center"
-            >
+            <button onClick={() => setSettingsDrawerOpen(true)}
+              className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center">
               <Settings className="h-5 w-5" />
             </button>
           </div>
         )}
       </div>
 
-      {/* Bottom: Timeline */}
       <AlbumTimeline
-        pages={editor.pages}
-        currentPageId={editor.currentPageId}
-        currentSpreadIndex={editor.currentSpreadIndex}
-        spreadView={editor.spreadView}
-        onSelectPage={editor.selectPage}
-        onAddPage={editor.addPage}
-        onDuplicatePage={editor.duplicatePage}
-        onDeletePage={editor.deletePage}
-        onReorderPage={editor.reorderPages}
-        pageThumbnails={editor.pageThumbnails}
+        spreads={editor.spreads}
+        currentSpreadId={editor.currentSpreadId}
+        onSelectSpread={editor.selectSpread}
+        onAddSpread={editor.addSpread}
+        onDuplicateSpread={editor.duplicateSpread}
+        onDeleteSpread={editor.deleteSpread}
+        onReorderSpread={editor.reorderSpreads}
+        spreadThumbnails={editor.spreadThumbnails}
+        albumSize={editor.album.size}
       />
 
-      {/* Mobile Drawers */}
       {isMobile && (
         <>
           <Sheet open={photosDrawerOpen} onOpenChange={setPhotosDrawerOpen}>
             <SheetContent side="bottom" className="h-[70vh] p-0">
-              <SheetHeader className="px-4 pt-3 pb-0">
-                <SheetTitle className="text-sm">Photos</SheetTitle>
-              </SheetHeader>
+              <SheetHeader className="px-4 pt-3 pb-0"><SheetTitle className="text-sm">Photos</SheetTitle></SheetHeader>
               <div className="h-full overflow-hidden">{photosPanel}</div>
             </SheetContent>
           </Sheet>
-
           <Sheet open={settingsDrawerOpen} onOpenChange={setSettingsDrawerOpen}>
             <SheetContent side="right" className="w-[85vw] max-w-xs p-0">
-              <SheetHeader className="px-4 pt-3 pb-0">
-                <SheetTitle className="text-sm">Settings</SheetTitle>
-              </SheetHeader>
+              <SheetHeader className="px-4 pt-3 pb-0"><SheetTitle className="text-sm">Settings</SheetTitle></SheetHeader>
               <div className="h-full overflow-hidden">{settingsPanel}</div>
             </SheetContent>
           </Sheet>
         </>
       )}
 
-      {/* Modals */}
       {previewOpen && (
         <AlbumPreviewModal
           albumId={editor.album.id}
@@ -201,7 +165,7 @@ export default function AlbumEditorPage() {
         open={exportOpen}
         onOpenChange={setExportOpen}
         album={editor.album}
-        pages={editor.pages}
+        spreads={editor.spreads}
         onSharePreview={editor.getShareLink}
       />
 
@@ -209,7 +173,7 @@ export default function AlbumEditorPage() {
         open={autoLayoutOpen}
         onOpenChange={setAutoLayoutOpen}
         album={editor.album}
-        onComplete={editor.reloadPages}
+        onComplete={editor.reloadSpreads}
       />
     </div>
   );

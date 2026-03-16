@@ -1,117 +1,189 @@
-import { useRef, useCallback } from "react";
-import type { GridLayout, GridCellData } from "@/components/grid-builder/types";
-import type { TextLayer } from "@/components/grid-builder/text-overlay-types";
-import GridCell from "@/components/grid-builder/GridCell";
-import TextOverlay from "@/components/grid-builder/TextOverlay";
-import { ALBUM_SIZES, type AlbumSize } from "./types";
-import { Layers, Loader2 } from "lucide-react";
+import { useRef, useCallback, useState } from "react";
+import { SPREAD_SIZES, type AlbumSize, type SpreadFrame } from "./types";
+import { Layers, Loader2, RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface Props {
-  layout: GridLayout | null;
-  cells: GridCellData[];
-  onCellsChange: (cells: GridCellData[]) => void;
-  textLayers: TextLayer[];
-  onTextLayersChange: (layers: TextLayer[]) => void;
-  selectedTextId: string | null;
-  onSelectText: (id: string | null) => void;
-  albumSize: AlbumSize;
-  zoom: number;
-  onZoomChange: (z: number) => void;
-  spreadView: boolean;
-  showBleed: boolean;
-  showSafeMargin: boolean;
-  showSpine: boolean;
-  bgColor: string;
-  onDropPhoto: (photo: { url: string }, cellIndex: number) => void;
-  onPlacePhotoFile: (index: number, file: File) => void;
-  uploadingCells: Set<number>;
-  currentPageNumber: number;
-}
+/* ─── Photo Frame Component ─── */
 
-export default function AlbumCanvas({
-  layout,
-  cells,
-  onCellsChange,
-  textLayers,
-  onTextLayersChange,
-  selectedTextId,
-  onSelectText,
-  albumSize,
-  zoom,
-  onZoomChange,
-  spreadView,
-  showBleed,
-  showSafeMargin,
-  showSpine,
-  bgColor,
-  onDropPhoto,
-  onPlacePhotoFile,
-  uploadingCells,
-  currentPageNumber,
-}: Props) {
-  const canvasRef = useRef<HTMLDivElement>(null);
+function PhotoFrame({
+  frame,
+  index,
+  onUpdate,
+  onDrop,
+  isUploading,
+}: {
+  frame: SpreadFrame;
+  index: number;
+  onUpdate: (index: number, patch: Partial<SpreadFrame>) => void;
+  onDrop: (index: number, e: React.DragEvent) => void;
+  isUploading: boolean;
+}) {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
 
-  const dim = ALBUM_SIZES[albumSize];
-  const isCover = currentPageNumber === 0;
-  const showAsSpread = spreadView && !isCover;
-  const aspectRatio = showAsSpread
-    ? (dim.widthIn * 2) / dim.heightIn
-    : dim.widthIn / dim.heightIn;
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!frame.imageUrl) return;
+    e.preventDefault();
+    e.stopPropagation();
+    dragStart.current = { x: e.clientX, y: e.clientY, panX: frame.panX, panY: frame.panY };
+    setDragging(true);
 
-  const updateCell = useCallback(
-    (index: number, patch: Partial<GridCellData>) => {
-      const updated = cells.map((c, i) => (i === index ? { ...c, ...patch } : c));
-      onCellsChange(updated);
-    },
-    [cells, onCellsChange]
-  );
+    const handleMove = (ev: MouseEvent) => {
+      if (!dragStart.current) return;
+      const dx = ev.clientX - dragStart.current.x;
+      const dy = ev.clientY - dragStart.current.y;
+      onUpdate(index, {
+        panX: dragStart.current.panX + dx,
+        panY: dragStart.current.panY + dy,
+      });
+    };
+    const handleUp = () => {
+      dragStart.current = null;
+      setDragging(false);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
+    };
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
+  }, [frame, index, onUpdate]);
 
-  const handleImageAdd = useCallback(
-    (index: number, file: File) => {
-      onPlacePhotoFile(index, file);
-    },
-    [onPlacePhotoFile]
-  );
-
-  const handleImageRemove = useCallback(
-    (index: number) => {
-      const old = cells[index];
-      if (old?.imageUrl?.startsWith("blob:")) URL.revokeObjectURL(old.imageUrl);
-      updateCell(index, { imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 });
-    },
-    [cells, updateCell]
-  );
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (!frame.imageUrl) return;
+    e.stopPropagation();
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    const newZoom = Math.max(1, Math.min(4, frame.zoom + delta));
+    onUpdate(index, { zoom: newZoom });
+  }, [frame, index, onUpdate]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "copy";
   };
 
-  const handleDrop = (e: React.DragEvent, cellIndex: number) => {
-    e.preventDefault();
-    const data = e.dataTransfer.getData("application/album-photo");
-    if (!data) return;
-    try {
-      const photo = JSON.parse(data);
-      onDropPhoto(photo, cellIndex);
-    } catch {
-      console.warn("Invalid photo drag data");
-    }
+  const handleReset = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onUpdate(index, { panX: 0, panY: 0, zoom: 1 });
   };
 
-  const updateTextLayer = useCallback(
-    (id: string, patch: Partial<TextLayer>) => {
-      onTextLayersChange(textLayers.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+  return (
+    <div
+      ref={frameRef}
+      className={cn(
+        "absolute overflow-hidden bg-[hsl(var(--muted))]/30 transition-shadow duration-200",
+        dragging ? "cursor-grabbing" : frame.imageUrl ? "cursor-grab" : "cursor-default",
+        !frame.imageUrl && "border border-dashed border-[hsl(var(--border))]",
+      )}
+      style={{
+        left: `${frame.x}%`,
+        top: `${frame.y}%`,
+        width: `${frame.w}%`,
+        height: `${frame.h}%`,
+      }}
+      onMouseDown={handleMouseDown}
+      onWheel={handleWheel}
+      onDragOver={handleDragOver}
+      onDrop={(e) => onDrop(index, e)}
+    >
+      {frame.imageUrl ? (
+        <>
+          <img
+            src={frame.imageUrl}
+            alt=""
+            draggable={false}
+            className="absolute select-none pointer-events-none"
+            style={{
+              width: `${frame.zoom * 100}%`,
+              height: `${frame.zoom * 100}%`,
+              objectFit: "cover",
+              left: `calc(50% - ${frame.zoom * 50}% + ${frame.panX}px)`,
+              top: `calc(50% - ${frame.zoom * 50}% + ${frame.panY}px)`,
+            }}
+          />
+          {/* Reset crop button */}
+          {(frame.panX !== 0 || frame.panY !== 0 || frame.zoom !== 1) && (
+            <button
+              onClick={handleReset}
+              className="absolute top-1 right-1 z-10 h-5 w-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
+              title="Reset crop"
+            >
+              <RotateCcw className="h-3 w-3" />
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="text-center text-muted-foreground/40">
+            <Layers className="h-5 w-5 mx-auto mb-1" />
+            <p className="text-[9px]">Drop photo</p>
+          </div>
+        </div>
+      )}
+      {isUploading && (
+        <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-20">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Canvas Props ─── */
+
+interface Props {
+  frames: SpreadFrame[];
+  onFramesChange: (frames: SpreadFrame[]) => void;
+  albumSize: AlbumSize;
+  zoom: number;
+  onZoomChange: (z: number) => void;
+  showBleed: boolean;
+  showSafeMargin: boolean;
+  showGrid: boolean;
+  bgColor: string;
+  onDropPhoto: (photo: { url: string }, frameIndex: number) => void;
+  uploadingCells: Set<number>;
+  spreadLabel: string;
+}
+
+export default function AlbumCanvas({
+  frames,
+  onFramesChange,
+  albumSize,
+  zoom,
+  onZoomChange,
+  showBleed,
+  showSafeMargin,
+  showGrid,
+  bgColor,
+  onDropPhoto,
+  uploadingCells,
+  spreadLabel,
+}: Props) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const dim = SPREAD_SIZES[albumSize];
+  const aspectRatio = dim.aspectRatio;
+
+  const handleFrameUpdate = useCallback(
+    (index: number, patch: Partial<SpreadFrame>) => {
+      const updated = frames.map((f, i) => (i === index ? { ...f, ...patch } : f));
+      onFramesChange(updated);
     },
-    [textLayers, onTextLayersChange]
+    [frames, onFramesChange]
   );
 
-  const deleteTextLayer = useCallback(
-    (id: string) => {
-      onTextLayersChange(textLayers.filter((l) => l.id !== id));
-      onSelectText(null);
+  const handleDrop = useCallback(
+    (index: number, e: React.DragEvent) => {
+      e.preventDefault();
+      const data = e.dataTransfer.getData("application/album-photo");
+      if (!data) return;
+      try {
+        const photo = JSON.parse(data);
+        onDropPhoto(photo, index);
+      } catch {
+        console.warn("Invalid drag data");
+      }
     },
-    [textLayers, onTextLayersChange, onSelectText]
+    [onDropPhoto]
   );
 
   const handleWheel = useCallback(
@@ -119,142 +191,107 @@ export default function AlbumCanvas({
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -10 : 10;
-        onZoomChange(Math.max(25, Math.min(200, zoom + delta)));
+        onZoomChange(Math.max(25, Math.min(300, zoom + delta)));
       }
     },
     [zoom, onZoomChange]
   );
 
-  const bleedPct = (dim.bleedMm / (dim.widthIn * 25.4)) * 100;
-  const safePct = (dim.safeMarginMm / (dim.widthIn * 25.4)) * 100;
+  const bleedPct = (dim.bleedMm / (dim.spreadWidthIn * 25.4)) * 100;
+  const safePct = (dim.safeMarginMm / (dim.spreadWidthIn * 25.4)) * 100;
 
-  const layoutCells = layout?.cells ?? [];
-  const hasLayout = layoutCells.length > 0;
-
-  const baseWidth = 560;
+  // Scale canvas to fit workspace
+  const baseWidth = 800;
   const scaledWidth = baseWidth * (zoom / 100);
 
   return (
     <div
-      className="flex-1 flex items-center justify-center overflow-auto"
+      className="flex-1 flex flex-col items-center justify-center overflow-auto"
       style={{
         minHeight: 0,
         padding: "32px",
-        background:
-          "radial-gradient(circle at 50% 50%, hsl(var(--muted) / 0.5), hsl(var(--muted) / 0.2))",
+        background: "hsl(0 0% 12%)",
       }}
       onWheel={handleWheel}
     >
+      {/* Spread label */}
+      <div className="mb-3 text-[11px] font-medium text-white/40 tracking-wider uppercase">
+        {spreadLabel}
+      </div>
+
       <div
         ref={canvasRef}
-        className="relative rounded-sm overflow-visible transition-transform duration-200 flex-shrink-0"
+        className="relative flex-shrink-0 group"
         style={{
           aspectRatio,
           width: `${scaledWidth}px`,
           maxWidth: "calc(100% - 64px)",
           background: bgColor,
-          boxShadow:
-            "0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05)",
+          boxShadow: "0 30px 60px -15px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)",
         }}
       >
-        {/* Bleed guide */}
+        {/* Bleed guide (red dashed) */}
         {showBleed && (
           <div
             className="absolute pointer-events-none z-40"
             style={{
               inset: `-${bleedPct}%`,
-              border: "2px dashed rgba(239,68,68,0.5)",
+              border: "1.5px dashed rgba(239,68,68,0.6)",
             }}
-          />
+          >
+            <span className="absolute top-0 left-1 text-[8px] text-red-500/60">BLEED 3mm</span>
+          </div>
         )}
 
-        {/* Safe margin guide */}
+        {/* Safe margin (blue dashed) */}
         {showSafeMargin && (
           <div
             className="absolute pointer-events-none z-40"
             style={{
               inset: `${safePct}%`,
-              border: "1.5px dashed rgba(59,130,246,0.5)",
-            }}
-          />
-        )}
-
-        {/* Spine guide */}
-        {showSpine && showAsSpread && (
-          <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-foreground/20 z-40 pointer-events-none" />
-        )}
-
-        {/* Content */}
-        {!hasLayout ? (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-muted-foreground select-none">
-            <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center">
-              <Layers className="h-8 w-8 opacity-30" />
-            </div>
-            <p className="text-sm font-medium opacity-50">Select a layout from the right panel</p>
-            <p className="text-xs opacity-30">Or drag photos from the left panel</p>
-          </div>
-        ) : (
-          <div
-            className="absolute inset-0"
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${layout!.gridCols}, 1fr)`,
-              gridTemplateRows: `repeat(${layout!.gridRows}, 1fr)`,
-              gap: "3px",
-              padding: "3px",
+              border: "1px dashed rgba(59,130,246,0.5)",
             }}
           >
-            {layoutCells.map((area, i) => {
-              const cell = cells[i] || {
-                id: `cell-${i}`,
-                imageUrl: null,
-                file: null,
-                offsetX: 0,
-                offsetY: 0,
-                scale: 1,
-              };
-              const isUploading = uploadingCells.has(i);
-              return (
-                <div
-                  key={cell.id}
-                  className="w-full h-full relative"
-                  style={{
-                    gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
-                  }}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, i)}
-                >
-                  <GridCell
-                    cell={cell}
-                    gridArea=""
-                    onImageAdd={(f) => handleImageAdd(i, f)}
-                    onImageRemove={() => handleImageRemove(i)}
-                    onOffsetChange={(x, y) => updateCell(i, { offsetX: x, offsetY: y })}
-                  />
-                  {/* Upload spinner overlay */}
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-30 pointer-events-none rounded">
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            <span className="absolute bottom-0 right-1 text-[8px] text-blue-500/50">SAFE</span>
           </div>
         )}
 
-        {/* Text overlays */}
-        {textLayers.map((layer) => (
-          <TextOverlay
-            key={layer.id}
-            layer={layer}
-            selected={layer.id === selectedTextId}
-            containerRef={canvasRef}
-            onUpdate={(patch) => updateTextLayer(layer.id, patch)}
-            onSelect={() => onSelectText(layer.id)}
-            onDelete={() => deleteTextLayer(layer.id)}
+        {/* Center spine line */}
+        <div className="absolute top-0 bottom-0 left-1/2 w-px bg-white/10 z-30 pointer-events-none" />
+
+        {/* Grid overlay */}
+        {showGrid && (
+          <div
+            className="absolute inset-0 pointer-events-none z-30"
+            style={{
+              backgroundSize: "10% 10%",
+              backgroundImage:
+                "linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            }}
           />
-        ))}
+        )}
+
+        {/* Frames */}
+        {frames.length === 0 ? (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-white/30 select-none">
+            <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center">
+              <Layers className="h-8 w-8 opacity-30" />
+            </div>
+            <p className="text-sm font-medium">Select a layout preset</p>
+            <p className="text-xs opacity-50">Or drag photos from the panel</p>
+          </div>
+        ) : (
+          frames.map((frame, i) => (
+            <PhotoFrame
+              key={frame.id}
+              frame={frame}
+              index={i}
+              onUpdate={handleFrameUpdate}
+              onDrop={handleDrop}
+              isUploading={uploadingCells.has(i)}
+            />
+          ))
+        )}
       </div>
     </div>
   );
