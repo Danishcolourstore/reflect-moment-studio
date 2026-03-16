@@ -2175,6 +2175,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accent_preference: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
@@ -2196,6 +2197,7 @@ export type Database = {
           watermark_text: string | null
         }
         Insert: {
+          accent_preference?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -2217,6 +2219,7 @@ export type Database = {
           watermark_text?: string | null
         }
         Update: {
+          accent_preference?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null

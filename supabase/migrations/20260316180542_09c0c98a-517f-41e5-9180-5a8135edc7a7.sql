@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS accent_preference TEXT DEFAULT 'gold';
