@@ -49,6 +49,19 @@ interface Profile {
   onboarding_completed: boolean;
 }
 
+function useDomainNudge(userId: string | undefined) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (!userId) return;
+    (supabase.from('domains').select('id, custom_domain').eq('user_id', userId) as any)
+      .then(({ data }: any) => {
+        const hasCustom = (data || []).some((d: any) => !!d.custom_domain);
+        setShow(!hasCustom);
+      });
+  }, [userId]);
+  return show;
+}
+
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/events': 'Events',
