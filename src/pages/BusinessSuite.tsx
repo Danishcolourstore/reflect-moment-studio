@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBusinessSuite, Lead } from '@/hooks/use-business-suite';
+import { useInstagramIntelligence } from '@/hooks/use-instagram-intelligence';
 import { LeadsPanel } from '@/components/business/LeadsPanel';
 import { BookingsPanel } from '@/components/business/BookingsPanel';
 import { PackagesPanel } from '@/components/business/PackagesPanel';
 import { InsightsPanel } from '@/components/business/InsightsPanel';
 import { BusinessSuggestions } from '@/components/business/BusinessSuggestions';
+import { PerformanceTracker } from '@/components/instagram/PerformanceTracker';
+import { CompetitorTracker } from '@/components/instagram/CompetitorTracker';
+import { GrowthScoreCard } from '@/components/instagram/GrowthScoreCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Briefcase } from 'lucide-react';
 
@@ -16,6 +20,12 @@ const BusinessSuite = () => {
     addLead, updateLeadStatus, addBooking, updateBookingStatus,
     addPackage, deletePackage,
   } = useBusinessSuite();
+
+  const {
+    snapshots, competitors, loading: igLoading,
+    addSnapshot, addCompetitor, updateCompetitor, removeCompetitor,
+    computeGrowthScore, generateInsights,
+  } = useInstagramIntelligence();
 
   const [bookingLead, setBookingLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('leads');
@@ -59,7 +69,7 @@ const BusinessSuite = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-4 mb-4">
+        <TabsList className="w-full grid grid-cols-3 sm:grid-cols-6 mb-4">
           <TabsTrigger value="leads" className="text-xs">
             Leads {leads.length > 0 && `(${leads.length})`}
           </TabsTrigger>
@@ -68,6 +78,8 @@ const BusinessSuite = () => {
           </TabsTrigger>
           <TabsTrigger value="packages" className="text-xs">Packages</TabsTrigger>
           <TabsTrigger value="insights" className="text-xs">Insights</TabsTrigger>
+          <TabsTrigger value="instagram" className="text-xs">📸 Instagram</TabsTrigger>
+          <TabsTrigger value="competitors" className="text-xs">🏆 Competitors</TabsTrigger>
         </TabsList>
 
         <TabsContent value="leads">
@@ -100,6 +112,23 @@ const BusinessSuite = () => {
 
         <TabsContent value="insights">
           <InsightsPanel insights={insights} />
+        </TabsContent>
+
+        <TabsContent value="instagram">
+          <div className="space-y-6">
+            <PerformanceTracker snapshots={snapshots} onAddSnapshot={addSnapshot} />
+            <GrowthScoreCard score={computeGrowthScore()} insights={generateInsights()} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="competitors">
+          <CompetitorTracker
+            competitors={competitors}
+            latestSnapshot={snapshots[0] || null}
+            onAddCompetitor={addCompetitor}
+            onUpdateCompetitor={updateCompetitor}
+            onRemoveCompetitor={removeCompetitor}
+          />
         </TabsContent>
       </Tabs>
     </DashboardLayout>
