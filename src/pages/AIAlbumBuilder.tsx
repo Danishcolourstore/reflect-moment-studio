@@ -1,81 +1,72 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import AIAlbumUploadStep from "@/components/ai-album/steps/AIAlbumUploadStep";
+import AIAlbumDesignStep from "@/components/ai-album/steps/AIAlbumDesignStep";
+import AIAlbumPreviewStep from "@/components/ai-album/steps/AIAlbumPreviewStep";
+import AIAlbumProcessingOverlay from "@/components/ai-album/AIAlbumProcessingOverlay";
 import {
-  Upload, Sparkles, Check, ChevronRight, ChevronLeft, X, Wand2,
-  BookOpen, Loader2, Camera, Palette, Eye, ArrowRight, ImageIcon,
-  Layers, Clock, Zap, RefreshCw,
-} from "lucide-react";
-import {
-  INDIAN_ALBUM_SIZES, DESIGN_PRESETS, type IndianAlbumSize,
-  type DesignPreset, type PhotoAnalysis, type AIAlbumGenerationResult,
+  INDIAN_ALBUM_SIZES,
+  DESIGN_PRESETS,
+  type IndianAlbumSize,
+  type DesignPreset,
+  type PhotoAnalysis,
+  type AIAlbumGenerationResult,
 } from "@/components/ai-album/ai-album-types";
 import { generateAlbumLayout } from "@/components/ai-album/ai-layout-engine";
-import AIAlbumPreviewGrid from "@/components/ai-album/AIAlbumPreviewGrid";
 
-type WizardStep = "upload" | "size" | "preset" | "generate" | "preview";
-
-const STEPS: { key: WizardStep; label: string; icon: React.ReactNode }[] = [
-  { key: "upload", label: "Upload", icon: <Camera className="h-4 w-4" /> },
-  { key: "size", label: "Size", icon: <BookOpen className="h-4 w-4" /> },
-  { key: "preset", label: "Design", icon: <Palette className="h-4 w-4" /> },
-  { key: "generate", label: "Generate", icon: <Wand2 className="h-4 w-4" /> },
-  { key: "preview", label: "Preview", icon: <Eye className="h-4 w-4" /> },
-];
+type Step = "upload" | "design" | "preview";
 
 const AI_BATCH_SIZE = 8;
 const UPLOAD_CONCURRENCY = 5;
 
+/** Determine best album size based on photo count */
+function autoSelectSize(count: number): IndianAlbumSize {
+  if (count <= 50) return "12x24";
+  if (count <= 100) return "12x30";
+  return "12x36";
+}
+
 export default function AIAlbumBuilder() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [step, setStep] = useState<WizardStep>("upload");
+  const [step, setStep] = useState<Step>("upload");
   const [files, setFiles] = useState<File[]>([]);
   const [thumbnailUrls, setThumbnailUrls] = useState<Map<string, string>>(new Map());
-  const [selectedSize, setSelectedSize] = useState<IndianAlbumSize>("12x36");
   const [selectedPreset, setSelectedPreset] = useState<DesignPreset>(DESIGN_PRESETS[0]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState("");
-  const [isDragging, setIsDragging] = useState(false);
   const [generationResult, setGenerationResult] = useState<AIAlbumGenerationResult | null>(null);
   const [savedAlbumId, setSavedAlbumId] = useState<string | null>(null);
 
-  // Memory-safe thumbnail generation
+  const autoSize = useMemo(() => autoSelectSize(files.length), [files.length]);
+
+  // Thumbnail management
   useEffect(() => {
     const newMap = new Map<string, string>();
     const toRevoke: string[] = [];
     files.slice(0, 120).forEach((f) => {
       const key = f.name + f.size;
       const existing = thumbnailUrls.get(key);
-      if (existing) { newMap.set(key, existing); }
-      else { newMap.set(key, URL.createObjectURL(f)); }
+      if (existing) newMap.set(key, existing);
+      else newMap.set(key, URL.createObjectURL(f));
     });
     thumbnailUrls.forEach((url, key) => { if (!newMap.has(key)) toRevoke.push(url); });
     toRevoke.forEach((u) => URL.revokeObjectURL(u));
     setThumbnailUrls(newMap);
   }, [files.length]);
 
-  useEffect(() => {
-    return () => { thumbnailUrls.forEach((url) => URL.revokeObjectURL(url)); };
-  }, []);
+  useEffect(() => () => { thumbnailUrls.forEach((url) => URL.revokeObjectURL(url)); }, []);
 
   const handleFiles = useCallback((fileList: FileList | null) => {
     if (!fileList) return;
     const images = Array.from(fileList).filter((f) => f.type.startsWith("image/") && f.size < 30 * 1024 * 1024);
-    if (images.length === 0) { toast.error("No valid image files found"); return; }
+    if (!images.length) { toast.error("No valid images found"); return; }
     setFiles((prev) => {
       const existing = new Set(prev.map((f) => f.name + f.size));
       const newFiles = images.filter((f) => !existing.has(f.name + f.size));
@@ -86,30 +77,29 @@ export default function AIAlbumBuilder() {
 
   const removeFile = (idx: number) => {
     setFiles((prev) => {
-      const file = prev[idx];
-      const key = file.name + file.size;
+      const key = prev[idx].name + prev[idx].size;
       const url = thumbnailUrls.get(key);
       if (url) URL.revokeObjectURL(url);
       return prev.filter((_, i) => i !== idx);
     });
   };
 
+  // ── Upload photos to storage ──
   const uploadPhotos = async (): Promise<string[]> => {
     if (!user) throw new Error("Not authenticated");
-    const albumFolder = `${user.id}/ai-albums/${Date.now()}`;
+    const folder = `${user.id}/ai-albums/${Date.now()}`;
     const urls: string[] = new Array(files.length).fill("");
-    let completed = 0;
-    const uploadOne = async (index: number) => {
-      const file = files[index];
+    let done = 0;
+    const uploadOne = async (i: number) => {
+      const file = files[i];
       const ext = file.name.split(".").pop() || "jpg";
-      const path = `${albumFolder}/${index}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from("gallery-photos").upload(path, file, { contentType: file.type, upsert: false });
-      if (error) throw new Error(`Upload failed: ${error.message}`);
-      const { data } = supabase.storage.from("gallery-photos").getPublicUrl(path);
-      urls[index] = data.publicUrl;
-      completed++;
-      setProgress(Math.round((completed / files.length) * 35));
-      setProgressLabel(`Uploading ${completed}/${files.length}…`);
+      const path = `${folder}/${i}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("gallery-photos").upload(path, file, { contentType: file.type });
+      if (error) throw error;
+      urls[i] = supabase.storage.from("gallery-photos").getPublicUrl(path).data.publicUrl;
+      done++;
+      setProgress(Math.round((done / files.length) * 30));
+      setProgressLabel(`Uploading ${done}/${files.length}…`);
     };
     for (let i = 0; i < files.length; i += UPLOAD_CONCURRENCY) {
       const batch = [];
@@ -119,403 +109,135 @@ export default function AIAlbumBuilder() {
     return urls.filter(Boolean);
   };
 
+  // ── AI Analysis ──
   const analyzePhotos = async (urls: string[]): Promise<PhotoAnalysis[]> => {
-    const allAnalyses: PhotoAnalysis[] = [];
+    const all: PhotoAnalysis[] = [];
     const batches = Math.ceil(urls.length / AI_BATCH_SIZE);
     for (let b = 0; b < batches; b++) {
-      const batchUrls = urls.slice(b * AI_BATCH_SIZE, (b + 1) * AI_BATCH_SIZE);
+      const batch = urls.slice(b * AI_BATCH_SIZE, (b + 1) * AI_BATCH_SIZE);
       setProgressLabel(`AI analyzing ${b + 1}/${batches}…`);
-      setProgress(35 + Math.round(((b + 1) / batches) * 35));
+      setProgress(30 + Math.round(((b + 1) / batches) * 35));
       try {
         const { data, error } = await supabase.functions.invoke("ai-album-analyze", {
-          body: { photoUrls: batchUrls, batchIndex: b, batchSize: AI_BATCH_SIZE },
+          body: { photoUrls: batch, batchIndex: b, batchSize: AI_BATCH_SIZE },
         });
-        if (error) { batchUrls.forEach((url) => allAnalyses.push(createFallbackAnalysis(url, allAnalyses.length))); continue; }
-        if (data?.analyses && Array.isArray(data.analyses)) allAnalyses.push(...data.analyses);
-        else batchUrls.forEach((url) => allAnalyses.push(createFallbackAnalysis(url, allAnalyses.length)));
-      } catch { batchUrls.forEach((url) => allAnalyses.push(createFallbackAnalysis(url, allAnalyses.length))); }
+        if (!error && data?.analyses) all.push(...data.analyses);
+        else batch.forEach((url) => all.push(fallback(url, all.length)));
+      } catch { batch.forEach((url) => all.push(fallback(url, all.length))); }
     }
-    return allAnalyses;
+    return all;
   };
 
-  const createFallbackAnalysis = (url: string, index: number): PhotoAnalysis => {
+  const fallback = (url: string, i: number): PhotoAnalysis => {
     const moments: PhotoAnalysis["moment"][] = ["opening","bride_preparation","groom_preparation","detail_shots","ceremony","couple_portraits","family","candid","reception","grand_finale"];
-    return { url, qualityScore: 60 + Math.random() * 30, sharpness: 65 + Math.random() * 25, composition: 65 + Math.random() * 25, moment: moments[index % moments.length], isDuplicate: false, isBestInGroup: true, faces: Math.floor(Math.random() * 4), emotion: ["joy","love","celebration","serene"][index % 4], description: "Wedding moment" };
+    return { url, qualityScore: 60 + Math.random() * 30, sharpness: 65 + Math.random() * 25, composition: 65 + Math.random() * 25, moment: moments[i % moments.length], isDuplicate: false, isBestInGroup: true, faces: Math.floor(Math.random() * 4), emotion: ["joy","love","celebration","serene"][i % 4], description: "" };
   };
 
+  // ── Save to DB ──
   const saveAlbumToDb = async (result: AIAlbumGenerationResult): Promise<string> => {
     if (!user) throw new Error("Not authenticated");
-    setProgressLabel("Creating album…"); setProgress(80);
-    const { data: album, error: albumError } = await supabase.from("albums").insert({ user_id: user.id, name: `AI Album — ${selectedPreset.name} — ${new Date().toLocaleDateString()}`, size: selectedSize, cover_type: "hardcover", leaf_count: Math.ceil(result.spreads.length / 2), page_count: result.spreads.length, status: "draft" }).select("id").single();
-    if (albumError || !album) throw new Error("Failed to create album");
-    setProgressLabel("Building spreads…"); setProgress(85);
-    const pagesToInsert = result.spreads.map((s, i) => ({ album_id: album.id, page_number: i, spread_index: Math.floor(i / 2), background_color: s.bgColor }));
-    const { data: pages, error: pagesError } = await supabase.from("album_pages").insert(pagesToInsert).select("id");
-    if (pagesError || !pages) throw new Error("Failed to create pages");
-    setProgressLabel("Placing photos…"); setProgress(90);
-    const allLayers: any[] = [];
-    for (let i = 0; i < result.spreads.length; i++) {
-      const spread = result.spreads[i]; const pageId = pages[i]?.id; if (!pageId) continue;
-      for (let j = 0; j < spread.photos.length; j++) {
-        const photo = spread.photos[j]; const cell = spread.layout.cells[j]; if (!cell) continue;
-        allLayers.push({ page_id: pageId, layer_type: "photo", photo_id: null, text_content: null, x: 0, y: 0, width: 100, height: 100, rotation: 0, z_index: j, settings_json: { imageUrl: photo.url, offsetX: 0, offsetY: 0, scale: 1, layout: { gridCols: spread.layout.gridCols, gridRows: spread.layout.gridRows, cells: spread.layout.cells.map((c) => ({ rowStart: c[0], colStart: c[1], rowEnd: c[2], colEnd: c[3] })) }, cellIndex: j, moment: spread.moment, presetId: selectedPreset.id } });
-      }
-    }
-    if (allLayers.length > 0) {
-      const CHUNK = 200;
-      for (let i = 0; i < allLayers.length; i += CHUNK) {
-        const { error } = await supabase.from("album_layers").insert(allLayers.slice(i, i + CHUNK));
-        if (error) throw error;
-        setProgress(90 + Math.round(((i + CHUNK) / allLayers.length) * 8));
-      }
+    setProgressLabel("Creating album…"); setProgress(75);
+    const { data: album, error } = await supabase.from("albums").insert({ user_id: user.id, name: `AI Album — ${selectedPreset.name}`, size: autoSize, cover_type: "hardcover", leaf_count: Math.ceil(result.spreads.length / 2), page_count: result.spreads.length, status: "draft" }).select("id").single();
+    if (error || !album) throw new Error("Failed to create album");
+    setProgressLabel("Building pages…"); setProgress(80);
+    const pages = result.spreads.map((s, i) => ({ album_id: album.id, page_number: i, spread_index: Math.floor(i / 2), background_color: s.bgColor }));
+    const { data: dbPages, error: pErr } = await supabase.from("album_pages").insert(pages).select("id");
+    if (pErr || !dbPages) throw new Error("Failed to create pages");
+    setProgressLabel("Placing photos…"); setProgress(85);
+    const layers: any[] = [];
+    result.spreads.forEach((s, i) => {
+      const pid = dbPages[i]?.id; if (!pid) return;
+      s.photos.forEach((photo, j) => {
+        const cell = s.layout.cells[j]; if (!cell) return;
+        layers.push({ page_id: pid, layer_type: "photo", photo_id: null, text_content: null, x: 0, y: 0, width: 100, height: 100, rotation: 0, z_index: j, settings_json: { imageUrl: photo.url, offsetX: 0, offsetY: 0, scale: 1, layout: { gridCols: s.layout.gridCols, gridRows: s.layout.gridRows, cells: s.layout.cells.map((c) => ({ rowStart: c[0], colStart: c[1], rowEnd: c[2], colEnd: c[3] })) }, cellIndex: j, moment: s.moment, presetId: selectedPreset.id } });
+      });
+    });
+    for (let i = 0; i < layers.length; i += 200) {
+      const { error: e } = await supabase.from("album_layers").insert(layers.slice(i, i + 200));
+      if (e) throw e;
+      setProgress(85 + Math.round(((i + 200) / layers.length) * 12));
     }
     return album.id;
   };
 
+  // ── Generate ──
   const handleGenerate = async () => {
-    if (!user || files.length === 0) return;
+    if (!user || files.length < 5) return;
     setIsProcessing(true); setProgress(0); setGenerationResult(null); setSavedAlbumId(null);
     try {
       const urls = await uploadPhotos();
       const analyses = await analyzePhotos(urls);
-      setProgressLabel("Generating layout…"); setProgress(72);
+      setProgressLabel("Generating layout…"); setProgress(68);
       const result = generateAlbumLayout(analyses, selectedPreset);
       const albumId = await saveAlbumToDb(result);
-      setProgress(100);
-      setProgressLabel(`Done! ${result.spreads.length} spreads`);
+      setProgress(100); setProgressLabel("Album ready!");
       setGenerationResult(result); setSavedAlbumId(albumId);
-      toast.success(`Album generated — ${result.spreads.length} spreads`);
-      setTimeout(() => { setStep("preview"); setIsProcessing(false); }, 1200);
+      toast.success(`Album created — ${result.spreads.length} spreads`);
+      setTimeout(() => { setStep("preview"); setIsProcessing(false); }, 800);
     } catch (err: any) {
-      console.error("Generation failed:", err);
-      toast.error(err?.message || "Album generation failed");
-      setIsProcessing(false); setProgress(0); setProgressLabel("");
+      console.error(err);
+      toast.error(err?.message || "Generation failed");
+      setIsProcessing(false); setProgress(0);
     }
   };
 
   const handleRegenerate = async () => {
-    if (!generationResult) return;
     if (savedAlbumId) await supabase.from("albums").delete().eq("id", savedAlbumId);
-    setStep("generate"); setTimeout(handleGenerate, 100);
+    handleGenerate();
   };
-
-  const stepIndex = STEPS.findIndex((s) => s.key === step);
-  const canNext = (step === "upload" && files.length >= 5) || step === "size" || step === "preset";
-  const goNext = () => { const map: Record<string, WizardStep> = { upload: "size", size: "preset", preset: "generate" }; if (map[step]) setStep(map[step]); };
-  const goPrev = () => { const map: Record<string, WizardStep> = { size: "upload", preset: "size", generate: "preset", preview: "generate" }; if (map[step]) setStep(map[step]); };
 
   const estimatedSpreads = useMemo(() => {
     if (files.length <= 30) return 15; if (files.length <= 50) return 20;
     if (files.length <= 100) return 25; if (files.length <= 200) return 30;
-    if (files.length <= 400) return 35; return 40;
+    return Math.min(40, Math.round(files.length / 10));
   }, [files.length]);
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-1">
-          <div className="flex items-center justify-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h1 className="text-lg sm:text-xl md:text-2xl font-serif font-bold text-foreground">
-              Mirror AI Album Builder
-            </h1>
-          </div>
-          <p className="text-[11px] sm:text-xs text-muted-foreground">
-            Upload → Size → Design → Generate
-          </p>
-        </div>
+      <div className="relative min-h-[calc(100vh-140px)]">
+        {/* Processing overlay */}
+        {isProcessing && (
+          <AIAlbumProcessingOverlay progress={progress} label={progressLabel} />
+        )}
 
-        {/* Steps indicator */}
-        <div className="flex items-center justify-center gap-1 sm:gap-1.5 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-none">
-          {STEPS.map((s, i) => {
-            const isActive = i === stepIndex;
-            const isDone = i < stepIndex;
-            const isDisabled = i > stepIndex;
-            return (
-              <div key={s.key} className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-                <button
-                  onClick={() => { if (isDone) setStep(s.key); }}
-                  disabled={isDisabled}
-                  className={cn(
-                    "flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-full text-[10px] sm:text-[11px] font-medium transition-all",
-                    isActive && "bg-primary text-primary-foreground shadow-sm",
-                    isDone && "bg-primary/15 text-primary cursor-pointer hover:bg-primary/25",
-                    isDisabled && "bg-muted/50 text-muted-foreground/50"
-                  )}
-                >
-                  {isDone ? <Check className="h-3 w-3" /> : s.icon}
-                  <span className="hidden xs:inline sm:inline">{s.label}</span>
-                </button>
-                {i < STEPS.length - 1 && <div className={cn("w-3 sm:w-5 h-px", isDone ? "bg-primary/40" : "bg-border")} />}
-              </div>
-            );
-          })}
-        </div>
-
-        <Separator />
-
-        {/* ═══ UPLOAD ═══ */}
+        {/* Step: Upload */}
         {step === "upload" && (
-          <div className="space-y-4 animate-in fade-in-50 duration-300">
-            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic" multiple className="hidden" onChange={(e) => { handleFiles(e.target.files); if (e.target) e.target.value = ""; }} />
-
-            <div
-              className={cn(
-                "border-2 border-dashed rounded-2xl p-6 sm:p-8 md:p-12 text-center cursor-pointer transition-all",
-                isDragging ? "border-primary bg-primary/5 scale-[1.01]" : "border-border hover:border-primary/40 hover:bg-muted/20"
-              )}
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); }}
-            >
-              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Upload className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
-              </div>
-              <p className="text-sm sm:text-base font-medium text-foreground">Drop wedding photos here</p>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">or tap to browse • JPG, PNG, WEBP</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground/70 mt-2">Min 5 photos • Best with 100–500</p>
-            </div>
-
-            {files.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <ImageIcon className="h-4 w-4 text-primary shrink-0" />
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {files.length} photo{files.length !== 1 ? "s" : ""}
-                    </p>
-                    {files.length < 5 && <Badge variant="destructive" className="text-[10px] shrink-0">Need 5+</Badge>}
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => setFiles([])} className="text-xs text-destructive h-7 shrink-0">Clear</Button>
-                </div>
-
-                <ScrollArea className="h-36 sm:h-44">
-                  <div className="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-1 sm:gap-1.5">
-                    {files.slice(0, 120).map((f, i) => {
-                      const key = f.name + f.size;
-                      const url = thumbnailUrls.get(key);
-                      return (
-                        <div key={key} className="relative group aspect-square rounded-md sm:rounded-lg overflow-hidden bg-muted">
-                          {url && <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />}
-                          <button onClick={(e) => { e.stopPropagation(); removeFile(i); }} className="absolute inset-0 bg-black/0 group-hover:bg-black/40 active:bg-black/40 transition-colors flex items-center justify-center">
-                            <X className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity" />
-                          </button>
-                        </div>
-                      );
-                    })}
-                    {files.length > 120 && (
-                      <div className="aspect-square rounded-md sm:rounded-lg bg-muted/60 flex items-center justify-center">
-                        <span className="text-[10px] text-muted-foreground font-medium">+{files.length - 120}</span>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-
-                <div className="flex gap-3 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
-                  <span>~{estimatedSpreads} spreads</span>
-                  <span>•</span>
-                  <span>{(files.reduce((s, f) => s + f.size, 0) / (1024 * 1024)).toFixed(0)} MB</span>
-                </div>
-              </div>
-            )}
-          </div>
+          <AIAlbumUploadStep
+            files={files}
+            thumbnailUrls={thumbnailUrls}
+            onFilesAdded={handleFiles}
+            onRemoveFile={removeFile}
+            onClearAll={() => setFiles([])}
+            estimatedSpreads={estimatedSpreads}
+            autoSize={autoSize}
+            onContinue={() => setStep("design")}
+          />
         )}
 
-        {/* ═══ SIZE ═══ */}
-        {step === "size" && (
-          <div className="space-y-3 animate-in fade-in-50 duration-300">
-            <p className="text-sm font-medium text-foreground">
-              Select album size <span className="text-muted-foreground font-normal text-xs">(Indian standard)</span>
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-              {(Object.entries(INDIAN_ALBUM_SIZES) as [IndianAlbumSize, typeof INDIAN_ALBUM_SIZES["12x36"]][]).map(([key, spec]) => {
-                const isSelected = selectedSize === key;
-                return (
-                  <Card
-                    key={key}
-                    className={cn(
-                      "p-3 sm:p-4 cursor-pointer transition-all group",
-                      isSelected ? "ring-2 ring-primary bg-primary/5 shadow-md" : "hover:bg-muted/40 hover:shadow-sm"
-                    )}
-                    onClick={() => setSelectedSize(key)}
-                  >
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                      <h3 className="text-base sm:text-lg font-bold font-serif text-foreground">{key}"</h3>
-                      {isSelected && <div className="bg-primary rounded-full p-0.5"><Check className="h-3 w-3 text-primary-foreground" /></div>}
-                    </div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">{spec.label}</p>
-                    <Badge variant="secondary" className="mt-1.5 sm:mt-2 text-[9px] sm:text-[10px]">{spec.aspectLabel}</Badge>
-                    <div className="mt-2 sm:mt-3 flex justify-center">
-                      <div
-                        className={cn("border-2 rounded-[2px] transition-colors", isSelected ? "border-primary bg-primary/10" : "border-foreground/15 group-hover:border-foreground/25")}
-                        style={{ width: `${Math.min(100, spec.widthIn * 3.5)}px`, height: `${Math.min(45, spec.heightIn * 3.5)}px` }}
-                      />
-                    </div>
-                    <p className="text-[9px] sm:text-[10px] text-muted-foreground/60 mt-1.5 sm:mt-2 text-center hidden sm:block">
-                      {spec.widthPx} × {spec.heightPx} px
-                    </p>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
+        {/* Step: Design Presets */}
+        {step === "design" && (
+          <AIAlbumDesignStep
+            presets={DESIGN_PRESETS}
+            selectedPreset={selectedPreset}
+            onSelectPreset={setSelectedPreset}
+            photoCount={files.length}
+            estimatedSpreads={estimatedSpreads}
+            autoSize={autoSize}
+            onBack={() => setStep("upload")}
+            onGenerate={handleGenerate}
+          />
         )}
 
-        {/* ═══ PRESET ═══ */}
-        {step === "preset" && (
-          <div className="space-y-3 animate-in fade-in-50 duration-300">
-            <p className="text-sm font-medium text-foreground">Choose a design preset</p>
-            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
-              {DESIGN_PRESETS.map((preset) => {
-                const isSelected = selectedPreset.id === preset.id;
-                return (
-                  <Card
-                    key={preset.id}
-                    className={cn(
-                      "p-0 cursor-pointer transition-all overflow-hidden group",
-                      isSelected ? "ring-2 ring-primary shadow-md" : "hover:shadow-sm"
-                    )}
-                    onClick={() => setSelectedPreset(preset)}
-                  >
-                    <div className="h-10 sm:h-12 relative flex" style={{ backgroundColor: preset.bgColor }}>
-                      <div className="flex-1 flex items-center justify-center gap-2 px-3">
-                        <div className="flex gap-[2px] h-5 sm:h-6" style={{ opacity: 0.7 }}>
-                          <div className="w-3 sm:w-4 h-5 sm:h-6 rounded-[1px]" style={{ backgroundColor: preset.textColor }} />
-                          <div className="flex flex-col gap-[1px]">
-                            <div className="w-2.5 sm:w-3 h-[9px] sm:h-[11px] rounded-[1px]" style={{ backgroundColor: preset.accentColor }} />
-                            <div className="w-2.5 sm:w-3 h-[9px] sm:h-[11px] rounded-[1px]" style={{ backgroundColor: preset.textColor }} />
-                          </div>
-                        </div>
-                      </div>
-                      {isSelected && <div className="absolute top-1.5 right-1.5 bg-primary rounded-full p-0.5"><Check className="h-3 w-3 text-primary-foreground" /></div>}
-                    </div>
-                    <div className="p-2.5 sm:p-3">
-                      <h3 className="text-xs sm:text-sm font-bold text-foreground">{preset.name}</h3>
-                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{preset.description}</p>
-                      <div className="flex gap-1 mt-1.5 sm:mt-2 flex-wrap">
-                        <Badge variant="outline" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0">{preset.style}</Badge>
-                        <Badge variant="outline" className="text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0">{preset.photoArrangement}</Badge>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ═══ GENERATE ═══ */}
-        {step === "generate" && (
-          <div className="max-w-sm sm:max-w-md mx-auto space-y-5 sm:space-y-6 text-center animate-in fade-in-50 duration-300">
-            <Card className="p-4 sm:p-6 space-y-4 sm:space-y-5">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Wand2 className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-serif font-bold text-foreground">Ready to Build</h2>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">AI will analyze, select & arrange automatically</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                <div className="p-2 rounded-lg bg-muted/50">
-                  <p className="text-lg sm:text-xl font-bold text-foreground">{files.length}</p>
-                  <p className="text-[9px] sm:text-[10px] text-muted-foreground">Photos</p>
-                </div>
-                <div className="p-2 rounded-lg bg-muted/50">
-                  <p className="text-lg sm:text-xl font-bold text-foreground">{selectedSize}"</p>
-                  <p className="text-[9px] sm:text-[10px] text-muted-foreground">{INDIAN_ALBUM_SIZES[selectedSize].aspectLabel}</p>
-                </div>
-                <div className="p-2 rounded-lg bg-muted/50">
-                  <p className="text-[10px] sm:text-xs font-bold text-foreground leading-tight">{selectedPreset.name}</p>
-                  <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">Design</p>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="text-left space-y-1.5">
-                {[
-                  { icon: <Zap className="h-3 w-3" />, text: `~${estimatedSpreads} spreads in storytelling sequence` },
-                  { icon: <ImageIcon className="h-3 w-3" />, text: "Duplicates & blurry photos auto-removed" },
-                  { icon: <Layers className="h-3 w-3" />, text: "Full bleed, grids, hero & panoramic layouts" },
-                  { icon: <Clock className="h-3 w-3" />, text: "Editable after generation" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
-                    <span className="text-primary shrink-0">{item.icon}</span>
-                    {item.text}
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            {isProcessing ? (
-              <div className="space-y-3 px-2 sm:px-4">
-                <Progress value={progress} className="h-2" />
-                <div className="flex items-center justify-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <p className="text-xs sm:text-sm text-muted-foreground">{progressLabel}</p>
-                </div>
-                <p className="text-[10px] text-muted-foreground/60">{progress}%</p>
-              </div>
-            ) : (
-              <Button size="lg" onClick={handleGenerate} className="gap-2 px-6 sm:px-10 h-11 sm:h-12 text-sm sm:text-base shadow-lg w-full sm:w-auto">
-                <Sparkles className="h-5 w-5" /> Generate Album
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* ═══ PREVIEW ═══ */}
+        {/* Step: Preview & Edit */}
         {step === "preview" && generationResult && (
-          <div className="space-y-3 sm:space-y-4 animate-in fade-in-50 duration-300">
-            {/* Stats bar — stacks on mobile */}
-            <Card className="p-3">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm flex-wrap">
-                  <span className="font-bold text-foreground">{generationResult.spreads.length} Spreads</span>
-                  <span className="text-muted-foreground">{generationResult.totalPhotosUsed} used</span>
-                  {generationResult.totalPhotosSkipped > 0 && (
-                    <span className="text-muted-foreground/60">{generationResult.totalPhotosSkipped} skipped</span>
-                  )}
-                  <Badge variant="secondary" className="text-[9px] sm:text-[10px]">{generationResult.generationTimeMs.toFixed(0)}ms</Badge>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={handleRegenerate} className="gap-1 h-8 text-[11px] sm:text-xs flex-1 sm:flex-none">
-                    <RefreshCw className="h-3 w-3" /> Regenerate
-                  </Button>
-                  <Button size="sm" onClick={() => savedAlbumId && navigate(`/dashboard/album-designer/${savedAlbumId}/editor`)} className="gap-1 h-8 text-[11px] sm:text-xs flex-1 sm:flex-none">
-                    Editor <ArrowRight className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-
-            <ScrollArea className="h-[50vh] sm:h-[55vh]">
-              <AIAlbumPreviewGrid spreads={generationResult.spreads} preset={selectedPreset} />
-            </ScrollArea>
-
-            <div className="flex justify-center pt-1 sm:pt-2">
-              <Button size="lg" onClick={() => savedAlbumId && navigate(`/dashboard/album-designer/${savedAlbumId}/editor`)} className="gap-2 px-6 sm:px-8 w-full sm:w-auto">
-                Open Album Editor <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation */}
-        {!isProcessing && step !== "preview" && (
-          <div className="flex justify-between pt-1 sm:pt-2">
-            <Button variant="outline" onClick={goPrev} disabled={step === "upload"} className="gap-1 h-9 text-xs sm:text-sm">
-              <ChevronLeft className="h-4 w-4" /> Back
-            </Button>
-            {step !== "generate" && (
-              <Button onClick={goNext} disabled={!canNext} className="gap-1 h-9 text-xs sm:text-sm">
-                Next <ChevronRight className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+          <AIAlbumPreviewStep
+            result={generationResult}
+            preset={selectedPreset}
+            albumId={savedAlbumId}
+            onRegenerate={handleRegenerate}
+            onEditInEditor={() => savedAlbumId && navigate(`/dashboard/album-designer/${savedAlbumId}/editor`)}
+            onBack={() => setStep("design")}
+          />
         )}
       </div>
     </DashboardLayout>
