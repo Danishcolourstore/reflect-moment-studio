@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { SPREAD_SIZES, type AlbumSize, type SpreadFrame } from "./types";
 import { Layers, Loader2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,17 +11,20 @@ function PhotoFrame({
   onUpdate,
   onDrop,
   isUploading,
+  enableTouch,
 }: {
   frame: SpreadFrame;
   index: number;
   onUpdate: (index: number, patch: Partial<SpreadFrame>) => void;
   onDrop: (index: number, e: React.DragEvent) => void;
   isUploading: boolean;
+  enableTouch?: boolean;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
 
+  // Mouse interactions
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!frame.imageUrl) return;
     e.preventDefault();
@@ -48,6 +51,32 @@ function PhotoFrame({
     window.addEventListener("mouseup", handleUp);
   }, [frame, index, onUpdate]);
 
+  // Touch interactions for repositioning inside frame
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!frame.imageUrl || !enableTouch || e.touches.length !== 1) return;
+    e.stopPropagation();
+    const touch = e.touches[0];
+    dragStart.current = { x: touch.clientX, y: touch.clientY, panX: frame.panX, panY: frame.panY };
+    setDragging(true);
+  }, [frame, enableTouch]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!dragStart.current || e.touches.length !== 1) return;
+    e.stopPropagation();
+    const touch = e.touches[0];
+    const dx = touch.clientX - dragStart.current.x;
+    const dy = touch.clientY - dragStart.current.y;
+    onUpdate(index, {
+      panX: dragStart.current.panX + dx,
+      panY: dragStart.current.panY + dy,
+    });
+  }, [index, onUpdate]);
+
+  const handleTouchEnd = useCallback(() => {
+    dragStart.current = null;
+    setDragging(false);
+  }, []);
+
   const handleWheel = useCallback((e: React.WheelEvent) => {
     if (!frame.imageUrl) return;
     e.stopPropagation();
@@ -61,7 +90,7 @@ function PhotoFrame({
     e.dataTransfer.dropEffect = "copy";
   };
 
-  const handleReset = (e: React.MouseEvent) => {
+  const handleReset = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     onUpdate(index, { panX: 0, panY: 0, zoom: 1 });
   };
@@ -73,6 +102,8 @@ function PhotoFrame({
         "absolute overflow-hidden bg-[hsl(var(--muted))]/30 transition-shadow duration-200",
         dragging ? "cursor-grabbing" : frame.imageUrl ? "cursor-grab" : "cursor-default",
         !frame.imageUrl && "border border-dashed border-[hsl(var(--border))]",
+        // Desktop hover states
+        "input-mouse:hover:ring-2 input-mouse:hover:ring-primary/30",
       )}
       style={{
         left: `${frame.x}%`,
@@ -81,6 +112,9 @@ function PhotoFrame({
         height: `${frame.h}%`,
       }}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
       onDragOver={handleDragOver}
       onDrop={(e) => onDrop(index, e)}
@@ -100,11 +134,16 @@ function PhotoFrame({
               top: `calc(50% - ${frame.zoom * 50}% + ${frame.panY}px)`,
             }}
           />
-          {/* Reset crop button */}
+          {/* Reset crop button - visible on hover (mouse) or always visible subtly (touch) */}
           {(frame.panX !== 0 || frame.panY !== 0 || frame.zoom !== 1) && (
             <button
               onClick={handleReset}
-              className="absolute top-1 right-1 z-10 h-5 w-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
+              onTouchEnd={(e) => { e.stopPropagation(); handleReset(e); }}
+              className={cn(
+                "absolute top-1 right-1 z-10 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center transition-opacity",
+                "device-phone:opacity-60 device-tablet:opacity-60",
+                "device-desktop:opacity-0 device-desktop:group-hover:opacity-100 hover:opacity-100"
+              )}
               title="Reset crop"
             >
               <RotateCcw className="h-3 w-3" />
@@ -143,6 +182,7 @@ interface Props {
   onDropPhoto: (photo: { url: string }, frameIndex: number) => void;
   uploadingCells: Set<number>;
   spreadLabel: string;
+  enableTouchGestures?: boolean;
 }
 
 export default function AlbumCanvas({
@@ -158,10 +198,52 @@ export default function AlbumCanvas({
   onDropPhoto,
   uploadingCells,
   spreadLabel,
+  enableTouchGestures,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const dim = SPREAD_SIZES[albumSize];
   const aspectRatio = dim.aspectRatio;
+
+  // Pinch-to-zoom support
+  const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
+
+  useEffect(() => {
+    if (!enableTouchGestures || !containerRef.current) return;
+    const el = containerRef.current;
+
+    const getTouchDist = (e: TouchEvent) => {
+      if (e.touches.length < 2) return 0;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        pinchRef.current = { dist: getTouchDist(e), zoom };
+      }
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinchRef.current) {
+        e.preventDefault();
+        const newDist = getTouchDist(e);
+        const scale = newDist / pinchRef.current.dist;
+        const newZoom = Math.max(25, Math.min(300, Math.round(pinchRef.current.zoom * scale)));
+        onZoomChange(newZoom);
+      }
+    };
+    const onTouchEnd = () => { pinchRef.current = null; };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [enableTouchGestures, zoom, onZoomChange]);
 
   const handleFrameUpdate = useCallback(
     (index: number, patch: Partial<SpreadFrame>) => {
@@ -200,22 +282,23 @@ export default function AlbumCanvas({
   const bleedPct = (dim.bleedMm / (dim.spreadWidthIn * 25.4)) * 100;
   const safePct = (dim.safeMarginMm / (dim.spreadWidthIn * 25.4)) * 100;
 
-  // Scale canvas to fit workspace
+  // Responsive base width
   const baseWidth = 800;
   const scaledWidth = baseWidth * (zoom / 100);
 
   return (
     <div
+      ref={containerRef}
       className="flex-1 flex flex-col items-center justify-center overflow-auto"
       style={{
         minHeight: 0,
-        padding: "32px",
+        padding: enableTouchGestures ? "16px" : "32px",
         background: "hsl(0 0% 12%)",
       }}
       onWheel={handleWheel}
     >
       {/* Spread label */}
-      <div className="mb-3 text-[11px] font-medium text-white/40 tracking-wider uppercase">
+      <div className="mb-2 text-[11px] font-medium text-white/40 tracking-wider uppercase">
         {spreadLabel}
       </div>
 
@@ -225,38 +308,32 @@ export default function AlbumCanvas({
         style={{
           aspectRatio,
           width: `${scaledWidth}px`,
-          maxWidth: "calc(100% - 64px)",
+          maxWidth: enableTouchGestures ? "calc(100% - 16px)" : "calc(100% - 64px)",
           background: bgColor,
           boxShadow: "0 30px 60px -15px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)",
         }}
       >
-        {/* Bleed guide (red dashed) */}
+        {/* Bleed guide */}
         {showBleed && (
           <div
             className="absolute pointer-events-none z-40"
-            style={{
-              inset: `-${bleedPct}%`,
-              border: "1.5px dashed rgba(239,68,68,0.6)",
-            }}
+            style={{ inset: `-${bleedPct}%`, border: "1.5px dashed rgba(239,68,68,0.6)" }}
           >
             <span className="absolute top-0 left-1 text-[8px] text-red-500/60">BLEED 3mm</span>
           </div>
         )}
 
-        {/* Safe margin (blue dashed) */}
+        {/* Safe margin */}
         {showSafeMargin && (
           <div
             className="absolute pointer-events-none z-40"
-            style={{
-              inset: `${safePct}%`,
-              border: "1px dashed rgba(59,130,246,0.5)",
-            }}
+            style={{ inset: `${safePct}%`, border: "1px dashed rgba(59,130,246,0.5)" }}
           >
             <span className="absolute bottom-0 right-1 text-[8px] text-blue-500/50">SAFE</span>
           </div>
         )}
 
-        {/* Center spine line */}
+        {/* Center spine */}
         <div className="absolute top-0 bottom-0 left-1/2 w-px bg-white/10 z-30 pointer-events-none" />
 
         {/* Grid overlay */}
@@ -289,6 +366,7 @@ export default function AlbumCanvas({
               onUpdate={handleFrameUpdate}
               onDrop={handleDrop}
               isUploading={uploadingCells.has(i)}
+              enableTouch={enableTouchGestures}
             />
           ))
         )}

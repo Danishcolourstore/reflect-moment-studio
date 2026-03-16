@@ -25,6 +25,8 @@ interface Props {
   onReorderSpread: (id: string, targetIndex: number) => Promise<void>;
   spreadThumbnails: Map<string, string>;
   albumSize: AlbumSize;
+  /** Compact mode for phone screens */
+  compact?: boolean;
 }
 
 export default function AlbumTimeline({
@@ -37,6 +39,7 @@ export default function AlbumTimeline({
   onReorderSpread,
   spreadThumbnails,
   albumSize,
+  compact,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const sorted = [...spreads].sort((a, b) => a.spreadIndex - b.spreadIndex);
@@ -77,7 +80,7 @@ export default function AlbumTimeline({
   return (
     <div
       className="border-t border-border bg-card/95 backdrop-blur flex items-center shrink-0"
-      style={{ height: "80px" }}
+      style={{ height: compact ? "56px" : "80px" }}
     >
       <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 ml-1 hidden sm:flex" onClick={() => scroll(-1)}>
         <ChevronLeft className="h-4 w-4" />
