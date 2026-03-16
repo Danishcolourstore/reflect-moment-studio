@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Bell, ChevronRight, Menu, Globe,
+  LogOut, Bell, ChevronRight, Menu, Globe, Compass,
 } from 'lucide-react';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 import { EntiranProvider } from '@/components/entiran/EntiranProvider';
