@@ -91,8 +91,8 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     updateCell(index, { imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 });
   }, [updateCell]);
 
-  const handleOffsetChange = useCallback((index: number, x: number, y: number) => {
-    updateCell(index, { offsetX: x, offsetY: y });
+  const handleOffsetChange = useCallback((index: number, x: number, y: number, scale?: number) => {
+    updateCell(index, { offsetX: x, offsetY: y, ...(scale !== undefined ? { scale } : {}) });
   }, [updateCell]);
 
   const handleSmartFill = useCallback((files: File[]) => {
