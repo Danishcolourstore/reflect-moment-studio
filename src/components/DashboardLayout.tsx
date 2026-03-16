@@ -94,7 +94,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       .then(({ data }: any) => {
         if (data) {
           setProfile(data);
-          const dbTheme: ThemeMode = data.theme_preference === 'dark' ? 'dark' : 'light';
+          const dbTheme: ThemeMode = data.theme_preference === 'classic' ? 'classic' : 'dark';
           applyThemeClass(dbTheme);
           setTheme(dbTheme);
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
