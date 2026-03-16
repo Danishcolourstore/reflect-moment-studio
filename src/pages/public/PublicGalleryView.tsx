@@ -37,6 +37,7 @@ function useFavorites(galleryId: string | undefined) {
 
 export default function PublicGalleryView() {
   const { id } = useParams<{ id: string }>();
+  const galleryId = id;
   const { siteOwnerId } = useSiteContext();
   const { profile } = useSiteProfile();
   const [gallery, setGallery] = useState<any>(null);
