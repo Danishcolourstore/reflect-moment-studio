@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PublicGalleries() {
   const { siteOwnerId } = useSiteContext();
+  const { profile } = useSiteProfile();
   const [galleries, setGalleries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
