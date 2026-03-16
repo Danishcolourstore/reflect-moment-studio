@@ -44,6 +44,7 @@ export const SUPER_ADMIN_ROUTES: SuperAdminRouteConfig[] = [
   { key: 'galleries', path: 'galleries', label: 'Client Galleries', icon: 'Images', nav: true },
   { key: 'mirrorai', path: 'mirrorai', label: 'MirrorAI', icon: 'Shield', nav: true },
   { key: 'storybooks', path: 'storybooks', label: 'Storybooks', icon: 'BookOpen', nav: true },
+  { key: 'reflections', path: 'reflections', label: 'Reflections', icon: 'Compass', nav: true },
   { key: 'emails', path: 'emails', label: 'Bulk Email', icon: 'Mail', nav: true },
   { key: 'activity', path: 'activity', label: 'Activity Log', icon: 'Activity', nav: true },
   { key: 'settings', path: 'settings', label: 'Settings', icon: 'Settings', nav: true },
