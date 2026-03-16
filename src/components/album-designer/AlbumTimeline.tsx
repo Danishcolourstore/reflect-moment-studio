@@ -25,6 +25,8 @@ interface Props {
   onReorderSpread: (id: string, targetIndex: number) => Promise<void>;
   spreadThumbnails: Map<string, string>;
   albumSize: AlbumSize;
+  /** Compact mode for phone screens */
+  compact?: boolean;
 }
 
 export default function AlbumTimeline({
