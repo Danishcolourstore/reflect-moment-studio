@@ -97,8 +97,8 @@ export function useClientIntelligence() {
       .limit(50) as any);
 
     if (data) {
-      const ids = data.map((r: any) => String(r.client_id));
-      const clientIds = Array.from(new Set(ids));
+      const ids: string[] = data.map((r: any) => String(r.client_id));
+      const clientIds: string[] = [...new Set(ids)];
       const { data: clientsRaw } = await (supabase
         .from('clients')
         .select('id, name, phone, email')
