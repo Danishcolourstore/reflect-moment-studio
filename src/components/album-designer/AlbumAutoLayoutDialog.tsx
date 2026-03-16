@@ -218,7 +218,7 @@ export default function AlbumAutoLayoutDialog({
     });
 
     let photoIdx = 1;
-    let pageNum = 2;
+    let pageNum = 1;
 
     while (photoIdx < photos.length) {
       const remaining = photos.length - photoIdx;
