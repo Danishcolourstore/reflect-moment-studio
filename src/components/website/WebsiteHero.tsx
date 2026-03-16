@@ -265,7 +265,7 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
   const vowsNavItems = ['Home', 'About Us', 'Gallery', 'Contact'];
   const vowsTextColor = '#F2EDE4';
   return (
-    <section id={id} className="relative" style={{ height: '100dvh', minHeight: '600px' }}>
+    <section id={id} className="relative min-h-screen" style={{ height: '100dvh', minHeight: '600px' }}>
       {coverUrl ? (
         <>
           <div className="absolute inset-0 overflow-hidden">
