@@ -369,6 +369,75 @@ export type Database = {
         }
         Relationships: []
       }
+      bookings: {
+        Row: {
+          advance_paid: number
+          amount: number
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          event_date: string | null
+          event_type: string
+          id: string
+          lead_id: string | null
+          notes: string | null
+          package_id: string | null
+          photographer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          advance_paid?: number
+          amount?: number
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          event_date?: string | null
+          event_type?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          package_id?: string | null
+          photographer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          advance_paid?: number
+          amount?: number
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          event_date?: string | null
+          event_type?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          package_id?: string | null
+          photographer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bug_reports: {
         Row: {
           browser: string | null
@@ -2106,6 +2175,59 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          photographer_id: string
+          source_event_id: string | null
+          source_event_name: string | null
+          source_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          photographer_id: string
+          source_event_id?: string | null
+          source_event_name?: string | null
+          source_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          photographer_id?: string
+          source_event_id?: string | null
+          source_event_name?: string | null
+          source_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_templates: {
         Row: {
           created_at: string
@@ -2189,6 +2311,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      packages: {
+        Row: {
+          add_ons: Json
+          created_at: string
+          currency: string
+          deliverables: Json
+          id: string
+          is_active: boolean
+          name: string
+          photographer_id: string
+          price: number
+          sort_order: number
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          add_ons?: Json
+          created_at?: string
+          currency?: string
+          deliverables?: Json
+          id?: string
+          is_active?: boolean
+          name: string
+          photographer_id: string
+          price?: number
+          sort_order?: number
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          add_ons?: Json
+          created_at?: string
+          currency?: string
+          deliverables?: Json
+          id?: string
+          is_active?: boolean
+          name?: string
+          photographer_id?: string
+          price?: number
+          sort_order?: number
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       photo_comments: {
         Row: {

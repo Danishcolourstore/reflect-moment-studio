@@ -55,6 +55,7 @@ const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
 const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
 const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
 const DomainSettings = lazy(() => import("./pages/DomainSettings"));
+const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
 const PublicGalleryView = lazy(() => import("./pages/public/PublicGalleryView"));
 const VerifyAccess = lazy(() => import("./pages/VerifyAccess"));
 const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
@@ -357,6 +358,7 @@ const AppRoutes = () => {
         <Route path="/dashboard/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="/dashboard/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
         <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+        <Route path="/dashboard/business" element={<ProtectedRoute><BusinessSuite /></ProtectedRoute>} />
 
         <Route path="/event/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
         <Route path="/event/:slug/gallery" element={<GalleryShell><PublicGallery /></GalleryShell>} />

@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Users, Palette, Settings, UserCircle, LogOut } from 'lucide-react';
+import { Users, Palette, Settings, UserCircle, LogOut, Briefcase } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const menuItems = [
+  { label: 'Business Suite', icon: Briefcase, route: '/dashboard/business' },
   { label: 'Clients', icon: Users, route: '/dashboard/clients' },
   { label: 'Brand Studio', icon: Palette, route: '/dashboard/branding' },
   { label: 'Settings', icon: Settings, route: '/dashboard/profile' },
