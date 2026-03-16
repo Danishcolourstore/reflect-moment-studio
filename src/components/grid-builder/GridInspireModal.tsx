@@ -150,6 +150,9 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const [analysisPhase, setAnalysisPhase] = useState(0);
   const [applied, setApplied] = useState(false);
   const [isFirstUse] = useState(() => !localStorage.getItem('grid-inspire-used'));
+  const [showLinkInput, setShowLinkInput] = useState(false);
+  const [linkValue, setLinkValue] = useState('');
+  const [linkLoading, setLinkLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Analysis phase animation
