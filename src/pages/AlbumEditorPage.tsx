@@ -146,11 +146,16 @@ export default function AlbumEditorPage() {
             showSafeMargin={editor.showSafeMargin}
             showGrid={editor.showGrid}
             bgColor={editor.bgColor}
-            onDropPhoto={editor.dropPhoto}
+            onDropPhoto={(photo, idx) => {
+              if (editor.pendingPhotoUrl) {
+                editor.placePhotoInFrame(idx);
+              } else {
+                editor.dropPhoto(photo, idx);
+              }
+            }}
             uploadingCells={editor.uploadingCells}
             spreadLabel={editor.spreadLabel}
             enableTouchGestures
-            onFrameTap={editor.pendingPhotoUrl ? editor.placePhotoInFrame : undefined}
           />
 
           {/* Spread nav buttons only — no invisible overlays */}

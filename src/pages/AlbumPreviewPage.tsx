@@ -174,11 +174,13 @@ export default function AlbumPreviewPage() {
   return (
     <>
       {/* Suggestion 2: OG meta tags for WhatsApp/social sharing */}
-      <SiteHead
-        title={albumName}
-        description={`Wedding Album Preview · ${pages.length} spreads`}
-        ogImage={ogImage || undefined}
-      />
+      <Helmet>
+        <title>{albumName}</title>
+        <meta property="og:title" content={albumName} />
+        <meta property="og:description" content={`Wedding Album Preview · ${pages.length} spreads`} />
+        {ogImage && <meta property="og:image" content={ogImage} />}
+        <meta property="og:type" content="website" />
+      </Helmet>
       <div className="bg-black min-h-screen flex flex-col items-center gap-10 py-10">
         {pages.map((page) => {
           const pageLayers = getPageLayers(page.id);
