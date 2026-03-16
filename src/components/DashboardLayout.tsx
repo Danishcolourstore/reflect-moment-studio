@@ -64,6 +64,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 type ThemeMode = 'dark' | 'versace' | 'classic' | 'darkroom';
+type AccentMode = 'gold' | 'red';
 
 const THEME_ORDER: ThemeMode[] = ['dark', 'versace', 'classic', 'darkroom'];
 const THEME_ICONS: Record<ThemeMode, string> = { dark: '🌙', versace: '👑', classic: '☀️', darkroom: '🎞️' };
@@ -72,6 +73,15 @@ function applyThemeClass(t: ThemeMode) {
   document.documentElement.classList.remove('dark', 'editorial', 'classic', 'versace', 'darkroom');
   if (t !== 'dark') document.documentElement.classList.add(t);
   localStorage.setItem('theme', t);
+}
+
+function applyAccentClass(a: AccentMode) {
+  if (a === 'red') {
+    document.documentElement.classList.add('accent-red');
+  } else {
+    document.documentElement.classList.remove('accent-red');
+  }
+  localStorage.setItem('accent', a);
 }
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -85,12 +95,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     applyThemeClass(t);
     return t;
   });
+  const [accent, setAccent] = useState<AccentMode>(() => {
+    const saved = localStorage.getItem('accent') || 'gold';
+    const a: AccentMode = saved === 'red' ? 'red' : 'gold';
+    applyAccentClass(a);
+    return a;
+  });
   const [moreOpen, setMoreOpen] = useState(false);
   const storage = useStorageUsage();
 
   useEffect(() => {
     if (!user) return;
-    (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed, theme_preference') as any)
+    (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed, theme_preference, accent_preference') as any)
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }: any) => {
@@ -99,6 +115,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           const dbTheme: ThemeMode = THEME_ORDER.includes(data.theme_preference as ThemeMode) ? (data.theme_preference as ThemeMode) : 'dark';
           applyThemeClass(dbTheme);
           setTheme(dbTheme);
+          const dbAccent: AccentMode = data.accent_preference === 'red' ? 'red' : 'gold';
+          applyAccentClass(dbAccent);
+          setAccent(dbAccent);
           if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
             navigate('/dashboard/onboarding', { replace: true });
           }
@@ -114,6 +133,15 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       (supabase.from('profiles').update({ theme_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
     }
   }, [theme, user]);
+
+  const switchAccent = useCallback((next: AccentMode) => {
+    if (next === accent) return;
+    applyAccentClass(next);
+    setAccent(next);
+    if (user) {
+      (supabase.from('profiles').update({ accent_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
+    }
+  }, [accent, user]);
 
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MA';
 
@@ -183,7 +211,29 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <h2 className="hidden lg:block text-sm font-medium text-foreground">
           {PAGE_TITLES[location.pathname] || ''}
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Accent toggle: Red ↔ Gold */}
+          <button
+            onClick={() => switchAccent(accent === 'gold' ? 'red' : 'gold')}
+            className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-secondary/80 border border-border/60 hover:bg-secondary transition-all duration-300 group"
+            title={`Accent: ${accent === 'gold' ? 'Gold' : 'Red'}`}
+          >
+            <span
+              className="h-3 w-3 rounded-full transition-all duration-300 shadow-sm"
+              style={{
+                background: accent === 'gold'
+                  ? 'hsl(43 76% 53%)'
+                  : 'hsl(0 65% 42%)',
+                boxShadow: accent === 'gold'
+                  ? '0 0 8px hsl(43 76% 53% / 0.5)'
+                  : '0 0 8px hsl(0 65% 42% / 0.5)',
+              }}
+            />
+            <span className="text-[9px] font-semibold tracking-wider uppercase text-muted-foreground group-hover:text-foreground transition-colors">
+              {accent === 'gold' ? 'Gold' : 'Red'}
+            </span>
+          </button>
+
           {/* Theme toggle */}
           <button
             onClick={() => {
