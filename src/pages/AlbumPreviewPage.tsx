@@ -1,25 +1,48 @@
 import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
+type Layer = {
+  id?: string;
+  page_id?: string;
+  layer_type?: string;
+  text_content?: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  rotation?: number;
+  z_index?: number;
+  settings_json?: any;
+};
+
+type Page = {
+  id: string;
+};
+
 interface AlbumPreviewModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  pages: any[];
-  layers: any[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  pages?: Page[];
+  layers?: Layer[];
 }
 
-export default function AlbumPreviewModal({ open, onOpenChange, pages, layers }: AlbumPreviewModalProps) {
+export default function AlbumPreviewModal({
+  open = false,
+  onOpenChange = () => {},
+  pages = [],
+  layers = [],
+}: AlbumPreviewModalProps) {
   const getPageLayers = (pageId: string) =>
     layers.filter((l) => l.page_id === pageId).sort((a, b) => (a.z_index || 0) - (b.z_index || 0));
 
-  const renderPhotos = (pageLayers: any[]) => {
+  const renderPhotos = (pageLayers: Layer[]) => {
     const photos = pageLayers.filter((l) => l.layer_type === "photo");
 
     if (!photos.length) {
       return <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">Empty</div>;
     }
 
-    const firstSettings = photos[0]?.settings_json;
+    const firstSettings = photos[0]?.settings_json || {};
     const layout = firstSettings?.layout;
 
     if (layout && layout.gridCols && layout.gridRows && layout.cells) {
@@ -33,7 +56,7 @@ export default function AlbumPreviewModal({ open, onOpenChange, pages, layers }:
         >
           {layout.cells.map((cell: any, i: number) => {
             const photo = photos[i];
-            const settings = photo?.settings_json;
+            const settings = photo?.settings_json || {};
             const url = settings?.imageUrl;
 
             return (
@@ -71,7 +94,7 @@ export default function AlbumPreviewModal({ open, onOpenChange, pages, layers }:
         }}
       >
         {photos.map((p, i) => {
-          const s = p.settings_json;
+          const s = p.settings_json || {};
           const url = s?.imageUrl;
 
           return url ? (
@@ -89,20 +112,21 @@ export default function AlbumPreviewModal({ open, onOpenChange, pages, layers }:
     );
   };
 
-  const renderTextLayers = (pageLayers: any[]) => {
+  const renderTextLayers = (pageLayers: Layer[]) => {
     const texts = pageLayers.filter((l) => l.layer_type === "text");
 
-    return texts.map((t: any) => {
+    return texts.map((t) => {
       const settings = t.settings_json || {};
+
       return (
         <div
           key={t.id}
           style={{
             position: "absolute",
-            left: `${t.x}%`,
-            top: `${t.y}%`,
-            width: `${t.width}%`,
-            height: `${t.height}%`,
+            left: `${t.x || 0}%`,
+            top: `${t.y || 0}%`,
+            width: `${t.width || 20}%`,
+            height: `${t.height || 10}%`,
             transform: `rotate(${t.rotation || 0}deg)`,
             color: settings.color || "#fff",
             fontSize: settings.fontSize || "16px",
