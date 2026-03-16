@@ -76,6 +76,31 @@ function cleanDomain(raw: string): string {
     .toLowerCase();
 }
 
+function DomainOnboardingSvg() {
+  return (
+    <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-[200px] mx-auto">
+      {/* Browser frame */}
+      <rect x="20" y="10" width="160" height="100" rx="8" stroke="#C9A96E" strokeWidth="1.5" fill="none" />
+      <line x1="20" y1="30" x2="180" y2="30" stroke="#C9A96E" strokeWidth="1" opacity="0.5" />
+      {/* Dots */}
+      <circle cx="34" cy="20" r="3" fill="#E8E0D4" />
+      <circle cx="44" cy="20" r="3" fill="#E8E0D4" />
+      <circle cx="54" cy="20" r="3" fill="#E8E0D4" />
+      {/* URL bar */}
+      <rect x="65" y="15" width="100" height="10" rx="5" fill="#FDFBF7" stroke="#E8E0D4" strokeWidth="0.8" />
+      <text x="80" y="23" fill="#C9A96E" fontSize="6" fontFamily="Inter, sans-serif" fontWeight="500">yourdomain.com</text>
+      {/* Content lines */}
+      <rect x="40" y="45" width="120" height="6" rx="3" fill="#E8E0D4" opacity="0.6" />
+      <rect x="55" y="58" width="90" height="6" rx="3" fill="#E8E0D4" opacity="0.4" />
+      <rect x="70" y="71" width="60" height="6" rx="3" fill="#E8E0D4" opacity="0.3" />
+      {/* Lock icon */}
+      <rect x="88" y="84" width="24" height="18" rx="4" stroke="#C9A96E" strokeWidth="1.2" fill="none" />
+      <path d="M94 84V79a6 6 0 0 1 12 0v5" stroke="#C9A96E" strokeWidth="1.2" fill="none" />
+      <circle cx="100" cy="93" r="2" fill="#C9A96E" />
+    </svg>
+  );
+}
+
 export default function DomainSettings() {
   const { user } = useAuth();
   const [domains, setDomains] = useState<DomainRow[]>([]);
@@ -83,6 +108,11 @@ export default function DomainSettings() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [customInput, setCustomInput] = useState("");
   const [inputError, setInputError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyAttempt, setVerifyAttempt] = useState(0);
+  const [verifyMaxAttempts, setVerifyMaxAttempts] = useState(0);
+  const [onboardingStarted, setOnboardingStarted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyAttempt, setVerifyAttempt] = useState(0);
