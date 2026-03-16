@@ -134,6 +134,15 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [theme, user]);
 
+  const switchAccent = useCallback((next: AccentMode) => {
+    if (next === accent) return;
+    applyAccentClass(next);
+    setAccent(next);
+    if (user) {
+      (supabase.from('profiles').update({ accent_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
+    }
+  }, [accent, user]);
+
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MA';
 
   const handleSignOut = async () => {
