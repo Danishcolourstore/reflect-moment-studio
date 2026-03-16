@@ -57,7 +57,7 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
   };
 
   return (
-    <div className={cn('fixed z-40 lg:hidden', className)} style={{ bottom: '88px', right: '16px' }}>
+    <div className={cn('fixed z-40 lg:hidden', className)} style={{ bottom: '88px', left: '16px' }}>
       {/* Action buttons */}
       <div
         className={cn(
