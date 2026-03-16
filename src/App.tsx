@@ -53,6 +53,7 @@ const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
 const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
 const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
+const DomainSettings = lazy(() => import("./pages/DomainSettings"));
 const VerifyAccess = lazy(() => import("./pages/VerifyAccess"));
 const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
 const AdminGate = lazy(() => import("./pages/admin/AdminGate"));
