@@ -98,12 +98,12 @@ export function useClientIntelligence() {
 
     if (data) {
       // Enrich with client info
-      const clientIds = [...new Set(data.map((r: any) => r.client_id))];
+      const clientIds: string[] = [...new Set(data.map((r: any) => r.client_id as string))];
       const { data: clients } = await (supabase
         .from('clients')
         .select('id, name, phone, email')
         .in('id', clientIds) as any);
-      const clientMap = new Map((clients || []).map((c: any) => [c.id, c]));
+      const clientMap = new Map((clients || []).map((c: any) => [c.id as string, c as { id: string; name: string; phone: string | null; email: string }]));
 
       setReminders(data.map((r: any) => ({
         ...r,
