@@ -763,6 +763,36 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_submissions: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string | null
+          site_owner_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+          site_owner_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          site_owner_id?: string
+        }
+        Relationships: []
+      }
       culled_photos: {
         Row: {
           composition: number | null
@@ -1072,6 +1102,42 @@ export type Database = {
           widget_icon?: string | null
           widget_key?: string
           widget_name?: string
+        }
+        Relationships: []
+      }
+      domains: {
+        Row: {
+          created_at: string | null
+          custom_domain: string | null
+          id: string
+          is_primary: boolean | null
+          subdomain: string
+          updated_at: string | null
+          user_id: string
+          verification_status: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_domain?: string | null
+          id?: string
+          is_primary?: boolean | null
+          subdomain: string
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_domain?: string | null
+          id?: string
+          is_primary?: boolean | null
+          subdomain?: string
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string | null
+          verified_at?: string | null
         }
         Relationships: []
       }
