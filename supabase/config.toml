@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.ai-developer]
 verify_jwt = false
+
+[functions.ai-album-analyze]
+verify_jwt = false
