@@ -3,6 +3,7 @@ import { X, Send, Paperclip, MoreVertical, ChevronDown, ChevronRight } from 'luc
 import { useEntiranChat, type ChatMessage } from '@/hooks/use-entiran-chat';
 import { EntiranMessage, TypingIndicator } from './EntiranMessage';
 import { SuggestionChips } from './SuggestionChips';
+import { LanguageSelector, type BotLanguage } from './LanguageSelector';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
@@ -174,9 +175,20 @@ function PanelContent({
 }: any) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [showLangSelector, setShowLangSelector] = useState(false);
+
+  const handleLangSelect = (_code: BotLanguage) => {
+    setShowLangSelector(false);
+  };
 
   return (
     <>
+      {/* Language selector overlay */}
+      {showLangSelector && (
+        <LanguageSelector onSelect={handleLangSelect} onClose={() => setShowLangSelector(false)} />
+      )}
+      {!showLangSelector && (
+      <>
       {/* Header — minimal, authoritative */}
       <div
         className="flex items-center justify-between px-5 shrink-0"
@@ -356,7 +368,7 @@ function PanelContent({
 
       {/* Suggestion chips */}
       <div className="px-4 py-2 shrink-0 overflow-x-auto" style={{ borderTop: '1px solid rgba(212,175,55,0.06)' }}>
-        <SuggestionChips onChipClick={(t) => { sendMessage(t); }} />
+        <SuggestionChips onChipClick={(t) => { sendMessage(t); }} onLanguageClick={() => setShowLangSelector(true)} />
       </div>
 
       {/* Input area */}
@@ -399,6 +411,8 @@ function PanelContent({
           <Send className="h-4 w-4" />
         </button>
       </div>
+    </>
+      )}
     </>
   );
 }

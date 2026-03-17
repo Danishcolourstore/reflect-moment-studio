@@ -1,4 +1,5 @@
 import { usePageContext } from '@/hooks/use-page-context';
+import { getBotLanguageLabel } from './LanguageSelector';
 
 const CHIPS: Record<string, string[]> = {
   dashboard: [
@@ -63,17 +64,34 @@ const CREATIVE_PROMPTS = [
 
 interface SuggestionChipsProps {
   onChipClick: (text: string) => void;
+  onLanguageClick?: () => void;
 }
 
-export function SuggestionChips({ onChipClick }: SuggestionChipsProps) {
+export function SuggestionChips({ onChipClick, onLanguageClick }: SuggestionChipsProps) {
   const { page } = usePageContext();
   const baseChips = CHIPS[page] || CHIPS.other;
   const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 4)) % CREATIVE_PROMPTS.length;
   const creativeChip = CREATIVE_PROMPTS[dayIndex];
   const chips = [...baseChips, creativeChip];
 
+  const langLabel = getBotLanguageLabel();
+
   return (
     <div className="flex gap-1.5 overflow-x-auto pb-1 px-1 scrollbar-hide">
+      {/* Language chip — always first */}
+      <button
+        onClick={onLanguageClick}
+        className="flex-shrink-0 text-[10px] px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 flex items-center gap-1"
+        style={{
+          border: '1px solid rgba(212,175,55,0.25)',
+          color: 'rgba(212,175,55,0.7)',
+          background: 'rgba(212,175,55,0.04)',
+        }}
+        aria-label="Choose language"
+      >
+        🌐 {langLabel}
+      </button>
+
       {chips.map(chip => (
         <button
           key={chip}
