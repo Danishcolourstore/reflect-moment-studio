@@ -1851,32 +1851,41 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string | null
+          error_message: string | null
           event_id: string
+          faces_found: number | null
           id: string
           photos_processed: number | null
           photos_total: number | null
           started_at: string | null
           status: string | null
+          user_id: string | null
         }
         Insert: {
           completed_at?: string | null
           created_at?: string | null
+          error_message?: string | null
           event_id: string
+          faces_found?: number | null
           id?: string
           photos_processed?: number | null
           photos_total?: number | null
           started_at?: string | null
           status?: string | null
+          user_id?: string | null
         }
         Update: {
           completed_at?: string | null
           created_at?: string | null
+          error_message?: string | null
           event_id?: string
+          faces_found?: number | null
           id?: string
           photos_processed?: number | null
           photos_total?: number | null
           started_at?: string | null
           status?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -2718,29 +2727,38 @@ export type Database = {
       photo_faces: {
         Row: {
           azure_face_id: string | null
+          confidence: number | null
           created_at: string | null
           embedding: Json | null
           event_id: string
+          face_rectangle: Json | null
           id: string
           indexed_at: string | null
+          person_cluster: string | null
           photo_id: string
         }
         Insert: {
           azure_face_id?: string | null
+          confidence?: number | null
           created_at?: string | null
           embedding?: Json | null
           event_id: string
+          face_rectangle?: Json | null
           id?: string
           indexed_at?: string | null
+          person_cluster?: string | null
           photo_id: string
         }
         Update: {
           azure_face_id?: string | null
+          confidence?: number | null
           created_at?: string | null
           embedding?: Json | null
           event_id?: string
+          face_rectangle?: Json | null
           id?: string
           indexed_at?: string | null
+          person_cluster?: string | null
           photo_id?: string
         }
         Relationships: [
