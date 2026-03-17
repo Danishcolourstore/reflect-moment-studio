@@ -47,7 +47,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: EntiranP
       setWelcomeShown(true);
       const showWelcome = async () => {
         await new Promise(r => setTimeout(r, 400));
-        await addMessage('assistant', "Hi! I'm Entiran, your AI studio assistant. I'm here to help you work faster inside Mirror AI.", 'welcome');
+        await addMessage('assistant', "Hi! I'm Daan, your AI studio assistant. I'm here to help you work faster inside Mirror AI.", 'welcome');
         await new Promise(r => setTimeout(r, 400));
         await addMessage('assistant', '', 'welcome', { type: 'feature_cards' });
         await new Promise(r => setTimeout(r, 400));

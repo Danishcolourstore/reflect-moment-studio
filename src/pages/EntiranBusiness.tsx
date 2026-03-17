@@ -26,7 +26,7 @@ export default function EntiranBusiness() {
             className="text-foreground"
             style={{ fontFamily: 'var(--editorial-heading)', fontSize: '24px', fontWeight: 400, letterSpacing: '-0.3px' }}
           >
-            Entiran Intelligence
+            Daan Intelligence
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">Your AI business partner — insights, replies & nudges</p>
         </div>

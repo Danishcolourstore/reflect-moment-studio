@@ -13,7 +13,7 @@ class EntiranErrorBoundary extends Component<{ children: ReactNode }, { hasError
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
   componentDidCatch(err: Error) {
-    console.error('Entiran AI failed to initialize.', err);
+    console.error('Daan AI failed to initialize.', err);
   }
   render() {
     if (this.state.hasError) return <FallbackButton />;
@@ -34,7 +34,7 @@ function FallbackButton() {
         height: isMobile ? 52 : 56,
         zIndex: 10001,
       }}
-      aria-label="Open Entiran AI Assistant"
+      aria-label="Open Daan AI Assistant"
     >
       <Sparkles className="h-5 w-5" />
     </button>
@@ -49,7 +49,7 @@ function EntiranInner() {
   const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
-    console.log('Entiran AI initialized successfully.');
+    console.log('Daan AI initialized successfully.');
   }, []);
 
   // Keyboard shortcut: Ctrl+Shift+E to toggle
@@ -91,7 +91,7 @@ function EntiranInner() {
               zIndex: 10001,
             }}
           >
-            Ask Entiran
+            Ask Daan
           </div>
           {showHint && (
             <div

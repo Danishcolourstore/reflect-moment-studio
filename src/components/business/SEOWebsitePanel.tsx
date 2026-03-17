@@ -308,7 +308,7 @@ function SEOSuggestions({ seoPages, blogPosts, location, studioName }: {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Entiran SEO Advisor</p>
+      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Daan SEO Advisor</p>
       {tips.map((tip, i) => (
         <Card key={i} className={`${tip.priority === 'high' ? 'border-primary/30 bg-primary/5' : ''}`}>
           <CardContent className="py-3 px-4 flex items-start gap-3">

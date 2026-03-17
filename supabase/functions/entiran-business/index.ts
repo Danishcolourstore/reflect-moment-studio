@@ -192,7 +192,7 @@ Provide a JSON response with this structure (respond ONLY with valid JSON, no ma
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("entiran-business error:", error);
+    console.error("daan-business error:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

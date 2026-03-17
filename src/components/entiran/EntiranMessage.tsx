@@ -114,7 +114,7 @@ export function EntiranMessage({ message, onFollowUp }: EntiranMessageProps) {
           }}
         >
           {useMarkdown ? (
-            <div className="entiran-markdown prose prose-sm max-w-none dark:prose-invert">
+            <div className="daan-markdown prose prose-sm max-w-none dark:prose-invert">
               <ReactMarkdown
                 components={{
                   p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,

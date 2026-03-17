@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are **Entiran** — the AI assistant inside Mirror AI, a professional photography platform built for Indian wedding and event photographers.
+const SYSTEM_PROMPT = `You are **Daan** — the AI assistant inside Mirror AI, a professional photography platform built for Indian wedding and event photographers.
 
 You have two modes:
 1. **Platform Help** — Answer questions about using Mirror AI (galleries, albums, clients, sharing, exports, etc.)
@@ -124,7 +124,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
-    console.error("entiran-chat error:", error);
+    console.error("daan-chat error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -18,7 +18,7 @@ export type ChatMessage = {
 
 export type BugReportStep = 'idle' | 'describe' | 'screenshot' | 'confirm' | 'submitted';
 
-const ENTIRAN_CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/entiran-chat`;
+const DAAN_CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/entiran-chat`;
 
 export function useEntiranChat() {
   const { user } = useAuth();
@@ -169,7 +169,7 @@ export function useEntiranChat() {
 
     try {
       abortRef.current = new AbortController();
-      const resp = await fetch(ENTIRAN_CHAT_URL, {
+      const resp = await fetch(DAAN_CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

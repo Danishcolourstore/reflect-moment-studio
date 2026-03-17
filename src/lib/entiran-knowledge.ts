@@ -363,7 +363,7 @@ export const KNOWLEDGE_BASE: KnowledgeEntry[] = [
     keywords: ['keyboard', 'shortcuts', 'hotkeys', 'keys'],
     context: ['all'],
     question: 'What keyboard shortcuts are available?',
-    answer: `**Keyboard Shortcuts:**\n\n- **Ctrl/Cmd + Z** — Undo\n- **Ctrl/Cmd + Y** — Redo\n- **Delete/Backspace** — Remove selected item\n- **Arrow Keys** — Reposition selected element\n- **Ctrl/Cmd + S** — Save (where applicable)\n- **Ctrl/Cmd + Shift + E** — Toggle Entiran assistant\n- **Esc** — Close panel or deselect\n\nShortcuts work in the Album Builder and Gallery Editor.`,
+    answer: `**Keyboard Shortcuts:**\n\n- **Ctrl/Cmd + Z** — Undo\n- **Ctrl/Cmd + Y** — Redo\n- **Delete/Backspace** — Remove selected item\n- **Arrow Keys** — Reposition selected element\n- **Ctrl/Cmd + S** — Save (where applicable)\n- **Ctrl/Cmd + Shift + E** — Toggle Daan assistant\n- **Esc** — Close panel or deselect\n\nShortcuts work in the Album Builder and Gallery Editor.`,
     relatedQuestions: ['How do I undo or redo changes?', 'How do I navigate Mirror AI?'],
   },
   {
@@ -381,10 +381,10 @@ export const KNOWLEDGE_BASE: KnowledgeEntry[] = [
     relatedQuestions: ['How do I navigate Mirror AI?', 'How do I update my profile and branding?'],
   },
   {
-    keywords: ['what', 'can', 'you', 'do', 'help', 'entiran', 'capabilities'],
+    keywords: ['what', 'can', 'you', 'do', 'help', 'daan', 'capabilities'],
     context: ['all'],
     question: 'What can you do?',
-    answer: `I'm **Entiran**, your AI studio assistant! Here's what I can help with:\n\n💬 **Ask anything** — Instant help with galleries, albums, settings, and more\n🐛 **Report issues** — I auto-collect device info and screenshots\n🧠 **Studio Brain** — Proactive suggestions based on your studio activity\n⚡ **Quick actions** — Tap chips below for common tasks\n\nI also watch your studio activity and nudge you when clients select photos, galleries are ready to share, or albums need exporting.`,
+    answer: `I'm **Daan**, your AI studio assistant! Here's what I can help with:\n\n💬 **Ask anything** — Instant help with galleries, albums, settings, and more\n🐛 **Report issues** — I auto-collect device info and screenshots\n🧠 **Studio Brain** — Proactive suggestions based on your studio activity\n⚡ **Quick actions** — Tap chips below for common tasks\n\nI also watch your studio activity and nudge you when clients select photos, galleries are ready to share, or albums need exporting.`,
     relatedQuestions: ['What is Mirror AI?', 'What keyboard shortcuts are available?'],
   },
 

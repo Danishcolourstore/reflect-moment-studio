@@ -102,7 +102,7 @@ export function SmartNudgesPanel() {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-foreground tracking-tight">Smart Nudges</h2>
-            <p className="text-[10px] text-muted-foreground">Entiran sees what you might miss</p>
+            <p className="text-[10px] text-muted-foreground">Daan sees what you might miss</p>
           </div>
         </div>
         {unreadCount > 0 && (
@@ -167,7 +167,7 @@ export function SmartNudgesPanel() {
             <CardContent className="py-8 text-center">
               <Zap className="h-8 w-8 mx-auto text-muted-foreground/15 mb-2" />
               <p className="text-xs text-muted-foreground">All caught up!</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">Entiran will nudge you when something needs attention</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5">Daan will nudge you when something needs attention</p>
             </CardContent>
           </Card>
         )}
