@@ -38,6 +38,8 @@ interface Props {
 type ActiveTool = 'text' | 'elements' | 'background' | 'logo' | 'caption' | null;
 
 export default function GridEditor({ layout, onBack, initialTextLayers = [] }: Props) {
+  const device = useDeviceDetect();
+  const isMobile = device.isPhone;
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
   const [textLayers, setTextLayers] = useState<TextLayer[]>(initialTextLayers);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
