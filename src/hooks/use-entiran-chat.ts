@@ -169,7 +169,7 @@ export function useEntiranChat() {
 
     try {
       abortRef.current = new AbortController();
-      const resp = await fetch(ENTIRAN_CHAT_URL, {
+      const resp = await fetch(DAAN_CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
