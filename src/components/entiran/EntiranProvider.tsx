@@ -49,7 +49,7 @@ function EntiranInner() {
   const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
-    console.log('Entiran AI initialized successfully.');
+    console.log('Daan AI initialized successfully.');
   }, []);
 
   // Keyboard shortcut: Ctrl+Shift+E to toggle
