@@ -157,17 +157,38 @@ serve(async (req) => {
       });
     }
 
-    // Update photo with AI results
+    // Determine cull_status based on scores
+    const score = Math.min(100, Math.max(0, analysis.ai_score));
+    const sharp = Math.min(100, Math.max(0, analysis.sharpness));
+    const eyesOk = analysis.eyes_open !== false;
+    const exposureOk = analysis.exposure === "Balanced";
+
+    let cullStatus = "unreviewed";
+    if (score >= 80 && sharp >= 70 && eyesOk && exposureOk) {
+      cullStatus = "pick"; // ⭐ Best
+    } else if (score >= 50 && sharp >= 40) {
+      cullStatus = "unreviewed"; // 👍 Good (keep as unreviewed for manual review)
+    } else {
+      cullStatus = "reject"; // ⚠️ Reject
+    }
+
+    // Refine: if score >= 80 but something is off, downgrade to good territory
+    if (cullStatus === "pick" && (!eyesOk || !exposureOk)) {
+      cullStatus = "unreviewed";
+    }
+
+    // Update photo with AI results + auto cull
     await adminClient
       .from("cheetah_photos")
       .update({
-        ai_score: Math.min(100, Math.max(0, analysis.ai_score)),
-        sharpness: Math.min(100, Math.max(0, analysis.sharpness)),
+        ai_score: score,
+        sharpness: sharp,
         exposure: analysis.exposure,
         composition: Math.min(100, Math.max(0, analysis.composition)),
         eyes_open: analysis.eyes_open,
         ai_recommendation: analysis.recommendation,
         ai_status: "completed",
+        cull_status: cullStatus,
         processed_at: new Date().toISOString(),
       })
       .eq("id", photo_id);

@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
     // Fire-and-forget: trigger AI analysis
     try {
       await supabase.functions.invoke("cheetah-analyze", {
-        body: { photoId: photo.id, imageUrl: publicUrl },
+        body: { photo_id: photo.id, preview_url: publicUrl },
       });
     } catch {
       // Non-blocking
