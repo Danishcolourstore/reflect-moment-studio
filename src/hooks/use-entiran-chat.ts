@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { usePageContext, type PageContext } from './use-page-context';
 import { matchKnowledge, matchTroubleshooting, isBugReportTrigger, getRelatedQuestions } from '@/lib/entiran-knowledge';
+import { getBotLanguage } from '@/components/entiran/LanguageSelector';
 
 // DB types + UI-only types
 export type MessageType = 'chat' | 'suggestion' | 'bug_report' | 'action_prompt' | 'related_questions' | 'welcome' | 'ai_stream';
