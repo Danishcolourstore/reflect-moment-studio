@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { useReflections, ReflectionPost } from '@/hooks/use-reflections';
+import { useReflections, ReflectionPost, useMoodBoardDrops, usePhotographerSpotlight } from '@/hooks/use-reflections';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,15 +11,20 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Bookmark, BookmarkCheck, Sparkles, TrendingUp, Gift, Tag,
   Lightbulb, Megaphone, ShoppingBag, Smile, Star, ArrowRight,
-  Flame, Download, ExternalLink,
+  Flame, Download, ExternalLink, FolderPlus,
 } from 'lucide-react';
+import { PresetMarketplace } from '@/components/reflections/PresetMarketplace';
+import { WeeklyMoodBoard } from '@/components/reflections/WeeklyMoodBoard';
+import { CollectionsGallery } from '@/components/reflections/CollectionsGallery';
+import { SaveToCollectionSheet } from '@/components/reflections/SaveToCollectionSheet';
+import { PhotographerSpotlightCard } from '@/components/reflections/PhotographerSpotlightCard';
 
 const TABS = [
   { value: 'for_you', label: 'For You' },
   { value: 'latest', label: 'Latest' },
   { value: 'marketplace', label: 'Marketplace' },
   { value: 'learn', label: 'Learn' },
-  { value: 'saved', label: 'Saved' },
+  { value: 'collections', label: 'Collections' },
 ];
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
@@ -49,20 +54,33 @@ const TYPE_COLORS: Record<string, string> = {
 
 export default function Reflections() {
   const { posts, loading, toggleSave } = useReflections();
+  const { drops } = useMoodBoardDrops();
+  const { spotlight } = usePhotographerSpotlight();
   const [activeTab, setActiveTab] = useState('for_you');
+  const [saveSheetOpen, setSaveSheetOpen] = useState(false);
+  const [itemToSave, setItemToSave] = useState<any>(null);
   const navigate = useNavigate();
 
   const todayPosts = posts.filter(p => p.is_today);
-  const filteredPosts = activeTab === 'saved'
-    ? posts.filter(p => p.saved)
+  const filteredPosts = activeTab === 'collections'
+    ? []
     : posts.filter(p => p.tab === activeTab);
 
   const handleCTA = (post: ReflectionPost) => {
     if (post.cta_action === 'route' && post.cta_route) {
       navigate(post.cta_route);
     }
-    // Other actions (download, feature) can be extended
   };
+
+  const handleSaveToCollection = useCallback((item: any) => {
+    setItemToSave({
+      item_type: item.theme ? 'mood_board' : 'post',
+      item_id: item.id,
+      item_title: item.title,
+      item_image: item.image_url || item.cover_image,
+    });
+    setSaveSheetOpen(true);
+  }, []);
 
   if (loading) {
     return (
@@ -121,25 +139,100 @@ export default function Reflections() {
             ))}
           </TabsList>
 
-          {TABS.map(tab => (
-            <TabsContent key={tab.value} value={tab.value} className="mt-4 space-y-3">
-              {(tab.value === 'saved' ? filteredPosts : filteredPosts).length === 0 ? (
-                <Card className="border-dashed">
-                  <CardContent className="py-12 text-center">
-                    <Bookmark className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      {tab.value === 'saved' ? 'No saved posts yet. Tap the bookmark on any post.' : 'No posts here yet. Check back soon!'}
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                filteredPosts.map(post => (
-                  <FeedCard key={post.id} post={post} onSave={() => toggleSave(post.id)} onCTA={() => handleCTA(post)} />
-                ))
-              )}
-            </TabsContent>
-          ))}
+          {/* For You Tab */}
+          <TabsContent value="for_you" className="mt-4 space-y-6">
+            {/* Photographer Spotlight */}
+            <PhotographerSpotlightCard spotlight={spotlight} />
+
+            {/* Mood Board */}
+            <WeeklyMoodBoard drops={drops} onSaveToCollection={handleSaveToCollection} />
+
+            {/* Feed */}
+            {filteredPosts.length > 0 && (
+              <div className="space-y-3">
+                {filteredPosts.map(post => (
+                  <FeedCard
+                    key={post.id}
+                    post={post}
+                    onSave={() => toggleSave(post.id)}
+                    onCTA={() => handleCTA(post)}
+                    onSaveToCollection={() => handleSaveToCollection(post)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {filteredPosts.length === 0 && (
+              <Card className="border-dashed">
+                <CardContent className="py-12 text-center">
+                  <Sparkles className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
+                  <p className="text-sm text-muted-foreground">More content coming soon</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Latest Tab */}
+          <TabsContent value="latest" className="mt-4 space-y-3">
+            {posts.filter(p => p.tab === 'latest').length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="py-12 text-center">
+                  <Bookmark className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
+                  <p className="text-sm text-muted-foreground">No posts here yet. Check back soon!</p>
+                </CardContent>
+              </Card>
+            ) : (
+              posts.filter(p => p.tab === 'latest').map(post => (
+                <FeedCard
+                  key={post.id}
+                  post={post}
+                  onSave={() => toggleSave(post.id)}
+                  onCTA={() => handleCTA(post)}
+                  onSaveToCollection={() => handleSaveToCollection(post)}
+                />
+              ))
+            )}
+          </TabsContent>
+
+          {/* Marketplace Tab */}
+          <TabsContent value="marketplace" className="mt-4">
+            <PresetMarketplace />
+          </TabsContent>
+
+          {/* Learn Tab */}
+          <TabsContent value="learn" className="mt-4 space-y-3">
+            {posts.filter(p => p.tab === 'learn').length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="py-12 text-center">
+                  <Lightbulb className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
+                  <p className="text-sm text-muted-foreground">Learning content drops weekly!</p>
+                </CardContent>
+              </Card>
+            ) : (
+              posts.filter(p => p.tab === 'learn').map(post => (
+                <FeedCard
+                  key={post.id}
+                  post={post}
+                  onSave={() => toggleSave(post.id)}
+                  onCTA={() => handleCTA(post)}
+                  onSaveToCollection={() => handleSaveToCollection(post)}
+                />
+              ))
+            )}
+          </TabsContent>
+
+          {/* Collections Tab */}
+          <TabsContent value="collections" className="mt-4">
+            <CollectionsGallery />
+          </TabsContent>
         </Tabs>
+
+        {/* Save to Collection Sheet */}
+        <SaveToCollectionSheet
+          open={saveSheetOpen}
+          onClose={() => { setSaveSheetOpen(false); setItemToSave(null); }}
+          itemToSave={itemToSave}
+        />
       </div>
     </DashboardLayout>
   );
@@ -178,7 +271,14 @@ function TodayCard({ post, onSave, onCTA }: { post: ReflectionPost; onSave: () =
 }
 
 /* ─── Feed Card ─── */
-function FeedCard({ post, onSave, onCTA }: { post: ReflectionPost; onSave: () => void; onCTA: () => void }) {
+function FeedCard({
+  post, onSave, onCTA, onSaveToCollection
+}: {
+  post: ReflectionPost;
+  onSave: () => void;
+  onCTA: () => void;
+  onSaveToCollection?: () => void;
+}) {
   const tagStyle = TAG_VARIANTS[post.tag || ''] || TAG_VARIANTS.new;
   const gradient = TYPE_COLORS[post.card_type] || 'from-muted/50 to-transparent';
 
@@ -195,17 +295,28 @@ function FeedCard({ post, onSave, onCTA }: { post: ReflectionPost; onSave: () =>
               {TYPE_ICONS[post.card_type]} {post.card_type}
             </span>
           </div>
-          <button
-            onClick={onSave}
-            className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
-          >
-            {post.saved
-              ? <BookmarkCheck className="h-4 w-4 text-primary" />
-              : <Bookmark className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground/60" />}
-          </button>
+          <div className="flex items-center gap-1">
+            {onSaveToCollection && (
+              <button
+                onClick={onSaveToCollection}
+                className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors opacity-0 group-hover:opacity-100"
+                title="Save to collection"
+              >
+                <FolderPlus className="h-3.5 w-3.5 text-muted-foreground/30 hover:text-primary" />
+              </button>
+            )}
+            <button
+              onClick={onSave}
+              className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
+            >
+              {post.saved
+                ? <BookmarkCheck className="h-4 w-4 text-primary" />
+                : <Bookmark className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground/60" />}
+            </button>
+          </div>
         </div>
 
-        {/* Image (if available) */}
+        {/* Image */}
         {post.image_url && (
           <div className="rounded-lg overflow-hidden">
             <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover" loading="lazy" />
