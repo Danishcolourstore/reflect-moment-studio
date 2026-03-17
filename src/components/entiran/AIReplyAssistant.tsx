@@ -1,231 +1,170 @@
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  MessageSquare, Send, Copy, Check, X, Sparkles,
-  Phone, Loader2, Edit3, RefreshCw
-} from 'lucide-react';
-import { useAIReplyDrafts, type AIReplyDraft } from '@/hooks/use-entiran-business';
-import { toast } from '@/components/ui/sonner';
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { MessageSquare, Send, Copy, Check, X, Sparkles, Phone, Loader2, Edit3 } from "lucide-react";
+import { useAIReplyDrafts, type AIReplyDraft } from "@/hooks/use-entiran-business";
+import { toast } from "@/components/ui/sonner";
 
 const DEMO_DRAFTS: AIReplyDraft[] = [
   {
-    id: 'demo-1',
-    lead_name: 'Priya Sharma',
-    lead_message: 'Hi! I saw your wedding portfolio and loved it. We\'re getting married on March 15th. What are your packages?',
-    channel: 'whatsapp',
-    draft_reply: 'Hi Priya! 😊 Thank you for reaching out — congratulations on your upcoming wedding!\n\nI\'d love to be part of your special day. For March 15th, I\'m currently available. Here are my wedding packages:\n\n📸 Essential: ₹45,000 (8hrs, 300 photos)\n📸 Premium: ₹1,20,000 (2 days, 600 photos + album)\n\nWould you like to hop on a quick call this week to discuss what works best for you?',
+    id: "demo-1",
+    lead_name: "Priya Sharma",
+    lead_message: "Hi! I saw your wedding portfolio and loved it.",
+    channel: "whatsapp",
+    draft_reply:
+      "Hi Priya! 😊 Thank you for reaching out — congratulations on your upcoming wedding!\n\nWould you like to schedule a quick call?",
     pricing_context: {},
     availability_context: {},
-    status: 'pending',
+    status: "pending",
     created_at: new Date().toISOString(),
-  },
-  {
-    id: 'demo-2',
-    lead_name: 'Rajesh Kumar',
-    lead_message: 'Need a photographer for corporate event next month',
-    channel: 'whatsapp',
-    draft_reply: 'Hi Rajesh! Thanks for considering me for your corporate event.\n\nI\'d be happy to help capture your event professionally. My corporate packages start at ₹15,000 for half-day coverage.\n\nCould you share the date and venue? I\'ll check my availability and send you a detailed quote.',
-    pricing_context: {},
-    availability_context: {},
-    status: 'pending',
-    created_at: new Date(Date.now() - 3600000).toISOString(),
   },
 ];
 
 export function AIReplyAssistant() {
   const { drafts: dbDrafts, generating, generateReply, markSent, dismissDraft } = useAIReplyDrafts();
+  const [open, setOpen] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
-  const [leadName, setLeadName] = useState('');
-  const [leadMessage, setLeadMessage] = useState('');
+  const [leadName, setLeadName] = useState("");
+  const [leadMessage, setLeadMessage] = useState("");
 
   const drafts = dbDrafts.length > 0 ? dbDrafts : DEMO_DRAFTS;
 
   const handleGenerate = async () => {
     if (!leadName.trim()) return;
     await generateReply(leadName.trim(), leadMessage.trim());
-    setLeadName('');
-    setLeadMessage('');
+    setLeadName("");
+    setLeadMessage("");
     setShowCompose(false);
-    toast.success('Reply drafted by Daan');
+    toast.success("Reply drafted by Daan");
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center">
-            <MessageSquare className="h-4 w-4 text-primary" />
+    <>
+      {/* ⚡ FLOAT BUTTON */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="fixed bottom-6 right-6 z-50 bg-[#C9A84C] text-black p-4 rounded-full shadow-[0_0_20px_rgba(201,168,76,0.4)] hover:scale-105 active:scale-95 transition-all"
+      >
+        ⚡
+      </button>
+
+      {/* ⚡ CHAT PANEL */}
+      {open && (
+        <div className="fixed bottom-20 right-6 w-[340px] max-h-[75vh] bg-[#0A0A0A] border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50">
+          {/* HEADER */}
+          <div className="p-3 border-b border-zinc-800 flex justify-between items-center">
+            <div>
+              <p className="text-sm font-semibold text-white flex items-center gap-1">⚡ Daan AI</p>
+              <p className="text-[10px] text-zinc-400">Instant smart replies</p>
+            </div>
+            <button onClick={() => setOpen(false)} className="text-zinc-400 hover:text-white">
+              <X size={14} />
+            </button>
           </div>
-          <div>
-            <h2 className="text-sm font-semibold text-foreground tracking-tight">AI Reply Assistant</h2>
-            <p className="text-[10px] text-muted-foreground">Smart responses in your voice</p>
+
+          {/* BODY */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            {/* Compose */}
+            <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => setShowCompose(!showCompose)}>
+              <Edit3 className="h-3 w-3 mr-1" /> Compose
+            </Button>
+
+            {showCompose && (
+              <Card className="border-primary/20">
+                <CardContent className="p-3 space-y-2">
+                  <Input
+                    value={leadName}
+                    onChange={(e) => setLeadName(e.target.value)}
+                    placeholder="Lead name..."
+                    className="text-xs"
+                  />
+                  <Textarea
+                    value={leadMessage}
+                    onChange={(e) => setLeadMessage(e.target.value)}
+                    placeholder="Message..."
+                    className="text-xs"
+                  />
+                  <Button size="sm" className="w-full text-xs" onClick={handleGenerate} disabled={generating}>
+                    {generating ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <>
+                        <Sparkles className="h-3 w-3 mr-1" /> Generate
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Drafts */}
+            {drafts.map((draft) => (
+              <ReplyDraftCard
+                key={draft.id}
+                draft={draft}
+                onSend={() => markSent(draft.id)}
+                onDismiss={() => dismissDraft(draft.id)}
+              />
+            ))}
           </div>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-[10px] h-7 gap-1 border-primary/20 text-primary"
-          onClick={() => setShowCompose(!showCompose)}
-        >
-          <Edit3 className="h-3 w-3" /> Compose
-        </Button>
-      </div>
-
-      {/* Compose */}
-      {showCompose && (
-        <Card className="border-primary/20">
-          <CardContent className="p-3 space-y-2">
-            <Input
-              value={leadName}
-              onChange={e => setLeadName(e.target.value)}
-              placeholder="Lead name..."
-              className="text-xs h-8"
-            />
-            <Textarea
-              value={leadMessage}
-              onChange={e => setLeadMessage(e.target.value)}
-              placeholder="Their message (optional)..."
-              className="text-xs min-h-[60px]"
-            />
-            <Button
-              size="sm"
-              className="w-full text-xs h-8 gap-1.5"
-              onClick={handleGenerate}
-              disabled={generating || !leadName.trim()}
-            >
-              {generating ? (
-                <><Loader2 className="h-3 w-3 animate-spin" /> Drafting...</>
-              ) : (
-                <><Sparkles className="h-3 w-3" /> Generate Reply</>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
       )}
-
-      {/* Draft Cards */}
-      <div className="space-y-3">
-        {drafts.map(draft => (
-          <ReplyDraftCard
-            key={draft.id}
-            draft={draft}
-            onSend={() => markSent(draft.id)}
-            onDismiss={() => dismissDraft(draft.id)}
-          />
-        ))}
-        {drafts.length === 0 && (
-          <Card className="border-dashed">
-            <CardContent className="py-8 text-center">
-              <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground/15 mb-2" />
-              <p className="text-xs text-muted-foreground">No pending replies</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">New lead messages will appear here with AI-drafted replies</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
+    </>
   );
 }
 
-function ReplyDraftCard({ draft, onSend, onDismiss }: {
+function ReplyDraftCard({
+  draft,
+  onSend,
+  onDismiss,
+}: {
   draft: AIReplyDraft;
   onSend: () => void;
   onDismiss: () => void;
 }) {
   const [copied, setCopied] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [editedReply, setEditedReply] = useState(draft.draft_reply);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(editing ? editedReply : draft.draft_reply);
+    navigator.clipboard.writeText(draft.draft_reply);
     setCopied(true);
-    toast.success('Copied to clipboard');
+    toast.success("Copied");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleWhatsApp = () => {
-    const text = encodeURIComponent(editing ? editedReply : draft.draft_reply);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    const text = encodeURIComponent(draft.draft_reply);
+    window.open(`https://wa.me/?text=${text}`, "_blank");
     onSend();
   };
 
   return (
-    <Card className="overflow-hidden hover:border-primary/15 transition-colors">
-      <CardContent className="p-0">
-        {/* Lead Info */}
-        <div className="p-3 border-b border-border/50 flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+    <Card className="overflow-hidden border-zinc-800">
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-xs text-primary">
             {draft.lead_name.charAt(0)}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-foreground">{draft.lead_name}</p>
-            <p className="text-[10px] text-muted-foreground truncate">{draft.lead_message || 'New inquiry'}</p>
+          <div>
+            <p className="text-xs text-white">{draft.lead_name}</p>
+            <p className="text-[10px] text-zinc-400">{draft.lead_message}</p>
           </div>
-          <Badge variant="outline" className="text-[8px] h-4 px-1.5 border-green-500/30 text-green-400 gap-0.5">
-            <Phone className="h-2 w-2" /> WhatsApp
-          </Badge>
         </div>
 
-        {/* Draft Reply */}
-        <div className="p-3 space-y-2">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-[9px] text-primary uppercase tracking-widest font-medium flex items-center gap-1">
-              <Sparkles className="h-2.5 w-2.5" /> AI Draft
-            </p>
-            <button
-              onClick={() => setEditing(!editing)}
-              className="text-[9px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
-            >
-              <Edit3 className="h-2.5 w-2.5" /> {editing ? 'Preview' : 'Edit'}
-            </button>
-          </div>
+        <div className="p-2 bg-zinc-900 rounded text-xs text-white whitespace-pre-line">{draft.draft_reply}</div>
 
-          {editing ? (
-            <Textarea
-              value={editedReply}
-              onChange={e => setEditedReply(e.target.value)}
-              className="text-[11px] min-h-[100px] bg-secondary/30"
-            />
-          ) : (
-            <div className="p-3 rounded-lg bg-secondary/30 border border-border/30">
-              <p className="text-[11px] text-foreground/80 leading-relaxed whitespace-pre-line">
-                {draft.draft_reply}
-              </p>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-2 pt-1">
-            <Button
-              size="sm"
-              className="flex-1 text-[10px] h-8 gap-1.5 bg-green-600 hover:bg-green-700 text-white"
-              onClick={handleWhatsApp}
-            >
-              <Send className="h-3 w-3" /> Send via WhatsApp
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-[10px] h-8 gap-1 border-border"
-              onClick={handleCopy}
-            >
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-[10px] h-8 text-muted-foreground"
-              onClick={onDismiss}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Button size="sm" className="flex-1 text-xs bg-green-600" onClick={handleWhatsApp}>
+            <Send className="h-3 w-3 mr-1" /> Send
+          </Button>
+          <Button size="sm" variant="outline" onClick={handleCopy}>
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onDismiss}>
+            <X size={12} />
+          </Button>
         </div>
       </CardContent>
     </Card>
