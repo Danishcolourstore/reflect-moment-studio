@@ -46,7 +46,6 @@ const CHIPS: Record<string, string[]> = {
   ],
 };
 
-// Rotating creative prompts shown as a bonus chip
 const CREATIVE_PROMPTS = [
   'Explain the zone system by Ansel Adams',
   'How does back-button focus work?',
@@ -69,20 +68,32 @@ interface SuggestionChipsProps {
 export function SuggestionChips({ onChipClick }: SuggestionChipsProps) {
   const { page } = usePageContext();
   const baseChips = CHIPS[page] || CHIPS.other;
-
-  // Add one rotating creative prompt
-  const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 4)) % CREATIVE_PROMPTS.length; // rotates every 4 hours
+  const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 4)) % CREATIVE_PROMPTS.length;
   const creativeChip = CREATIVE_PROMPTS[dayIndex];
   const chips = [...baseChips, creativeChip];
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 px-1 scrollbar-hide">
+    <div className="flex gap-1.5 overflow-x-auto pb-1 px-1 scrollbar-hide">
       {chips.map(chip => (
         <button
           key={chip}
           onClick={() => onChipClick(chip)}
-          className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-colors hover:bg-[#C9A96E]/10 whitespace-nowrap"
-          style={{ borderColor: '#E8E0D4', color: '#1A1A1A' }}
+          className="flex-shrink-0 text-[10px] px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200"
+          style={{
+            border: '1px solid rgba(212,175,55,0.12)',
+            color: 'rgba(244,241,234,0.4)',
+            background: 'transparent',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(212,175,55,0.06)';
+            e.currentTarget.style.color = 'rgba(212,175,55,0.7)';
+            e.currentTarget.style.borderColor = 'rgba(212,175,55,0.25)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'rgba(244,241,234,0.4)';
+            e.currentTarget.style.borderColor = 'rgba(212,175,55,0.12)';
+          }}
           aria-label={`Quick action: ${chip}`}
         >
           {chip}

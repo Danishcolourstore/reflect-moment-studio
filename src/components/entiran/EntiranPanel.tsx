@@ -12,13 +12,13 @@ import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-interface EntiranPanelProps {
+interface DaanPanelProps {
   open: boolean;
   onClose: () => void;
   pendingSuggestionCount: number;
 }
 
-export function EntiranPanel({ open, onClose, pendingSuggestionCount }: EntiranPanelProps) {
+export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPanelProps) {
   const {
     messages, loading, typing, pageContext,
     initConversation, sendMessage, bugStep,
@@ -41,19 +41,17 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: EntiranP
     }
   }, [open, initConversation]);
 
-  // Welcome onboarding flow
+  // Welcome onboarding flow — premium version
   useEffect(() => {
     if (!loading && isFirstTime && !welcomeShown && messages.length === 0 && open) {
       setWelcomeShown(true);
       const showWelcome = async () => {
-        await new Promise(r => setTimeout(r, 400));
-        await addMessage('assistant', "Hi! I'm Daan, your AI studio assistant. I'm here to help you work faster inside Mirror AI.", 'welcome');
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 600));
+        await addMessage('assistant', "I'm Daan. I handle your studio intelligence — leads, pricing, follow-ups, and creative decisions.", 'welcome');
+        await new Promise(r => setTimeout(r, 500));
         await addMessage('assistant', '', 'welcome', { type: 'feature_cards' });
-        await new Promise(r => setTimeout(r, 400));
-        await addMessage('assistant', "I also watch your studio activity. When clients select photos, galleries are ready to share, or albums need exporting — I'll nudge you.", 'welcome');
-        await new Promise(r => setTimeout(r, 400));
-        await addMessage('assistant', "Try asking me something, or tap a suggestion below!", 'welcome');
+        await new Promise(r => setTimeout(r, 500));
+        await addMessage('assistant', "I watch your activity. When something needs your attention, I'll tell you.", 'welcome');
       };
       showWelcome();
     }
@@ -67,7 +65,6 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: EntiranP
     if (!input.trim()) return;
     sendMessage(input.trim());
     setInput('');
-    // Reset textarea height
     if (inputRef.current) inputRef.current.style.height = 'auto';
   };
 
@@ -78,7 +75,6 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: EntiranP
     }
   };
 
-  // Auto-resize textarea
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     const el = e.target;
@@ -101,7 +97,6 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: EntiranP
     await submitBugReport();
   };
 
-  // Escape to close
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -127,21 +122,24 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: EntiranP
     />
   );
 
-  // Mobile: fullscreen bottom sheet
+  // Mobile: bottom sheet — max 60% height
   if (isMobile) {
     return (
-      <div className="fixed inset-0" style={{ zIndex: 10002 }} role="dialog" aria-modal="true" aria-label="Entiran AI Assistant">
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0" style={{ zIndex: 10002 }} role="dialog" aria-modal="true" aria-label="Daan Intelligence">
+        <div className="absolute inset-0" style={{ background: 'rgba(10,10,10,0.7)', backdropFilter: 'blur(12px)' }} onClick={onClose} />
         <div
-          className="absolute inset-x-0 bottom-0 flex flex-col rounded-t-3xl shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-bottom motion-safe:duration-300 overflow-hidden"
+          className="absolute inset-x-0 bottom-0 flex flex-col overflow-hidden animate-slide-in-right"
           style={{
-            height: '92dvh',
-            backgroundColor: 'hsl(var(--background))',
+            maxHeight: '65dvh',
+            borderRadius: '20px 20px 0 0',
+            background: '#0A0A0A',
+            borderTop: '1px solid rgba(212,175,55,0.15)',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.8), 0 0 60px rgba(212,175,55,0.05)',
           }}
         >
           {/* Drag handle */}
-          <div className="flex justify-center pt-2 pb-1 shrink-0">
-            <div className="w-10 h-1 rounded-full bg-muted-foreground/20" />
+          <div className="flex justify-center pt-2.5 pb-1 shrink-0">
+            <div className="w-8 h-0.5 rounded-full" style={{ background: 'rgba(212,175,55,0.3)' }} />
           </div>
           {panelContent}
         </div>
@@ -151,11 +149,16 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: EntiranP
 
   // Desktop: side panel
   return (
-    <div className="fixed inset-0 flex justify-end" style={{ zIndex: 10002 }} role="dialog" aria-modal="true" aria-label="Entiran AI Assistant">
-      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+    <div className="fixed inset-0 flex justify-end" style={{ zIndex: 10002 }} role="dialog" aria-modal="true" aria-label="Daan Intelligence">
+      <div className="absolute inset-0" style={{ background: 'rgba(10,10,10,0.5)', backdropFilter: 'blur(8px)' }} onClick={onClose} />
       <div
-        className="relative h-full flex flex-col shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-right motion-safe:duration-300"
-        style={{ backgroundColor: 'hsl(var(--background))', width: 380 }}
+        className="relative h-full flex flex-col animate-slide-in-right"
+        style={{
+          background: '#0A0A0A',
+          width: 400,
+          borderLeft: '1px solid rgba(212,175,55,0.1)',
+          boxShadow: '-8px 0 40px rgba(0,0,0,0.8)',
+        }}
       >
         {panelContent}
       </div>
@@ -174,70 +177,92 @@ function PanelContent({
 
   return (
     <>
-      {/* Header */}
+      {/* Header — minimal, authoritative */}
       <div
-        className="flex items-center justify-between px-4 shrink-0"
+        className="flex items-center justify-between px-5 shrink-0"
         style={{
-          height: isMobile ? 52 : 56,
-          borderBottom: '1px solid hsl(var(--border))',
+          height: isMobile ? 48 : 52,
+          borderBottom: '1px solid rgba(212,175,55,0.08)',
         }}
       >
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-sm">✨</span>
+        <div className="flex items-center gap-3">
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center"
+            style={{
+              background: 'rgba(212,175,55,0.08)',
+              border: '1px solid rgba(212,175,55,0.2)',
+            }}
+          >
+            <span className="text-[9px] font-bold tracking-widest" style={{ color: '#D4AF37' }}>D</span>
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-foreground leading-tight">Entiran</h2>
-            <p className="text-[10px] text-muted-foreground leading-tight">AI Assistant</p>
+            <h2 className="text-xs font-semibold tracking-wide" style={{ color: '#F4F1EA', letterSpacing: '0.1em' }}>DAAN</h2>
+            <p className="text-[9px]" style={{ color: 'rgba(212,175,55,0.5)' }}>Intelligence Active</p>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           <span
-            className="text-[9px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium"
+            className="text-[8px] px-2 py-0.5 rounded-full font-medium"
+            style={{ background: 'rgba(244,241,234,0.05)', color: 'rgba(244,241,234,0.4)' }}
           >
             {pageContext.pageLabel}
           </span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-2 rounded-lg hover:bg-muted transition-colors" aria-label="Chat options">
-                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+              <button className="p-2 rounded-lg transition-colors" style={{ color: 'rgba(244,241,234,0.3)' }} aria-label="Options">
+                <MoreVertical className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setConfirmClear(true)}>Clear chat</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => startNewConversation()}>New conversation</DropdownMenuItem>
+            <DropdownMenuContent align="end" style={{ background: '#141414', border: '1px solid rgba(212,175,55,0.1)' }}>
+              <DropdownMenuItem onClick={() => setConfirmClear(true)} style={{ color: '#F4F1EA' }}>Clear chat</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => startNewConversation()} style={{ color: '#F4F1EA' }}>New conversation</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors" aria-label="Close">
-            <X className="h-5 w-5 text-foreground" />
+          <button onClick={onClose} className="p-2 rounded-lg transition-colors" style={{ color: 'rgba(244,241,234,0.3)' }} aria-label="Close">
+            <X className="h-4 w-4" />
           </button>
         </div>
       </div>
 
       {/* Clear confirmation */}
       {confirmClear && (
-        <div className="px-4 py-2.5 flex items-center gap-2 border-b border-border bg-destructive/5 shrink-0">
-          <p className="text-xs flex-1 text-foreground">Clear all messages?</p>
-          <button onClick={() => { clearConversation(); setConfirmClear(false); }} className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium">Yes</button>
-          <button onClick={() => setConfirmClear(false)} className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground">No</button>
+        <div className="px-5 py-2.5 flex items-center gap-2 shrink-0" style={{ borderBottom: '1px solid rgba(139,0,0,0.3)', background: 'rgba(139,0,0,0.08)' }}>
+          <p className="text-xs flex-1" style={{ color: '#F4F1EA' }}>Clear all messages?</p>
+          <button
+            onClick={() => { clearConversation(); setConfirmClear(false); }}
+            className="text-[10px] px-3 py-1.5 rounded-lg font-semibold tracking-wide"
+            style={{ background: '#D4AF37', color: '#0A0A0A' }}
+          >
+            YES
+          </button>
+          <button onClick={() => setConfirmClear(false)} className="text-[10px] px-3 py-1.5 rounded-lg" style={{ color: 'rgba(244,241,234,0.4)' }}>
+            NO
+          </button>
         </div>
       )}
 
-      {/* Suggestion banner */}
+      {/* Nudge strip — elegant top bar */}
       {pendingSuggestionCount > 0 && (
-        <div className="px-4 py-2 text-xs bg-primary text-primary-foreground font-medium shrink-0">
-          You have {pendingSuggestionCount} new suggestion{pendingSuggestionCount > 1 ? 's' : ''} from Studio Brain
+        <div
+          className="px-5 py-2 text-[10px] font-semibold tracking-wider uppercase shrink-0"
+          style={{
+            background: 'linear-gradient(90deg, rgba(139,0,0,0.15), rgba(212,175,55,0.08))',
+            color: '#D4AF37',
+            borderBottom: '1px solid rgba(212,175,55,0.06)',
+          }}
+        >
+          {pendingSuggestionCount} nudge{pendingSuggestionCount > 1 ? 's' : ''} waiting
         </div>
       )}
 
-      {/* Messages area — flex-1 fills remaining space */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-1 min-h-0" role="log" aria-live="polite">
+      {/* Messages area */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-1 min-h-0" role="log" aria-live="polite">
         {/* Conversation history */}
         {conversationHistory && conversationHistory.length > 1 && (
           <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
-            <CollapsibleTrigger className="flex items-center gap-1 text-[10px] mb-3 w-full text-primary">
+            <CollapsibleTrigger className="flex items-center gap-1 text-[9px] mb-3 w-full tracking-wider uppercase" style={{ color: 'rgba(212,175,55,0.5)' }}>
               {historyOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              Previous Chats
+              Previous Sessions
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="space-y-1 mb-4">
@@ -245,17 +270,20 @@ function PanelContent({
                   <button
                     key={conv.id}
                     onClick={() => { loadConversation(conv.id); setHistoryOpen(false); }}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-lg transition-colors"
+                    style={{ background: 'transparent' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(212,175,55,0.05)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                      <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(244,241,234,0.05)', color: 'rgba(244,241,234,0.3)' }}>
                         {conv.page_context}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[9px]" style={{ color: 'rgba(244,241,234,0.2)' }}>
                         {new Date(conv.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-xs truncate mt-0.5 text-foreground/70">{conv.preview}</p>
+                    <p className="text-xs truncate mt-0.5" style={{ color: 'rgba(244,241,234,0.5)' }}>{conv.preview}</p>
                   </button>
                 ))}
               </div>
@@ -265,17 +293,20 @@ function PanelContent({
 
         {loading ? (
           <div className="flex items-center justify-center h-20">
-            <div className="animate-spin w-5 h-5 border-2 rounded-full border-border border-t-primary" />
+            <div className="w-5 h-5 rounded-full" style={{ border: '2px solid rgba(212,175,55,0.15)', borderTopColor: '#D4AF37', animation: 'spin 0.8s linear infinite' }} />
           </div>
         ) : messages.length === 0 ? (
-          <div className="text-center py-10">
-            <div className="w-12 h-12 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-3">
-              <span className="text-xl">✨</span>
+          <div className="text-center py-12">
+            <div
+              className="w-10 h-10 rounded-full mx-auto flex items-center justify-center mb-4"
+              style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.12)' }}
+            >
+              <span className="text-[11px] font-bold tracking-widest" style={{ color: '#D4AF37' }}>D</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Hi! I'm Entiran, your AI assistant.
+            <p className="text-xs font-medium tracking-wide" style={{ color: 'rgba(244,241,234,0.6)' }}>
+              Ready.
             </p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Ask me anything about Mirror AI</p>
+            <p className="text-[10px] mt-1" style={{ color: 'rgba(244,241,234,0.2)' }}>Ask anything or wait for nudges.</p>
           </div>
         ) : (
           messages.map((msg: ChatMessage) => (
@@ -286,35 +317,37 @@ function PanelContent({
 
         {/* Bug report steps */}
         {bugStep === 'screenshot' && (
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-3">
             <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleScreenshotUpload} />
             <button
               onClick={() => fileRef.current?.click()}
-              className="text-xs px-3 py-2 rounded-lg flex items-center gap-1 bg-primary text-primary-foreground"
+              className="text-[10px] px-3.5 py-2 rounded-lg flex items-center gap-1.5 font-semibold tracking-wide"
+              style={{ background: '#D4AF37', color: '#0A0A0A' }}
             >
-              <Paperclip className="h-3 w-3" /> Attach Screenshot
+              <Paperclip className="h-3 w-3" /> ATTACH
             </button>
             <button
               onClick={() => { skipScreenshot(); setBugStep('confirm'); }}
-              className="text-xs px-3 py-2 rounded-lg border border-border text-foreground"
+              className="text-[10px] px-3.5 py-2 rounded-lg font-medium"
+              style={{ border: '1px solid rgba(244,241,234,0.1)', color: 'rgba(244,241,234,0.5)' }}
             >
-              Skip
+              SKIP
             </button>
           </div>
         )}
 
         {bugStep === 'confirm' && (
-          <div className="mt-2 rounded-xl p-3 border border-border bg-card">
-            <p className="text-xs font-medium mb-2 text-foreground">Bug Report Summary</p>
-            <p className="text-xs text-muted-foreground mb-1"><strong>Page:</strong> {pageContext.pageLabel}</p>
-            <p className="text-xs text-muted-foreground mb-1"><strong>Device:</strong> {window.screen.width < 768 ? 'Mobile' : 'Desktop'}</p>
-            <p className="text-xs text-muted-foreground mb-3"><strong>Screen:</strong> {window.screen.width}x{window.screen.height}</p>
+          <div className="mt-3 rounded-xl p-4" style={{ background: 'rgba(244,241,234,0.03)', border: '1px solid rgba(212,175,55,0.1)' }}>
+            <p className="text-[10px] font-semibold tracking-wider uppercase mb-2" style={{ color: '#D4AF37' }}>Bug Report</p>
+            <p className="text-[10px] mb-0.5" style={{ color: 'rgba(244,241,234,0.5)' }}><strong style={{ color: 'rgba(244,241,234,0.7)' }}>Page:</strong> {pageContext.pageLabel}</p>
+            <p className="text-[10px] mb-0.5" style={{ color: 'rgba(244,241,234,0.5)' }}><strong style={{ color: 'rgba(244,241,234,0.7)' }}>Device:</strong> {window.screen.width < 768 ? 'Mobile' : 'Desktop'}</p>
+            <p className="text-[10px] mb-3" style={{ color: 'rgba(244,241,234,0.5)' }}><strong style={{ color: 'rgba(244,241,234,0.7)' }}>Screen:</strong> {window.screen.width}x{window.screen.height}</p>
             <div className="flex gap-2">
-              <button onClick={handleBugConfirm} className="text-xs px-3 py-2 rounded-lg bg-primary text-primary-foreground">
-                Submit Report
+              <button onClick={handleBugConfirm} className="text-[10px] px-3.5 py-2 rounded-lg font-semibold tracking-wide" style={{ background: '#D4AF37', color: '#0A0A0A' }}>
+                SUBMIT
               </button>
-              <button onClick={() => setBugStep('idle')} className="text-xs px-3 py-2 rounded-lg text-muted-foreground">
-                Cancel
+              <button onClick={() => setBugStep('idle')} className="text-[10px] px-3.5 py-2 rounded-lg" style={{ color: 'rgba(244,241,234,0.4)' }}>
+                CANCEL
               </button>
             </div>
           </div>
@@ -322,16 +355,17 @@ function PanelContent({
       </div>
 
       {/* Suggestion chips */}
-      <div className="px-4 py-2 border-t border-border shrink-0 overflow-x-auto">
+      <div className="px-4 py-2 shrink-0 overflow-x-auto" style={{ borderTop: '1px solid rgba(212,175,55,0.06)' }}>
         <SuggestionChips onChipClick={(t) => { sendMessage(t); }} />
       </div>
 
-      {/* Input area — sticky bottom with safe-area padding */}
+      {/* Input area */}
       <div
-        className="flex items-end gap-2 px-4 border-t border-border shrink-0"
+        className="flex items-end gap-2 px-4 shrink-0"
         style={{
           paddingTop: 10,
           paddingBottom: isMobile ? 'max(12px, env(safe-area-inset-bottom, 12px))' : 12,
+          borderTop: '1px solid rgba(212,175,55,0.06)',
         }}
       >
         <textarea
@@ -339,19 +373,27 @@ function PanelContent({
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder="Ask anything..."
+          placeholder="Ask Daan..."
           rows={1}
-          className="flex-1 text-sm bg-muted/50 rounded-xl px-3.5 py-2.5 outline-none resize-none placeholder:text-muted-foreground/40 text-foreground leading-snug"
+          className="flex-1 text-sm rounded-xl px-3.5 py-2.5 outline-none resize-none leading-snug"
           style={{
             maxHeight: 120,
             minHeight: 40,
+            background: 'rgba(244,241,234,0.04)',
+            border: '1px solid rgba(212,175,55,0.08)',
+            color: '#F4F1EA',
+            fontSize: 13,
           }}
-          aria-label="Chat message input"
+          aria-label="Message input"
         />
         <button
           onClick={handleSend}
-          className="shrink-0 p-2.5 rounded-xl bg-primary text-primary-foreground transition-opacity disabled:opacity-30"
+          className="shrink-0 p-2.5 rounded-xl transition-all duration-200 disabled:opacity-20"
           disabled={!input.trim()}
+          style={{
+            background: input.trim() ? '#D4AF37' : 'rgba(212,175,55,0.1)',
+            color: '#0A0A0A',
+          }}
           aria-label="Send message"
         >
           <Send className="h-4 w-4" />
