@@ -90,7 +90,7 @@ serve(async (req) => {
       );
     }
 
-    const systemPrompt = SYSTEM_PROMPT.replace("${'{pageContext}'}", pageContext);
+    const systemPrompt = SYSTEM_PROMPT.replace("${'{pageContext}'}", pageContext).replace("${'{language}'}", language);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
