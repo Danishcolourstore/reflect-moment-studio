@@ -155,6 +155,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const [date, setDate] = useState('');
   const [location, setLocation] = useState('');
   const [slug, setSlug] = useState('');
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [password, setPassword] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [galleryLayout, setGalleryLayout] = useState('classic');
@@ -165,16 +166,19 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const lastSubmitRef = useRef(0);
 
   const generateSlug = (name: string) => {
-    const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40);
-    const rand = Math.random().toString(36).substring(2, 6);
-    return `${base}-${rand}`;
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40);
   };
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
-    if (!slug || slug === generateSlug(title)) {
+    if (!slugManuallyEdited) {
       setSlug(generateSlug(val));
     }
+  };
+
+  const handleSlugChange = (val: string) => {
+    setSlug(val);
+    setSlugManuallyEdited(true);
   };
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
