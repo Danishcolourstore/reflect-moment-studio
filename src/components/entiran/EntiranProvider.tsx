@@ -91,7 +91,7 @@ function EntiranInner() {
               zIndex: 10001,
             }}
           >
-            Ask Entiran
+            Ask Daan
           </div>
           {showHint && (
             <div
