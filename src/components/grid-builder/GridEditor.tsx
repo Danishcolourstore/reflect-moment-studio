@@ -234,12 +234,12 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           {/* Format selector with dimensions */}
           {!layout.canvasRatio && (
             <div className="flex items-center gap-0.5 bg-muted/40 rounded-full p-0.5">
-              {CANVAS_FORMATS.map((f) => (
+              {CANVAS_FORMATS.slice(0, 3).map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setFormat(f)}
                   className={cn(
-                    'px-2 py-1 rounded-full text-[9px] font-medium tracking-wider transition-all duration-300 flex flex-col items-center leading-tight',
+                    'px-2.5 py-1.5 rounded-full text-[9px] font-medium tracking-wider transition-all duration-300 flex flex-col items-center leading-tight',
                     format.id === f.id
                       ? 'bg-foreground text-background shadow-sm'
                       : 'text-muted-foreground/60 hover:text-foreground'
