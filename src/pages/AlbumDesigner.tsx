@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useDeviceDetect } from "@/hooks/use-device-detect";
 import { toast } from "sonner";
 import {
   Plus, BookOpen, Trash2, Copy, ExternalLink, MoreHorizontal, Calendar, Layers,
+  ChevronRight,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -18,6 +20,7 @@ import {
 import NewAlbumWizard from "@/components/album-designer/NewAlbumWizard";
 import type { AlbumSize, CoverType } from "@/components/album-designer/types";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -50,6 +53,7 @@ interface AlbumRow {
 export default function AlbumDesigner() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const device = useDeviceDetect();
   const [albums, setAlbums] = useState<AlbumRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -68,7 +72,6 @@ export default function AlbumDesigner() {
 
   useEffect(() => { fetchAlbums(); }, [fetchAlbums]);
 
-  // Bug 2 fix: cover page at spread_index 0, content pages start at spread_index 1
   const handleCreate = async (data: {
     name: string; size: AlbumSize; leafCount: number; coverType: CoverType;
   }) => {
@@ -90,14 +93,13 @@ export default function AlbumDesigner() {
       return;
     }
 
-    // Pre-fill pages — cover at spread_index 0, content starts at 1
     const pages = [];
-    pages.push({ album_id: album.id, page_number: 0, spread_index: 0 }); // Cover
+    pages.push({ album_id: album.id, page_number: 0, spread_index: 0 });
     for (let i = 1; i <= pageCount; i++) {
       pages.push({
         album_id: album.id,
         page_number: i,
-        spread_index: Math.ceil(i / 2), // 1,1 → 2,2 → 3,3 etc. No overlap with cover
+        spread_index: Math.ceil(i / 2),
       });
     }
 
@@ -127,16 +129,148 @@ export default function AlbumDesigner() {
     else { toast.success("Album deleted"); fetchAlbums(); }
   };
 
+  /* ─── MOBILE CARD LAYOUT ─── */
+  const renderMobileList = () => (
+    <div className="space-y-3">
+      {albums.map((album) => (
+        <div
+          key={album.id}
+          onClick={() => navigate(`/dashboard/album-designer/${album.id}/editor`)}
+          className="bg-card rounded-2xl border border-border/50 p-4 active:scale-[0.98] transition-all"
+        >
+          <div className="flex items-start gap-3">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Layers className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-semibold text-foreground text-sm truncate">{album.name}</h3>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-muted active:bg-muted/80">
+                        <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => navigate(`/dashboard/album-designer/${album.id}/editor`)}>
+                        <ExternalLink className="h-4 w-4 mr-2" /> Open Editor
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDuplicate(album)}>
+                        <Copy className="h-4 w-4 mr-2" /> Duplicate
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(album)}>
+                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                <Badge variant="secondary" className={cn("text-[10px] h-5", STATUS_COLORS[album.status] || "")}>
+                  {STATUS_LABELS[album.status] || album.status}
+                </Badge>
+                <span className="text-[10px] text-muted-foreground">{album.size}"</span>
+                <span className="text-[10px] text-muted-foreground">•</span>
+                <span className="text-[10px] text-muted-foreground">{album.leaf_count} leaves</span>
+              </div>
+              <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted-foreground/70">
+                <Calendar className="h-3 w-3" />
+                {format(new Date(album.updated_at), "MMM d, yyyy")}
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground/40 shrink-0 mt-1" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  /* ─── DESKTOP TABLE LAYOUT ─── */
+  const renderDesktopTable = () => (
+    <div className="rounded-xl border bg-card overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead>Album</TableHead>
+            <TableHead className="hidden sm:table-cell">Size</TableHead>
+            <TableHead className="hidden md:table-cell">Pages</TableHead>
+            <TableHead className="hidden md:table-cell">Cover</TableHead>
+            <TableHead className="hidden lg:table-cell">Last Edited</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="w-12" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {albums.map((album) => (
+            <TableRow key={album.id} className="group cursor-pointer" onClick={() => navigate(`/dashboard/album-designer/${album.id}/editor`)}>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Layers className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="font-medium truncate max-w-[200px]">{album.name}</span>
+                </div>
+              </TableCell>
+              <TableCell className="hidden sm:table-cell text-muted-foreground">{album.size}</TableCell>
+              <TableCell className="hidden md:table-cell text-muted-foreground">{album.leaf_count} Leaf / {album.page_count} Pages</TableCell>
+              <TableCell className="hidden md:table-cell text-muted-foreground capitalize">{album.cover_type}</TableCell>
+              <TableCell className="hidden lg:table-cell text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {format(new Date(album.updated_at), "MMM d, yyyy")}
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary" className={STATUS_COLORS[album.status] || ""}>{STATUS_LABELS[album.status] || album.status}</Badge>
+              </TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate(`/dashboard/album-designer/${album.id}/editor`)}>
+                      <ExternalLink className="h-4 w-4 mr-2" /> Open Editor
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDuplicate(album)}>
+                      <Copy className="h-4 w-4 mr-2" /> Duplicate
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(album)}>
+                      <Trash2 className="h-4 w-4 mr-2" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
   return (
     <DashboardLayout>
-      <div className="max-w-[1400px] mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-serif font-semibold tracking-tight">Album Designer</h1>
-            <p className="text-sm text-muted-foreground mt-1">Design professional wedding albums and photobooks</p>
+      <div className="max-w-[1400px] mx-auto space-y-4 sm:space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className={cn(
+              "font-serif font-semibold tracking-tight",
+              device.isPhone ? "text-xl" : "text-2xl lg:text-3xl"
+            )}>Album Designer</h1>
+            {!device.isPhone && (
+              <p className="text-sm text-muted-foreground mt-1">Design professional wedding albums and photobooks</p>
+            )}
           </div>
-          <Button onClick={() => setWizardOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" /> New Album
+          <Button
+            onClick={() => setWizardOpen(true)}
+            className={cn("gap-2 shrink-0", device.isPhone && "h-10 w-10 p-0 rounded-full")}
+          >
+            <Plus className="h-4 w-4" />
+            {!device.isPhone && <span>New Album</span>}
           </Button>
         </div>
 
@@ -145,80 +279,23 @@ export default function AlbumDesigner() {
             <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : albums.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="h-20 w-20 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-              <BookOpen className="h-10 w-10 text-muted-foreground/30" />
+          <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center px-4">
+            <div className={cn(
+              "rounded-2xl bg-muted/50 flex items-center justify-center mb-4",
+              device.isPhone ? "h-16 w-16" : "h-20 w-20"
+            )}>
+              <BookOpen className={cn("text-muted-foreground/30", device.isPhone ? "h-8 w-8" : "h-10 w-10")} />
             </div>
             <h3 className="text-lg font-medium">No albums yet</h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Create your first professional album to start designing spreads from your gallery photos.
+              Create your first professional album to start designing spreads.
             </p>
-            <Button onClick={() => setWizardOpen(true)} className="mt-4 gap-2">
+            <Button onClick={() => setWizardOpen(true)} className="mt-4 gap-2 h-12 px-6">
               <Plus className="h-4 w-4" /> Create First Album
             </Button>
           </div>
         ) : (
-          <div className="rounded-xl border bg-card overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Album</TableHead>
-                  <TableHead className="hidden sm:table-cell">Size</TableHead>
-                  <TableHead className="hidden md:table-cell">Pages</TableHead>
-                  <TableHead className="hidden md:table-cell">Cover</TableHead>
-                  <TableHead className="hidden lg:table-cell">Last Edited</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-12" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {albums.map((album) => (
-                  <TableRow key={album.id} className="group cursor-pointer" onClick={() => navigate(`/dashboard/album-designer/${album.id}/editor`)}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Layers className="h-5 w-5 text-primary" />
-                        </div>
-                        <span className="font-medium truncate max-w-[200px]">{album.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-muted-foreground">{album.size}</TableCell>
-                    <TableCell className="hidden md:table-cell text-muted-foreground">{album.leaf_count} Leaf / {album.page_count} Pages</TableCell>
-                    <TableCell className="hidden md:table-cell text-muted-foreground capitalize">{album.cover_type}</TableCell>
-                    <TableCell className="hidden lg:table-cell text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {format(new Date(album.updated_at), "MMM d, yyyy")}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className={STATUS_COLORS[album.status] || ""}>{STATUS_LABELS[album.status] || album.status}</Badge>
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/dashboard/album-designer/${album.id}/editor`)}>
-                            <ExternalLink className="h-4 w-4 mr-2" /> Open Editor
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDuplicate(album)}>
-                            <Copy className="h-4 w-4 mr-2" /> Duplicate
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(album)}>
-                            <Trash2 className="h-4 w-4 mr-2" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          device.isPhone ? renderMobileList() : renderDesktopTable()
         )}
 
         <NewAlbumWizard open={wizardOpen} onOpenChange={setWizardOpen} onCreate={handleCreate} loading={creating} />
