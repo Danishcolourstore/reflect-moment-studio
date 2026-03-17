@@ -363,7 +363,7 @@ export const KNOWLEDGE_BASE: KnowledgeEntry[] = [
     keywords: ['keyboard', 'shortcuts', 'hotkeys', 'keys'],
     context: ['all'],
     question: 'What keyboard shortcuts are available?',
-    answer: `**Keyboard Shortcuts:**\n\n- **Ctrl/Cmd + Z** — Undo\n- **Ctrl/Cmd + Y** — Redo\n- **Delete/Backspace** — Remove selected item\n- **Arrow Keys** — Reposition selected element\n- **Ctrl/Cmd + S** — Save (where applicable)\n- **Ctrl/Cmd + Shift + E** — Toggle Entiran assistant\n- **Esc** — Close panel or deselect\n\nShortcuts work in the Album Builder and Gallery Editor.`,
+    answer: `**Keyboard Shortcuts:**\n\n- **Ctrl/Cmd + Z** — Undo\n- **Ctrl/Cmd + Y** — Redo\n- **Delete/Backspace** — Remove selected item\n- **Arrow Keys** — Reposition selected element\n- **Ctrl/Cmd + S** — Save (where applicable)\n- **Ctrl/Cmd + Shift + E** — Toggle Daan assistant\n- **Esc** — Close panel or deselect\n\nShortcuts work in the Album Builder and Gallery Editor.`,
     relatedQuestions: ['How do I undo or redo changes?', 'How do I navigate Mirror AI?'],
   },
   {
