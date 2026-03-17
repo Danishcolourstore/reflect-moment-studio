@@ -988,6 +988,53 @@ export type Database = {
           },
         ]
       }
+      collection_items: {
+        Row: {
+          collection_id: string
+          created_at: string
+          id: string
+          item_data: Json | null
+          item_id: string
+          item_image: string | null
+          item_title: string | null
+          item_type: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          id?: string
+          item_data?: Json | null
+          item_id: string
+          item_image?: string | null
+          item_title?: string | null
+          item_type?: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          id?: string
+          item_data?: Json | null
+          item_id?: string
+          item_image?: string | null
+          item_title?: string | null
+          item_type?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "user_collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connection_test: {
         Row: {
           created_at: string | null
@@ -2369,6 +2416,65 @@ export type Database = {
         }
         Relationships: []
       }
+      mood_board_drops: {
+        Row: {
+          color_palette: string[] | null
+          cover_image: string | null
+          created_at: string
+          id: string
+          is_published: boolean
+          lighting_tip: string | null
+          pose_suggestion: string | null
+          recommended_preset_id: string | null
+          reference_images: Json | null
+          subtitle: string | null
+          theme: string
+          title: string
+          week_number: number
+          year: number
+        }
+        Insert: {
+          color_palette?: string[] | null
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          lighting_tip?: string | null
+          pose_suggestion?: string | null
+          recommended_preset_id?: string | null
+          reference_images?: Json | null
+          subtitle?: string | null
+          theme: string
+          title: string
+          week_number: number
+          year: number
+        }
+        Update: {
+          color_palette?: string[] | null
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          lighting_tip?: string | null
+          pose_suggestion?: string | null
+          recommended_preset_id?: string | null
+          reference_images?: Json | null
+          subtitle?: string | null
+          theme?: string
+          title?: string
+          week_number?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mood_board_drops_recommended_preset_id_fkey"
+            columns: ["recommended_preset_id"]
+            isOneToOne: false
+            referencedRelation: "preset_marketplace"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -2596,6 +2702,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      photographer_spotlights: {
+        Row: {
+          booking_url: string | null
+          created_at: string
+          gallery_url: string | null
+          id: string
+          instagram_handle: string | null
+          is_published: boolean
+          packages: Json | null
+          photographer_id: string | null
+          photographer_name: string
+          portrait_url: string | null
+          showcase_images: string[] | null
+          specialties: string[] | null
+          story: string
+          style_description: string | null
+          tagline: string | null
+          website_url: string | null
+          week_number: number
+          year: number
+        }
+        Insert: {
+          booking_url?: string | null
+          created_at?: string
+          gallery_url?: string | null
+          id?: string
+          instagram_handle?: string | null
+          is_published?: boolean
+          packages?: Json | null
+          photographer_id?: string | null
+          photographer_name: string
+          portrait_url?: string | null
+          showcase_images?: string[] | null
+          specialties?: string[] | null
+          story: string
+          style_description?: string | null
+          tagline?: string | null
+          website_url?: string | null
+          week_number: number
+          year: number
+        }
+        Update: {
+          booking_url?: string | null
+          created_at?: string
+          gallery_url?: string | null
+          id?: string
+          instagram_handle?: string | null
+          is_published?: boolean
+          packages?: Json | null
+          photographer_id?: string | null
+          photographer_name?: string
+          portrait_url?: string | null
+          showcase_images?: string[] | null
+          specialties?: string[] | null
+          story?: string
+          style_description?: string | null
+          tagline?: string | null
+          website_url?: string | null
+          week_number?: number
+          year?: number
+        }
+        Relationships: []
       }
       photographer_websites: {
         Row: {
@@ -2928,6 +3097,101 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      preset_marketplace: {
+        Row: {
+          before_after_pairs: Json | null
+          category: string
+          created_at: string
+          currency: string
+          description: string | null
+          download_count: number
+          download_url: string | null
+          id: string
+          is_featured: boolean
+          is_published: boolean
+          name: string
+          preview_images: string[] | null
+          price_cents: number
+          rating_avg: number | null
+          rating_count: number
+          seller_id: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          before_after_pairs?: Json | null
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          download_count?: number
+          download_url?: string | null
+          id?: string
+          is_featured?: boolean
+          is_published?: boolean
+          name: string
+          preview_images?: string[] | null
+          price_cents?: number
+          rating_avg?: number | null
+          rating_count?: number
+          seller_id: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          before_after_pairs?: Json | null
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          download_count?: number
+          download_url?: string | null
+          id?: string
+          is_featured?: boolean
+          is_published?: boolean
+          name?: string
+          preview_images?: string[] | null
+          price_cents?: number
+          rating_avg?: number | null
+          rating_count?: number
+          seller_id?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      preset_purchases: {
+        Row: {
+          amount_cents: number
+          id: string
+          preset_id: string
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          id?: string
+          preset_id: string
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          id?: string
+          preset_id?: string
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preset_purchases_preset_id_fkey"
+            columns: ["preset_id"]
+            isOneToOne: false
+            referencedRelation: "preset_marketplace"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -3504,6 +3768,45 @@ export type Database = {
           name?: string
           published?: boolean
           sections?: Json
+        }
+        Relationships: []
+      }
+      user_collections: {
+        Row: {
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_private: boolean
+          item_count: number
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_private?: boolean
+          item_count?: number
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_private?: boolean
+          item_count?: number
+          name?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
