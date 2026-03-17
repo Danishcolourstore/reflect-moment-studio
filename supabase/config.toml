@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.entiran-business]
 verify_jwt = false
+
+[functions.index-event-faces]
+verify_jwt = false

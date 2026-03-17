@@ -6,6 +6,8 @@ type Step = 'upload' | 'processing' | 'results' | 'error';
 export const useGuestFinder = (eventId: string, qrAccessId: string) => {
   const [step, setStep] = useState<Step>('upload');
   const [matchedPhotos, setMatchedPhotos] = useState<any[]>([]);
+  const [matchCount, setMatchCount] = useState(0);
+  const [engine, setEngine] = useState<string | null>(null);
 
   const submitSelfie = useCallback(async (file: File) => {
     if (!eventId || !qrAccessId) return;
@@ -25,7 +27,7 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
         .from('guest-selfies')
         .getPublicUrl(fileName);
 
-      // Insert selfie record — wait for confirmation before processing
+      // Insert selfie record
       const { data: selfie, error } = await (supabase
         .from('guest_selfies' as any)
         .insert({
@@ -37,11 +39,14 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
         .single() as any);
       if (error) throw error;
 
-      // Now invoke face processing
-      await supabase.functions.invoke('process-guest-selfie', {
+      // Invoke face processing
+      const { data: result } = await supabase.functions.invoke('process-guest-selfie', {
         body: { selfieId: selfie.id, eventId },
       });
 
+      if (result?.engine) setEngine(result.engine);
+
+      // Poll for results
       let pollActive = true;
       const poll = setInterval(async () => {
         if (!pollActive) return;
@@ -54,6 +59,7 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
           clearInterval(poll);
           pollActive = false;
           const matchIds: string[] = (data.match_results as string[]) || [];
+          setMatchCount(matchIds.length);
           if (matchIds.length > 0) {
             const { data: photos } = await supabase
               .from('photos')
@@ -69,17 +75,25 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
         }
       }, 1500);
 
+      // Timeout after 60 seconds (longer for large galleries)
       setTimeout(() => {
         if (pollActive) {
           clearInterval(poll);
           pollActive = false;
           setStep('results');
         }
-      }, 30000);
+      }, 60000);
     } catch {
       setStep('error');
     }
   }, [eventId, qrAccessId]);
 
-  return { step, matchedPhotos, submitSelfie };
+  const reset = useCallback(() => {
+    setStep('upload');
+    setMatchedPhotos([]);
+    setMatchCount(0);
+    setEngine(null);
+  }, []);
+
+  return { step, matchedPhotos, matchCount, engine, submitSelfie, reset };
 };
