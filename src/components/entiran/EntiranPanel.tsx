@@ -412,5 +412,7 @@ function PanelContent({
         </button>
       </div>
     </>
+      )}
+    </>
   );
 }
