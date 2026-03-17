@@ -454,7 +454,7 @@ export default function CheetahLive() {
       </div>
 
       {/* Camera Upload Demo Tab */}
-      {mainTab === 'camera' && <CheetahCameraDemo />}
+      {mainTab === 'camera' && <CheetahCameraUpload />}
 
       {/* Folder Watcher Panel */}
       {mainTab === 'ingest' && activeSessionId && folderWatcher.isSupported && (
