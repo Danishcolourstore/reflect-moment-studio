@@ -237,7 +237,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       } else {
         toast({ title: 'Event created' });
-        setTitle(''); setDate(''); setLocation(''); setSlug(''); setPassword(''); setCoverFile(null);
+        setTitle(''); setDate(''); setLocation(''); setSlug(''); setSlugManuallyEdited(false); setPassword(''); setCoverFile(null);
         setGalleryLayout('classic'); setDownloadsEnabled(true);
         onOpenChange(false);
         onCreated(inserted.id);
