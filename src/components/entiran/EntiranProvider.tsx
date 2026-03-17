@@ -13,7 +13,7 @@ class EntiranErrorBoundary extends Component<{ children: ReactNode }, { hasError
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
   componentDidCatch(err: Error) {
-    console.error('Entiran AI failed to initialize.', err);
+    console.error('Daan AI failed to initialize.', err);
   }
   render() {
     if (this.state.hasError) return <FallbackButton />;

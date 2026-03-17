@@ -49,7 +49,7 @@ export function GrowthScoreCard({ score, insights }: GrowthScoreCardProps) {
 
       {/* AI Insights */}
       <div className="bg-card border border-border rounded-xl p-4">
-        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">🧠 Entiran Insights</p>
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">🧠 Daan Insights</p>
         <div className="space-y-2">
           {insights.map((insight, i) => (
             <p key={i} className="text-sm text-foreground leading-relaxed">{insight}</p>

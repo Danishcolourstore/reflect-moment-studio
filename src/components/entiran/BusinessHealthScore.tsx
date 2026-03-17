@@ -148,7 +148,7 @@ export function BusinessHealthScoreCard() {
           {/* Insights */}
           {(score.insights as any[]).length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium">Entiran's Take</p>
+              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium">Daan's Take</p>
               {(score.insights as any[]).map((insight: any, i: number) => (
                 <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-secondary/30">
                   {insight.type === 'positive' ? (

@@ -20,7 +20,7 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
         height: isMobile ? 52 : 56,
         zIndex: 10001,
       }}
-      aria-label="Open Entiran AI Assistant"
+      aria-label="Open Daan AI Assistant"
     >
       <Sparkles className="h-5 w-5" />
       {unreadCount > 0 && (

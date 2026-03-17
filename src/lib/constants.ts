@@ -10,8 +10,8 @@ export const Z_INDEX = {
   overlay: 200,
   toast: 300,
   floatingButton: 400,
-  entiran: 9999,
-  entiranPanel: 10000,
+  daan: 9999,
+  daanPanel: 10000,
 } as const;
 
 /**

@@ -51,7 +51,7 @@ export function AIReplyAssistant() {
     setLeadName('');
     setLeadMessage('');
     setShowCompose(false);
-    toast.success('Reply drafted by Entiran');
+    toast.success('Reply drafted by Daan');
   };
 
   return (
