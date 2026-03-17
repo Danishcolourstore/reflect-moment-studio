@@ -100,8 +100,20 @@ function applyAccentClass(a: AccentMode) {
   localStorage.setItem('accent', a);
 }
 
-export function DashboardLayout({ children }: { children: ReactNode }) {
+function BotNavTab() {
   const { openBot } = useEntiranOpen();
+  return (
+    <button
+      onClick={openBot}
+      className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors min-h-[44px]"
+    >
+      <Bot className="h-5 w-5" strokeWidth={1.8} />
+      <span className="text-[10px] font-medium">Bot</span>
+    </button>
+  );
+}
+
+export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const device = useDeviceDetect();
   const showDomainNudge = useDomainNudge(user?.id);
