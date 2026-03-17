@@ -2,13 +2,17 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBusinessSuite, Lead } from '@/hooks/use-business-suite';
-import { LeadsPanel } from '@/components/business/LeadsPanel';
+import { BusinessDashboard } from '@/components/business/BusinessDashboard';
+import { EnhancedLeadsPanel } from '@/components/business/EnhancedLeadsPanel';
 import { BookingsPanel } from '@/components/business/BookingsPanel';
 import { PackagesPanel } from '@/components/business/PackagesPanel';
-import { InsightsPanel } from '@/components/business/InsightsPanel';
-import { BusinessSuggestions } from '@/components/business/BusinessSuggestions';
+import { PortfolioManager } from '@/components/business/PortfolioManager';
+import { AvailabilityCalendar } from '@/components/business/AvailabilityCalendar';
+import { EnhancedInsightsPanel } from '@/components/business/EnhancedInsightsPanel';
+import { BoostPanel } from '@/components/business/BoostPanel';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Briefcase, Users, Calendar, IndianRupee, TrendingUp } from 'lucide-react';
+import { Briefcase } from 'lucide-react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const BusinessSuite = () => {
   const {
@@ -18,7 +22,7 @@ const BusinessSuite = () => {
   } = useBusinessSuite();
 
   const [bookingLead, setBookingLead] = useState<Lead | null>(null);
-  const [activeTab, setActiveTab] = useState('leads');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const handleConvertToBooking = (lead: Lead) => {
     setBookingLead(lead);
@@ -38,16 +42,9 @@ const BusinessSuite = () => {
     );
   }
 
-  const statCards = [
-    { label: 'Leads', value: insights.totalLeads, icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Bookings', value: insights.totalBookings, icon: Calendar, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'Revenue', value: `₹${insights.totalRevenue.toLocaleString()}`, icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-500/10' },
-    { label: 'Conversion', value: `${insights.conversionRate}%`, icon: TrendingUp, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-  ];
-
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Header */}
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -59,49 +56,36 @@ const BusinessSuite = () => {
               Business Suite
             </h1>
           </div>
-          <p className="text-xs text-muted-foreground">Capture leads, manage bookings, grow revenue</p>
+          <p className="text-xs text-muted-foreground">Your revenue control system — leads, bookings, growth</p>
         </div>
-
-        {/* Top Stat Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {statCards.map(s => {
-            const Icon = s.icon;
-            return (
-              <button
-                key={s.label}
-                onClick={() => setActiveTab(s.label === 'Leads' ? 'leads' : s.label === 'Bookings' ? 'bookings' : 'insights')}
-                className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/20 transition-colors group"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`h-8 w-8 rounded-lg ${s.bg} flex items-center justify-center`}>
-                    <Icon className={`h-4 w-4 ${s.color}`} />
-                  </div>
-                </div>
-                <p className="text-xl font-semibold text-foreground leading-none">{s.value}</p>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1.5">{s.label}</p>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* AI Suggestions */}
-        <BusinessSuggestions insights={insights} leads={leads} />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-4 mb-4">
-            <TabsTrigger value="leads" className="text-xs">
-              Leads {leads.length > 0 && `(${leads.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="bookings" className="text-xs">
-              Bookings {bookings.length > 0 && `(${bookings.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="packages" className="text-xs">Packages</TabsTrigger>
-            <TabsTrigger value="insights" className="text-xs">Insights</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4">
+            <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-7 mb-4 h-auto p-1">
+              <TabsTrigger value="dashboard" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Dashboard</TabsTrigger>
+              <TabsTrigger value="leads" className="text-[10px] px-2 py-1.5 whitespace-nowrap">
+                Leads {leads.length > 0 && `(${leads.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="portfolio" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Portfolio</TabsTrigger>
+              <TabsTrigger value="pricing" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Pricing</TabsTrigger>
+              <TabsTrigger value="availability" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Calendar</TabsTrigger>
+              <TabsTrigger value="insights" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Insights</TabsTrigger>
+              <TabsTrigger value="boost" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Boost</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="dashboard">
+            <BusinessDashboard
+              insights={insights}
+              leads={leads}
+              bookings={bookings}
+              onTabChange={setActiveTab}
+            />
+          </TabsContent>
 
           <TabsContent value="leads">
-            <LeadsPanel
+            <EnhancedLeadsPanel
               leads={leads}
               onUpdateStatus={updateLeadStatus}
               onAddLead={addLead}
@@ -109,6 +93,41 @@ const BusinessSuite = () => {
             />
           </TabsContent>
 
+          <TabsContent value="portfolio">
+            <PortfolioManager />
+          </TabsContent>
+
+          <TabsContent value="pricing">
+            <div className="space-y-6">
+              <PackagesPanel
+                packages={packages}
+                onAddPackage={addPackage}
+                onDeletePackage={deletePackage}
+              />
+              {/* Smart Pricing Suggestion */}
+              <div className="border-l-2 border-l-primary bg-primary/5 rounded-lg p-3 flex items-start gap-2.5">
+                <Briefcase className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-xs text-foreground/80 leading-relaxed">
+                  Top photographers in your area charge ₹80K–₹1.5L for weddings.
+                  Higher pricing may improve perceived quality and attract premium clients.
+                </p>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="availability">
+            <AvailabilityCalendar />
+          </TabsContent>
+
+          <TabsContent value="insights">
+            <EnhancedInsightsPanel insights={insights} />
+          </TabsContent>
+
+          <TabsContent value="boost">
+            <BoostPanel />
+          </TabsContent>
+
+          {/* Bookings kept for convert flow */}
           <TabsContent value="bookings">
             <BookingsPanel
               bookings={bookings}
@@ -118,18 +137,6 @@ const BusinessSuite = () => {
               initialLead={bookingLead}
               onClearLead={() => setBookingLead(null)}
             />
-          </TabsContent>
-
-          <TabsContent value="packages">
-            <PackagesPanel
-              packages={packages}
-              onAddPackage={addPackage}
-              onDeletePackage={deletePackage}
-            />
-          </TabsContent>
-
-          <TabsContent value="insights">
-            <InsightsPanel insights={insights} />
           </TabsContent>
         </Tabs>
       </div>

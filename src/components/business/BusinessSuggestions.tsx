@@ -74,7 +74,7 @@ export function BusinessSuggestions({ insights, leads }: BusinessSuggestionsProp
   return (
     <div className="space-y-2">
       <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground mb-2">
-        🧠 Entiran Business Brain
+        🧠 Daan Business Brain
       </p>
       {visible.map((s, i) => (
         <div key={i} className="bg-card border border-border rounded-xl p-3.5 flex items-start gap-3 hover:border-primary/15 transition-colors">
