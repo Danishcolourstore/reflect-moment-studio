@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Users, Palette, Settings, UserCircle, LogOut, Briefcase } from 'lucide-react';
+import { Users, Palette, Settings, UserCircle, LogOut, Briefcase, BarChart2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const menuItems = [
