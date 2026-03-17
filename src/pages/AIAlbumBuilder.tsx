@@ -174,7 +174,8 @@ export default function AIAlbumBuilder() {
   const saveAlbumToDb = async (result: AIAlbumGenerationResult): Promise<string> => {
     if (!user) throw new Error("Not authenticated");
     setProgressLabel("Creating album…"); setProgress(75);
-    const { data: album, error } = await supabase.from("albums").insert({ user_id: user.id, name: `AI Album — ${selectedPreset.name}`, size: autoSize, cover_type: "hardcover", leaf_count: Math.ceil(result.spreads.length / 2), page_count: result.spreads.length, status: "draft" }).select("id").single();
+    const dbSize = (sizeState.presetId && sizeState.presetId in INDIAN_ALBUM_SIZES ? sizeState.presetId : autoSize) as IndianAlbumSize;
+    const { data: album, error } = await supabase.from("albums").insert({ user_id: user.id, name: `AI Album — ${selectedPreset.name}`, size: dbSize, cover_type: "hardcover", leaf_count: Math.ceil(result.spreads.length / 2), page_count: result.spreads.length, status: "draft" }).select("id").single();
     if (error || !album) throw new Error("Failed to create album");
     setProgressLabel("Building pages…"); setProgress(80);
     
