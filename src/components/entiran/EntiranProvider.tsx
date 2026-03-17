@@ -45,7 +45,7 @@ function DaanInner() {
   const [open, setOpen] = useState(false);
   const { unreadCount } = useStudioBrain();
   const isMobile = useIsMobile();
-  const [showSignature, setShowSignature] = useState(() => !localStorage.getItem('daan_opened'));
+  const [showSignature, setShowSignature] = useState(false);
 
   useEffect(() => {
     console.log('Daan AI initialized successfully.');
