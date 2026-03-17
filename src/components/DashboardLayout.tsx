@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useCallback, useRef } from 'react';
+import { ReactNode, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
@@ -6,10 +6,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Bell, ChevronRight, Menu, Globe, Compass,
+  LogOut, Bell, ChevronRight, Menu, Globe, Compass, Bot,
 } from 'lucide-react';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
-import { EntiranProvider } from '@/components/entiran/EntiranProvider';
+import { EntiranProvider, useEntiranOpen } from '@/components/entiran/EntiranProvider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
