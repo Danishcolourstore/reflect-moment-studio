@@ -302,7 +302,8 @@ export default function AIAlbumBuilder() {
             onSelectPreset={setSelectedPreset}
             photoCount={files.length}
             estimatedSpreads={estimatedSpreads}
-            autoSize={autoSize}
+            sizeState={sizeState}
+            onSizeChange={setSizeState}
             onBack={() => setStep("upload")}
             onGenerate={handleGenerate}
           />
