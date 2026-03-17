@@ -17,7 +17,7 @@ import {
   type AIAlbumGenerationResult,
 } from "@/components/ai-album/ai-album-types";
 import { generateAlbumLayout } from "@/components/ai-album/ai-layout-engine";
-
+import { getDefaultSizeState, type CustomSizeState } from "@/components/ai-album/CustomAlbumSizeSelector";
 type Step = "upload" | "design" | "preview";
 
 const AI_BATCH_SIZE = 8;
