@@ -5,11 +5,11 @@ import { useFolderWatcher } from '@/hooks/use-folder-watcher';
 import {
   Zap, Plus, Upload, Star, X as XIcon, Heart, ArrowLeft, ArrowRight,
   Eye, Camera, Activity, Loader2, ChevronDown, Sparkles, Image,
-  FolderOpen, FolderSync, Square, Radio,
+  FolderOpen, FolderSync, Square, Radio, Wifi,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-
+import CheetahCameraDemo from '@/components/cheetah/CheetahCameraDemo';
 type FilterMode = 'all' | 'pick' | 'reject' | 'favorite' | 'unreviewed';
 
 function ScoreBadge({ score }: { score: number | null }) {
