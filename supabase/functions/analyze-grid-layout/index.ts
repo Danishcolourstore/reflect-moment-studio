@@ -72,7 +72,7 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-pro",
+          model: "google/gemini-2.5-flash",
           messages: [
             { role: "system", content: systemPrompt },
             {
@@ -192,6 +192,8 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
             type: "function",
             function: { name: "grid_layout_with_text" },
           },
+          temperature: 0.2,
+          max_tokens: 4096,
         }),
       }
     );
@@ -215,12 +217,31 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
     }
 
     const data = await response.json();
+    
+    // Handle both tool_calls and regular content responses
+    let result: any;
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
-      throw new Error("AI did not return a structured layout");
+    
+    if (toolCall) {
+      result = JSON.parse(toolCall.function.arguments);
+    } else {
+      // Fallback: try to parse from content (some models return JSON in content)
+      const content = data.choices?.[0]?.message?.content || "";
+      console.log("No tool_calls found, trying content parse. Content:", content.substring(0, 200));
+      
+      try {
+        const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        result = JSON.parse(cleaned);
+      } catch {
+        // Try extracting JSON object from content
+        const jsonMatch = content.match(/\{[\s\S]*"cells"[\s\S]*\}/);
+        if (jsonMatch) {
+          result = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error("AI did not return a valid grid layout. Please try again.");
+        }
+      }
     }
-
-    const result = JSON.parse(toolCall.function.arguments);
 
     // Validate grid
     if (
@@ -230,21 +251,37 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
       !result.gridCols ||
       !result.gridRows
     ) {
-      throw new Error("Invalid layout detected");
+      throw new Error("Could not detect a valid grid layout. Try a clearer screenshot.");
     }
+
+    // Validate and fix cells — ensure all values are integers and within bounds
+    const validatedCells = result.cells.map((cell: any[]) => {
+      if (!Array.isArray(cell) || cell.length < 4) return [1, 1, 2, 2];
+      return [
+        Math.max(1, Math.round(cell[0])),
+        Math.max(1, Math.round(cell[1])),
+        Math.max(2, Math.round(cell[2])),
+        Math.max(2, Math.round(cell[3])),
+      ];
+    });
 
     // Ensure textBlocks is always an array
     if (!result.textBlocks || !Array.isArray(result.textBlocks)) {
       result.textBlocks = [];
     }
 
+    // Validate canvas ratio
+    const canvasRatio = typeof result.canvasRatio === 'number' && result.canvasRatio > 0.1 && result.canvasRatio < 10
+      ? result.canvasRatio
+      : 1;
+
     return new Response(
       JSON.stringify({
         layout: {
-          gridCols: result.gridCols,
-          gridRows: result.gridRows,
-          canvasRatio: result.canvasRatio,
-          cells: result.cells,
+          gridCols: Math.max(1, Math.round(result.gridCols)),
+          gridRows: Math.max(1, Math.round(result.gridRows)),
+          canvasRatio,
+          cells: validatedCells,
         },
         textBlocks: result.textBlocks,
       }),
