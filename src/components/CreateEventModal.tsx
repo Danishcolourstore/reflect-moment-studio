@@ -263,7 +263,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Slug</Label>
-            <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="aisha-rahul-wedding" className="bg-background h-9 text-[13px]" />
+            <Input value={slug} onChange={(e) => handleSlugChange(e.target.value)} placeholder="aisha-rahul-wedding" className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Date</Label>
