@@ -102,7 +102,7 @@ export function SmartNudgesPanel() {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-foreground tracking-tight">Smart Nudges</h2>
-            <p className="text-[10px] text-muted-foreground">Entiran sees what you might miss</p>
+            <p className="text-[10px] text-muted-foreground">Daan sees what you might miss</p>
           </div>
         </div>
         {unreadCount > 0 && (
