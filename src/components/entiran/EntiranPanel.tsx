@@ -175,6 +175,11 @@ function PanelContent({
 }: any) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [showLangSelector, setShowLangSelector] = useState(false);
+
+  const handleLangSelect = (_code: BotLanguage) => {
+    setShowLangSelector(false);
+  };
 
   return (
     <>
