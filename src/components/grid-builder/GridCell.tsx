@@ -142,7 +142,7 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
   }, [onOffsetChange]);
 
   const scalePercent = Math.round(cell.scale * 100);
-  const controlsVisible = isMobile ? showControls : showControls;
+  const controlsVisible = showControls;
 
   return (
     <div

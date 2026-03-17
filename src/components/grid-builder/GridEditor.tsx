@@ -426,7 +426,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       {/* ─── Bottom Bar ─── */}
       <div
         className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60"
-        style={{ paddingBottom: isMobile ? 'max(8px, env(safe-area-inset-bottom, 8px))' : undefined }}
+        style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}
       >
         <div className="max-w-[480px] mx-auto">
           {/* Tool icons */}
@@ -474,7 +474,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           </div>
 
           {/* Export row */}
-          <div className={cn("flex items-center justify-end gap-1.5 px-3 pt-1", isMobile ? "pb-1" : "pb-2")}>
+          <div className={cn("flex items-center justify-end gap-1.5 px-3 pt-1 pb-1")}>
             <CarouselSliceExporter cells={cells} format={format} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
             <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} format={format} />

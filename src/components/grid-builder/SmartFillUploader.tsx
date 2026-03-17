@@ -20,7 +20,7 @@ export default function SmartFillUploader({ totalCells, onFiles }: Props) {
       <input ref={ref} type="file" accept="image/*" multiple className="hidden" onChange={handle} />
       <button
         onClick={() => ref.current?.click()}
-        className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-[10px] tracking-wider uppercase font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 active:scale-95"
+        className="min-h-[44px] h-10 px-3 rounded-lg flex items-center gap-1.5 text-[10px] tracking-wider uppercase font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 active:scale-95"
       >
         <Sparkles className="h-3 w-3" />
         Fill ({totalCells})
