@@ -73,7 +73,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, pageContext = "dashboard" } = await req.json();
+    const { messages, pageContext = "dashboard", language = "en" } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
