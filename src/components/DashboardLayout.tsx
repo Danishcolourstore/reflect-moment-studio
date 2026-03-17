@@ -101,6 +101,7 @@ function applyAccentClass(a: AccentMode) {
 }
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
+  const { openBot } = useEntiranOpen();
   const { user, signOut } = useAuth();
   const device = useDeviceDetect();
   const showDomainNudge = useDomainNudge(user?.id);
