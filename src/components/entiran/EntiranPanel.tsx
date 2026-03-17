@@ -183,6 +183,12 @@ function PanelContent({
 
   return (
     <>
+      {/* Language selector overlay */}
+      {showLangSelector && (
+        <LanguageSelector onSelect={handleLangSelect} onClose={() => setShowLangSelector(false)} />
+      )}
+      {!showLangSelector && (
+      <>
       {/* Header — minimal, authoritative */}
       <div
         className="flex items-center justify-between px-5 shrink-0"
