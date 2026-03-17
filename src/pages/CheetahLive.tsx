@@ -526,6 +526,7 @@ export default function CheetahLive() {
         </div>
       )}
 
+      {mainTab === 'ingest' && <>
       {/* New session modal */}
       {showNewSession && (
         <div className="mb-4 p-4 rounded-xl border border-border bg-card">
