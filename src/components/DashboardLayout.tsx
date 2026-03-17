@@ -337,14 +337,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <span className="text-[10px] font-medium">{item.title}</span>
           </NavLink>
         ))}
-        {/* Bot tab */}
-        <button
-          onClick={openBot}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors min-h-[44px]"
-        >
-          <Bot className="h-5 w-5" strokeWidth={1.8} />
-          <span className="text-[10px] font-medium">Bot</span>
-        </button>
+        <BotNavTab />
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
             <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground min-h-[44px]">
