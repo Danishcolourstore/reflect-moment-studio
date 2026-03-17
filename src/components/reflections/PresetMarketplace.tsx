@@ -311,7 +311,7 @@ function PresetDetailModal({
 
           {/* Purchase Button */}
           {preset.purchased ? (
-            <Button className="w-full gap-2 bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-600/20" disabled>
+            <Button variant="outline" className="w-full gap-2 border-primary/30 text-primary opacity-80" disabled>
               <Check className="h-4 w-4" /> In Your Library
             </Button>
           ) : (
