@@ -107,6 +107,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_reply_drafts: {
+        Row: {
+          availability_context: Json | null
+          channel: string
+          created_at: string
+          draft_reply: string
+          id: string
+          lead_id: string | null
+          lead_message: string | null
+          lead_name: string
+          pricing_context: Json | null
+          sent_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          availability_context?: Json | null
+          channel?: string
+          created_at?: string
+          draft_reply: string
+          id?: string
+          lead_id?: string | null
+          lead_message?: string | null
+          lead_name: string
+          pricing_context?: Json | null
+          sent_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          availability_context?: Json | null
+          channel?: string
+          created_at?: string
+          draft_reply?: string
+          id?: string
+          lead_id?: string | null
+          lead_message?: string | null
+          lead_name?: string
+          pricing_context?: Json | null
+          sent_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       album_layers: {
         Row: {
           created_at: string
@@ -515,6 +560,60 @@ export type Database = {
           sent_at?: string
           subject?: string
           target?: string
+        }
+        Relationships: []
+      }
+      business_health_scores: {
+        Row: {
+          conversion_avg: number
+          conversion_rate: number
+          created_at: string
+          gallery_views: number
+          gallery_views_change: number
+          id: string
+          insights: Json | null
+          lead_volume: number
+          lead_volume_change: number
+          overall_score: number
+          response_time_hrs: number
+          revenue_confirmed_cents: number
+          revenue_forecast_cents: number
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          conversion_avg?: number
+          conversion_rate?: number
+          created_at?: string
+          gallery_views?: number
+          gallery_views_change?: number
+          id?: string
+          insights?: Json | null
+          lead_volume?: number
+          lead_volume_change?: number
+          overall_score?: number
+          response_time_hrs?: number
+          revenue_confirmed_cents?: number
+          revenue_forecast_cents?: number
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          conversion_avg?: number
+          conversion_rate?: number
+          created_at?: string
+          gallery_views?: number
+          gallery_views_change?: number
+          id?: string
+          insights?: Json | null
+          lead_volume?: number
+          lead_volume_change?: number
+          overall_score?: number
+          response_time_hrs?: number
+          revenue_confirmed_cents?: number
+          revenue_forecast_cents?: number
+          user_id?: string
+          week_start?: string
         }
         Relationships: []
       }
@@ -3193,6 +3292,51 @@ export type Database = {
           },
         ]
       }
+      pricing_intelligence: {
+        Row: {
+          category: string
+          city: string | null
+          generated_at: string
+          id: string
+          insight: string | null
+          local_avg_cents: number
+          local_median_cents: number
+          percentile_rank: number
+          sample_size: number
+          trend: string | null
+          user_id: string
+          user_price_cents: number
+        }
+        Insert: {
+          category?: string
+          city?: string | null
+          generated_at?: string
+          id?: string
+          insight?: string | null
+          local_avg_cents?: number
+          local_median_cents?: number
+          percentile_rank?: number
+          sample_size?: number
+          trend?: string | null
+          user_id: string
+          user_price_cents?: number
+        }
+        Update: {
+          category?: string
+          city?: string | null
+          generated_at?: string
+          id?: string
+          insight?: string | null
+          local_avg_cents?: number
+          local_median_cents?: number
+          percentile_rank?: number
+          sample_size?: number
+          trend?: string | null
+          user_id?: string
+          user_price_cents?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           accent_preference: string | null
@@ -3444,6 +3588,54 @@ export type Database = {
           updated_at?: string
           user_id?: string
           views?: number | null
+        }
+        Relationships: []
+      }
+      smart_nudges: {
+        Row: {
+          action_data: Json | null
+          action_type: string | null
+          body: string
+          created_at: string
+          expires_at: string | null
+          icon: string | null
+          id: string
+          is_dismissed: boolean
+          is_read: boolean
+          nudge_type: string
+          priority: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_data?: Json | null
+          action_type?: string | null
+          body: string
+          created_at?: string
+          expires_at?: string | null
+          icon?: string | null
+          id?: string
+          is_dismissed?: boolean
+          is_read?: boolean
+          nudge_type: string
+          priority?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_data?: Json | null
+          action_type?: string | null
+          body?: string
+          created_at?: string
+          expires_at?: string | null
+          icon?: string | null
+          id?: string
+          is_dismissed?: boolean
+          is_read?: boolean
+          nudge_type?: string
+          priority?: string
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
