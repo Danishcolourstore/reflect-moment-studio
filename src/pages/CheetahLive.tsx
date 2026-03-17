@@ -302,6 +302,7 @@ export default function CheetahLive() {
   const [filter, setFilter] = useState<FilterMode>('all');
   const [showNewSession, setShowNewSession] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [mainTab, setMainTab] = useState<'ingest' | 'camera'>('ingest');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
