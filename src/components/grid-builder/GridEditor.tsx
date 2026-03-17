@@ -289,7 +289,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
 
       {/* ─── Canvas Area ─── */}
       <div
-        className="flex-1 flex items-center justify-center px-4 py-6"
+        className={cn("flex-1 flex items-center justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
         onClick={deselectAll}
       >
         <div
