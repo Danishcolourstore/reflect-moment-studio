@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const menuItems = [
   { label: 'Business Suite', icon: Briefcase, route: '/dashboard/business' },
+  { label: 'Analytics', icon: BarChart2, route: '/dashboard/analytics' },
   { label: 'Clients', icon: Users, route: '/dashboard/clients' },
   { label: 'Brand Studio', icon: Palette, route: '/dashboard/branding' },
   { label: 'Settings', icon: Settings, route: '/dashboard/profile' },
