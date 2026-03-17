@@ -65,8 +65,8 @@ function DaanInner() {
 
   const handleOpen = useCallback(() => {
     if (!localStorage.getItem('daan_opened')) {
-      setShowSignature(true);
       localStorage.setItem('daan_opened', 'true');
+      setShowSignature(true);
       setTimeout(() => {
         setShowSignature(false);
         setOpen(true);

@@ -38,38 +38,36 @@ export function StudioBrainCards({ suggestions, onDismiss, onAct }: StudioBrainC
   return (
     <div className="space-y-3 mb-6">
       <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="h-4 w-4" style={{ color: '#C9A96E' }} />
-        <h3 className="text-sm font-semibold" style={{ fontFamily: "'Cormorant Garamond', serif", color: '#1A1A1A' }}>
+        <Sparkles className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground" style={{ fontFamily: "var(--editorial-heading, 'Cormorant Garamond', serif)" }}>
           Studio Brain
         </h3>
       </div>
       {visible.map(s => (
         <div
           key={s.id}
-          className="rounded-xl p-4 border-l-[3px] bg-white shadow-sm transition-all animate-in fade-in"
-          style={{ borderLeftColor: '#C9A96E', borderColor: '#E8E0D4', borderWidth: '1px', borderLeftWidth: '3px' }}
+          className="rounded-xl p-4 border-l-[3px] border border-border bg-card transition-all animate-in fade-in"
+          style={{ borderLeftColor: 'hsl(var(--primary))' }}
         >
           <div className="flex items-start justify-between">
             <div className="flex-1 mr-3">
-              <p className="text-sm font-semibold mb-1" style={{ color: '#1A1A1A' }}>{s.title}</p>
-              <p className="text-xs leading-relaxed" style={{ color: '#1A1A1A', opacity: 0.7 }}>{s.body}</p>
+              <p className="text-sm font-semibold mb-1 text-foreground">{s.title}</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">{s.body}</p>
             </div>
-            <button onClick={() => onDismiss(s.id)} className="p-1 hover:bg-black/5 rounded-lg transition-colors">
-              <X className="h-3.5 w-3.5" style={{ color: '#1A1A1A', opacity: 0.3 }} />
+            <button onClick={() => onDismiss(s.id)} className="p-1 hover:bg-muted rounded-lg transition-colors">
+              <X className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
           </div>
           <div className="flex gap-2 mt-3">
             <button
               onClick={() => handleAction(s)}
-              className="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90"
-              style={{ backgroundColor: '#C9A96E' }}
+              className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground transition-colors hover:opacity-90"
             >
               Take Action
             </button>
             <button
               onClick={() => onDismiss(s.id)}
-              className="text-xs px-3 py-1.5 rounded-lg transition-colors hover:bg-black/5"
-              style={{ color: '#1A1A1A', opacity: 0.5 }}
+              className="text-xs px-3 py-1.5 rounded-lg transition-colors hover:bg-muted text-muted-foreground"
             >
               Dismiss
             </button>
