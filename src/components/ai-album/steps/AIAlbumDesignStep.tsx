@@ -3,9 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Check, ChevronLeft, Sparkles, Wand2 } from "lucide-react";
-import type { DesignPreset, IndianAlbumSize } from "../ai-album-types";
-import { INDIAN_ALBUM_SIZES } from "../ai-album-types";
+import { Check, ChevronLeft, Wand2 } from "lucide-react";
+import type { DesignPreset } from "../ai-album-types";
+import CustomAlbumSizeSelector, { type CustomSizeState, sizeToSpec } from "../CustomAlbumSizeSelector";
 
 interface Props {
   presets: DesignPreset[];
@@ -13,15 +13,16 @@ interface Props {
   onSelectPreset: (p: DesignPreset) => void;
   photoCount: number;
   estimatedSpreads: number;
-  autoSize: IndianAlbumSize;
+  sizeState: CustomSizeState;
+  onSizeChange: (s: CustomSizeState) => void;
   onBack: () => void;
   onGenerate: () => void;
 }
 
 export default function AIAlbumDesignStep({
-  presets, selectedPreset, onSelectPreset, photoCount, estimatedSpreads, autoSize, onBack, onGenerate,
+  presets, selectedPreset, onSelectPreset, photoCount, estimatedSpreads, sizeState, onSizeChange, onBack, onGenerate,
 }: Props) {
-  const sizeSpec = INDIAN_ALBUM_SIZES[autoSize];
+  const spec = sizeToSpec(sizeState);
 
   return (
     <div className="px-3 sm:px-4 py-4 sm:py-6 max-w-5xl mx-auto">
@@ -31,12 +32,22 @@ export default function AIAlbumDesignStep({
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg sm:text-xl font-serif font-bold text-foreground">Choose Your Style</h2>
+          <h2 className="text-lg sm:text-xl font-serif font-bold text-foreground">Design Your Album</h2>
           <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
-            {photoCount} photos • ~{estimatedSpreads} spreads • {autoSize}" {sizeSpec.aspectLabel}
+            {photoCount} photos • ~{estimatedSpreads} spreads
           </p>
         </div>
       </div>
+
+      {/* Album Size Selector */}
+      <div className="bg-card/50 border border-border/40 rounded-xl p-4 sm:p-5 mb-5 sm:mb-6">
+        <CustomAlbumSizeSelector value={sizeState} onChange={onSizeChange} />
+      </div>
+
+      <Separator className="my-4 sm:my-5" />
+
+      {/* Style heading */}
+      <h3 className="text-sm font-serif font-semibold text-foreground mb-3">Choose Your Style</h3>
 
       {/* Preset grid */}
       <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
@@ -51,10 +62,8 @@ export default function AIAlbumDesignStep({
               )}
               onClick={() => onSelectPreset(preset)}
             >
-              {/* Color preview bar */}
               <div className="h-14 sm:h-16 relative" style={{ backgroundColor: preset.bgColor }}>
                 <div className="absolute inset-0 flex items-center justify-center gap-1.5 px-3">
-                  {/* Mini layout mockup */}
                   <div className="w-7 h-10 sm:w-8 sm:h-11 rounded-[2px] border" style={{ borderColor: preset.textColor + '40', backgroundColor: preset.textColor + '15' }} />
                   <div className="flex flex-col gap-[2px]">
                     <div className="w-5 h-[18px] sm:w-6 sm:h-5 rounded-[1px]" style={{ backgroundColor: preset.accentColor + '90' }} />
@@ -84,14 +93,13 @@ export default function AIAlbumDesignStep({
 
       <Separator className="my-5 sm:my-6" />
 
-      {/* Summary + Generate button */}
+      {/* Summary + Generate */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/30 rounded-xl p-4 sm:p-5">
         <div className="text-center sm:text-left">
-          <p className="text-sm font-semibold text-foreground">
-            {selectedPreset.name}
-          </p>
+          <p className="text-sm font-semibold text-foreground">{selectedPreset.name}</p>
           <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-            {photoCount} photos → ~{estimatedSpreads} spreads • {autoSize}" album • AI storytelling flow
+            {photoCount} photos → ~{estimatedSpreads} spreads • {sizeState.heightIn}×{sizeState.widthIn}″ {spec.aspectLabel}
+            {sizeState.printMode && " • Print mode"}
           </p>
         </div>
         <Button size="lg" onClick={onGenerate} className="gap-2 w-full sm:w-auto px-8 h-12 text-base shadow-lg">
