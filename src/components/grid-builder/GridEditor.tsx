@@ -224,14 +224,14 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     <div className="flex flex-col min-h-screen bg-background">
       {/* ─── Compact Header ─── */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/60">
-        <div className="flex items-center justify-between px-4 h-12">
+        <div className={cn("flex items-center justify-between h-12", isMobile ? "px-3" : "px-4")}>
           {/* Back + layout name */}
           <button
             onClick={onBack}
-            className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground transition-colors group"
+            className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground transition-colors group min-h-[44px]"
           >
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span className="text-[11px] tracking-wider uppercase font-medium">{layout.name}</span>
+            <span className="text-[11px] tracking-wider uppercase font-medium truncate max-w-[100px]">{layout.name}</span>
           </button>
 
           {/* Format selector with dimensions */}
@@ -242,7 +242,8 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                   key={f.id}
                   onClick={() => setFormat(f)}
                   className={cn(
-                    'px-2.5 py-1.5 rounded-full text-[9px] font-medium tracking-wider transition-all duration-300 flex flex-col items-center leading-tight',
+                    'rounded-full font-medium tracking-wider transition-all duration-300 flex flex-col items-center leading-tight',
+                    isMobile ? 'px-2.5 py-2 text-[10px] min-h-[36px]' : 'px-2.5 py-1.5 text-[9px]',
                     format.id === f.id
                       ? 'bg-foreground text-background shadow-sm'
                       : 'text-muted-foreground/60 hover:text-foreground'
@@ -250,7 +251,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                   title={formatDimLabel(f)}
                 >
                   <span>{f.label}</span>
-                  <span className="text-[7px] opacity-60 tabular-nums">{f.exportWidth}×{f.exportHeight}</span>
+                  {!isMobile && <span className="text-[7px] opacity-60 tabular-nums">{f.exportWidth}×{f.exportHeight}</span>}
                 </button>
               ))}
             </div>
@@ -261,7 +262,8 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             <button
               onClick={() => setShowSafeArea(!showSafeArea)}
               className={cn(
-                'h-8 w-8 rounded-lg flex items-center justify-center transition-all duration-200',
+                'rounded-lg flex items-center justify-center transition-all duration-200',
+                isMobile ? 'h-10 w-10' : 'h-8 w-8',
                 showSafeArea
                   ? 'bg-primary/15 text-primary'
                   : 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50'
@@ -272,7 +274,10 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             </button>
             <button
               onClick={handleReset}
-              className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200"
+              className={cn(
+                'rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200',
+                isMobile ? 'h-10 w-10' : 'h-8 w-8'
+              )}
               title="Reset"
             >
               <RotateCcw className="h-3.5 w-3.5" />
