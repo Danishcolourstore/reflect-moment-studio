@@ -311,7 +311,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </main>
 
-      <FloatingActionButton />
+      {!showBottomNav && <FloatingActionButton />}
 
       {/* Mobile bottom nav — phones only */}
       {showBottomNav && (
