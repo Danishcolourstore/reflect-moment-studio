@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import CheetahCameraDemo from '@/components/cheetah/CheetahCameraDemo';
+import CheetahCameraUpload from '@/components/cheetah/CheetahCameraUpload';
 type FilterMode = 'all' | 'pick' | 'reject' | 'favorite' | 'unreviewed';
 
 function ScoreBadge({ score }: { score: number | null }) {
