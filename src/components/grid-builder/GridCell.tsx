@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback } from "react";
 import { Plus, X, RefreshCw, Maximize, Expand, ZoomIn, ZoomOut, Move } from "lucide-react";
+import { useDeviceDetect } from "@/hooks/use-device-detect";
 import type { GridCellData } from "./types";
 
 interface Props {
@@ -16,6 +17,8 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
   const [dragging, setDragging] = useState(false);
   const [fitMode, setFitMode] = useState<"fill" | "fit">("fill");
   const [showControls, setShowControls] = useState(false);
+  const device = useDeviceDetect();
+  const isMobile = device.isPhone || device.isTablet;
 
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const gestureRef = useRef<{
@@ -41,6 +44,16 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
     x: (a.x + b.x) / 2, y: (a.y + b.y) / 2,
   });
 
+  // Tap to toggle controls on mobile
+  const tapTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleTap = useCallback(() => {
+    if (!isMobile || !cell.imageUrl) return;
+    setShowControls(prev => !prev);
+    // Auto-hide after 4s
+    if (tapTimeout.current) clearTimeout(tapTimeout.current);
+    tapTimeout.current = setTimeout(() => setShowControls(false), 4000);
+  }, [isMobile, cell.imageUrl]);
+
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (!cell.imageUrl) return;
     const target = e.target as HTMLElement;
@@ -65,9 +78,9 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
     const pts = Array.from(pointersRef.current.values());
     if (pts.length >= 2 && gestureRef.current.isPinch) {
       const dist = getDist(pts[0], pts[1]);
-      const mid = getMid(pts[0], pts[1]);
       const scaleRatio = dist / gestureRef.current.startDist;
       const newScale = Math.max(0.5, Math.min(5, gestureRef.current.origScale * scaleRatio));
+      const mid = getMid(pts[0], pts[1]);
       const dx = mid.x - gestureRef.current.startMidX;
       const dy = mid.y - gestureRef.current.startMidY;
       onOffsetChange(gestureRef.current.origX + dx, gestureRef.current.origY + dy, newScale);
@@ -79,6 +92,10 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
   }, [onOffsetChange, cell.scale]);
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
+    const wasStationary = gestureRef.current && !gestureRef.current.isPinch &&
+      Math.abs(e.clientX - gestureRef.current.startMidX) < 5 &&
+      Math.abs(e.clientY - gestureRef.current.startMidY) < 5;
+
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2 && gestureRef.current?.isPinch) {
       const remaining = Array.from(pointersRef.current.values());
@@ -90,8 +107,10 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
     if (pointersRef.current.size === 0) {
       gestureRef.current = null;
       setDragging(false);
+      // Tap detection on mobile
+      if (wasStationary && isMobile) handleTap();
     }
-  }, [cell]);
+  }, [cell, isMobile, handleTap]);
 
   const onWheel = useCallback((e: React.WheelEvent) => {
     if (!cell.imageUrl) return;
@@ -123,6 +142,7 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
   }, [onOffsetChange]);
 
   const scalePercent = Math.round(cell.scale * 100);
+  const controlsVisible = isMobile ? showControls : showControls;
 
   return (
     <div
@@ -134,8 +154,8 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
         touchAction: "none",
         border: cell.imageUrl ? "none" : "1px dashed hsl(var(--muted-foreground) / 0.15)",
       }}
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => setShowControls(false)}
+      onMouseEnter={() => !isMobile && setShowControls(true)}
+      onMouseLeave={() => !isMobile && setShowControls(false)}
     >
       <input ref={inputRef} type="file" accept="image/*" className="sr-only" onChange={handleFile} tabIndex={-1} />
 
@@ -158,59 +178,69 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             onWheel={onWheel}
           />
 
-          {/* Subtle drag hint when idle */}
-          {!dragging && showControls && (
+          {/* Subtle overlay when controls visible */}
+          {!dragging && controlsVisible && (
             <div className="absolute inset-0 bg-black/5 pointer-events-none transition-opacity duration-200 z-[1]" />
           )}
 
           {/* Top controls: Replace & Remove */}
           <div
             data-cell-controls
-            className={`absolute top-2 right-2 flex gap-1 z-10 transition-all duration-200 ${showControls ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"}`}
+            className={`absolute top-2 right-2 flex gap-1.5 z-10 transition-all duration-200 ${controlsVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"}`}
           >
             <button
               type="button"
               onClick={triggerPicker}
-              className="h-7 w-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90 hover:text-white hover:bg-black/80 transition-all shadow-lg"
+              className={`rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90 hover:text-white hover:bg-black/80 transition-all shadow-lg ${
+                isMobile ? "h-9 w-9" : "h-7 w-7"
+              }`}
               title="Replace photo"
             >
-              <RefreshCw className="h-3 w-3" />
+              <RefreshCw className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
             </button>
             <button
               type="button"
               onClick={onImageRemove}
-              className="h-7 w-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90 hover:text-red-400 hover:bg-black/80 transition-all shadow-lg"
+              className={`rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90 hover:text-red-400 hover:bg-black/80 transition-all shadow-lg ${
+                isMobile ? "h-9 w-9" : "h-7 w-7"
+              }`}
               title="Remove photo"
             >
-              <X className="h-3 w-3" />
+              <X className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
             </button>
           </div>
 
           {/* Bottom: Zoom controls + Fit/Fill */}
           <div
             data-cell-controls
-            className={`absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 rounded-full bg-black/70 backdrop-blur-md z-10 p-0.5 shadow-xl transition-all duration-200 ${showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"}`}
+            className={`absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 rounded-full bg-black/70 backdrop-blur-md z-10 p-0.5 shadow-xl transition-all duration-200 ${controlsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"}`}
           >
             <button
               type="button"
               onClick={zoomOut}
-              className="h-7 w-7 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              className={`rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors ${
+                isMobile ? "h-9 w-9" : "h-7 w-7"
+              }`}
               title="Zoom out"
             >
-              <ZoomOut className="h-3 w-3" />
+              <ZoomOut className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
             </button>
 
-            <span className="text-[9px] text-white/60 font-mono min-w-[32px] text-center tabular-nums">
+            <span className={`text-white/60 font-mono text-center tabular-nums ${
+              isMobile ? "text-[10px] min-w-[36px]" : "text-[9px] min-w-[32px]"
+            }`}>
               {scalePercent}%
             </span>
 
             <button
               type="button"
               onClick={zoomIn}
-              className="h-7 w-7 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              className={`rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors ${
+                isMobile ? "h-9 w-9" : "h-7 w-7"
+              }`}
               title="Zoom in"
             >
-              <ZoomIn className="h-3 w-3" />
+              <ZoomIn className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
             </button>
 
             <div className="w-px h-4 bg-white/20 mx-0.5" />
@@ -218,26 +248,32 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             <button
               type="button"
               onClick={handleFit}
-              className={`h-7 px-2 rounded-full flex items-center gap-1 text-[9px] font-medium tracking-wide uppercase transition-colors ${fitMode === "fit" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
+              className={`rounded-full flex items-center gap-1 font-medium tracking-wide uppercase transition-colors ${
+                isMobile ? "h-9 px-2.5 text-[10px]" : "h-7 px-2 text-[9px]"
+              } ${fitMode === "fit" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
             >
-              <Maximize className="h-3 w-3" />
+              <Maximize className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
               Fit
             </button>
             <button
               type="button"
               onClick={handleFill}
-              className={`h-7 px-2 rounded-full flex items-center gap-1 text-[9px] font-medium tracking-wide uppercase transition-colors ${fitMode === "fill" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
+              className={`rounded-full flex items-center gap-1 font-medium tracking-wide uppercase transition-colors ${
+                isMobile ? "h-9 px-2.5 text-[10px]" : "h-7 px-2 text-[9px]"
+              } ${fitMode === "fill" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
             >
-              <Expand className="h-3 w-3" />
+              <Expand className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
               Fill
             </button>
           </div>
 
-          {/* Drag hint icon center */}
-          {showControls && !dragging && (
+          {/* Drag/tap hint icon center */}
+          {controlsVisible && !dragging && (
             <div data-cell-controls className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[2] pointer-events-none">
-              <div className="h-8 w-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                <Move className="h-3.5 w-3.5 text-white/70" />
+              <div className={`rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center ${
+                isMobile ? "h-10 w-10" : "h-8 w-8"
+              }`}>
+                <Move className={isMobile ? "h-4 w-4 text-white/70" : "h-3.5 w-3.5 text-white/70"} />
               </div>
             </div>
           )}
@@ -250,12 +286,18 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             if (target.closest("[data-text-overlay]") || target.closest("[data-text-edit]")) return;
             triggerPicker();
           }}
-          className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground/30 cursor-pointer hover:text-muted-foreground/50 hover:bg-muted/10 transition-all duration-200 group/empty"
+          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground/30 cursor-pointer hover:text-muted-foreground/50 hover:bg-muted/10 transition-all duration-200 group/empty ${
+            isMobile ? "active:bg-muted/20" : ""
+          }`}
         >
-          <div className="h-10 w-10 rounded-full border-2 border-dashed border-current flex items-center justify-center group-hover/empty:scale-110 transition-transform">
-            <Plus className="h-4 w-4" />
+          <div className={`rounded-full border-2 border-dashed border-current flex items-center justify-center group-hover/empty:scale-110 transition-transform ${
+            isMobile ? "h-12 w-12" : "h-10 w-10"
+          }`}>
+            <Plus className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
           </div>
-          <span className="text-[8px] tracking-[0.15em] uppercase font-medium">Add photo</span>
+          <span className={`tracking-[0.15em] uppercase font-medium ${
+            isMobile ? "text-[9px]" : "text-[8px]"
+          }`}>Add photo</span>
         </button>
       )}
     </div>
