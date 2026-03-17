@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useCallback, Component, ReactNode } from 'react';
+import { useState, useEffect, lazy, Suspense, useCallback, Component, ReactNode, createContext, useContext } from 'react';
 import { EntiranButton } from './EntiranButton';
 import { useStudioBrain } from '@/hooks/use-studio-brain';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -7,6 +7,10 @@ const EntiranPanel = lazy(() =>
   import('./EntiranPanel').then(m => ({ default: m.EntiranPanel }))
 );
 
+// Context to allow bottom nav to open the bot
+const EntiranOpenContext = createContext<{ openBot: () => void }>({ openBot: () => {} });
+export const useEntiranOpen = () => useContext(EntiranOpenContext);
+
 class DaanErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
@@ -14,34 +18,12 @@ class DaanErrorBoundary extends Component<{ children: ReactNode }, { hasError: b
     console.error('Daan AI failed to initialize.', err);
   }
   render() {
-    if (this.state.hasError) return <FallbackButton />;
+    if (this.state.hasError) return null;
     return this.props.children;
   }
 }
 
-function FallbackButton() {
-  const isMobile = useIsMobile();
-  return (
-    <button
-      onClick={() => window.location.reload()}
-      className="fixed rounded-full flex items-center justify-center"
-      style={{
-        bottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom, 0px))' : 28,
-        right: isMobile ? 16 : 28,
-        width: isMobile ? 54 : 58,
-        height: isMobile ? 54 : 58,
-        zIndex: 10001,
-        background: '#0A0A0A',
-        boxShadow: '0 0 0 2px #D4AF37',
-      }}
-      aria-label="Open Daan AI Assistant"
-    >
-      <span style={{ color: '#D4AF37', fontSize: 10, fontWeight: 600, letterSpacing: '0.15em' }}>D</span>
-    </button>
-  );
-}
-
-function DaanInner() {
+function DaanInner({ children }: { children?: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { unreadCount } = useStudioBrain();
   const isMobile = useIsMobile();
@@ -51,7 +33,6 @@ function DaanInner() {
     console.log('Daan AI initialized successfully.');
   }, []);
 
-  // Keyboard shortcut: Ctrl+Shift+E to toggle
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'E') {
@@ -77,7 +58,9 @@ function DaanInner() {
   }, []);
 
   return (
-    <>
+    <EntiranOpenContext.Provider value={{ openBot: handleOpen }}>
+      {children}
+
       {/* Signature first-open experience */}
       {showSignature && !open && (
         <div
@@ -99,7 +82,8 @@ function DaanInner() {
         </div>
       )}
 
-      {!open && !showSignature && (
+      {/* Floating button — desktop/tablet only (mobile uses bottom nav Bot tab) */}
+      {!open && !showSignature && !isMobile && (
         <EntiranButton onClick={handleOpen} unreadCount={unreadCount} />
       )}
 
@@ -112,14 +96,14 @@ function DaanInner() {
           />
         </Suspense>
       )}
-    </>
+    </EntiranOpenContext.Provider>
   );
 }
 
-export function EntiranProvider() {
+export function EntiranProvider({ children }: { children?: ReactNode }) {
   return (
     <DaanErrorBoundary>
-      <DaanInner />
+      <DaanInner>{children}</DaanInner>
     </DaanErrorBoundary>
   );
 }

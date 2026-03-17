@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, useCallback, useRef } from 'react';
+import { ReactNode, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/lib/auth';
@@ -6,10 +6,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import {
   LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Bell, ChevronRight, Menu, Globe, Compass,
+  LogOut, Bell, ChevronRight, Menu, Globe, Compass, Bot,
 } from 'lucide-react';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
-import { EntiranProvider } from '@/components/entiran/EntiranProvider';
+import { EntiranProvider, useEntiranOpen } from '@/components/entiran/EntiranProvider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,6 @@ const NAV_ITEMS = [
 const MOBILE_NAV = [
   { title: 'Home', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
-  { title: 'Business', url: '/dashboard/business', icon: BarChart2 },
   { title: 'Reflections', url: '/dashboard/reflections', icon: Compass },
 ];
 const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));
@@ -99,6 +98,19 @@ function applyAccentClass(a: AccentMode) {
     document.documentElement.classList.remove('accent-red');
   }
   localStorage.setItem('accent', a);
+}
+
+function BotNavTab() {
+  const { openBot } = useEntiranOpen();
+  return (
+    <button
+      onClick={openBot}
+      className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors min-h-[44px]"
+    >
+      <Bot className="h-5 w-5" strokeWidth={1.8} />
+      <span className="text-[10px] font-medium">Bot</span>
+    </button>
+  );
 }
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -179,6 +191,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const sidebarWidth = device.isTablet ? 200 : 240;
 
   return (
+    <EntiranProvider>
     <div className="min-h-screen bg-background">
       {/* Sidebar — desktop and tablet */}
       {showSidebar && (
@@ -311,7 +324,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </main>
 
-      <FloatingActionButton />
+      {!showBottomNav && <FloatingActionButton />}
 
       {/* Mobile bottom nav — phones only */}
       {showBottomNav && (
@@ -325,6 +338,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             <span className="text-[10px] font-medium">{item.title}</span>
           </NavLink>
         ))}
+        <BotNavTab />
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
             <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground min-h-[44px]">
@@ -355,7 +369,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </Sheet>
       </nav>
       )}
-      <EntiranProvider />
     </div>
+    </EntiranProvider>
   );
 }
