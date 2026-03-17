@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, ArrowLeft } from 'lucide-react';
 
 const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -43,50 +43,28 @@ export function LanguageSelector({ onSelect, onClose }: LanguageSelectorProps) {
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col" style={{ zIndex: 1, background: '#0A0A0A' }}>
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-5 shrink-0"
-        style={{ height: 52, borderBottom: '1px solid rgba(212,175,55,0.08)' }}
-      >
-        <h3
-          className="text-xs font-semibold tracking-wide"
-          style={{ color: '#F4F1EA', letterSpacing: '0.08em' }}
-        >
-          Choose Language
-        </h3>
-        <button
-          onClick={onClose}
-          className="text-[10px] px-3 py-1.5 rounded-lg font-medium tracking-wide"
-          style={{ color: 'rgba(244,241,234,0.4)' }}
-        >
-          CANCEL
+    <div className="absolute inset-0 flex flex-col" style={{ zIndex: 1, background: '#111111' }}>
+      <div className="flex items-center gap-3 px-4 shrink-0" style={{ height: 48, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <button onClick={onClose} className="p-1.5 rounded-lg" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <ArrowLeft className="h-4 w-4" />
         </button>
+        <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>Language</span>
       </div>
 
-      {/* Language list */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-0.5">
         {LANGUAGES.map(lang => {
           const isActive = lang.code === selected;
           return (
             <button
               key={lang.code}
               onClick={() => handleSelect(lang.code)}
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200"
-              style={{
-                background: isActive ? 'rgba(212,175,55,0.08)' : 'transparent',
-                border: isActive
-                  ? '1px solid rgba(212,175,55,0.2)'
-                  : '1px solid rgba(244,241,234,0.04)',
-              }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-150"
+              style={{ background: isActive ? 'rgba(255,255,255,0.06)' : 'transparent' }}
             >
-              <span
-                className="text-sm font-medium"
-                style={{ color: isActive ? '#D4AF37' : 'rgba(244,241,234,0.7)' }}
-              >
+              <span className="text-sm" style={{ color: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.6)' }}>
                 {lang.label}
               </span>
-              {isActive && <Check className="h-4 w-4" style={{ color: '#D4AF37' }} />}
+              {isActive && <Check className="h-4 w-4" style={{ color: 'rgba(255,255,255,0.5)' }} />}
             </button>
           );
         })}
