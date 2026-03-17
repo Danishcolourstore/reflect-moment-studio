@@ -368,7 +368,7 @@ function PanelContent({
 
       {/* Suggestion chips */}
       <div className="px-4 py-2 shrink-0 overflow-x-auto" style={{ borderTop: '1px solid rgba(212,175,55,0.06)' }}>
-        <SuggestionChips onChipClick={(t) => { sendMessage(t); }} />
+        <SuggestionChips onChipClick={(t) => { sendMessage(t); }} onLanguageClick={() => setShowLangSelector(true)} />
       </div>
 
       {/* Input area */}
