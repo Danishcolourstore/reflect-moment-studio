@@ -179,6 +179,7 @@ export function useEntiranChat() {
         body: JSON.stringify({
           messages: recentMessages,
           pageContext: pageContext.page,
+          language: getBotLanguage(),
         }),
         signal: abortRef.current.signal,
       });
