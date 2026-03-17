@@ -70,6 +70,7 @@ export default function AIAlbumBuilder() {
   const [savedAlbumId, setSavedAlbumId] = useState<string | null>(null);
 
   const autoSize = useMemo(() => autoSelectSize(files.length), [files.length]);
+  const [sizeState, setSizeState] = useState<CustomSizeState>(() => getDefaultSizeState(autoSize));
 
   // Thumbnail management
   useEffect(() => {
