@@ -155,6 +155,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const [date, setDate] = useState('');
   const [location, setLocation] = useState('');
   const [slug, setSlug] = useState('');
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [password, setPassword] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [galleryLayout, setGalleryLayout] = useState('classic');
@@ -165,16 +166,19 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const lastSubmitRef = useRef(0);
 
   const generateSlug = (name: string) => {
-    const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40);
-    const rand = Math.random().toString(36).substring(2, 6);
-    return `${base}-${rand}`;
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40);
   };
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
-    if (!slug || slug === generateSlug(title)) {
+    if (!slugManuallyEdited) {
       setSlug(generateSlug(val));
     }
+  };
+
+  const handleSlugChange = (val: string) => {
+    setSlug(val);
+    setSlugManuallyEdited(true);
   };
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -192,8 +196,9 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
     setLoading(true);
 
     try {
-      const finalSlug = slug || generateSlug(title);
-
+      const baseSlug = slug || generateSlug(title);
+      const rand = Math.random().toString(36).substring(2, 6);
+      const finalSlug = `${baseSlug}-${rand}`;
       // 1. Check if event with this slug already exists (retry-safe)
       const { data: existing } = await (supabase.from('events').select('id').eq('slug', finalSlug).eq('user_id', user.id).maybeSingle() as any);
       if (existing) {
@@ -232,7 +237,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       } else {
         toast({ title: 'Event created' });
-        setTitle(''); setDate(''); setLocation(''); setSlug(''); setPassword(''); setCoverFile(null);
+        setTitle(''); setDate(''); setLocation(''); setSlug(''); setSlugManuallyEdited(false); setPassword(''); setCoverFile(null);
         setGalleryLayout('classic'); setDownloadsEnabled(true);
         onOpenChange(false);
         onCreated(inserted.id);
@@ -258,7 +263,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Slug</Label>
-            <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="aisha-rahul-wedding" className="bg-background h-9 text-[13px]" />
+            <Input value={slug} onChange={(e) => handleSlugChange(e.target.value)} placeholder="aisha-rahul-wedding" className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Date</Label>
