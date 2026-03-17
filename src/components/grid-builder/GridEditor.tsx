@@ -424,31 +424,33 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       </div>
 
       {/* ─── Bottom Bar ─── */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60 safe-area-pb">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60"
+        style={{ paddingBottom: isMobile ? 'max(8px, env(safe-area-inset-bottom, 8px))' : undefined }}
+      >
         <div className="max-w-[480px] mx-auto">
           {/* Tool icons */}
-          <div className="flex items-center justify-between px-2 pt-1.5">
+          <div className={cn("flex items-center justify-between px-2", isMobile ? "pt-2" : "pt-1.5")}>
             {toolButtons.map(({ tool, Icon, label }) => (
               <button
                 key={tool}
                 onClick={() => toggleTool(tool)}
                 className={cn(
-                  'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-all duration-200 min-w-[48px] relative',
+                  'flex flex-col items-center gap-0.5 rounded-lg transition-all duration-200 relative active:scale-95',
+                  isMobile ? 'px-3 py-2 min-w-[52px] min-h-[44px]' : 'px-3 py-1.5 min-w-[48px]',
                   activeTool === tool
                     ? 'text-primary'
                     : 'text-muted-foreground/60 hover:text-foreground'
                 )}
               >
-                <Icon className="h-4 w-4" />
-                <span className="text-[8px] tracking-wider uppercase font-medium">{label}</span>
-                {/* Gold underline indicator */}
+                <Icon className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
+                <span className={cn("tracking-wider uppercase font-medium", isMobile ? "text-[9px]" : "text-[8px]")}>{label}</span>
                 {activeTool === tool && (
                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-[2px] rounded-full bg-primary" />
                 )}
               </button>
             ))}
 
-            {/* Separator */}
             <div className="h-6 w-px bg-border/60" />
 
             {/* Preview — primary action */}
@@ -456,23 +458,23 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               onClick={() => filledCount > 0 && setShowIgPreview(true)}
               disabled={filledCount === 0}
               className={cn(
-                'relative flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all duration-200 min-w-[52px] border disabled:opacity-30',
+                'relative flex flex-col items-center gap-0.5 rounded-xl transition-all duration-200 border disabled:opacity-30 active:scale-95',
+                isMobile ? 'px-4 py-2 min-w-[56px] min-h-[44px]' : 'px-4 py-1.5 min-w-[52px]',
                 filledCount > 0
-                  ? 'border-primary/40 bg-primary/10 text-primary shadow-[0_0_10px_-2px_hsl(var(--primary)/0.35)] hover:bg-primary/15 hover:shadow-[0_0_14px_-2px_hsl(var(--primary)/0.5)]'
+                  ? 'border-primary/40 bg-primary/10 text-primary shadow-[0_0_10px_-2px_hsl(var(--primary)/0.35)]'
                   : 'border-transparent text-muted-foreground/60'
               )}
             >
-              {/* Gold dot indicator */}
               {filledCount > 0 && (
                 <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]" />
               )}
-              <Instagram className="h-[18px] w-[18px]" />
-              <span className="text-[8px] tracking-wider uppercase font-semibold text-primary">Preview</span>
+              <Instagram className={isMobile ? "h-5 w-5" : "h-[18px] w-[18px]"} />
+              <span className={cn("tracking-wider uppercase font-semibold text-primary", isMobile ? "text-[9px]" : "text-[8px]")}>Preview</span>
             </button>
           </div>
 
           {/* Export row */}
-          <div className="flex items-center justify-end gap-1.5 px-3 pb-2 pt-1">
+          <div className={cn("flex items-center justify-end gap-1.5 px-3 pt-1", isMobile ? "pb-1" : "pb-2")}>
             <CarouselSliceExporter cells={cells} format={format} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
             <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} format={format} />
