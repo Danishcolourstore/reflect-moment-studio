@@ -191,6 +191,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const sidebarWidth = device.isTablet ? 200 : 240;
 
   return (
+    <EntiranProvider>
     <div className="min-h-screen bg-background">
       {/* Sidebar — desktop and tablet */}
       {showSidebar && (
