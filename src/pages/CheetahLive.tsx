@@ -5,11 +5,11 @@ import { useFolderWatcher } from '@/hooks/use-folder-watcher';
 import {
   Zap, Plus, Upload, Star, X as XIcon, Heart, ArrowLeft, ArrowRight,
   Eye, Camera, Activity, Loader2, ChevronDown, Sparkles, Image,
-  FolderOpen, FolderSync, Square, Radio,
+  FolderOpen, FolderSync, Square, Radio, Wifi,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-
+import CheetahCameraDemo from '@/components/cheetah/CheetahCameraDemo';
 type FilterMode = 'all' | 'pick' | 'reject' | 'favorite' | 'unreviewed';
 
 function ScoreBadge({ score }: { score: number | null }) {
@@ -302,6 +302,7 @@ export default function CheetahLive() {
   const [filter, setFilter] = useState<FilterMode>('all');
   const [showNewSession, setShowNewSession] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [mainTab, setMainTab] = useState<'ingest' | 'camera'>('ingest');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -431,8 +432,32 @@ export default function CheetahLive() {
         </div>
       </div>
 
+      {/* Main Tab Switcher */}
+      <div className="flex gap-1 bg-secondary/50 rounded-lg p-1 mb-5">
+        {([
+          { key: 'ingest' as const, label: 'Photo Ingest', icon: Upload },
+          { key: 'camera' as const, label: 'Camera Upload', icon: Wifi },
+        ]).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setMainTab(tab.key)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-[11px] font-medium tracking-wide transition-all ${
+              mainTab === tab.key
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <tab.icon className="h-3.5 w-3.5" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Camera Upload Demo Tab */}
+      {mainTab === 'camera' && <CheetahCameraDemo />}
+
       {/* Folder Watcher Panel */}
-      {activeSessionId && folderWatcher.isSupported && (
+      {mainTab === 'ingest' && activeSessionId && folderWatcher.isSupported && (
         <div className="mb-4 p-3 rounded-xl border border-border bg-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -501,6 +526,7 @@ export default function CheetahLive() {
         </div>
       )}
 
+      {mainTab === 'ingest' && <>
       {/* New session modal */}
       {showNewSession && (
         <div className="mb-4 p-4 rounded-xl border border-border bg-card">
@@ -660,6 +686,7 @@ export default function CheetahLive() {
           </div>
         </div>
       )}
+      </>}
     </DashboardLayout>
   );
 }
