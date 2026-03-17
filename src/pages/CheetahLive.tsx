@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import CheetahCameraDemo from '@/components/cheetah/CheetahCameraDemo';
+import CheetahCameraUpload from '@/components/cheetah/CheetahCameraUpload';
 type FilterMode = 'all' | 'pick' | 'reject' | 'favorite' | 'unreviewed';
 
 function ScoreBadge({ score }: { score: number | null }) {
@@ -454,7 +454,7 @@ export default function CheetahLive() {
       </div>
 
       {/* Camera Upload Demo Tab */}
-      {mainTab === 'camera' && <CheetahCameraDemo />}
+      {mainTab === 'camera' && <CheetahCameraUpload />}
 
       {/* Folder Watcher Panel */}
       {mainTab === 'ingest' && activeSessionId && folderWatcher.isSupported && (

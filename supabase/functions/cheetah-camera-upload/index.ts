@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-upload-token, x-session-id",
+    "authorization, x-client-info, apikey, content-type, x-upload-token, x-session-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -25,7 +25,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get session ID and upload token from headers or form data
     const sessionId = req.headers.get("x-session-id");
     const uploadToken = req.headers.get("x-upload-token");
 
@@ -36,7 +35,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify session exists and token matches
+    // Verify session exists
     const { data: session, error: sessErr } = await supabase
       .from("cheetah_sessions")
       .select("id, user_id, status")
@@ -47,6 +46,13 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Invalid session" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (session.status !== "active") {
+      return new Response(
+        JSON.stringify({ error: "Session is not active" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -62,11 +68,21 @@ Deno.serve(async (req) => {
     }
 
     // Validate file type
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/heif", "image/heic"];
-    if (!validTypes.includes(file.type) && !file.name.match(/\.(jpe?g|png|heif|heic)$/i)) {
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/heif", "image/heic", "image/tiff"];
+    const validExts = /\.(jpe?g|png|heif|heic|tiff?|cr2|cr3|nef|arw|orf|rw2|dng)$/i;
+    if (!validTypes.includes(file.type) && !file.name.match(validExts)) {
       return new Response(
-        JSON.stringify({ error: "Invalid file type. Use JPEG, PNG, or HEIF." }),
+        JSON.stringify({ error: "Invalid file type. Supported: JPEG, PNG, HEIF, TIFF, RAW." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Limit file size (50MB max for RAW support)
+    const MAX_SIZE = 50 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      return new Response(
+        JSON.stringify({ error: "File too large. Maximum 50MB." }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -87,7 +103,7 @@ Deno.serve(async (req) => {
     if (uploadErr) {
       console.error("Upload error:", uploadErr);
       return new Response(
-        JSON.stringify({ error: "Storage upload failed" }),
+        JSON.stringify({ error: "Storage upload failed", detail: uploadErr.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -120,16 +136,17 @@ Deno.serve(async (req) => {
     }
 
     // Update session photo count
-    await supabase.rpc("", {}).catch(() => {});
-    await supabase
-      .from("cheetah_sessions")
-      .update({ total_photos: session.user_id ? undefined : 0 })
-      .eq("id", sessionId);
-    // Just increment — simpler approach
-    const { data: countData } = await supabase
+    const { count } = await supabase
       .from("cheetah_photos")
       .select("id", { count: "exact", head: true })
       .eq("session_id", sessionId);
+
+    if (count !== null) {
+      await supabase
+        .from("cheetah_sessions")
+        .update({ total_photos: count })
+        .eq("id", sessionId);
+    }
 
     // Fire-and-forget: trigger AI analysis
     try {
@@ -137,7 +154,7 @@ Deno.serve(async (req) => {
         body: { photoId: photo.id, imageUrl: publicUrl },
       });
     } catch {
-      // Non-blocking — analysis can happen later
+      // Non-blocking
     }
 
     return new Response(
@@ -145,7 +162,6 @@ Deno.serve(async (req) => {
         success: true,
         photo_id: photo.id,
         url: publicUrl,
-        message: "Photo received and queued for AI analysis",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
