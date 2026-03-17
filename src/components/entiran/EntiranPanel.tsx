@@ -3,6 +3,7 @@ import { X, Send, Paperclip, MoreVertical, ChevronDown, ChevronRight } from 'luc
 import { useEntiranChat, type ChatMessage } from '@/hooks/use-entiran-chat';
 import { EntiranMessage, TypingIndicator } from './EntiranMessage';
 import { SuggestionChips } from './SuggestionChips';
+import { LanguageSelector, type BotLanguage } from './LanguageSelector';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
