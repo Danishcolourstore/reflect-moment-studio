@@ -196,8 +196,9 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
     setLoading(true);
 
     try {
-      const finalSlug = slug || generateSlug(title);
-
+      const baseSlug = slug || generateSlug(title);
+      const rand = Math.random().toString(36).substring(2, 6);
+      const finalSlug = `${baseSlug}-${rand}`;
       // 1. Check if event with this slug already exists (retry-safe)
       const { data: existing } = await (supabase.from('events').select('id').eq('slug', finalSlug).eq('user_id', user.id).maybeSingle() as any);
       if (existing) {
