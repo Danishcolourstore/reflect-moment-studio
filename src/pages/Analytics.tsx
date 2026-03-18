@@ -162,6 +162,8 @@ const Analytics = () => {
           </table>
         </div>
       )}
+        </>
+      )}
     </DashboardLayout>
   );
 };
