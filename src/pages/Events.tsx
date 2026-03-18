@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ProgressiveImage } from "@/components/ProgressiveImage";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { CreateEventModal } from "@/components/CreateEventModal";
