@@ -12,22 +12,22 @@ if (savedTheme === 'editorial') {
 
 // One-time cleanup of legacy service workers/caches that can keep stale UI in production
 if ('serviceWorker' in navigator) {
-  const cleanupKey = 'mirrorai_sw_cleanup_v2';
+  // Register performance-optimized service worker
+  const cleanupKey = 'mirrorai_sw_v3';
   if (!localStorage.getItem(cleanupKey)) {
+    // Clear old registrations first
     navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => {
-        registration.unregister();
-      });
+      registrations.forEach((registration) => registration.unregister());
     });
-
     if ('caches' in window) {
       caches.keys().then((keys) => {
         keys.forEach((key) => caches.delete(key));
       });
     }
-
     localStorage.setItem(cleanupKey, '1');
   }
+  // Register new SW
+  navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
 }
 
 // Apply platform classes early (before React hydration) to prevent FOUC

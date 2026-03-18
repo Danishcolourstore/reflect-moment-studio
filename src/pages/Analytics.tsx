@@ -84,17 +84,26 @@ const Analytics = () => {
         ))}
       </div>
 
-      {/* Stats */}
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}</div>
+      ) : rows.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
+            <Eye className="h-7 w-7 text-muted-foreground/20" />
+          </div>
+          <h3 className="font-serif text-lg text-foreground/70 mb-1">No analytics yet</h3>
+          <p className="text-[12px] text-muted-foreground/50 max-w-[260px]">
+            Publish your first event gallery and share it with clients to start seeing analytics data here
+          </p>
+        </div>
       ) : (
+        <>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <AnalyticStat icon={Eye} label="Total Views" value={totalViews} />
           <AnalyticStat icon={Download} label="Total Downloads" value={totalDownloads} />
           <AnalyticStat icon={Heart} label="Total Favorites" value={totalFavs} />
           <AnalyticStat icon={MessageSquare} label="Engagement" value={totalViews > 0 ? `${((totalFavs / totalViews) * 100).toFixed(1)}%` : '0%'} />
         </div>
-      )}
 
       {/* Chart */}
       {filteredChart.length > 0 && (
@@ -152,6 +161,8 @@ const Analytics = () => {
             </tbody>
           </table>
         </div>
+      )}
+        </>
       )}
     </DashboardLayout>
   );
