@@ -154,11 +154,11 @@ const Events = () => {
         onClick={() => navigate(`/dashboard/events/${evt.id}`)}
       >
         {evt.cover_url ? (
-          <img
+          <ProgressiveImage
             src={evt.cover_url}
             alt={evt.name}
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-            loading="lazy"
+            context="hero"
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-secondary rounded-[14px]">
