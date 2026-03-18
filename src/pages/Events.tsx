@@ -197,9 +197,30 @@ const Events = () => {
       </div>
 
       {loading ? (
-        <Skeleton className="h-40 w-full" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          {[1,2,3,4].map(i => <Skeleton key={i} className="aspect-[3/2] rounded-[14px]" />)}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
+            <Camera className="h-7 w-7 text-muted-foreground/20" />
+          </div>
+          <h3 className="font-serif text-lg text-foreground/70 mb-1">
+            {archiveTab === 'archived' ? 'No archived events' : 'No events yet'}
+          </h3>
+          <p className="text-[12px] text-muted-foreground/50 max-w-[260px]">
+            {archiveTab === 'archived'
+              ? 'Archived events will appear here'
+              : 'Create your first event to start uploading and sharing photos with your clients'}
+          </p>
+          {archiveTab !== 'archived' && (
+            <Button onClick={() => setCreateOpen(true)} className="mt-6" size="sm">
+              <Plus className="mr-2 h-4 w-4" /> Create Event
+            </Button>
+          )}
+        </div>
       ) : (
-        <div className="grid grid-cols-4 gap-6">{filtered.map(renderEventCard)}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">{filtered.map(renderEventCard)}</div>
       )}
 
       <CreateEventModal
