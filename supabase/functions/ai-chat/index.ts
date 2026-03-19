@@ -259,7 +259,8 @@ async function handleLovable(req: Request, messages: { role: string; content: st
   });
 }
 
-async function handleAnthropic(messages: { role: string; content: string }[], systemPrompt: string) {
+async function handleAnthropic(req: Request, messages: { role: string; content: string }[], systemPrompt: string) {
+  const corsHeaders = getCorsHeaders(req);
   const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
   if (!ANTHROPIC_API_KEY) {
     return new Response(
@@ -295,7 +296,6 @@ async function handleAnthropic(messages: { role: string; content: string }[], sy
       return new Response(JSON.stringify({ error: "Invalid Anthropic API key. Check your Cloud secrets." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    // Handle credit balance exhausted error
     if (response.status === 400 && errorText.includes("credit balance is too low")) {
       return new Response(JSON.stringify({ 
         error: "Anthropic API credits exhausted. Please add credits at console.anthropic.com or switch to Lovable AI (Gemini)." 
