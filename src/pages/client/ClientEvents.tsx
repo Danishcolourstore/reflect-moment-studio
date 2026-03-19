@@ -18,7 +18,7 @@ const ClientEvents = () => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const { data: client } = await (supabase.from('clients').select('id') as any).eq('user_id', user.id).single();
+      const { data: client } = await (supabase.from('clients').select('id') as any).eq('user_id', user.id).maybeSingle();
       if (!client) { setLoading(false); return; }
 
       const { data: access } = await (supabase.from('client_events').select('event_id') as any).eq('client_id', client.id);

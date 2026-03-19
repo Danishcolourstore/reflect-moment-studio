@@ -23,7 +23,7 @@ const ClientDashboard = () => {
       setLoading(true);
       // Get client record
       const { data: client } = await (supabase.from('clients').select('id, name') as any)
-        .eq('user_id', user.id).single();
+        .eq('user_id', user.id).maybeSingle();
       if (!client) { setLoading(false); return; }
       setClientId(client.id);
 

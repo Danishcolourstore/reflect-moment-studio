@@ -35,7 +35,7 @@ export default function AlbumPreviewPage() {
     const loadAlbum = async () => {
       if (!shareToken) return;
 
-      const { data: album } = await supabase.from("albums").select("*").eq("share_token", shareToken).single();
+      const { data: album } = await supabase.from("albums").select("*").eq("share_token", shareToken).maybeSingle();
 
       if (!album) {
         setLoading(false);

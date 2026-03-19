@@ -24,18 +24,19 @@ const ClientEventView = () => {
     if (!user || !id) return;
     const load = async () => {
       setLoading(true);
-      const { data: client } = await (supabase.from('clients').select('id') as any).eq('user_id', user.id).single();
+      const { data: client } = await (supabase.from('clients').select('id') as any).eq('user_id', user.id).maybeSingle();
       if (!client) { setLoading(false); return; }
       setClientId(client.id);
 
       // Verify access
       const { data: access } = await (supabase.from('client_events').select('id') as any)
-        .eq('client_id', client.id).eq('event_id', id).single();
+        .eq('client_id', client.id).eq('event_id', id).maybeSingle();
       if (!access) { navigate('/client/events'); return; }
 
       // Load event
-      const { data: evt } = await (supabase.from('events').select('*') as any).eq('id', id).single();
-      if (evt) setEvent(evt);
+      const { data: evt } = await (supabase.from('events').select('*') as any).eq('id', id).maybeSingle();
+      if (!evt) return;
+      setEvent(evt);
 
       // Load photos
       const { data: ph } = await (supabase.from('photos').select('id, url, file_name, file_size') as any)
