@@ -295,7 +295,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full h-12 sm:h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ letterSpacing: "0.03em" }}
             >
               {loading ? (
