@@ -11,9 +11,35 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { domain, user_id } = await req.json();
-    if (!domain || !user_id) {
-      return new Response(JSON.stringify({ success: false, status: "error", message: "Missing domain or user_id" }), {
+    // Authenticate the caller — extract user_id from JWT, not from body
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ success: false, status: "error", message: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: authError } = await authClient.auth.getUser(token);
+    if (authError || !userData?.user) {
+      return new Response(
+        JSON.stringify({ success: false, status: "error", message: "Invalid or expired token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { domain } = await req.json();
+    const user_id = userData.user.id;
+
+    if (!domain) {
+      return new Response(JSON.stringify({ success: false, status: "error", message: "Missing domain" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
