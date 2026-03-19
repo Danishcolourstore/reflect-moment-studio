@@ -220,7 +220,8 @@ Respond with valid JSON only.`
   }
 });
 
-async function callLovable(messages: { role: string; content: string }[]) {
+async function callLovable(req: Request, messages: { role: string; content: string }[]) {
+  const corsHeaders = getCorsHeaders(req);
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }),
@@ -249,10 +250,11 @@ async function callLovable(messages: { role: string; content: string }[]) {
   }
 
   const data = await response.json();
-  return parseAndRespond(data.choices?.[0]?.message?.content || "");
+  return parseAndRespond(req, data.choices?.[0]?.message?.content || "");
 }
 
-async function callAnthropic(messages: { role: string; content: string }[]) {
+async function callAnthropic(req: Request, messages: { role: string; content: string }[]) {
+  const corsHeaders = getCorsHeaders(req);
   const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
   if (!ANTHROPIC_API_KEY) {
     return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
@@ -286,10 +288,11 @@ async function callAnthropic(messages: { role: string; content: string }[]) {
 
   const data = await response.json();
   const content = data.content?.[0]?.text || "";
-  return parseAndRespond(content);
+  return parseAndRespond(req, content);
 }
 
-function parseAndRespond(generatedContent: string) {
+function parseAndRespond(req: Request, generatedContent: string) {
+  const corsHeaders = getCorsHeaders(req);
   let parsedResponse;
   try {
     const jsonMatch = generatedContent.match(/```json\s*([\s\S]*?)\s*```/) || 
