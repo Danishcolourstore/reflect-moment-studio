@@ -112,8 +112,12 @@ function PinGate({ event, studioProfile, onUnlock }: {
   onUnlock: () => void;
 }) {
   const [error, setError] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   const handleComplete = async (otp: string) => {
+    if (checking) return;
+    setChecking(true);
+    setError(false);
     try {
       const { data, error } = await (supabase.rpc as any)('verify_gallery_pin', {
         event_id: event.id,
@@ -129,6 +133,8 @@ function PinGate({ event, studioProfile, onUnlock }: {
       }
     } catch {
       sonnerToast.error('Verification failed. Please try again.');
+    } finally {
+      setChecking(false);
     }
   };
 
@@ -144,9 +150,7 @@ function PinGate({ event, studioProfile, onUnlock }: {
         <p className="text-sm text-muted-foreground">Enter the 4-digit PIN to view this gallery.</p>
         <OtpInput length={4} onComplete={handleComplete} />
         {error && <p className="text-xs text-destructive">Incorrect PIN</p>}
-        <Button onClick={() => {}} className="w-full" disabled>
-          Enter Gallery
-        </Button>
+        {checking && <p className="text-xs text-muted-foreground">Verifying…</p>}
       </div>
     </div>
   );
