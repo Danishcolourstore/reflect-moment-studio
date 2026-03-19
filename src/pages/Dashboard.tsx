@@ -1,352 +1,228 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, UserPlus, Camera, Shield, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
-import { InviteClientModal } from "@/components/InviteClientModal";
+import { format } from "date-fns";
+import { useStorageUsage, formatBytes } from "@/hooks/use-storage-usage";
 import { StudioBrainCards } from "@/components/entiran/StudioBrainCards";
 import { EventLifecycle } from "@/components/entiran/EventLifecycle";
 import { useStudioBrain } from "@/hooks/use-studio-brain";
+import {
+  Camera, Image, Eye, HardDrive, Plus, Upload,
+  BookOpen, Sparkles, Globe, BarChart2, ChevronRight,
+} from "lucide-react";
 
-interface ManagedClient {
+interface RecentEvent {
   id: string;
-  user_id: string;
   name: string;
-  email: string;
-  phone: string | null;
-  created_at: string;
-  event_count: number;
-  favorite_count: number;
-  download_count: number;
+  slug: string | null;
+  event_date: string | null;
+  location: string | null;
+  cover_url: string | null;
+  is_published: boolean;
+  photo_count: number;
 }
 
-const Clients = () => {
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { suggestions, dismissSuggestion, actOnSuggestion } = useStudioBrain();
+  const { data: storageData } = useStorageUsage();
 
-  const [clients, setClients] = useState<ManagedClient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [assignOpen, setAssignOpen] = useState<ManagedClient | null>(null);
-  const [events, setEvents] = useState<any[]>([]);
-  const [assignEventId, setAssignEventId] = useState("");
-  const [assigning, setAssigning] = useState(false);
+  const [studioName, setStudioName] = useState("Your Studio");
+  const [recentEvents, setRecentEvents] = useState<RecentEvent[]>([]);
+  const [totalEvents, setTotalEvents] = useState(0);
+  const [totalPhotos, setTotalPhotos] = useState(0);
+  const [totalViews, setTotalViews] = useState(0);
 
-  const loadClients = async () => {
+  useEffect(() => {
     if (!user) return;
-    setLoading(true);
 
-    const { data: rawClients } = await (
-      supabase.from("clients").select("id, user_id, name, email, phone, created_at") as any
-    )
-      .eq("photographer_id", user.id)
-      .order("created_at", { ascending: false });
+    const load = async () => {
+      setLoading(true);
 
-    if (!rawClients || rawClients.length === 0) {
-      setClients([]);
+      // Studio name
+      const { data: profile } = await (supabase.from("profiles").select("studio_name") as any)
+        .eq("user_id", user.id).maybeSingle();
+      if (profile?.studio_name) setStudioName(profile.studio_name);
+
+      // Recent events
+      const { data: events } = await (supabase.from("events")
+        .select("id, name, slug, event_date, location, cover_url, is_published, photo_count") as any)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      setRecentEvents(events || []);
+
+      // Total event count
+      const { count } = await supabase.from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      setTotalEvents(count || 0);
+
+      // Total photos
+      const photoSum = (events || []).reduce((s: number, e: any) => s + (e.photo_count || 0), 0);
+      setTotalPhotos(photoSum);
+
+      // Gallery views
+      const eventIds = (events || []).map((e: any) => e.id);
+      if (eventIds.length > 0) {
+        const { data: analytics } = await (supabase.from("event_analytics")
+          .select("gallery_views") as any)
+          .in("event_id", eventIds);
+        const views = (analytics || []).reduce((s: number, a: any) => s + (a.gallery_views || 0), 0);
+        setTotalViews(views);
+      }
+
       setLoading(false);
-      return;
-    }
+    };
 
-    const clientIds = rawClients.map((c: any) => c.id);
-
-    const { data: eventAccess } = await (supabase.from("client_events").select("client_id") as any).in(
-      "client_id",
-      clientIds,
-    );
-
-    const eventCounts = new Map<string, number>();
-    (eventAccess || []).forEach((a: any) => {
-      eventCounts.set(a.client_id, (eventCounts.get(a.client_id) || 0) + 1);
-    });
-
-    const { data: favs } = await (supabase.from("client_favorites").select("client_id") as any).in(
-      "client_id",
-      clientIds,
-    );
-
-    const favCounts = new Map<string, number>();
-    (favs || []).forEach((f: any) => {
-      favCounts.set(f.client_id, (favCounts.get(f.client_id) || 0) + 1);
-    });
-
-    const { data: dls } = await (supabase.from("client_downloads").select("client_id") as any).in(
-      "client_id",
-      clientIds,
-    );
-
-    const dlCounts = new Map<string, number>();
-    (dls || []).forEach((d: any) => {
-      dlCounts.set(d.client_id, (dlCounts.get(d.client_id) || 0) + 1);
-    });
-
-    setClients(
-      rawClients.map((c: any) => ({
-        ...c,
-        event_count: eventCounts.get(c.id) || 0,
-        favorite_count: favCounts.get(c.id) || 0,
-        download_count: dlCounts.get(c.id) || 0,
-      })),
-    );
-
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    loadClients();
+    load();
   }, [user]);
 
-  useEffect(() => {
-    if (!user) return;
+  const stats = [
+    { label: "Total Events", value: totalEvents, icon: Camera },
+    { label: "Total Photos", value: totalPhotos, icon: Image },
+    { label: "Gallery Views", value: totalViews, icon: Eye },
+    { label: "Storage Used", value: storageData ? formatBytes(storageData.used) : "—", icon: HardDrive },
+  ];
 
-    (supabase.from("events").select("id, name") as any)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .then(({ data }: any) => {
-        if (data) setEvents(data);
-      });
-  }, [user]);
-
-  const filtered = clients.filter(
-    (c) =>
-      !search ||
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const grantAccess = async () => {
-    if (!assignOpen || !assignEventId) return;
-
-    setAssigning(true);
-
-    const { error } = await supabase
-      .from("client_events")
-      .insert({ client_id: assignOpen.id, event_id: assignEventId } as any);
-
-    if (error) {
-      if (error.code === "23505") toast.info("Access already granted");
-      else toast.error("Failed to grant access");
-    } else {
-      toast.success("Gallery access granted");
-      loadClients();
-    }
-
-    setAssigning(false);
-    setAssignOpen(null);
-    setAssignEventId("");
-  };
-
-  const removeAccess = async (clientId: string) => {
-    await (supabase.from("client_events").delete() as any).eq("client_id", clientId);
-
-    toast.success("Gallery access removed");
-    loadClients();
-  };
+  const quickActions = [
+    { name: "Storybook", desc: "Create Instagram carousels", icon: BookOpen, route: "/dashboard/storybook" },
+    { name: "AI Album", desc: "Auto-generate wedding albums", icon: Sparkles, route: "/dashboard/ai-album" },
+    { name: "Website", desc: "Build your portfolio site", icon: Globe, route: "/dashboard/website-editor" },
+    { name: "Analytics", desc: "View gallery performance", icon: BarChart2, route: "/dashboard/analytics" },
+  ];
 
   return (
     <DashboardLayout>
-      {/* Studio Brain Suggestions */}
-      <StudioBrainCards suggestions={suggestions} onDismiss={dismissSuggestion} onAct={actOnSuggestion} />
-      
-      {/* Event Lifecycle Timeline */}
-      <EventLifecycle />
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-        <div>
-          <h1 className="font-serif text-xl sm:text-2xl">Client Manager</h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">Manage clients and grant access to galleries</p>
-        </div>
-
-        <Button onClick={() => setInviteOpen(true)} className="text-[11px] uppercase tracking-wider h-10 min-h-[44px]">
-          <UserPlus className="h-4 w-4 mr-1" />
-          Add Client
-        </Button>
-      </div>
-
-      {/* Search */}
-
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search clients..."
-          className="pl-9"
-        />
-      </div>
-
-      {/* Loading */}
-
-      {loading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-14" />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        /* Empty */
-
-        <div className="text-center py-24 border border-dashed rounded-xl">
-          <Users className="mx-auto h-12 w-12 text-muted-foreground/20" />
-
-          <p className="mt-4 font-serif text-lg">No clients added yet</p>
-
-          <p className="text-sm text-muted-foreground">Add clients to grant access to galleries</p>
-
-          <Button className="mt-4" onClick={() => setInviteOpen(true)}>
-            Add Client
-          </Button>
-        </div>
-      ) : (
-        <>
-        {/* Mobile: Card layout */}
-        <div className="sm:hidden space-y-3">
-          {filtered.map((c) => (
-            <div key={c.id} className="border rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback>{c.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">{c.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{c.email}</p>
-                  {c.phone && <p className="text-xs text-muted-foreground">{c.phone}</p>}
-                </div>
-              </div>
-              <div className="flex gap-4 text-xs text-muted-foreground">
-                <span>{c.event_count} galleries</span>
-                <span>{c.favorite_count} favorites</span>
-                <span>{c.download_count} downloads</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={() => setAssignOpen(c)} className="min-h-[44px] text-xs">
-                  <Camera className="h-3 w-3 mr-1" /> Grant Access
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => window.open(`/client/${c.id}`, "_blank")} className="min-h-[44px] text-xs">
-                  <Eye className="h-3 w-3 mr-1" /> View
-                </Button>
-                <Button size="sm" variant="outline" className="text-destructive min-h-[44px] text-xs" onClick={() => removeAccess(c.id)}>
-                  <Shield className="h-3 w-3 mr-1" /> Remove
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop: Table layout */}
-        <div className="hidden sm:block border rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-secondary/30 border-b">
-              <tr>
-                <th className="px-4 py-3 text-xs uppercase">Client</th>
-                <th className="px-4 py-3 text-xs uppercase text-center">Galleries</th>
-                <th className="px-4 py-3 text-xs uppercase text-center">Favorites</th>
-                <th className="px-4 py-3 text-xs uppercase text-center">Downloads</th>
-                <th className="px-4 py-3 text-xs uppercase">Last Activity</th>
-                <th className="px-4 py-3 text-xs uppercase text-right">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filtered.map((c) => (
-                <tr key={c.id} className="border-b last:border-0">
-                  <td className="px-4 py-3 flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>{c.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-
-                    <div>
-                      <p className="text-sm font-medium">{c.name}</p>
-                      <p className="text-xs text-muted-foreground">{c.email}</p>
-                      {c.phone && <p className="text-xs text-muted-foreground">{c.phone}</p>}
-                    </div>
-                  </td>
-
-                  <td className="text-center">{c.event_count}</td>
-
-                  <td className="text-center">{c.favorite_count}</td>
-
-                  <td className="text-center">{c.download_count}</td>
-
-                  <td className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(c.created_at), {
-                      addSuffix: true,
-                    })}
-                  </td>
-
-                  <td className="text-right px-4">
-                    <div className="flex justify-end gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => setAssignOpen(c)}>
-                        <Camera className="h-3 w-3 mr-1" />
-                        Grant Access
-                      </Button>
-
-                      <Button size="sm" variant="ghost" onClick={() => window.open(`/client/${c.id}`, "_blank")}>
-                        <Eye className="h-3 w-3 mr-1" />
-                        View
-                      </Button>
-
-                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => removeAccess(c.id)}>
-                        <Shield className="h-3 w-3 mr-1" />
-                        Remove Access
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="space-y-6">
+        {/* SECTION 1 — Welcome */}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-serif text-xl text-foreground">{getGreeting()}, {studioName}</h1>
+            <p className="text-xs text-muted-foreground">Here's what's happening in your studio</p>
           </div>
-        </div>
-        </>
-      )}
-
-      <InviteClientModal open={inviteOpen} onOpenChange={setInviteOpen} onInvited={loadClients} />
-
-      {/* Grant Access Dialog */}
-
-      <Dialog open={!!assignOpen} onOpenChange={() => setAssignOpen(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Grant Gallery Access to {assignOpen?.name}</DialogTitle>
-
-            <DialogDescription>Select gallery to grant access</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <Select value={assignEventId} onValueChange={setAssignEventId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select gallery" />
-              </SelectTrigger>
-
-              <SelectContent>
-                {events.map((evt) => (
-                  <SelectItem key={evt.id} value={evt.id}>
-                    {evt.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Button onClick={grantAccess} disabled={!assignEventId || assigning} className="w-full">
-              {assigning ? "Granting..." : "Grant Access"}
+          <div className="flex gap-2 shrink-0">
+            <Button size="sm" className="min-h-[44px] gap-1.5" onClick={() => navigate("/dashboard/events?create=true")}>
+              <Plus className="h-4 w-4" /> New Event
+            </Button>
+            <Button size="sm" variant="outline" className="min-h-[44px] gap-1.5" onClick={() => navigate("/dashboard/upload")}>
+              <Upload className="h-4 w-4" /> Upload
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+
+        {/* SECTION 2 — Stats */}
+        {loading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {stats.map((s) => (
+              <div key={s.label} className="bg-card border border-border rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <s.icon className="h-4 w-4 text-muted-foreground/40" />
+                  <span className="text-[9px] uppercase tracking-widest text-muted-foreground/60">{s.label}</span>
+                </div>
+                <p className="font-serif text-2xl font-bold text-foreground">{s.value}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* SECTION 3 — Recent Events */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-serif font-semibold text-foreground">Recent Events</h2>
+            <button onClick={() => navigate("/dashboard/events")} className="text-xs text-primary flex items-center gap-0.5 hover:underline">
+              View all <ChevronRight className="h-3 w-3" />
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
+            </div>
+          ) : recentEvents.length === 0 ? (
+            <div className="text-center py-16 border border-dashed rounded-xl">
+              <Camera className="mx-auto h-10 w-10 text-muted-foreground/20" />
+              <p className="mt-3 font-serif text-base text-foreground">No events yet</p>
+              <Button className="mt-3" onClick={() => navigate("/dashboard/events?create=true")}>
+                Create your first event
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recentEvents.map((evt) => (
+                <div
+                  key={evt.id}
+                  className="flex items-center gap-3 border border-border/50 rounded-xl p-3 cursor-pointer hover:bg-secondary/30 transition-colors"
+                  onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                >
+                  {evt.cover_url ? (
+                    <img src={evt.cover_url} alt="" className="h-12 w-12 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <Camera className="h-5 w-5 text-muted-foreground/40" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{evt.name}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date"}
+                      {evt.location ? ` · ${evt.location}` : ""}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className={`h-2 w-2 rounded-full ${evt.is_published ? "bg-emerald-500" : "bg-muted-foreground/30"}`} />
+                    <span className="text-[11px] text-muted-foreground">{evt.photo_count} photos</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 4 — Quick Actions */}
+        <div>
+          <h2 className="text-sm font-serif font-semibold text-foreground mb-3">Quick Actions</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            {quickActions.map((a) => (
+              <div
+                key={a.name}
+                className="border border-border/50 rounded-xl p-4 cursor-pointer hover:bg-secondary/30 transition-all active:scale-[0.98]"
+                onClick={() => navigate(a.route)}
+              >
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <a.icon className="h-5 w-5 text-primary" />
+                </div>
+                <p className="text-xs font-medium mt-2">{a.name}</p>
+                <p className="text-[10px] text-muted-foreground">{a.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 5 — Studio Brain */}
+        <StudioBrainCards suggestions={suggestions} onDismiss={dismissSuggestion} onAct={actOnSuggestion} />
+        <EventLifecycle />
+      </div>
     </DashboardLayout>
   );
 };
 
-export default Clients;
+export default Dashboard;
