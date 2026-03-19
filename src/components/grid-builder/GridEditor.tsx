@@ -348,6 +348,30 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           {/* Utility actions */}
           <div className="flex items-center gap-1">
             <button
+              onClick={undo}
+              disabled={!canUndo}
+              className={cn(
+                'rounded-lg flex items-center justify-center transition-all duration-200',
+                isMobile ? 'h-10 w-10' : 'h-8 w-8',
+                canUndo ? 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50' : 'text-muted-foreground/20 cursor-not-allowed'
+              )}
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              className={cn(
+                'rounded-lg flex items-center justify-center transition-all duration-200',
+                isMobile ? 'h-10 w-10' : 'h-8 w-8',
+                canRedo ? 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50' : 'text-muted-foreground/20 cursor-not-allowed'
+              )}
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              <Redo2 className="h-3.5 w-3.5" />
+            </button>
+            <button
               onClick={() => setShowSafeArea(!showSafeArea)}
               className={cn(
                 'rounded-lg flex items-center justify-center transition-all duration-200',
@@ -359,6 +383,16 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               title="Safe Area Guides"
             >
               <Eye className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={handleReset}
+              className={cn(
+                'rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200',
+                isMobile ? 'h-10 w-10' : 'h-8 w-8'
+              )}
+              title="Reset"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={handleReset}
