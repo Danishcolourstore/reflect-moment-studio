@@ -208,6 +208,7 @@ const Clients = () => {
           </Button>
         </div>
       ) : (
+        <>
         {/* Mobile: Card layout */}
         <div className="sm:hidden space-y-3">
           {filtered.map((c) => (
