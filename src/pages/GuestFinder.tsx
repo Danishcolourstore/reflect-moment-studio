@@ -13,6 +13,13 @@ const GuestFinder = () => {
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
 
   useEffect(() => {
+    return () => {
+      if (selfiePreview) URL.revokeObjectURL(selfiePreview);
+    };
+  }, []);
+
+
+  useEffect(() => {
     if (!token) return;
     (supabase
       .from('event_qr_access' as any)
