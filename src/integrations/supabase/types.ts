@@ -284,6 +284,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "album_selections_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "album_selections_photo_id_fkey"
             columns: ["photo_id"]
             isOneToOne: false
@@ -341,6 +348,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "albums_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
         ]
@@ -735,6 +749,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cheetah_photos_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cheetah_photos_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -780,6 +801,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cheetah_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
         ]
@@ -855,6 +883,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
         ]
@@ -1085,6 +1120,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "clients_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
         ]
       }
       collection_items: {
@@ -1311,6 +1353,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "culling_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
         ]
@@ -1661,6 +1710,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_analytics_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
         ]
       }
       event_qr_access: {
@@ -1696,6 +1752,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_qr_access_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
         ]
       }
       event_views: {
@@ -1723,6 +1786,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_views_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
         ]
@@ -1895,6 +1965,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "face_indexing_jobs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
         ]
       }
       favorites: {
@@ -1925,6 +2002,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
           {
@@ -2017,6 +2101,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "gallery_chapters_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
         ]
       }
       gallery_text_blocks: {
@@ -2080,6 +2171,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gallery_text_blocks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
         ]
@@ -2183,6 +2281,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "guest_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
         ]
       }
       guest_selection_photos: {
@@ -2251,6 +2356,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "guest_selections_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
         ]
       }
       guest_selfies: {
@@ -2290,6 +2402,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "guest_selfies_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "guest_selfies_qr_access_id_fkey"
             columns: ["qr_access_id"]
             isOneToOne: false
@@ -2326,6 +2445,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
         ]
@@ -2489,6 +2615,13 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "leads_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
         ]
       }
       message_templates: {
@@ -2626,6 +2759,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "notifications_photo_id_fkey"
             columns: ["photo_id"]
             isOneToOne: false
@@ -2716,6 +2856,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "photo_comments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "photo_comments_photo_id_fkey"
             columns: ["photo_id"]
             isOneToOne: false
@@ -2770,6 +2917,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "photo_faces_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "photo_faces_photo_id_fkey"
             columns: ["photo_id"]
             isOneToOne: false
@@ -2809,6 +2963,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_interactions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
           {
@@ -2995,6 +3156,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photos_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
         ]
@@ -3685,6 +3853,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "sneak_peeks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "sneak_peeks_photo_id_fkey"
             columns: ["photo_id"]
             isOneToOne: false
@@ -3733,6 +3908,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "storybook_blocks_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
           {
@@ -4165,7 +4347,75 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_events: {
+        Row: {
+          cover_url: string | null
+          download_requires_password: boolean | null
+          download_resolution: string | null
+          downloads_enabled: boolean | null
+          event_date: string | null
+          face_recognition_enabled: boolean | null
+          gallery_layout: string | null
+          gallery_style: string | null
+          has_password: boolean | null
+          has_pin: boolean | null
+          hero_button_label: string | null
+          hero_couple_name: string | null
+          hero_subtitle: string | null
+          id: string | null
+          is_published: boolean | null
+          name: string | null
+          selection_mode_enabled: boolean | null
+          slug: string | null
+          user_id: string | null
+          watermark_enabled: boolean | null
+        }
+        Insert: {
+          cover_url?: string | null
+          download_requires_password?: boolean | null
+          download_resolution?: string | null
+          downloads_enabled?: boolean | null
+          event_date?: string | null
+          face_recognition_enabled?: boolean | null
+          gallery_layout?: string | null
+          gallery_style?: string | null
+          has_password?: never
+          has_pin?: never
+          hero_button_label?: string | null
+          hero_couple_name?: string | null
+          hero_subtitle?: string | null
+          id?: string | null
+          is_published?: boolean | null
+          name?: string | null
+          selection_mode_enabled?: boolean | null
+          slug?: string | null
+          user_id?: string | null
+          watermark_enabled?: boolean | null
+        }
+        Update: {
+          cover_url?: string | null
+          download_requires_password?: boolean | null
+          download_resolution?: string | null
+          downloads_enabled?: boolean | null
+          event_date?: string | null
+          face_recognition_enabled?: boolean | null
+          gallery_layout?: string | null
+          gallery_style?: string | null
+          has_password?: never
+          has_pin?: never
+          hero_button_label?: string | null
+          hero_couple_name?: string | null
+          hero_subtitle?: string | null
+          id?: string | null
+          is_published?: boolean | null
+          name?: string | null
+          selection_mode_enabled?: boolean | null
+          slug?: string | null
+          user_id?: string | null
+          watermark_enabled?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
