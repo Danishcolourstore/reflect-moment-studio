@@ -24,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [studioName, setStudioName] = useState("My Studio");
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
@@ -41,14 +42,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  // Fetch actual studio name from profiles table
+  useEffect(() => {
+    if (!user) {
+      setStudioName("My Studio");
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { data } = await (supabase.from("profiles").select("studio_name") as any)
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!cancelled && data?.studio_name) {
+          setStudioName(data.studio_name);
+        }
+      } catch {
+        // Keep default on error
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
+    setStudioName("My Studio");
     sessionStorage.removeItem("redirectAfterLogin");
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, studioName: "My Studio", signOut }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, session, loading, studioName, signOut }}>{children}</AuthContext.Provider>
   );
 }
