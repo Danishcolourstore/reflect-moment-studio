@@ -175,7 +175,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
         }}
       >
         {/* Logo */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-6 sm:mb-10">
           <h1
             className="text-[28px] font-semibold text-foreground"
             style={{ letterSpacing: "0.04em" }}
