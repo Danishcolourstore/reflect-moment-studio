@@ -34,6 +34,12 @@ export function FindMyPhotosModal({
   const [matchedPhotos, setMatchedPhotos] = useState<MatchedPhoto[]>([]);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    return () => {
+      if (selfiePreview) URL.revokeObjectURL(selfiePreview);
+    };
+  }, []);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reset = useCallback(() => {
