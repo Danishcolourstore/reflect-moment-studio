@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom", "react-router-dom"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react-dom/client"],
+    include: ["react", "react-dom", "react-dom/client", "react-router-dom"],
     force: true,
   },
 }));
