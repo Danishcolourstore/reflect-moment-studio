@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Phone, MessageCircle } from "lucide-react";
 
 const ADMIN_OTP = "470815";
+const USER_CODES = ["141120", "150847"]; // your shared user codes
 
 const VerifyOTP = () => {
   const navigate = useNavigate();
@@ -12,11 +13,22 @@ const VerifyOTP = () => {
   const handleSubmit = () => {
     setError("");
 
+    // 🔐 Super Admin login
     if (code === ADMIN_OTP) {
+      localStorage.setItem("admin_otp", code);
       navigate("/verify-access");
-    } else {
-      setError("Invalid code. Please contact admin.");
+      return;
     }
+
+    // 👤 Normal user login
+    if (USER_CODES.includes(code)) {
+      localStorage.removeItem("admin_otp");
+      navigate("/verify-access");
+      return;
+    }
+
+    // ❌ Invalid
+    setError("Invalid code. Please contact admin.");
   };
 
   return (
