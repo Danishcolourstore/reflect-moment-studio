@@ -41,6 +41,7 @@ const GuestFinder = () => {
   );
 
   const handleFile = (file: File) => {
+    if (selfiePreview) URL.revokeObjectURL(selfiePreview);
     setSelfiePreview(URL.createObjectURL(file));
     submitSelfie(file);
   };

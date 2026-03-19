@@ -56,6 +56,7 @@ export function FindMyPhotosModal({
 
   const handleFile = async (file: File) => {
     if (!file || !eventId) return;
+    if (selfiePreview) URL.revokeObjectURL(selfiePreview);
     setSelfiePreview(URL.createObjectURL(file));
     setStep('processing');
 
