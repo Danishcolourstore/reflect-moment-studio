@@ -113,13 +113,22 @@ function PinGate({ event, studioProfile, onUnlock }: {
 }) {
   const [error, setError] = useState(false);
 
-  const handleComplete = (otp: string) => {
-    if (otp === event.gallery_pin) {
-      localStorage.setItem(`mirrorai_pin_${event.id}`, otp);
-      onUnlock();
-    } else {
-      setError(true);
-      sonnerToast.error('Wrong PIN. Please try again.');
+  const handleComplete = async (otp: string) => {
+    try {
+      const { data, error } = await (supabase.rpc as any)('verify_gallery_pin', {
+        event_id: event.id,
+        pin_input: otp,
+      });
+      if (error) throw error;
+      if (data?.valid) {
+        localStorage.setItem(`mirrorai_pin_verified_${event.id}`, 'true');
+        onUnlock();
+      } else {
+        setError(true);
+        sonnerToast.error('Wrong PIN. Please try again.');
+      }
+    } catch {
+      sonnerToast.error('Verification failed. Please try again.');
     }
   };
 
