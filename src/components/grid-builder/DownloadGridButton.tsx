@@ -88,9 +88,22 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" disabled={exporting} className="gap-1.5 text-[10px]">
-          <Download className="h-3 w-3" />
-          {exporting ? 'Exporting…' : 'Download'}
+        <Button size="sm" disabled={exporting} className="gap-1.5 text-[10px] relative overflow-hidden min-w-[100px]">
+          {exporting ? (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>{progress < 100 ? `${progress}%` : 'Done!'}</span>
+              <div
+                className="absolute bottom-0 left-0 h-[2px] bg-primary-foreground/40 transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </>
+          ) : (
+            <>
+              <Download className="h-3 w-3" />
+              Download
+            </>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="end" className="w-48">
