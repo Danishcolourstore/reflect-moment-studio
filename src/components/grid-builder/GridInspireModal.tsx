@@ -1,6 +1,7 @@
 /**
  * Grid Inspire — Premium AI layout generation experience.
  * Three-step flow: Entry → Crop/Analyze → Preview with variations.
+ * Supports multi-slide carousel posts from Instagram or multiple uploaded screenshots.
  * Mobile-first, gesture-friendly, editorial design language.
  */
 
@@ -113,7 +114,6 @@ function generateVariations(base: GridLayout, textLayers: TextLayer[]): LayoutVa
 
   for (let v = 1; v < 4; v++) {
     const shuffledCells = [...base.cells];
-    // Intelligent shuffle — preserve structure, shift emphasis
     for (let i = shuffledCells.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffledCells[i], shuffledCells[j]] = [shuffledCells[j], shuffledCells[i]];
@@ -169,6 +169,23 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const [shuffleKey, setShuffleKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Multi-slide state
+  const [multiImages, setMultiImages] = useState<string[]>([]);
+  const [multiResults, setMultiResults] = useState<Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string }>>([]);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [analyzingSlide, setAnalyzingSlide] = useState(0);
+  const [totalSlides, setTotalSlides] = useState(0);
+  const [multiMode, setMultiMode] = useState(false);
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      multiImages.forEach(url => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+    };
+  }, []);
+
   // Analysis phase animation
   useEffect(() => {
     if (step !== 'analyzing') return;
@@ -193,9 +210,94 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
 
   const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) { toast.error('Please upload an image'); return; }
+    setMultiMode(false);
     setImageSrc(URL.createObjectURL(file));
     setStep('crop');
   }, []);
+
+  const handleBatchAnalyze = useCallback(async (imageUrls: string[]) => {
+    setStep('analyzing');
+    setMultiResults([]);
+    setAnalyzingSlide(0);
+    setTotalSlides(imageUrls.length);
+
+    const results: Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string }> = [];
+
+    for (let i = 0; i < imageUrls.length; i++) {
+      setAnalyzingSlide(i + 1);
+      setAnalysisPhase(Math.min(i % ANALYSIS_PHASES.length, ANALYSIS_PHASES.length - 1));
+
+      try {
+        const response = await fetch(imageUrls[i]);
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+
+        const resp = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-grid-layout`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ image: base64 }),
+          }
+        );
+
+        if (resp.ok) {
+          const { layout, textBlocks } = await resp.json();
+          if (layout?.cells?.length) {
+            const generated: GridLayout = {
+              id: `inspire-${Date.now()}-${i}`,
+              name: `Slide ${i + 1}`,
+              category: 'creative',
+              cols: layout.gridCols,
+              rows: layout.gridRows,
+              cells: layout.cells,
+              gridCols: layout.gridCols,
+              gridRows: layout.gridRows,
+              canvasRatio: layout.canvasRatio || 1,
+            };
+            const textLayers = textBlocks?.length ? textBlocksToLayers(textBlocks) : [];
+            results.push({ layout: generated, textLayers, image: imageUrls[i] });
+          } else {
+            const fallback = GRID_LAYOUTS.filter(l => l.category === 'creative' && l.cells.length >= 2)[i % 5] || GRID_LAYOUTS[0];
+            results.push({ layout: { ...fallback, id: `inspire-fallback-${i}`, name: `Slide ${i + 1}` }, textLayers: [], image: imageUrls[i] });
+          }
+        } else {
+          const fallback = GRID_LAYOUTS.filter(l => l.category === 'creative' && l.cells.length >= 2)[i % 5] || GRID_LAYOUTS[0];
+          results.push({ layout: { ...fallback, id: `inspire-fallback-${i}`, name: `Slide ${i + 1}` }, textLayers: [], image: imageUrls[i] });
+        }
+      } catch {
+        const fallback = GRID_LAYOUTS.filter(l => l.category === 'creative')[i % 5] || GRID_LAYOUTS[0];
+        results.push({ layout: { ...fallback, id: `inspire-fallback-${i}`, name: `Slide ${i + 1}` }, textLayers: [], image: imageUrls[i] });
+      }
+    }
+
+    setMultiResults(results);
+    setCurrentSlideIndex(0);
+    setStep('preview');
+  }, []);
+
+  const handleMultiFileSelect = useCallback((files: File[]) => {
+    const images = files.filter(f => f.type.startsWith('image/'));
+    if (images.length === 0) { toast.error('No valid images found'); return; }
+    if (images.length === 1) {
+      setMultiMode(false);
+      setImageSrc(URL.createObjectURL(images[0]));
+      setStep('crop');
+      return;
+    }
+    setMultiMode(true);
+    const urls = images.map(f => URL.createObjectURL(f));
+    setMultiImages(urls);
+    setTotalSlides(urls.length);
+    handleBatchAnalyze(urls);
+  }, [handleBatchAnalyze]);
 
   const handleInstagramLink = useCallback(async () => {
     const url = linkValue.trim();
@@ -217,25 +319,52 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           body: JSON.stringify({ url }),
         }
       );
-      if (!proxyResp.ok) throw new Error('Could not fetch Instagram image');
-      const { imageBase64 } = await proxyResp.json();
-      if (!imageBase64) throw new Error('No image found in post');
-      
-      const byteString = atob(imageBase64.split(',').pop() || imageBase64);
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-      const blob = new Blob([ab], { type: 'image/jpeg' });
-      setImageSrc(URL.createObjectURL(blob));
-      setStep('crop');
-      setShowLinkInput(false);
-      setLinkValue('');
+      if (!proxyResp.ok) {
+        const errData = await proxyResp.json().catch(() => ({}));
+        throw new Error(errData.error || 'Could not fetch Instagram image');
+      }
+      const result = await proxyResp.json();
+
+      // Check if carousel with multiple images
+      if (result.images && result.images.length > 1) {
+        setMultiMode(true);
+        setShowLinkInput(false);
+        setLinkValue('');
+        toast.success(`Found ${result.images.length} carousel slides!`);
+
+        const blobUrls: string[] = [];
+        for (const b64 of result.images) {
+          const byteString = atob(b64);
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+          const blob = new Blob([ab], { type: 'image/jpeg' });
+          blobUrls.push(URL.createObjectURL(blob));
+        }
+        setMultiImages(blobUrls);
+        setTotalSlides(blobUrls.length);
+        handleBatchAnalyze(blobUrls);
+      } else if (result.imageBase64) {
+        setMultiMode(false);
+        const b64 = result.imageBase64;
+        const byteString = atob(b64.split(',').pop() || b64);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+        const blob = new Blob([ab], { type: 'image/jpeg' });
+        setImageSrc(URL.createObjectURL(blob));
+        setStep('crop');
+        setShowLinkInput(false);
+        setLinkValue('');
+      } else {
+        throw new Error('No images found in post');
+      }
     } catch (err: any) {
-      toast.error(err.message || 'Failed to load Instagram image. Try uploading a screenshot instead.');
+      toast.error(err.message || 'Failed to load Instagram image. Try uploading screenshots instead.');
     } finally {
       setLinkLoading(false);
     }
-  }, [linkValue]);
+  }, [linkValue, handleBatchAnalyze]);
 
   const handleAutoGenerate = useCallback(() => {
     setStep('analyzing');
@@ -354,15 +483,20 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '200ms' }}>
               <EntryCard
                 icon={<Upload className="h-5 w-5" />}
-                title="Upload Screenshot"
-                subtitle="AI detects grid, fonts & spacing"
+                title="Upload Screenshots"
+                subtitle="Upload 1 or multiple slides — AI detects each"
                 onClick={() => {
                   const input = document.createElement('input');
                   input.type = 'file';
                   input.accept = 'image/*';
+                  input.multiple = true;
                   input.onchange = (e) => {
-                    const file = (e.target as HTMLInputElement).files?.[0];
-                    if (file) handleFileSelect(file);
+                    const files = Array.from((e.target as HTMLInputElement).files || []);
+                    if (files.length === 1) {
+                      handleFileSelect(files[0]);
+                    } else if (files.length > 1) {
+                      handleMultiFileSelect(files);
+                    }
                   };
                   input.click();
                 }}
@@ -442,8 +576,14 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           </div>
 
           <div>
-            <h3 className="font-display text-lg font-semibold text-foreground mb-1">Analyzing Design</h3>
-            <p className="text-xs text-muted-foreground">This takes a few seconds</p>
+            <h3 className="font-display text-lg font-semibold text-foreground mb-1">
+              {totalSlides > 1 ? 'Analyzing Slides' : 'Analyzing Design'}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {totalSlides > 1
+                ? `Slide ${analyzingSlide} of ${totalSlides}`
+                : 'This takes a few seconds'}
+            </p>
           </div>
 
           {/* Phase steps */}
@@ -484,7 +624,9 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             <div className="h-1 bg-secondary rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${((analysisPhase + 1) / ANALYSIS_PHASES.length) * 100}%` }}
+                style={{ width: `${totalSlides > 1
+                  ? ((analyzingSlide) / totalSlides) * 100
+                  : ((analysisPhase + 1) / ANALYSIS_PHASES.length) * 100}%` }}
               />
             </div>
           </div>
@@ -493,7 +635,156 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     );
   }
 
-  // ─── Preview Screen ───
+  // ─── Multi-Slide Preview Screen ───
+  if (step === 'preview' && multiMode && multiResults.length > 0) {
+    const current = multiResults[currentSlideIndex];
+
+    return (
+      <div className="fixed inset-0 z-50 bg-background flex flex-col">
+        {/* Header */}
+        <div className="px-4 py-3 flex items-center justify-between border-b border-border/30">
+          <button onClick={() => { setStep('entry'); setMultiResults([]); setMultiImages([]); }} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div className="text-center">
+            <h2 className="text-xs font-semibold tracking-[0.15em] uppercase text-foreground">
+              {multiResults.length} Slides Detected
+            </h2>
+            <p className="text-[9px] text-muted-foreground mt-0.5">
+              Slide {currentSlideIndex + 1} of {multiResults.length}
+            </p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Current slide — reference image + detected layout */}
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="max-w-lg mx-auto space-y-4">
+            {/* Reference image */}
+            <div className="rounded-xl overflow-hidden border border-border/50 bg-muted">
+              <img src={current.image} alt={`Slide ${currentSlideIndex + 1}`} className="w-full object-contain max-h-[240px]" />
+            </div>
+
+            {/* Detected layout preview */}
+            <div className="bg-card rounded-xl border border-border p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-xs font-semibold text-foreground">Detected Layout</p>
+                  <p className="text-[10px] text-muted-foreground">{current.layout.cells.length} cells • {current.layout.gridCols}×{current.layout.gridRows} grid</p>
+                </div>
+                {current.textLayers.length > 0 && (
+                  <span className="text-[9px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                    {current.textLayers.length} text{current.textLayers.length > 1 ? 's' : ''} detected
+                  </span>
+                )}
+              </div>
+
+              {/* Grid preview */}
+              <div
+                className="w-full rounded-lg overflow-hidden bg-secondary/30"
+                style={{ aspectRatio: `${current.layout.canvasRatio || 1}`, maxHeight: 180 }}
+              >
+                <div
+                  className="w-full h-full grid p-1"
+                  style={{
+                    gridTemplateColumns: `repeat(${current.layout.gridCols}, 1fr)`,
+                    gridTemplateRows: `repeat(${current.layout.gridRows}, 1fr)`,
+                    gap: '3px',
+                  }}
+                >
+                  {current.layout.cells.map((cell, ci) => (
+                    <div
+                      key={ci}
+                      className="bg-primary/12 rounded-[3px] flex items-center justify-center"
+                      style={{
+                        gridRow: `${cell[0]} / ${cell[2]}`,
+                        gridColumn: `${cell[1]} / ${cell[3]}`,
+                      }}
+                    >
+                      <Images className="h-3 w-3 text-primary/30" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Detected text blocks */}
+              {current.textLayers.length > 0 && (
+                <div className="mt-3 space-y-1.5">
+                  <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-medium">Detected text</p>
+                  {current.textLayers.map((tl, ti) => (
+                    <div key={ti} className="flex items-center gap-2 bg-muted/30 rounded-lg px-2.5 py-1.5">
+                      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: tl.color, border: '1px solid hsl(var(--border))' }} />
+                      <span className="text-[11px] text-foreground truncate flex-1" style={{ fontFamily: tl.fontFamily }}>
+                        {tl.text}
+                      </span>
+                      <span className="text-[8px] text-muted-foreground shrink-0">{tl.fontFamily} {tl.fontWeight}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Slide strip — horizontal scroll at bottom */}
+        <div className="border-t border-border/30 bg-card/50">
+          <div className="flex gap-1.5 px-3 py-2.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+            {multiResults.map((result, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentSlideIndex(i)}
+                className={`shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                  i === currentSlideIndex
+                    ? 'border-primary shadow-md shadow-primary/20 scale-100'
+                    : 'border-transparent opacity-50 hover:opacity-80 scale-95'
+                }`}
+              >
+                <img src={result.image} alt="" className="w-12 h-12 object-cover" />
+                <p className={`text-[7px] text-center py-0.5 font-medium ${
+                  i === currentSlideIndex ? 'text-primary' : 'text-muted-foreground'
+                }`}>
+                  {i + 1}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom actions */}
+        <div className="px-5 pt-2 flex gap-2.5 max-w-sm mx-auto w-full" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
+          <Button
+            variant="outline"
+            className="h-12 px-4 gap-1.5"
+            onClick={() => {
+              onLayoutGenerated(current.layout, current.textLayers);
+              toast.success(`Slide ${currentSlideIndex + 1} layout applied!`);
+            }}
+          >
+            <Check className="h-3.5 w-3.5" />
+            This Slide
+          </Button>
+          <Button
+            className="flex-1 h-12 gap-2 text-sm font-medium tracking-wide shadow-lg shadow-primary/20"
+            onClick={() => {
+              onLayoutGenerated(current.layout, current.textLayers);
+              if (currentSlideIndex < multiResults.length - 1) {
+                toast.success(`Slide ${currentSlideIndex + 1} applied! Open Inspire again for the next slide.`);
+              } else {
+                toast.success('Layout applied — start adding your photos!');
+              }
+            }}
+          >
+            <Sparkles className="h-4 w-4" />
+            Apply & Edit
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Preview Screen (single-image flow) ───
   if (step === 'preview' && variations.length > 0) {
     const current = variations[activeVariation];
 
