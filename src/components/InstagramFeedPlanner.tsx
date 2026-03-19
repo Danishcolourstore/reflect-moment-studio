@@ -524,6 +524,14 @@ export default function InstagramFeedPlanner({ photos, username = 'photographer'
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [unlockedMilestones, setUnlockedMilestones] = useState<Set<string>>(new Set());
 
+  useEffect(() => {
+    return () => {
+      uploadedPhotos.forEach(url => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+    };
+  }, []);
+
   const allPhotos = [...photos, ...uploadedPhotos];
   const config = GRID_CONFIGS[gridSize];
   const colors = igTheme === 'dark' ? IG_DARK : IG_LIGHT;

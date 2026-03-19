@@ -20,6 +20,12 @@ const Onboarding = () => {
   const [slug, setSlug] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+    };
+  }, []);
   const [eventTitle, setEventTitle] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [eventLocation, setEventLocation] = useState('');
@@ -154,7 +160,11 @@ const Onboarding = () => {
               </div>
               <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={e => {
                 const f = e.target.files?.[0];
-                if (f) { setLogoFile(f); setLogoPreview(URL.createObjectURL(f)); }
+                if (f) {
+                  setLogoFile(f);
+                  if (logoPreview) URL.revokeObjectURL(logoPreview);
+                  setLogoPreview(URL.createObjectURL(f));
+                }
               }} />
               <div onClick={() => logoRef.current?.click()} className="mx-auto h-[200px] w-[200px] rounded-full border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/40 transition-colors overflow-hidden">
                 {logoPreview ? <img src={logoPreview} className="h-full w-full object-cover" /> : <Camera className="h-10 w-10 text-muted-foreground/25" />}

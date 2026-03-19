@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Camera, Upload, Loader2, Download, Share2, X, Sparkles, Heart } from 'lucide-react';
@@ -34,6 +34,12 @@ export function FindMyPhotosModal({
   const [matchedPhotos, setMatchedPhotos] = useState<MatchedPhoto[]>([]);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    return () => {
+      if (selfiePreview) URL.revokeObjectURL(selfiePreview);
+    };
+  }, []);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reset = useCallback(() => {
@@ -50,6 +56,7 @@ export function FindMyPhotosModal({
 
   const handleFile = async (file: File) => {
     if (!file || !eventId) return;
+    if (selfiePreview) URL.revokeObjectURL(selfiePreview);
     setSelfiePreview(URL.createObjectURL(file));
     setStep('processing');
 
