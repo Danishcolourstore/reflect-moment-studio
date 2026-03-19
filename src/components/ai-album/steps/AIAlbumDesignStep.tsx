@@ -67,6 +67,73 @@ export default function AIAlbumDesignStep({
       )}>
         {presets.map((preset) => {
           const isSelected = selectedPreset.id === preset.id;
+
+          const getLayoutPreview = () => {
+            const bg = preset.bgColor;
+            const text = preset.textColor;
+            const r = preset.borderRadius / 2;
+
+            const photoStyle = (opacity: number = 0.35) => ({
+              backgroundColor: text,
+              opacity,
+              borderRadius: `${r}px`,
+            });
+
+            switch (preset.photoArrangement) {
+              case 'hero-heavy':
+                return (
+                  <div className="flex gap-[2px] h-full p-[3px]" style={{ backgroundColor: bg }}>
+                    <div className="flex-[2] rounded-[1px]" style={photoStyle(0.4)} />
+                    <div className="flex-1 flex flex-col gap-[2px]">
+                      <div className="flex-1 rounded-[1px]" style={photoStyle(0.25)} />
+                      <div className="flex-1 rounded-[1px]" style={photoStyle(0.3)} />
+                    </div>
+                  </div>
+                );
+              case 'grid-heavy':
+                return (
+                  <div className="grid grid-cols-3 grid-rows-2 gap-[2px] h-full p-[3px]" style={{ backgroundColor: bg }}>
+                    <div className="rounded-[1px]" style={photoStyle(0.35)} />
+                    <div className="rounded-[1px]" style={photoStyle(0.25)} />
+                    <div className="rounded-[1px]" style={photoStyle(0.3)} />
+                    <div className="rounded-[1px]" style={photoStyle(0.28)} />
+                    <div className="rounded-[1px]" style={photoStyle(0.35)} />
+                    <div className="rounded-[1px]" style={photoStyle(0.22)} />
+                  </div>
+                );
+              case 'cinematic':
+                return (
+                  <div className="flex flex-col gap-[2px] h-full p-[3px]" style={{ backgroundColor: bg }}>
+                    <div className="flex-[3] rounded-[1px]" style={photoStyle(0.4)} />
+                    <div className="flex-1 flex gap-[2px]">
+                      <div className="flex-1 rounded-[1px]" style={photoStyle(0.2)} />
+                      <div className="flex-1 rounded-[1px]" style={photoStyle(0.25)} />
+                      <div className="flex-1 rounded-[1px]" style={photoStyle(0.2)} />
+                    </div>
+                  </div>
+                );
+              case 'collage':
+                return (
+                  <div className="grid grid-cols-3 grid-rows-2 gap-[2px] h-full p-[3px]" style={{ backgroundColor: bg }}>
+                    <div className="col-span-2 row-span-1 rounded-[1px]" style={photoStyle(0.35)} />
+                    <div className="row-span-2 rounded-[1px]" style={photoStyle(0.3)} />
+                    <div className="rounded-[1px]" style={photoStyle(0.25)} />
+                    <div className="rounded-[1px]" style={photoStyle(0.28)} />
+                  </div>
+                );
+              default:
+                return (
+                  <div className="flex gap-[2px] h-full p-[3px]" style={{ backgroundColor: bg }}>
+                    <div className="flex-1 flex flex-col gap-[2px]">
+                      <div className="flex-1 rounded-[1px]" style={photoStyle(0.3)} />
+                      <div className="flex-1 rounded-[1px]" style={photoStyle(0.25)} />
+                    </div>
+                    <div className="flex-[1.5] rounded-[1px]" style={photoStyle(0.4)} />
+                  </div>
+                );
+            }
+          };
+
           return (
             <Card
               key={preset.id}
@@ -76,27 +143,22 @@ export default function AIAlbumDesignStep({
               )}
               onClick={() => onSelectPreset(preset)}
             >
-              <div className={cn("relative", isMobile ? "h-12" : "h-14 sm:h-16")} style={{ backgroundColor: preset.bgColor }}>
-                <div className="absolute inset-0 flex items-center justify-center gap-1.5 px-3">
-                  <div className="w-6 h-9 rounded-[2px] border" style={{ borderColor: preset.textColor + '40', backgroundColor: preset.textColor + '15' }} />
-                  <div className="flex flex-col gap-[2px]">
-                    <div className="w-5 h-4 rounded-[1px]" style={{ backgroundColor: preset.accentColor + '90' }} />
-                    <div className="w-5 h-4 rounded-[1px]" style={{ backgroundColor: preset.textColor + '30' }} />
-                  </div>
-                  <div className="w-6 h-9 rounded-[2px] border" style={{ borderColor: preset.textColor + '40', backgroundColor: preset.accentColor + '15' }} />
-                </div>
+              <div className={cn("relative", isMobile ? "h-16" : "h-20 sm:h-24")}>
+                {getLayoutPreview()}
                 {isSelected && (
                   <div className="absolute top-1.5 right-1.5 bg-primary rounded-full p-0.5 shadow-sm">
                     <Check className="h-3 w-3 text-primary-foreground" />
                   </div>
                 )}
+                <div className="absolute bottom-0 left-0 right-0 h-[3px]" style={{ backgroundColor: preset.accentColor }} />
               </div>
 
               <div className="p-2.5">
-                <h3 className="text-xs font-bold text-foreground leading-tight">{preset.name}</h3>
-                {!isMobile && (
-                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{preset.description}</p>
-                )}
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-xs font-bold text-foreground leading-tight flex-1 truncate">{preset.name}</h3>
+                  <div className="h-2.5 w-2.5 rounded-full shrink-0 border border-border/50" style={{ backgroundColor: preset.accentColor }} />
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{preset.description}</p>
                 <div className="flex gap-1 mt-1.5 flex-wrap">
                   <Badge variant="outline" className="text-[8px] px-1 py-0 capitalize">{preset.style}</Badge>
                   <Badge variant="outline" className="text-[8px] px-1 py-0 capitalize">{preset.photoArrangement.replace("-", " ")}</Badge>
