@@ -75,6 +75,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Verify the authenticated user owns this session
+    if (session.user_id !== userData.user.id) {
+      return new Response(
+        JSON.stringify({ error: "You do not own this session" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (session.status !== "active") {
       return new Response(
         JSON.stringify({ error: "Session is not active" }),
