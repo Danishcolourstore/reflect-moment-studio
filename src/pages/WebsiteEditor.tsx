@@ -309,8 +309,9 @@ const WebsiteEditor = () => {
 
       toast.success('Portfolio website deleted');
       navigate('/dashboard/branding');
-    } catch {
-      toast.error('Failed to delete website');
+    } catch (err) {
+      console.error('Website operation failed:', err);
+      toast.error('Something went wrong. Please try again.');
     }
     setDeleting(false);
   }, [user, navigate]);

@@ -227,7 +227,9 @@ export default function DomainSettings() {
       });
       if (error) throw error;
       return !!data?.success;
-    } catch {
+    } catch (err) {
+      console.error('Domain operation failed:', err);
+      toast({ title: 'Domain operation failed. Please try again.', variant: 'destructive' });
       return false;
     }
   }, [customRow, user]);

@@ -45,7 +45,8 @@ export default function AdminPinReset() {
       } else {
         setError(data?.error || 'Reset failed. Token may be expired.');
       }
-    } catch {
+    } catch (err) {
+      console.error('PIN reset failed:', err);
       setError('Reset failed. Please try again.');
     } finally {
       setSubmitting(false);
