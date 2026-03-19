@@ -216,7 +216,8 @@ You are in structured code generation mode. Respond ONLY with a JSON object:
   }
 });
 
-async function handleLovable(messages: { role: string; content: string }[], systemPrompt: string) {
+async function handleLovable(req: Request, messages: { role: string; content: string }[], systemPrompt: string) {
+  const corsHeaders = getCorsHeaders(req);
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     return new Response(
