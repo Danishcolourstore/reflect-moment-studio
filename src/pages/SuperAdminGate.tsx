@@ -1,7 +1,9 @@
-import { ReactNode, useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/lib/auth';
-import { supabase } from '@/integrations/supabase/client';
+import { ReactNode, useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+
+const ADMIN_OTP = "470815";
 
 export default function SuperAdminGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -11,23 +13,37 @@ export default function SuperAdminGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    if (loading) return () => { cancelled = true; };
+    // 🔥 OTP bypass (stored in localStorage after login)
+    const otpUsed = localStorage.getItem("admin_otp");
+
+    if (otpUsed === ADMIN_OTP) {
+      setIsSuperAdmin(true);
+      setChecking(false);
+      return;
+    }
+
+    if (loading)
+      return () => {
+        cancelled = true;
+      };
 
     if (!user) {
       setIsSuperAdmin(false);
       setChecking(false);
-      return () => { cancelled = true; };
+      return () => {
+        cancelled = true;
+      };
     }
 
     const rolePromise = supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'super_admin')
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "super_admin")
       .maybeSingle();
 
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('role_check_timeout')), 5000);
+      setTimeout(() => reject(new Error("role_check_timeout")), 5000);
     });
 
     Promise.race([rolePromise, timeoutPromise])
@@ -62,4 +78,3 @@ export default function SuperAdminGate({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
-
