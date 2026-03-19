@@ -309,6 +309,7 @@ const Clients = () => {
           </table>
           </div>
         </div>
+        </>
       )}
 
       <InviteClientModal open={inviteOpen} onOpenChange={setInviteOpen} onInvited={loadClients} />
