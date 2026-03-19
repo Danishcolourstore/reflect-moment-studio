@@ -150,9 +150,7 @@ function PinGate({ event, studioProfile, onUnlock }: {
         <p className="text-sm text-muted-foreground">Enter the 4-digit PIN to view this gallery.</p>
         <OtpInput length={4} onComplete={handleComplete} />
         {error && <p className="text-xs text-destructive">Incorrect PIN</p>}
-        <Button onClick={() => {}} className="w-full" disabled>
-          Enter Gallery
-        </Button>
+        {checking && <p className="text-xs text-muted-foreground">Verifying…</p>}
       </div>
     </div>
   );
