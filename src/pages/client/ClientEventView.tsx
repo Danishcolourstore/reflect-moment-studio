@@ -36,6 +36,7 @@ const ClientEventView = () => {
       // Load event
       const { data: evt } = await (supabase.from('events').select('*') as any).eq('id', id).maybeSingle();
       if (!evt) return;
+      setEvent(evt);
 
       // Load photos
       const { data: ph } = await (supabase.from('photos').select('id, url, file_name, file_size') as any)
