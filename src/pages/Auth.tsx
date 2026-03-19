@@ -132,7 +132,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
   const isLogin = tab === "login";
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center px-6 bg-background overflow-hidden">
+    <div className="fixed inset-0 flex items-center justify-center px-4 sm:px-6 bg-background overflow-y-auto overflow-x-hidden py-8">
       {/* ── Film grain overlay ── */}
       <div
         className="fixed inset-0 pointer-events-none z-[1]"
@@ -175,7 +175,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
         }}
       >
         {/* Logo */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-6 sm:mb-10">
           <h1
             className="text-[28px] font-semibold text-foreground"
             style={{ letterSpacing: "0.04em" }}
@@ -192,7 +192,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
 
         {/* Card with matte photo-paper texture */}
         <div
-          className="bg-card rounded-xl border border-border p-8 relative overflow-hidden"
+          className="bg-card rounded-xl border border-border p-5 sm:p-8 relative overflow-hidden"
           style={{
             boxShadow: "0 8px 40px -12px rgba(0,0,0,0.6), inset 0 0 40px 8px rgba(0,0,0,0.15)",
           }}
@@ -295,7 +295,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full h-12 sm:h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ letterSpacing: "0.03em" }}
             >
               {loading ? (

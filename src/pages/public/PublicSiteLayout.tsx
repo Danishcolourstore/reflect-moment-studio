@@ -29,28 +29,28 @@ function LayoutInner() {
 
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-[#FDFBF7]/95 backdrop-blur border-b border-[#E8E0D4]">
-        <div className="max-w-6xl mx-auto flex items-center justify-between h-14 px-4">
-          <Link to="/" className="text-xl text-[#1A1A1A] tracking-wide" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+        <div className="max-w-6xl mx-auto flex items-center justify-between h-14 sm:h-14 px-4">
+          <Link to="/" className="text-lg sm:text-xl text-[#1A1A1A] tracking-wide truncate mr-4" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
             {studioName}
           </Link>
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4 lg:gap-6">
             {NAV_LINKS.map(l => (
               <Link key={l.path} to={l.path}
-                className={`text-sm tracking-wide transition-colors ${location.pathname === l.path ? "text-[#C9A96E]" : "text-[#1A1A1A]/60 hover:text-[#1A1A1A]"}`}
+                className={`text-sm tracking-wide transition-colors py-2 ${location.pathname === l.path ? "text-[#C9A96E]" : "text-[#1A1A1A]/60 hover:text-[#1A1A1A]"}`}
                 style={{ fontFamily: "Inter, sans-serif" }}>
                 {l.label}
               </Link>
             ))}
           </div>
-          <button className="md:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+          <button className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
         {mobileOpen && (
-          <div className="md:hidden border-t border-[#E8E0D4] px-4 py-3 space-y-2">
+          <div className="md:hidden border-t border-[#E8E0D4] px-4 py-2 space-y-1">
             {NAV_LINKS.map(l => (
               <Link key={l.path} to={l.path} onClick={() => setMobileOpen(false)}
-                className={`block py-2 text-sm ${location.pathname === l.path ? "text-[#C9A96E]" : "text-[#1A1A1A]/60"}`}
+                className={`block py-3 px-2 text-sm rounded-lg min-h-[44px] flex items-center ${location.pathname === l.path ? "text-[#C9A96E] bg-[#C9A96E]/5" : "text-[#1A1A1A]/60 active:bg-[#1A1A1A]/5"}`}
                 style={{ fontFamily: "Inter, sans-serif" }}>
                 {l.label}
               </Link>

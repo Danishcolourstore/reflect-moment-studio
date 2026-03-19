@@ -249,20 +249,20 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Header */}
       <header
-        className="fixed top-0 right-0 z-20 flex items-center justify-between px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14"
+        className="fixed top-0 right-0 z-20 flex items-center justify-between px-3 sm:px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14"
         style={{ left: showSidebar ? sidebarWidth : 0 }}
       >
-        {!showSidebar && <h2 className="text-foreground font-semibold text-lg tracking-tight">Mirror AI</h2>}
+        {!showSidebar && <h2 className="text-foreground font-semibold text-base sm:text-lg tracking-tight truncate mr-2">Mirror AI</h2>}
         {showSidebar && (
-          <h2 className="text-sm font-medium text-foreground">
+          <h2 className="text-sm font-medium text-foreground truncate">
             {PAGE_TITLES[location.pathname] || ''}
           </h2>
         )}
-        <div className="flex items-center gap-1.5">
-          {/* Accent toggle: Red ↔ Gold */}
+        <div className="flex items-center gap-1 shrink-0">
+          {/* Accent toggle */}
           <button
             onClick={() => switchAccent(accent === 'gold' ? 'red' : 'gold')}
-            className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-secondary/80 border border-border/60 hover:bg-secondary transition-all duration-300 group"
+            className="relative flex items-center gap-1 px-2 py-1.5 rounded-full bg-secondary/80 border border-border/60 hover:bg-secondary transition-all duration-300 group min-h-[36px]"
             title={`Accent: ${accent === 'gold' ? 'Gold' : 'Red'}`}
           >
             <span
@@ -276,7 +276,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   : '0 0 8px hsl(0 65% 42% / 0.5)',
               }}
             />
-            <span className="text-[9px] font-semibold tracking-wider uppercase text-muted-foreground group-hover:text-foreground transition-colors">
+            <span className="text-[9px] font-semibold tracking-wider uppercase text-muted-foreground group-hover:text-foreground transition-colors hidden sm:inline">
               {accent === 'gold' ? 'Gold' : 'Red'}
             </span>
           </button>
@@ -287,7 +287,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               const idx = THEME_ORDER.indexOf(theme);
               switchTheme(THEME_ORDER[(idx + 1) % THEME_ORDER.length]);
             }}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
             title={`Theme: ${theme}`}
           >
             {THEME_ICONS[theme]}
@@ -295,7 +295,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="ml-1">
+              <button className="ml-0.5 min-h-[36px] min-w-[36px] flex items-center justify-center">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profile?.avatar_url || undefined} />
                   <AvatarFallback className="bg-secondary text-muted-foreground text-xs font-medium">{initials}</AvatarFallback>
