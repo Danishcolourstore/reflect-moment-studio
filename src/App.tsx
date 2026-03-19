@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StorybookGate } from "@/components/StorybookGate";
 import { GalleryShell } from "./components/GalleryShell";
 import { useEffect, useState, lazy, Suspense } from "react";
