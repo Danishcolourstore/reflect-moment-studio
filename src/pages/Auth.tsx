@@ -192,7 +192,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
 
         {/* Card with matte photo-paper texture */}
         <div
-          className="bg-card rounded-xl border border-border p-8 relative overflow-hidden"
+          className="bg-card rounded-xl border border-border p-5 sm:p-8 relative overflow-hidden"
           style={{
             boxShadow: "0 8px 40px -12px rgba(0,0,0,0.6), inset 0 0 40px 8px rgba(0,0,0,0.15)",
           }}
