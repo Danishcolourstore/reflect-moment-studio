@@ -265,8 +265,9 @@ const WebsiteEditor = () => {
         await (supabase.from('studio_profiles').insert({ user_id: user.id, ...studioData } as any) as any);
       }
       toast.success('Website saved');
-    } catch {
-      toast.error('Failed to save');
+    } catch (err) {
+      console.error('Failed to save website:', err);
+      toast.error('Failed to save changes. Please try again.');
     }
     setSaving(false);
   }, [user, studioName, accentColor, bio, tagline, instagram, websiteUrl, whatsapp, footerText, username, websiteTemplate, sectionOrder, sectionVisibility, servicesData, testimonialsData, featuredGalleryIds, portfolioLayout, heroButtonLabel, heroButtonUrl, websiteImages]);
