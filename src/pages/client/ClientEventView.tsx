@@ -30,7 +30,7 @@ const ClientEventView = () => {
 
       // Verify access
       const { data: access } = await (supabase.from('client_events').select('id') as any)
-        .eq('client_id', client.id).eq('event_id', id).single();
+        .eq('client_id', client.id).eq('event_id', id).maybeSingle();
       if (!access) { navigate('/client/events'); return; }
 
       // Load event
