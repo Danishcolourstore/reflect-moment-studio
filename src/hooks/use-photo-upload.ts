@@ -97,6 +97,47 @@ async function fileHash(file: File): Promise<string> {
   return `${size}-${hashArr.slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('')}`;
 }
 
+/** Get a presigned R2 URL from our edge function */
+async function getR2PresignedUrl(
+  fileName: string, contentType: string, eventId: string,
+): Promise<{ presignedUrl: string; publicUrl: string; key: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase.functions.invoke('get-r2-presigned-url', {
+    body: { fileName, contentType, eventId },
+  });
+  if (error) throw new Error(error.message || 'Failed to get upload URL');
+  if (!data?.presignedUrl) throw new Error('No presigned URL returned');
+  return data;
+}
+
+/** Upload directly to R2 via presigned PUT URL with progress tracking */
+function uploadToR2(
+  presignedUrl: string, file: File, contentType: string, timeoutMs: number,
+  onProgress: (pct: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.timeout = timeoutMs;
+    const keepalive = setInterval(() => {}, KEEPALIVE_INTERVAL);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.min(Math.round((e.loaded / e.total) * 100), 95));
+    };
+    xhr.onload = () => {
+      clearInterval(keepalive);
+      if (xhr.status >= 200 && xhr.status < 300) { onProgress(100); resolve(); }
+      else reject(new Error(`R2 upload failed (${xhr.status})`));
+    };
+    xhr.onerror = () => { clearInterval(keepalive); reject(new Error('Network error — failed to fetch')); };
+    xhr.ontimeout = () => { clearInterval(keepalive); reject(new Error('Upload timed out')); };
+    xhr.open('PUT', presignedUrl, true);
+    xhr.setRequestHeader('Content-Type', contentType);
+    xhr.send(file);
+  });
+}
+
+/** Legacy Supabase Storage upload — kept as fallback */
 function uploadWithXHR(
   bucket: string, path: string, file: File, timeoutMs: number,
   onProgress: (pct: number) => void,
@@ -182,30 +223,34 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
     }
     updateFileInfo(id, { compressedSize: processedFile.size });
 
-    // Upload with retries
+    // Upload with retries — R2 primary, Supabase Storage fallback
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       if (abortRef.current) return false;
       updateFileInfo(id, { status: 'uploading', retryCount: attempt, progress: attempt > 0 ? 0 : 5 });
 
       try {
-        const ext = file.name.split('.').pop();
-        const path = `${userId}/${eventId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const contentType = processedFile.type || 'image/jpeg';
+        let publicUrl: string;
 
         try {
+          // Primary: R2 via presigned URL
+          const r2 = await getR2PresignedUrl(file.name, contentType, eventId!);
+          await uploadToR2(r2.presignedUrl, processedFile, contentType, UPLOAD_TIMEOUT, (pct) => {
+            updateFileInfo(id, pct >= 95 ? { status: 'finalizing', progress: pct } : { progress: pct });
+          });
+          publicUrl = r2.publicUrl;
+        } catch (r2Err: any) {
+          // Fallback: Supabase Storage
+          const ext = file.name.split('.').pop();
+          const path = `${userId}/${eventId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
           await uploadWithXHR('gallery-photos', path, processedFile, UPLOAD_TIMEOUT, (pct) => {
             updateFileInfo(id, pct >= 95 ? { status: 'finalizing', progress: pct } : { progress: pct });
           });
-        } catch (xhrErr: any) {
-          const xhrMsg = String(xhrErr?.message || '').toLowerCase();
-          if (xhrMsg.includes('network') || xhrMsg.includes('failed to fetch') || xhrMsg.includes('timed out')) throw xhrErr;
-          updateFileInfo(id, { progress: 50 });
-          const { error: sdkError } = await uploadWithSDK('gallery-photos', path, processedFile, UPLOAD_TIMEOUT);
-          if (sdkError) throw sdkError;
+          publicUrl = supabase.storage.from('gallery-photos').getPublicUrl(path).data.publicUrl;
         }
 
         updateFileInfo(id, { status: 'finalizing', progress: 96 });
 
-        const { data: { publicUrl } } = supabase.storage.from('gallery-photos').getPublicUrl(path);
         const { error: insertError } = await supabase.from('photos').insert({
           event_id: eventId, user_id: userId, url: publicUrl, file_name: file.name, file_size: file.size,
         } as any);

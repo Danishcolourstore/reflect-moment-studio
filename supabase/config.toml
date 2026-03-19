@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.cheetah-camera-upload]
 verify_jwt = false
+
+[functions.get-r2-presigned-url]
+verify_jwt = false
