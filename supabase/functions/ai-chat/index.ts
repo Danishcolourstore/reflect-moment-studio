@@ -1,9 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = [
+  "https://mirrorai.studio",
+  "https://www.mirrorai.studio",
+  "https://app.mirrorai.studio",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
+}
 
 const CODEBASE_INDEX = `
 ## MirrorAI Platform — Full Codebase Map
@@ -159,7 +171,7 @@ ${CODEBASE_INDEX}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -168,7 +180,7 @@ serve(async (req) => {
     if (!messages || !Array.isArray(messages)) {
       return new Response(
         JSON.stringify({ error: "messages array is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
@@ -192,19 +204,20 @@ You are in structured code generation mode. Respond ONLY with a JSON object:
     }
 
     if (provider === "anthropic") {
-      return await handleAnthropic(messages, enhancedSystem);
+      return await handleAnthropic(req, messages, enhancedSystem);
     }
-    return await handleLovable(messages, enhancedSystem);
+    return await handleLovable(req, messages, enhancedSystem);
   } catch (error) {
     console.error("ai-chat error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   }
 });
 
-async function handleLovable(messages: { role: string; content: string }[], systemPrompt: string) {
+async function handleLovable(req: Request, messages: { role: string; content: string }[], systemPrompt: string) {
+  const corsHeaders = getCorsHeaders(req);
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     return new Response(
@@ -246,7 +259,8 @@ async function handleLovable(messages: { role: string; content: string }[], syst
   });
 }
 
-async function handleAnthropic(messages: { role: string; content: string }[], systemPrompt: string) {
+async function handleAnthropic(req: Request, messages: { role: string; content: string }[], systemPrompt: string) {
+  const corsHeaders = getCorsHeaders(req);
   const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
   if (!ANTHROPIC_API_KEY) {
     return new Response(
@@ -282,7 +296,6 @@ async function handleAnthropic(messages: { role: string; content: string }[], sy
       return new Response(JSON.stringify({ error: "Invalid Anthropic API key. Check your Cloud secrets." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    // Handle credit balance exhausted error
     if (response.status === 400 && errorText.includes("credit balance is too low")) {
       return new Response(JSON.stringify({ 
         error: "Anthropic API credits exhausted. Please add credits at console.anthropic.com or switch to Lovable AI (Gemini)." 
