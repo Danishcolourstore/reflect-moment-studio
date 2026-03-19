@@ -514,9 +514,31 @@ const EventGallery = () => {
   }, [handleFiles]);
 
   const deletePhoto = async (photo: Photo) => {
-    await supabase.from('photos').delete().eq('id', photo.id);
+    // Delete from database
+    const { error: dbError } = await supabase.from('photos').delete().eq('id', photo.id);
+    if (dbError) {
+      toast({ title: 'Failed to delete photo', variant: 'destructive' });
+      return;
+    }
+
+    // Also delete file from storage to free up quota
+    if (photo.url) {
+      try {
+        // Extract storage path from URL
+        // Supabase storage URLs: .../storage/v1/object/public/gallery-photos/userId/fileName
+        const match = photo.url.match(/gallery-photos\/(.+)$/);
+        if (match?.[1]) {
+          await supabase.storage.from('gallery-photos').remove([decodeURIComponent(match[1])]);
+        }
+      } catch {
+        // Storage cleanup is best-effort — DB row is already deleted
+        console.error('Storage cleanup failed for:', photo.url);
+      }
+    }
+
     if (id) invalidatePhotoCache(id);
-    fetchPhotos(); fetchEvent();
+    fetchPhotos();
+    fetchEvent();
   };
 
   /* ── ZIP download ── */
