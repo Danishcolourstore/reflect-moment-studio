@@ -15,7 +15,7 @@ import { SUPER_ADMIN_ROUTES } from "@/config/super-admin-routes";
 import Dashboard from "./pages/Dashboard";
 
 // ─── Lazy-loaded pages ───
-const Auth = lazy(() => import("./pages/Auth"));
+const Auth = lazy(() => import("./pages/Auth").then(m => ({ default: m.default })));
 const Events = lazy(() => import("./pages/Events"));
 const EventGallery = lazy(() => import("./pages/EventGallery"));
 const UploadPage = lazy(() => import("./pages/UploadPage"));
