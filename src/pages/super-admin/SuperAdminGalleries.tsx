@@ -309,7 +309,8 @@ function LayoutsTab() {
     try {
       const parsed = JSON.parse(raw);
       return parsed.length === 0 ? ALL_LAYOUT_IDS : parsed;
-    } catch {
+    } catch (err) {
+      console.error('Gallery operation failed:', err);
       return ALL_LAYOUT_IDS;
     }
   })();
