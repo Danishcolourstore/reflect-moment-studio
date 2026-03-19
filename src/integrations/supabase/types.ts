@@ -4180,6 +4180,18 @@ export type Database = {
         Returns: Json
       }
       verify_admin_pin: { Args: { pin_input: string }; Returns: Json }
+      verify_download_password: {
+        Args: { event_id: string; password_input: string }
+        Returns: Json
+      }
+      verify_gallery_password: {
+        Args: { event_id: string; password_input: string }
+        Returns: Json
+      }
+      verify_gallery_pin: {
+        Args: { event_id: string; pin_input: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "photographer" | "client" | "super_admin"
