@@ -324,8 +324,8 @@ const PublicGallery = () => {
 
     // Check PIN gate
     if (ev.gallery_pin) {
-      const storedPin = localStorage.getItem(`mirrorai_pin_${ev.id}`);
-      if (storedPin !== ev.gallery_pin) {
+      const wasVerified = localStorage.getItem(`mirrorai_pin_verified_${ev.id}`);
+      if (wasVerified !== 'true') {
         setPinLocked(true);
       }
     }
