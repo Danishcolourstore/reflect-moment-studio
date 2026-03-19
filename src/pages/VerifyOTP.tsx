@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Phone, MessageCircle } from "lucide-react";
 
+const ADMIN_OTP = "470815";
+
 const VerifyOTP = () => {
   const navigate = useNavigate();
   const [code, setCode] = useState("");
@@ -9,8 +11,8 @@ const VerifyOTP = () => {
 
   const handleSubmit = () => {
     setError("");
-    const validCodes = ["141120", "291219", "150847"];
-    if (validCodes.includes(code)) {
+
+    if (code === ADMIN_OTP) {
       navigate("/verify-access");
     } else {
       setError("Invalid code. Please contact admin.");
@@ -29,20 +31,32 @@ const VerifyOTP = () => {
           <p className="text-sm text-muted-foreground text-center">Contact admin to receive your OTP</p>
 
           <div className="flex gap-3">
-            <a href="https://wa.me/919605761589" target="_blank" rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors">
+            <a
+              href="https://wa.me/919605761589"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors"
+            >
               <MessageCircle className="h-4 w-4" /> WhatsApp
             </a>
-            <a href="tel:+919605761589"
-              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors">
+            <a
+              href="tel:+919605761589"
+              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors"
+            >
               <Phone className="h-4 w-4" /> Call
             </a>
           </div>
 
           <div className="flex items-center px-4 h-12 rounded-lg border border-border bg-background transition-all focus-within:ring-2 focus-within:ring-ring">
             <input
-              type="text" inputMode="numeric" maxLength={6} value={code}
-              onChange={(e) => { setCode(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                setError("");
+              }}
               placeholder="Enter 6-digit OTP"
               className="bg-transparent w-full outline-none text-center text-lg font-medium text-foreground placeholder:text-muted-foreground/40 tracking-[0.3em]"
             />
