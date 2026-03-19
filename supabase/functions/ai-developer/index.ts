@@ -1,9 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = [
+  "https://mirrorai.studio",
+  "https://www.mirrorai.studio",
+  "https://app.mirrorai.studio",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
+}
 
 const CODEBASE_MAP = `
 ## MirrorAI Codebase Map
@@ -136,7 +148,7 @@ Always populate the documentation field with:
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -195,20 +207,21 @@ Respond with valid JSON only.`
     ];
 
     if (provider === "anthropic") {
-      return await callAnthropic(messages);
+      return await callAnthropic(req, messages);
     }
-    return await callLovable(messages);
+    return await callLovable(req, messages);
 
   } catch (error) {
     console.error("ai-developer error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   }
 });
 
-async function callLovable(messages: { role: string; content: string }[]) {
+async function callLovable(req: Request, messages: { role: string; content: string }[]) {
+  const corsHeaders = getCorsHeaders(req);
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) {
     return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }),
@@ -237,10 +250,11 @@ async function callLovable(messages: { role: string; content: string }[]) {
   }
 
   const data = await response.json();
-  return parseAndRespond(data.choices?.[0]?.message?.content || "");
+  return parseAndRespond(req, data.choices?.[0]?.message?.content || "");
 }
 
-async function callAnthropic(messages: { role: string; content: string }[]) {
+async function callAnthropic(req: Request, messages: { role: string; content: string }[]) {
+  const corsHeaders = getCorsHeaders(req);
   const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
   if (!ANTHROPIC_API_KEY) {
     return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
@@ -274,10 +288,11 @@ async function callAnthropic(messages: { role: string; content: string }[]) {
 
   const data = await response.json();
   const content = data.content?.[0]?.text || "";
-  return parseAndRespond(content);
+  return parseAndRespond(req, content);
 }
 
-function parseAndRespond(generatedContent: string) {
+function parseAndRespond(req: Request, generatedContent: string) {
+  const corsHeaders = getCorsHeaders(req);
   let parsedResponse;
   try {
     const jsonMatch = generatedContent.match(/```json\s*([\s\S]*?)\s*```/) || 
