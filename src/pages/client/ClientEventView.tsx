@@ -34,8 +34,8 @@ const ClientEventView = () => {
       if (!access) { navigate('/client/events'); return; }
 
       // Load event
-      const { data: evt } = await (supabase.from('events').select('*') as any).eq('id', id).single();
-      if (evt) setEvent(evt);
+      const { data: evt } = await (supabase.from('events').select('*') as any).eq('id', id).maybeSingle();
+      if (!evt) return;
 
       // Load photos
       const { data: ph } = await (supabase.from('photos').select('id, url, file_name, file_size') as any)

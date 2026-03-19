@@ -15,7 +15,7 @@ const ClientDownloads = () => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const { data: client } = await (supabase.from('clients').select('id') as any).eq('user_id', user.id).single();
+      const { data: client } = await (supabase.from('clients').select('id') as any).eq('user_id', user.id).maybeSingle();
       if (!client) { setLoading(false); return; }
 
       const { data: dls } = await (supabase.from('client_downloads').select('id, photo_id, downloaded_at') as any)

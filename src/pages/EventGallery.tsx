@@ -410,8 +410,9 @@ const EventGallery = () => {
     setEventLoading(true);
     setEventError(null);
     try {
-      const { data, error } = await supabase.from('events').select('*').eq('id', id).single();
+      const { data, error } = await supabase.from('events').select('*').eq('id', id).maybeSingle();
       if (error) { setEventError('Could not load event. Please try refreshing.'); return; }
+      if (!data) { setEventError('Event not found.'); return; }
       if (data) {
         const evt = data as unknown as Event;
         if (evt.user_id !== user.id) { navigate('/dashboard'); return; }
