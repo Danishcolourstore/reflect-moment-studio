@@ -596,12 +596,11 @@ const PublicGallery = () => {
   }
 
   /* ── Password Gate ── */
-  if (passwordLocked && (event as any).gallery_password) {
+  if (passwordLocked) {
     return (
       <GalleryPasswordGate
         eventId={event.id}
         eventTitle={event.name}
-        galleryPassword={(event as any).gallery_password}
         studioLogoUrl={studioProfile?.studio_logo_url}
         onUnlock={() => setPasswordLocked(false)}
       />
