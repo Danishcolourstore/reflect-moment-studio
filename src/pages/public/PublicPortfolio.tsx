@@ -24,7 +24,7 @@ export default function PublicPortfolio() {
     if (!siteOwnerId) return;
     const load = async () => {
       const [profileRes, galleriesRes] = await Promise.all([
-        (supabase.from("profiles").select("*").eq("user_id", siteOwnerId).maybeSingle() as any),
+        (supabase.from("profiles").select("studio_name, studio_logo_url, studio_accent_color, email").eq("user_id", siteOwnerId).maybeSingle() as any),
         (supabase.from("events").select("id, name, cover_url, event_date").eq("user_id", siteOwnerId).eq("is_published", true).eq("feed_visible", true).order("event_date", { ascending: false }).limit(12) as any),
       ]);
       setProfile(profileRes.data);

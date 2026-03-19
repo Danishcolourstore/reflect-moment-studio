@@ -54,8 +54,8 @@ export default function PublicContact() {
   useEffect(() => {
     if (!siteOwnerId) return;
     Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", siteOwnerId).maybeSingle() as any,
-      supabase.from("studio_profiles").select("*").eq("user_id", siteOwnerId).maybeSingle() as any,
+      supabase.from("profiles").select("studio_name, studio_logo_url, studio_accent_color, email").eq("user_id", siteOwnerId).maybeSingle() as any,
+      supabase.from("studio_profiles").select("display_name, bio, instagram, website, whatsapp, footer_text, cover_url, username, heading_font, body_font, font_style").eq("user_id", siteOwnerId).maybeSingle() as any,
     ]).then(([profileRes, studioRes]: any[]) => {
       setStudioProfile({ ...profileRes.data, ...studioRes.data });
     });
