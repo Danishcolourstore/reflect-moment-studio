@@ -54,6 +54,77 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
   const gridRef = useRef<HTMLDivElement>(null);
 
+  // ─── Undo/Redo History ───
+  const MAX_HISTORY = 30;
+  const historyRef = useRef<Array<{
+    cells: GridCellData[];
+    textLayers: TextLayer[];
+    elements: DesignElement[];
+    logo: LogoLayer | null;
+    background: BackgroundStyle;
+  }>>([]);
+  const historyIndexRef = useRef(-1);
+  const isUndoRedoRef = useRef(false);
+
+  const pushHistory = useCallback(() => {
+    if (isUndoRedoRef.current) return;
+    const snapshot = {
+      cells: cells.map(c => ({ ...c })),
+      textLayers: textLayers.map(t => ({ ...t })),
+      elements: elements.map(e => ({ ...e })),
+      logo: logo ? { ...logo } : null,
+      background: { ...background },
+    };
+    const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
+    newHistory.push(snapshot);
+    if (newHistory.length > MAX_HISTORY) newHistory.shift();
+    historyRef.current = newHistory;
+    historyIndexRef.current = newHistory.length - 1;
+  }, [cells, textLayers, elements, logo, background]);
+
+  const canUndo = historyIndexRef.current > 0;
+  const canRedo = historyIndexRef.current < historyRef.current.length - 1;
+
+  const undo = useCallback(() => {
+    if (historyIndexRef.current <= 0) return;
+    isUndoRedoRef.current = true;
+    historyIndexRef.current -= 1;
+    const snapshot = historyRef.current[historyIndexRef.current];
+    setCells(snapshot.cells.map(c => ({ ...c })));
+    setTextLayers(snapshot.textLayers.map(t => ({ ...t })));
+    setElements(snapshot.elements.map(e => ({ ...e })));
+    setLogo(snapshot.logo ? { ...snapshot.logo } : null);
+    setBackground({ ...snapshot.background });
+    setTimeout(() => { isUndoRedoRef.current = false; }, 50);
+  }, []);
+
+  const redo = useCallback(() => {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return;
+    isUndoRedoRef.current = true;
+    historyIndexRef.current += 1;
+    const snapshot = historyRef.current[historyIndexRef.current];
+    setCells(snapshot.cells.map(c => ({ ...c })));
+    setTextLayers(snapshot.textLayers.map(t => ({ ...t })));
+    setElements(snapshot.elements.map(e => ({ ...e })));
+    setLogo(snapshot.logo ? { ...snapshot.logo } : null);
+    setBackground({ ...snapshot.background });
+    setTimeout(() => { isUndoRedoRef.current = false; }, 50);
+  }, []);
+
+  // Push initial state on mount
+  useEffect(() => {
+    if (historyRef.current.length === 0) pushHistory();
+  }, []);
+
+  // Debounced history push on state changes
+  const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (isUndoRedoRef.current) return;
+    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+    pushTimerRef.current = setTimeout(() => { pushHistory(); }, 500);
+    return () => { if (pushTimerRef.current) clearTimeout(pushTimerRef.current); };
+  }, [cells, textLayers, elements, logo, background]);
+
   // Panel drag-to-dismiss
   const [panelDragY, setPanelDragY] = useState(0);
   const panelDragStart = useRef<number | null>(null);
