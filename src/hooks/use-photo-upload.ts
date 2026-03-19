@@ -97,6 +97,47 @@ async function fileHash(file: File): Promise<string> {
   return `${size}-${hashArr.slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('')}`;
 }
 
+/** Get a presigned R2 URL from our edge function */
+async function getR2PresignedUrl(
+  fileName: string, contentType: string, eventId: string,
+): Promise<{ presignedUrl: string; publicUrl: string; key: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase.functions.invoke('get-r2-presigned-url', {
+    body: { fileName, contentType, eventId },
+  });
+  if (error) throw new Error(error.message || 'Failed to get upload URL');
+  if (!data?.presignedUrl) throw new Error('No presigned URL returned');
+  return data;
+}
+
+/** Upload directly to R2 via presigned PUT URL with progress tracking */
+function uploadToR2(
+  presignedUrl: string, file: File, contentType: string, timeoutMs: number,
+  onProgress: (pct: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.timeout = timeoutMs;
+    const keepalive = setInterval(() => {}, KEEPALIVE_INTERVAL);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.min(Math.round((e.loaded / e.total) * 100), 95));
+    };
+    xhr.onload = () => {
+      clearInterval(keepalive);
+      if (xhr.status >= 200 && xhr.status < 300) { onProgress(100); resolve(); }
+      else reject(new Error(`R2 upload failed (${xhr.status})`));
+    };
+    xhr.onerror = () => { clearInterval(keepalive); reject(new Error('Network error — failed to fetch')); };
+    xhr.ontimeout = () => { clearInterval(keepalive); reject(new Error('Upload timed out')); };
+    xhr.open('PUT', presignedUrl, true);
+    xhr.setRequestHeader('Content-Type', contentType);
+    xhr.send(file);
+  });
+}
+
+/** Legacy Supabase Storage upload — kept as fallback */
 function uploadWithXHR(
   bucket: string, path: string, file: File, timeoutMs: number,
   onProgress: (pct: number) => void,
