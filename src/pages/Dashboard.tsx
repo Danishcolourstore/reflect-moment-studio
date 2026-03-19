@@ -161,13 +161,13 @@ const Clients = () => {
       <EventLifecycle />
 
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
         <div>
-          <h1 className="font-serif text-2xl">Client Manager</h1>
-          <p className="text-sm text-muted-foreground">Manage clients and grant access to galleries</p>
+          <h1 className="font-serif text-xl sm:text-2xl">Client Manager</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Manage clients and grant access to galleries</p>
         </div>
 
-        <Button onClick={() => setInviteOpen(true)} className="text-[11px] uppercase tracking-wider">
+        <Button onClick={() => setInviteOpen(true)} className="text-[11px] uppercase tracking-wider h-10 min-h-[44px]">
           <UserPlus className="h-4 w-4 mr-1" />
           Add Client
         </Button>
