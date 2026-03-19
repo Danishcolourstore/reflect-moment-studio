@@ -132,7 +132,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
   const isLogin = tab === "login";
 
   return (
-    <div ref={ref} className="fixed inset-0 flex items-center justify-center px-6 bg-background overflow-hidden">
+    <div className="fixed inset-0 flex items-center justify-center px-6 bg-background overflow-hidden">
       {/* ── Film grain overlay ── */}
       <div
         className="fixed inset-0 pointer-events-none z-[1]"
