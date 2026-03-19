@@ -28,44 +28,60 @@ interface Props {
 
 export default function DownloadGridButton({ gridRef, cells, layout, textLayers = [], elements = [], logo = null, background, format }: Props) {
   const [exporting, setExporting] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const activeFormat = format || CANVAS_FORMATS[0];
 
   const exportGrid = async (size: ExportSize) => {
     setExporting(true);
+    setProgress(10);
     try {
-      // Use the format's exact export dimensions to ensure pixel-perfect ratio
       const canvasRatio = layout.canvasRatio || activeFormat.ratio;
       const exportW = size.width;
       const exportH = Math.round(exportW / canvasRatio);
+      const progressTimer = setInterval(() => {
+        setProgress(prev => Math.min(prev + 8, 75));
+      }, 200);
       const canvas = await renderGridToCanvas(layout, cells, exportW, exportH, textLayers, elements, logo, background);
+      clearInterval(progressTimer);
+      setProgress(85);
       const link = document.createElement('a');
       link.download = `grid-${exportW}x${exportH}.png`;
       link.href = canvas.toDataURL('image/png');
+      setProgress(95);
       link.click();
+      setProgress(100);
       toast.success(`Exported at ${exportW}×${exportH} — lossless PNG`);
     } catch (err) {
       console.error('Export failed', err);
       toast.error('Export failed — try again');
     } finally {
-      setExporting(false);
+      setTimeout(() => { setExporting(false); setProgress(0); }, 500);
     }
   };
 
   const exportNative = async () => {
     setExporting(true);
+    setProgress(10);
     try {
+      const progressTimer = setInterval(() => {
+        setProgress(prev => Math.min(prev + 8, 75));
+      }, 200);
       const canvas = await renderGridToCanvas(layout, cells, activeFormat.exportWidth, activeFormat.exportHeight, textLayers, elements, logo, background);
+      clearInterval(progressTimer);
+      setProgress(85);
       const link = document.createElement('a');
       link.download = `grid-${activeFormat.exportWidth}x${activeFormat.exportHeight}.png`;
       link.href = canvas.toDataURL('image/png');
+      setProgress(95);
       link.click();
+      setProgress(100);
       toast.success(`Exported at ${activeFormat.exportWidth}×${activeFormat.exportHeight} — lossless PNG`);
     } catch (err) {
       console.error('Export failed', err);
       toast.error('Export failed — try again');
     } finally {
-      setExporting(false);
+      setTimeout(() => { setExporting(false); setProgress(0); }, 500);
     }
   };
 
