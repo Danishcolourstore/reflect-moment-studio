@@ -332,8 +332,8 @@ const PublicGallery = () => {
 
     // Check password gate
     if ((ev as any).gallery_password) {
-      const storedPw = localStorage.getItem(`mirrorai_gallery_password_${ev.id}`);
-      if (storedPw !== (ev as any).gallery_password) {
+      const wasVerified = localStorage.getItem(`mirrorai_gallery_pw_verified_${ev.id}`);
+      if (wasVerified !== 'true') {
         setPasswordLocked(true);
       }
     }
