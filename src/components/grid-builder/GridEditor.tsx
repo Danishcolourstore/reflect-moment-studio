@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import {
   ArrowLeft, RotateCcw, Type, Shapes, Palette, Stamp, Instagram,
-  MessageSquare, Eye, Download, GripHorizontal,
+  MessageSquare, Eye, Download, GripHorizontal, Undo2, Redo2,
 } from 'lucide-react';
 import AICaptionGenerator from './AICaptionGenerator';
 import InstagramCarouselPreview from './InstagramCarouselPreview';
