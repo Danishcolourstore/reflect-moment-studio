@@ -112,8 +112,12 @@ function PinGate({ event, studioProfile, onUnlock }: {
   onUnlock: () => void;
 }) {
   const [error, setError] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   const handleComplete = async (otp: string) => {
+    if (checking) return;
+    setChecking(true);
+    setError(false);
     try {
       const { data, error } = await (supabase.rpc as any)('verify_gallery_pin', {
         event_id: event.id,
@@ -129,6 +133,8 @@ function PinGate({ event, studioProfile, onUnlock }: {
       }
     } catch {
       sonnerToast.error('Verification failed. Please try again.');
+    } finally {
+      setChecking(false);
     }
   };
 
