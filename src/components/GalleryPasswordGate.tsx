@@ -1,31 +1,48 @@
-import { useState } from 'react';
-import { Lock, Eye, EyeOff } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Lock, Eye, EyeOff } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GalleryPasswordGateProps {
   eventId: string;
   eventTitle: string;
-  galleryPassword: string;
   studioLogoUrl?: string | null;
   onUnlock: () => void;
 }
 
-export function GalleryPasswordGate({ eventId, eventTitle, galleryPassword, studioLogoUrl, onUnlock }: GalleryPasswordGateProps) {
-  const [input, setInput] = useState('');
+export function GalleryPasswordGate({ eventId, eventTitle, studioLogoUrl, onUnlock }: GalleryPasswordGateProps) {
+  const [input, setInput] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [shake, setShake] = useState(false);
+  const [checking, setChecking] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input === galleryPassword) {
-      localStorage.setItem(`mirrorai_gallery_password_${eventId}`, input);
-      onUnlock();
-    } else {
-      toast.error('Incorrect password. Please try again.');
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
+    if (checking || !input.trim()) return;
+
+    setChecking(true);
+    try {
+      const { data, error } = await (supabase.rpc as any)("verify_gallery_password", {
+        event_id: eventId,
+        password_input: input,
+      });
+
+      if (error) throw error;
+
+      if (data?.valid) {
+        localStorage.setItem(`mirrorai_gallery_pw_verified_${eventId}`, "true");
+        onUnlock();
+      } else {
+        toast.error("Incorrect password. Please try again.");
+        setShake(true);
+        setTimeout(() => setShake(false), 500);
+      }
+    } catch {
+      toast.error("Verification failed. Please try again.");
+    } finally {
+      setChecking(false);
     }
   };
 
@@ -41,22 +58,26 @@ export function GalleryPasswordGate({ eventId, eventTitle, galleryPassword, stud
         <p className="font-serif text-lg text-muted-foreground">This gallery is private</p>
         <p className="text-sm text-muted-foreground">Enter the password to view this gallery</p>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className={`relative ${shake ? 'animate-pulse' : ''}`}>
+          <div className={`relative ${shake ? "animate-pulse" : ""}`}>
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
             <Input
-              type={showPw ? 'text' : 'password'}
+              type={showPw ? "text" : "password"}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Enter password"
               className="pl-9 pr-10 bg-background"
               autoFocus
             />
-            <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground">
+            <button
+              type="button"
+              onClick={() => setShowPw(!showPw)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground"
+            >
               {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          <Button type="submit" className="w-full bg-primary text-primary-foreground">
-            Enter Gallery
+          <Button type="submit" className="w-full bg-primary text-primary-foreground" disabled={checking}>
+            {checking ? "Verifying…" : "Enter Gallery"}
           </Button>
         </form>
       </div>
