@@ -171,7 +171,7 @@ ${CODEBASE_INDEX}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -180,7 +180,7 @@ serve(async (req) => {
     if (!messages || !Array.isArray(messages)) {
       return new Response(
         JSON.stringify({ error: "messages array is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
@@ -204,14 +204,14 @@ You are in structured code generation mode. Respond ONLY with a JSON object:
     }
 
     if (provider === "anthropic") {
-      return await handleAnthropic(messages, enhancedSystem);
+      return await handleAnthropic(req, messages, enhancedSystem);
     }
-    return await handleLovable(messages, enhancedSystem);
+    return await handleLovable(req, messages, enhancedSystem);
   } catch (error) {
     console.error("ai-chat error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   }
 });
