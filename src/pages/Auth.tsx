@@ -1,4 +1,4 @@
-import { forwardRef, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,7 +75,7 @@ function FilmDustCanvas() {
   );
 }
 
-const Auth = forwardRef<HTMLDivElement, AuthProps>(function Auth({ initialView }, ref) {
+const Auth = function Auth({ initialView }: AuthProps) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -132,7 +132,7 @@ const Auth = forwardRef<HTMLDivElement, AuthProps>(function Auth({ initialView }
   const isLogin = tab === "login";
 
   return (
-    <div ref={ref} className="fixed inset-0 flex items-center justify-center px-6 bg-background overflow-hidden">
+    <div className="fixed inset-0 flex items-center justify-center px-6 bg-background overflow-hidden">
       {/* ── Film grain overlay ── */}
       <div
         className="fixed inset-0 pointer-events-none z-[1]"
@@ -331,7 +331,6 @@ const Auth = forwardRef<HTMLDivElement, AuthProps>(function Auth({ initialView }
       </div>
     </div>
   );
-});
+};
 
-Auth.displayName = "Auth";
 export default Auth;
