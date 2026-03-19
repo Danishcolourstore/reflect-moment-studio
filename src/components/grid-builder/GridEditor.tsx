@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import {
   ArrowLeft, RotateCcw, Type, Shapes, Palette, Stamp, Instagram,
-  MessageSquare, Eye, Download, GripHorizontal,
+  MessageSquare, Eye, Download, GripHorizontal, Undo2, Redo2,
 } from 'lucide-react';
 import AICaptionGenerator from './AICaptionGenerator';
 import InstagramCarouselPreview from './InstagramCarouselPreview';
@@ -54,6 +54,77 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
   const gridRef = useRef<HTMLDivElement>(null);
 
+  // ─── Undo/Redo History ───
+  const MAX_HISTORY = 30;
+  const historyRef = useRef<Array<{
+    cells: GridCellData[];
+    textLayers: TextLayer[];
+    elements: DesignElement[];
+    logo: LogoLayer | null;
+    background: BackgroundStyle;
+  }>>([]);
+  const historyIndexRef = useRef(-1);
+  const isUndoRedoRef = useRef(false);
+
+  const pushHistory = useCallback(() => {
+    if (isUndoRedoRef.current) return;
+    const snapshot = {
+      cells: cells.map(c => ({ ...c })),
+      textLayers: textLayers.map(t => ({ ...t })),
+      elements: elements.map(e => ({ ...e })),
+      logo: logo ? { ...logo } : null,
+      background: { ...background },
+    };
+    const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
+    newHistory.push(snapshot);
+    if (newHistory.length > MAX_HISTORY) newHistory.shift();
+    historyRef.current = newHistory;
+    historyIndexRef.current = newHistory.length - 1;
+  }, [cells, textLayers, elements, logo, background]);
+
+  const canUndo = historyIndexRef.current > 0;
+  const canRedo = historyIndexRef.current < historyRef.current.length - 1;
+
+  const undo = useCallback(() => {
+    if (historyIndexRef.current <= 0) return;
+    isUndoRedoRef.current = true;
+    historyIndexRef.current -= 1;
+    const snapshot = historyRef.current[historyIndexRef.current];
+    setCells(snapshot.cells.map(c => ({ ...c })));
+    setTextLayers(snapshot.textLayers.map(t => ({ ...t })));
+    setElements(snapshot.elements.map(e => ({ ...e })));
+    setLogo(snapshot.logo ? { ...snapshot.logo } : null);
+    setBackground({ ...snapshot.background });
+    setTimeout(() => { isUndoRedoRef.current = false; }, 50);
+  }, []);
+
+  const redo = useCallback(() => {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return;
+    isUndoRedoRef.current = true;
+    historyIndexRef.current += 1;
+    const snapshot = historyRef.current[historyIndexRef.current];
+    setCells(snapshot.cells.map(c => ({ ...c })));
+    setTextLayers(snapshot.textLayers.map(t => ({ ...t })));
+    setElements(snapshot.elements.map(e => ({ ...e })));
+    setLogo(snapshot.logo ? { ...snapshot.logo } : null);
+    setBackground({ ...snapshot.background });
+    setTimeout(() => { isUndoRedoRef.current = false; }, 50);
+  }, []);
+
+  // Push initial state on mount
+  useEffect(() => {
+    if (historyRef.current.length === 0) pushHistory();
+  }, []);
+
+  // Debounced history push on state changes
+  const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (isUndoRedoRef.current) return;
+    if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+    pushTimerRef.current = setTimeout(() => { pushHistory(); }, 500);
+    return () => { if (pushTimerRef.current) clearTimeout(pushTimerRef.current); };
+  }, [cells, textLayers, elements, logo, background]);
+
   // Panel drag-to-dismiss
   const [panelDragY, setPanelDragY] = useState(0);
   const panelDragStart = useRef<number | null>(null);
@@ -68,6 +139,23 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     }
     preloadCommonFonts();
   }, []);
+
+  // Keyboard shortcuts: Ctrl+Z undo, Ctrl+Shift+Z / Ctrl+Y redo, Delete key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      if ((mod && e.key === 'z' && e.shiftKey) || (mod && e.key === 'y')) { e.preventDefault(); redo(); }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+        if (selectedTextId) { e.preventDefault(); deleteTextLayer(selectedTextId); }
+        else if (selectedElementId) { e.preventDefault(); deleteElement(selectedElementId); }
+        else if (logoSelected && logo) { e.preventDefault(); handleDeleteLogo(); }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo, selectedTextId, selectedElementId, logoSelected, logo]);
 
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
 
@@ -260,6 +348,30 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           {/* Utility actions */}
           <div className="flex items-center gap-1">
             <button
+              onClick={undo}
+              disabled={!canUndo}
+              className={cn(
+                'rounded-lg flex items-center justify-center transition-all duration-200',
+                isMobile ? 'h-10 w-10' : 'h-8 w-8',
+                canUndo ? 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50' : 'text-muted-foreground/20 cursor-not-allowed'
+              )}
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              className={cn(
+                'rounded-lg flex items-center justify-center transition-all duration-200',
+                isMobile ? 'h-10 w-10' : 'h-8 w-8',
+                canRedo ? 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50' : 'text-muted-foreground/20 cursor-not-allowed'
+              )}
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              <Redo2 className="h-3.5 w-3.5" />
+            </button>
+            <button
               onClick={() => setShowSafeArea(!showSafeArea)}
               className={cn(
                 'rounded-lg flex items-center justify-center transition-all duration-200',
@@ -271,6 +383,16 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               title="Safe Area Guides"
             >
               <Eye className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={handleReset}
+              className={cn(
+                'rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200',
+                isMobile ? 'h-10 w-10' : 'h-8 w-8'
+              )}
+              title="Reset"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={handleReset}
