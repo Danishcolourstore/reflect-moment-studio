@@ -140,6 +140,23 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     preloadCommonFonts();
   }, []);
 
+  // Keyboard shortcuts: Ctrl+Z undo, Ctrl+Shift+Z / Ctrl+Y redo, Delete key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      if ((mod && e.key === 'z' && e.shiftKey) || (mod && e.key === 'y')) { e.preventDefault(); redo(); }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+        if (selectedTextId) { e.preventDefault(); deleteTextLayer(selectedTextId); }
+        else if (selectedElementId) { e.preventDefault(); deleteElement(selectedElementId); }
+        else if (logoSelected && logo) { e.preventDefault(); handleDeleteLogo(); }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo, selectedTextId, selectedElementId, logoSelected, logo]);
+
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
 
   const updateCell = useCallback((index: number, patch: Partial<GridCellData>) => {
