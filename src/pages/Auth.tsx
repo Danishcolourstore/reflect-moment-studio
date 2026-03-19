@@ -331,7 +331,6 @@ const Auth = function Auth({ initialView }: AuthProps) {
       </div>
     </div>
   );
-});
+};
 
-Auth.displayName = "Auth";
 export default Auth;
