@@ -158,7 +158,9 @@ export default function DomainSettings() {
           fetchDomains();
           if (pollingRef.current) clearInterval(pollingRef.current);
         }
-      } catch {}
+      } catch (err) {
+        console.error('Failed to load domain settings:', err);
+      }
     }, 60_000);
 
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
@@ -225,7 +227,9 @@ export default function DomainSettings() {
       });
       if (error) throw error;
       return !!data?.success;
-    } catch {
+    } catch (err) {
+      console.error('Domain operation failed:', err);
+      toast({ title: 'Domain operation failed. Please try again.', variant: 'destructive' });
       return false;
     }
   }, [customRow, user]);

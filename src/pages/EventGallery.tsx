@@ -418,7 +418,8 @@ const EventGallery = () => {
         if (evt.user_id !== user.id) { navigate('/dashboard'); return; }
         setEvent(evt);
       }
-    } catch {
+    } catch (err) {
+      console.error('Gallery operation failed:', err);
       setEventError('Could not load event. Please try refreshing.');
     } finally {
       setEventLoading(false);
@@ -566,7 +567,8 @@ const EventGallery = () => {
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${event?.name ?? label}.zip`);
       toast({ title: `${targetPhotos.length} photos downloaded` });
-    } catch {
+    } catch (err) {
+      console.error('Operation failed:', err);
       toast({ title: 'Download failed', description: 'Please try again.' });
     } finally {
       setDownloading(false); setDownloadProgress('');

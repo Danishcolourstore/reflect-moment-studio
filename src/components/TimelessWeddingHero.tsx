@@ -31,7 +31,8 @@ export function TimelessWeddingHero({
         day: 'numeric',
         year: 'numeric',
       }).toUpperCase();
-    } catch {
+    } catch (err) {
+      console.error('Failed to load hero data:', err);
       return eventDate;
     }
   })();

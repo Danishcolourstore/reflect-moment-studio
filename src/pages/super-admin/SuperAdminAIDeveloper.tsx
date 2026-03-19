@@ -253,7 +253,8 @@ export default function SuperAdminAIDeveloper() {
       try {
         setCurrentResponse(JSON.parse(item.generated_code));
         setSelectedFile(0); setSelectedDbIdx(null); setSelectedEdgeFnIdx(null);
-      } catch {
+      } catch (err) {
+        console.error('AI Developer error:', err);
         setCurrentResponse({
           summary: 'Previous generation', files: (item.file_changes as FileChange[]) || [],
           database: [], routes: [], instructions: '', raw_content: item.generated_code,
