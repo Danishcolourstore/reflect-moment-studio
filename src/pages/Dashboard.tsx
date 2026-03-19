@@ -208,7 +208,43 @@ const Clients = () => {
           </Button>
         </div>
       ) : (
-        <div className="border rounded-xl overflow-hidden">
+        {/* Mobile: Card layout */}
+        <div className="sm:hidden space-y-3">
+          {filtered.map((c) => (
+            <div key={c.id} className="border rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback>{c.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{c.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{c.email}</p>
+                  {c.phone && <p className="text-xs text-muted-foreground">{c.phone}</p>}
+                </div>
+              </div>
+              <div className="flex gap-4 text-xs text-muted-foreground">
+                <span>{c.event_count} galleries</span>
+                <span>{c.favorite_count} favorites</span>
+                <span>{c.download_count} downloads</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={() => setAssignOpen(c)} className="min-h-[44px] text-xs">
+                  <Camera className="h-3 w-3 mr-1" /> Grant Access
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => window.open(`/client/${c.id}`, "_blank")} className="min-h-[44px] text-xs">
+                  <Eye className="h-3 w-3 mr-1" /> View
+                </Button>
+                <Button size="sm" variant="outline" className="text-destructive min-h-[44px] text-xs" onClick={() => removeAccess(c.id)}>
+                  <Shield className="h-3 w-3 mr-1" /> Remove
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: Table layout */}
+        <div className="hidden sm:block border rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-secondary/30 border-b">
               <tr>
@@ -270,6 +306,7 @@ const Clients = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

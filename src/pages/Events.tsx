@@ -188,10 +188,10 @@ const Events = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex justify-between mb-6">
-        <h1 className="text-3xl font-serif">Events</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-serif">Events</h1>
 
-        <Button onClick={() => setCreateOpen(true)}>
+        <Button onClick={() => setCreateOpen(true)} className="min-h-[44px]">
           <Plus className="mr-2 h-4 w-4" />
           New Event
         </Button>
