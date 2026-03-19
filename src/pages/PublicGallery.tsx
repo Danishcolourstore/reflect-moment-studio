@@ -113,13 +113,22 @@ function PinGate({ event, studioProfile, onUnlock }: {
 }) {
   const [error, setError] = useState(false);
 
-  const handleComplete = (otp: string) => {
-    if (otp === event.gallery_pin) {
-      localStorage.setItem(`mirrorai_pin_${event.id}`, otp);
-      onUnlock();
-    } else {
-      setError(true);
-      sonnerToast.error('Wrong PIN. Please try again.');
+  const handleComplete = async (otp: string) => {
+    try {
+      const { data, error } = await (supabase.rpc as any)('verify_gallery_pin', {
+        event_id: event.id,
+        pin_input: otp,
+      });
+      if (error) throw error;
+      if (data?.valid) {
+        localStorage.setItem(`mirrorai_pin_verified_${event.id}`, 'true');
+        onUnlock();
+      } else {
+        setError(true);
+        sonnerToast.error('Wrong PIN. Please try again.');
+      }
+    } catch {
+      sonnerToast.error('Verification failed. Please try again.');
     }
   };
 
@@ -315,16 +324,16 @@ const PublicGallery = () => {
 
     // Check PIN gate
     if (ev.gallery_pin) {
-      const storedPin = localStorage.getItem(`mirrorai_pin_${ev.id}`);
-      if (storedPin !== ev.gallery_pin) {
+      const wasVerified = localStorage.getItem(`mirrorai_pin_verified_${ev.id}`);
+      if (wasVerified !== 'true') {
         setPinLocked(true);
       }
     }
 
     // Check password gate
     if ((ev as any).gallery_password) {
-      const storedPw = localStorage.getItem(`mirrorai_gallery_password_${ev.id}`);
-      if (storedPw !== (ev as any).gallery_password) {
+      const wasVerified = localStorage.getItem(`mirrorai_gallery_pw_verified_${ev.id}`);
+      if (wasVerified !== 'true') {
         setPasswordLocked(true);
       }
     }
@@ -587,12 +596,11 @@ const PublicGallery = () => {
   }
 
   /* ── Password Gate ── */
-  if (passwordLocked && (event as any).gallery_password) {
+  if (passwordLocked) {
     return (
       <GalleryPasswordGate
         eventId={event.id}
         eventTitle={event.name}
-        galleryPassword={(event as any).gallery_password}
         studioLogoUrl={studioProfile?.studio_logo_url}
         onUnlock={() => setPasswordLocked(false)}
       />
