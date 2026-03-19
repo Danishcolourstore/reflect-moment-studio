@@ -148,7 +148,7 @@ Always populate the documentation field with:
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -207,15 +207,15 @@ Respond with valid JSON only.`
     ];
 
     if (provider === "anthropic") {
-      return await callAnthropic(messages);
+      return await callAnthropic(req, messages);
     }
-    return await callLovable(messages);
+    return await callLovable(req, messages);
 
   } catch (error) {
     console.error("ai-developer error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   }
 });
