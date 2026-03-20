@@ -13,8 +13,8 @@ interface SliderProps {
 
 export function ToolSlider({ label, value, min = 0, max = 100, step = 1, onChange, onCommit, unit = '' }: SliderProps) {
   return (
-    <div className="flex items-center gap-3 py-1.5">
-      <span className="text-[10px] tracking-wide uppercase text-[#a09890] min-w-[72px] font-medium" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+    <div className="flex items-center gap-3 h-[28px]">
+      <span className="text-[9px] tracking-[0.08em] uppercase text-[#999] min-w-[56px] font-medium" style={{ fontFamily: '"DM Sans", sans-serif' }}>
         {label}
       </span>
       <input
@@ -28,7 +28,7 @@ export function ToolSlider({ label, value, min = 0, max = 100, step = 1, onChang
         onTouchEnd={onCommit}
         className="rt-slider flex-1"
       />
-      <span className="text-[10px] tabular-nums text-[#c9a96e] min-w-[28px] text-right font-medium" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+      <span className="text-[10px] tabular-nums text-[#f5f0eb] min-w-[28px] text-right font-medium" style={{ fontFamily: '"DM Sans", sans-serif' }}>
         {value}{unit}
       </span>
     </div>
@@ -45,14 +45,16 @@ export function ToolToggle({ label, active, onToggle }: ToggleProps) {
   return (
     <button
       onClick={onToggle}
-      className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all"
+      className="px-3 py-0 rounded-md transition-all"
       style={{
-        background: active ? 'rgba(201,169,110,0.12)' : 'rgba(255,255,255,0.03)',
-        border: active ? '1px solid rgba(201,169,110,0.3)' : '1px solid rgba(255,255,255,0.06)',
-        color: active ? '#c9a96e' : '#a09890',
+        height: '28px',
+        background: active ? 'rgba(201,169,110,0.12)' : 'transparent',
+        border: active ? '1px solid rgba(201,169,110,0.3)' : '1px solid #444',
+        color: active ? '#c9a96e' : '#999',
         fontFamily: '"DM Sans", sans-serif',
-        fontSize: '10px',
-        letterSpacing: '0.05em',
+        fontSize: '9px',
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase' as const,
       }}
     >
       {label}
@@ -68,17 +70,27 @@ interface SegmentProps {
 
 export function ToolSegment({ options, value, onChange }: SegmentProps) {
   return (
-    <div className="flex gap-1 p-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
+    <div
+      className="inline-flex gap-0 rounded-lg overflow-hidden"
+      style={{ border: '1px solid #444', width: 'fit-content' }}
+    >
       {options.map(opt => (
         <button
           key={opt}
           onClick={() => onChange(opt)}
-          className="flex-1 px-3 py-1.5 rounded-md transition-all text-[9px] tracking-wide uppercase font-medium"
+          className="transition-all"
           style={{
+            padding: '0 12px',
+            height: '28px',
             fontFamily: '"DM Sans", sans-serif',
-            background: value === opt ? 'rgba(201,169,110,0.15)' : 'transparent',
-            color: value === opt ? '#c9a96e' : '#6a6470',
-            border: value === opt ? '1px solid rgba(201,169,110,0.2)' : '1px solid transparent',
+            fontSize: '9px',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase' as const,
+            fontWeight: 500,
+            background: value === opt ? '#c9a96e' : 'transparent',
+            color: value === opt ? '#111' : '#999',
+            border: 'none',
+            borderLeft: opt !== options[0] ? '1px solid #444' : 'none',
           }}
         >
           {opt}
@@ -97,29 +109,30 @@ interface ToolPanelWrapperProps {
 export function ToolPanelWrapper({ title, children, onClose }: ToolPanelWrapperProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 30 }}
+      exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="px-4 pb-3"
+      className="px-4 pb-2 pt-1"
     >
       {/* Drag handle */}
-      <div className="flex justify-center py-2">
-        <div className="w-8 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.12)' }} />
+      <div className="flex justify-center py-1.5">
+        <div className="w-10 h-1 rounded-full" style={{ background: '#444' }} />
       </div>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[11px] tracking-widest uppercase font-medium" style={{ fontFamily: '"DM Sans", sans-serif', color: '#c9a96e' }}>
+      {/* Header: title left, Done right — same line */}
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-[10px] tracking-[0.12em] uppercase font-medium" style={{ fontFamily: '"DM Sans", sans-serif', color: '#c9a96e' }}>
           {title}
         </h3>
         <button
           onClick={onClose}
-          className="text-[9px] tracking-wider uppercase px-3 py-1.5 rounded-full transition-all"
-          style={{ fontFamily: '"DM Sans", sans-serif', color: '#6a6470', border: '1px solid rgba(255,255,255,0.06)' }}
+          className="text-[11px] font-medium tracking-wider"
+          style={{ fontFamily: '"DM Sans", sans-serif', color: '#c9a96e', background: 'none', border: 'none', cursor: 'pointer' }}
         >
           Done
         </button>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-0">
         {children}
       </div>
     </motion.div>
