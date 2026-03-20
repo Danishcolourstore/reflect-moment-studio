@@ -127,7 +127,7 @@ const Profile = () => {
         </div>
 
         {/* Change Password */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Change Password</h2>
           <div className="space-y-4">
             <div>
