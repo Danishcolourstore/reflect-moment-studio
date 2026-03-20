@@ -107,6 +107,8 @@ const Dashboard = () => {
   // Get latest 3 photos for collage
   const collagePhotos = recentEvents.filter(e => e.cover_url).slice(0, 3);
 
+  if (error) return <PageError message="Failed to load dashboard" onRetry={() => window.location.reload()} />;
+
   return (
     <div className="min-h-[100dvh] relative pb-20" style={{ background: '#080808' }}>
       <FilmGrain />
