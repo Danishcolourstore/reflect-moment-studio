@@ -252,7 +252,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {
         sessionStorage.removeItem("redirectAfterLogin");
-        setRedirectTo("/dashboard");
+        setRedirectTo("/home");
         setChecked(true);
       });
   }, [user, loading]);
