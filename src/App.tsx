@@ -278,6 +278,7 @@ const AppRoutes = () => {
   return (
     <SuspendedProvider>
     <Suspense fallback={<PageLoader />}>
+      <PageTransition>
       <Routes>
         <Route
           path="/login"
