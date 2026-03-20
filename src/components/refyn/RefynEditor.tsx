@@ -194,16 +194,17 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         .vsco-topbar {
           position: absolute; top: 0; left: 0; right: 0; z-index: 30;
           display: flex; align-items: center; justify-content: space-between;
-          padding: 12px 12px;
-          padding-top: max(12px, env(safe-area-inset-top, 0px));
-          background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%);
+          padding: 8px 12px;
+          padding-top: max(8px, env(safe-area-inset-top, 0px));
+          background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%);
+          height: 44px;
         }
 
         .vsco-back-btn {
-          width: 40px; height: 40px;
+          width: 36px; height: 36px;
           display: flex; align-items: center; justify-content: center;
           border-radius: 50%;
-          background: rgba(60,60,60,0.5);
+          background: rgba(60,60,60,0.45);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
           color: #fff; border: none; cursor: pointer;
@@ -211,30 +212,31 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         .vsco-back-btn:active { transform: scale(0.92); }
 
         .vsco-top-icon {
-          width: 36px; height: 36px;
+          width: 32px; height: 32px;
           display: flex; align-items: center; justify-content: center;
-          color: rgba(255,255,255,0.7);
+          color: rgba(255,255,255,0.6);
           background: none; border: none; cursor: pointer;
         }
         .vsco-top-icon:active { transform: scale(0.9); }
 
         .vsco-export-btn {
-          padding: 6px 16px;
+          padding: 5px 14px;
           border-radius: 6px;
-          background: rgba(255,255,255,0.12);
+          background: rgba(201,169,110,0.15);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
-          color: #fff;
+          color: #c9a96e;
           font-family: "DM Sans", sans-serif;
           font-size: 12px; font-weight: 500;
-          letter-spacing: 0.03em;
-          border: none; cursor: pointer;
+          letter-spacing: 0.04em;
+          border: 1px solid rgba(201,169,110,0.2);
+          cursor: pointer;
         }
         .vsco-export-btn:active { transform: scale(0.95); opacity: 0.8; }
 
         .vsco-compare-badge {
-          position: absolute; top: 72px; left: 16px; z-index: 30;
-          padding: 4px 12px; border-radius: 100px;
+          position: absolute; top: 56px; left: 16px; z-index: 30;
+          padding: 3px 10px; border-radius: 100px;
           background: rgba(0,0,0,0.5);
           backdrop-filter: blur(8px);
           font-family: "DM Sans", sans-serif;
@@ -243,151 +245,162 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           color: rgba(245,240,235,0.7);
         }
 
-        /* ── Recipe area — positioned above bottom dock ── */
+        /* ── Recipe area — glass card floating above dock ── */
         .vsco-recipe-area {
           position: absolute;
-          left: 0; right: 0;
+          left: 8px; right: 8px;
           bottom: 56px;
           z-index: 20;
+          max-height: 30vh;
+          overflow-y: auto;
+          scrollbar-width: none;
+          border-radius: 12px;
+          background: rgba(18,18,18,0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255,255,255,0.06);
           padding-bottom: env(safe-area-inset-bottom, 0px);
         }
+        .vsco-recipe-area::-webkit-scrollbar { display: none; }
 
         /* ── Recipe panel styles ── */
-        .recipe-panel {
-          /* no background — rows float individually */
-        }
+        .recipe-panel { }
 
         .recipe-title-row {
           display: flex; align-items: center; gap: 8px;
-          padding: 10px 20px;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
+          padding: 8px 16px;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
         }
 
         .recipe-badge {
           display: inline-flex; align-items: center; justify-content: center;
-          padding: 2px 8px;
-          background: #c44;
+          padding: 1px 6px;
+          background: rgba(201,169,110,0.2);
           border-radius: 3px;
           font-family: "DM Sans", sans-serif;
-          font-size: 10px; font-weight: 700;
-          color: #fff;
-          letter-spacing: 0.02em;
+          font-size: 9px; font-weight: 600;
+          color: #c9a96e;
+          letter-spacing: 0.04em;
         }
 
         .recipe-title {
           flex: 1;
           font-family: "DM Sans", sans-serif;
-          font-size: 13px; font-weight: 400;
-          color: rgba(240,237,232,0.85);
-          letter-spacing: 0.01em;
+          font-size: 12px; font-weight: 500;
+          color: rgba(240,237,232,0.8);
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
         }
 
         .recipe-title-value {
           font-family: "DM Sans", sans-serif;
-          font-size: 16px;
+          font-size: 12px; font-weight: 500;
           color: #c9a96e;
           cursor: pointer;
           padding: 4px 8px;
+          letter-spacing: 0.02em;
         }
 
-        /* ── Individual recipe row ── */
+        /* ── Individual recipe row — compact ── */
         .recipe-row {
-          display: flex; align-items: center; gap: 10px;
-          padding: 12px 20px;
+          display: flex; align-items: center; gap: 8px;
+          padding: 8px 16px;
           border: none; background: none;
-          border-bottom: 1px solid rgba(255,255,255,0.06);
+          border-bottom: 1px solid rgba(255,255,255,0.04);
           cursor: pointer;
           text-align: left;
+          min-height: 36px;
         }
         .recipe-row:active { background: rgba(255,255,255,0.03); }
 
         .recipe-icon {
-          width: 22px; height: 22px;
+          width: 20px; height: 20px;
           display: flex; align-items: center; justify-content: center;
-          color: rgba(240,237,232,0.7);
+          color: rgba(240,237,232,0.5);
           flex-shrink: 0;
         }
-        .recipe-icon svg { width: 18px; height: 18px; }
+        .recipe-icon svg { width: 16px; height: 16px; }
 
         .recipe-label {
           flex: 1;
           font-family: "DM Sans", sans-serif;
-          font-size: 13px; font-weight: 400;
-          color: rgba(240,237,232,0.85);
+          font-size: 12px; font-weight: 400;
+          color: rgba(240,237,232,0.75);
           letter-spacing: 0.01em;
         }
 
         .recipe-value {
           font-family: "DM Sans", sans-serif;
-          font-size: 13px; font-weight: 400;
-          color: rgba(240,237,232,0.5);
+          font-size: 12px; font-weight: 400;
+          color: rgba(240,237,232,0.4);
           letter-spacing: 0.01em;
           font-variant-numeric: tabular-nums;
-          min-width: 48px; text-align: right;
+          min-width: 40px; text-align: right;
         }
 
-        /* ── Inline slider (shown on tap) ── */
+        /* ── Inline slider (shown on tap) — compact ── */
         .recipe-slider-row {
-          padding: 4px 20px 10px 52px;
-          border-bottom: 1px solid rgba(255,255,255,0.06);
+          padding: 2px 16px 6px 44px;
+          border-bottom: 1px solid rgba(255,255,255,0.04);
         }
 
         .recipe-slider {
           -webkit-appearance: none; appearance: none;
-          width: 100%; height: 24px;
+          width: 100%; height: 20px;
           background: transparent; cursor: pointer;
         }
         .recipe-slider::-webkit-slider-track {
           height: 1.5px; border-radius: 1px;
-          background: rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.1);
         }
         .recipe-slider::-moz-range-track {
           height: 1.5px; border-radius: 1px;
-          background: rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.1);
         }
         .recipe-slider::-moz-range-progress {
           height: 1.5px; background: rgba(201,169,110,0.5);
         }
         .recipe-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 16px; height: 16px; border-radius: 50%;
+          width: 14px; height: 14px; border-radius: 50%;
           background: #c9a96e;
           box-shadow: 0 0 6px 1px rgba(201,169,110,0.3);
-          margin-top: -7px; border: none;
+          margin-top: -6px; border: none;
         }
         .recipe-slider::-moz-range-thumb {
-          width: 16px; height: 16px; border-radius: 50%;
+          width: 14px; height: 14px; border-radius: 50%;
           background: #c9a96e;
           box-shadow: 0 0 6px 1px rgba(201,169,110,0.3);
           border: none;
         }
         .recipe-slider:active::-webkit-slider-thumb {
-          width: 20px; height: 20px; margin-top: -9px;
+          width: 18px; height: 18px; margin-top: -8px;
+          transition: width 0.1s, height 0.1s;
         }
 
-        /* ── Segment row ── */
+        /* ── Segment row — compact ── */
         .recipe-segment-row {
-          display: flex; gap: 0; padding: 0 20px;
-          border-bottom: 1px solid rgba(255,255,255,0.06);
+          display: flex; gap: 0; padding: 0 16px;
+          border-bottom: 1px solid rgba(255,255,255,0.04);
         }
         .recipe-segment-btn {
-          flex: 1; padding: 10px 0;
+          flex: 1; padding: 7px 0;
           background: none; border: none;
           font-family: "DM Sans", sans-serif;
-          font-size: 11px; font-weight: 500;
-          letter-spacing: 0.04em;
+          font-size: 10px; font-weight: 500;
+          letter-spacing: 0.06em;
           text-transform: uppercase;
           cursor: pointer;
           text-align: center;
           transition: color 0.15s;
         }
 
-        /* ── Bottom dock ── */
+        /* ── Bottom dock — Lightroom-style ── */
         .vsco-bottom-dock {
           position: absolute;
           bottom: 0; left: 0; right: 0;
           z-index: 25;
-          background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 80%, transparent 100%);
+          background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
           padding-bottom: env(safe-area-inset-bottom, 0px);
         }
       `}</style>
