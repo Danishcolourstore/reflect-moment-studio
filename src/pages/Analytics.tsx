@@ -72,7 +72,7 @@ const Analytics = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-2xl font-semibold text-foreground mb-6">Analytics</h1>
+      <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">Analytics</h1>
 
       {/* Range pills */}
       <div className="flex items-center gap-2 mb-6 flex-wrap">
