@@ -293,9 +293,14 @@ const Dashboard = () => {
             </p>
           </button>
         </div>
-      </section>
 
-      {/* SECTION C — Recent Activity */}
+        {/* Retouch Signature */}
+        <RetouchSignatureCard
+          studioName={studioName}
+          editCount={12}
+          averages={{ skin: 48, glow: 38, form: 32, light: 28, grain: 22, depth: 65, outfit: 35, jewellery: 20, hair: 25 }}
+        />
+      </section>
       <section className="px-4 md:px-12 py-8" style={{ borderTop: '1px solid rgba(240,237,232,0.04)' }}>
         <p className="uppercase mb-4" style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.35em' }}>
           Recent
