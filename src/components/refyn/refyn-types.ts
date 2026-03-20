@@ -17,7 +17,7 @@ export interface RefynToolValues {
   hair: number;
 }
 
-export type RefynToolId = 'frequency' | 'lumina' | 'sculpt' | 'ghostLight' | 'grain' | 'layer' | 'outfit' | 'jewellery' | 'hair';
+export type RefynToolId = 'frequency' | 'lumina' | 'sculpt' | 'ghostLight' | 'grain' | 'layer' | 'outfit' | 'jewellery' | 'hair' | 'filters';
 
 export const DEFAULT_TOOL_VALUES: RefynToolValues = {
   frequency: 0,
