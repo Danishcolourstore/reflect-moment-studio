@@ -9,12 +9,32 @@ interface SliderProps {
   onChange: (v: number) => void;
   onCommit?: () => void;
   unit?: string;
+  icon?: React.ReactNode;
 }
 
-export function ToolSlider({ label, value, min = 0, max = 100, step = 1, onChange, onCommit, unit = '' }: SliderProps) {
+export function ToolSlider({ label, value, min = 0, max = 100, step = 1, onChange, onCommit, unit = '', icon }: SliderProps) {
   return (
-    <div className="flex items-center gap-3 h-[28px]">
-      <span className="text-[9px] tracking-[0.08em] uppercase text-[#999] min-w-[56px] font-medium" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+    <div
+      className="flex items-center gap-3 px-4"
+      style={{
+        height: '44px',
+        background: 'rgba(0,0,0,0.25)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+      }}
+    >
+      {icon && <span className="flex-shrink-0 opacity-60">{icon}</span>}
+      <span
+        className="min-w-[80px] text-left"
+        style={{
+          fontFamily: '"DM Sans", sans-serif',
+          fontSize: '12px',
+          letterSpacing: '0.02em',
+          color: 'rgba(240,237,232,0.8)',
+          fontWeight: 400,
+        }}
+      >
         {label}
       </span>
       <input
@@ -28,8 +48,17 @@ export function ToolSlider({ label, value, min = 0, max = 100, step = 1, onChang
         onTouchEnd={onCommit}
         className="rt-slider flex-1"
       />
-      <span className="text-[10px] tabular-nums text-[#f5f0eb] min-w-[28px] text-right font-medium" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-        {value}{unit}
+      <span
+        className="min-w-[36px] text-right"
+        style={{
+          fontFamily: '"DM Sans", sans-serif',
+          fontSize: '12px',
+          color: 'rgba(240,237,232,0.5)',
+          fontWeight: 400,
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {value > 0 ? `+${value}` : value}{unit}
       </span>
     </div>
   );
@@ -45,16 +74,15 @@ export function ToolToggle({ label, active, onToggle }: ToggleProps) {
   return (
     <button
       onClick={onToggle}
-      className="px-3 py-0 rounded-md transition-all"
+      className="px-3 rounded-md transition-all"
       style={{
         height: '28px',
-        background: active ? 'rgba(201,169,110,0.12)' : 'transparent',
-        border: active ? '1px solid rgba(201,169,110,0.3)' : '1px solid #444',
-        color: active ? '#c9a96e' : '#999',
+        background: active ? 'rgba(201,169,110,0.15)' : 'rgba(255,255,255,0.05)',
+        border: active ? '1px solid rgba(201,169,110,0.3)' : '1px solid rgba(255,255,255,0.1)',
+        color: active ? '#c9a96e' : 'rgba(240,237,232,0.5)',
         fontFamily: '"DM Sans", sans-serif',
-        fontSize: '9px',
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase' as const,
+        fontSize: '10px',
+        letterSpacing: '0.06em',
       }}
     >
       {label}
@@ -71,10 +99,10 @@ interface SegmentProps {
 export function ToolSegment({ options, value, onChange }: SegmentProps) {
   return (
     <div
-      className="inline-flex gap-0 rounded-lg overflow-hidden"
-      style={{ border: '1px solid #444', width: 'fit-content' }}
+      className="inline-flex rounded-lg overflow-hidden"
+      style={{ border: '1px solid rgba(255,255,255,0.1)', width: 'fit-content' }}
     >
-      {options.map(opt => (
+      {options.map((opt, i) => (
         <button
           key={opt}
           onClick={() => onChange(opt)}
@@ -87,10 +115,10 @@ export function ToolSegment({ options, value, onChange }: SegmentProps) {
             letterSpacing: '0.08em',
             textTransform: 'uppercase' as const,
             fontWeight: 500,
-            background: value === opt ? '#c9a96e' : 'transparent',
-            color: value === opt ? '#111' : '#999',
+            background: value === opt ? 'rgba(201,169,110,0.9)' : 'transparent',
+            color: value === opt ? '#111' : 'rgba(240,237,232,0.4)',
             border: 'none',
-            borderLeft: opt !== options[0] ? '1px solid #444' : 'none',
+            borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none',
           }}
         >
           {opt}
@@ -108,33 +136,51 @@ interface ToolPanelWrapperProps {
 
 export function ToolPanelWrapper({ title, children, onClose }: ToolPanelWrapperProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="px-4 pb-2 pt-1"
-    >
-      {/* Drag handle */}
-      <div className="flex justify-center py-1.5">
-        <div className="w-10 h-1 rounded-full" style={{ background: '#444' }} />
-      </div>
-      {/* Header: title left, Done right — same line */}
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[10px] tracking-[0.12em] uppercase font-medium" style={{ fontFamily: '"DM Sans", sans-serif', color: '#c9a96e' }}>
+    <div>
+      {/* Tool header row — same glass style as sliders */}
+      <div
+        className="flex items-center justify-between px-4"
+        style={{
+          height: '40px',
+          background: 'rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: '"DM Sans", sans-serif',
+            fontSize: '11px',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: '#c9a96e',
+            fontWeight: 500,
+          }}
+        >
           {title}
-        </h3>
+        </span>
         <button
           onClick={onClose}
-          className="text-[11px] font-medium tracking-wider"
-          style={{ fontFamily: '"DM Sans", sans-serif', color: '#c9a96e', background: 'none', border: 'none', cursor: 'pointer' }}
+          style={{
+            fontFamily: '"DM Sans", sans-serif',
+            fontSize: '11px',
+            color: '#c9a96e',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            letterSpacing: '0.04em',
+            fontWeight: 500,
+          }}
         >
           Done
         </button>
       </div>
-      <div className="space-y-0">
+      {/* Slider rows — each is its own glass row */}
+      <div>
         {children}
       </div>
-    </motion.div>
+      {/* Extra controls row if any toggle/segment children need it */}
+    </div>
   );
 }

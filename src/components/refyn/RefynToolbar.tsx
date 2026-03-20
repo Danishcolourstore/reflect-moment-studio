@@ -59,7 +59,7 @@ const TOOLS: ToolDef[] = [
     ),
   },
   {
-    id: 'sharpen', label: 'Sharp',
+    id: 'sharpen', label: 'Sharpen',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <polygon points="10,3 17,17 3,17" stroke="currentColor" strokeWidth="1.2" fill="none"/>
@@ -113,7 +113,7 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
     <div
       className="flex items-end gap-0 overflow-x-auto px-2"
       style={{
-        height: '48px',
+        height: '52px',
         scrollbarWidth: 'none',
         WebkitOverflowScrolling: 'touch',
         msOverflowStyle: 'none',
@@ -127,9 +127,9 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
             onClick={() => onToolTap(tool.id)}
             className="flex flex-col items-center justify-center gap-1 flex-shrink-0 relative"
             style={{
-              width: '52px',
+              width: '54px',
               height: '48px',
-              color: isActive ? '#c9a96e' : '#666',
+              color: isActive ? '#c9a96e' : 'rgba(240,237,232,0.4)',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
@@ -141,24 +141,23 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
               style={{
                 fontFamily: '"DM Sans", sans-serif',
                 fontSize: '8px',
-                letterSpacing: '0.08em',
+                letterSpacing: '0.06em',
                 textTransform: 'uppercase',
                 whiteSpace: 'nowrap',
               }}
             >
               {tool.label}
             </span>
-            {/* Active gold dot */}
             {isActive && (
               <div
                 style={{
                   position: 'absolute',
-                  bottom: '2px',
+                  bottom: '1px',
                   width: '3px',
                   height: '3px',
                   borderRadius: '50%',
                   background: '#c9a96e',
-                  boxShadow: '0 0 4px rgba(201,169,110,0.5)',
+                  boxShadow: '0 0 6px rgba(201,169,110,0.6)',
                 }}
               />
             )}
