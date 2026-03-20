@@ -99,8 +99,24 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
   }, [mode, animateToValues, riValues, onIntelMessage]);
 
   const handleToolTap = useCallback((id: RefynToolId) => {
+    if (id === 'filters') {
+      setShowFilters(true);
+      setActiveTool(null);
+      return;
+    }
     setActiveTool((prev) => (prev === id ? null : id));
   }, []);
+
+  const handleFilterApply = useCallback((filter: RefynFilter) => {
+    setActiveFilterId(filter.id);
+    setCssOverrides(filter.cssOverrides || {});
+    const merged = { ...values };
+    for (const [k, v] of Object.entries(filter.values)) {
+      (merged as any)[k] = v;
+    }
+    animateToValues(merged);
+    onIntelMessage?.(`${filter.name} applied.`);
+  }, [values, animateToValues, onIntelMessage]);
 
   const handleSliderChange = useCallback((key: keyof RefynToolValues, val: number) => {
     setValues((prev) => ({ ...prev, [key]: val }));
