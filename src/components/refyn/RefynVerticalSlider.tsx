@@ -31,7 +31,10 @@ export default function RefynVerticalSlider({ value, onChange, onChangeEnd, labe
     updateFromY(e.clientY);
   }, [dragging, updateFromY]);
 
-  const handlePointerUp = useCallback(() => setDragging(false), []);
+  const handlePointerUp = useCallback(() => {
+    setDragging(false);
+    onChangeEnd?.();
+  }, [onChangeEnd]);
 
   return (
     <motion.div
