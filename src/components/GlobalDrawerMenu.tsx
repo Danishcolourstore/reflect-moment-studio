@@ -32,7 +32,7 @@ const PAGE_NAMES: Record<string, string> = {
   '/dashboard/storybook': 'Grid Builder',
   '/dashboard/website-editor': 'Website Builder',
   '/dashboard/analytics': 'Analytics',
-  '/dashboard/reflections': 'Reflections',
+  
   '/dashboard/clients': 'Clients',
   '/dashboard/profile': 'Profile',
   '/dashboard/notifications': 'Notifications',
