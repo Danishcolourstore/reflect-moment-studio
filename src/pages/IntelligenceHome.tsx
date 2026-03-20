@@ -10,22 +10,25 @@ import hero3 from '@/assets/hero-3.jpg';
 
 const ease = [0.16, 1, 0.3, 1];
 
-const SLIDES = [hero1, hero2, hero3];
+// 6 slides cycling through 3 images
+const SLIDES = [hero1, hero2, hero3, hero1, hero2, hero3];
 
 const LINES = [
   'Mirror never lies.',
   'Not realtime.\n2 seconds late.',
   'We are not\nartificially intelligent.',
+  'Real Intelligence.\nExperience.',
+  'Art and technology.\nSmooched.',
+  'Hugged. Cuddled.\nWild.',
 ];
 
 export default function IntelligenceHome() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const drawer = useDrawerMenu();
-  const [phase, setPhase] = useState(0); // 0=black, 1=ri-center, 2=ri-moving, 3=ready
+  const [phase, setPhase] = useState(0);
   const [current, setCurrent] = useState(0);
 
-  // Intro timeline
   useEffect(() => {
     const t1 = setTimeout(() => setPhase(1), 800);
     const t2 = setTimeout(() => setPhase(2), 1600);
@@ -33,7 +36,6 @@ export default function IntelligenceHome() {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
 
-  // Photo rotation
   useEffect(() => {
     if (phase < 3) return;
     const interval = setInterval(() => setCurrent(c => (c + 1) % SLIDES.length), 4000);
@@ -44,7 +46,7 @@ export default function IntelligenceHome() {
 
   return (
     <div className="h-[100dvh] w-screen overflow-hidden relative" style={{ background: '#000' }}>
-      {/* Film grain — always on top */}
+      {/* Film grain */}
       <svg className="pointer-events-none fixed inset-0 w-full h-full z-[200]" style={{ opacity: 0.035 }}>
         <filter id="ig-grain">
           <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
@@ -55,7 +57,7 @@ export default function IntelligenceHome() {
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
-      {/* INTRO — RI center then moves up */}
+      {/* INTRO overlay */}
       <AnimatePresence>
         {phase < 3 && (
           <motion.div
@@ -68,24 +70,20 @@ export default function IntelligenceHome() {
         )}
       </AnimatePresence>
 
-      {/* RI monogram — animated from center to top */}
+      {/* RI monogram intro animation */}
       {phase >= 1 && phase < 3 && (
         <motion.span
-          className="fixed italic select-none z-[301]"
-          style={{ fontFamily: '"Cormorant Garamond", serif', color: '#F5C518' }}
+          className="fixed select-none z-[301]"
+          style={{ fontFamily: 'Cinzel, serif', color: '#F5C518' }}
           initial={{
             top: '50%', left: '50%', x: '-50%', y: '-50%',
             fontSize: 48, opacity: 0,
             textShadow: '0 0 24px rgba(245,197,24,0.8)',
-            letterSpacing: '0.25em',
+            letterSpacing: '0.3em',
           }}
           animate={phase === 1
             ? { opacity: 1 }
-            : {
-              top: 28, left: '50%', y: '-50%',
-              fontSize: 22,
-              opacity: 1,
-            }
+            : { top: 28, left: '50%', y: '-50%', fontSize: 20, opacity: 1 }
           }
           transition={{ duration: phase === 1 ? 0.6 : 0.7, ease }}
         >
@@ -108,11 +106,7 @@ export default function IntelligenceHome() {
             animate={{ opacity: current === i ? 1 : 0 }}
             transition={{ duration: 1.2, ease }}
           >
-            <img
-              src={url}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-            />
+            <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover" />
           </motion.div>
         ))}
 
@@ -129,7 +123,6 @@ export default function IntelligenceHome() {
           className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between"
           style={{ height: 56, padding: '0 24px' }}
         >
-          {/* MENU */}
           <motion.button
             onClick={drawer.toggle}
             className="cursor-pointer select-none uppercase"
@@ -150,13 +143,13 @@ export default function IntelligenceHome() {
 
           {/* RI center */}
           <motion.span
-            className="italic select-none"
+            className="select-none"
             style={{
-              fontFamily: '"Cormorant Garamond", serif',
-              fontSize: 22,
-              fontWeight: 400,
+              fontFamily: 'Cinzel, serif',
+              fontSize: 20,
+              fontWeight: 600,
               color: '#F5C518',
-              letterSpacing: '0.25em',
+              letterSpacing: '0.3em',
               textShadow: '0 0 24px rgba(245,197,24,0.8)',
             }}
             initial={{ opacity: 0 }}
@@ -166,7 +159,6 @@ export default function IntelligenceHome() {
             RI
           </motion.span>
 
-          {/* BookOpen */}
           <motion.button
             onClick={() => navigate('/dashboard')}
             className="cursor-pointer"
@@ -179,7 +171,7 @@ export default function IntelligenceHome() {
           </motion.button>
         </div>
 
-        {/* Amber pulse dot — top right corner */}
+        {/* Amber pulse dot */}
         <motion.div
           className="fixed z-[100]"
           style={{ top: 8, right: 8, width: 5, height: 5, borderRadius: '50%', background: '#E8C97A' }}
@@ -201,13 +193,13 @@ export default function IntelligenceHome() {
               key={current}
               className="select-none whitespace-pre-line"
               style={{
-                fontFamily: '"Cormorant Garamond", serif',
-                fontSize: isMobile ? 44 : 60,
-                fontWeight: 300,
+                fontFamily: 'Cinzel, serif',
+                fontSize: isMobile ? 48 : 68,
+                fontWeight: 700,
                 color: '#F0EDE8',
-                lineHeight: 1.25,
-                letterSpacing: '0.02em',
-                textShadow: '0 2px 35px rgba(0,0,0,0.65)',
+                lineHeight: 1.2,
+                letterSpacing: '0.08em',
+                textShadow: '0 2px 40px rgba(0,0,0,0.7)',
               }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -224,7 +216,7 @@ export default function IntelligenceHome() {
           </AnimatePresence>
         </div>
 
-        {/* BOTTOM RIGHT — counter */}
+        {/* BOTTOM RIGHT counter */}
         <motion.div
           className="absolute z-[100]"
           style={{ bottom: 28, right: 24 }}
