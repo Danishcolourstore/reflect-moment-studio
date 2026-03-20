@@ -216,7 +216,7 @@ export default function IntelligenceHome() {
               color: 'rgba(240,237,232,0.28)', letterSpacing: '0.2em',
             }}
           >
-            {pad(current + 1)} / {pad(SLIDES.length)}
+            {pad(current + 1)} / {pad(LINES.length)}
           </span>
         </motion.div>
 
