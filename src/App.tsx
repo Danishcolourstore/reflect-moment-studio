@@ -294,6 +294,7 @@ const AppRoutes = () => {
         <Route path="/verify-access" element={<VerifyAccess />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/builder-test" element={<BuilderTest />} />
+        <Route path="/refyn" element={<Suspense fallback={<PageLoader />}><Refyn /></Suspense>} />
 
         <Route
           path="/super-admin"

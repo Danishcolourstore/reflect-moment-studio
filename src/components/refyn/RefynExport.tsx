@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
   photoUrl: string;
@@ -12,7 +12,6 @@ export default function RefynExport({ photoUrl, onBack, onReset }: Props) {
   const [downloaded, setDownloaded] = useState(false);
 
   const handleDownload = useCallback((quality: 'instagram' | 'full') => {
-    // In a real app, this would apply edits and export at the right resolution
     const a = document.createElement('a');
     a.href = photoUrl;
     a.download = `refyn-${quality}-${Date.now()}.jpg`;
@@ -130,6 +129,3 @@ export default function RefynExport({ photoUrl, onBack, onReset }: Props) {
     </motion.div>
   );
 }
-
-// Need AnimatePresence import at top
-import { AnimatePresence } from 'framer-motion';
