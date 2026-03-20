@@ -12,13 +12,21 @@ import hero6 from '@/assets/hero-6.webp';
 
 const ease = [0.16, 1, 0.3, 1];
 
+const POETRY = [
+  'Every frame.\nA memory that stays.',
+  'Not just photographs.\nProof that it happened.',
+  'The light. The moment.\nThe people who were there.',
+  'Some things deserve\nto be remembered perfectly.',
+  'Your work lives here.\nQuietly. Forever.',
+];
+
 const SLIDES = [
-  { img: hero1, caption: 'Lake Como · Joy' },
-  { img: hero2, caption: 'Elegance · Defined' },
-  { img: hero3, caption: 'Gold · Grace' },
-  { img: hero4, caption: 'Together · Forever' },
-  { img: hero5, caption: 'Promise · Bloom' },
-  { img: hero6, caption: 'Shores · Serenity' },
+  { img: hero1 },
+  { img: hero2 },
+  { img: hero3 },
+  { img: hero4 },
+  { img: hero5 },
+  { img: hero6 },
 ];
 
 function FilmGrain() {
@@ -39,7 +47,7 @@ export default function IntelligenceHome() {
   const drawer = useDrawerMenu();
   const [phase, setPhase] = useState<1 | 2>(1);
   const [current, setCurrent] = useState(0);
-
+  const poetryIndex = current % POETRY.length;
   useEffect(() => {
     const t = setTimeout(() => setPhase(2), 2000);
     return () => clearTimeout(t);
@@ -166,57 +174,60 @@ export default function IntelligenceHome() {
           />
         </div>
 
-        {/* Bottom text block */}
+        {/* Bottom gradient for text readability */}
+        <div
+          className="absolute bottom-0 left-0 right-0 z-[50] pointer-events-none"
+          style={{ height: '60%', background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.75) 100%)' }}
+        />
+
+        {/* Editorial poetry overlay — bottom left */}
         <div
           className="absolute bottom-0 left-0 z-[100]"
           style={{ padding: isMobile ? '32px 24px' : '40px 32px' }}
         >
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="uppercase select-none"
-            style={{
-              fontFamily: '"DM Sans", sans-serif',
-              fontSize: 9,
-              color: 'rgba(240,237,232,0.5)',
-              letterSpacing: '0.35em',
-              marginBottom: 16,
-            }}
-          >
-            Real Intelligence
-          </motion.p>
-
-          {/* Caption — changes with image */}
-          <div className="relative" style={{ height: isMobile ? 44 : 62 }}>
+          {/* Poetry text — crossfades with photos */}
+          <div className="relative" style={{ minHeight: isMobile ? 90 : 100 }}>
             <AnimatePresence mode="wait">
-              <motion.h1
-                key={current}
+              <motion.p
+                key={poetryIndex}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.8, ease }}
-                className="absolute select-none"
+                className="absolute select-none whitespace-pre-line"
                 style={{
                   fontFamily: '"Cormorant Garamond", serif',
-                  fontSize: isMobile ? 36 : 52,
+                  fontSize: 32,
                   fontWeight: 300,
                   color: '#F0EDE8',
-                  lineHeight: 1.1,
+                  lineHeight: 1.2,
                   letterSpacing: '0.01em',
-                  whiteSpace: 'nowrap',
                 }}
               >
-                {SLIDES[current].caption}
-              </motion.h1>
+                {POETRY[poetryIndex]}
+              </motion.p>
             </AnimatePresence>
           </div>
 
           {/* Amber line */}
-          <div style={{ width: 40, height: 1, background: '#E8C97A', margin: '20px 0' }} />
+          <div style={{ width: 32, height: 1, background: '#E8C97A', marginTop: 16 }} />
 
-          {/* Buttons */}
-          <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-3`}>
+          {/* Mirror RI label */}
+          <p
+            className="uppercase select-none"
+            style={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontSize: 9,
+              color: 'rgba(232,201,122,0.5)',
+              letterSpacing: '0.3em',
+              marginTop: 12,
+            }}
+          >
+            Mirror RI
+          </p>
+
+          {/* CTA Button */}
+          <div className="mt-5">
             <motion.button
               whileTap={{ scale: 0.97 }}
               whileHover={{ borderColor: 'rgba(232,201,122,0.5)' }}
@@ -234,25 +245,6 @@ export default function IntelligenceHome() {
               }}
             >
               Colour Store RI
-            </motion.button>
-
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ borderColor: 'rgba(240,237,232,0.35)' }}
-              onClick={() => navigate('/dashboard')}
-              className="cursor-pointer uppercase select-none"
-              style={{
-                fontFamily: '"DM Sans", sans-serif',
-                fontSize: 11,
-                color: '#F0EDE8',
-                background: 'rgba(240,237,232,0.06)',
-                border: '1px solid rgba(240,237,232,0.15)',
-                borderRadius: 100,
-                padding: '12px 24px',
-                letterSpacing: '0.15em',
-              }}
-            >
-              Mirror RI
             </motion.button>
           </div>
         </div>
