@@ -36,7 +36,6 @@ const TOOL_PANELS: Record<RetouchToolId, React.ComponentType<{ onClose: () => vo
   bgCleanup: BackgroundCleanup,
 };
 
-// Tools that use brushes
 const BRUSH_TOOLS: RetouchToolId[] = ['skinSmooth', 'dodgeBurn', 'blemish', 'liquify', 'sharpen', 'hairCleanup', 'bgCleanup'];
 
 export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
@@ -50,17 +49,14 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
     mainCanvasRef,
     layers,
     isLoaded,
-    createLayer: _createLayer,
     removeLayer,
     toggleLayerVisibility,
     setLayerOpacity,
-    renderComposite,
     exportFullResolution,
   } = useCanvasEngine(photoUrl);
 
   const history = useUndoHistory();
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
@@ -93,10 +89,9 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
 
   return (
     <div className="rt-editor-root">
-      {/* ===== TOP BAR ===== */}
+      {/* TOP BAR */}
       <div className="rt-topbar">
         <div className="flex items-center gap-1">
-          {/* Undo */}
           <motion.button
             whileTap={{ scale: 0.92 }}
             onClick={() => history.undo()}
@@ -108,7 +103,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
               <path d="M4 8L8 4M4 8L8 12M4 8H13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </motion.button>
-          {/* Redo */}
           <motion.button
             whileTap={{ scale: 0.92 }}
             onClick={() => history.redo()}
@@ -123,7 +117,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Layers button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowLayers(true)}
@@ -143,7 +136,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
             LAYERS
           </motion.button>
 
-          {/* Reset */}
           <button
             onClick={onReset}
             className="text-[9px] tracking-wider uppercase px-3 py-2"
@@ -152,7 +144,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
             Reset
           </button>
 
-          {/* Export */}
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={handleExport}
@@ -168,7 +159,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         </div>
       </div>
 
-      {/* ===== PHOTO VIEWPORT ===== */}
+      {/* VIEWPORT */}
       <div className="rt-viewport">
         <div
           className="relative w-full h-full flex items-center justify-center"
@@ -177,7 +168,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           onPointerLeave={() => setIsComparing(false)}
           style={{ touchAction: 'none' }}
         >
-          {/* Original for comparison */}
           {isComparing && (
             <img
               src={photoUrl}
@@ -187,19 +177,16 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
               draggable={false}
             />
           )}
-          {/* Main composited canvas */}
           <canvas
             ref={mainCanvasRef}
             className="rt-photo-layer"
             style={{ opacity: isComparing ? 0 : 1, zIndex: 2 }}
           />
-          {/* Loading state */}
           {!isLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-8 h-8 border-2 border-[#c9a96e]/30 border-t-[#c9a96e] rounded-full animate-spin" />
             </div>
           )}
-          {/* Compare badge */}
           <AnimatePresence>
             {isComparing && (
               <motion.div
@@ -218,16 +205,14 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         </div>
       </div>
 
-      {/* ===== BOTTOM DOCK ===== */}
+      {/* BOTTOM DOCK */}
       <div className="rt-dock">
-        {/* Active tool panel */}
         <AnimatePresence mode="wait">
           {ActivePanel && (
             <ActivePanel key={activeTool} onClose={() => setActiveTool(null)} />
           )}
         </AnimatePresence>
 
-        {/* Toolbar */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           <RefynToolbar activeTool={activeTool} onToolTap={handleToolTap} />
         </div>
@@ -300,13 +285,13 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         .rt-slider::-moz-range-track { height: 2px; border-radius: 1px; background: #333; }
         .rt-slider::-moz-range-progress { height: 2px; background: #c9a96e; }
         .rt-slider::-webkit-slider-thumb {
-          -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
-          background: #c9a96e; box-shadow: 0 0 10px 2px rgba(201,169,110,0.25);
-          margin-top: -8px; border: none;
+          -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+          background: #c9a96e; box-shadow: 0 0 8px 2px rgba(201,169,110,0.2);
+          margin-top: -7px; border: none;
         }
         .rt-slider::-moz-range-thumb {
-          width: 18px; height: 18px; border-radius: 50%;
-          background: #c9a96e; box-shadow: 0 0 10px 2px rgba(201,169,110,0.25); border: none;
+          width: 16px; height: 16px; border-radius: 50%;
+          background: #c9a96e; box-shadow: 0 0 8px 2px rgba(201,169,110,0.2); border: none;
         }
       `}</style>
     </div>
