@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
   visible: boolean;
+  detectedText?: string;
 }
 
-export default function IntelligenceBar({ visible }: Props) {
+export default function IntelligenceBar({ visible, detectedText }: Props) {
   const [show, setShow] = useState(visible);
 
   useEffect(() => {
@@ -14,7 +15,7 @@ export default function IntelligenceBar({ visible }: Props) {
       const t = setTimeout(() => setShow(false), 4000);
       return () => clearTimeout(t);
     }
-  }, [visible]);
+  }, [visible, detectedText]);
 
   return (
     <AnimatePresence>
@@ -38,12 +39,16 @@ export default function IntelligenceBar({ visible }: Props) {
               Colour Store Intelligence
             </span>
           </div>
-          <span
+          <motion.span
+            key={detectedText}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
             className="text-[10px] text-[#6B6B6B]"
             style={{ fontFamily: '"DM Sans", sans-serif' }}
           >
-            Golden hour · Canon 5D · Style applied
-          </span>
+            {detectedText || 'Analysing...'}
+          </motion.span>
         </motion.div>
       )}
     </AnimatePresence>

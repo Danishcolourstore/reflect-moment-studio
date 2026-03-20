@@ -7,6 +7,8 @@ import RefynExport from '@/components/refyn/RefynExport';
 import ProductNav from '@/components/colour-store/ProductNav';
 import IntelligenceBar from '@/components/colour-store/IntelligenceBar';
 import IntelligenceDot from '@/components/colour-store/IntelligenceDot';
+import { analysePhoto, type ColourAnalysis } from '@/lib/colour-intelligence';
+import type { RefynToolValues } from '@/components/refyn/refyn-types';
 
 export type RefynScreen = 'upload' | 'processing' | 'editor' | 'export';
 
@@ -19,15 +21,39 @@ export default function ColourStore() {
   const [screen, setScreen] = useState<RefynScreen>('upload');
   const [photo, setPhoto] = useState<RefynPhoto | null>(null);
   const [showIntelBar, setShowIntelBar] = useState(false);
+  const [detectedText, setDetectedText] = useState('');
+  const [aiToolValues, setAiToolValues] = useState<RefynToolValues | null>(null);
 
-  const handleUpload = useCallback((file: File) => {
+  const handleUpload = useCallback(async (file: File) => {
     const url = URL.createObjectURL(file);
     setPhoto({ file, originalUrl: url });
     setScreen('processing');
     setShowIntelBar(true);
+    setDetectedText('Analysing...');
 
-    // Simulate AI processing
-    setTimeout(() => setScreen('editor'), 3200);
+    try {
+      const analysis = await analysePhoto(file);
+
+      // Map AI tools to RefynToolValues
+      const mapped: RefynToolValues = {
+        frequency: analysis.tools.skin,
+        lumina: analysis.tools.glow,
+        sculpt: analysis.tools.form,
+        ghostLight: analysis.tools.light,
+        grain: { style: 'film', strength: analysis.tools.grain, shadowsOnly: false },
+        layerTexture: analysis.tools.depth.texture,
+        layerTone: analysis.tools.depth.tone,
+      };
+
+      setAiToolValues(mapped);
+      setDetectedText(analysis.detected);
+    } catch (err) {
+      console.error('AI analysis failed:', err);
+      setDetectedText('Portrait detected');
+      setAiToolValues(null);
+    }
+
+    setScreen('editor');
   }, []);
 
   const handleExport = useCallback(() => {
@@ -43,6 +69,8 @@ export default function ColourStore() {
     setPhoto(null);
     setScreen('upload');
     setShowIntelBar(false);
+    setDetectedText('');
+    setAiToolValues(null);
   }, [photo]);
 
   useEffect(() => {
@@ -66,7 +94,7 @@ export default function ColourStore() {
       <ProductNav />
 
       {/* Intelligence bar (appears after upload) */}
-      <IntelligenceBar visible={showIntelBar} />
+      <IntelligenceBar visible={showIntelBar} detectedText={detectedText} />
 
       {/* Intelligence dot */}
       <IntelligenceDot active={screen === 'processing'} />
@@ -75,7 +103,13 @@ export default function ColourStore() {
         {screen === 'upload' && <RefynUpload key="upload" onUpload={handleUpload} />}
         {screen === 'processing' && photo && <RefynProcessing key="processing" photoUrl={photo.originalUrl} />}
         {screen === 'editor' && photo && (
-          <RefynEditor key="editor" photoUrl={photo.originalUrl} onExport={handleExport} onReset={handleReset} />
+          <RefynEditor
+            key="editor"
+            photoUrl={photo.originalUrl}
+            onExport={handleExport}
+            onReset={handleReset}
+            initialValues={aiToolValues ?? undefined}
+          />
         )}
         {screen === 'export' && photo && (
           <RefynExport key="export" photoUrl={photo.originalUrl} onBack={handleBack} onReset={handleReset} />

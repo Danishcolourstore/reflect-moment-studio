@@ -10,6 +10,7 @@ interface Props {
   photoUrl: string;
   onExport: () => void;
   onReset: () => void;
+  initialValues?: RefynToolValues;
 }
 
 const buildFilter = (v: RefynToolValues) => {
