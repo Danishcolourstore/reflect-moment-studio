@@ -107,7 +107,7 @@ export default function AdminSettings() {
 
       {/* Platform Settings */}
       <Card>
-        <CardContent className="p-5 space-y-5">
+        <CardContent className="p-4 sm:p-5 space-y-5">
           <h3 className="font-serif text-base font-semibold">Platform Settings</h3>
           <div className="flex items-center justify-between">
             <div>
