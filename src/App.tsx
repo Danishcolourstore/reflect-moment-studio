@@ -401,7 +401,7 @@ const AppRoutes = () => {
           path="/"
           element={
             <AuthRoute>
-              <Auth key="landing" initialView="login" />
+              <LandingPage />
             </AuthRoute>
           }
         />
