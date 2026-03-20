@@ -240,12 +240,12 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
           setRedirectTo('/client');
         } else {
           const redirect = sessionStorage.getItem("redirectAfterLogin");
-          if (redirect && redirect.startsWith("/dashboard")) {
+          if (redirect && (redirect.startsWith("/dashboard") || redirect.startsWith("/home") || redirect.startsWith("/colour-store"))) {
             sessionStorage.removeItem("redirectAfterLogin");
             setRedirectTo(redirect);
           } else {
             sessionStorage.removeItem("redirectAfterLogin");
-            setRedirectTo("/dashboard");
+            setRedirectTo("/home");
           }
         }
         setChecked(true);
