@@ -112,6 +112,11 @@ export default function ColourStore() {
             onExport={handleExport}
             onReset={handleReset}
             initialValues={aiToolValues ?? undefined}
+            onIntelMessage={(msg) => {
+              setDetectedText(msg);
+              setShowIntelBar(true);
+              setTimeout(() => setShowIntelBar(false), 3000);
+            }}
           />
         )}
         {screen === 'export' && photo && (

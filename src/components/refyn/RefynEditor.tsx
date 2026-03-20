@@ -6,11 +6,27 @@ import RefynGrainPanel from './RefynGrainPanel';
 import RefynLayerPanel from './RefynLayerPanel';
 import { DEFAULT_TOOL_VALUES, type RefynToolId, type RefynToolValues } from './refyn-types';
 
+const HOTC_VALUES: RefynToolValues = {
+  frequency: 42,
+  lumina: 60,
+  sculpt: 24,
+  ghostLight: 35,
+  grain: { style: 'film', strength: 22, shadowsOnly: false },
+  layerTexture: 78,
+  layerTone: 38,
+  outfit: 50,
+  jewellery: 44,
+  hair: 38,
+};
+
+type EditorMode = 'ri' | 'hotc';
+
 interface Props {
   photoUrl: string;
   onExport: () => void;
   onReset: () => void;
   initialValues?: RefynToolValues;
+  onIntelMessage?: (msg: string) => void;
 }
 
 const buildFilter = (v: RefynToolValues) => {
@@ -45,11 +61,37 @@ const SLIDER_TOOLS: Record<string, { key: keyof RefynToolValues; label: string }
   hair: { key: 'hair', label: 'Hair' },
 };
 
-export default function RefynEditor({ photoUrl, onExport, onReset, initialValues }: Props) {
-  const [values, setValues] = useState<RefynToolValues>(initialValues ? { ...initialValues } : { ...DEFAULT_TOOL_VALUES });
+export default function RefynEditor({ photoUrl, onExport, onReset, initialValues, onIntelMessage }: Props) {
+  const riValues = initialValues ? { ...initialValues } : { ...DEFAULT_TOOL_VALUES };
+  const [values, setValues] = useState<RefynToolValues>({ ...riValues });
   const [activeTool, setActiveTool] = useState<RefynToolId | null>(null);
   const [isComparing, setIsComparing] = useState(false);
+  const [mode, setMode] = useState<EditorMode>('ri');
   const imgRef = useRef<HTMLDivElement>(null);
+
+  const animateToValues = useCallback((target: RefynToolValues) => {
+    const numericKeys: (keyof RefynToolValues)[] = ['frequency', 'lumina', 'sculpt', 'ghostLight', 'layerTexture', 'layerTone', 'outfit', 'jewellery', 'hair'];
+    numericKeys.forEach((key, i) => {
+      setTimeout(() => {
+        setValues(prev => ({ ...prev, [key]: target[key] }));
+      }, i * 50);
+    });
+    setTimeout(() => {
+      setValues(prev => ({ ...prev, grain: { ...target.grain } }));
+    }, numericKeys.length * 50);
+  }, []);
+
+  const handleModeSwitch = useCallback((newMode: EditorMode) => {
+    if (newMode === mode) return;
+    setMode(newMode);
+    if (newMode === 'hotc') {
+      animateToValues(HOTC_VALUES);
+      onIntelMessage?.('House on the Clouds standard applied.');
+    } else {
+      animateToValues(riValues);
+      onIntelMessage?.('Real Intelligence applied.');
+    }
+  }, [mode, animateToValues, riValues, onIntelMessage]);
 
   const handleToolTap = useCallback((id: RefynToolId) => {
     setActiveTool((prev) => (prev === id ? null : id));
@@ -148,6 +190,42 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
       <p className="text-[10px] tracking-wider uppercase text-[#6B6B6B]/60" style={{ fontFamily: '"DM Sans", sans-serif' }}>
         Hold to compare
       </p>
+
+      {/* RI / HOTC mode pills */}
+      <div className="flex items-center justify-center gap-2">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => handleModeSwitch('ri')}
+          className="px-5 py-2 rounded-full transition-all duration-300"
+          style={{
+            fontFamily: '"Cormorant Garamond", serif',
+            fontStyle: 'italic',
+            fontSize: '13px',
+            background: mode === 'ri' ? 'rgba(232,201,122,0.1)' : 'transparent',
+            border: mode === 'ri' ? '1px solid rgba(232,201,122,0.35)' : '1px solid rgba(240,237,232,0.08)',
+            color: mode === 'ri' ? '#E8C97A' : 'rgba(240,237,232,0.3)',
+          }}
+        >
+          RI
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => handleModeSwitch('hotc')}
+          className="flex items-center gap-1.5 px-5 py-2 rounded-full transition-all duration-300"
+          style={{
+            background: mode === 'hotc' ? 'rgba(232,201,122,0.1)' : 'transparent',
+            border: mode === 'hotc' ? '1px solid rgba(232,201,122,0.35)' : '1px solid rgba(240,237,232,0.08)',
+            color: mode === 'hotc' ? '#E8C97A' : 'rgba(240,237,232,0.3)',
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M6 1L2 5V8L4 10H8L10 8V5L6 1Z" stroke="currentColor" strokeWidth="0.8" />
+            <path d="M4 10V7H8V10" stroke="currentColor" strokeWidth="0.6" opacity="0.6" />
+            <circle cx="9" cy="2" r="1.5" stroke="currentColor" strokeWidth="0.6" opacity="0.5" />
+          </svg>
+          <span style={{ fontFamily: '"DM Sans", sans-serif', fontSize: '9px', letterSpacing: '0.15em' }}>HOTC</span>
+        </motion.button>
+      </div>
 
       {/* 9-tool toolbar */}
       <RefynToolbar activeTool={activeTool} onToolTap={handleToolTap} />
