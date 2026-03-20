@@ -214,8 +214,8 @@ function StandardGridRenderer({
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 pointer-events-none" />
 
-              {/* Bottom actions */}
-              <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              {/* Bottom actions — always visible on mobile (no hover) */}
+              <div className="absolute bottom-2 right-2 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                 <button
                   onClick={() => setSharePhoto(photo)}
                   className="rounded-full bg-black/50 backdrop-blur-md p-1.5 text-white/80 hover:bg-black/70 hover:text-white transition"
