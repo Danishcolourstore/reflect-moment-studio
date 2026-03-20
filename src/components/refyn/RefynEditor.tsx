@@ -4,7 +4,9 @@ import RefynToolbar from './RefynToolbar';
 import RefynVerticalSlider from './RefynVerticalSlider';
 import RefynGrainPanel from './RefynGrainPanel';
 import RefynLayerPanel from './RefynLayerPanel';
+import RefynFilterPanel from './RefynFilterPanel';
 import { DEFAULT_TOOL_VALUES, type RefynToolId, type RefynToolValues } from './refyn-types';
+import type { RefynFilter } from './refyn-filters';
 
 const HOTC_VALUES: RefynToolValues = {
   frequency: 42,
