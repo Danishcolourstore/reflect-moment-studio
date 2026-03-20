@@ -111,12 +111,13 @@ interface Props {
 export default function RefynToolbar({ activeTool, onToolTap }: Props) {
   return (
     <div
-      className="flex items-end gap-0 overflow-x-auto px-2"
+      className="flex items-end overflow-x-auto"
       style={{
-        height: '52px',
+        height: '48px',
         scrollbarWidth: 'none',
         WebkitOverflowScrolling: 'touch',
         msOverflowStyle: 'none',
+        padding: '0 4px',
       }}
     >
       {TOOLS.map((tool) => {
@@ -125,15 +126,16 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
           <button
             key={tool.id}
             onClick={() => onToolTap(tool.id)}
-            className="flex flex-col items-center justify-center gap-1 flex-shrink-0 relative"
+            className="flex flex-col items-center justify-center flex-shrink-0 relative"
             style={{
-              width: '54px',
-              height: '48px',
-              color: isActive ? '#c9a96e' : 'rgba(240,237,232,0.4)',
+              width: '48px',
+              height: '44px',
+              color: isActive ? '#c9a96e' : 'rgba(240,237,232,0.35)',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              transition: 'color 200ms',
+              transition: 'color 150ms',
+              gap: '2px',
             }}
           >
             {tool.icon}
@@ -141,9 +143,10 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
               style={{
                 fontFamily: '"DM Sans", sans-serif',
                 fontSize: '8px',
-                letterSpacing: '0.06em',
+                letterSpacing: '0.05em',
                 textTransform: 'uppercase',
                 whiteSpace: 'nowrap',
+                lineHeight: 1,
               }}
             >
               {tool.label}
@@ -152,7 +155,7 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
               <div
                 style={{
                   position: 'absolute',
-                  bottom: '1px',
+                  bottom: '0px',
                   width: '3px',
                   height: '3px',
                   borderRadius: '50%',
