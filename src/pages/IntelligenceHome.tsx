@@ -115,7 +115,7 @@ export default function IntelligenceHome() {
             transition={{ duration: 1.2, ease }}
           >
             <img
-              src={`${url}?w=1200&q=80`}
+              src={url}
               alt=""
               className="absolute inset-0 w-full h-full object-cover"
             />
