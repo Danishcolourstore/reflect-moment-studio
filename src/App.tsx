@@ -300,6 +300,7 @@ const AppRoutes = () => {
         <Route path="/builder-test" element={<BuilderTest />} />
         <Route path="/refyn" element={<Suspense fallback={<PageLoader />}><Refyn /></Suspense>} />
         <Route path="/colour-store" element={<ProtectedRoute><ColourStore /></ProtectedRoute>} />
+        <Route path="/retouch-login" element={<RetouchLogin />} />
         <Route path="/home" element={<ProtectedRoute><IntelligenceHome /></ProtectedRoute>} />
 
         <Route
