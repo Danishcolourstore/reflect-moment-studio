@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { BookOpen } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { BookOpen, Camera, Globe, LayoutGrid, Menu as MenuIcon } from 'lucide-react';
+import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
+import { NavLink } from '@/components/NavLink';
 import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
 import hero1 from '@/assets/hero-1.jpg';
 import hero2 from '@/assets/hero-2.jpg';
