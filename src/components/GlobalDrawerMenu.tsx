@@ -13,7 +13,6 @@ const PRODUCTS = [
 ];
 
 const FEATURES = [
-  { label: 'Reflections', path: '/dashboard/reflections' },
   { label: 'Events', path: '/dashboard/events' },
   { label: 'Albums', path: '/dashboard/album-designer' },
   { label: 'Grid Builder', path: '/dashboard/storybook' },
