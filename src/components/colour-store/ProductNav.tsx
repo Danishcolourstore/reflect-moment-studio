@@ -20,7 +20,7 @@ export default function ProductNav() {
     >
       {/* Back to home */}
       <button
-        onClick={() => navigate(-1 as any)}
+        onClick={() => navigate(-1)}
         className="flex items-center gap-2"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
