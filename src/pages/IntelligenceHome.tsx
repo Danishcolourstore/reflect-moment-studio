@@ -17,14 +17,7 @@ const GRADIENTS = [
 const SLIDE_DURATION = 12000;
 const FADE_DURATION = 4;
 
-const LINES = [
-  "Mirror never lies.",
-  "Not realtime.\n2 seconds late.",
-  "We are not\nartificially intelligent.",
-  "Real Intelligence.\nExperience.",
-  "Art and technology.\nSmooched.",
-  "Hugged. Cuddled.\nWild.",
-];
+const LINES: string[] = [];
 
 export default function IntelligenceHome() {
   const navigate = useNavigate();
