@@ -179,7 +179,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           alt="Edited"
           className="w-full aspect-[4/3] object-cover transition-opacity duration-150"
           style={{
-            filter: buildFilter(values),
+            filter: buildFilter(values, cssOverrides),
             opacity: isComparing ? 0 : 1,
             position: isComparing ? 'absolute' : 'relative',
             inset: 0,
