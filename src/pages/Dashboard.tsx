@@ -63,6 +63,7 @@ const Dashboard = () => {
   const [totalPhotos, setTotalPhotos] = useState(0);
   const [totalAlbums, setTotalAlbums] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [hoverCS, setHoverCS] = useState(false);
 
   useEffect(() => {
