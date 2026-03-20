@@ -113,7 +113,7 @@ const Profile = () => {
           <div className="space-y-4">
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Full Name</label>
-              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 bg-background" />
+              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 bg-background text-base" />
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Email</label>
