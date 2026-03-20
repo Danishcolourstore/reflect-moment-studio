@@ -117,7 +117,7 @@ const Profile = () => {
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Email</label>
-              <Input value={email} readOnly className="mt-1 bg-background opacity-60" />
+              <Input value={email} readOnly className="mt-1 bg-background opacity-60 text-base" />
               <p className="text-[10px] text-muted-foreground/50 mt-1">Email cannot be changed</p>
             </div>
           </div>
