@@ -254,7 +254,7 @@ function StandardGridRenderer({
               {/* Section select (owner) */}
               {isOwner && (
                 <div
-                  className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  className="absolute bottom-2 left-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <PhotoSectionSelect
