@@ -4,17 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
+import hero1 from '@/assets/hero-1.jpg';
+import hero2 from '@/assets/hero-2.jpg';
+import hero3 from '@/assets/hero-3.jpg';
+import hero4 from '@/assets/hero-4.jpg';
+import hero5 from '@/assets/hero-5.jpg';
+import hero6 from '@/assets/hero-6.jpg';
 
 const ease = [0.16, 1, 0.3, 1];
 
-const SLIDES = [
-  'https://images.unsplash.com/photo-1583939003579-730e3918a45a',
-  'https://images.unsplash.com/photo-1519741497674-611481863552',
-  'https://images.unsplash.com/photo-1606216794074-735e91aa2c92',
-  'https://images.unsplash.com/photo-1591604021695-0c69b7c05981',
-  'https://images.unsplash.com/photo-1529636798458-92182e662485',
-  'https://images.unsplash.com/photo-1587271407850-8d438ca9fdf2',
-];
+const SLIDES = [hero1, hero2, hero3, hero4, hero5, hero6];
 
 const LINES = [
   'Mirror never lies.',
