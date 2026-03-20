@@ -8,7 +8,7 @@ interface Props {
   label: string;
 }
 
-export default function RefynVerticalSlider({ value, onChange, label }: Props) {
+export default function RefynVerticalSlider({ value, onChange, onChangeEnd, label }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
 
