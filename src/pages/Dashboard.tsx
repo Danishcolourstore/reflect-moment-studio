@@ -10,6 +10,8 @@ import { useStorageUsage, formatBytes } from "@/hooks/use-storage-usage";
 import { StudioBrainCards } from "@/components/entiran/StudioBrainCards";
 import { EventLifecycle } from "@/components/entiran/EventLifecycle";
 import { useStudioBrain } from "@/hooks/use-studio-brain";
+import ProductNav from "@/components/colour-store/ProductNav";
+import IntelligenceDot from "@/components/colour-store/IntelligenceDot";
 import {
   Camera, Image, Eye, HardDrive, Plus, Upload,
   BookOpen, Sparkles, Globe, BarChart2, ChevronRight,
@@ -221,6 +223,7 @@ const Dashboard = () => {
         <StudioBrainCards suggestions={suggestions} onDismiss={dismissSuggestion} onAct={actOnSuggestion} />
         <EventLifecycle />
       </div>
+      <IntelligenceDot />
     </DashboardLayout>
   );
 };

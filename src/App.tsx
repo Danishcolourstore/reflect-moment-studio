@@ -56,6 +56,8 @@ const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
 const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
 const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
 const Refyn = lazy(() => import("./pages/Refyn"));
+const ColourStore = lazy(() => import("./pages/ColourStore"));
+const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
 const DomainSettings = lazy(() => import("./pages/DomainSettings"));
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
@@ -238,19 +240,19 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
           setRedirectTo('/client');
         } else {
           const redirect = sessionStorage.getItem("redirectAfterLogin");
-          if (redirect && redirect.startsWith("/dashboard")) {
+          if (redirect && (redirect.startsWith("/dashboard") || redirect.startsWith("/home") || redirect.startsWith("/colour-store"))) {
             sessionStorage.removeItem("redirectAfterLogin");
             setRedirectTo(redirect);
           } else {
             sessionStorage.removeItem("redirectAfterLogin");
-            setRedirectTo("/dashboard");
+            setRedirectTo("/home");
           }
         }
         setChecked(true);
       })
       .catch(() => {
         sessionStorage.removeItem("redirectAfterLogin");
-        setRedirectTo("/dashboard");
+        setRedirectTo("/home");
         setChecked(true);
       });
   }, [user, loading]);
@@ -296,6 +298,8 @@ const AppRoutes = () => {
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/builder-test" element={<BuilderTest />} />
         <Route path="/refyn" element={<Suspense fallback={<PageLoader />}><Refyn /></Suspense>} />
+        <Route path="/colour-store" element={<ProtectedRoute><ColourStore /></ProtectedRoute>} />
+        <Route path="/home" element={<ProtectedRoute><IntelligenceHome /></ProtectedRoute>} />
 
         <Route
           path="/super-admin"
