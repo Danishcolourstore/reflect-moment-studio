@@ -136,7 +136,7 @@ const Profile = () => {
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">New Password</label>
-              <Input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} className="mt-1 bg-background" />
+              <Input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} className="mt-1 bg-background text-base" />
               {strength && <p className={`text-[10px] mt-1 ${strength.color}`}>{strength.label}</p>}
             </div>
             <div>
