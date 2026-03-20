@@ -4,18 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, Camera, Globe, LayoutGrid, Menu as MenuIcon } from 'lucide-react';
 import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
 import { NavLink } from '@/components/NavLink';
-import hero1 from '@/assets/hero-1.jpg';
-import hero2 from '@/assets/hero-2.jpg';
-import hero3 from '@/assets/hero-3.jpg';
-import hero4 from '@/assets/hero-4.jpg';
-import hero5 from '@/assets/hero-5.jpg';
-import hero6 from '@/assets/hero-6.jpg';
-import hero7 from '@/assets/hero-7.jpg';
-import hero8 from '@/assets/hero-8.jpg';
-import hero9 from '@/assets/hero-9.jpg';
-
 const ease = [0.4, 0, 0.2, 1];
-const SLIDES = [hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9];
+
+const GRADIENTS = [
+  'radial-gradient(ellipse at 30% 50%, #1a1510 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 70% 40%, #1c1412 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 50% 60%, #14130f 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 40% 30%, #181410 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 60% 70%, #1a1612 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 50% 40%, #161210 0%, #0a0a0a 70%)',
+];
 const SLIDE_DURATION = 12000;
 const FADE_DURATION = 4;
 
