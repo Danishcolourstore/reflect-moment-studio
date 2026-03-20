@@ -233,6 +233,42 @@ export default function IntelligenceHome() {
             {pad(current + 1)} / {pad(SLIDES.length)}
           </span>
         </motion.div>
+
+        {/* Bottom Tab Bar */}
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-[100] flex items-stretch border-t border-white/[0.06]"
+          style={{
+            height: 56,
+            background: 'rgba(10,10,10,0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          }}
+        >
+          {[
+            { title: 'Home', url: '/home', icon: LayoutGrid, end: true },
+            { title: 'Events', url: '/dashboard/events', icon: Camera },
+            { title: 'Albums', url: '/dashboard/album-designer', icon: BookOpen },
+            { title: 'Website', url: '/dashboard/website-editor', icon: Globe },
+          ].map((item) => (
+            <NavLink key={item.url} to={item.url} end={item.end}
+              className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors min-h-[44px]"
+              activeClassName="[&>svg]:text-[#C8A97E] [&>span]:text-[#C8A97E]"
+              style={{ color: 'rgba(255,255,255,0.45)' }}
+            >
+              <item.icon className="h-[22px] w-[22px] transition-colors" strokeWidth={1.6} />
+              <span className="text-[10px] font-medium tracking-wide transition-colors">{item.title}</span>
+            </NavLink>
+          ))}
+          <button
+            onClick={drawer.toggle}
+            className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
+            style={{ color: 'rgba(255,255,255,0.45)' }}
+          >
+            <MenuIcon className="h-[22px] w-[22px]" strokeWidth={1.6} />
+            <span className="text-[10px] font-medium tracking-wide">More</span>
+          </button>
+        </nav>
       </motion.div>
     </div>
   );
