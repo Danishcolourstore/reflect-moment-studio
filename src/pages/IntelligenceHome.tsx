@@ -15,8 +15,17 @@ import hero9 from '@/assets/hero-9.jpg';
 
 const ease = [0.4, 0, 0.2, 1];
 const SLIDES = [hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9];
-const SLIDE_DURATION = 12000; // 12s per slide
-const FADE_DURATION = 4; // 4s ultra-smooth dissolve
+const SLIDE_DURATION = 12000;
+const FADE_DURATION = 4;
+
+const LINES = [
+  "Mirror never lies.",
+  "Not realtime.\n2 seconds late.",
+  "We are not\nartificially intelligent.",
+  "Real Intelligence.\nExperience.",
+  "Art and technology.\nSmooched.",
+  "Hugged. Cuddled.\nWild.",
+];
 
 export default function IntelligenceHome() {
   const navigate = useNavigate();
@@ -38,10 +47,10 @@ export default function IntelligenceHome() {
   }, [phase]);
 
   const pad = (n: number) => String(n).padStart(2, '0');
+  const currentLine = LINES[current % LINES.length];
 
   return (
     <div className="h-[100dvh] w-screen overflow-hidden relative bg-black">
-      {/* Film grain */}
       <svg className="pointer-events-none fixed inset-0 w-full h-full z-[200]" style={{ opacity: 0.03 }}>
         <filter id="ig-grain">
           <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
@@ -52,7 +61,6 @@ export default function IntelligenceHome() {
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
-      {/* INTRO overlay */}
       <AnimatePresence>
         {phase < 3 && (
           <motion.div
@@ -64,7 +72,6 @@ export default function IntelligenceHome() {
         )}
       </AnimatePresence>
 
-      {/* RI monogram intro */}
       {phase >= 1 && phase < 3 && (
         <motion.span
           className="fixed select-none z-[301]"
@@ -85,14 +92,12 @@ export default function IntelligenceHome() {
         </motion.span>
       )}
 
-      {/* PHASE 3 — Full experience */}
       <motion.div
         className="absolute inset-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: phase >= 3 ? 1 : 0 }}
         transition={{ duration: 1.2, ease }}
       >
-        {/* Pure smooth dissolve slideshow */}
         {SLIDES.map((url, i) => (
           <motion.div
             key={i}
@@ -110,7 +115,6 @@ export default function IntelligenceHome() {
           </motion.div>
         ))}
 
-        {/* Dark gradient */}
         <div
           className="absolute inset-0 z-10 pointer-events-none"
           style={{
@@ -118,7 +122,46 @@ export default function IntelligenceHome() {
           }}
         />
 
-        {/* TOP BAR */}
+        {/* Center text — pure opacity dissolve, synced with photos */}
+        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={current}
+              className="text-center select-none whitespace-pre-line"
+              style={{
+                fontFamily: 'Cinzel, serif',
+                fontWeight: 700,
+                fontSize: 'clamp(42px, 10vw, 68px)',
+                color: '#F0EDE8',
+                letterSpacing: '0.08em',
+                lineHeight: 1.2,
+                textShadow: '0 2px 40px rgba(0,0,0,0.7)',
+                width: '78%',
+                maxWidth: 600,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                opacity: {
+                  duration: 1.2,
+                  delay: 0.6,
+                  ease: [0.42, 0, 0.58, 1],
+                },
+                exit: {
+                  opacity: {
+                    duration: 0.8,
+                    delay: 0,
+                    ease: [0.42, 0, 0.58, 1],
+                  },
+                },
+              }}
+            >
+              {currentLine}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+
         <div
           className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between"
           style={{ height: 56, padding: '0 20px', paddingTop: 'env(safe-area-inset-top, 0px)' }}
@@ -128,11 +171,8 @@ export default function IntelligenceHome() {
             className="cursor-pointer select-none uppercase"
             style={{
               fontFamily: '"DM Sans", sans-serif',
-              fontSize: 11,
-              color: '#F0EDE8',
-              letterSpacing: '0.3em',
-              background: 'none',
-              border: 'none',
+              fontSize: 11, color: '#F0EDE8',
+              letterSpacing: '0.3em', background: 'none', border: 'none',
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -144,11 +184,8 @@ export default function IntelligenceHome() {
           <motion.span
             className="select-none"
             style={{
-              fontFamily: 'Cinzel, serif',
-              fontSize: 20,
-              fontWeight: 600,
-              color: '#F5C518',
-              letterSpacing: '0.3em',
+              fontFamily: 'Cinzel, serif', fontSize: 20, fontWeight: 600,
+              color: '#F5C518', letterSpacing: '0.3em',
               textShadow: '0 0 24px rgba(245,197,24,0.8)',
             }}
             initial={{ opacity: 0 }}
@@ -170,7 +207,6 @@ export default function IntelligenceHome() {
           </motion.button>
         </div>
 
-        {/* Amber pulse dot */}
         <motion.div
           className="fixed z-[100]"
           style={{ top: 8, right: 8, width: 5, height: 5, borderRadius: '50%', background: '#E8C97A' }}
@@ -178,7 +214,6 @@ export default function IntelligenceHome() {
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
         />
 
-        {/* Counter */}
         <motion.div
           className="absolute z-[100]"
           style={{ bottom: 28, right: 20, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
@@ -189,10 +224,8 @@ export default function IntelligenceHome() {
           <span
             className="select-none"
             style={{
-              fontFamily: '"DM Sans", sans-serif',
-              fontSize: 9,
-              color: 'rgba(240,237,232,0.28)',
-              letterSpacing: '0.2em',
+              fontFamily: '"DM Sans", sans-serif', fontSize: 9,
+              color: 'rgba(240,237,232,0.28)', letterSpacing: '0.2em',
             }}
           >
             {pad(current + 1)} / {pad(SLIDES.length)}
