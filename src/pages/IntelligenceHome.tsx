@@ -7,6 +7,8 @@ import hero1 from '@/assets/hero-1.jpg';
 import hero2 from '@/assets/hero-2.png';
 import hero3 from '@/assets/hero-3.jpg';
 import hero4 from '@/assets/hero-4.jpg';
+import hero5 from '@/assets/hero-5.jpg';
+import hero6 from '@/assets/hero-6.webp';
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -15,6 +17,8 @@ const SLIDES = [
   { img: hero2, caption: 'Elegance · Defined' },
   { img: hero3, caption: 'Gold · Grace' },
   { img: hero4, caption: 'Together · Forever' },
+  { img: hero5, caption: 'Promise · Bloom' },
+  { img: hero6, caption: 'Shores · Serenity' },
 ];
 
 function FilmGrain() {
