@@ -1,7 +1,25 @@
 import { useState } from 'react';
-import { ToolPanelWrapper, ToolSlider, ToolSegment } from './ToolPanelPrimitives';
+import { ToolPanelWrapper, RecipeRow, ToolSegment } from './ToolPanelPrimitives';
 
 interface Props { onClose: () => void; }
+
+const SizeIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.2"/>
+  </svg>
+);
+const FeatherIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.2"/>
+    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 2"/>
+  </svg>
+);
+const OpacityIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.2"/>
+    <path d="M10 3A7 7 0 0 1 10 17" fill="currentColor" fillOpacity="0.3"/>
+  </svg>
+);
 
 export default function BackgroundCleanup({ onClose }: Props) {
   const [mode, setMode] = useState('Heal');
@@ -10,14 +28,11 @@ export default function BackgroundCleanup({ onClose }: Props) {
   const [opacity, setOpacity] = useState(100);
 
   return (
-    <ToolPanelWrapper title="Background Cleanup" onClose={onClose}>
+    <ToolPanelWrapper title="Background" badge="BG" onClose={onClose}>
       <ToolSegment options={['Heal', 'Clone', 'Fill']} value={mode} onChange={setMode} />
-      <ToolSlider label="Size" value={brushSize} min={1} max={500} onChange={setBrushSize} unit="px" />
-      <ToolSlider label="Feather" value={feather} onChange={setFeather} unit="%" />
-      <ToolSlider label="Opacity" value={opacity} onChange={setOpacity} unit="%" />
-      <p className="text-[9px] text-[#6a6470] pt-2" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-        {mode === 'Fill' ? 'Select area for content-aware fill' : 'Paint to clean distractions'}
-      </p>
+      <RecipeRow icon={<SizeIcon />} label="Size" value={brushSize} min={1} max={500} onChange={setBrushSize} />
+      <RecipeRow icon={<FeatherIcon />} label="Feather" value={feather} onChange={setFeather} />
+      <RecipeRow icon={<OpacityIcon />} label="Opacity" value={opacity} onChange={setOpacity} />
     </ToolPanelWrapper>
   );
 }

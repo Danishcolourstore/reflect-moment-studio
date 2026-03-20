@@ -1,7 +1,25 @@
 import { useState } from 'react';
-import { ToolPanelWrapper, ToolSlider, ToolToggle } from './ToolPanelPrimitives';
+import { ToolPanelWrapper, RecipeRow, ToolToggle } from './ToolPanelPrimitives';
 
 interface Props { onClose: () => void; }
+
+const SizeIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.2"/>
+  </svg>
+);
+const PressureIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <path d="M10 4V16" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+    <path d="M6 8L10 4L14 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const DensityIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <rect x="4" y="4" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.2"/>
+    <rect x="7" y="7" width="6" height="6" rx="1" fill="currentColor" fillOpacity="0.3"/>
+  </svg>
+);
 
 export default function Liquify({ onClose }: Props) {
   const [brushSize, setBrushSize] = useState(100);
@@ -10,16 +28,11 @@ export default function Liquify({ onClose }: Props) {
   const [freeze, setFreeze] = useState(false);
 
   return (
-    <ToolPanelWrapper title="Liquify" onClose={onClose}>
-      <ToolSlider label="Size" value={brushSize} min={10} max={500} onChange={setBrushSize} unit="px" />
-      <ToolSlider label="Pressure" value={pressure} min={1} max={50} onChange={setPressure} unit="%" />
-      <ToolSlider label="Density" value={density} onChange={setDensity} unit="%" />
-      <div className="flex gap-2 pt-2">
-        <ToolToggle label="Freeze Mask" active={freeze} onToggle={() => setFreeze(!freeze)} />
-      </div>
-      <p className="text-[9px] text-[#6a6470] pt-1" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-        Drag to push pixels · Capped at 50% for natural results
-      </p>
+    <ToolPanelWrapper title="Liquify" badge="LQ" onClose={onClose}>
+      <RecipeRow icon={<SizeIcon />} label="Size" value={brushSize} min={10} max={500} onChange={setBrushSize} />
+      <RecipeRow icon={<PressureIcon />} label="Pressure" value={pressure} min={1} max={50} onChange={setPressure} />
+      <RecipeRow icon={<DensityIcon />} label="Density" value={density} onChange={setDensity} />
+      <ToolToggle label="Freeze Mask" active={freeze} onToggle={() => setFreeze(!freeze)} />
     </ToolPanelWrapper>
   );
 }
