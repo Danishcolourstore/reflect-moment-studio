@@ -124,6 +124,7 @@ interface Props {
 }
 
 export default function RefynToolbar({ activeTool, onToolTap }: Props) {
+  const filterBtn = TOOLS.find(t => t.id === 'filters')!;
   const group1 = TOOLS.filter(t => t.group === 1);
   const group2 = TOOLS.filter(t => t.group === 2);
 
@@ -159,8 +160,9 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
       className="flex items-center justify-center gap-0.5 overflow-x-auto max-w-full px-2"
       style={{ scrollbarWidth: 'none' }}
     >
+      {renderTool(filterBtn)}
+      <div className="w-px h-8 bg-[#333] mx-1 flex-shrink-0" />
       {group1.map(renderTool)}
-      {/* Separator */}
       <div className="w-px h-8 bg-[#333] mx-1 flex-shrink-0" />
       {group2.map(renderTool)}
     </motion.div>
