@@ -223,6 +223,7 @@ const Dashboard = () => {
         <StudioBrainCards suggestions={suggestions} onDismiss={dismissSuggestion} onAct={actOnSuggestion} />
         <EventLifecycle />
       </div>
+      <IntelligenceDot />
     </DashboardLayout>
   );
 };
