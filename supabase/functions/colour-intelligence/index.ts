@@ -45,15 +45,47 @@ You specialise in Indian wedding photography.
 Kerala skin tones. Warm golden Indian skin.
 Never plastic. Never bleach. Always real.
 
-Your 6 tools and their ranges (0-100):
-- skin: frequency separation strength (never above 68)
-- glow: inner luminosity — warm lift only
-- form: bone structure micro contrast
-- light: eye catchlight enhancement
-- grain: film grain character strength
-- depth: has two sub-values: texture (always 55-75) and tone
+When given a photo you must identify SEMANTIC ZONES:
 
-Analyse the photo and EXIF data. Return ONLY valid JSON. Nothing else. No markdown.`,
+1. SKIN ZONES:
+   - Face skin area, neck and décolletage, hands and arms
+   - Skin tone: warm_golden / deep_brown / fair / dusky
+   - Lighting direction on skin
+
+2. OUTFIT ZONE:
+   - Saree / lehenga / sherwani / suit
+   - Fabric type: silk / georgette / velvet / net / unknown
+   - Primary outfit color
+   - Embroidery or zari work present: yes/no
+
+3. JEWELLERY ZONE:
+   - Gold jewellery present: yes/no
+   - Diamond/stone jewellery: yes/no
+   - Location: neck / ears / head / hands / nose
+
+4. HAIR ZONE:
+   - Hair color
+   - Hair accessories present: yes/no
+   - Flowers in hair: yes/no
+
+5. BACKGROUND ZONE:
+   - Indoor/outdoor
+   - Background complexity: simple/medium/busy
+
+Your 9 tools and ranges (0-100):
+- skin: frequency separation on skin zones only (never above 68)
+- glow: inner luminosity on face — warm lift only
+- form: bone structure micro contrast on face
+- light: eye catchlight enhancement
+- grain: film grain character (applied last, over everything)
+- depth: texture (always 55-75) and tone sub-values
+- outfit: fabric texture enhancement, color richness, embroidery detail (0-100)
+- jewellery: gold warmth, diamond sparkle, detail enhancement (0-100)
+- hair: strand definition, shine, flower/accessory enhancement (0-100)
+
+Each tool knows its zone. Skin never touches dress. Outfit never touches face. Jewellery enhances only metal. Intelligent. Surgical. Precise.
+
+Return ONLY valid JSON. No markdown. No explanation.`,
             },
             {
               role: "user",
@@ -68,20 +100,46 @@ Analyse the photo and EXIF data. Return ONLY valid JSON. Nothing else. No markdo
                   type: "text",
                   text: `${exifBlock}
 
-Analyse this photo and return:
+Analyse this photo deeply. Return:
 {
-  "detected": "max 6 words describing lighting/scene conditions",
+  "zones": {
+    "skin": {
+      "tone": "warm_golden|deep_brown|fair|dusky",
+      "lighting": "golden_hour|flash|indoor|outdoor",
+      "areas": ["face", "neck", "hands"]
+    },
+    "outfit": {
+      "type": "saree|lehenga|sherwani|other",
+      "fabric": "silk|georgette|velvet|net|unknown",
+      "color": "hex or description",
+      "embroidery": true|false
+    },
+    "jewellery": {
+      "gold": true|false,
+      "diamonds": true|false,
+      "heavy": true|false
+    },
+    "hair": {
+      "accessories": true|false,
+      "flowers": true|false
+    },
+    "background": {
+      "type": "indoor|outdoor",
+      "complexity": "simple|medium|busy"
+    }
+  },
   "tools": {
     "skin": <number 0-68>,
     "glow": <number 0-100>,
     "form": <number 0-100>,
     "light": <number 0-100>,
     "grain": <number 0-100>,
-    "depth": {
-      "texture": <number 55-75>,
-      "tone": <number 0-100>
-    }
-  }
+    "depth": { "texture": <number 55-75>, "tone": <number 0-100> },
+    "outfit": <number 0-100>,
+    "jewellery": <number 0-100>,
+    "hair": <number 0-100>
+  },
+  "detected": "brief description e.g. Silk saree · Gold temple jewellery · Golden hour"
 }`,
                 },
               ],
@@ -124,13 +182,11 @@ Analyse this photo and return:
       console.error("Failed to parse AI response:", raw);
       analysis = {
         detected: "Portrait detected",
+        zones: {},
         tools: {
-          skin: 45,
-          glow: 35,
-          form: 30,
-          light: 25,
-          grain: 15,
+          skin: 45, glow: 35, form: 30, light: 25, grain: 15,
           depth: { texture: 65, tone: 45 },
+          outfit: 40, jewellery: 35, hair: 30,
         },
       };
     }

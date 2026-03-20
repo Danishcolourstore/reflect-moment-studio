@@ -1,8 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { readExif } from './exif';
+import type { ZoneData } from '@/components/refyn/refyn-types';
 
 export interface ColourAnalysis {
   detected: string;
+  zones: ZoneData;
   tools: {
     skin: number;
     glow: number;
@@ -10,15 +12,20 @@ export interface ColourAnalysis {
     light: number;
     grain: number;
     depth: { texture: number; tone: number };
+    outfit: number;
+    jewellery: number;
+    hair: number;
   };
 }
 
 const FALLBACK: ColourAnalysis = {
   detected: 'Portrait detected',
+  zones: {},
   tools: {
     skin: 45, glow: 35, form: 30,
     light: 25, grain: 15,
     depth: { texture: 65, tone: 45 },
+    outfit: 40, jewellery: 35, hair: 30,
   },
 };
 
@@ -26,7 +33,6 @@ export async function analysePhoto(file: File): Promise<ColourAnalysis> {
   try {
     const exif = await readExif(file);
 
-    // Convert file to base64
     const base64 = await new Promise<string>((resolve) => {
       const reader = new FileReader();
       reader.onload = () => {
@@ -49,12 +55,12 @@ export async function analysePhoto(file: File): Promise<ColourAnalysis> {
       return FALLBACK;
     }
 
-    // Validate and clamp values
     const tools = data?.tools;
     if (!tools) return FALLBACK;
 
     return {
       detected: data.detected || FALLBACK.detected,
+      zones: data.zones || {},
       tools: {
         skin: clamp(tools.skin ?? 45, 0, 68),
         glow: clamp(tools.glow ?? 35, 0, 100),
@@ -65,6 +71,9 @@ export async function analysePhoto(file: File): Promise<ColourAnalysis> {
           texture: clamp(tools.depth?.texture ?? 65, 55, 75),
           tone: clamp(tools.depth?.tone ?? 45, 0, 100),
         },
+        outfit: clamp(tools.outfit ?? 40, 0, 100),
+        jewellery: clamp(tools.jewellery ?? 35, 0, 100),
+        hair: clamp(tools.hair ?? 30, 0, 100),
       },
     };
   } catch (err) {
