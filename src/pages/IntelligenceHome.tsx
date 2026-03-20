@@ -38,8 +38,6 @@ export default function IntelligenceHome() {
     return () => clearInterval(interval);
   }, [phase]);
 
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const currentLine = LINES[current % LINES.length];
 
   return (
     <div className="h-[100dvh] w-screen overflow-hidden relative bg-black">
