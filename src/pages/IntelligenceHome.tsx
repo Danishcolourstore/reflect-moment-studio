@@ -97,22 +97,11 @@ export default function IntelligenceHome() {
         animate={{ opacity: phase >= 3 ? 1 : 0 }}
         transition={{ duration: 1.2, ease }}
       >
-        {SLIDES.map((url, i) => (
-          <motion.div
-            key={i}
-            className="absolute inset-0"
-            initial={false}
-            animate={{ opacity: current === i ? 1 : 0 }}
-            transition={{ duration: FADE_DURATION, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <img
-              src={url}
-              alt=""
-              loading={i <= 1 ? 'eager' : 'lazy'}
-              className="absolute inset-0 w-full h-full object-cover object-center"
-            />
-          </motion.div>
-        ))}
+        <motion.div
+          className="absolute inset-0"
+          animate={{ background: GRADIENTS[current % GRADIENTS.length] }}
+          transition={{ duration: FADE_DURATION, ease: [0.4, 0, 0.2, 1] }}
+        />
 
         <div
           className="absolute inset-0 z-10 pointer-events-none"
