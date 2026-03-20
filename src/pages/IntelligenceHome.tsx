@@ -103,45 +103,6 @@ export default function IntelligenceHome() {
           }}
         />
 
-        {/* Center text — pure opacity dissolve, synced with photos */}
-        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={current}
-              className="text-center select-none whitespace-pre-line"
-              style={{
-                fontFamily: 'Cinzel, serif',
-                fontWeight: 700,
-                fontSize: 'clamp(42px, 10vw, 68px)',
-                color: '#F0EDE8',
-                letterSpacing: '0.08em',
-                lineHeight: 1.2,
-                textShadow: '0 2px 40px rgba(0,0,0,0.7)',
-                width: '78%',
-                maxWidth: 600,
-              }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                opacity: {
-                  duration: 1.2,
-                  delay: 0.6,
-                  ease: [0.42, 0, 0.58, 1],
-                },
-                exit: {
-                  opacity: {
-                    duration: 0.8,
-                    delay: 0,
-                    ease: [0.42, 0, 0.58, 1],
-                  },
-                },
-              }}
-            >
-              {currentLine}
-            </motion.p>
-          </AnimatePresence>
-        </div>
 
         <div
           className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between"
