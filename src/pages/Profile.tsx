@@ -132,7 +132,7 @@ const Profile = () => {
           <div className="space-y-4">
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Current Password</label>
-              <Input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} className="mt-1 bg-background" />
+              <Input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} className="mt-1 bg-background text-base" />
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">New Password</label>
