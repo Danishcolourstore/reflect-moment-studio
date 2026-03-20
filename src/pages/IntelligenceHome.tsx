@@ -185,7 +185,8 @@ export default function IntelligenceHome() {
           style={{
             top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '78%',
+            width: '90%',
+            maxWidth: 900,
           }}
         >
           <AnimatePresence mode="wait">
@@ -194,21 +195,19 @@ export default function IntelligenceHome() {
               className="select-none whitespace-pre-line"
               style={{
                 fontFamily: 'Cinzel, serif',
-                fontSize: isMobile ? 48 : 68,
+                fontSize: isMobile ? 56 : 80,
                 fontWeight: 700,
                 color: '#F0EDE8',
-                lineHeight: 1.2,
-                letterSpacing: '0.08em',
-                textShadow: '0 2px 40px rgba(0,0,0,0.7)',
+                lineHeight: 1.1,
+                letterSpacing: '0.06em',
+                textShadow: '0 4px 60px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.5)',
               }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, y: 30, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 1.02 }}
               transition={{
-                enter: { duration: 0.9, delay: 0.3, ease: 'easeInOut' },
-                exit: { duration: 0.5, ease: 'easeInOut' },
-                duration: 0.9,
-                ease: 'easeInOut',
+                duration: 1.1,
+                ease: [0.16, 1, 0.3, 1],
               }}
             >
               {LINES[current]}
