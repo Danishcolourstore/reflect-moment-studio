@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import SendToMirrorPanel from '@/components/colour-store/SendToMirrorPanel';
 
 interface Props {
   photoUrl: string;
@@ -14,11 +15,16 @@ export default function RefynExport({ photoUrl, onBack, onReset }: Props) {
   const handleDownload = useCallback((quality: 'instagram' | 'full') => {
     const a = document.createElement('a');
     a.href = photoUrl;
-    a.download = `refyn-${quality}-${Date.now()}.jpg`;
+    a.download = `colour-store-${quality}-${Date.now()}.jpg`;
     a.click();
     setDownloaded(true);
     setTimeout(() => setDownloaded(false), 2000);
   }, [photoUrl]);
+
+  const handleSendToMirror = useCallback((destination: 'event' | 'album' | 'grid') => {
+    // TODO: actual integration with Mirror
+    console.log('Send to Mirror:', destination);
+  }, []);
 
   return (
     <motion.div
@@ -26,7 +32,7 @@ export default function RefynExport({ photoUrl, onBack, onReset }: Props) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
-      className="min-h-[100dvh] flex flex-col items-center justify-center px-6 gap-8"
+      className="min-h-[100dvh] flex flex-col items-center justify-center px-6 gap-6 pt-16 pb-8"
     >
       {/* Preview */}
       <div className="relative w-full max-w-sm rounded-2xl overflow-hidden">
@@ -42,11 +48,16 @@ export default function RefynExport({ photoUrl, onBack, onReset }: Props) {
               className="text-[9px] tracking-[0.25em] uppercase text-white/20"
               style={{ fontFamily: '"Cormorant Garamond", serif' }}
             >
-              Refyn
+              Colour Store
             </span>
           </div>
         )}
       </div>
+
+      {/* Section: Export to Device */}
+      <p className="text-[10px] tracking-wider uppercase text-[#6B6B6B]" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+        Export to Device
+      </p>
 
       {/* Export options */}
       <div className="w-full max-w-sm flex flex-col gap-3">
@@ -80,7 +91,7 @@ export default function RefynExport({ photoUrl, onBack, onReset }: Props) {
       {/* Watermark toggle */}
       <div className="flex items-center gap-3">
         <span className="text-[10px] tracking-wider text-[#6B6B6B]" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-          "Edited with Refyn" watermark
+          "Edited with Colour Store" watermark
         </span>
         <button
           onClick={() => setWatermark(!watermark)}
@@ -108,6 +119,9 @@ export default function RefynExport({ photoUrl, onBack, onReset }: Props) {
           </motion.p>
         )}
       </AnimatePresence>
+
+      {/* Send to Mirror */}
+      <SendToMirrorPanel onSend={handleSendToMirror} />
 
       {/* Navigation */}
       <div className="flex items-center gap-6">
