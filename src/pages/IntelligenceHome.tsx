@@ -3,30 +3,33 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { HamburgerButton, DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const ease = [0.16, 1, 0.3, 1];
 
-function FloatingOrbs({ color, speed = 10 }: { color: string; speed?: number }) {
+function FloatingOrbs({ color, fast = false }: { color: string; fast?: boolean }) {
+  const baseSpeed = fast ? 7 : 10;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[0, 1, 2].map((i) => (
+      {[0, 1].map((i) => (
         <motion.div
           key={i}
           className="absolute rounded-full"
           style={{
-            width: `${220 + i * 80}px`,
-            height: `${220 + i * 80}px`,
+            width: `${280 + i * 100}px`,
+            height: `${280 + i * 100}px`,
             background: `radial-gradient(circle, ${color}, transparent 70%)`,
-            left: `${15 + i * 25}%`,
-            top: `${20 + i * 20}%`,
+            left: `${10 + i * 35}%`,
+            top: `${25 + i * 25}%`,
           }}
           animate={{
-            x: [0, 30 - i * 15, -20 + i * 10, 0],
-            y: [0, -20 + i * 12, 25 - i * 8, 0],
-            scale: [1, 1.08, 0.95, 1],
+            x: [0, 25 - i * 20, -15 + i * 10, 0],
+            y: [0, -18 + i * 14, 20 - i * 8, 0],
+            scale: [1, 1.06, 0.96, 1],
           }}
           transition={{
-            duration: speed + i * 2,
+            duration: baseSpeed + i * 2,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
@@ -36,48 +39,60 @@ function FloatingOrbs({ color, speed = 10 }: { color: string; speed?: number }) 
   );
 }
 
+function FilmGrain() {
+  return (
+    <svg className="pointer-events-none fixed inset-0 w-full h-full z-50 opacity-[0.025]">
+      <filter id="home-grain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+      <rect width="100%" height="100%" filter="url(#home-grain)" />
+    </svg>
+  );
+}
+
 export default function IntelligenceHome() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [hoverLeft, setHoverLeft] = useState(false);
   const [hoverRight, setHoverRight] = useState(false);
+  const drawer = useDrawerMenu();
 
   return (
-    <div className="h-[100dvh] bg-[#080808] overflow-hidden relative flex flex-col">
-      {/* Film grain */}
-      <svg className="pointer-events-none fixed inset-0 w-full h-full z-50 opacity-[0.03]">
-        <filter id="intel-grain">
-          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#intel-grain)" />
-      </svg>
+    <div className="h-[100dvh] overflow-hidden relative flex flex-col" style={{ background: '#080808' }}>
+      <FilmGrain />
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
-      {/* Top bar */}
+      {/* Top bar — 48px */}
       <motion.div
-        className="relative z-10 flex items-center justify-between px-6 h-12 shrink-0"
+        className="relative z-10 flex items-center justify-between px-2 shrink-0"
+        style={{ height: 48 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.6 }}
       >
-        <div className="w-4 h-4">
-          <svg viewBox="0 0 16 16" fill="none">
-            <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="rgba(232,201,122,0.15)" strokeWidth="0.8" />
-          </svg>
-        </div>
-        <motion.div
-          className="w-8 h-[3px] rounded-full"
-          style={{ background: 'linear-gradient(90deg, rgba(232,201,122,0.4), rgba(232,201,122,0.15))' }}
-          animate={{
-            opacity: [0.5, 0.9, 0.5],
-            boxShadow: [
-              '0 0 6px 1px rgba(232,201,122,0.15)',
-              '0 0 12px 3px rgba(232,201,122,0.3)',
-              '0 0 6px 1px rgba(232,201,122,0.15)',
-            ],
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        <HamburgerButton onClick={drawer.toggle} />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <motion.div
+              className="mr-4 rounded-full"
+              style={{ width: 5, height: 5, background: '#E8C97A' }}
+              animate={{
+                opacity: [0.5, 1, 0.5],
+                boxShadow: [
+                  '0 0 4px 1px rgba(232,201,122,0.2)',
+                  '0 0 8px 2px rgba(232,201,122,0.4)',
+                  '0 0 4px 1px rgba(232,201,122,0.2)',
+                ],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </TooltipTrigger>
+          <TooltipContent side="left" className="text-[10px] bg-[#111] border-[rgba(240,237,232,0.06)]">
+            RI · Active
+          </TooltipContent>
+        </Tooltip>
       </motion.div>
 
       {/* Cards container */}
@@ -92,27 +107,26 @@ export default function IntelligenceHome() {
           onMouseEnter={() => setHoverLeft(true)}
           onMouseLeave={() => setHoverLeft(false)}
         >
-          {/* Background gradients */}
           <div
             className="absolute inset-0 transition-all duration-700"
-            style={{
-              background: `radial-gradient(ellipse at 40% 60%, #1F1608 0%, #080808 70%)`,
-              opacity: hoverLeft ? 1.1 : 1,
-            }}
+            style={{ background: 'radial-gradient(ellipse at 40% 60%, #1F1608 0%, #080808 70%)' }}
           />
-          <FloatingOrbs
-            color="rgba(232,201,122,0.07)"
-            speed={hoverLeft ? 6 : 10}
-          />
+          <FloatingOrbs color="rgba(232,201,122,0.06)" fast={hoverLeft} />
 
           {/* Bottom glow on hover */}
           <motion.div
-            className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
+            className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
             animate={{ opacity: hoverLeft ? 1 : 0 }}
             transition={{ duration: 0.5 }}
-            style={{
-              background: 'linear-gradient(to top, rgba(232,201,122,0.06), transparent)',
-            }}
+            style={{ background: 'linear-gradient(to top, rgba(232,201,122,0.05), transparent)' }}
+          />
+
+          {/* Hover border */}
+          <motion.div
+            className="absolute top-0 right-0 bottom-0 w-px pointer-events-none"
+            animate={{ opacity: hoverLeft ? 1 : 0 }}
+            transition={{ duration: 0.4 }}
+            style={{ background: 'rgba(232,201,122,0.1)' }}
           />
 
           {/* Text block */}
@@ -120,30 +134,29 @@ export default function IntelligenceHome() {
             <div className="flex items-end justify-between">
               <div>
                 <h2
-                  className="text-[28px] md:text-[42px] font-light leading-none"
-                  style={{
-                    fontFamily: '"Cormorant Garamond", serif',
-                    color: '#F0EDE8',
-                    letterSpacing: '0.04em',
-                  }}
+                  className="text-[32px] md:text-[48px] font-light leading-none"
+                  style={{ fontFamily: '"Cormorant Garamond", serif', color: '#F0EDE8', letterSpacing: '0.02em' }}
                 >
                   Colour Store
                 </h2>
                 <p
-                  className="text-[28px] md:text-[42px] font-light italic leading-none mt-0.5"
+                  className="text-[32px] md:text-[48px] font-light italic leading-none mt-0.5"
                   style={{
                     fontFamily: '"Cormorant Garamond", serif',
                     color: '#E8C97A',
                     letterSpacing: '0.15em',
+                    textShadow: '0 0 20px rgba(232,201,122,0.3)',
                   }}
                 >
                   RI
                 </p>
                 <p
-                  className="mt-3 text-[11px] uppercase tracking-[0.2em]"
+                  className="mt-3 uppercase"
                   style={{
                     fontFamily: '"DM Sans", sans-serif',
-                    color: 'rgba(232,201,122,0.5)',
+                    fontSize: 10,
+                    color: 'rgba(232,201,122,0.4)',
+                    letterSpacing: '0.25em',
                   }}
                 >
                   Real Intelligence
@@ -152,6 +165,7 @@ export default function IntelligenceHome() {
               <motion.div
                 animate={{ opacity: hoverLeft ? 1 : 0, x: hoverLeft ? 0 : -6 }}
                 transition={{ duration: 0.3 }}
+                className="mb-2"
               >
                 <ArrowRight size={20} style={{ color: 'rgba(232,201,122,0.4)' }} />
               </motion.div>
@@ -163,24 +177,26 @@ export default function IntelligenceHome() {
         <div className={`relative z-20 flex items-center justify-center ${isMobile ? 'h-px w-full' : 'w-px'}`}>
           <motion.div
             className={isMobile ? 'h-px w-full' : 'w-px h-full'}
-            style={{ background: 'rgba(240,237,232,0.06)' }}
-            initial={{ scaleY: isMobile ? 1 : 0, scaleX: isMobile ? 0 : 1 }}
-            animate={{ scaleY: 1, scaleX: 1 }}
+            style={{
+              background: 'rgba(240,237,232,0.05)',
+              ...(isMobile ? {} : { transformOrigin: 'top' }),
+            }}
+            initial={isMobile ? { scaleX: 0 } : { scaleY: 0 }}
+            animate={{ scaleX: 1, scaleY: 1 }}
             transition={{ delay: 0.8, duration: 0.5, ease }}
-            {...(!isMobile && { style: { background: 'rgba(240,237,232,0.06)', transformOrigin: 'top' } })}
           />
           <div
             className="absolute z-10"
             style={{
-              width: 6,
-              height: 6,
-              background: 'rgba(232,201,122,0.2)',
+              width: 5,
+              height: 5,
+              background: 'rgba(232,201,122,0.15)',
               transform: 'rotate(45deg)',
             }}
           />
         </div>
 
-        {/* RIGHT — Mirror AI */}
+        {/* RIGHT — Mirror RI */}
         <motion.button
           className="relative flex-1 overflow-hidden cursor-pointer text-left focus:outline-none"
           initial={{ opacity: 0, y: 30 }}
@@ -192,60 +208,55 @@ export default function IntelligenceHome() {
         >
           <div
             className="absolute inset-0 transition-all duration-700"
-            style={{
-              background: `radial-gradient(ellipse at 60% 60%, #0C0C14 0%, #080808 70%)`,
-            }}
+            style={{ background: 'radial-gradient(ellipse at 60% 60%, #0C0C14 0%, #080808 70%)' }}
           />
-          <FloatingOrbs
-            color="rgba(240,237,232,0.04)"
-            speed={hoverRight ? 6 : 10}
+          <FloatingOrbs color="rgba(240,237,232,0.03)" fast={hoverRight} />
+
+          <motion.div
+            className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
+            animate={{ opacity: hoverRight ? 1 : 0 }}
+            transition={{ duration: 0.5 }}
+            style={{ background: 'linear-gradient(to top, rgba(240,237,232,0.03), transparent)' }}
           />
 
           <motion.div
-            className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
+            className="absolute top-0 left-0 bottom-0 w-px pointer-events-none"
             animate={{ opacity: hoverRight ? 1 : 0 }}
-            transition={{ duration: 0.5 }}
-            style={{
-              background: 'linear-gradient(to top, rgba(240,237,232,0.04), transparent)',
-            }}
+            transition={{ duration: 0.4 }}
+            style={{ background: 'rgba(240,237,232,0.06)' }}
           />
 
           <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10 z-10">
             <div className="flex items-end justify-between">
               <div>
                 <h2
-                  className="text-[28px] md:text-[42px] font-light leading-none"
-                  style={{
-                    fontFamily: '"Cormorant Garamond", serif',
-                    color: '#F0EDE8',
-                    letterSpacing: '0.04em',
-                  }}
+                  className="text-[32px] md:text-[48px] font-light leading-none"
+                  style={{ fontFamily: '"Cormorant Garamond", serif', color: '#F0EDE8', letterSpacing: '0.02em' }}
                 >
                   Mirror
                 </h2>
                 <p
-                  className="text-[28px] md:text-[42px] font-light italic leading-none mt-0.5"
-                  style={{
-                    fontFamily: '"Cormorant Garamond", serif',
-                    color: '#F0EDE8',
-                    letterSpacing: '0.15em',
-                  }}
+                  className="text-[32px] md:text-[48px] font-light italic leading-none mt-0.5"
+                  style={{ fontFamily: '"Cormorant Garamond", serif', color: '#F0EDE8', letterSpacing: '0.15em' }}
                 >
-                  AI
+                  RI
                 </p>
                 <p
-                  className="mt-3 text-[11px] uppercase tracking-[0.2em]"
+                  className="mt-3 uppercase"
                   style={{
                     fontFamily: '"DM Sans", sans-serif',
-                    color: 'rgba(240,237,232,0.3)',
+                    fontSize: 10,
+                    color: 'rgba(240,237,232,0.25)',
+                    letterSpacing: '0.25em',
                   }}
                 >
-                  Artificial Intelligence
+                  Real Intelligence
                 </p>
               </div>
               <motion.div
                 animate={{ opacity: hoverRight ? 1 : 0, x: hoverRight ? 0 : -6 }}
                 transition={{ duration: 0.3 }}
+                className="mb-2"
               >
                 <ArrowRight size={20} style={{ color: 'rgba(240,237,232,0.3)' }} />
               </motion.div>
@@ -256,8 +267,8 @@ export default function IntelligenceHome() {
 
       {/* Bottom text */}
       <motion.p
-        className="absolute bottom-5 left-0 right-0 text-center z-30 text-[10px] uppercase tracking-[0.2em]"
-        style={{ fontFamily: '"DM Sans", sans-serif', color: '#2A2A2A' }}
+        className="absolute bottom-4 left-0 right-0 text-center z-30 uppercase"
+        style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 9, color: '#222222', letterSpacing: '0.25em' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.0, duration: 0.8 }}
