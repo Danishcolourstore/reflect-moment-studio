@@ -38,6 +38,7 @@ const NAV_ITEMS = [
 const MOBILE_NAV = [
   { title: 'Home', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
+  { title: 'Upload', url: '/dashboard/upload', icon: Compass },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
 ];
 const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));
