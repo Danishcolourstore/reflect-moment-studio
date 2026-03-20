@@ -92,9 +92,9 @@ const Profile = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-2xl font-semibold text-foreground mb-8">Profile Settings</h1>
+      <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-6 sm:mb-8">Profile Settings</h1>
 
-      <div className="max-w-lg space-y-8">
+      <div className="max-w-lg space-y-6 sm:space-y-8">
         {/* Personal Info */}
         <div className="bg-card border border-border rounded-xl p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Personal Information</h2>
