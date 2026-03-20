@@ -59,6 +59,7 @@ const Refyn = lazy(() => import("./pages/Refyn"));
 const ColourStore = lazy(() => import("./pages/ColourStore"));
 const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
 const RetouchLogin = lazy(() => import("./pages/RetouchLogin"));
+const ClientPreview = lazy(() => import("./pages/ClientPreview"));
 const DomainSettings = lazy(() => import("./pages/DomainSettings"));
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
@@ -301,6 +302,7 @@ const AppRoutes = () => {
         <Route path="/refyn" element={<Suspense fallback={<PageLoader />}><Refyn /></Suspense>} />
         <Route path="/colour-store" element={<ProtectedRoute><ColourStore /></ProtectedRoute>} />
         <Route path="/retouch-login" element={<RetouchLogin />} />
+        <Route path="/preview/:previewId" element={<ClientPreview />} />
         <Route path="/home" element={<ProtectedRoute><IntelligenceHome /></ProtectedRoute>} />
 
         <Route
