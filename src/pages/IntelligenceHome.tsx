@@ -41,7 +41,7 @@ export default function IntelligenceHome() {
 
   useEffect(() => {
     if (phase < 3) return;
-    const interval = setInterval(() => setCurrent(c => (c + 1) % SLIDES.length), SLIDE_DURATION);
+    const interval = setInterval(() => setCurrent(c => (c + 1) % LINES.length), SLIDE_DURATION);
     return () => clearInterval(interval);
   }, [phase]);
 
