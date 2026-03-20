@@ -72,13 +72,13 @@ const Analytics = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-2xl font-semibold text-foreground mb-6">Analytics</h1>
+      <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">Analytics</h1>
 
       {/* Range pills */}
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
+      <div className="flex items-center gap-2 mb-4 sm:mb-6 overflow-x-auto pb-1 scrollbar-hide">
         {RANGES.map(({ key, label }) => (
           <button key={key} onClick={() => setRange(key)}
-            className={`px-4 py-1.5 rounded-full text-[11px] tracking-wider transition-all border ${
+            className={`px-3 sm:px-4 py-1.5 rounded-full text-[11px] tracking-wider transition-all border whitespace-nowrap min-h-[44px] ${
               range === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-transparent text-muted-foreground border-border hover:border-foreground/30'
             }`}>{label}</button>
         ))}
@@ -170,12 +170,12 @@ const Analytics = () => {
 
 function AnalyticStat({ icon: Icon, label, value }: { icon: any; label: string; value: number | string }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-5">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-card border border-border rounded-xl p-3 sm:p-5">
+      <div className="flex items-center justify-between mb-1 sm:mb-2">
         <p className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground/60 font-medium">{label}</p>
         <Icon className="h-4 w-4 text-muted-foreground/20" />
       </div>
-      <p className="font-serif text-3xl font-bold text-foreground leading-none tracking-tight">{value}</p>
+      <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground leading-none tracking-tight">{value}</p>
     </div>
   );
 }

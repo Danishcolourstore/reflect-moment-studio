@@ -130,13 +130,13 @@ const Clients = () => {
 
   return (
     <DashboardLayout>
-      <Tabs defaultValue="clients" className="space-y-6">
+      <Tabs defaultValue="clients" className="space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
           <TabsList>
-            <TabsTrigger value="clients" className="gap-1.5 text-xs">
+            <TabsTrigger value="clients" className="gap-1.5 text-xs min-h-[44px]">
               <Users className="h-3.5 w-3.5" /> Clients
             </TabsTrigger>
-            <TabsTrigger value="intelligence" className="gap-1.5 text-xs">
+            <TabsTrigger value="intelligence" className="gap-1.5 text-xs min-h-[44px]">
               <Sparkles className="h-3.5 w-3.5" /> Intelligence
             </TabsTrigger>
           </TabsList>

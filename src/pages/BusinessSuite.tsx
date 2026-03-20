@@ -61,17 +61,17 @@ const BusinessSuite = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="overflow-x-auto -mx-4 px-4">
-            <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-7 mb-4 h-auto p-1">
-              <TabsTrigger value="dashboard" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Dashboard</TabsTrigger>
-              <TabsTrigger value="leads" className="text-[10px] px-2 py-1.5 whitespace-nowrap">
+          <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
+            <TabsList className="inline-flex w-auto min-w-max sm:w-full sm:grid sm:grid-cols-7 mb-4 h-auto p-1">
+              <TabsTrigger value="dashboard" className="text-[10px] px-2 py-1.5 whitespace-nowrap min-h-[44px]">Dashboard</TabsTrigger>
+              <TabsTrigger value="leads" className="text-[10px] px-2 py-1.5 whitespace-nowrap min-h-[44px]">
                 Leads {leads.length > 0 && `(${leads.length})`}
               </TabsTrigger>
-              <TabsTrigger value="portfolio" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Portfolio</TabsTrigger>
-              <TabsTrigger value="pricing" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Pricing</TabsTrigger>
-              <TabsTrigger value="availability" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Calendar</TabsTrigger>
-              <TabsTrigger value="insights" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Insights</TabsTrigger>
-              <TabsTrigger value="boost" className="text-[10px] px-2 py-1.5 whitespace-nowrap">Boost</TabsTrigger>
+              <TabsTrigger value="portfolio" className="text-[10px] px-2 py-1.5 whitespace-nowrap min-h-[44px]">Portfolio</TabsTrigger>
+              <TabsTrigger value="pricing" className="text-[10px] px-2 py-1.5 whitespace-nowrap min-h-[44px]">Pricing</TabsTrigger>
+              <TabsTrigger value="availability" className="text-[10px] px-2 py-1.5 whitespace-nowrap min-h-[44px]">Calendar</TabsTrigger>
+              <TabsTrigger value="insights" className="text-[10px] px-2 py-1.5 whitespace-nowrap min-h-[44px]">Insights</TabsTrigger>
+              <TabsTrigger value="boost" className="text-[10px] px-2 py-1.5 whitespace-nowrap min-h-[44px]">Boost</TabsTrigger>
             </TabsList>
           </div>
 

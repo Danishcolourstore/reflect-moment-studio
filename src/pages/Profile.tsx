@@ -92,11 +92,11 @@ const Profile = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-2xl font-semibold text-foreground mb-8">Profile Settings</h1>
+      <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-6 sm:mb-8">Profile Settings</h1>
 
-      <div className="max-w-lg space-y-8">
+      <div className="max-w-lg space-y-6 sm:space-y-8">
         {/* Personal Info */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Personal Information</h2>
           <div className="flex items-center gap-4 mb-5">
             <Avatar className="h-16 w-16 cursor-pointer" onClick={() => avatarRef.current?.click()}>
@@ -113,11 +113,11 @@ const Profile = () => {
           <div className="space-y-4">
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Full Name</label>
-              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 bg-background" />
+              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 bg-background text-base" />
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Email</label>
-              <Input value={email} readOnly className="mt-1 bg-background opacity-60" />
+              <Input value={email} readOnly className="mt-1 bg-background opacity-60 text-base" />
               <p className="text-[10px] text-muted-foreground/50 mt-1">Email cannot be changed</p>
             </div>
           </div>
@@ -127,21 +127,21 @@ const Profile = () => {
         </div>
 
         {/* Change Password */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Change Password</h2>
           <div className="space-y-4">
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Current Password</label>
-              <Input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} className="mt-1 bg-background" />
+              <Input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} className="mt-1 bg-background text-base" />
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">New Password</label>
-              <Input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} className="mt-1 bg-background" />
+              <Input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} className="mt-1 bg-background text-base" />
               {strength && <p className={`text-[10px] mt-1 ${strength.color}`}>{strength.label}</p>}
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Confirm New Password</label>
-              <Input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} className="mt-1 bg-background" />
+              <Input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} className="mt-1 bg-background text-base" />
               {confirmPw && confirmPw !== newPw && <p className="text-[10px] text-destructive mt-1">Passwords do not match</p>}
               {confirmPw && confirmPw === newPw && newPw.length >= 6 && <p className="text-[10px] text-green-500 mt-1">Passwords match</p>}
             </div>
@@ -152,7 +152,7 @@ const Profile = () => {
         </div>
 
         {/* Appearance / Theme */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Appearance</h2>
           <p className="text-[11px] text-muted-foreground mb-4">Choose your dashboard theme</p>
           <div className="grid grid-cols-2 gap-3">
@@ -190,7 +190,7 @@ const Profile = () => {
         </div>
 
         {/* Storage Usage */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Storage Usage</h2>
           <p className="font-serif text-3xl font-bold text-foreground">{formatBytes(storageUsed)}</p>
           <p className="text-sm text-muted-foreground mt-1">of {formatBytes(storageLimit)}</p>

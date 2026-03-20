@@ -80,12 +80,12 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="space-y-8 max-w-2xl">
-      <h1 className="font-serif text-2xl font-semibold text-foreground">Admin Settings</h1>
+    <div className="space-y-6 sm:space-y-8 max-w-2xl">
+      <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground">Admin Settings</h1>
 
       {/* Change Access Code */}
       <Card>
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-4 sm:p-5 space-y-4">
           <h3 className="font-serif text-base font-semibold">Change Access Code</h3>
           <div className="space-y-1.5">
             <Label className="text-xs">Current Code</Label>
@@ -107,7 +107,7 @@ export default function AdminSettings() {
 
       {/* Platform Settings */}
       <Card>
-        <CardContent className="p-5 space-y-5">
+        <CardContent className="p-4 sm:p-5 space-y-5">
           <h3 className="font-serif text-base font-semibold">Platform Settings</h3>
           <div className="flex items-center justify-between">
             <div>
@@ -135,9 +135,9 @@ export default function AdminSettings() {
 
       {/* Danger Zone */}
       <Card className="border-destructive/50">
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-4 sm:p-5 space-y-4">
           <h3 className="font-serif text-base font-semibold text-destructive">Danger Zone</h3>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="text-destructive border-destructive/30">Clear All Activity Logs</Button>
