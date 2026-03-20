@@ -1,52 +1,28 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { HamburgerButton, DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
+import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const ease = [0.16, 1, 0.3, 1];
 
-function FloatingOrbs({ color, fast = false }: { color: string; fast?: boolean }) {
-  const baseSpeed = fast ? 7 : 10;
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[0, 1].map((i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            width: `${280 + i * 100}px`,
-            height: `${280 + i * 100}px`,
-            background: `radial-gradient(circle, ${color}, transparent 70%)`,
-            left: `${10 + i * 35}%`,
-            top: `${25 + i * 25}%`,
-          }}
-          animate={{
-            x: [0, 25 - i * 20, -15 + i * 10, 0],
-            y: [0, -18 + i * 14, 20 - i * 8, 0],
-            scale: [1, 1.06, 0.96, 1],
-          }}
-          transition={{
-            duration: baseSpeed + i * 2,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
+const SLIDES = [
+  { img: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=1920&q=80', caption: 'Kerala · Golden Hour' },
+  { img: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80', caption: 'Udaipur · The Palace' },
+  { img: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=1920&q=80', caption: 'Jaipur · First Light' },
+  { img: 'https://images.unsplash.com/photo-1591604021695-0c69b7c05981?w=1920&q=80', caption: 'Goa · Shoreline Vows' },
+  { img: 'https://images.unsplash.com/photo-1529636798458-92182e662485?w=1920&q=80', caption: 'Tuscany · Eternal' },
+];
 
 function FilmGrain() {
   return (
-    <svg className="pointer-events-none fixed inset-0 w-full h-full z-50 opacity-[0.025]">
-      <filter id="home-grain">
+    <svg className="pointer-events-none fixed inset-0 w-full h-full z-[200] opacity-[0.03]">
+      <filter id="intel-grain">
         <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
         <feColorMatrix type="saturate" values="0" />
       </filter>
-      <rect width="100%" height="100%" filter="url(#home-grain)" />
+      <rect width="100%" height="100%" filter="url(#intel-grain)" />
     </svg>
   );
 }
@@ -54,227 +30,268 @@ function FilmGrain() {
 export default function IntelligenceHome() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [hoverLeft, setHoverLeft] = useState(false);
-  const [hoverRight, setHoverRight] = useState(false);
   const drawer = useDrawerMenu();
+  const [phase, setPhase] = useState<1 | 2>(1);
+  const [current, setCurrent] = useState(0);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  // Preload images
+  useEffect(() => {
+    let loaded = 0;
+    SLIDES.forEach(s => {
+      const img = new Image();
+      img.src = s.img;
+      img.onload = () => { loaded++; if (loaded >= 2) setImagesLoaded(true); };
+    });
+    const t = setTimeout(() => setImagesLoaded(true), 3000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Phase transition
+  useEffect(() => {
+    const t = setTimeout(() => setPhase(2), 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Image rotation
+  useEffect(() => {
+    if (phase !== 2) return;
+    const interval = setInterval(() => {
+      setCurrent(c => (c + 1) % SLIDES.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [phase]);
+
+  const pad = (n: number) => String(n).padStart(2, '0');
 
   return (
-    <div className="h-[100dvh] overflow-hidden relative flex flex-col" style={{ background: '#080808' }}>
+    <div className="h-[100dvh] w-screen overflow-hidden relative" style={{ background: '#000' }}>
       <FilmGrain />
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
-      {/* Top bar — 48px */}
-      <motion.div
-        className="relative z-10 flex items-center justify-between px-2 shrink-0"
-        style={{ height: 48 }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.6 }}
-      >
-        <HamburgerButton onClick={drawer.toggle} />
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <motion.div
-              className="mr-4 rounded-full"
-              style={{ width: 5, height: 5, background: '#E8C97A' }}
-              animate={{
-                opacity: [0.5, 1, 0.5],
-                boxShadow: [
-                  '0 0 4px 1px rgba(232,201,122,0.2)',
-                  '0 0 8px 2px rgba(232,201,122,0.4)',
-                  '0 0 4px 1px rgba(232,201,122,0.2)',
-                ],
+      <AnimatePresence mode="wait">
+        {phase === 1 && (
+          <motion.div
+            key="intro"
+            className="absolute inset-0 z-[300] flex items-center justify-center"
+            style={{ background: '#000' }}
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease }}
+          >
+            <motion.span
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.8, ease }}
+              className="italic select-none"
+              style={{
+                fontFamily: '"Cormorant Garamond", serif',
+                fontSize: 48,
+                color: '#E8C97A',
+                letterSpacing: '0.3em',
               }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              RI
+            </motion.span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Phase 2 — Hero */}
+      <motion.div
+        className="absolute inset-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: phase === 2 ? 1 : 0 }}
+        transition={{ duration: 1.2, ease }}
+      >
+        {/* Rotating background images */}
+        {SLIDES.map((slide, i) => (
+          <motion.div
+            key={i}
+            className="absolute inset-0"
+            animate={{ opacity: current === i ? 1 : 0 }}
+            transition={{ duration: 1.2, ease }}
+          >
+            <img
+              src={slide.img}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              loading={i < 2 ? 'eager' : 'lazy'}
             />
-          </TooltipTrigger>
-          <TooltipContent side="left" className="text-[10px] bg-[#111] border-[rgba(240,237,232,0.06)]">
-            RI · Active
-          </TooltipContent>
-        </Tooltip>
-      </motion.div>
+          </motion.div>
+        ))}
 
-      {/* Cards container */}
-      <div className={`flex-1 relative flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
-        {/* LEFT — Colour Store RI */}
-        <motion.button
-          className="relative flex-1 overflow-hidden cursor-pointer text-left focus:outline-none"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.7, ease }}
-          onClick={() => navigate('/colour-store')}
-          onMouseEnter={() => setHoverLeft(true)}
-          onMouseLeave={() => setHoverLeft(false)}
+        {/* Gradient overlay */}
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.75) 100%)',
+          }}
+        />
+
+        {/* Top bar */}
+        <div
+          className="absolute top-0 left-0 right-0 z-[100] flex items-center justify-between"
+          style={{ height: 56, padding: isMobile ? '0 20px' : '0 28px' }}
         >
-          <div
-            className="absolute inset-0 transition-all duration-700"
-            style={{ background: 'radial-gradient(ellipse at 40% 60%, #1F1608 0%, #080808 70%)' }}
-          />
-          <FloatingOrbs color="rgba(232,201,122,0.06)" fast={hoverLeft} />
+          <button
+            onClick={drawer.toggle}
+            className="cursor-pointer select-none uppercase"
+            style={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontSize: 11,
+              color: '#F0EDE8',
+              letterSpacing: '0.3em',
+              background: 'none',
+              border: 'none',
+            }}
+          >
+            Menu
+          </button>
 
-          {/* Bottom glow on hover */}
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
-            animate={{ opacity: hoverLeft ? 1 : 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ background: 'linear-gradient(to top, rgba(232,201,122,0.05), transparent)' }}
-          />
+          <span
+            className="italic select-none"
+            style={{
+              fontFamily: '"Cormorant Garamond", serif',
+              fontSize: 18,
+              color: '#E8C97A',
+              letterSpacing: '0.2em',
+            }}
+          >
+            RI
+          </span>
 
-          {/* Hover border */}
-          <motion.div
-            className="absolute top-0 right-0 bottom-0 w-px pointer-events-none"
-            animate={{ opacity: hoverLeft ? 1 : 0 }}
-            transition={{ duration: 0.4 }}
-            style={{ background: 'rgba(232,201,122,0.1)' }}
-          />
-
-          {/* Text block */}
-          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10 z-10">
-            <div className="flex items-end justify-between">
-              <div>
-                <h2
-                  className="text-[32px] md:text-[48px] font-light leading-none"
-                  style={{ fontFamily: '"Cormorant Garamond", serif', color: '#F0EDE8', letterSpacing: '0.02em' }}
-                >
-                  Colour Store
-                </h2>
-                <p
-                  className="text-[32px] md:text-[48px] font-light italic leading-none mt-0.5"
-                  style={{
-                    fontFamily: '"Cormorant Garamond", serif',
-                    color: '#E8C97A',
-                    letterSpacing: '0.15em',
-                    textShadow: '0 0 20px rgba(232,201,122,0.3)',
-                  }}
-                >
-                  RI
-                </p>
-                <p
-                  className="mt-3 uppercase"
-                  style={{
-                    fontFamily: '"DM Sans", sans-serif',
-                    fontSize: 10,
-                    color: 'rgba(232,201,122,0.4)',
-                    letterSpacing: '0.25em',
-                  }}
-                >
-                  Real Intelligence
-                </p>
-              </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <motion.div
-                animate={{ opacity: hoverLeft ? 1 : 0, x: hoverLeft ? 0 : -6 }}
-                transition={{ duration: 0.3 }}
-                className="mb-2"
-              >
-                <ArrowRight size={20} style={{ color: 'rgba(232,201,122,0.4)' }} />
-              </motion.div>
-            </div>
-          </div>
-        </motion.button>
-
-        {/* Divider */}
-        <div className={`relative z-20 flex items-center justify-center ${isMobile ? 'h-px w-full' : 'w-px'}`}>
-          <motion.div
-            className={isMobile ? 'h-px w-full' : 'w-px h-full'}
-            style={{
-              background: 'rgba(240,237,232,0.05)',
-              ...(isMobile ? {} : { transformOrigin: 'top' }),
-            }}
-            initial={isMobile ? { scaleX: 0 } : { scaleY: 0 }}
-            animate={{ scaleX: 1, scaleY: 1 }}
-            transition={{ delay: 0.8, duration: 0.5, ease }}
-          />
-          <div
-            className="absolute z-10"
-            style={{
-              width: 5,
-              height: 5,
-              background: 'rgba(232,201,122,0.15)',
-              transform: 'rotate(45deg)',
-            }}
-          />
+                className="rounded-full"
+                style={{ width: 5, height: 5, background: '#E8C97A' }}
+                animate={{
+                  opacity: [0.5, 1, 0.5],
+                  boxShadow: [
+                    '0 0 4px 1px rgba(232,201,122,0.2)',
+                    '0 0 8px 2px rgba(232,201,122,0.5)',
+                    '0 0 4px 1px rgba(232,201,122,0.2)',
+                  ],
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="left" className="text-[10px] bg-[#111] border-[rgba(240,237,232,0.06)]">
+              RI · Active
+            </TooltipContent>
+          </Tooltip>
         </div>
 
-        {/* RIGHT — Mirror RI */}
-        <motion.button
-          className="relative flex-1 overflow-hidden cursor-pointer text-left focus:outline-none"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.7, ease }}
-          onClick={() => navigate('/dashboard')}
-          onMouseEnter={() => setHoverRight(true)}
-          onMouseLeave={() => setHoverRight(false)}
+        {/* Bottom text block */}
+        <div
+          className="absolute bottom-0 left-0 z-[100]"
+          style={{ padding: isMobile ? '32px 24px' : '40px 32px' }}
         >
-          <div
-            className="absolute inset-0 transition-all duration-700"
-            style={{ background: 'radial-gradient(ellipse at 60% 60%, #0C0C14 0%, #080808 70%)' }}
-          />
-          <FloatingOrbs color="rgba(240,237,232,0.03)" fast={hoverRight} />
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="uppercase select-none"
+            style={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontSize: 9,
+              color: 'rgba(240,237,232,0.5)',
+              letterSpacing: '0.35em',
+              marginBottom: 16,
+            }}
+          >
+            Real Intelligence
+          </motion.p>
 
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
-            animate={{ opacity: hoverRight ? 1 : 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ background: 'linear-gradient(to top, rgba(240,237,232,0.03), transparent)' }}
-          />
-
-          <motion.div
-            className="absolute top-0 left-0 bottom-0 w-px pointer-events-none"
-            animate={{ opacity: hoverRight ? 1 : 0 }}
-            transition={{ duration: 0.4 }}
-            style={{ background: 'rgba(240,237,232,0.06)' }}
-          />
-
-          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10 z-10">
-            <div className="flex items-end justify-between">
-              <div>
-                <h2
-                  className="text-[32px] md:text-[48px] font-light leading-none"
-                  style={{ fontFamily: '"Cormorant Garamond", serif', color: '#F0EDE8', letterSpacing: '0.02em' }}
-                >
-                  Mirror
-                </h2>
-                <p
-                  className="text-[32px] md:text-[48px] font-light italic leading-none mt-0.5"
-                  style={{ fontFamily: '"Cormorant Garamond", serif', color: '#F0EDE8', letterSpacing: '0.15em' }}
-                >
-                  RI
-                </p>
-                <p
-                  className="mt-3 uppercase"
-                  style={{
-                    fontFamily: '"DM Sans", sans-serif',
-                    fontSize: 10,
-                    color: 'rgba(240,237,232,0.25)',
-                    letterSpacing: '0.25em',
-                  }}
-                >
-                  Real Intelligence
-                </p>
-              </div>
-              <motion.div
-                animate={{ opacity: hoverRight ? 1 : 0, x: hoverRight ? 0 : -6 }}
-                transition={{ duration: 0.3 }}
-                className="mb-2"
+          {/* Caption — changes with image */}
+          <div className="relative" style={{ height: isMobile ? 44 : 62 }}>
+            <AnimatePresence mode="wait">
+              <motion.h1
+                key={current}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.8, ease }}
+                className="absolute select-none"
+                style={{
+                  fontFamily: '"Cormorant Garamond", serif',
+                  fontSize: isMobile ? 36 : 52,
+                  fontWeight: 300,
+                  color: '#F0EDE8',
+                  lineHeight: 1.1,
+                  letterSpacing: '0.01em',
+                  whiteSpace: 'nowrap',
+                }}
               >
-                <ArrowRight size={20} style={{ color: 'rgba(240,237,232,0.3)' }} />
-              </motion.div>
-            </div>
+                {SLIDES[current].caption}
+              </motion.h1>
+            </AnimatePresence>
           </div>
-        </motion.button>
-      </div>
 
-      {/* Bottom text */}
-      <motion.p
-        className="absolute bottom-4 left-0 right-0 text-center z-30 uppercase"
-        style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 9, color: '#222222', letterSpacing: '0.25em' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.0, duration: 0.8 }}
-      >
-        Where do you want to go?
-      </motion.p>
+          {/* Amber line */}
+          <div style={{ width: 40, height: 1, background: '#E8C97A', margin: '20px 0' }} />
+
+          {/* Buttons */}
+          <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-3`}>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              whileHover={{ borderColor: 'rgba(232,201,122,0.5)' }}
+              onClick={() => navigate('/colour-store')}
+              className="cursor-pointer uppercase select-none"
+              style={{
+                fontFamily: '"DM Sans", sans-serif',
+                fontSize: 11,
+                color: '#E8C97A',
+                background: 'rgba(232,201,122,0.08)',
+                border: '1px solid rgba(232,201,122,0.25)',
+                borderRadius: 100,
+                padding: '12px 24px',
+                letterSpacing: '0.15em',
+              }}
+            >
+              Colour Store RI
+            </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              whileHover={{ borderColor: 'rgba(240,237,232,0.35)' }}
+              onClick={() => navigate('/dashboard')}
+              className="cursor-pointer uppercase select-none"
+              style={{
+                fontFamily: '"DM Sans", sans-serif',
+                fontSize: 11,
+                color: '#F0EDE8',
+                background: 'rgba(240,237,232,0.06)',
+                border: '1px solid rgba(240,237,232,0.15)',
+                borderRadius: 100,
+                padding: '12px 24px',
+                letterSpacing: '0.15em',
+              }}
+            >
+              Mirror RI
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Bottom right — image counter */}
+        <div
+          className="absolute bottom-0 right-0 z-[100]"
+          style={{ padding: isMobile ? '32px 24px' : '40px 32px' }}
+        >
+          <span
+            className="select-none"
+            style={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontSize: 9,
+              color: 'rgba(240,237,232,0.3)',
+              letterSpacing: '0.2em',
+            }}
+          >
+            {pad(current + 1)} / {pad(SLIDES.length)}
+          </span>
+        </div>
+      </motion.div>
     </div>
   );
 }
