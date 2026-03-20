@@ -253,7 +253,21 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         className="fixed top-0 right-0 z-20 flex items-center justify-between px-3 sm:px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14"
         style={{ left: showSidebar ? sidebarWidth : 0 }}
       >
-        {!showSidebar && <h2 className="text-foreground font-semibold text-base sm:text-lg tracking-tight truncate mr-2">Mirror AI</h2>}
+        {!showSidebar && (
+          <div className="flex items-center gap-2 min-w-0 mr-2">
+            {location.pathname !== '/dashboard' && location.pathname !== '/home' && (
+              <button
+                onClick={() => navigate(-1)}
+                className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+              >
+                <ChevronRight className="h-5 w-5 rotate-180" />
+              </button>
+            )}
+            <h2 className="text-foreground font-semibold text-base tracking-tight truncate">
+              {PAGE_TITLES[location.pathname] || 'Mirror AI'}
+            </h2>
+          </div>
+        )}
         {showSidebar && (
           <h2 className="text-sm font-medium text-foreground truncate">
             {PAGE_TITLES[location.pathname] || ''}
