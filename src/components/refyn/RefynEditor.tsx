@@ -6,11 +6,27 @@ import RefynGrainPanel from './RefynGrainPanel';
 import RefynLayerPanel from './RefynLayerPanel';
 import { DEFAULT_TOOL_VALUES, type RefynToolId, type RefynToolValues } from './refyn-types';
 
+const HOTC_VALUES: RefynToolValues = {
+  frequency: 42,
+  lumina: 60,
+  sculpt: 24,
+  ghostLight: 35,
+  grain: { style: 'film', strength: 22, shadowsOnly: false },
+  layerTexture: 78,
+  layerTone: 38,
+  outfit: 50,
+  jewellery: 44,
+  hair: 38,
+};
+
+type EditorMode = 'ri' | 'hotc';
+
 interface Props {
   photoUrl: string;
   onExport: () => void;
   onReset: () => void;
   initialValues?: RefynToolValues;
+  onIntelMessage?: (msg: string) => void;
 }
 
 const buildFilter = (v: RefynToolValues) => {
