@@ -9,6 +9,7 @@ import IntelligenceBar from '@/components/colour-store/IntelligenceBar';
 import IntelligenceDot from '@/components/colour-store/IntelligenceDot';
 import { analysePhoto, type ColourAnalysis } from '@/lib/colour-intelligence';
 import type { RefynToolValues } from '@/components/refyn/refyn-types';
+import type { RefynFilter } from '@/components/refyn/refyn-filters';
 
 export type RefynScreen = 'upload' | 'processing' | 'editor' | 'export';
 
@@ -23,6 +24,8 @@ export default function ColourStore() {
   const [showIntelBar, setShowIntelBar] = useState(false);
   const [detectedText, setDetectedText] = useState('');
   const [aiToolValues, setAiToolValues] = useState<RefynToolValues | null>(null);
+  const [editedValues, setEditedValues] = useState<RefynToolValues | null>(null);
+  const [editedOverrides, setEditedOverrides] = useState<RefynFilter['cssOverrides']>({});
 
   const handleUpload = useCallback(async (file: File) => {
     const url = URL.createObjectURL(file);
@@ -33,8 +36,6 @@ export default function ColourStore() {
 
     try {
       const analysis = await analysePhoto(file);
-
-      // Map AI tools to RefynToolValues
       const mapped: RefynToolValues = {
         frequency: analysis.tools.skin,
         lumina: analysis.tools.glow,
@@ -47,7 +48,6 @@ export default function ColourStore() {
         jewellery: analysis.tools.jewellery ?? 0,
         hair: analysis.tools.hair ?? 0,
       };
-
       setAiToolValues(mapped);
       setDetectedText(analysis.detected);
     } catch (err) {
@@ -59,7 +59,9 @@ export default function ColourStore() {
     setScreen('editor');
   }, []);
 
-  const handleExport = useCallback(() => {
+  const handleExport = useCallback((values: RefynToolValues, cssOverrides?: RefynFilter['cssOverrides']) => {
+    setEditedValues(values);
+    setEditedOverrides(cssOverrides || {});
     setScreen('export');
   }, []);
 
@@ -74,6 +76,8 @@ export default function ColourStore() {
     setShowIntelBar(false);
     setDetectedText('');
     setAiToolValues(null);
+    setEditedValues(null);
+    setEditedOverrides({});
   }, [photo]);
 
   useEffect(() => {
@@ -84,7 +88,6 @@ export default function ColourStore() {
 
   return (
     <div className="refyn-app min-h-[100dvh] bg-[#0A0A0A] text-[#F0EDE8] overflow-hidden relative">
-      {/* Film grain overlay */}
       <svg className="pointer-events-none fixed inset-0 w-full h-full z-50 opacity-[0.03]">
         <filter id="refyn-grain">
           <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
@@ -93,13 +96,8 @@ export default function ColourStore() {
         <rect width="100%" height="100%" filter="url(#refyn-grain)" />
       </svg>
 
-      {/* Product navigation */}
       <ProductNav />
-
-      {/* Intelligence bar (appears after upload) */}
       <IntelligenceBar visible={showIntelBar} detectedText={detectedText} />
-
-      {/* Intelligence dot */}
       <IntelligenceDot active={screen === 'processing'} />
 
       <AnimatePresence mode="wait">
@@ -119,8 +117,15 @@ export default function ColourStore() {
             }}
           />
         )}
-        {screen === 'export' && photo && (
-          <RefynExport key="export" photoUrl={photo.originalUrl} onBack={handleBack} onReset={handleReset} />
+        {screen === 'export' && photo && editedValues && (
+          <RefynExport
+            key="export"
+            photoUrl={photo.originalUrl}
+            values={editedValues}
+            cssOverrides={editedOverrides}
+            onBack={handleBack}
+            onReset={handleReset}
+          />
         )}
       </AnimatePresence>
     </div>

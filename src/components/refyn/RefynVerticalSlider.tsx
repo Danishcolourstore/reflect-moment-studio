@@ -4,10 +4,11 @@ import { motion } from 'framer-motion';
 interface Props {
   value: number;
   onChange: (v: number) => void;
+  onChangeEnd?: () => void;
   label: string;
 }
 
-export default function RefynVerticalSlider({ value, onChange, label }: Props) {
+export default function RefynVerticalSlider({ value, onChange, onChangeEnd, label }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -30,7 +31,10 @@ export default function RefynVerticalSlider({ value, onChange, label }: Props) {
     updateFromY(e.clientY);
   }, [dragging, updateFromY]);
 
-  const handlePointerUp = useCallback(() => setDragging(false), []);
+  const handlePointerUp = useCallback(() => {
+    setDragging(false);
+    onChangeEnd?.();
+  }, [onChangeEnd]);
 
   return (
     <motion.div
