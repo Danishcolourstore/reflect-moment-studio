@@ -12,13 +12,21 @@ import hero6 from '@/assets/hero-6.webp';
 
 const ease = [0.16, 1, 0.3, 1];
 
+const POETRY = [
+  'Every frame.\nA memory that stays.',
+  'Not just photographs.\nProof that it happened.',
+  'The light. The moment.\nThe people who were there.',
+  'Some things deserve\nto be remembered perfectly.',
+  'Your work lives here.\nQuietly. Forever.',
+];
+
 const SLIDES = [
-  { img: hero1, caption: 'Lake Como · Joy' },
-  { img: hero2, caption: 'Elegance · Defined' },
-  { img: hero3, caption: 'Gold · Grace' },
-  { img: hero4, caption: 'Together · Forever' },
-  { img: hero5, caption: 'Promise · Bloom' },
-  { img: hero6, caption: 'Shores · Serenity' },
+  { img: hero1 },
+  { img: hero2 },
+  { img: hero3 },
+  { img: hero4 },
+  { img: hero5 },
+  { img: hero6 },
 ];
 
 function FilmGrain() {
