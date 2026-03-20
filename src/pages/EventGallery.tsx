@@ -801,21 +801,21 @@ const EventGallery = () => {
       {/* ── Main content ── */}
       {isOwner ? (
         <Tabs defaultValue="photos" className="w-full">
-          <TabsList className="bg-transparent border-b border-border/40 rounded-none w-full justify-start h-auto p-0 gap-0">
+          <TabsList className="bg-transparent border-b border-border/40 rounded-none w-full justify-start h-auto p-0 gap-0 overflow-x-auto scrollbar-hide">
             {[
-              { value: 'photos', label: 'Photos', icon: null },
-              { value: 'favorites', label: 'Guest Favorites', icon: Heart, badge: favStats.totalFavs },
-              { value: 'selections', label: 'Selections', icon: CheckSquare },
-              { value: 'comments', label: 'Comments', icon: MessageCircle },
+              { value: 'photos', label: 'Photos', mobileLabel: 'Photos', icon: null },
+              { value: 'favorites', label: 'Guest Favorites', mobileLabel: 'Favs', icon: Heart, badge: favStats.totalFavs },
+              { value: 'selections', label: 'Selections', mobileLabel: 'Select', icon: CheckSquare },
+              { value: 'comments', label: 'Comments', mobileLabel: 'Chat', icon: MessageCircle },
             ].map(tab => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-[11px] uppercase tracking-[0.1em] text-muted-foreground/40 data-[state=active]:text-foreground font-medium flex items-center gap-1.5 transition-colors"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 py-2.5 text-[10px] sm:text-[11px] uppercase tracking-[0.08em] sm:tracking-[0.1em] text-muted-foreground/40 data-[state=active]:text-foreground font-medium flex items-center gap-1 sm:gap-1.5 transition-colors flex-shrink-0 min-w-[44px]"
               >
                 {tab.icon && <tab.icon className="h-3 w-3" />}
                 <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                <span className="sm:hidden">{tab.mobileLabel}</span>
                 {tab.badge ? (
                   <span className="text-[9px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 leading-none font-semibold">
                     {tab.badge}
