@@ -13,14 +13,6 @@ const ease = [0.16, 1, 0.3, 1];
 // 6 slides cycling through 3 images
 const SLIDES = [hero1, hero2, hero3, hero1, hero2, hero3];
 
-const LINES = [
-  'Mirror never lies.',
-  'Not realtime.\n2 seconds late.',
-  'We are not\nartificially intelligent.',
-  'Real Intelligence.\nExperience.',
-  'Art and technology.\nSmooched.',
-  'Hugged. Cuddled.\nWild.',
-];
 
 export default function IntelligenceHome() {
   const navigate = useNavigate();
