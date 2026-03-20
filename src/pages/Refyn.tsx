@@ -192,7 +192,7 @@ export default function Refyn() {
           {screen === 'upload' && <RefynUpload key="upload" onUpload={handleUpload} />}
           {screen === 'processing' && photo && <RefynProcessing key="processing" photoUrl={photo.originalUrl} />}
           {screen === 'editor' && photo && (
-            <RefynEditor key="editor" photoUrl={photo.originalUrl} onExport={handleExport} onReset={handleReset} />
+            <RefynEditor key="editor" photoUrl={photo.originalUrl} onExport={() => setScreen('export')} onReset={handleReset} />
           )}
           {screen === 'export' && photo && editedValues && (
             <RefynExport
