@@ -10,6 +10,20 @@ interface ToolDef {
 
 const TOOLS: ToolDef[] = [
   {
+    id: 'filters' as RefynToolId, label: 'Filters', group: 0 as 1,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.2" />
+        <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="0.8" opacity="0.5" />
+        <circle cx="10" cy="10" r="1.5" fill="currentColor" opacity="0.3" />
+        <line x1="10" y1="3" x2="10" y2="1.5" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
+        <line x1="10" y1="18.5" x2="10" y2="17" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
+        <line x1="3" y1="10" x2="1.5" y2="10" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
+        <line x1="18.5" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
+      </svg>
+    ),
+  },
+  {
     id: 'frequency', label: 'Skin', group: 1,
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
