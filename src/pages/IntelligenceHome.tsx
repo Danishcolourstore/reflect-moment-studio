@@ -5,12 +5,16 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
 import hero1 from '@/assets/hero-1.jpg';
 import hero2 from '@/assets/hero-2.png';
+import hero3 from '@/assets/hero-3.jpg';
+import hero4 from '@/assets/hero-4.jpg';
 
 const ease = [0.16, 1, 0.3, 1];
 
 const SLIDES = [
   { img: hero1, caption: 'Lake Como · Joy' },
   { img: hero2, caption: 'Elegance · Defined' },
+  { img: hero3, caption: 'Gold · Grace' },
+  { img: hero4, caption: 'Together · Forever' },
 ];
 
 function FilmGrain() {
