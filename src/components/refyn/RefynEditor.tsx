@@ -31,7 +31,7 @@ interface Props {
   onIntelMessage?: (msg: string) => void;
 }
 
-const buildFilter = (v: RefynToolValues) => {
+const buildFilter = (v: RefynToolValues, overrides?: RefynFilter['cssOverrides']) => {
   const freq = v.frequency / 100;
   const lum = v.lumina / 100;
   const sculpt = v.sculpt / 100;
@@ -42,15 +42,24 @@ const buildFilter = (v: RefynToolValues) => {
   const jewelV = v.jewellery / 100;
   const hairV = v.hair / 100;
 
-  const brightness = 1 + 0.06 * lum + 0.03 * sculpt + 0.02 * tone + 0.02 * outfitV + 0.015 * jewelV;
-  const contrast = 1 + 0.1 * sculpt + 0.05 * tex + 0.04 * freq + 0.06 * outfitV + 0.04 * hairV;
-  const saturate = 1 + 0.12 * tone + 0.05 * lum + 0.08 * outfitV + 0.04 * jewelV + 0.03 * hairV;
+  let brightness = 1 + 0.06 * lum + 0.03 * sculpt + 0.02 * tone + 0.02 * outfitV + 0.015 * jewelV;
+  let contrast = 1 + 0.1 * sculpt + 0.05 * tex + 0.04 * freq + 0.06 * outfitV + 0.04 * hairV;
+  let saturate = 1 + 0.12 * tone + 0.05 * lum + 0.08 * outfitV + 0.04 * jewelV + 0.03 * hairV;
   const blur = freq > 0 ? freq * 0.3 : 0;
-  const sepia = lum * 0.04 + jewelV * 0.02;
+  let sepia = lum * 0.04 + jewelV * 0.02;
   const sharpness = 1 + 0.05 * outfitV + 0.04 * hairV + 0.03 * jewelV;
   const dropShadow = ghost > 0 ? `drop-shadow(0 0 ${ghost * 2}px rgba(255,255,255,${ghost * 0.15}))` : '';
+  let hueRotate = 0;
 
-  return `brightness(${brightness}) contrast(${contrast * sharpness}) saturate(${saturate}) blur(${blur}px) sepia(${sepia}) ${dropShadow}`.trim();
+  if (overrides) {
+    if (overrides.brightness) brightness *= overrides.brightness;
+    if (overrides.contrast) contrast *= overrides.contrast;
+    if (overrides.saturate) saturate *= overrides.saturate;
+    if (overrides.sepia) sepia += overrides.sepia;
+    if (overrides.hueRotate) hueRotate = overrides.hueRotate;
+  }
+
+  return `brightness(${brightness}) contrast(${contrast * sharpness}) saturate(${saturate}) blur(${blur}px) sepia(${sepia}) hue-rotate(${hueRotate}deg) ${dropShadow}`.trim();
 };
 
 const SLIDER_TOOLS: Record<string, { key: keyof RefynToolValues; label: string }> = {
