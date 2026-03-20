@@ -705,12 +705,12 @@ const EventGallery = () => {
         </div>
       )}
 
-      {/* Owner action bar */}
+      {/* Owner action bar — horizontally scrollable on mobile */}
       {isOwner && (
-        <div className="flex items-center gap-1.5 mb-5 flex-wrap">
+        <div className="flex items-center gap-1.5 mb-5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+              <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
                 <LayoutGrid className="mr-1.5 h-3.5 w-3.5" />
                 {LAYOUT_OPTIONS.find(o => o.value === layout)?.label || 'Layout'}
               </Button>
@@ -729,29 +729,29 @@ const EventGallery = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="w-px h-5 bg-border/30 mx-1 hidden sm:block" />
+          <div className="w-px h-5 bg-border/30 mx-1 hidden sm:block flex-shrink-0" />
 
           <Button onClick={() => fileInputRef.current?.click()} disabled={upload.isUploading || zipUpload.isUploading}
-            variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <Upload className="mr-1.5 h-3.5 w-3.5" />Upload
           </Button>
           <Button onClick={() => zipInputRef.current?.click()} disabled={upload.isUploading || zipUpload.isUploading}
-            variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <FileArchive className="mr-1.5 h-3.5 w-3.5" />ZIP
           </Button>
 
-          <div className="w-px h-5 bg-border/30 mx-1 hidden sm:block" />
+          <div className="w-px h-5 bg-border/30 mx-1 hidden sm:block flex-shrink-0" />
 
           <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)}
-            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <Share2 className="mr-1.5 h-3.5 w-3.5" />Share
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setTextEditorOpen(true)}
-            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <Type className="mr-1.5 h-3.5 w-3.5" />Text
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)}
-            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <Settings className="mr-1.5 h-3.5 w-3.5" />
           </Button>
         </div>
