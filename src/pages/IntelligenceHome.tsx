@@ -7,21 +7,15 @@ import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
 import hero1 from '@/assets/hero-1.jpg';
 import hero2 from '@/assets/hero-2.jpg';
 import hero3 from '@/assets/hero-3.jpg';
-import hero4 from '@/assets/hero-4.jpg';
-import hero5 from '@/assets/hero-5.jpg';
-import hero6 from '@/assets/hero-6.jpg';
 
 const ease = [0.16, 1, 0.3, 1];
 
-const SLIDES = [hero1, hero2, hero3, hero4, hero5, hero6];
+const SLIDES = [hero1, hero2, hero3];
 
 const LINES = [
   'Mirror never lies.',
   'Not realtime.\n2 seconds late.',
   'We are not\nartificially intelligent.',
-  'Real Intelligence.\nExperience.',
-  'Art and technology.\nSmooched.',
-  'Hugged. Cuddled.\nWild.',
 ];
 
 export default function IntelligenceHome() {
