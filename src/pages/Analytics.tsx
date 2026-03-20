@@ -75,7 +75,7 @@ const Analytics = () => {
       <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">Analytics</h1>
 
       {/* Range pills */}
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
+      <div className="flex items-center gap-2 mb-4 sm:mb-6 overflow-x-auto pb-1 scrollbar-hide">
         {RANGES.map(({ key, label }) => (
           <button key={key} onClick={() => setRange(key)}
             className={`px-4 py-1.5 rounded-full text-[11px] tracking-wider transition-all border ${
