@@ -152,7 +152,7 @@ const Profile = () => {
         </div>
 
         {/* Appearance / Theme */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Appearance</h2>
           <p className="text-[11px] text-muted-foreground mb-4">Choose your dashboard theme</p>
           <div className="grid grid-cols-2 gap-3">
