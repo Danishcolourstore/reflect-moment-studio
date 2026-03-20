@@ -14,43 +14,98 @@ interface ToolDef {
 const TOOLS: ToolDef[] = [
   {
     id: 'freqSep', label: 'Freq Sep',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.2"/><line x1="3" y1="11" x2="19" y2="11" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 2"/><path d="M5 8Q8 5 11 8T17 8" stroke="currentColor" strokeWidth="1" opacity="0.6"/><path d="M5 14Q8 17 11 14T17 14" stroke="currentColor" strokeWidth="1" opacity="0.6"/></svg>,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.2"/>
+        <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 2"/>
+        <path d="M5 7Q8 4 10 7T15 7" stroke="currentColor" strokeWidth="1" opacity="0.6"/>
+        <path d="M5 13Q8 16 10 13T15 13" stroke="currentColor" strokeWidth="1" opacity="0.6"/>
+      </svg>
+    ),
   },
   {
     id: 'skinSmooth', label: 'Skin',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="9" r="5" stroke="currentColor" strokeWidth="1.2"/><path d="M7 17C7 14 9 12 11 12S15 14 15 17" stroke="currentColor" strokeWidth="1.2"/></svg>,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="8" r="4.5" stroke="currentColor" strokeWidth="1.2"/>
+        <path d="M6.5 16C6.5 13 8 11 10 11S13.5 13 13.5 16" stroke="currentColor" strokeWidth="1.2"/>
+      </svg>
+    ),
   },
   {
     id: 'dodgeBurn', label: 'D&B',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="11" r="5" stroke="currentColor" strokeWidth="1.2"/><circle cx="14" cy="11" r="5" stroke="currentColor" strokeWidth="1.2"/><path d="M8 6V16" stroke="currentColor" strokeWidth="0.6" opacity="0.4"/><path d="M14 6V16" stroke="currentColor" strokeWidth="0.6" opacity="0.4"/></svg>,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="7.5" cy="10" r="4.5" stroke="currentColor" strokeWidth="1.2"/>
+        <circle cx="12.5" cy="10" r="4.5" stroke="currentColor" strokeWidth="1.2"/>
+      </svg>
+    ),
   },
   {
     id: 'blemish', label: 'Heal',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.2"/><line x1="11" y1="7" x2="11" y2="15" stroke="currentColor" strokeWidth="1.2"/><line x1="7" y1="11" x2="15" y2="11" stroke="currentColor" strokeWidth="1.2"/></svg>,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="6.5" stroke="currentColor" strokeWidth="1.2"/>
+        <line x1="10" y1="6" x2="10" y2="14" stroke="currentColor" strokeWidth="1.2"/>
+        <line x1="6" y1="10" x2="14" y2="10" stroke="currentColor" strokeWidth="1.2"/>
+      </svg>
+    ),
   },
   {
     id: 'liquify', label: 'Liquify',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M8 4C6 8 6 14 8 18" stroke="currentColor" strokeWidth="1.2"/><path d="M14 4C16 8 16 14 14 18" stroke="currentColor" strokeWidth="1.2"/><path d="M4 8C8 6 14 6 18 8" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/><path d="M4 14C8 16 14 16 18 14" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/></svg>,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M7 4C5 8 5 12 7 16" stroke="currentColor" strokeWidth="1.2"/>
+        <path d="M13 4C15 8 15 12 13 16" stroke="currentColor" strokeWidth="1.2"/>
+      </svg>
+    ),
   },
   {
-    id: 'sharpen', label: 'Sharpen',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><polygon points="11,3 19,19 3,19" stroke="currentColor" strokeWidth="1.2" fill="none"/><line x1="11" y1="9" x2="11" y2="15" stroke="currentColor" strokeWidth="1"/></svg>,
+    id: 'sharpen', label: 'Sharp',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <polygon points="10,3 17,17 3,17" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+        <line x1="10" y1="9" x2="10" y2="14" stroke="currentColor" strokeWidth="1"/>
+      </svg>
+    ),
   },
   {
     id: 'hairCleanup', label: 'Hair',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M7 18C7 12 8 6 11 4C14 6 15 12 15 18" stroke="currentColor" strokeWidth="1.2"/><path d="M9 17C9 13 9.5 8 11 6C12.5 8 13 13 13 17" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/></svg>,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M7 16C7 11 8 5 10 3.5C12 5 13 11 13 16" stroke="currentColor" strokeWidth="1.2"/>
+        <path d="M8.5 15C8.5 12 9 7 10 5.5C11 7 11.5 12 11.5 15" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/>
+      </svg>
+    ),
   },
   {
     id: 'eyeEnhance', label: 'Eyes',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><ellipse cx="11" cy="11" rx="8" ry="5" stroke="currentColor" strokeWidth="1.2"/><circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1"/><circle cx="11" cy="11" r="1.2" fill="currentColor"/></svg>,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <ellipse cx="10" cy="10" rx="7" ry="4.5" stroke="currentColor" strokeWidth="1.2"/>
+        <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1"/>
+        <circle cx="10" cy="10" r="1" fill="currentColor"/>
+      </svg>
+    ),
   },
   {
     id: 'teethWhiten', label: 'Teeth',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M5 10C5 10 7 7 11 7S17 10 17 10" stroke="currentColor" strokeWidth="1.2"/><path d="M5 10C5 10 7 15 11 15S17 10 17 10" stroke="currentColor" strokeWidth="1.2"/><line x1="9" y1="7.5" x2="9" y2="14.5" stroke="currentColor" strokeWidth="0.6" opacity="0.3"/><line x1="11" y1="7" x2="11" y2="15" stroke="currentColor" strokeWidth="0.6" opacity="0.3"/><line x1="13" y1="7.5" x2="13" y2="14.5" stroke="currentColor" strokeWidth="0.6" opacity="0.3"/></svg>,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M4.5 9C4.5 9 6.5 6.5 10 6.5S15.5 9 15.5 9" stroke="currentColor" strokeWidth="1.2"/>
+        <path d="M4.5 9C4.5 9 6.5 13.5 10 13.5S15.5 9 15.5 9" stroke="currentColor" strokeWidth="1.2"/>
+      </svg>
+    ),
   },
   {
-    id: 'bgCleanup', label: 'BG Fix',
-    icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.2"/><path d="M3 15L8 10L12 14L15 11L19 15" stroke="currentColor" strokeWidth="1" opacity="0.5"/><circle cx="7" cy="7" r="2" stroke="currentColor" strokeWidth="0.8" opacity="0.6"/></svg>,
+    id: 'bgCleanup', label: 'BG',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.2"/>
+        <path d="M3 13L7 9L11 13L13.5 10.5L17 14" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
+        <circle cx="6.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="0.8" opacity="0.6"/>
+      </svg>
+    ),
   },
 ];
 
@@ -62,8 +117,12 @@ interface Props {
 export default function RefynToolbar({ activeTool, onToolTap }: Props) {
   return (
     <div
-      className="flex items-center gap-0.5 overflow-x-auto px-2 py-1"
-      style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+      className="flex items-center gap-1 overflow-x-auto px-3 py-2"
+      style={{
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch',
+        msOverflowStyle: 'none',
+      }}
     >
       {TOOLS.map((tool) => {
         const isActive = activeTool === tool.id;
@@ -72,7 +131,7 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
             key={tool.id}
             whileTap={{ scale: 0.93 }}
             onClick={() => onToolTap(tool.id)}
-            className="flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-xl transition-all duration-200 flex-shrink-0 min-w-[48px]"
+            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 flex-shrink-0 min-w-[52px]"
             style={{
               backgroundColor: isActive ? 'rgba(201,169,110,0.12)' : 'transparent',
               color: isActive ? '#c9a96e' : '#6a6470',
@@ -80,7 +139,7 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
           >
             {tool.icon}
             <span
-              className="text-[7px] tracking-wider uppercase whitespace-nowrap"
+              className="text-[8px] tracking-wider uppercase whitespace-nowrap font-medium"
               style={{ fontFamily: '"DM Sans", sans-serif' }}
             >
               {tool.label}
