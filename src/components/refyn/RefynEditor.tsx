@@ -48,13 +48,8 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
   const [brushFeather] = useState(50);
 
   const {
-    mainCanvasRef,
-    layers,
-    isLoaded,
-    removeLayer,
-    toggleLayerVisibility,
-    setLayerOpacity,
-    exportFullResolution,
+    mainCanvasRef, layers, isLoaded,
+    removeLayer, toggleLayerVisibility, setLayerOpacity, exportFullResolution,
   } = useCanvasEngine(photoUrl);
 
   const history = useUndoHistory();
@@ -91,7 +86,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
 
   return (
     <div className="vsco-root">
-      {/* FULL-SCREEN PHOTO — fills entire viewport */}
+      {/* FULL-SCREEN PHOTO */}
       <div
         className="vsco-photo-layer"
         onPointerDown={() => setIsComparing(true)}
@@ -100,62 +95,35 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         style={{ touchAction: 'none' }}
       >
         {isComparing && (
-          <img
-            src={photoUrl}
-            alt="Original"
-            className="vsco-img"
-            style={{ zIndex: 3 }}
-            draggable={false}
-          />
+          <img src={photoUrl} alt="Original" className="vsco-img" style={{ zIndex: 3 }} draggable={false} />
         )}
-        <canvas
-          ref={mainCanvasRef}
-          className="vsco-img"
-          style={{ opacity: isComparing ? 0 : 1, zIndex: 2 }}
-        />
+        <canvas ref={mainCanvasRef} className="vsco-img" style={{ opacity: isComparing ? 0 : 1, zIndex: 2 }} />
         {!isLoaded && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="w-6 h-6 border-2 border-[#c9a96e]/30 border-t-[#c9a96e] rounded-full animate-spin" />
-            <span className="vsco-loading-text">Preparing editor...</span>
+            <span style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 11, color: '#666', letterSpacing: '0.06em' }}>
+              Preparing editor...
+            </span>
           </div>
         )}
       </div>
 
-      {/* FLOATING TOP BAR — glass, over the photo */}
+      {/* TOP — back button only, floating over gradient */}
       <div className="vsco-topbar">
         <button onClick={() => navigate(-1)} className="vsco-back-btn">
-          <svg width="20" height="20" viewBox="0 0 14 14" fill="none">
-            <path d="M9 2L4 7L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => history.undo()}
-            disabled={!history.canUndo}
-            className="vsco-top-icon"
-            style={{ opacity: history.canUndo ? 0.9 : 0.25 }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M4 8L8 4M4 8L8 12M4 8H13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+        <div className="flex items-center gap-1">
+          <button onClick={() => setShowLayers(true)} className="vsco-top-icon" aria-label="Layers">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="1.2"/>
             </svg>
           </button>
-          <button
-            onClick={() => history.redo()}
-            disabled={!history.canRedo}
-            className="vsco-top-icon"
-            style={{ opacity: history.canRedo ? 0.9 : 0.25 }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M12 8L8 4M12 8L8 12M12 8H3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          {/* Edit pencil icon — opens layers */}
-          <button onClick={() => setShowLayers(true)} className="vsco-top-icon" style={{ opacity: 0.6 }}>
-            <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-              <path d="M14.5 3.5L16.5 5.5L6 16H4V14L14.5 3.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+          <button onClick={handleExport} className="vsco-export-btn">Export</button>
         </div>
       </div>
 
@@ -163,9 +131,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
       <AnimatePresence>
         {isComparing && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="vsco-compare-badge"
           >
             Original
@@ -173,23 +139,23 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         )}
       </AnimatePresence>
 
-      {/* FLOATING TOOL PANEL — overlays on photo like VSCO recipe rows */}
+      {/* RECIPE CARD PANEL — floats over photo like VSCO */}
       <AnimatePresence mode="wait">
         {ActivePanel && (
           <motion.div
             key={activeTool}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="vsco-overlay-panel"
+            className="vsco-recipe-area"
           >
             <ActivePanel onClose={() => setActiveTool(null)} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* BOTTOM TOOLBAR — floating over photo */}
+      {/* BOTTOM TOOLBAR */}
       <div className="vsco-bottom-dock">
         <RefynToolbar activeTool={activeTool} onToolTap={handleToolTap} />
       </div>
@@ -204,146 +170,225 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         onClose={() => setShowLayers(false)}
       />
 
-      {/* Brush Cursor */}
       <BrushCursor size={brushSize} feather={brushFeather} visible={!!showBrushCursor} />
 
       <style>{`
         .vsco-root {
           position: relative;
-          width: 100%;
-          height: 100dvh;
-          overflow: hidden;
-          background: #000;
+          width: 100%; height: 100dvh;
+          overflow: hidden; background: #000;
         }
 
-        /* Photo fills entire screen */
         .vsco-photo-layer {
-          position: absolute;
-          inset: 0;
-          z-index: 1;
+          position: absolute; inset: 0; z-index: 1;
         }
 
         .vsco-img {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
+          position: absolute; inset: 0;
+          width: 100%; height: 100%;
           object-fit: contain;
           border-radius: 0;
-          transition: opacity 0.15s ease;
         }
 
-        .vsco-loading-text {
-          font-family: "DM Sans", sans-serif;
-          font-size: 11px;
-          letter-spacing: 0.06em;
-          color: #666;
-        }
-
-        /* Floating top bar — transparent glass */
+        /* ── Top bar ── */
         .vsco-topbar {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 30;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 16px;
+          position: absolute; top: 0; left: 0; right: 0; z-index: 30;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 12px 12px;
           padding-top: max(12px, env(safe-area-inset-top, 0px));
-          background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%);
+          background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%);
         }
 
         .vsco-back-btn {
-          width: 36px;
-          height: 36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          width: 40px; height: 40px;
+          display: flex; align-items: center; justify-content: center;
           border-radius: 50%;
-          background: rgba(0,0,0,0.3);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          color: #f5f0eb;
-          border: none;
-          cursor: pointer;
+          background: rgba(60,60,60,0.5);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          color: #fff; border: none; cursor: pointer;
         }
         .vsco-back-btn:active { transform: scale(0.92); }
 
         .vsco-top-icon {
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #f5f0eb;
-          background: none;
-          border: none;
-          cursor: pointer;
+          width: 36px; height: 36px;
+          display: flex; align-items: center; justify-content: center;
+          color: rgba(255,255,255,0.7);
+          background: none; border: none; cursor: pointer;
         }
         .vsco-top-icon:active { transform: scale(0.9); }
 
-        /* Compare badge */
-        .vsco-compare-badge {
-          position: absolute;
-          top: 70px;
-          left: 16px;
-          z-index: 30;
-          padding: 4px 12px;
-          border-radius: 100px;
-          background: rgba(0,0,0,0.5);
+        .vsco-export-btn {
+          padding: 6px 16px;
+          border-radius: 6px;
+          background: rgba(255,255,255,0.12);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
+          color: #fff;
           font-family: "DM Sans", sans-serif;
-          font-size: 9px;
-          letter-spacing: 0.15em;
+          font-size: 12px; font-weight: 500;
+          letter-spacing: 0.03em;
+          border: none; cursor: pointer;
+        }
+        .vsco-export-btn:active { transform: scale(0.95); opacity: 0.8; }
+
+        .vsco-compare-badge {
+          position: absolute; top: 72px; left: 16px; z-index: 30;
+          padding: 4px 12px; border-radius: 100px;
+          background: rgba(0,0,0,0.5);
+          backdrop-filter: blur(8px);
+          font-family: "DM Sans", sans-serif;
+          font-size: 9px; letter-spacing: 0.15em;
           text-transform: uppercase;
           color: rgba(245,240,235,0.7);
         }
 
-        /* Floating overlay panel — VSCO recipe style rows over the photo */
-        .vsco-overlay-panel {
+        /* ── Recipe area — positioned above bottom dock ── */
+        .vsco-recipe-area {
           position: absolute;
-          left: 0;
-          right: 0;
+          left: 0; right: 0;
           bottom: 56px;
           z-index: 20;
           padding-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        /* Bottom toolbar — floating at absolute bottom */
-        .vsco-bottom-dock {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          z-index: 25;
-          background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, transparent 100%);
-          padding-bottom: env(safe-area-inset-bottom, 0px);
+        /* ── Recipe panel styles ── */
+        .recipe-panel {
+          /* no background — rows float individually */
         }
 
-        /* Slider styles */
-        .rt-slider {
+        .recipe-title-row {
+          display: flex; align-items: center; gap: 8px;
+          padding: 10px 20px;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .recipe-badge {
+          display: inline-flex; align-items: center; justify-content: center;
+          padding: 2px 8px;
+          background: #c44;
+          border-radius: 3px;
+          font-family: "DM Sans", sans-serif;
+          font-size: 10px; font-weight: 700;
+          color: #fff;
+          letter-spacing: 0.02em;
+        }
+
+        .recipe-title {
+          flex: 1;
+          font-family: "DM Sans", sans-serif;
+          font-size: 13px; font-weight: 400;
+          color: rgba(240,237,232,0.85);
+          letter-spacing: 0.01em;
+        }
+
+        .recipe-title-value {
+          font-family: "DM Sans", sans-serif;
+          font-size: 16px;
+          color: #c9a96e;
+          cursor: pointer;
+          padding: 4px 8px;
+        }
+
+        /* ── Individual recipe row ── */
+        .recipe-row {
+          display: flex; align-items: center; gap: 10px;
+          padding: 12px 20px;
+          border: none; background: none;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+          cursor: pointer;
+          text-align: left;
+        }
+        .recipe-row:active { background: rgba(255,255,255,0.03); }
+
+        .recipe-icon {
+          width: 22px; height: 22px;
+          display: flex; align-items: center; justify-content: center;
+          color: rgba(240,237,232,0.7);
+          flex-shrink: 0;
+        }
+        .recipe-icon svg { width: 18px; height: 18px; }
+
+        .recipe-label {
+          flex: 1;
+          font-family: "DM Sans", sans-serif;
+          font-size: 13px; font-weight: 400;
+          color: rgba(240,237,232,0.85);
+          letter-spacing: 0.01em;
+        }
+
+        .recipe-value {
+          font-family: "DM Sans", sans-serif;
+          font-size: 13px; font-weight: 400;
+          color: rgba(240,237,232,0.5);
+          letter-spacing: 0.01em;
+          font-variant-numeric: tabular-nums;
+          min-width: 48px; text-align: right;
+        }
+
+        /* ── Inline slider (shown on tap) ── */
+        .recipe-slider-row {
+          padding: 4px 20px 10px 52px;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .recipe-slider {
           -webkit-appearance: none; appearance: none;
-          background: transparent; cursor: pointer; height: 20px;
-          width: 100%;
+          width: 100%; height: 24px;
+          background: transparent; cursor: pointer;
         }
-        .rt-slider::-webkit-slider-track { height: 1px; border-radius: 0.5px; background: rgba(255,255,255,0.15); }
-        .rt-slider::-moz-range-track { height: 1px; border-radius: 0.5px; background: rgba(255,255,255,0.15); }
-        .rt-slider::-moz-range-progress { height: 1px; background: rgba(201,169,110,0.6); }
-        .rt-slider::-webkit-slider-thumb {
-          -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
-          background: #c9a96e; box-shadow: 0 0 8px 2px rgba(201,169,110,0.25);
+        .recipe-slider::-webkit-slider-track {
+          height: 1.5px; border-radius: 1px;
+          background: rgba(255,255,255,0.12);
+        }
+        .recipe-slider::-moz-range-track {
+          height: 1.5px; border-radius: 1px;
+          background: rgba(255,255,255,0.12);
+        }
+        .recipe-slider::-moz-range-progress {
+          height: 1.5px; background: rgba(201,169,110,0.5);
+        }
+        .recipe-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 16px; height: 16px; border-radius: 50%;
+          background: #c9a96e;
+          box-shadow: 0 0 6px 1px rgba(201,169,110,0.3);
           margin-top: -7px; border: none;
-          transition: width 100ms, height 100ms;
         }
-        .rt-slider::-moz-range-thumb {
-          width: 14px; height: 14px; border-radius: 50%;
-          background: #c9a96e; box-shadow: 0 0 8px 2px rgba(201,169,110,0.25); border: none;
+        .recipe-slider::-moz-range-thumb {
+          width: 16px; height: 16px; border-radius: 50%;
+          background: #c9a96e;
+          box-shadow: 0 0 6px 1px rgba(201,169,110,0.3);
+          border: none;
         }
-        .rt-slider:active::-webkit-slider-thumb {
-          width: 18px; height: 18px; margin-top: -9px;
+        .recipe-slider:active::-webkit-slider-thumb {
+          width: 20px; height: 20px; margin-top: -9px;
+        }
+
+        /* ── Segment row ── */
+        .recipe-segment-row {
+          display: flex; gap: 0; padding: 0 20px;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .recipe-segment-btn {
+          flex: 1; padding: 10px 0;
+          background: none; border: none;
+          font-family: "DM Sans", sans-serif;
+          font-size: 11px; font-weight: 500;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          cursor: pointer;
+          text-align: center;
+          transition: color 0.15s;
+        }
+
+        /* ── Bottom dock ── */
+        .vsco-bottom-dock {
+          position: absolute;
+          bottom: 0; left: 0; right: 0;
+          z-index: 25;
+          background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 80%, transparent 100%);
+          padding-bottom: env(safe-area-inset-bottom, 0px);
         }
       `}</style>
     </div>

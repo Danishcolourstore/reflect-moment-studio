@@ -1,6 +1,14 @@
-import { motion } from 'framer-motion';
+/**
+ * VSCO Recipe Card Style Primitives
+ * Rows float over full-screen photo: [icon] Label ——————— +value
+ * Thin separator lines. No slider tracks visible in default view.
+ * Tap a row to expand inline slider.
+ */
+import { useState } from 'react';
 
-interface SliderProps {
+/* ─── Recipe Row (tap to adjust) ─── */
+interface RecipeRowProps {
+  icon: React.ReactNode;
   label: string;
   value: number;
   min?: number;
@@ -9,87 +17,75 @@ interface SliderProps {
   onChange: (v: number) => void;
   onCommit?: () => void;
   unit?: string;
-  icon?: React.ReactNode;
+  formatValue?: (v: number) => string;
 }
 
-export function ToolSlider({ label, value, min = 0, max = 100, step = 1, onChange, onCommit, unit = '', icon }: SliderProps) {
+export function RecipeRow({
+  icon, label, value, min = 0, max = 100, step = 1,
+  onChange, onCommit, unit = '',
+  formatValue,
+}: RecipeRowProps) {
+  const [expanded, setExpanded] = useState(false);
+  const displayVal = formatValue
+    ? formatValue(value)
+    : value > 0 ? `+${value}${unit ? '.' + unit : ''}` : `${value}${unit ? '.' + unit : ''}`;
+
+  // Format like VSCO: +12.0
+  const vscoVal = formatValue
+    ? formatValue(value)
+    : (value >= 0 ? '+' : '') + Number(value).toFixed(1);
+
   return (
-    <div
-      className="flex items-center gap-3 px-4"
-      style={{
-        height: '44px',
-        background: 'rgba(0,0,0,0.25)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}
-    >
-      {icon && <span className="flex-shrink-0 opacity-60">{icon}</span>}
-      <span
-        className="min-w-[80px] text-left"
-        style={{
-          fontFamily: '"DM Sans", sans-serif',
-          fontSize: '12px',
-          letterSpacing: '0.02em',
-          color: 'rgba(240,237,232,0.8)',
-          fontWeight: 400,
-        }}
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="recipe-row"
+        style={{ width: '100%' }}
       >
-        {label}
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        onPointerUp={onCommit}
-        onTouchEnd={onCommit}
-        className="rt-slider flex-1"
-      />
-      <span
-        className="min-w-[36px] text-right"
-        style={{
-          fontFamily: '"DM Sans", sans-serif',
-          fontSize: '12px',
-          color: 'rgba(240,237,232,0.5)',
-          fontWeight: 400,
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {value > 0 ? `+${value}` : value}{unit}
-      </span>
+        <span className="recipe-icon">{icon}</span>
+        <span className="recipe-label">{label}</span>
+        <span className="recipe-value">{vscoVal}</span>
+      </button>
+      {expanded && (
+        <div className="recipe-slider-row">
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => onChange(Number(e.target.value))}
+            onPointerUp={() => { onCommit?.(); }}
+            onTouchEnd={() => { onCommit?.(); }}
+            className="recipe-slider"
+          />
+        </div>
+      )}
     </div>
   );
 }
 
+/* ─── Recipe Toggle Row ─── */
 interface ToggleProps {
   label: string;
   active: boolean;
   onToggle: () => void;
+  icon?: React.ReactNode;
 }
 
-export function ToolToggle({ label, active, onToggle }: ToggleProps) {
+export function ToolToggle({ label, active, onToggle, icon }: ToggleProps) {
   return (
-    <button
-      onClick={onToggle}
-      className="px-3 rounded-md transition-all"
-      style={{
-        height: '28px',
-        background: active ? 'rgba(201,169,110,0.15)' : 'rgba(255,255,255,0.05)',
-        border: active ? '1px solid rgba(201,169,110,0.3)' : '1px solid rgba(255,255,255,0.1)',
-        color: active ? '#c9a96e' : 'rgba(240,237,232,0.5)',
-        fontFamily: '"DM Sans", sans-serif',
-        fontSize: '10px',
-        letterSpacing: '0.06em',
-      }}
-    >
-      {label}
+    <button onClick={onToggle} className="recipe-row" style={{ width: '100%' }}>
+      {icon && <span className="recipe-icon">{icon}</span>}
+      <span className="recipe-label">{label}</span>
+      <span className="recipe-value" style={{ color: active ? '#c9a96e' : 'rgba(240,237,232,0.3)' }}>
+        {active ? 'ON' : 'OFF'}
+      </span>
     </button>
   );
 }
 
+/* ─── Segment (inline pill group) ─── */
 interface SegmentProps {
   options: string[];
   value: string;
@@ -98,27 +94,15 @@ interface SegmentProps {
 
 export function ToolSegment({ options, value, onChange }: SegmentProps) {
   return (
-    <div
-      className="inline-flex rounded-lg overflow-hidden"
-      style={{ border: '1px solid rgba(255,255,255,0.1)', width: 'fit-content' }}
-    >
-      {options.map((opt, i) => (
+    <div className="recipe-segment-row">
+      {options.map((opt) => (
         <button
           key={opt}
           onClick={() => onChange(opt)}
-          className="transition-all"
+          className="recipe-segment-btn"
           style={{
-            padding: '0 12px',
-            height: '28px',
-            fontFamily: '"DM Sans", sans-serif',
-            fontSize: '9px',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase' as const,
-            fontWeight: 500,
-            background: value === opt ? 'rgba(201,169,110,0.9)' : 'transparent',
-            color: value === opt ? '#111' : 'rgba(240,237,232,0.4)',
-            border: 'none',
-            borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+            color: value === opt ? '#c9a96e' : 'rgba(240,237,232,0.3)',
+            borderBottom: value === opt ? '1px solid #c9a96e' : '1px solid transparent',
           }}
         >
           {opt}
@@ -128,59 +112,28 @@ export function ToolSegment({ options, value, onChange }: SegmentProps) {
   );
 }
 
+/* ─── Panel Wrapper ─── */
 interface ToolPanelWrapperProps {
   title: string;
   children: React.ReactNode;
   onClose: () => void;
+  badge?: string;
 }
 
-export function ToolPanelWrapper({ title, children, onClose }: ToolPanelWrapperProps) {
+export function ToolPanelWrapper({ title, children, onClose, badge }: ToolPanelWrapperProps) {
   return (
-    <div>
-      {/* Tool header row — same glass style as sliders */}
-      <div
-        className="flex items-center justify-between px-4"
-        style={{
-          height: '40px',
-          background: 'rgba(0,0,0,0.3)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: '"DM Sans", sans-serif',
-            fontSize: '11px',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: '#c9a96e',
-            fontWeight: 500,
-          }}
-        >
-          {title}
-        </span>
-        <button
-          onClick={onClose}
-          style={{
-            fontFamily: '"DM Sans", sans-serif',
-            fontSize: '11px',
-            color: '#c9a96e',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            letterSpacing: '0.04em',
-            fontWeight: 500,
-          }}
-        >
-          Done
-        </button>
+    <div className="recipe-panel">
+      {/* Title row — same style as VSCO preset badge */}
+      <div className="recipe-title-row">
+        {badge && <span className="recipe-badge">{badge}</span>}
+        <span className="recipe-title">{title}</span>
+        <span className="recipe-title-value" onClick={onClose}>✓</span>
       </div>
-      {/* Slider rows — each is its own glass row */}
-      <div>
-        {children}
-      </div>
-      {/* Extra controls row if any toggle/segment children need it */}
+      {/* Recipe rows */}
+      {children}
     </div>
   );
 }
+
+/* ─── Backward compat aliases ─── */
+export const ToolSlider = RecipeRow;
