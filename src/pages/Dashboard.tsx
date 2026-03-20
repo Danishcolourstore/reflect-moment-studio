@@ -101,17 +101,17 @@ const Dashboard = () => {
   const collagePhotos = recentEvents.filter(e => e.cover_url).slice(0, 3);
 
   return (
-    <div className="min-h-[100dvh] relative" style={{ background: '#080808' }}>
+    <div className="min-h-[100dvh] relative pb-20" style={{ background: '#080808' }}>
       <FilmGrain />
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
       {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-2" style={{ height: 48 }}>
+      <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4" style={{ height: 48 }}>
         <HamburgerButton onClick={drawer.toggle} />
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.div
-              className="mr-4 rounded-full"
+              className="rounded-full"
               style={{ width: 5, height: 5, background: '#E8C97A' }}
               animate={{
                 opacity: [0.5, 1, 0.5],
@@ -126,49 +126,41 @@ const Dashboard = () => {
         </Tooltip>
       </div>
 
-      {/* SECTION A — Reflections Hero */}
-      <section className="relative overflow-hidden flex flex-col md:flex-row" style={{ minHeight: '55vh', paddingTop: 48 }}>
-        {/* Left */}
-        <div className="flex-[0_0_58%] flex items-end p-8 md:p-12 relative z-10">
-          <div>
-            <p
-              className="uppercase mb-6"
-              style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.4em' }}
-            >
-              Reflections
-            </p>
-            <h1
-              className="text-[40px] md:text-[72px] font-light leading-[1.05]"
-              style={{ fontFamily: cormorant, color: '#F0EDE8', letterSpacing: '-0.01em' }}
-            >
-              Your work.<br />Remembered.
-            </h1>
-            <div className="mt-6 mb-6" style={{ width: 48, height: 1, background: '#E8C97A' }} />
-            <p style={{ fontFamily: dm, fontSize: 11, color: '#2A2A2A', letterSpacing: '0.15em' }}>
-              {loading ? '...' : `${totalPhotos} moments · ${totalEvents} events · ${totalAlbums} albums`}
-            </p>
-          </div>
+      {/* SECTION A — Reflections Hero — mobile: stacked, shorter */}
+      <section className="relative overflow-hidden" style={{ paddingTop: 48 }}>
+        <div className="px-4 py-8 md:px-12 md:py-12">
+          <p
+            className="uppercase mb-4"
+            style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.4em' }}
+          >
+            Reflections
+          </p>
+          <h1
+            className="text-[32px] md:text-[72px] font-light leading-[1.05]"
+            style={{ fontFamily: cormorant, color: '#F0EDE8', letterSpacing: '-0.01em' }}
+          >
+            Your work.<br />Remembered.
+          </h1>
+          <div className="mt-4 mb-3" style={{ width: 48, height: 1, background: '#E8C97A' }} />
+          <p style={{ fontFamily: dm, fontSize: 11, color: '#2A2A2A', letterSpacing: '0.15em' }}>
+            {loading ? '...' : `${totalPhotos} moments · ${totalEvents} events · ${totalAlbums} albums`}
+          </p>
         </div>
 
-        {/* Right — photo collage */}
-        <div
-          className="flex-[0_0_42%] relative overflow-hidden flex items-center justify-center"
-          style={{ background: '#0A0A0A', borderLeft: '1px solid rgba(240,237,232,0.03)' }}
-        >
-          {collagePhotos.length > 0 ? (
-            <div className="relative w-48 h-64 md:w-56 md:h-72">
+        {/* Photo collage — horizontal scroll on mobile */}
+        {collagePhotos.length > 0 && (
+          <div className="px-4 pb-6 md:px-12">
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
               {collagePhotos.map((evt, i) => (
                 <motion.img
                   key={evt.id}
                   src={evt.cover_url!}
                   alt=""
-                  className="absolute w-full h-full object-cover rounded-lg"
+                  className="flex-none rounded-lg object-cover"
                   style={{
+                    width: 140, height: 180,
                     boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                    rotate: `${[-2, 1.5, -1][i]}deg`,
-                    top: `${i * 12}px`,
-                    left: `${i * 8 - 8}px`,
-                    zIndex: 3 - i,
+                    scrollSnapAlign: 'start',
                   }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -176,26 +168,17 @@ const Dashboard = () => {
                 />
               ))}
             </div>
-          ) : (
-            <div className="text-center">
-              <svg viewBox="0 0 36 36" fill="none" className="w-9 h-9 mx-auto mb-3">
-                <path d="M18 3L33 10.5V25.5L18 33L3 25.5V10.5L18 3Z" stroke="rgba(232,201,122,0.2)" strokeWidth="1" />
-              </svg>
-              <p style={{ fontFamily: dm, fontSize: 11, color: '#2A2A2A' }}>
-                Your reflections will appear here
-              </p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </section>
 
       {/* SECTION B — Quick Access Row */}
-      <section className="px-4 md:px-12 py-8" style={{ borderTop: '1px solid rgba(240,237,232,0.04)' }}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <section className="px-4 md:px-12 py-6" style={{ borderTop: '1px solid rgba(240,237,232,0.04)' }}>
+        <div className="grid grid-cols-2 gap-3">
           {/* Events card */}
           <button
             onClick={() => navigate('/dashboard/events')}
-            className="group text-left rounded-2xl p-6 md:p-7 transition-all duration-400"
+            className="group text-left rounded-2xl p-5 transition-all duration-400"
             style={{ background: '#0C0C0C', border: '1px solid rgba(240,237,232,0.04)' }}
           >
             <p className="uppercase" style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.35em' }}>

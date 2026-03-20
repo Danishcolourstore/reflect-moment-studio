@@ -38,6 +38,7 @@ const NAV_ITEMS = [
 const MOBILE_NAV = [
   { title: 'Home', url: '/dashboard', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
+  { title: 'Upload', url: '/dashboard/upload', icon: Compass },
   { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
 ];
 const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));
@@ -328,38 +329,51 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom nav — phones only */}
       {showBottomNav && (
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch bg-card border-t border-border safe-area-pb h-16">
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch border-t border-border"
+        style={{
+          height: 56,
+          background: 'rgba(10,10,10,0.92)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
         {MOBILE_NAV.map((item) => (
           <NavLink key={item.url} to={item.url} end={item.end}
-            className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors min-h-[44px]"
-            activeClassName="text-foreground"
+            className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors min-h-[44px]"
+            activeClassName="[&>svg]:text-[#C8A97E] [&>span]:text-[#C8A97E]"
+            style={{ color: 'rgba(255,255,255,0.45)' }}
           >
-            <item.icon className="h-5 w-5" strokeWidth={1.8} />
-            <span className="text-[10px] font-medium">{item.title}</span>
+            <item.icon className="h-[22px] w-[22px] transition-colors" strokeWidth={1.6} />
+            <span className="text-[10px] font-medium tracking-wide transition-colors">{item.title}</span>
           </NavLink>
         ))}
-        <BotNavTab />
         <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
           <SheetTrigger asChild>
-            <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground min-h-[44px]">
-              <Menu className="h-5 w-5" strokeWidth={1.8} />
-              <span className="text-[10px] font-medium">More</span>
+            <button
+              className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
+              style={{ color: 'rgba(255,255,255,0.45)' }}
+            >
+              <Menu className="h-[22px] w-[22px]" strokeWidth={1.6} />
+              <span className="text-[10px] font-medium tracking-wide">More</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl safe-area-pb">
-            <div className="space-y-1 pt-4 pb-6">
+          <SheetContent side="bottom" className="rounded-t-[20px]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
+            <div className="space-y-1 pt-4 pb-4">
               {MORE_NAV.map((item) => (
                 <button key={item.url}
                   onClick={() => { navigate(item.url); setMoreOpen(false); }}
-                  className="flex items-center gap-3 w-full px-4 py-3 text-foreground hover:bg-secondary rounded-lg transition-colors text-sm min-h-[44px]"
+                  className="flex items-center gap-3 w-full px-4 py-3 text-foreground hover:bg-secondary rounded-lg transition-colors text-sm min-h-[48px]"
                 >
                   <item.icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.8} />
                   {item.title}
                   <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground/40" />
                 </button>
               ))}
+              <div className="mx-4 my-2 h-px bg-border" />
               <button onClick={handleSignOut}
-                className="flex items-center gap-3 w-full px-4 py-3 text-destructive hover:bg-destructive/5 rounded-lg transition-colors mt-3 text-sm min-h-[44px]"
+                className="flex items-center gap-3 w-full px-4 py-3 text-destructive hover:bg-destructive/5 rounded-lg transition-colors text-sm min-h-[48px]"
               >
                 <LogOut className="h-4 w-4" />
                 Sign Out
