@@ -19,10 +19,10 @@ export default defineConfig(({ mode }) => ({
       react: path.resolve(__dirname, "node_modules/react"),
       "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
     },
-    dedupe: ["react", "react-dom", "react-router-dom"],
+    dedupe: ["react", "react-dom", "react-router-dom", "@radix-ui/react-tooltip", "@radix-ui/react-dialog"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react-dom/client", "react-router-dom"],
+    include: ["react", "react-dom", "react-dom/client", "react-router-dom", "@radix-ui/react-tooltip"],
     force: true,
   },
 }));
