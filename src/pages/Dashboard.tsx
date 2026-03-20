@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PageSkeleton, PageError } from "@/components/PageStates";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,36 +63,42 @@ const Dashboard = () => {
   const [totalPhotos, setTotalPhotos] = useState(0);
   const [totalAlbums, setTotalAlbums] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [hoverCS, setHoverCS] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const { data: profile } = await (supabase.from("profiles").select("studio_name") as any)
-        .eq("user_id", user.id).maybeSingle();
-      if (profile?.studio_name) setStudioName(profile.studio_name);
+      setError(false);
+      try {
+        const { data: profile } = await (supabase.from("profiles").select("studio_name") as any)
+          .eq("user_id", user.id).maybeSingle();
+        if (profile?.studio_name) setStudioName(profile.studio_name);
 
-      const { data: events } = await (supabase.from("events")
-        .select("id, name, slug, event_date, cover_url, photo_count") as any)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(8);
-      setRecentEvents(events || []);
+        const { data: events } = await (supabase.from("events")
+          .select("id, name, slug, event_date, cover_url, photo_count") as any)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(8);
+        setRecentEvents(events || []);
 
-      const { count: evtCount } = await supabase.from("events")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-      setTotalEvents(evtCount || 0);
+        const { count: evtCount } = await supabase.from("events")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
+        setTotalEvents(evtCount || 0);
 
-      const photoSum = (events || []).reduce((s: number, e: any) => s + (e.photo_count || 0), 0);
-      setTotalPhotos(photoSum);
+        const photoSum = (events || []).reduce((s: number, e: any) => s + (e.photo_count || 0), 0);
+        setTotalPhotos(photoSum);
 
-      const { count: albCount } = await supabase.from("albums")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-      setTotalAlbums(albCount || 0);
-
+        const { count: albCount } = await supabase.from("albums")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
+        setTotalAlbums(albCount || 0);
+      } catch (err) {
+        console.error('Dashboard load failed:', err);
+        setError(true);
+      }
       setLoading(false);
     };
     load();
@@ -99,6 +106,8 @@ const Dashboard = () => {
 
   // Get latest 3 photos for collage
   const collagePhotos = recentEvents.filter(e => e.cover_url).slice(0, 3);
+
+  if (error) return <PageError message="Failed to load dashboard" onRetry={() => window.location.reload()} />;
 
   return (
     <div className="min-h-[100dvh] relative pb-20" style={{ background: '#080808' }}>

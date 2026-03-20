@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save, AlertTriangle } from 'lucide-react';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileSectionDrawer } from '@/components/website-editor/MobileSectionDrawer';
 import { MobileEditorPanel } from '@/components/website-editor/MobileEditorPanel';
@@ -1038,6 +1039,8 @@ const WebsiteEditor = () => {
           </div>
         </main>
       </div>
+
+      <MobileBottomNav />
     </div>
   );
 };
