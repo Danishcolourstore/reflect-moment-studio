@@ -36,10 +36,10 @@ const NAV_ITEMS = [
 ];
 
 const MOBILE_NAV = [
-  { title: 'Home', url: '/dashboard', icon: LayoutGrid, end: true },
+  { title: 'Home', url: '/home', icon: LayoutGrid, end: true },
   { title: 'Events', url: '/dashboard/events', icon: Camera },
-  { title: 'Upload', url: '/dashboard/upload', icon: Compass },
-  { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
+  { title: 'Albums', url: '/dashboard/album-designer', icon: BookOpen },
+  { title: 'Website', url: '/dashboard/website-editor', icon: Globe },
 ];
 const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));
 
