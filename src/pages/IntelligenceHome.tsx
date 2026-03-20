@@ -3,8 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
+import hero1 from '@/assets/hero-1.jpg';
+import hero2 from '@/assets/hero-2.png';
 
 const ease = [0.16, 1, 0.3, 1];
+
+const SLIDES = [
+  { img: hero1, caption: 'Lake Como · Joy' },
+  { img: hero2, caption: 'Elegance · Defined' },
+];
 
 function FilmGrain() {
   return (
@@ -23,11 +30,22 @@ export default function IntelligenceHome() {
   const isMobile = useIsMobile();
   const drawer = useDrawerMenu();
   const [phase, setPhase] = useState<1 | 2>(1);
+  const [current, setCurrent] = useState(0);
 
   useEffect(() => {
     const t = setTimeout(() => setPhase(2), 2000);
     return () => clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    if (phase !== 2) return;
+    const interval = setInterval(() => {
+      setCurrent(c => (c + 1) % SLIDES.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [phase]);
+
+  const pad = (n: number) => String(n).padStart(2, '0');
 
   return (
     <div className="h-[100dvh] w-screen overflow-hidden relative" style={{ background: '#000' }}>
@@ -69,6 +87,30 @@ export default function IntelligenceHome() {
         animate={{ opacity: phase === 2 ? 1 : 0 }}
         transition={{ duration: 1.2, ease }}
       >
+        {/* Rotating background images */}
+        {SLIDES.map((slide, i) => (
+          <motion.div
+            key={i}
+            className="absolute inset-0"
+            animate={{ opacity: current === i ? 1 : 0 }}
+            transition={{ duration: 1.2, ease }}
+          >
+            <img
+              src={slide.img}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </motion.div>
+        ))}
+
+        {/* Gradient overlay */}
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.75) 100%)',
+          }}
+        />
+
         {/* Top bar */}
         <div
           className="absolute top-0 left-0 right-0 z-[100] flex items-center justify-between"
@@ -137,19 +179,30 @@ export default function IntelligenceHome() {
             Real Intelligence
           </motion.p>
 
-          <h1
-            className="select-none"
-            style={{
-              fontFamily: '"Cormorant Garamond", serif',
-              fontSize: isMobile ? 36 : 52,
-              fontWeight: 300,
-              color: '#F0EDE8',
-              lineHeight: 1.1,
-              letterSpacing: '0.01em',
-            }}
-          >
-            Mirror RI
-          </h1>
+          {/* Caption — changes with image */}
+          <div className="relative" style={{ height: isMobile ? 44 : 62 }}>
+            <AnimatePresence mode="wait">
+              <motion.h1
+                key={current}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.8, ease }}
+                className="absolute select-none"
+                style={{
+                  fontFamily: '"Cormorant Garamond", serif',
+                  fontSize: isMobile ? 36 : 52,
+                  fontWeight: 300,
+                  color: '#F0EDE8',
+                  lineHeight: 1.1,
+                  letterSpacing: '0.01em',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {SLIDES[current].caption}
+              </motion.h1>
+            </AnimatePresence>
+          </div>
 
           {/* Amber line */}
           <div style={{ width: 40, height: 1, background: '#E8C97A', margin: '20px 0' }} />
@@ -194,6 +247,24 @@ export default function IntelligenceHome() {
               Mirror RI
             </motion.button>
           </div>
+        </div>
+
+        {/* Bottom right — image counter */}
+        <div
+          className="absolute bottom-0 right-0 z-[100]"
+          style={{ padding: isMobile ? '32px 24px' : '40px 32px' }}
+        >
+          <span
+            className="select-none"
+            style={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontSize: 9,
+              color: 'rgba(240,237,232,0.3)',
+              letterSpacing: '0.2em',
+            }}
+          >
+            {pad(current + 1)} / {pad(SLIDES.length)}
+          </span>
         </div>
       </motion.div>
     </div>
