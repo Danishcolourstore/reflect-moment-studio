@@ -20,22 +20,29 @@ const buildFilter = (v: RefynToolValues) => {
   const ghost = v.ghostLight / 100;
   const tex = v.layerTexture / 100;
   const tone = v.layerTone / 100;
+  const outfitV = v.outfit / 100;
+  const jewelV = v.jewellery / 100;
+  const hairV = v.hair / 100;
 
-  const brightness = 1 + 0.06 * lum + 0.03 * sculpt + 0.02 * tone;
-  const contrast = 1 + 0.1 * sculpt + 0.05 * tex + 0.04 * freq;
-  const saturate = 1 + 0.12 * tone + 0.05 * lum;
+  const brightness = 1 + 0.06 * lum + 0.03 * sculpt + 0.02 * tone + 0.02 * outfitV + 0.015 * jewelV;
+  const contrast = 1 + 0.1 * sculpt + 0.05 * tex + 0.04 * freq + 0.06 * outfitV + 0.04 * hairV;
+  const saturate = 1 + 0.12 * tone + 0.05 * lum + 0.08 * outfitV + 0.04 * jewelV + 0.03 * hairV;
   const blur = freq > 0 ? freq * 0.3 : 0;
-  const sepia = lum * 0.04;
+  const sepia = lum * 0.04 + jewelV * 0.02;
+  const sharpness = 1 + 0.05 * outfitV + 0.04 * hairV + 0.03 * jewelV;
   const dropShadow = ghost > 0 ? `drop-shadow(0 0 ${ghost * 2}px rgba(255,255,255,${ghost * 0.15}))` : '';
 
-  return `brightness(${brightness}) contrast(${contrast}) saturate(${saturate}) blur(${blur}px) sepia(${sepia}) ${dropShadow}`.trim();
+  return `brightness(${brightness}) contrast(${contrast * sharpness}) saturate(${saturate}) blur(${blur}px) sepia(${sepia}) ${dropShadow}`.trim();
 };
 
 const SLIDER_TOOLS: Record<string, { key: keyof RefynToolValues; label: string }> = {
   frequency: { key: 'frequency', label: 'Skin' },
   lumina: { key: 'lumina', label: 'Glow' },
-  sculpt: { key: 'sculpt', label: 'Sculpt' },
-  ghostLight: { key: 'ghostLight', label: 'Eyes' },
+  sculpt: { key: 'sculpt', label: 'Form' },
+  ghostLight: { key: 'ghostLight', label: 'Light' },
+  outfit: { key: 'outfit', label: 'Outfit' },
+  jewellery: { key: 'jewellery', label: 'Jewel' },
+  hair: { key: 'hair', label: 'Hair' },
 };
 
 export default function RefynEditor({ photoUrl, onExport, onReset, initialValues }: Props) {
@@ -74,7 +81,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
         onPointerLeave={handlePointerUp}
         style={{ touchAction: 'none' }}
       >
-        {/* SVG grain filter */}
         <svg className="absolute w-0 h-0">
           <filter id="refyn-edit-grain">
             <feTurbulence
@@ -88,7 +94,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           </filter>
         </svg>
 
-        {/* Original (shown on hold) */}
         <img
           src={photoUrl}
           alt="Original"
@@ -97,7 +102,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           draggable={false}
         />
 
-        {/* Edited */}
         <img
           src={photoUrl}
           alt="Edited"
@@ -111,7 +115,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           draggable={false}
         />
 
-        {/* Grain overlay */}
         {values.grain.strength > 0 && !isComparing && (
           <div
             className="absolute inset-0 pointer-events-none"
@@ -126,7 +129,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           />
         )}
 
-        {/* Compare badge */}
         <AnimatePresence>
           {isComparing && (
             <motion.div
@@ -143,15 +145,14 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
         </AnimatePresence>
       </div>
 
-      {/* Hold hint */}
       <p className="text-[10px] tracking-wider uppercase text-[#6B6B6B]/60" style={{ fontFamily: '"DM Sans", sans-serif' }}>
         Hold to compare
       </p>
 
-      {/* 6-tool toolbar */}
+      {/* 9-tool toolbar */}
       <RefynToolbar activeTool={activeTool} onToolTap={handleToolTap} />
 
-      {/* Vertical slider for tools 1-4 */}
+      {/* Vertical slider for single-value tools */}
       <AnimatePresence>
         {activeTool && activeTool in SLIDER_TOOLS && (
           <RefynVerticalSlider
@@ -206,7 +207,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
         </motion.button>
       </div>
 
-      {/* Slider styles (for grain/layer horizontal sliders) */}
       <style>{`
         .refyn-slider {
           -webkit-appearance: none;

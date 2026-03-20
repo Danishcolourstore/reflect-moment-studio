@@ -43,6 +43,9 @@ export default function ColourStore() {
         grain: { style: 'film', strength: analysis.tools.grain, shadowsOnly: false },
         layerTexture: analysis.tools.depth.texture,
         layerTone: analysis.tools.depth.tone,
+        outfit: analysis.tools.outfit ?? 0,
+        jewellery: analysis.tools.jewellery ?? 0,
+        hair: analysis.tools.hair ?? 0,
       };
 
       setAiToolValues(mapped);
