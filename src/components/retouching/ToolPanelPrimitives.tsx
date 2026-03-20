@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 /* ─── Recipe Row (tap to adjust) ─── */
 interface RecipeRowProps {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   label: string;
   value: number;
   min?: number;
