@@ -61,11 +61,37 @@ const SLIDER_TOOLS: Record<string, { key: keyof RefynToolValues; label: string }
   hair: { key: 'hair', label: 'Hair' },
 };
 
-export default function RefynEditor({ photoUrl, onExport, onReset, initialValues }: Props) {
-  const [values, setValues] = useState<RefynToolValues>(initialValues ? { ...initialValues } : { ...DEFAULT_TOOL_VALUES });
+export default function RefynEditor({ photoUrl, onExport, onReset, initialValues, onIntelMessage }: Props) {
+  const riValues = initialValues ? { ...initialValues } : { ...DEFAULT_TOOL_VALUES };
+  const [values, setValues] = useState<RefynToolValues>({ ...riValues });
   const [activeTool, setActiveTool] = useState<RefynToolId | null>(null);
   const [isComparing, setIsComparing] = useState(false);
+  const [mode, setMode] = useState<EditorMode>('ri');
   const imgRef = useRef<HTMLDivElement>(null);
+
+  const animateToValues = useCallback((target: RefynToolValues) => {
+    const numericKeys: (keyof RefynToolValues)[] = ['frequency', 'lumina', 'sculpt', 'ghostLight', 'layerTexture', 'layerTone', 'outfit', 'jewellery', 'hair'];
+    numericKeys.forEach((key, i) => {
+      setTimeout(() => {
+        setValues(prev => ({ ...prev, [key]: target[key] }));
+      }, i * 50);
+    });
+    setTimeout(() => {
+      setValues(prev => ({ ...prev, grain: { ...target.grain } }));
+    }, numericKeys.length * 50);
+  }, []);
+
+  const handleModeSwitch = useCallback((newMode: EditorMode) => {
+    if (newMode === mode) return;
+    setMode(newMode);
+    if (newMode === 'hotc') {
+      animateToValues(HOTC_VALUES);
+      onIntelMessage?.('House on the Clouds standard applied.');
+    } else {
+      animateToValues(riValues);
+      onIntelMessage?.('Real Intelligence applied.');
+    }
+  }, [mode, animateToValues, riValues, onIntelMessage]);
 
   const handleToolTap = useCallback((id: RefynToolId) => {
     setActiveTool((prev) => (prev === id ? null : id));
