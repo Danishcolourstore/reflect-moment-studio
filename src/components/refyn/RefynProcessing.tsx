@@ -7,7 +7,7 @@ interface Props {
 
 export default function RefynProcessing({ photoUrl }: Props) {
   const [stage, setStage] = useState(0);
-  const labels = ['Reading your photo...', 'Almost there...'];
+  const labels = ['Reading your photo...', 'Preparing editor...'];
 
   useEffect(() => {
     const t = setTimeout(() => setStage(1), 1800);
@@ -20,52 +20,57 @@ export default function RefynProcessing({ photoUrl }: Props) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.02 }}
       transition={{ duration: 0.6 }}
-      className="min-h-[100dvh] flex flex-col items-center justify-center px-6 gap-8"
+      className="h-[100dvh] w-full relative flex items-center justify-center"
+      style={{ background: '#111' }}
     >
-      {/* Photo with breathing glow */}
+      {/* Full-width image — no rounded corners, no padding */}
+      <img
+        src={photoUrl}
+        alt="Processing"
+        className="w-full h-full object-contain"
+        style={{ filter: 'brightness(0.7) saturate(0.85)', borderRadius: 0 }}
+        draggable={false}
+      />
+
+      {/* Shimmer overlay */}
       <motion.div
-        className="relative w-full max-w-md rounded-2xl overflow-hidden"
+        className="absolute inset-0"
         animate={{
-          boxShadow: [
-            '0 0 40px 8px rgba(232,201,122,0.06)',
-            '0 0 80px 20px rgba(232,201,122,0.12)',
-            '0 0 40px 8px rgba(232,201,122,0.06)',
+          background: [
+            'linear-gradient(135deg, rgba(26,26,26,0.3) 0%, rgba(34,34,34,0.1) 50%, rgba(26,26,26,0.3) 100%)',
+            'linear-gradient(135deg, rgba(34,34,34,0.1) 0%, rgba(26,26,26,0.3) 50%, rgba(34,34,34,0.1) 100%)',
+            'linear-gradient(135deg, rgba(26,26,26,0.3) 0%, rgba(34,34,34,0.1) 50%, rgba(26,26,26,0.3) 100%)',
           ],
         }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <img
-          src={photoUrl}
-          alt="Processing"
-          className="w-full aspect-[4/3] object-cover"
-          style={{ filter: 'brightness(0.85) saturate(0.9)' }}
-        />
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
 
-        {/* Shimmering overlay */}
-        <motion.div
-          className="absolute inset-0"
-          animate={{ opacity: [0.05, 0.12, 0.05] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          style={{
-            background: 'linear-gradient(135deg, rgba(232,201,122,0.1) 0%, transparent 50%, rgba(232,201,122,0.05) 100%)',
-          }}
-        />
-      </motion.div>
+      {/* Centered loading indicator on top of image */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
+        <div className="w-6 h-6 border-2 border-[#c9a96e]/30 border-t-[#c9a96e] rounded-full animate-spin" />
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={stage}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.4 }}
+            className="text-[11px] tracking-wider text-[#999]"
+            style={{ fontFamily: '"DM Sans", sans-serif' }}
+          >
+            {labels[stage]}
+          </motion.p>
+        </AnimatePresence>
+      </div>
 
-      {/* Status text */}
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={stage}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.5 }}
-          className="text-[13px] tracking-wider text-[#6B6B6B]"
-          style={{ fontFamily: '"DM Sans", sans-serif' }}
-        >
-          {labels[stage]}
-        </motion.p>
-      </AnimatePresence>
+      {/* Thin gold progress bar at bottom */}
+      <motion.div
+        className="absolute bottom-0 left-0 h-[2px] z-10"
+        style={{ background: '#c9a96e' }}
+        initial={{ width: '0%' }}
+        animate={{ width: '100%' }}
+        transition={{ duration: 4, ease: 'easeInOut' }}
+      />
     </motion.div>
   );
 }

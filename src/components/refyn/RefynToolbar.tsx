@@ -18,8 +18,6 @@ const TOOLS: ToolDef[] = [
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.2"/>
         <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 2"/>
-        <path d="M5 7Q8 4 10 7T15 7" stroke="currentColor" strokeWidth="1" opacity="0.6"/>
-        <path d="M5 13Q8 16 10 13T15 13" stroke="currentColor" strokeWidth="1" opacity="0.6"/>
       </svg>
     ),
   },
@@ -65,7 +63,6 @@ const TOOLS: ToolDef[] = [
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <polygon points="10,3 17,17 3,17" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-        <line x1="10" y1="9" x2="10" y2="14" stroke="currentColor" strokeWidth="1"/>
       </svg>
     ),
   },
@@ -74,7 +71,6 @@ const TOOLS: ToolDef[] = [
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M7 16C7 11 8 5 10 3.5C12 5 13 11 13 16" stroke="currentColor" strokeWidth="1.2"/>
-        <path d="M8.5 15C8.5 12 9 7 10 5.5C11 7 11.5 12 11.5 15" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/>
       </svg>
     ),
   },
@@ -84,7 +80,6 @@ const TOOLS: ToolDef[] = [
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <ellipse cx="10" cy="10" rx="7" ry="4.5" stroke="currentColor" strokeWidth="1.2"/>
         <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1"/>
-        <circle cx="10" cy="10" r="1" fill="currentColor"/>
       </svg>
     ),
   },
@@ -103,7 +98,6 @@ const TOOLS: ToolDef[] = [
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.2"/>
         <path d="M3 13L7 9L11 13L13.5 10.5L17 14" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
-        <circle cx="6.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="0.8" opacity="0.6"/>
       </svg>
     ),
   },
@@ -117,8 +111,9 @@ interface Props {
 export default function RefynToolbar({ activeTool, onToolTap }: Props) {
   return (
     <div
-      className="flex items-center gap-1 overflow-x-auto px-3 py-2"
+      className="flex items-end gap-0 overflow-x-auto px-2"
       style={{
+        height: '48px',
         scrollbarWidth: 'none',
         WebkitOverflowScrolling: 'touch',
         msOverflowStyle: 'none',
@@ -127,24 +122,47 @@ export default function RefynToolbar({ activeTool, onToolTap }: Props) {
       {TOOLS.map((tool) => {
         const isActive = activeTool === tool.id;
         return (
-          <motion.button
+          <button
             key={tool.id}
-            whileTap={{ scale: 0.93 }}
             onClick={() => onToolTap(tool.id)}
-            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 flex-shrink-0 min-w-[52px]"
+            className="flex flex-col items-center justify-center gap-1 flex-shrink-0 relative"
             style={{
-              backgroundColor: isActive ? 'rgba(201,169,110,0.12)' : 'transparent',
-              color: isActive ? '#c9a96e' : '#6a6470',
+              width: '52px',
+              height: '48px',
+              color: isActive ? '#c9a96e' : '#666',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'color 200ms',
             }}
           >
             {tool.icon}
             <span
-              className="text-[8px] tracking-wider uppercase whitespace-nowrap font-medium"
-              style={{ fontFamily: '"DM Sans", sans-serif' }}
+              style={{
+                fontFamily: '"DM Sans", sans-serif',
+                fontSize: '8px',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+              }}
             >
               {tool.label}
             </span>
-          </motion.button>
+            {/* Active gold dot */}
+            {isActive && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '2px',
+                  width: '3px',
+                  height: '3px',
+                  borderRadius: '50%',
+                  background: '#c9a96e',
+                  boxShadow: '0 0 4px rgba(201,169,110,0.5)',
+                }}
+              />
+            )}
+          </button>
         );
       })}
     </div>
