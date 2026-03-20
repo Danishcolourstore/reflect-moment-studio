@@ -4,18 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, Camera, Globe, LayoutGrid, Menu as MenuIcon } from 'lucide-react';
 import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
 import { NavLink } from '@/components/NavLink';
-import hero1 from '@/assets/hero-1.jpg';
-import hero2 from '@/assets/hero-2.jpg';
-import hero3 from '@/assets/hero-3.jpg';
-import hero4 from '@/assets/hero-4.jpg';
-import hero5 from '@/assets/hero-5.jpg';
-import hero6 from '@/assets/hero-6.jpg';
-import hero7 from '@/assets/hero-7.jpg';
-import hero8 from '@/assets/hero-8.jpg';
-import hero9 from '@/assets/hero-9.jpg';
-
 const ease = [0.4, 0, 0.2, 1];
-const SLIDES = [hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9];
+
+const GRADIENTS = [
+  'radial-gradient(ellipse at 30% 50%, #1a1510 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 70% 40%, #1c1412 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 50% 60%, #14130f 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 40% 30%, #181410 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 60% 70%, #1a1612 0%, #0a0a0a 70%)',
+  'radial-gradient(ellipse at 50% 40%, #161210 0%, #0a0a0a 70%)',
+];
 const SLIDE_DURATION = 12000;
 const FADE_DURATION = 4;
 
@@ -43,7 +41,7 @@ export default function IntelligenceHome() {
 
   useEffect(() => {
     if (phase < 3) return;
-    const interval = setInterval(() => setCurrent(c => (c + 1) % SLIDES.length), SLIDE_DURATION);
+    const interval = setInterval(() => setCurrent(c => (c + 1) % LINES.length), SLIDE_DURATION);
     return () => clearInterval(interval);
   }, [phase]);
 
@@ -99,22 +97,11 @@ export default function IntelligenceHome() {
         animate={{ opacity: phase >= 3 ? 1 : 0 }}
         transition={{ duration: 1.2, ease }}
       >
-        {SLIDES.map((url, i) => (
-          <motion.div
-            key={i}
-            className="absolute inset-0"
-            initial={false}
-            animate={{ opacity: current === i ? 1 : 0 }}
-            transition={{ duration: FADE_DURATION, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <img
-              src={url}
-              alt=""
-              loading={i <= 1 ? 'eager' : 'lazy'}
-              className="absolute inset-0 w-full h-full object-cover object-center"
-            />
-          </motion.div>
-        ))}
+        <motion.div
+          className="absolute inset-0"
+          animate={{ background: GRADIENTS[current % GRADIENTS.length] }}
+          transition={{ duration: FADE_DURATION, ease: [0.4, 0, 0.2, 1] }}
+        />
 
         <div
           className="absolute inset-0 z-10 pointer-events-none"
@@ -229,7 +216,7 @@ export default function IntelligenceHome() {
               color: 'rgba(240,237,232,0.28)', letterSpacing: '0.2em',
             }}
           >
-            {pad(current + 1)} / {pad(SLIDES.length)}
+            {pad(current + 1)} / {pad(LINES.length)}
           </span>
         </motion.div>
 
