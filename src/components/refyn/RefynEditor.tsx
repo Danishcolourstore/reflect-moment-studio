@@ -150,11 +150,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
   }, [mode, animateToValues, riValues, onIntelMessage]);
 
   const handleToolTap = useCallback((id: RefynToolId) => {
-    if (id === 'filters') {
-      setShowFilters(true);
-      setActiveTool(null);
-      return;
-    }
     setActiveTool(prev => prev === id ? null : id);
   }, []);
 
@@ -182,6 +177,8 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
   const handlePointerUp = useCallback(() => setIsComparing(false), []);
 
   const activeSliderTool = activeTool && activeTool in SLIDER_TOOLS ? SLIDER_TOOLS[activeTool] : null;
+  const showLayerPanel = activeTool === 'layer';
+  const showGrainPanel = activeTool === 'grain';
 
   return (
     <motion.div
@@ -191,7 +188,79 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
       transition={{ duration: 0.4 }}
       className="refyn-editor-root"
     >
-      {/* ===== PHOTO VIEWPORT — fills available space ===== */}
+      {/* ===== TOP BAR — back / undo-redo / mode / reset ===== */}
+      <div className="refyn-topbar">
+        <div className="flex items-center gap-1">
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            onClick={handleUndo}
+            disabled={!canUndo}
+            className="p-2.5 rounded-full"
+            style={{ opacity: canUndo ? 1 : 0.25, color: canUndo ? '#F0EDE8' : '#6B6B6B' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 8L8 4M4 8L8 12M4 8H13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            onClick={handleRedo}
+            disabled={!canRedo}
+            className="p-2.5 rounded-full"
+            style={{ opacity: canRedo ? 1 : 0.25, color: canRedo ? '#F0EDE8' : '#6B6B6B' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M12 8L8 4M12 8L8 12M12 8H3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </motion.button>
+        </div>
+
+        {/* RI / HOTC pills */}
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleModeSwitch('ri')}
+            className="px-4 py-1.5 rounded-full transition-all duration-300"
+            style={{
+              fontFamily: '"Cormorant Garamond", serif',
+              fontStyle: 'italic',
+              fontSize: '12px',
+              background: mode === 'ri' ? 'rgba(232,201,122,0.1)' : 'transparent',
+              border: mode === 'ri' ? '1px solid rgba(232,201,122,0.35)' : '1px solid rgba(240,237,232,0.08)',
+              color: mode === 'ri' ? '#E8C97A' : 'rgba(240,237,232,0.3)',
+            }}
+          >
+            RI
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleModeSwitch('hotc')}
+            className="flex items-center gap-1 px-4 py-1.5 rounded-full transition-all duration-300"
+            style={{
+              background: mode === 'hotc' ? 'rgba(232,201,122,0.1)' : 'transparent',
+              border: mode === 'hotc' ? '1px solid rgba(232,201,122,0.35)' : '1px solid rgba(240,237,232,0.08)',
+              color: mode === 'hotc' ? '#E8C97A' : 'rgba(240,237,232,0.3)',
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <path d="M6 1L2 5V8L4 10H8L10 8V5L6 1Z" stroke="currentColor" strokeWidth="0.8"/>
+              <path d="M4 10V7H8V10" stroke="currentColor" strokeWidth="0.6" opacity="0.6"/>
+              <circle cx="9" cy="2" r="1.5" stroke="currentColor" strokeWidth="0.6" opacity="0.5"/>
+            </svg>
+            <span style={{ fontFamily: '"DM Sans", sans-serif', fontSize: '8px', letterSpacing: '0.15em' }}>HOTC</span>
+          </motion.button>
+        </div>
+
+        <button
+          onClick={onReset}
+          className="text-[9px] tracking-wider uppercase px-3 py-2 rounded-full"
+          style={{ fontFamily: '"DM Sans", sans-serif', color: '#6B6B6B' }}
+        >
+          Reset
+        </button>
+      </div>
+
+      {/* ===== PHOTO VIEWPORT ===== */}
       <div className="refyn-viewport">
         <div
           className="relative w-full h-full flex items-center justify-center"
@@ -200,7 +269,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           onPointerLeave={handlePointerUp}
           style={{ touchAction: 'none' }}
         >
-          {/* Original for comparison */}
           <img
             src={photoUrl}
             alt="Original"
@@ -212,7 +280,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
             }}
             draggable={false}
           />
-          {/* Canvas */}
           <canvas
             ref={canvasRef}
             className="refyn-photo-layer"
@@ -236,48 +303,49 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
         </div>
       </div>
 
-      {/* ===== BOTTOM DOCK — all controls pinned to bottom ===== */}
+      {/* ===== BOTTOM DOCK ===== */}
       <div className="refyn-dock">
-
-        {/* Horizontal slider — appears when a slider tool is active */}
+        {/* Slider for active tool */}
         <AnimatePresence>
           {activeSliderTool && (
             <motion.div
               key={activeTool}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 12 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-              className="px-5 py-3 flex items-center gap-3"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
             >
-              <span className="text-[9px] tracking-widest uppercase text-[#6B6B6B] min-w-[36px]" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-                {activeSliderTool.label}
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={values[activeSliderTool.key] as number}
-                onChange={(e) => handleSliderChange(activeSliderTool.key, Number(e.target.value))}
-                onPointerUp={() => handleSliderCommit(activeSliderTool.key)}
-                onTouchEnd={() => handleSliderCommit(activeSliderTool.key)}
-                className="refyn-slider flex-1"
-              />
-              <span className="text-[10px] tabular-nums text-[#E8C97A] min-w-[24px] text-right" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-                {values[activeSliderTool.key] as number}
-              </span>
+              <div className="px-5 py-3 flex items-center gap-3">
+                <span className="text-[10px] tracking-widest uppercase text-[#6B6B6B] min-w-[40px]" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+                  {activeSliderTool.label}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={values[activeSliderTool.key] as number}
+                  onChange={(e) => handleSliderChange(activeSliderTool.key, Number(e.target.value))}
+                  onPointerUp={() => handleSliderCommit(activeSliderTool.key)}
+                  onTouchEnd={() => handleSliderCommit(activeSliderTool.key)}
+                  className="refyn-slider flex-1"
+                />
+                <span className="text-[11px] tabular-nums text-[#E8C97A] min-w-[24px] text-right" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+                  {values[activeSliderTool.key] as number}
+                </span>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Grain panel inline */}
+        {/* Grain panel */}
         <AnimatePresence>
-          {activeTool === 'grain' && (
+          {showGrainPanel && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="px-4 pb-2"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden px-4 pb-2"
             >
               <RefynGrainPanel
                 grain={values.grain}
@@ -288,14 +356,14 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           )}
         </AnimatePresence>
 
-        {/* Layer panel inline */}
+        {/* Layer (Depth) panel */}
         <AnimatePresence>
-          {activeTool === 'layer' && (
+          {showLayerPanel && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="px-4 pb-2"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden px-4 pb-2"
             >
               <RefynLayerPanel
                 texture={values.layerTexture}
@@ -308,96 +376,19 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           )}
         </AnimatePresence>
 
-        {/* RI / HOTC mode pills + undo/redo */}
-        <div className="flex items-center justify-between px-4 py-2">
-          <div className="flex items-center gap-1.5">
-            <motion.button
-              whileTap={{ scale: 0.92 }}
-              onClick={handleUndo}
-              disabled={!canUndo}
-              className="p-2 rounded-full transition-all"
-              style={{ opacity: canUndo ? 1 : 0.25, color: canUndo ? '#F0EDE8' : '#6B6B6B' }}
-              title={canUndo ? `Undo ${historyRef.current.undoLabel}` : 'Nothing to undo'}
-            >
-              <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
-                <path d="M3 6L6 3M3 6L6 9M3 6H10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.92 }}
-              onClick={handleRedo}
-              disabled={!canRedo}
-              className="p-2 rounded-full transition-all"
-              style={{ opacity: canRedo ? 1 : 0.25, color: canRedo ? '#F0EDE8' : '#6B6B6B' }}
-              title={canRedo ? `Redo ${historyRef.current.redoLabel}` : 'Nothing to redo'}
-            >
-              <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
-                <path d="M9 6L6 3M9 6L6 9M9 6H2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </motion.button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleModeSwitch('ri')}
-              className="px-4 py-1.5 rounded-full transition-all duration-300"
-              style={{
-                fontFamily: '"Cormorant Garamond", serif',
-                fontStyle: 'italic',
-                fontSize: '12px',
-                background: mode === 'ri' ? 'rgba(232,201,122,0.1)' : 'transparent',
-                border: mode === 'ri' ? '1px solid rgba(232,201,122,0.35)' : '1px solid rgba(240,237,232,0.08)',
-                color: mode === 'ri' ? '#E8C97A' : 'rgba(240,237,232,0.3)',
-              }}
-            >
-              RI
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleModeSwitch('hotc')}
-              className="flex items-center gap-1 px-4 py-1.5 rounded-full transition-all duration-300"
-              style={{
-                background: mode === 'hotc' ? 'rgba(232,201,122,0.1)' : 'transparent',
-                border: mode === 'hotc' ? '1px solid rgba(232,201,122,0.35)' : '1px solid rgba(240,237,232,0.08)',
-                color: mode === 'hotc' ? '#E8C97A' : 'rgba(240,237,232,0.3)',
-              }}
-            >
-              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                <path d="M6 1L2 5V8L4 10H8L10 8V5L6 1Z" stroke="currentColor" strokeWidth="0.8" />
-                <path d="M4 10V7H8V10" stroke="currentColor" strokeWidth="0.6" opacity="0.6" />
-                <circle cx="9" cy="2" r="1.5" stroke="currentColor" strokeWidth="0.6" opacity="0.5" />
-              </svg>
-              <span style={{ fontFamily: '"DM Sans", sans-serif', fontSize: '8px', letterSpacing: '0.15em' }}>HOTC</span>
-            </motion.button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onReset}
-              className="text-[9px] tracking-wider uppercase text-[#6B6B6B] hover:text-[#F0EDE8]/70 transition-colors"
-              style={{ fontFamily: '"DM Sans", sans-serif' }}
-            >
-              Reset
-            </button>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onExport(values, cssOverrides)}
-              className="px-5 py-2 rounded-full bg-[#E8C97A] text-[#0A0A0A] text-[9px] tracking-wider uppercase font-medium"
-              style={{ fontFamily: '"DM Sans", sans-serif' }}
-            >
-              Export
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Tool strip */}
-        <div className="border-t border-[rgba(240,237,232,0.06)]">
-          <RefynToolbar activeTool={activeTool} onToolTap={handleToolTap} />
+        {/* Two-tier toolbar */}
+        <div className="border-t" style={{ borderColor: 'rgba(240,237,232,0.06)' }}>
+          <RefynToolbar
+            activeTool={activeTool}
+            onToolTap={handleToolTap}
+            onExportTap={() => onExport(values, cssOverrides)}
+            onFiltersTap={() => setShowFilters(true)}
+            onGrainTap={() => setActiveTool(prev => prev === 'grain' ? null : 'grain')}
+          />
         </div>
       </div>
 
-      {/* Filter Panel — full overlay */}
+      {/* Filter Panel overlay */}
       <AnimatePresence>
         {showFilters && (
           <RefynFilterPanel
@@ -416,6 +407,19 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           height: 100dvh;
           width: 100%;
           overflow: hidden;
+          background: #0A0A0A;
+        }
+        .refyn-topbar {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 12px;
+          padding-top: max(8px, env(safe-area-inset-top, 0px));
+          background: rgba(10,10,10,0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(240,237,232,0.06);
         }
         .refyn-viewport {
           flex: 1;
@@ -424,14 +428,14 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 8px;
+          padding: 4px;
         }
         .refyn-photo-layer {
           position: absolute;
           max-width: 100%;
           max-height: 100%;
           object-fit: contain;
-          border-radius: 12px;
+          border-radius: 8px;
           transition: opacity 0.15s ease;
         }
         .refyn-dock {
@@ -439,8 +443,6 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           background: rgba(10,10,10,0.95);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border-top: 1px solid rgba(240,237,232,0.06);
-          padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         .refyn-slider {
           -webkit-appearance: none; appearance: none;
