@@ -78,7 +78,7 @@ const Analytics = () => {
       <div className="flex items-center gap-2 mb-4 sm:mb-6 overflow-x-auto pb-1 scrollbar-hide">
         {RANGES.map(({ key, label }) => (
           <button key={key} onClick={() => setRange(key)}
-            className={`px-4 py-1.5 rounded-full text-[11px] tracking-wider transition-all border ${
+            className={`px-3 sm:px-4 py-1.5 rounded-full text-[11px] tracking-wider transition-all border whitespace-nowrap min-h-[44px] ${
               range === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-transparent text-muted-foreground border-border hover:border-foreground/30'
             }`}>{label}</button>
         ))}
