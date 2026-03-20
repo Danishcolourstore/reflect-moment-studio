@@ -355,7 +355,7 @@ const Events = () => {
                 {/* Thumbnail */}
                 <div className="h-12 w-16 sm:h-14 sm:w-20 rounded-lg overflow-hidden shrink-0 bg-secondary">
                   {evt.cover_url ? (
-                    <ProgressiveImage src={evt.cover_url} alt={evt.name} className="h-full w-full object-cover" context="thumbnail" />
+                    <ProgressiveImage src={evt.cover_url} alt={evt.name} className="h-full w-full object-cover" context="grid" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center"><Camera className="h-4 w-4 text-muted-foreground/15" /></div>
                   )}
