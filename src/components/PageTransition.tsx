@@ -1,19 +1,26 @@
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    setVisible(false);
+    const t = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setVisible(true));
+    });
+    return () => cancelAnimationFrame(t);
+  }, [location.pathname]);
+
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <div
+      style={{
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 200ms ease-out',
+      }}
+    >
+      {children}
+    </div>
   );
 }

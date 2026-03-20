@@ -420,6 +420,7 @@ const AppRoutes = () => {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </PageTransition>
     </Suspense>
     </SuspendedProvider>
   );
