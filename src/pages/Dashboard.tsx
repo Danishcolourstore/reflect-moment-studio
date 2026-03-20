@@ -70,30 +70,35 @@ const Dashboard = () => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const { data: profile } = await (supabase.from("profiles").select("studio_name") as any)
-        .eq("user_id", user.id).maybeSingle();
-      if (profile?.studio_name) setStudioName(profile.studio_name);
+      setError(false);
+      try {
+        const { data: profile } = await (supabase.from("profiles").select("studio_name") as any)
+          .eq("user_id", user.id).maybeSingle();
+        if (profile?.studio_name) setStudioName(profile.studio_name);
 
-      const { data: events } = await (supabase.from("events")
-        .select("id, name, slug, event_date, cover_url, photo_count") as any)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(8);
-      setRecentEvents(events || []);
+        const { data: events } = await (supabase.from("events")
+          .select("id, name, slug, event_date, cover_url, photo_count") as any)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(8);
+        setRecentEvents(events || []);
 
-      const { count: evtCount } = await supabase.from("events")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-      setTotalEvents(evtCount || 0);
+        const { count: evtCount } = await supabase.from("events")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
+        setTotalEvents(evtCount || 0);
 
-      const photoSum = (events || []).reduce((s: number, e: any) => s + (e.photo_count || 0), 0);
-      setTotalPhotos(photoSum);
+        const photoSum = (events || []).reduce((s: number, e: any) => s + (e.photo_count || 0), 0);
+        setTotalPhotos(photoSum);
 
-      const { count: albCount } = await supabase.from("albums")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-      setTotalAlbums(albCount || 0);
-
+        const { count: albCount } = await supabase.from("albums")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
+        setTotalAlbums(albCount || 0);
+      } catch (err) {
+        console.error('Dashboard load failed:', err);
+        setError(true);
+      }
       setLoading(false);
     };
     load();
