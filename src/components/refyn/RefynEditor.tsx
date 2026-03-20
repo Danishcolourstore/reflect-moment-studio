@@ -38,8 +38,8 @@ const SLIDER_TOOLS: Record<string, { key: keyof RefynToolValues; label: string }
   ghostLight: { key: 'ghostLight', label: 'Eyes' },
 };
 
-export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
-  const [values, setValues] = useState<RefynToolValues>({ ...DEFAULT_TOOL_VALUES });
+export default function RefynEditor({ photoUrl, onExport, onReset, initialValues }: Props) {
+  const [values, setValues] = useState<RefynToolValues>(initialValues ? { ...initialValues } : { ...DEFAULT_TOOL_VALUES });
   const [activeTool, setActiveTool] = useState<RefynToolId | null>(null);
   const [isComparing, setIsComparing] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
