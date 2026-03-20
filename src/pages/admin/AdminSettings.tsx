@@ -135,9 +135,9 @@ export default function AdminSettings() {
 
       {/* Danger Zone */}
       <Card className="border-destructive/50">
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-4 sm:p-5 space-y-4">
           <h3 className="font-serif text-base font-semibold text-destructive">Danger Zone</h3>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="text-destructive border-destructive/30">Clear All Activity Logs</Button>

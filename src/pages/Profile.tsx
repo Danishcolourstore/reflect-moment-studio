@@ -190,7 +190,7 @@ const Profile = () => {
         </div>
 
         {/* Storage Usage */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Storage Usage</h2>
           <p className="font-serif text-3xl font-bold text-foreground">{formatBytes(storageUsed)}</p>
           <p className="text-sm text-muted-foreground mt-1">of {formatBytes(storageLimit)}</p>

@@ -170,12 +170,12 @@ const Analytics = () => {
 
 function AnalyticStat({ icon: Icon, label, value }: { icon: any; label: string; value: number | string }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-5">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-card border border-border rounded-xl p-3 sm:p-5">
+      <div className="flex items-center justify-between mb-1 sm:mb-2">
         <p className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground/60 font-medium">{label}</p>
         <Icon className="h-4 w-4 text-muted-foreground/20" />
       </div>
-      <p className="font-serif text-3xl font-bold text-foreground leading-none tracking-tight">{value}</p>
+      <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground leading-none tracking-tight">{value}</p>
     </div>
   );
 }
