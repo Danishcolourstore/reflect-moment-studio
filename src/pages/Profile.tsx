@@ -96,7 +96,7 @@ const Profile = () => {
 
       <div className="max-w-lg space-y-6 sm:space-y-8">
         {/* Personal Info */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
           <h2 className="font-serif text-lg text-foreground mb-5">Personal Information</h2>
           <div className="flex items-center gap-4 mb-5">
             <Avatar className="h-16 w-16 cursor-pointer" onClick={() => avatarRef.current?.click()}>
