@@ -80,8 +80,8 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="space-y-8 max-w-2xl">
-      <h1 className="font-serif text-2xl font-semibold text-foreground">Admin Settings</h1>
+    <div className="space-y-6 sm:space-y-8 max-w-2xl">
+      <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground">Admin Settings</h1>
 
       {/* Change Access Code */}
       <Card>
