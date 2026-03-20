@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SendToMirrorPanel from '@/components/colour-store/SendToMirrorPanel';
+import ShareWithClientButton from '@/components/colour-store/ShareWithClientButton';
 
 interface Props {
   photoUrl: string;
@@ -22,7 +23,6 @@ export default function RefynExport({ photoUrl, onBack, onReset }: Props) {
   }, [photoUrl]);
 
   const handleSendToMirror = useCallback((destination: 'event' | 'album' | 'grid') => {
-    // TODO: actual integration with Mirror
     console.log('Send to Mirror:', destination);
   }, []);
 
@@ -87,6 +87,9 @@ export default function RefynExport({ photoUrl, onBack, onReset }: Props) {
           </span>
         </motion.button>
       </div>
+
+      {/* Share with Client */}
+      <ShareWithClientButton photoUrl={photoUrl} />
 
       {/* Watermark toggle */}
       <div className="flex items-center gap-3">

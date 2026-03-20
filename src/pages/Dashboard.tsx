@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { ArrowRight } from "lucide-react";
 import { HamburgerButton, DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import RetouchSignatureCard from "@/components/colour-store/RetouchSignatureCard";
 
 const ease = [0.16, 1, 0.3, 1];
 const dm = '"DM Sans", sans-serif';
