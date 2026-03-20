@@ -125,6 +125,8 @@ export default function ColourStore() {
           />
         )}
       </AnimatePresence>
+
+      <MobileBottomNav />
     </div>
   );
 }
