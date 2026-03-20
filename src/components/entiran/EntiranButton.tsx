@@ -1,5 +1,6 @@
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useState, useEffect } from 'react';
+import { Sparkles } from 'lucide-react';
 
 interface EntiranButtonProps {
   onClick: () => void;
@@ -41,22 +42,23 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
       {/* First-time tooltip */}
       {showTooltip && (
         <div
-          className="absolute bottom-full right-0 mb-3 whitespace-nowrap animate-in fade-in slide-in-from-bottom-2 duration-500"
+          className="absolute bottom-full right-0 mb-3 whitespace-nowrap animate-fade-in"
           style={{
-            background: '#0B0B0B',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 8,
-            padding: '8px 14px',
+            background: '#111111',
+            border: '1px solid rgba(200,169,126,0.12)',
+            borderRadius: 12,
+            padding: '10px 16px',
             color: '#F4F1EA',
-            fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif',
+            fontFamily: '"Cormorant Garamond", Georgia, serif',
             fontSize: 13,
             letterSpacing: '0.02em',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           }}
         >
-          Ask anything with Mirror Bot
+          Ask anything with Daan
           <div
             className="absolute -bottom-1.5 right-6 w-3 h-3 rotate-45"
-            style={{ background: '#0B0B0B', border: '1px solid rgba(255,255,255,0.1)', borderTop: 'none', borderLeft: 'none' }}
+            style={{ background: '#111111', border: '1px solid rgba(200,169,126,0.12)', borderTop: 'none', borderLeft: 'none' }}
           />
         </div>
       )}
@@ -65,64 +67,42 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative flex items-center gap-2.5 transition-all duration-300 ease-out active:scale-[0.97]"
+        className="relative flex items-center justify-center transition-all duration-300 ease-out active:scale-[0.94]"
         style={{
-          height: isMobile ? 42 : 46,
-          padding: isMobile ? '0 18px 0 14px' : '0 22px 0 16px',
-          borderRadius: 9999,
-          background: '#0B0B0B',
-          border: `1px solid ${isHovered ? 'rgba(212,175,55,0.35)' : 'rgba(255,255,255,0.1)'}`,
+          width: isMobile ? 48 : 52,
+          height: isMobile ? 48 : 52,
+          borderRadius: 16,
+          background: isHovered
+            ? 'linear-gradient(145deg, rgba(200,169,126,0.2), rgba(200,169,126,0.08))'
+            : 'linear-gradient(145deg, rgba(200,169,126,0.12), rgba(200,169,126,0.04))',
+          border: `1px solid ${isHovered ? 'rgba(200,169,126,0.3)' : 'rgba(200,169,126,0.1)'}`,
           boxShadow: isHovered
-            ? '0 0 20px rgba(212,175,55,0.08), 0 4px 20px rgba(0,0,0,0.5)'
-            : '0 4px 20px rgba(0,0,0,0.4)',
+            ? '0 0 30px rgba(200,169,126,0.12), 0 8px 32px rgba(0,0,0,0.4)'
+            : '0 4px 24px rgba(0,0,0,0.3)',
         }}
-        aria-label="Open Mirror Bot"
+        aria-label="Open Daan AI"
       >
-        {/* Mirror icon – thin outline */}
-        <svg
-          width={isMobile ? 16 : 18}
-          height={isMobile ? 16 : 18}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke={isHovered ? '#D4AF37' : '#F4F1EA'}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="transition-colors duration-300 shrink-0"
-        >
-          <ellipse cx="12" cy="13" rx="7" ry="9" />
-          <ellipse cx="12" cy="13" rx="4.5" ry="6" opacity="0.4" />
-          <line x1="12" y1="4" x2="12" y2="2" />
-          <line x1="8.5" y1="4.5" x2="7.5" y2="3" />
-          <line x1="15.5" y1="4.5" x2="16.5" y2="3" />
-        </svg>
-
-        {/* Label */}
-        <span
-          className="select-none transition-colors duration-300"
+        <Sparkles
+          className="transition-all duration-300"
           style={{
-            fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif',
-            fontSize: isMobile ? 13 : 14,
-            fontWeight: 600,
-            letterSpacing: '0.06em',
-            color: isHovered ? '#D4AF37' : '#F4F1EA',
+            width: isMobile ? 20 : 22,
+            height: isMobile ? 20 : 22,
+            color: isHovered ? '#C8A97E' : 'rgba(200,169,126,0.65)',
           }}
-        >
-          Mirror Bot
-        </span>
+        />
 
         {/* Unread badge */}
         {unreadCount > 0 && (
           <span
-            className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full"
+            className="absolute -top-1 -right-1 flex items-center justify-center rounded-full"
             style={{
               width: 18,
               height: 18,
               fontSize: 9,
               fontWeight: 700,
-              backgroundColor: '#8B0000',
-              color: '#F4F1EA',
-              boxShadow: '0 0 8px rgba(139,0,0,0.4)',
+              backgroundColor: '#C8A97E',
+              color: '#080808',
+              boxShadow: '0 0 8px rgba(200,169,126,0.3)',
             }}
           >
             {unreadCount > 9 ? '9+' : unreadCount}
