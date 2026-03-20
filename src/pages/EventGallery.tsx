@@ -214,8 +214,8 @@ function StandardGridRenderer({
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 pointer-events-none" />
 
-              {/* Bottom actions */}
-              <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              {/* Bottom actions — always visible on mobile (no hover) */}
+              <div className="absolute bottom-2 right-2 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                 <button
                   onClick={() => setSharePhoto(photo)}
                   className="rounded-full bg-black/50 backdrop-blur-md p-1.5 text-white/80 hover:bg-black/70 hover:text-white transition"
@@ -254,7 +254,7 @@ function StandardGridRenderer({
               {/* Section select (owner) */}
               {isOwner && (
                 <div
-                  className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  className="absolute bottom-2 left-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <PhotoSectionSelect
@@ -705,12 +705,12 @@ const EventGallery = () => {
         </div>
       )}
 
-      {/* Owner action bar */}
+      {/* Owner action bar — horizontally scrollable on mobile */}
       {isOwner && (
-        <div className="flex items-center gap-1.5 mb-5 flex-wrap">
+        <div className="flex items-center gap-1.5 mb-5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+              <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
                 <LayoutGrid className="mr-1.5 h-3.5 w-3.5" />
                 {LAYOUT_OPTIONS.find(o => o.value === layout)?.label || 'Layout'}
               </Button>
@@ -729,29 +729,29 @@ const EventGallery = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="w-px h-5 bg-border/30 mx-1 hidden sm:block" />
+          <div className="w-px h-5 bg-border/30 mx-1 hidden sm:block flex-shrink-0" />
 
           <Button onClick={() => fileInputRef.current?.click()} disabled={upload.isUploading || zipUpload.isUploading}
-            variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <Upload className="mr-1.5 h-3.5 w-3.5" />Upload
           </Button>
           <Button onClick={() => zipInputRef.current?.click()} disabled={upload.isUploading || zipUpload.isUploading}
-            variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            variant="ghost" size="sm" className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <FileArchive className="mr-1.5 h-3.5 w-3.5" />ZIP
           </Button>
 
-          <div className="w-px h-5 bg-border/30 mx-1 hidden sm:block" />
+          <div className="w-px h-5 bg-border/30 mx-1 hidden sm:block flex-shrink-0" />
 
           <Button variant="ghost" size="sm" onClick={() => setShareOpen(true)}
-            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <Share2 className="mr-1.5 h-3.5 w-3.5" />Share
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setTextEditorOpen(true)}
-            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <Type className="mr-1.5 h-3.5 w-3.5" />Text
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)}
-            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-8 lg:h-9 px-3 lg:px-4 uppercase tracking-[0.06em]">
+            className="text-primary hover:bg-primary/10 text-[10px] lg:text-[11px] h-9 px-3 lg:px-4 uppercase tracking-[0.06em] flex-shrink-0 min-w-[44px]">
             <Settings className="mr-1.5 h-3.5 w-3.5" />
           </Button>
         </div>
@@ -801,21 +801,21 @@ const EventGallery = () => {
       {/* ── Main content ── */}
       {isOwner ? (
         <Tabs defaultValue="photos" className="w-full">
-          <TabsList className="bg-transparent border-b border-border/40 rounded-none w-full justify-start h-auto p-0 gap-0">
+          <TabsList className="bg-transparent border-b border-border/40 rounded-none w-full justify-start h-auto p-0 gap-0 overflow-x-auto scrollbar-hide">
             {[
-              { value: 'photos', label: 'Photos', icon: null },
-              { value: 'favorites', label: 'Guest Favorites', icon: Heart, badge: favStats.totalFavs },
-              { value: 'selections', label: 'Selections', icon: CheckSquare },
-              { value: 'comments', label: 'Comments', icon: MessageCircle },
+              { value: 'photos', label: 'Photos', mobileLabel: 'Photos', icon: null },
+              { value: 'favorites', label: 'Guest Favorites', mobileLabel: 'Favs', icon: Heart, badge: favStats.totalFavs },
+              { value: 'selections', label: 'Selections', mobileLabel: 'Select', icon: CheckSquare },
+              { value: 'comments', label: 'Comments', mobileLabel: 'Chat', icon: MessageCircle },
             ].map(tab => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-[11px] uppercase tracking-[0.1em] text-muted-foreground/40 data-[state=active]:text-foreground font-medium flex items-center gap-1.5 transition-colors"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 py-2.5 text-[10px] sm:text-[11px] uppercase tracking-[0.08em] sm:tracking-[0.1em] text-muted-foreground/40 data-[state=active]:text-foreground font-medium flex items-center gap-1 sm:gap-1.5 transition-colors flex-shrink-0 min-w-[44px]"
               >
                 {tab.icon && <tab.icon className="h-3 w-3" />}
                 <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                <span className="sm:hidden">{tab.mobileLabel}</span>
                 {tab.badge ? (
                   <span className="text-[9px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 leading-none font-semibold">
                     {tab.badge}
