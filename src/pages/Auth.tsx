@@ -14,41 +14,37 @@ const Auth = function Auth({ initialView }: AuthProps) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isSignup, setIsSignup] = useState(initialView === "signup");
-
-  /* cinematic entrance phases */
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase(1), 100);   // bg image
-    const t2 = setTimeout(() => setPhase(2), 2600);   // logo
-    const t3 = setTimeout(() => setPhase(3), 4100);   // tagline
-    const t4 = setTimeout(() => setPhase(4), 5400);   // form
+    const t1 = setTimeout(() => setPhase(1), 80);
+    const t2 = setTimeout(() => setPhase(2), 1500);
+    const t3 = setTimeout(() => setPhase(3), 2800);
+    const t4 = setTimeout(() => setPhase(4), 3600);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, []);
 
   useEffect(() => {
-    const savedAccent = localStorage.getItem('accent');
-    if (savedAccent === 'red') document.documentElement.classList.add('accent-red');
-    else document.documentElement.classList.remove('accent-red');
+    const saved = localStorage.getItem("accent");
+    if (saved === "red") document.documentElement.classList.add("accent-red");
+    else document.documentElement.classList.remove("accent-red");
   }, []);
 
   const handleLogin = async () => {
     setLoading(true); setError(""); setMessage("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
-    else navigate("/verify-access");
+    if (error) setError(error.message); else navigate("/verify-access");
     setLoading(false);
   };
 
   const handleSignup = async () => {
     setLoading(true); setError(""); setMessage("");
     const { error } = await supabase.auth.signUp({ email, password });
-    if (error) setError(error.message);
-    else navigate("/verify-otp");
+    if (error) setError(error.message); else navigate("/verify-otp");
     setLoading(false);
   };
 
-  const handleForgotPassword = async () => {
+  const handleForgot = async () => {
     if (!email) { setError("Enter your email address first"); return; }
     setError(""); setMessage("");
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -60,119 +56,159 @@ const Auth = function Auth({ initialView }: AuthProps) {
 
   const submit = isSignup ? handleSignup : handleLogin;
 
+  const inputStyle: React.CSSProperties = {
+    background: "transparent",
+    border: "none",
+    borderBottom: "1px solid rgba(255,255,255,0.2)",
+    color: "#fff",
+    fontFamily: "Inter, sans-serif",
+    fontSize: 16,
+    padding: "12px 0",
+    outline: "none",
+    width: "100%",
+    height: 44,
+    WebkitFontSmoothing: "antialiased",
+    transition: "border-color 0.2s",
+  };
+
   return (
-    <div className="fixed inset-0 overflow-hidden" style={{ backgroundColor: '#000' }}>
-      {/* ── Hero background image ── */}
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        height: "100dvh",
+        overflow: "hidden",
+        backgroundColor: "#000",
+      }}
+    >
+      {/* Hero bg */}
       <img
         src="/images/login-hero.jpg"
         alt=""
-        className="absolute inset-0 w-full h-full"
         style={{
-          objectFit: 'cover',
-          objectPosition: 'center',
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
           opacity: phase >= 1 ? 1 : 0,
-          transition: 'opacity 2.5s ease-out',
+          transition: "opacity 2s ease-out",
         }}
       />
 
-      {/* ── Dark overlay ── */}
+      {/* Dark overlay */}
       <div
-        className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%)',
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7))",
         }}
       />
 
-      {/* ── Content ── */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
-
-        {/* Logo */}
-        <h1
+      {/* Content */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 10,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          padding: "0 24px 48px",
+        }}
+      >
+        {/* Logo + tagline — pushed up by flex */}
+        <div
           style={{
-            fontFamily: '"Cormorant Garamond", serif',
-            fontWeight: 300,
-            fontSize: 'clamp(32px, 8vw, 52px)',
-            color: '#C8A97E',
-            letterSpacing: '0.08em',
-            opacity: phase >= 2 ? 1 : 0,
-            transform: phase >= 2 ? 'translateY(0)' : 'translateY(10px)',
-            transition: 'opacity 1.5s ease-out, transform 1.5s ease-out',
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 0,
           }}
         >
-          Mirror AI
-        </h1>
-
-        {/* Tagline */}
-        <p
-          style={{
-            fontFamily: '"Cormorant Garamond", serif',
-            fontStyle: 'italic',
-            fontWeight: 300,
-            fontSize: 'clamp(13px, 3vw, 16px)',
-            color: 'rgba(255,255,255,0.7)',
-            letterSpacing: '0.05em',
-            marginTop: 8,
-            marginBottom: 40,
-            opacity: phase >= 3 ? 1 : 0,
-            transition: 'opacity 1.2s ease-out',
-          }}
-        >
-          Reflections of Your Moments
-        </p>
+          <h1
+            style={{
+              fontFamily: '"Cormorant Garamond", serif',
+              fontWeight: 300,
+              fontSize: "clamp(28px, 7vw, 36px)",
+              color: "#C8A97E",
+              letterSpacing: "0.08em",
+              opacity: phase >= 2 ? 1 : 0,
+              transform: phase >= 2 ? "translateY(0)" : "translateY(8px)",
+              transition: "opacity 1.2s ease-out, transform 1.2s ease-out",
+              WebkitFontSmoothing: "antialiased",
+              margin: 0,
+            }}
+          >
+            Mirror AI
+          </h1>
+          <p
+            style={{
+              fontFamily: '"Cormorant Garamond", serif',
+              fontStyle: "italic",
+              fontWeight: 300,
+              fontSize: "clamp(13px, 3.5vw, 16px)",
+              color: "rgba(255,255,255,0.7)",
+              letterSpacing: "0.05em",
+              marginTop: 6,
+              opacity: phase >= 3 ? 1 : 0,
+              transition: "opacity 1s ease-out",
+              WebkitFontSmoothing: "antialiased",
+            }}
+          >
+            Reflections of Your Moments
+          </p>
+        </div>
 
         {/* Login card */}
         <div
           style={{
-            width: '100%',
+            width: "100%",
             maxWidth: 380,
-            background: 'rgba(10,10,10,0.7)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+            background: "rgba(10,10,10,0.7)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
             borderRadius: 16,
-            border: '1px solid rgba(255,255,255,0.08)',
-            padding: '32px 28px 28px',
+            border: "1px solid rgba(255,255,255,0.08)",
+            padding: "28px 20px",
             opacity: phase >= 4 ? 1 : 0,
-            transform: phase >= 4 ? 'translateY(0)' : 'translateY(8px)',
-            transition: 'opacity 1s ease-out, transform 1s ease-out',
+            transform: phase >= 4 ? "translateY(0)" : "translateY(6px)",
+            transition: "opacity 1s ease-out, transform 1s ease-out",
           }}
         >
-          {/* Mini logo inside card */}
           <p
             style={{
               fontFamily: '"Cormorant Garamond", serif',
               fontWeight: 400,
-              fontSize: 18,
-              color: '#C8A97E',
-              letterSpacing: '0.06em',
-              textAlign: 'center',
-              marginBottom: 28,
+              fontSize: 17,
+              color: "#C8A97E",
+              letterSpacing: "0.06em",
+              textAlign: "center",
+              marginBottom: 24,
+              WebkitFontSmoothing: "antialiased",
             }}
           >
             Mirror AI
           </p>
 
-          {/* Error / Message */}
           {error && (
-            <div style={{
-              fontSize: 12, color: '#e88', textAlign: 'center',
-              marginBottom: 16, lineHeight: 1.5,
-            }}>
+            <div style={{ fontSize: 12, color: "#e88", textAlign: "center", marginBottom: 14, lineHeight: 1.5 }}>
               {error}
             </div>
           )}
           {message && (
-            <div style={{
-              fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center',
-              marginBottom: 16, lineHeight: 1.5,
-            }}>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", textAlign: "center", marginBottom: 14, lineHeight: 1.5 }}>
               {message}
             </div>
           )}
 
-          {/* Form */}
           <form
             onSubmit={(e) => { e.preventDefault(); submit(); }}
-            style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
+            style={{ display: "flex", flexDirection: "column", gap: 18 }}
           >
             <input
               type="email"
@@ -181,22 +217,10 @@ const Auth = function Auth({ initialView }: AuthProps) {
               placeholder="Email"
               required
               autoComplete="email"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.15)',
-                color: '#fff',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: 14,
-                padding: '10px 0',
-                outline: 'none',
-                width: '100%',
-                transition: 'border-color 0.2s',
-              }}
-              onFocus={(e) => e.currentTarget.style.borderBottomColor = 'rgba(200,169,126,0.5)'}
-              onBlur={(e) => e.currentTarget.style.borderBottomColor = 'rgba(255,255,255,0.15)'}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "rgba(200,169,126,0.5)")}
+              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "rgba(255,255,255,0.2)")}
             />
-
             <input
               type="password"
               value={password}
@@ -205,88 +229,77 @@ const Auth = function Auth({ initialView }: AuthProps) {
               required
               minLength={6}
               autoComplete={isSignup ? "new-password" : "current-password"}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.15)',
-                color: '#fff',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: 14,
-                padding: '10px 0',
-                outline: 'none',
-                width: '100%',
-                transition: 'border-color 0.2s',
-              }}
-              onFocus={(e) => e.currentTarget.style.borderBottomColor = 'rgba(200,169,126,0.5)'}
-              onBlur={(e) => e.currentTarget.style.borderBottomColor = 'rgba(255,255,255,0.15)'}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "rgba(200,169,126,0.5)")}
+              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "rgba(255,255,255,0.2)")}
             />
 
-            {/* Forgot password link — login only */}
             {!isSignup && (
               <button
                 type="button"
-                onClick={handleForgotPassword}
+                onClick={handleForgot}
                 style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'rgba(255,255,255,0.4)', fontSize: 12,
-                  fontFamily: 'Inter, sans-serif',
-                  textAlign: 'right', padding: 0, marginTop: -8,
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "rgba(255,255,255,0.35)", fontSize: 12,
+                  fontFamily: "Inter, sans-serif", textAlign: "right",
+                  padding: 0, marginTop: -6,
                 }}
               >
                 Forgot password?
               </button>
             )}
 
-            {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
               style={{
-                width: '100%',
-                height: 46,
-                borderRadius: 8,
-                border: 'none',
-                background: '#C8A97E',
-                color: '#111',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: 14,
+                width: "100%",
+                height: 48,
+                borderRadius: 10,
+                border: "none",
+                background: "#C8A97E",
+                color: "#111",
+                fontFamily: "Inter, sans-serif",
+                fontSize: 15,
                 fontWeight: 600,
-                letterSpacing: '0.04em',
-                cursor: loading ? 'wait' : 'pointer',
+                letterSpacing: "0.03em",
+                cursor: loading ? "wait" : "pointer",
                 opacity: loading ? 0.6 : 1,
-                transition: 'opacity 0.15s, box-shadow 0.2s',
-                boxShadow: '0 0 0 0 rgba(200,169,126,0)',
+                transition: "opacity 0.15s, box-shadow 0.2s",
                 marginTop: 4,
+                WebkitFontSmoothing: "antialiased",
               }}
               onMouseEnter={(e) => {
-                if (!loading) e.currentTarget.style.boxShadow = '0 0 20px rgba(200,169,126,0.3)';
+                if (!loading) e.currentTarget.style.boxShadow = "0 0 24px rgba(200,169,126,0.3)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '0 0 0 0 rgba(200,169,126,0)';
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
-              {loading ? '...' : isSignup ? 'Create Account' : 'Enter'}
+              {loading ? "..." : isSignup ? "Create Account" : "Enter"}
             </button>
           </form>
 
-          {/* Toggle signup / login */}
-          <p style={{
-            textAlign: 'center', marginTop: 20,
-            fontSize: 13, color: 'rgba(255,255,255,0.4)',
-            fontFamily: 'Inter, sans-serif',
-          }}>
-            {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
+          <p
+            style={{
+              textAlign: "center",
+              marginTop: 18,
+              fontSize: 14,
+              color: "rgba(255,255,255,0.4)",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
               type="button"
               onClick={() => { setIsSignup(!isSignup); setPassword(""); setError(""); setMessage(""); }}
               style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(255,255,255,0.7)', fontSize: 13,
-                fontFamily: 'Inter, sans-serif',
-                textDecoration: 'none',
+                background: "none", border: "none", cursor: "pointer",
+                color: "rgba(255,255,255,0.7)", fontSize: 14,
+                fontFamily: "Inter, sans-serif",
               }}
             >
-              {isSignup ? 'Sign in' : 'Create Account'}
+              {isSignup ? "Sign in" : "Create Account"}
             </button>
           </p>
         </div>
