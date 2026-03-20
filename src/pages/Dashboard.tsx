@@ -173,12 +173,12 @@ const Dashboard = () => {
       </section>
 
       {/* SECTION B — Quick Access Row */}
-      <section className="px-4 md:px-12 py-8" style={{ borderTop: '1px solid rgba(240,237,232,0.04)' }}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <section className="px-4 md:px-12 py-6" style={{ borderTop: '1px solid rgba(240,237,232,0.04)' }}>
+        <div className="grid grid-cols-2 gap-3">
           {/* Events card */}
           <button
             onClick={() => navigate('/dashboard/events')}
-            className="group text-left rounded-2xl p-6 md:p-7 transition-all duration-400"
+            className="group text-left rounded-2xl p-5 transition-all duration-400"
             style={{ background: '#0C0C0C', border: '1px solid rgba(240,237,232,0.04)' }}
           >
             <p className="uppercase" style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.35em' }}>
