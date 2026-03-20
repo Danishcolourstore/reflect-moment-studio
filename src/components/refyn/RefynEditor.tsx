@@ -356,6 +356,18 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
           border: none;
         }
       `}</style>
+
+      {/* Filter Panel */}
+      <AnimatePresence>
+        {showFilters && (
+          <RefynFilterPanel
+            activeFilterId={activeFilterId}
+            onApply={handleFilterApply}
+            onClose={() => setShowFilters(false)}
+            photoUrl={photoUrl}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
