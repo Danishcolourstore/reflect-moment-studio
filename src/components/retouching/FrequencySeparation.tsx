@@ -17,13 +17,18 @@ export default function FrequencySeparation({ onClose }: Props) {
       <ToolSlider label="Radius" value={radius} min={1} max={50} onChange={setRadius} unit="px" />
       <ToolSlider label="Low Freq" value={lowOpacity} onChange={setLowOpacity} unit="%" />
       <ToolSlider label="High Freq" value={highOpacity} onChange={setHighOpacity} unit="%" />
-      <div className="pt-2">
+      <div
+        className="flex items-center gap-2 px-4"
+        style={{
+          height: '40px',
+          background: 'rgba(0,0,0,0.2)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}
+      >
         <ToolSegment options={['Low Only', 'High Only', 'Combined']} value={viewMode} onChange={setViewMode} />
-      </div>
-      <div className="flex gap-2 pt-2">
-        <ToolToggle label="Show Mask" active={showMask} onToggle={() => setShowMask(!showMask)} />
-        <ToolToggle label="Paint Low" active={false} onToggle={() => {}} />
-        <ToolToggle label="Paint High" active={false} onToggle={() => {}} />
+        <div className="flex-1" />
+        <ToolToggle label="Mask" active={showMask} onToggle={() => setShowMask(!showMask)} />
       </div>
     </ToolPanelWrapper>
   );
