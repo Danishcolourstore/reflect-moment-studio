@@ -56,6 +56,8 @@ const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
 const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
 const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
 const Refyn = lazy(() => import("./pages/Refyn"));
+const ColourStore = lazy(() => import("./pages/ColourStore"));
+const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
 const DomainSettings = lazy(() => import("./pages/DomainSettings"));
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
