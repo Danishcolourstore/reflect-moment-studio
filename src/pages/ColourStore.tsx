@@ -86,6 +86,8 @@ export default function ColourStore() {
     };
   }, [photo]);
 
+  const isEditorActive = screen === 'editor';
+
   return (
     <div className="refyn-app min-h-[100dvh] bg-[#0A0A0A] text-[#F0EDE8] overflow-hidden relative">
       <svg className="pointer-events-none fixed inset-0 w-full h-full z-50 opacity-[0.03]">
@@ -96,9 +98,9 @@ export default function ColourStore() {
         <rect width="100%" height="100%" filter="url(#refyn-grain)" />
       </svg>
 
-      <ProductNav />
-      <IntelligenceBar visible={showIntelBar} detectedText={detectedText} />
-      <IntelligenceDot active={screen === 'processing'} />
+      {!isEditorActive && <ProductNav />}
+      {!isEditorActive && <IntelligenceBar visible={showIntelBar} detectedText={detectedText} />}
+      {!isEditorActive && <IntelligenceDot active={screen === 'processing'} />}
 
       <AnimatePresence mode="wait">
         {screen === 'upload' && <RefynUpload key="upload" onUpload={handleUpload} />}
