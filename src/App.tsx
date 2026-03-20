@@ -55,6 +55,7 @@ const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
 const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
 const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
+const Refyn = lazy(() => import("./pages/Refyn"));
 const DomainSettings = lazy(() => import("./pages/DomainSettings"));
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
@@ -294,6 +295,7 @@ const AppRoutes = () => {
         <Route path="/verify-access" element={<VerifyAccess />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/builder-test" element={<BuilderTest />} />
+        <Route path="/refyn" element={<Suspense fallback={<PageLoader />}><Refyn /></Suspense>} />
 
         <Route
           path="/super-admin"
