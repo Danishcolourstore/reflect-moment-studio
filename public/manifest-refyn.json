@@ -1,0 +1,30 @@
+{
+  "name": "Refyn — Retouch with Real Intelligence",
+  "short_name": "Refyn",
+  "description": "AI-powered photo retouching for professional photographers",
+  "start_url": "/refyn",
+  "scope": "/refyn",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait",
+  "categories": ["photography", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/refyn-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/refyn-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/refyn-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
