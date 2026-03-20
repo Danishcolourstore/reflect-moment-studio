@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 interface Props {
   value: number;
   onChange: (v: number) => void;
+  onChangeEnd?: () => void;
   label: string;
 }
 
