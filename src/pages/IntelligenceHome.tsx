@@ -17,14 +17,7 @@ const GRADIENTS = [
 const SLIDE_DURATION = 12000;
 const FADE_DURATION = 4;
 
-const LINES = [
-  "Mirror never lies.",
-  "Not realtime.\n2 seconds late.",
-  "We are not\nartificially intelligent.",
-  "Real Intelligence.\nExperience.",
-  "Art and technology.\nSmooched.",
-  "Hugged. Cuddled.\nWild.",
-];
+const LINES: string[] = [];
 
 export default function IntelligenceHome() {
   const navigate = useNavigate();
@@ -45,8 +38,6 @@ export default function IntelligenceHome() {
     return () => clearInterval(interval);
   }, [phase]);
 
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const currentLine = LINES[current % LINES.length];
 
   return (
     <div className="h-[100dvh] w-screen overflow-hidden relative bg-black">
@@ -110,45 +101,6 @@ export default function IntelligenceHome() {
           }}
         />
 
-        {/* Center text — pure opacity dissolve, synced with photos */}
-        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={current}
-              className="text-center select-none whitespace-pre-line"
-              style={{
-                fontFamily: 'Cinzel, serif',
-                fontWeight: 700,
-                fontSize: 'clamp(42px, 10vw, 68px)',
-                color: '#F0EDE8',
-                letterSpacing: '0.08em',
-                lineHeight: 1.2,
-                textShadow: '0 2px 40px rgba(0,0,0,0.7)',
-                width: '78%',
-                maxWidth: 600,
-              }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                opacity: {
-                  duration: 1.2,
-                  delay: 0.6,
-                  ease: [0.42, 0, 0.58, 1],
-                },
-                exit: {
-                  opacity: {
-                    duration: 0.8,
-                    delay: 0,
-                    ease: [0.42, 0, 0.58, 1],
-                  },
-                },
-              }}
-            >
-              {currentLine}
-            </motion.p>
-          </AnimatePresence>
-        </div>
 
         <div
           className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between"
@@ -202,23 +154,6 @@ export default function IntelligenceHome() {
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
         />
 
-        <motion.div
-          className="absolute z-[100]"
-          style={{ bottom: 28, right: 20, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9, duration: 0.6, ease }}
-        >
-          <span
-            className="select-none"
-            style={{
-              fontFamily: '"DM Sans", sans-serif', fontSize: 9,
-              color: 'rgba(240,237,232,0.28)', letterSpacing: '0.2em',
-            }}
-          >
-            {pad(current + 1)} / {pad(LINES.length)}
-          </span>
-        </motion.div>
 
         {/* Bottom Tab Bar */}
         <nav
