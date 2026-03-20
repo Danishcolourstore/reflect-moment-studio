@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
@@ -13,45 +13,16 @@ import hero7 from '@/assets/hero-7.jpg';
 import hero8 from '@/assets/hero-8.jpg';
 import hero9 from '@/assets/hero-9.jpg';
 
-const ease = [0.16, 1, 0.3, 1];
+const ease = [0.4, 0, 0.2, 1];
 const SLIDES = [hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9];
-const SLIDE_DURATION = 7000; // 7 seconds per slide (slower, calmer)
-const TRANSITION_DURATION = 2.4; // 2.4s smooth crossfade
-
-// SVG filter for water ripple displacement effect
-const WaterRippleFilter = () => (
-  <svg className="absolute w-0 h-0" aria-hidden="true">
-    <defs>
-      <filter id="water-ripple" x="-10%" y="-10%" width="120%" height="120%">
-        <feTurbulence
-          id="ripple-turbulence"
-          type="fractalNoise"
-          baseFrequency="0.012 0.018"
-          numOctaves="3"
-          seed="2"
-          result="noise"
-        />
-        <feDisplacementMap
-          in="SourceGraphic"
-          in2="noise"
-          scale="0"
-          xChannelSelector="R"
-          yChannelSelector="G"
-        />
-      </filter>
-    </defs>
-  </svg>
-);
+const SLIDE_DURATION = 12000; // 12s per slide
+const FADE_DURATION = 4; // 4s ultra-smooth dissolve
 
 export default function IntelligenceHome() {
   const navigate = useNavigate();
   const drawer = useDrawerMenu();
   const [phase, setPhase] = useState(0);
   const [current, setCurrent] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const rippleRef = useRef<SVGFEDisplacementMapElement | null>(null);
-  const turbulenceRef = useRef<SVGFETurbulenceElement | null>(null);
-  const animFrameRef = useRef<number>(0);
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase(1), 800);
@@ -60,58 +31,16 @@ export default function IntelligenceHome() {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
 
-  // Water ripple animation during transitions
-  const animateRipple = useCallback(() => {
-    const displace = document.querySelector('#water-ripple feDisplacementMap') as SVGFEDisplacementMapElement;
-    const turb = document.querySelector('#ripple-turbulence') as SVGFETurbulenceElement;
-    if (!displace || !turb) return;
-
-    const duration = TRANSITION_DURATION * 1000;
-    const start = performance.now();
-
-    const tick = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-
-      // Bell curve: ripple peaks at 50% of transition, smooth in/out
-      const intensity = Math.sin(progress * Math.PI) * 28;
-      displace.setAttribute('scale', String(intensity));
-
-      // Animate turbulence seed for flowing water feel
-      const freq = 0.012 + Math.sin(progress * Math.PI * 2) * 0.004;
-      turb.setAttribute('baseFrequency', `${freq} ${freq * 1.5}`);
-
-      if (progress < 1) {
-        animFrameRef.current = requestAnimationFrame(tick);
-      } else {
-        displace.setAttribute('scale', '0');
-      }
-    };
-
-    animFrameRef.current = requestAnimationFrame(tick);
-  }, []);
-
   useEffect(() => {
     if (phase < 3) return;
-    const interval = setInterval(() => {
-      setIsTransitioning(true);
-      animateRipple();
-      setCurrent(c => (c + 1) % SLIDES.length);
-      setTimeout(() => setIsTransitioning(false), TRANSITION_DURATION * 1000);
-    }, SLIDE_DURATION);
-    return () => {
-      clearInterval(interval);
-      cancelAnimationFrame(animFrameRef.current);
-    };
-  }, [phase, animateRipple]);
+    const interval = setInterval(() => setCurrent(c => (c + 1) % SLIDES.length), SLIDE_DURATION);
+    return () => clearInterval(interval);
+  }, [phase]);
 
   const pad = (n: number) => String(n).padStart(2, '0');
 
   return (
     <div className="h-[100dvh] w-screen overflow-hidden relative bg-black">
-      {/* Water ripple SVG filter */}
-      <WaterRippleFilter />
-
       {/* Film grain */}
       <svg className="pointer-events-none fixed inset-0 w-full h-full z-[200]" style={{ opacity: 0.03 }}>
         <filter id="ig-grain">
@@ -135,7 +64,7 @@ export default function IntelligenceHome() {
         )}
       </AnimatePresence>
 
-      {/* RI monogram intro animation */}
+      {/* RI monogram intro */}
       {phase >= 1 && phase < 3 && (
         <motion.span
           className="fixed select-none z-[301]"
@@ -163,54 +92,29 @@ export default function IntelligenceHome() {
         animate={{ opacity: phase >= 3 ? 1 : 0 }}
         transition={{ duration: 1.2, ease }}
       >
-        {/* Rotating photos with water ripple */}
-        <div
-          className="absolute inset-0"
-          style={{
-            filter: isTransitioning ? 'url(#water-ripple)' : 'none',
-            willChange: isTransitioning ? 'filter' : 'auto',
-          }}
-        >
-          {SLIDES.map((url, i) => (
-            <motion.div
-              key={i}
-              className="absolute inset-0"
-              initial={false}
-              animate={{ opacity: current === i ? 1 : 0 }}
-              transition={{ duration: TRANSITION_DURATION, ease: [0.4, 0, 0.2, 1] }}
-            >
-              <img
-                src={url}
-                alt=""
-                loading={i <= 1 ? 'eager' : 'lazy'}
-                className="w-full h-full"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  objectFit: 'cover',
-                  objectPosition: 'center center',
-                  minWidth: '100%',
-                  minHeight: '100%',
-                }}
-              />
-            </motion.div>
-          ))}
-
-          {/* Subtle Ken Burns slow zoom on active slide */}
+        {/* Pure smooth dissolve slideshow */}
+        {SLIDES.map((url, i) => (
           <motion.div
-            key={`zoom-${current}`}
-            className="absolute inset-0 pointer-events-none"
-            initial={{ scale: 1 }}
-            animate={{ scale: 1.06 }}
-            transition={{ duration: SLIDE_DURATION / 1000, ease: 'linear' }}
-          />
-        </div>
+            key={i}
+            className="absolute inset-0"
+            initial={false}
+            animate={{ opacity: current === i ? 1 : 0 }}
+            transition={{ duration: FADE_DURATION, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <img
+              src={url}
+              alt=""
+              loading={i <= 1 ? 'eager' : 'lazy'}
+              className="absolute inset-0 w-full h-full object-cover object-center"
+            />
+          </motion.div>
+        ))}
 
-        {/* Dark gradient overlay */}
+        {/* Dark gradient */}
         <div
           className="absolute inset-0 z-10 pointer-events-none"
           style={{
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.08) 40%, rgba(0,0,0,0.45) 100%)',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.45) 100%)',
           }}
         />
 
@@ -274,7 +178,7 @@ export default function IntelligenceHome() {
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
         />
 
-        {/* BOTTOM RIGHT counter */}
+        {/* Counter */}
         <motion.div
           className="absolute z-[100]"
           style={{ bottom: 28, right: 20, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
