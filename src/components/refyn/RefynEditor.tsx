@@ -1,6 +1,10 @@
 import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import RefynToolbar from './RefynToolbar';
+import RefynVerticalSlider from './RefynVerticalSlider';
 import RefynGrainPanel from './RefynGrainPanel';
+import RefynLayerPanel from './RefynLayerPanel';
+import { DEFAULT_TOOL_VALUES, type RefynToolId, type RefynToolValues } from './refyn-types';
 
 interface Props {
   photoUrl: string;
@@ -8,38 +12,49 @@ interface Props {
   onReset: () => void;
 }
 
-// Simulated AI edit = CSS filter adjustments
-const getEditFilter = (intensity: number, grain: GrainState) => {
-  const i = intensity / 100;
-  const brightness = 1 + 0.08 * i;
-  const contrast = 1 + 0.12 * i;
-  const saturate = 1 + 0.15 * i;
-  const warmth = 0.97 + 0.03 * i; // slight warm shift via sepia
-  return `brightness(${brightness}) contrast(${contrast}) saturate(${saturate}) sepia(${warmth > 1 ? (warmth - 1) * 0.3 : 0})`;
+const buildFilter = (v: RefynToolValues) => {
+  const freq = v.frequency / 100;
+  const lum = v.lumina / 100;
+  const sculpt = v.sculpt / 100;
+  const ghost = v.ghostLight / 100;
+  const tex = v.layerTexture / 100;
+  const tone = v.layerTone / 100;
+
+  const brightness = 1 + 0.06 * lum + 0.03 * sculpt + 0.02 * tone;
+  const contrast = 1 + 0.1 * sculpt + 0.05 * tex + 0.04 * freq;
+  const saturate = 1 + 0.12 * tone + 0.05 * lum;
+  const blur = freq > 0 ? freq * 0.3 : 0;
+  const sepia = lum * 0.04;
+  const dropShadow = ghost > 0 ? `drop-shadow(0 0 ${ghost * 2}px rgba(255,255,255,${ghost * 0.15}))` : '';
+
+  return `brightness(${brightness}) contrast(${contrast}) saturate(${saturate}) blur(${blur}px) sepia(${sepia}) ${dropShadow}`.trim();
 };
 
-interface GrainState {
-  style: 'film' | 'texture' | 'noise';
-  strength: number;
-  shadowsOnly: boolean;
-}
+const SLIDER_TOOLS: Record<string, { key: keyof RefynToolValues; label: string }> = {
+  frequency: { key: 'frequency', label: 'Skin' },
+  lumina: { key: 'lumina', label: 'Glow' },
+  sculpt: { key: 'sculpt', label: 'Sculpt' },
+  ghostLight: { key: 'ghostLight', label: 'Eyes' },
+};
 
 export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
-  const [intensity, setIntensity] = useState(75);
+  const [values, setValues] = useState<RefynToolValues>({ ...DEFAULT_TOOL_VALUES });
+  const [activeTool, setActiveTool] = useState<RefynToolId | null>(null);
   const [isComparing, setIsComparing] = useState(false);
-  const [showGrain, setShowGrain] = useState(false);
-  const [activePanel, setActivePanel] = useState<'retouch' | 'grain' | null>(null);
-  const [grain, setGrain] = useState<GrainState>({ style: 'film', strength: 30, shadowsOnly: false });
   const imgRef = useRef<HTMLDivElement>(null);
+
+  const handleToolTap = useCallback((id: RefynToolId) => {
+    setActiveTool((prev) => (prev === id ? null : id));
+  }, []);
+
+  const handleSliderChange = useCallback((key: keyof RefynToolValues, val: number) => {
+    setValues((prev) => ({ ...prev, [key]: val }));
+  }, []);
 
   const handlePointerDown = useCallback(() => setIsComparing(true), []);
   const handlePointerUp = useCallback(() => setIsComparing(false), []);
 
-  const grainFilter = (() => {
-    if (grain.strength === 0) return '';
-    const freq = grain.style === 'film' ? 0.6 : grain.style === 'texture' ? 0.4 : 0.85;
-    return `url(#refyn-edit-grain)`;
-  })();
+  const grainFilter = values.grain.strength > 0 ? 'url(#refyn-edit-grain)' : '';
 
   return (
     <motion.div
@@ -47,9 +62,9 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
-      className="min-h-[100dvh] flex flex-col items-center justify-center px-4 py-20 gap-6"
+      className="min-h-[100dvh] flex flex-col items-center justify-center px-4 py-16 gap-5"
     >
-      {/* Photo container with before/after */}
+      {/* Photo */}
       <div
         ref={imgRef}
         className="relative w-full max-w-lg rounded-2xl overflow-hidden cursor-pointer select-none"
@@ -58,13 +73,13 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         onPointerLeave={handlePointerUp}
         style={{ touchAction: 'none' }}
       >
-        {/* SVG grain filter for editor */}
+        {/* SVG grain filter */}
         <svg className="absolute w-0 h-0">
           <filter id="refyn-edit-grain">
             <feTurbulence
               type="fractalNoise"
-              baseFrequency={grain.style === 'film' ? 0.6 : grain.style === 'texture' ? 0.4 : 0.85}
-              numOctaves={grain.style === 'texture' ? 2 : 3}
+              baseFrequency={values.grain.style === 'film' ? 0.6 : values.grain.style === 'texture' ? 0.4 : 0.85}
+              numOctaves={values.grain.style === 'texture' ? 2 : 3}
               stitchTiles="stitch"
             />
             <feColorMatrix type="saturate" values="0" />
@@ -72,7 +87,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           </filter>
         </svg>
 
-        {/* Original photo (shown on press) */}
+        {/* Original (shown on hold) */}
         <img
           src={photoUrl}
           alt="Original"
@@ -81,13 +96,13 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           draggable={false}
         />
 
-        {/* Edited photo */}
+        {/* Edited */}
         <img
           src={photoUrl}
           alt="Edited"
           className="w-full aspect-[4/3] object-cover transition-opacity duration-150"
           style={{
-            filter: getEditFilter(intensity, grain),
+            filter: buildFilter(values),
             opacity: isComparing ? 0 : 1,
             position: isComparing ? 'absolute' : 'relative',
             inset: 0,
@@ -95,22 +110,22 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           draggable={false}
         />
 
-        {/* Grain overlay on edited */}
-        {grain.strength > 0 && !isComparing && (
+        {/* Grain overlay */}
+        {values.grain.strength > 0 && !isComparing && (
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               filter: grainFilter,
-              opacity: grain.strength / 100 * 0.25,
+              opacity: values.grain.strength / 100 * 0.25,
               mixBlendMode: 'overlay',
-              maskImage: grain.shadowsOnly
+              maskImage: values.grain.shadowsOnly
                 ? 'linear-gradient(to bottom, transparent 30%, black 100%)'
                 : 'none',
             }}
           />
         )}
 
-        {/* Compare indicator */}
+        {/* Compare badge */}
         <AnimatePresence>
           {isComparing && (
             <motion.div
@@ -132,79 +147,42 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         Hold to compare
       </p>
 
-      {/* Intensity slider */}
-      <div className="w-full max-w-lg px-2">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[10px] tracking-wider uppercase text-[#6B6B6B]" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-            Original
-          </span>
-          <span className="text-[10px] tracking-wider uppercase text-[#E8C97A]" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-            Refined
-          </span>
-        </div>
+      {/* 6-tool toolbar */}
+      <RefynToolbar activeTool={activeTool} onToolTap={handleToolTap} />
 
-        <div className="relative h-10 flex items-center">
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={intensity}
-            onChange={(e) => setIntensity(Number(e.target.value))}
-            className="refyn-slider w-full"
-          />
-        </div>
-      </div>
-
-      {/* Action pills */}
-      <div className="flex items-center gap-3">
-        <PillButton
-          label="Retouch"
-          active={activePanel === 'retouch'}
-          onClick={() => setActivePanel(activePanel === 'retouch' ? null : 'retouch')}
-        />
-        <PillButton
-          label="Grain"
-          active={activePanel === 'grain'}
-          onClick={() => setActivePanel(activePanel === 'grain' ? null : 'grain')}
-        />
-      </div>
-
-      {/* Grain panel */}
+      {/* Vertical slider for tools 1-4 */}
       <AnimatePresence>
-        {activePanel === 'grain' && (
-          <RefynGrainPanel
-            grain={grain}
-            onChange={setGrain}
-            onClose={() => setActivePanel(null)}
+        {activeTool && activeTool in SLIDER_TOOLS && (
+          <RefynVerticalSlider
+            key={activeTool}
+            value={values[SLIDER_TOOLS[activeTool].key] as number}
+            onChange={(v) => handleSliderChange(SLIDER_TOOLS[activeTool].key, v)}
+            label={SLIDER_TOOLS[activeTool].label}
           />
         )}
       </AnimatePresence>
 
-      {/* Retouch placeholder */}
+      {/* Grain panel */}
       <AnimatePresence>
-        {activePanel === 'retouch' && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-full max-w-lg p-5 rounded-2xl bg-[#141414] border border-[rgba(240,237,232,0.05)]"
-          >
-            <p className="text-[11px] tracking-wider uppercase text-[#6B6B6B] text-center mb-3" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-              Retouch
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              {['Skin Smooth', 'Blemish Fix', 'Face Enhance'].map((label) => (
-                <button
-                  key={label}
-                  className="py-3 rounded-xl bg-[#0A0A0A] border border-[rgba(240,237,232,0.06)] text-[10px] tracking-wider uppercase text-[#F0EDE8]/50 hover:text-[#E8C97A] hover:border-[rgba(232,201,122,0.15)] transition-all duration-300"
-                  style={{ fontFamily: '"DM Sans", sans-serif' }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </motion.div>
+        {activeTool === 'grain' && (
+          <RefynGrainPanel
+            grain={values.grain}
+            onChange={(g) => setValues((prev) => ({ ...prev, grain: g }))}
+            onClose={() => setActiveTool(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Layer panel */}
+      <AnimatePresence>
+        {activeTool === 'layer' && (
+          <RefynLayerPanel
+            texture={values.layerTexture}
+            tone={values.layerTone}
+            onTextureChange={(v) => handleSliderChange('layerTexture', v)}
+            onToneChange={(v) => handleSliderChange('layerTone', v)}
+            onClose={() => setActiveTool(null)}
+          />
         )}
       </AnimatePresence>
 
@@ -227,7 +205,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         </motion.button>
       </div>
 
-      {/* Custom slider styles */}
+      {/* Slider styles (for grain/layer horizontal sliders) */}
       <style>{`
         .refyn-slider {
           -webkit-appearance: none;
@@ -239,7 +217,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         .refyn-slider::-webkit-slider-track {
           height: 2px;
           border-radius: 1px;
-          background: linear-gradient(to right, #333 0%, #E8C97A ${intensity}%, #333 ${intensity}%);
+          background: #333;
         }
         .refyn-slider::-moz-range-track {
           height: 2px;
@@ -252,45 +230,23 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         }
         .refyn-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 20px;
-          height: 20px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
           background: #E8C97A;
-          box-shadow: 0 0 16px 4px rgba(232,201,122,0.3);
-          margin-top: -9px;
+          box-shadow: 0 0 12px 3px rgba(232,201,122,0.3);
+          margin-top: -8px;
           border: none;
-          transition: box-shadow 0.3s ease;
         }
         .refyn-slider::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
           background: #E8C97A;
-          box-shadow: 0 0 16px 4px rgba(232,201,122,0.3);
+          box-shadow: 0 0 12px 3px rgba(232,201,122,0.3);
           border: none;
-        }
-        .refyn-slider:active::-webkit-slider-thumb {
-          box-shadow: 0 0 24px 8px rgba(232,201,122,0.45);
         }
       `}</style>
     </motion.div>
-  );
-}
-
-function PillButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <motion.button
-      whileTap={{ scale: 0.97 }}
-      onClick={onClick}
-      className="px-5 py-2.5 rounded-full text-[10px] tracking-wider uppercase font-medium transition-all duration-300 border"
-      style={{
-        fontFamily: '"DM Sans", sans-serif',
-        backgroundColor: active ? 'rgba(232,201,122,0.12)' : '#141414',
-        borderColor: active ? 'rgba(232,201,122,0.25)' : 'rgba(240,237,232,0.06)',
-        color: active ? '#E8C97A' : '#F0EDE8',
-      }}
-    >
-      {label}
-    </motion.button>
   );
 }
