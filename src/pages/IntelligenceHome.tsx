@@ -156,23 +156,6 @@ export default function IntelligenceHome() {
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
         />
 
-        <motion.div
-          className="absolute z-[100]"
-          style={{ bottom: 28, right: 20, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9, duration: 0.6, ease }}
-        >
-          <span
-            className="select-none"
-            style={{
-              fontFamily: '"DM Sans", sans-serif', fontSize: 9,
-              color: 'rgba(240,237,232,0.28)', letterSpacing: '0.2em',
-            }}
-          >
-            {pad(current + 1)} / {pad(LINES.length)}
-          </span>
-        </motion.div>
 
         {/* Bottom Tab Bar */}
         <nav
