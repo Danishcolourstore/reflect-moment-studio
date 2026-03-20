@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send, Plus, Image, Camera, FileText, Globe, MoreVertical, ArrowUp } from 'lucide-react';
+import { X, Send, Plus, Image, Camera, FileText, Globe, MoreVertical, ArrowUp, Sparkles } from 'lucide-react';
 import { useEntiranChat, type ChatMessage } from '@/hooks/use-entiran-chat';
 import { EntiranMessage, TypingIndicator } from './EntiranMessage';
 import { LanguageSelector, type BotLanguage, getBotLanguageLabel } from './LanguageSelector';
@@ -31,8 +31,16 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
   const [showLangSelector, setShowLangSelector] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
-  // Init conversation when opened
+  useEffect(() => {
+    if (open) {
+      requestAnimationFrame(() => setMounted(true));
+    } else {
+      setMounted(false);
+    }
+  }, [open]);
+
   useEffect(() => {
     if (open) {
       initConversation();
@@ -40,14 +48,12 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
     }
   }, [open, initConversation]);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages, typing]);
 
-  // Lock body scroll when panel open on mobile
   useEffect(() => {
     if (!open || !isMobile) return;
     const original = document.body.style.overflow;
@@ -55,21 +61,17 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
     return () => { document.body.style.overflow = original; };
   }, [open, isMobile]);
 
-  // Visual Viewport API — handle keyboard on iOS/Android
   useEffect(() => {
     if (!open || !isMobile) return;
     const vv = window.visualViewport;
     if (!vv) return;
-
     const onResize = () => {
       const kbHeight = window.innerHeight - vv.height;
       setKeyboardHeight(Math.max(0, kbHeight));
-      // Scroll to bottom when keyboard opens
       setTimeout(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
       }, 50);
     };
-
     vv.addEventListener('resize', onResize);
     vv.addEventListener('scroll', onResize);
     return () => {
@@ -78,7 +80,6 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
     };
   }, [open, isMobile]);
 
-  // Escape to close
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -90,9 +91,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
     if (!input.trim()) return;
     sendMessage(input.trim());
     setInput('');
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-    }
+    if (inputRef.current) inputRef.current.style.height = 'auto';
   }, [input, sendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -128,12 +127,22 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
       ref={containerRef}
       className="flex flex-col h-full relative"
       style={{
-        background: '#0f0f0f',
+        background: '#080808',
         paddingBottom: isMobile ? keyboardHeight : 0,
         transition: 'padding-bottom 0.15s ease-out',
       }}
     >
-      {/* Language selector overlay */}
+      {/* Subtle ambient glow at top */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
+        style={{
+          width: 300,
+          height: 200,
+          background: 'radial-gradient(ellipse, rgba(200,169,126,0.04) 0%, transparent 70%)',
+          filter: 'blur(40px)',
+        }}
+      />
+
       {showLangSelector && (
         <LanguageSelector onSelect={() => setShowLangSelector(false)} onClose={() => setShowLangSelector(false)} />
       )}
@@ -142,47 +151,90 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
         <>
           {/* ── Header ── */}
           <header
-            className="flex items-center justify-between shrink-0"
+            className="flex items-center justify-between shrink-0 relative"
             style={{
-              height: 52,
-              paddingLeft: 16,
+              height: 56,
+              paddingLeft: 20,
               paddingRight: 8,
-              borderBottom: '1px solid rgba(255,255,255,0.05)',
+              borderBottom: '1px solid rgba(200,169,126,0.06)',
               paddingTop: isMobile ? 'env(safe-area-inset-top, 0px)' : 0,
             }}
           >
-            <span className="text-[15px] font-semibold tracking-tight" style={{ color: 'rgba(255,255,255,0.92)' }}>
-              Daan
-            </span>
+            <div className="flex items-center gap-3">
+              {/* Elegant mirror icon */}
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  background: 'linear-gradient(135deg, rgba(200,169,126,0.15), rgba(200,169,126,0.05))',
+                  border: '1px solid rgba(200,169,126,0.12)',
+                }}
+              >
+                <Sparkles className="h-3.5 w-3.5" style={{ color: '#C8A97E' }} />
+              </div>
+              <div>
+                <span
+                  className="text-[15px] tracking-wide"
+                  style={{
+                    color: '#F4F1EA',
+                    fontFamily: '"Cormorant Garamond", Georgia, serif',
+                    fontWeight: 500,
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  Daan
+                </span>
+                <div className="flex items-center gap-1.5 mt-px">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: '#4CAF50', boxShadow: '0 0 4px rgba(76,175,80,0.4)' }}
+                  />
+                  <span className="text-[9px] tracking-wider uppercase" style={{ color: 'rgba(200,169,126,0.45)' }}>
+                    Online
+                  </span>
+                </div>
+              </div>
+            </div>
             <div className="flex items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="h-10 w-10 flex items-center justify-center rounded-full active:bg-white/5"
-                    style={{ color: 'rgba(255,255,255,0.45)' }}
+                    className="h-10 w-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
+                    style={{ color: 'rgba(244,241,234,0.3)' }}
                     aria-label="Options"
                   >
                     <MoreVertical className="h-[18px] w-[18px]" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-[200px]" style={{ background: '#1c1c1c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12 }}>
-                  <DropdownMenuItem onClick={() => setShowLangSelector(true)} className="py-2.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    <Globe className="h-4 w-4 mr-2.5" style={{ color: 'rgba(255,255,255,0.4)' }} />
+                <DropdownMenuContent
+                  align="end"
+                  className="min-w-[200px]"
+                  style={{
+                    background: '#111111',
+                    border: '1px solid rgba(200,169,126,0.1)',
+                    borderRadius: 14,
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                  }}
+                >
+                  <DropdownMenuItem onClick={() => setShowLangSelector(true)} className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.8)' }}>
+                    <Globe className="h-4 w-4 mr-2.5" style={{ color: 'rgba(200,169,126,0.5)' }} />
                     Language · {getBotLanguageLabel()}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator style={{ background: 'rgba(255,255,255,0.06)' }} />
-                  <DropdownMenuItem onClick={() => startNewConversation()} className="py-2.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  <DropdownMenuSeparator style={{ background: 'rgba(200,169,126,0.06)' }} />
+                  <DropdownMenuItem onClick={() => startNewConversation()} className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.8)' }}>
                     New conversation
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => clearConversation()} className="py-2.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  <DropdownMenuItem onClick={() => clearConversation()} className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.8)' }}>
                     Clear chat
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <button
                 onClick={onClose}
-                className="h-10 w-10 flex items-center justify-center rounded-full active:bg-white/5"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                className="h-10 w-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
+                style={{ color: 'rgba(244,241,234,0.3)' }}
                 aria-label="Close"
               >
                 <X className="h-[18px] w-[18px]" />
@@ -198,22 +250,48 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
             role="log"
             aria-live="polite"
           >
-            <div className="mx-auto max-w-[640px] px-4 sm:px-6 py-6 space-y-5">
+            <div className="mx-auto max-w-[640px] px-4 sm:px-6 py-6 space-y-4">
               {loading ? (
                 <div className="flex items-center justify-center py-16">
-                  <div
-                    className="w-5 h-5 rounded-full"
-                    style={{
-                      border: '2px solid rgba(255,255,255,0.08)',
-                      borderTopColor: 'rgba(255,255,255,0.45)',
-                      animation: 'spin 0.7s linear infinite',
-                    }}
-                  />
+                  <div className="flex flex-col items-center gap-4">
+                    <div
+                      className="w-8 h-8 rounded-full"
+                      style={{
+                        border: '1.5px solid rgba(200,169,126,0.1)',
+                        borderTopColor: 'rgba(200,169,126,0.5)',
+                        animation: 'spin 0.8s linear infinite',
+                      }}
+                    />
+                    <span className="text-[11px] tracking-wider uppercase" style={{ color: 'rgba(200,169,126,0.3)' }}>
+                      Loading
+                    </span>
+                  </div>
                 </div>
               ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center" style={{ paddingTop: '25vh' }}>
-                  <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                /* ── Empty state — premium welcome ── */
+                <div className="flex flex-col items-center justify-center" style={{ paddingTop: '18vh' }}>
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                    style={{
+                      background: 'linear-gradient(145deg, rgba(200,169,126,0.12), rgba(200,169,126,0.03))',
+                      border: '1px solid rgba(200,169,126,0.1)',
+                    }}
+                  >
+                    <Sparkles className="h-6 w-6" style={{ color: '#C8A97E', opacity: 0.7 }} />
+                  </div>
+                  <p
+                    className="text-lg mb-2"
+                    style={{
+                      color: 'rgba(244,241,234,0.85)',
+                      fontFamily: '"Cormorant Garamond", Georgia, serif',
+                      fontWeight: 400,
+                      letterSpacing: '0.02em',
+                    }}
+                  >
                     How can I help?
+                  </p>
+                  <p className="text-[12px] text-center max-w-[240px] leading-relaxed" style={{ color: 'rgba(244,241,234,0.25)' }}>
+                    Photography advice, studio workflow, gear recommendations, or anything about MirrorAI.
                   </p>
                 </div>
               ) : (
@@ -229,26 +307,26 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
           <div
             className="shrink-0 px-3 sm:px-4"
             style={{
-              paddingTop: 8,
+              paddingTop: 10,
               paddingBottom: isMobile && keyboardHeight === 0
-                ? 'max(12px, env(safe-area-inset-bottom, 12px))'
+                ? 'max(14px, env(safe-area-inset-bottom, 14px))'
                 : 10,
             }}
           >
             <div
-              className="mx-auto max-w-[640px] flex items-end gap-1.5 rounded-2xl"
+              className="mx-auto max-w-[640px] flex items-end gap-1 rounded-2xl transition-all duration-200"
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(244,241,234,0.04)',
+                border: '1px solid rgba(200,169,126,0.08)',
                 padding: '6px 6px 6px 4px',
+                boxShadow: input.trim() ? '0 0 20px rgba(200,169,126,0.03)' : 'none',
               }}
             >
-              {/* + Attach button — 44px tap target */}
               <DropdownMenu open={showAttachMenu} onOpenChange={setShowAttachMenu}>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl active:bg-white/5"
-                    style={{ color: 'rgba(255,255,255,0.35)' }}
+                    className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl active:bg-white/5 transition-colors"
+                    style={{ color: 'rgba(200,169,126,0.35)' }}
                     aria-label="Attach file"
                   >
                     <Plus className="h-5 w-5" />
@@ -258,23 +336,27 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
                   align="start"
                   side="top"
                   className="min-w-[180px]"
-                  style={{ background: '#1c1c1c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12 }}
+                  style={{
+                    background: '#111111',
+                    border: '1px solid rgba(200,169,126,0.1)',
+                    borderRadius: 14,
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                  }}
                 >
-                  <DropdownMenuItem onClick={() => fileRef.current?.click()} className="py-2.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    <Image className="h-4 w-4 mr-2.5" /> Upload image
+                  <DropdownMenuItem onClick={() => fileRef.current?.click()} className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.85)' }}>
+                    <Image className="h-4 w-4 mr-2.5" style={{ color: 'rgba(200,169,126,0.5)' }} /> Upload image
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="py-2.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    <Camera className="h-4 w-4 mr-2.5" /> Camera
+                  <DropdownMenuItem className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.85)' }}>
+                    <Camera className="h-4 w-4 mr-2.5" style={{ color: 'rgba(200,169,126,0.5)' }} /> Camera
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="py-2.5" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    <FileText className="h-4 w-4 mr-2.5" /> File
+                  <DropdownMenuItem className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.85)' }}>
+                    <FileText className="h-4 w-4 mr-2.5" style={{ color: 'rgba(200,169,126,0.5)' }} /> File
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileUpload} />
 
-              {/* Textarea */}
               <textarea
                 ref={inputRef}
                 value={input}
@@ -286,8 +368,9 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
                 style={{
                   maxHeight: 120,
                   minHeight: 22,
-                  color: 'rgba(255,255,255,0.92)',
-                  caretColor: 'rgba(255,255,255,0.7)',
+                  color: 'rgba(244,241,234,0.92)',
+                  caretColor: '#C8A97E',
+                  fontFamily: 'Inter, system-ui, sans-serif',
                 }}
                 aria-label="Message input"
                 enterKeyHint="send"
@@ -295,47 +378,56 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
                 autoCorrect="on"
               />
 
-              {/* Send button — 44px tap target */}
               <button
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-150 active:scale-95 disabled:opacity-20"
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-200 active:scale-95"
                 style={{
-                  background: input.trim() ? 'rgba(255,255,255,0.9)' : 'transparent',
-                  color: input.trim() ? '#0f0f0f' : 'rgba(255,255,255,0.2)',
+                  background: input.trim()
+                    ? 'linear-gradient(135deg, #C8A97E, #B8956A)'
+                    : 'transparent',
+                  color: input.trim() ? '#080808' : 'rgba(200,169,126,0.2)',
+                  boxShadow: input.trim() ? '0 2px 12px rgba(200,169,126,0.2)' : 'none',
+                  opacity: input.trim() ? 1 : 0.4,
                 }}
                 aria-label="Send message"
               >
                 <ArrowUp className="h-[18px] w-[18px]" strokeWidth={2.5} />
               </button>
             </div>
+
+            {/* Subtle branding */}
+            <p className="text-center mt-2 mb-1 text-[9px] tracking-widest uppercase" style={{ color: 'rgba(200,169,126,0.15)' }}>
+              MirrorAI Intelligence
+            </p>
           </div>
         </>
       )}
     </div>
   );
 
-  // ── Mobile: full-screen bottom sheet ──
+  // ── Mobile: full-screen ──
   if (isMobile) {
     return (
       <div className="fixed inset-0" style={{ zIndex: 10002 }} role="dialog" aria-modal="true" aria-label="Daan">
-        <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.85)' }} onClick={onClose} />
         <div
-          className="absolute inset-x-0 bottom-0 flex flex-col overflow-hidden"
+          className="absolute inset-0 transition-opacity duration-300"
+          style={{
+            background: 'rgba(0,0,0,0.9)',
+            opacity: mounted ? 1 : 0,
+          }}
+          onClick={onClose}
+        />
+        <div
+          className="absolute inset-x-0 bottom-0 flex flex-col overflow-hidden transition-transform duration-300 ease-out"
           style={{
             height: '100dvh',
-            background: '#0f0f0f',
-            animation: 'slideUp 0.25s ease-out',
+            background: '#080808',
+            transform: mounted ? 'translateY(0)' : 'translateY(100%)',
           }}
         >
           {chatUI}
         </div>
-        <style>{`
-          @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-          }
-        `}</style>
       </div>
     );
   }
@@ -343,10 +435,24 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
   // ── Desktop: side panel ──
   return (
     <div className="fixed inset-0 flex justify-end" style={{ zIndex: 10002 }} role="dialog" aria-modal="true" aria-label="Daan">
-      <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
       <div
-        className="relative h-full flex flex-col animate-slide-in-right"
-        style={{ background: '#0f0f0f', width: 420, borderLeft: '1px solid rgba(255,255,255,0.06)' }}
+        className="absolute inset-0 transition-opacity duration-300"
+        style={{
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          opacity: mounted ? 1 : 0,
+        }}
+        onClick={onClose}
+      />
+      <div
+        className="relative h-full flex flex-col transition-transform duration-300 ease-out"
+        style={{
+          background: '#080808',
+          width: 440,
+          borderLeft: '1px solid rgba(200,169,126,0.06)',
+          transform: mounted ? 'translateX(0)' : 'translateX(100%)',
+          boxShadow: '-20px 0 60px rgba(0,0,0,0.4)',
+        }}
       >
         {chatUI}
       </div>
