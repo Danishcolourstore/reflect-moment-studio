@@ -68,6 +68,9 @@ export default function RefynEditor({ photoUrl, onExport, onReset, initialValues
   const [values, setValues] = useState<RefynToolValues>({ ...riValues });
   const [activeTool, setActiveTool] = useState<RefynToolId | null>(null);
   const [isComparing, setIsComparing] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
+  const [cssOverrides, setCssOverrides] = useState<RefynFilter['cssOverrides']>({});
   const [mode, setMode] = useState<EditorMode>('ri');
   const imgRef = useRef<HTMLDivElement>(null);
 
