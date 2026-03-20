@@ -81,14 +81,26 @@ const Auth = function Auth({ initialView }: AuthProps) {
         backgroundColor: "#000",
       }}
     >
-      {/* Cinematic gradient bg */}
+      {/* Cinematic hero background */}
+      <img
+        src="/images/login-hero.jpg"
+        alt=""
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          opacity: phase >= 1 ? 1 : 0,
+          transition: "opacity 2s ease-out",
+        }}
+      />
+      {/* Dark overlay for text readability */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "radial-gradient(ellipse at 40% 50%, #1a1510 0%, #0a0a0a 70%)",
-          opacity: phase >= 1 ? 1 : 0,
-          transition: "opacity 2s ease-out",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.45), rgba(0,0,0,0.7))",
         }}
       />
 
