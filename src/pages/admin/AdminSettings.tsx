@@ -85,7 +85,7 @@ export default function AdminSettings() {
 
       {/* Change Access Code */}
       <Card>
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-4 sm:p-5 space-y-4">
           <h3 className="font-serif text-base font-semibold">Change Access Code</h3>
           <div className="space-y-1.5">
             <Label className="text-xs">Current Code</Label>
