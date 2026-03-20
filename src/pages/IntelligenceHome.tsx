@@ -47,7 +47,7 @@ export default function IntelligenceHome() {
   const drawer = useDrawerMenu();
   const [phase, setPhase] = useState<1 | 2>(1);
   const [current, setCurrent] = useState(0);
-
+  const poetryIndex = current % POETRY.length;
   useEffect(() => {
     const t = setTimeout(() => setPhase(2), 2000);
     return () => clearTimeout(t);
