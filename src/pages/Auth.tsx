@@ -1,78 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AuthProps {
   initialView?: "landing" | "login" | "signup" | "forgot";
-}
-
-/* ── Lightweight film-dust canvas ── */
-function FilmDustCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let raf: number;
-    const particles: { x: number; y: number; r: number; a: number; dy: number; flicker: number }[] = [];
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    // Seed particles
-    for (let i = 0; i < 35; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: Math.random() * 1.2 + 0.3,
-        a: Math.random() * 0.25 + 0.05,
-        dy: Math.random() * 0.15 + 0.03,
-        flicker: Math.random() * 200 + 100,
-      });
-    }
-
-    let frame = 0;
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      frame++;
-      particles.forEach((p) => {
-        const visible = Math.sin(frame / p.flicker) > -0.3;
-        if (!visible) return;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${p.a})`;
-        ctx.fill();
-        p.y += p.dy;
-        if (p.y > canvas.height + 5) {
-          p.y = -5;
-          p.x = Math.random() * canvas.width;
-        }
-      });
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-[1]"
-      style={{ opacity: 0.6 }}
-    />
-  );
 }
 
 const Auth = function Auth({ initialView }: AuthProps) {
@@ -82,26 +13,27 @@ const Auth = function Auth({ initialView }: AuthProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [tab, setTab] = useState<"login" | "signup">(initialView === "signup" ? "signup" : "login");
-  const [cardVisible, setCardVisible] = useState(false);
+  const [isSignup, setIsSignup] = useState(initialView === "signup");
+
+  /* cinematic entrance phases */
+  const [phase, setPhase] = useState(0);
 
   useEffect(() => {
-    const t = setTimeout(() => setCardVisible(true), 80);
-    // Apply saved accent on login page
+    const t1 = setTimeout(() => setPhase(1), 100);   // bg image
+    const t2 = setTimeout(() => setPhase(2), 2600);   // logo
+    const t3 = setTimeout(() => setPhase(3), 4100);   // tagline
+    const t4 = setTimeout(() => setPhase(4), 5400);   // form
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+  }, []);
+
+  useEffect(() => {
     const savedAccent = localStorage.getItem('accent');
-    if (savedAccent === 'red') {
-      document.documentElement.classList.add('accent-red');
-    } else {
-      document.documentElement.classList.remove('accent-red');
-    }
-    return () => clearTimeout(t);
+    if (savedAccent === 'red') document.documentElement.classList.add('accent-red');
+    else document.documentElement.classList.remove('accent-red');
   }, []);
 
   const handleLogin = async () => {
-    setLoading(true);
-    setError("");
-    setMessage("");
+    setLoading(true); setError(""); setMessage("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setError(error.message);
     else navigate("/verify-access");
@@ -109,9 +41,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
   };
 
   const handleSignup = async () => {
-    setLoading(true);
-    setError("");
-    setMessage("");
+    setLoading(true); setError(""); setMessage("");
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) setError(error.message);
     else navigate("/verify-otp");
@@ -120,8 +50,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
 
   const handleForgotPassword = async () => {
     if (!email) { setError("Enter your email address first"); return; }
-    setError("");
-    setMessage("");
+    setError(""); setMessage("");
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
@@ -129,205 +58,238 @@ const Auth = function Auth({ initialView }: AuthProps) {
     else setMessage("Password reset link sent to your email");
   };
 
-  const isLogin = tab === "login";
+  const submit = isSignup ? handleSignup : handleLogin;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center px-4 sm:px-6 bg-background overflow-y-auto overflow-x-hidden py-8">
-      {/* ── Film grain overlay ── */}
-      <div
-        className="fixed inset-0 pointer-events-none z-[1]"
+    <div className="fixed inset-0 overflow-hidden" style={{ backgroundColor: '#000' }}>
+      {/* ── Hero background image ── */}
+      <img
+        src="/images/login-hero.jpg"
+        alt=""
+        className="absolute inset-0 w-full h-full"
         style={{
-          opacity: 0.04,
-          mixBlendMode: "overlay",
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")`,
-          backgroundSize: "180px 180px",
-          animation: "grain-drift 8s steps(10) infinite",
+          objectFit: 'cover',
+          objectPosition: 'center',
+          opacity: phase >= 1 ? 1 : 0,
+          transition: 'opacity 2.5s ease-out',
         }}
       />
 
-      {/* ── Film dust particles ── */}
-      <FilmDustCanvas />
-
-      {/* ── Vignette ── */}
+      {/* ── Dark overlay ── */}
       <div
-        className="fixed inset-0 pointer-events-none z-[2]"
+        className="absolute inset-0"
         style={{
-          background: "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.5) 100%)",
-        }}
-      />
-
-      {/* ── Film-scratch lines ── */}
-      <div
-        className="fixed inset-0 pointer-events-none z-[1]"
-        style={{
-          opacity: 0.03,
-          background: `repeating-linear-gradient(90deg, transparent, transparent 340px, rgba(255,255,255,0.15) 340px, rgba(255,255,255,0.15) 341px)`,
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%)',
         }}
       />
 
       {/* ── Content ── */}
-      <div
-        className="w-full max-w-[400px] flex flex-col relative z-10"
-        style={{
-          opacity: cardVisible ? 1 : 0,
-          transform: cardVisible ? "translateY(0)" : "translateY(12px)",
-          transition: "opacity 0.7s ease-out, transform 0.7s ease-out",
-        }}
-      >
-        {/* Logo */}
-        <div className="text-center mb-6 sm:mb-10">
-          <h1
-            className="text-[28px] font-semibold text-foreground"
-            style={{ letterSpacing: "0.04em" }}
-          >
-            Mirror AI
-          </h1>
-          <p
-            className="mt-1.5 text-sm text-muted-foreground"
-            style={{ letterSpacing: "0.06em", textTransform: "uppercase", fontSize: "11px" }}
-          >
-            Photography platform for professionals
-          </p>
-        </div>
+      <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
 
-        {/* Card with matte photo-paper texture */}
-        <div
-          className="bg-card rounded-xl border border-border p-5 sm:p-8 relative overflow-hidden"
+        {/* Logo */}
+        <h1
           style={{
-            boxShadow: "0 8px 40px -12px rgba(0,0,0,0.6), inset 0 0 40px 8px rgba(0,0,0,0.15)",
+            fontFamily: '"Cormorant Garamond", serif',
+            fontWeight: 300,
+            fontSize: 'clamp(32px, 8vw, 52px)',
+            color: '#C8A97E',
+            letterSpacing: '0.08em',
+            opacity: phase >= 2 ? 1 : 0,
+            transform: phase >= 2 ? 'translateY(0)' : 'translateY(10px)',
+            transition: 'opacity 1.5s ease-out, transform 1.5s ease-out',
           }}
         >
-          {/* Subtle paper texture on card */}
-          <div
-            className="absolute inset-0 pointer-events-none"
+          Mirror AI
+        </h1>
+
+        {/* Tagline */}
+        <p
+          style={{
+            fontFamily: '"Cormorant Garamond", serif',
+            fontStyle: 'italic',
+            fontWeight: 300,
+            fontSize: 'clamp(13px, 3vw, 16px)',
+            color: 'rgba(255,255,255,0.7)',
+            letterSpacing: '0.05em',
+            marginTop: 8,
+            marginBottom: 40,
+            opacity: phase >= 3 ? 1 : 0,
+            transition: 'opacity 1.2s ease-out',
+          }}
+        >
+          Reflections of Your Moments
+        </p>
+
+        {/* Login card */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 380,
+            background: 'rgba(10,10,10,0.7)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderRadius: 16,
+            border: '1px solid rgba(255,255,255,0.08)',
+            padding: '32px 28px 28px',
+            opacity: phase >= 4 ? 1 : 0,
+            transform: phase >= 4 ? 'translateY(0)' : 'translateY(8px)',
+            transition: 'opacity 1s ease-out, transform 1s ease-out',
+          }}
+        >
+          {/* Mini logo inside card */}
+          <p
             style={{
-              opacity: 0.015,
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E")`,
-              backgroundSize: "150px 150px",
+              fontFamily: '"Cormorant Garamond", serif',
+              fontWeight: 400,
+              fontSize: 18,
+              color: '#C8A97E',
+              letterSpacing: '0.06em',
+              textAlign: 'center',
+              marginBottom: 28,
             }}
-          />
+          >
+            Mirror AI
+          </p>
 
-          {/* Tab toggle */}
-          <div className="flex rounded-lg bg-secondary p-1 mb-6 relative z-10">
-            {(["login", "signup"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => { setTab(t); setPassword(""); setError(""); setMessage(""); }}
-                className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-                  tab === t
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                style={{ letterSpacing: "0.03em" }}
-              >
-                {t === "login" ? "Sign In" : "Sign Up"}
-              </button>
-            ))}
-          </div>
-
-          {/* Alerts */}
+          {/* Error / Message */}
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm relative z-10">
+            <div style={{
+              fontSize: 12, color: '#e88', textAlign: 'center',
+              marginBottom: 16, lineHeight: 1.5,
+            }}>
               {error}
             </div>
           )}
           {message && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-primary/5 border border-primary/10 text-foreground text-sm relative z-10">
+            <div style={{
+              fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center',
+              marginBottom: 16, lineHeight: 1.5,
+            }}>
               {message}
             </div>
           )}
 
           {/* Form */}
           <form
-            onSubmit={(e) => { e.preventDefault(); isLogin ? handleLogin() : handleSignup(); }}
-            className="flex flex-col gap-4 relative z-10"
+            onSubmit={(e) => { e.preventDefault(); submit(); }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 20 }}
           >
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground" style={{ letterSpacing: "0.02em" }}>Email</label>
-              <div className="flex items-center gap-3 px-4 h-11 rounded-lg border border-border bg-background transition-all focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent">
-                <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
-                  placeholder="you@example.com"
-                  required
-                  autoComplete="email"
-                  className="bg-transparent w-full outline-none text-sm text-foreground placeholder:text-muted-foreground/50"
-                />
-              </div>
-            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError(""); }}
+              placeholder="Email"
+              required
+              autoComplete="email"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                borderBottom: '1px solid rgba(255,255,255,0.15)',
+                color: '#fff',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 14,
+                padding: '10px 0',
+                outline: 'none',
+                width: '100%',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => e.currentTarget.style.borderBottomColor = 'rgba(200,169,126,0.5)'}
+              onBlur={(e) => e.currentTarget.style.borderBottomColor = 'rgba(255,255,255,0.15)'}
+            />
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground" style={{ letterSpacing: "0.02em" }}>Password</label>
-              <div className="flex items-center gap-3 px-4 h-11 rounded-lg border border-border bg-background transition-all focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent">
-                <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                  placeholder={isLogin ? "Enter password" : "Create password (min 6 chars)"}
-                  required
-                  minLength={6}
-                  autoComplete={isLogin ? "current-password" : "new-password"}
-                  className="bg-transparent w-full outline-none text-sm text-foreground placeholder:text-muted-foreground/50"
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="shrink-0 p-0.5 text-muted-foreground hover:text-foreground transition-colors">
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setError(""); }}
+              placeholder="Password"
+              required
+              minLength={6}
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                borderBottom: '1px solid rgba(255,255,255,0.15)',
+                color: '#fff',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 14,
+                padding: '10px 0',
+                outline: 'none',
+                width: '100%',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => e.currentTarget.style.borderBottomColor = 'rgba(200,169,126,0.5)'}
+              onBlur={(e) => e.currentTarget.style.borderBottomColor = 'rgba(255,255,255,0.15)'}
+            />
 
-            {isLogin && (
-              <div className="flex justify-end -mt-1">
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  style={{ letterSpacing: "0.02em" }}
-                >
-                  Forgot password?
-                </button>
-              </div>
+            {/* Forgot password link — login only */}
+            {!isSignup && (
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'rgba(255,255,255,0.4)', fontSize: 12,
+                  fontFamily: 'Inter, sans-serif',
+                  textAlign: 'right', padding: 0, marginTop: -8,
+                }}
+              >
+                Forgot password?
+              </button>
             )}
 
+            {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 sm:h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ letterSpacing: "0.03em" }}
+              style={{
+                width: '100%',
+                height: 46,
+                borderRadius: 8,
+                border: 'none',
+                background: '#C8A97E',
+                color: '#111',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 14,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                cursor: loading ? 'wait' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+                transition: 'opacity 0.15s, box-shadow 0.2s',
+                boxShadow: '0 0 0 0 rgba(200,169,126,0)',
+                marginTop: 4,
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) e.currentTarget.style.boxShadow = '0 0 20px rgba(200,169,126,0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = '0 0 0 0 rgba(200,169,126,0)';
+              }}
             >
-              {loading ? (
-                <div className="w-4 h-4 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin" />
-              ) : (
-                <>
-                  {isLogin ? "Sign In" : "Create Account"}
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
+              {loading ? '...' : isSignup ? 'Create Account' : 'Enter'}
             </button>
           </form>
+
+          {/* Toggle signup / login */}
+          <p style={{
+            textAlign: 'center', marginTop: 20,
+            fontSize: 13, color: 'rgba(255,255,255,0.4)',
+            fontFamily: 'Inter, sans-serif',
+          }}>
+            {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              type="button"
+              onClick={() => { setIsSignup(!isSignup); setPassword(""); setError(""); setMessage(""); }}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'rgba(255,255,255,0.7)', fontSize: 13,
+                fontFamily: 'Inter, sans-serif',
+                textDecoration: 'none',
+              }}
+            >
+              {isSignup ? 'Sign in' : 'Create Account'}
+            </button>
+          </p>
         </div>
-
-        {/* Bottom link */}
-        <p className="text-center mt-6 text-sm text-muted-foreground" style={{ letterSpacing: "0.02em" }}>
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <button
-            onClick={() => { setTab(isLogin ? "signup" : "login"); setPassword(""); setError(""); setMessage(""); }}
-            className="text-foreground font-medium hover:underline"
-          >
-            {isLogin ? "Sign up" : "Sign in"}
-          </button>
-        </p>
-
-        {/* Film frame number – decorative */}
-        <p
-          className="text-center mt-8 text-muted-foreground/30 font-typewriter"
-          style={{ fontSize: "10px", letterSpacing: "0.15em" }}
-        >
-          ▸ 35A &nbsp; ◆ &nbsp; MIRROR AI &nbsp; ◆ &nbsp; KODAK 400
-        </p>
       </div>
     </div>
   );
