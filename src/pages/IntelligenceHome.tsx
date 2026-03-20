@@ -15,8 +15,8 @@ import hero9 from '@/assets/hero-9.jpg';
 
 const ease = [0.16, 1, 0.3, 1];
 const SLIDES = [hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9];
-const SLIDE_DURATION = 7000; // 7 seconds per slide (slower, calmer)
-const TRANSITION_DURATION = 2.4; // 2.4s smooth crossfade
+const SLIDE_DURATION = 12000; // 12 seconds per slide — very calm
+const TRANSITION_DURATION = 4; // 4s ultra-slow dissolve
 
 // SVG filter for water ripple displacement effect
 const WaterRippleFilter = () => (
