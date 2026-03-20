@@ -1,351 +1,262 @@
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { DashboardLayout } from '@/components/DashboardLayout';
-import { useReflections, ReflectionPost, useMoodBoardDrops, usePhotographerSpotlight } from '@/hooks/use-reflections';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import {
-  Bookmark, BookmarkCheck, Sparkles, TrendingUp, Gift, Tag,
-  Lightbulb, Megaphone, ShoppingBag, Smile, Star, ArrowRight,
-  Flame, Download, ExternalLink, FolderPlus,
-} from 'lucide-react';
-import { PresetMarketplace } from '@/components/reflections/PresetMarketplace';
-import { WeeklyMoodBoard } from '@/components/reflections/WeeklyMoodBoard';
-import { CollectionsGallery } from '@/components/reflections/CollectionsGallery';
-import { SaveToCollectionSheet } from '@/components/reflections/SaveToCollectionSheet';
-import { PhotographerSpotlightCard } from '@/components/reflections/PhotographerSpotlightCard';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { HamburgerButton, DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
+import { X } from 'lucide-react';
 
-const TABS = [
-  { value: 'for_you', label: 'For You' },
-  { value: 'latest', label: 'Latest' },
-  { value: 'marketplace', label: 'Marketplace' },
-  { value: 'learn', label: 'Learn' },
-  { value: 'collections', label: 'Collections' },
-];
+const ease = [0.16, 1, 0.3, 1];
+const cormorant = '"Cormorant Garamond", serif';
+const dm = '"DM Sans", sans-serif';
 
-const TYPE_ICONS: Record<string, React.ReactNode> = {
-  inspiration: <Star className="h-3 w-3" />,
-  tips: <Lightbulb className="h-3 w-3" />,
-  announcements: <Megaphone className="h-3 w-3" />,
-  offers: <Gift className="h-3 w-3" />,
-  products: <ShoppingBag className="h-3 w-3" />,
-  fun: <Smile className="h-3 w-3" />,
-};
+interface ReflectionPhoto {
+  id: string;
+  image_url: string;
+}
 
-const TAG_VARIANTS: Record<string, { icon: React.ReactNode; className: string }> = {
-  new: { icon: <Sparkles className="h-2.5 w-2.5" />, className: 'bg-primary/20 text-primary border-primary/30' },
-  trending: { icon: <TrendingUp className="h-2.5 w-2.5" />, className: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  recommended: { icon: <Flame className="h-2.5 w-2.5" />, className: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  offer: { icon: <Tag className="h-2.5 w-2.5" />, className: 'bg-green-500/20 text-green-400 border-green-500/30' },
-};
+function FilmGrain() {
+  return (
+    <svg className="pointer-events-none fixed inset-0 w-full h-full z-[60] opacity-[0.02]">
+      <filter id="ref-grain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+      <rect width="100%" height="100%" filter="url(#ref-grain)" />
+    </svg>
+  );
+}
 
-const TYPE_COLORS: Record<string, string> = {
-  inspiration: 'from-purple-500/10 to-transparent',
-  tips: 'from-amber-500/10 to-transparent',
-  announcements: 'from-blue-500/10 to-transparent',
-  offers: 'from-green-500/10 to-transparent',
-  products: 'from-pink-500/10 to-transparent',
-  fun: 'from-cyan-500/10 to-transparent',
-};
+/* ─── Scroll-reveal photo card ─── */
+function PhotoCard({ photo, index, onTap }: { photo: ReflectionPhoto; index: number; onTap: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
 
-export default function Reflections() {
-  const { posts, loading, toggleSave } = useReflections();
-  const { drops } = useMoodBoardDrops();
-  const { spotlight } = usePhotographerSpotlight();
-  const [activeTab, setActiveTab] = useState('for_you');
-  const [saveSheetOpen, setSaveSheetOpen] = useState(false);
-  const [itemToSave, setItemToSave] = useState<any>(null);
-  const navigate = useNavigate();
-
-  const todayPosts = posts.filter(p => p.is_today);
-  const filteredPosts = activeTab === 'collections'
-    ? []
-    : posts.filter(p => p.tab === activeTab);
-
-  const handleCTA = (post: ReflectionPost) => {
-    if (post.cta_action === 'route' && post.cta_route) {
-      navigate(post.cta_route);
-    }
-  };
-
-  const handleSaveToCollection = useCallback((item: any) => {
-    setItemToSave({
-      item_type: item.theme ? 'mood_board' : 'post',
-      item_id: item.id,
-      item_title: item.title,
-      item_image: item.image_url || item.cover_image,
-    });
-    setSaveSheetOpen(true);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { rootMargin: '80px', threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-40" />
-          <div className="flex gap-3 overflow-hidden">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 w-44 shrink-0 rounded-xl" />)}
-          </div>
-          <div className="space-y-3">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
-    <DashboardLayout>
-      <div className="space-y-5">
-        {/* Header */}
-        <div>
-          <h1
-            className="text-foreground"
-            style={{ fontFamily: 'var(--editorial-heading)', fontSize: '24px', fontWeight: 400, letterSpacing: '-0.3px' }}
-          >
-            Reflections
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Your daily dose of inspiration, tips & tools</p>
-        </div>
-
-        {/* Today Strip */}
-        {todayPosts.length > 0 && (
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70 mb-2 font-medium flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-primary" /> Today in Reflections
-            </p>
-            <ScrollArea className="w-full">
-              <div className="flex gap-3 pb-2">
-                {todayPosts.map(post => (
-                  <TodayCard key={post.id} post={post} onSave={() => toggleSave(post.id)} onCTA={() => handleCTA(post)} />
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid" style={{ gridTemplateColumns: `repeat(${TABS.length}, 1fr)` }}>
-            {TABS.map(tab => (
-              <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {/* For You Tab */}
-          <TabsContent value="for_you" className="mt-4 space-y-6">
-            {/* Photographer Spotlight */}
-            <PhotographerSpotlightCard spotlight={spotlight} />
-
-            {/* Mood Board */}
-            <WeeklyMoodBoard drops={drops} onSaveToCollection={handleSaveToCollection} />
-
-            {/* Feed */}
-            {filteredPosts.length > 0 && (
-              <div className="space-y-3">
-                {filteredPosts.map(post => (
-                  <FeedCard
-                    key={post.id}
-                    post={post}
-                    onSave={() => toggleSave(post.id)}
-                    onCTA={() => handleCTA(post)}
-                    onSaveToCollection={() => handleSaveToCollection(post)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {filteredPosts.length === 0 && (
-              <Card className="border-dashed">
-                <CardContent className="py-12 text-center">
-                  <Sparkles className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
-                  <p className="text-sm text-muted-foreground">More content coming soon</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Latest Tab */}
-          <TabsContent value="latest" className="mt-4 space-y-3">
-            {posts.filter(p => p.tab === 'latest').length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="py-12 text-center">
-                  <Bookmark className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
-                  <p className="text-sm text-muted-foreground">No posts here yet. Check back soon!</p>
-                </CardContent>
-              </Card>
-            ) : (
-              posts.filter(p => p.tab === 'latest').map(post => (
-                <FeedCard
-                  key={post.id}
-                  post={post}
-                  onSave={() => toggleSave(post.id)}
-                  onCTA={() => handleCTA(post)}
-                  onSaveToCollection={() => handleSaveToCollection(post)}
-                />
-              ))
-            )}
-          </TabsContent>
-
-          {/* Marketplace Tab */}
-          <TabsContent value="marketplace" className="mt-4">
-            <PresetMarketplace />
-          </TabsContent>
-
-          {/* Learn Tab */}
-          <TabsContent value="learn" className="mt-4 space-y-3">
-            {posts.filter(p => p.tab === 'learn').length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="py-12 text-center">
-                  <Lightbulb className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
-                  <p className="text-sm text-muted-foreground">Learning content drops weekly!</p>
-                </CardContent>
-              </Card>
-            ) : (
-              posts.filter(p => p.tab === 'learn').map(post => (
-                <FeedCard
-                  key={post.id}
-                  post={post}
-                  onSave={() => toggleSave(post.id)}
-                  onCTA={() => handleCTA(post)}
-                  onSaveToCollection={() => handleSaveToCollection(post)}
-                />
-              ))
-            )}
-          </TabsContent>
-
-          {/* Collections Tab */}
-          <TabsContent value="collections" className="mt-4">
-            <CollectionsGallery />
-          </TabsContent>
-        </Tabs>
-
-        {/* Save to Collection Sheet */}
-        <SaveToCollectionSheet
-          open={saveSheetOpen}
-          onClose={() => { setSaveSheetOpen(false); setItemToSave(null); }}
-          itemToSave={itemToSave}
+    <div ref={ref} className="w-full px-4 md:px-0">
+      <motion.div
+        className="w-full overflow-hidden rounded-lg cursor-pointer"
+        style={{ willChange: 'transform, opacity, filter' }}
+        initial={{ opacity: 0, y: 18, filter: 'blur(6px)' }}
+        animate={visible ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
+        transition={{ duration: 0.7, delay: Math.min(index * 0.06, 0.3), ease }}
+        onClick={onTap}
+        whileTap={{ scale: 0.985 }}
+      >
+        <img
+          src={photo.image_url}
+          alt=""
+          className="w-full h-auto block"
+          loading={index < 3 ? 'eager' : 'lazy'}
+          style={{ display: 'block' }}
         />
-      </div>
-    </DashboardLayout>
+      </motion.div>
+    </div>
   );
 }
 
-/* ─── Today Horizontal Card ─── */
-function TodayCard({ post, onSave, onCTA }: { post: ReflectionPost; onSave: () => void; onCTA: () => void }) {
-  const tagStyle = TAG_VARIANTS[post.tag || ''] || TAG_VARIANTS.new;
+/* ─── Fullscreen Lightbox ─── */
+function Lightbox({ photo, onClose }: { photo: ReflectionPhoto | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!photo) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handler);
+    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', handler); };
+  }, [photo, onClose]);
 
   return (
-    <Card className="w-44 shrink-0 overflow-hidden hover:border-primary/20 transition-colors group">
-      <CardContent className="p-3 space-y-2">
-        <div className="flex items-center justify-between">
-          <Badge variant="outline" className={`text-[8px] px-1.5 py-0 h-4 gap-0.5 ${tagStyle.className}`}>
-            {tagStyle.icon} {post.tag}
-          </Badge>
-          <button onClick={onSave} className="p-0.5 hover:text-primary transition-colors">
-            {post.saved
-              ? <BookmarkCheck className="h-3.5 w-3.5 text-primary" />
-              : <Bookmark className="h-3.5 w-3.5 text-muted-foreground/40" />}
-          </button>
-        </div>
-        <div className="flex items-center gap-1.5 text-muted-foreground/60">
-          {TYPE_ICONS[post.card_type]}
-          <span className="text-[9px] uppercase tracking-wider">{post.card_type}</span>
-        </div>
-        <p className="text-xs font-medium text-foreground leading-snug line-clamp-2">{post.title}</p>
-        {post.cta_label && (
-          <Button size="sm" variant="ghost" className="text-[10px] h-6 px-2 text-primary hover:text-primary" onClick={onCTA}>
-            {post.cta_label} <ArrowRight className="h-2.5 w-2.5 ml-1" />
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ─── Feed Card ─── */
-function FeedCard({
-  post, onSave, onCTA, onSaveToCollection
-}: {
-  post: ReflectionPost;
-  onSave: () => void;
-  onCTA: () => void;
-  onSaveToCollection?: () => void;
-}) {
-  const tagStyle = TAG_VARIANTS[post.tag || ''] || TAG_VARIANTS.new;
-  const gradient = TYPE_COLORS[post.card_type] || 'from-muted/50 to-transparent';
-
-  return (
-    <Card className={`overflow-hidden hover:border-primary/20 transition-all group bg-gradient-to-br ${gradient}`}>
-      <CardContent className="p-4 space-y-3">
-        {/* Top row: tag + type + save */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className={`text-[9px] px-1.5 py-0.5 h-5 gap-1 ${tagStyle.className}`}>
-              {tagStyle.icon} {post.tag}
-            </Badge>
-            <span className="flex items-center gap-1 text-muted-foreground/50 text-[9px] uppercase tracking-wider">
-              {TYPE_ICONS[post.card_type]} {post.card_type}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            {onSaveToCollection && (
-              <button
-                onClick={onSaveToCollection}
-                className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors opacity-0 group-hover:opacity-100"
-                title="Save to collection"
-              >
-                <FolderPlus className="h-3.5 w-3.5 text-muted-foreground/30 hover:text-primary" />
-              </button>
-            )}
-            <button
-              onClick={onSave}
-              className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              {post.saved
-                ? <BookmarkCheck className="h-4 w-4 text-primary" />
-                : <Bookmark className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground/60" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Image */}
-        {post.image_url && (
-          <div className="rounded-lg overflow-hidden">
-            <img src={post.image_url} alt={post.title} className="w-full h-40 object-cover" loading="lazy" />
-          </div>
-        )}
-
-        {/* Content */}
-        <div>
-          <h3 className="text-sm font-semibold text-foreground leading-snug">{post.title}</h3>
-          {post.body && (
-            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-3">{post.body}</p>
-          )}
-        </div>
-
-        {/* CTA */}
-        {post.cta_label && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-xs h-8 gap-1.5 border-primary/20 text-primary hover:bg-primary/10 hover:text-primary"
-            onClick={onCTA}
+    <AnimatePresence>
+      {photo && (
+        <motion.div
+          className="fixed inset-0 z-[100] flex items-center justify-center"
+          style={{ background: '#030303' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease }}
+          onClick={onClose}
+        >
+          {/* Close */}
+          <button
+            className="absolute top-5 right-5 z-[101] p-2 rounded-full transition-colors"
+            style={{ color: 'rgba(240,237,232,0.3)' }}
+            onClick={onClose}
           >
-            {post.cta_action === 'download' && <Download className="h-3 w-3" />}
-            {post.cta_action === 'route' && <ExternalLink className="h-3 w-3" />}
-            {post.cta_action === 'feature' && <Sparkles className="h-3 w-3" />}
-            {post.cta_label}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+            <X size={20} />
+          </button>
+
+          <motion.img
+            src={photo.image_url}
+            alt=""
+            className="max-w-[95vw] max-h-[92vh] object-contain"
+            initial={{ scale: 0.92, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.5, ease }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ─── Main Reflections Page ─── */
+export default function Reflections() {
+  const drawer = useDrawerMenu();
+  const [photos, setPhotos] = useState<ReflectionPhoto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lightboxPhoto, setLightboxPhoto] = useState<ReflectionPhoto | null>(null);
+
+  // Infinite scroll
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+  const [hasMore, setHasMore] = useState(true);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const fetchPhotos = useCallback(async (pageNum: number) => {
+    const from = (pageNum - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    const { data } = await (supabase.from('reflections_posts' as any).select('id, image_url') as any)
+      .eq('is_published', true)
+      .eq('is_active', true)
+      .not('image_url', 'is', null)
+      .order('is_pinned', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    const items: ReflectionPhoto[] = (data || []).filter((p: any) => p.image_url);
+    if (items.length < PAGE_SIZE) setHasMore(false);
+    setPhotos(prev => pageNum === 1 ? items : [...prev, ...items]);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchPhotos(1); }, [fetchPhotos]);
+
+  useEffect(() => {
+    if (page === 1) return;
+    fetchPhotos(page);
+  }, [page, fetchPhotos]);
+
+  // Sentinel observer for infinite scroll
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore || loading) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setPage(p => p + 1); },
+      { rootMargin: '600px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [hasMore, loading, page]);
+
+  return (
+    <div className="min-h-[100dvh] relative" style={{ background: '#080808' }}>
+      <FilmGrain />
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
+      <Lightbox photo={lightboxPhoto} onClose={() => setLightboxPhoto(null)} />
+
+      {/* Top bar */}
+      <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-1" style={{ height: 48 }}>
+        <HamburgerButton onClick={drawer.toggle} />
+      </div>
+
+      {/* Hero */}
+      <div className="pt-[48px] pb-12 px-6 flex flex-col items-center justify-center" style={{ minHeight: '35vh' }}>
+        <motion.p
+          className="uppercase text-center"
+          style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.45em' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.2 }}
+        >
+          Mirror AI · Curated
+        </motion.p>
+        <motion.h1
+          className="mt-5 text-center"
+          style={{
+            fontFamily: cormorant,
+            fontSize: 'clamp(36px, 10vw, 64px)',
+            fontWeight: 300,
+            color: '#F0EDE8',
+            lineHeight: 1.05,
+            letterSpacing: '-0.01em',
+          }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.35, ease }}
+        >
+          Reflections
+        </motion.h1>
+        <motion.div
+          className="mt-6"
+          style={{ width: 32, height: 1, background: 'rgba(232,201,122,0.4)' }}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.6, delay: 0.6, ease }}
+        />
+        <motion.p
+          className="mt-5 text-center"
+          style={{ fontFamily: dm, fontSize: 11, color: '#2A2A2A', letterSpacing: '0.08em', maxWidth: 260 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.7 }}
+        >
+          A gallery of images chosen by Mirror AI. No algorithm. No feed. Just photographs.
+        </motion.p>
+      </div>
+
+      {/* Photo Grid */}
+      {loading && photos.length === 0 ? (
+        <div className="px-4 space-y-4 pb-12">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="w-full rounded-lg animate-pulse" style={{ height: 280, background: '#0C0C0C' }} />
+          ))}
+        </div>
+      ) : photos.length === 0 ? (
+        /* Empty state */
+        <div className="flex flex-col items-center justify-center px-8 pb-20" style={{ minHeight: '30vh' }}>
+          <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 mb-6" style={{ opacity: 0.08 }}>
+            <rect x="4" y="4" width="40" height="40" rx="8" stroke="#F0EDE8" strokeWidth="1" />
+            <circle cx="16" cy="18" r="3" stroke="#F0EDE8" strokeWidth="1" />
+            <path d="M4 34L16 22L28 34L36 26L44 34" stroke="#F0EDE8" strokeWidth="1" />
+          </svg>
+          <p
+            className="text-center"
+            style={{ fontFamily: cormorant, fontSize: 22, fontWeight: 300, color: '#F0EDE8', lineHeight: 1.4 }}
+          >
+            The gallery is being prepared.
+          </p>
+          <p className="mt-3 text-center" style={{ fontFamily: dm, fontSize: 11, color: '#2A2A2A', maxWidth: 220 }}>
+            Mirror AI is curating photographs for you. They will appear here soon.
+          </p>
+        </div>
+      ) : (
+        <div className="max-w-[540px] mx-auto space-y-5 pb-16 md:px-0">
+          {photos.map((photo, i) => (
+            <PhotoCard
+              key={photo.id}
+              photo={photo}
+              index={i}
+              onTap={() => setLightboxPhoto(photo)}
+            />
+          ))}
+          {hasMore && <div ref={sentinelRef} className="h-4" />}
+        </div>
+      )}
+
+      {/* Bottom breathing space */}
+      <div className="h-8" />
+    </div>
   );
 }
