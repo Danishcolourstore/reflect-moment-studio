@@ -18,13 +18,13 @@ export default function ProductNav() {
       className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-5 py-4"
       style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0.8), transparent)' }}
     >
-      {/* Current product */}
+      {/* Back to home */}
       <button
-        onClick={() => navigate('/home')}
+        onClick={() => navigate(-1)}
         className="flex items-center gap-2"
       >
-        <svg width="12" height="14" viewBox="0 0 28 32" fill="none">
-          <path d="M14 1L26.5 8.5V23.5L14 31L1.5 23.5V8.5L14 1Z" stroke="#E8C97A" strokeWidth="1.5" fill="rgba(232,201,122,0.08)" />
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M9 2L4 7L9 12" stroke="#F0EDE8" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.6"/>
         </svg>
         <span
           className="text-[12px] tracking-[0.25em] uppercase font-light text-[#F0EDE8]/70"
