@@ -298,6 +298,8 @@ const AppRoutes = () => {
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/builder-test" element={<BuilderTest />} />
         <Route path="/refyn" element={<Suspense fallback={<PageLoader />}><Refyn /></Suspense>} />
+        <Route path="/colour-store" element={<ProtectedRoute><ColourStore /></ProtectedRoute>} />
+        <Route path="/home" element={<ProtectedRoute><IntelligenceHome /></ProtectedRoute>} />
 
         <Route
           path="/super-admin"
