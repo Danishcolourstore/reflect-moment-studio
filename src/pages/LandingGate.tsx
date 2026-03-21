@@ -89,6 +89,7 @@ export default function LandingGate() {
   const drawer = useDrawerMenu();
   const [riHov, setRiHov] = useState(false);
   const [agHov, setAgHov] = useState(false);
+  const [botOpen, setBotOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
