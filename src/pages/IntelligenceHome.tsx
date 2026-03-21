@@ -8,12 +8,27 @@ const warmGrad = "linear-gradient(135deg, #f5f0ea 0%, #e8e0d4 50%, #f5f0ea 100%)
 const coolGrad = "linear-gradient(135deg, #eae4dc 0%, #d4ccc0 50%, #eae4dc 100%)";
 
 const NAV_ITEMS = [
-  { label: "HOME", path: "/home" },
-  { label: "FEATURED", path: "#featured" },
+  { label: "HOME", path: "#top" },
+  { label: "FEED", path: "#feed" },
+  { label: "NEWS", path: "#news" },
   { label: "STORIES", path: "#stories" },
-  { label: "TRENDING", path: "#trending" },
-  { label: "UPDATES", path: "#updates" },
+  { label: "DISCOVER", path: "#discover" },
 ];
+
+const FALLBACK_NEWS = [
+  { title: "The Rise of AI in Wedding Photography", link: "#", pubDate: "2026-03-15", description: "How artificial intelligence is transforming the way photographers cull, edit, and deliver wedding photos.", thumbnail: "" },
+  { title: "Why Indian Weddings Are the Hardest to Photograph", link: "#", pubDate: "2026-03-10", description: "From five-day celebrations to crowds of 500, Indian weddings push photographers to their creative limits.", thumbnail: "" },
+  { title: "Film Photography Makes a Comeback at Weddings", link: "#", pubDate: "2026-03-05", description: "Couples are increasingly requesting analog photography alongside digital for a timeless, nostalgic feel.", thumbnail: "" },
+];
+
+const DISCOVER_PHOTOGRAPHERS = [
+  { name: "Naman Verma", loc: "Delhi" }, { name: "Joseph Radhik", loc: "Hyderabad" },
+  { name: "Recall Pictures", loc: "Mumbai" }, { name: "The Wedding Filmer", loc: "Mumbai" },
+  { name: "Plush Affairs", loc: "Delhi" }, { name: "Beginnings For You", loc: "Kochi" },
+  { name: "Infinite Memories", loc: "Pune" }, { name: "Shades Photography", loc: "Bangalore" },
+];
+
+interface NewsItem { title: string; link: string; pubDate: string; description: string; thumbnail: string; }
 
 const PHOTOGRAPHERS = [
   { name: "Naman Verma", location: "DELHI", bio: "Fine art and editorial wedding photographer capturing love across India." },
