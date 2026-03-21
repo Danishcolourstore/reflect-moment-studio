@@ -16,14 +16,6 @@ const NAV_ITEMS = [
   { label: "MORE", path: "__drawer__" },
 ];
 
-const IMAGES = [
-  "placeholder-1",
-  "placeholder-2",
-  "placeholder-3",
-  "placeholder-4",
-  "placeholder-5",
-];
-
 const STORIES = [
   {
     names: "TRISHA & NIHAAL",
@@ -32,7 +24,6 @@ const STORIES = [
     tags: "Tags: destination weddings, Luxury wedding, Hyderabad",
     comments: 33,
     likes: 146,
-    img: IMAGES[0],
   },
   {
     names: "ALISHA & RAHUL",
@@ -41,7 +32,6 @@ const STORIES = [
     tags: "Tags: traditional wedding, Grand celebration, Udaipur",
     comments: 21,
     likes: 98,
-    img: IMAGES[1],
   },
   {
     names: "KAVYA & KARAN",
@@ -50,7 +40,6 @@ const STORIES = [
     tags: "Tags: intimate wedding, Heritage venue, Varanasi",
     comments: 18,
     likes: 112,
-    img: IMAGES[2],
   },
   {
     names: "SHRAVYA & SHARAN",
@@ -59,7 +48,6 @@ const STORIES = [
     tags: "Tags: monsoon wedding, South Indian, Kochi",
     comments: 27,
     likes: 134,
-    img: IMAGES[3],
   },
   {
     names: "TANYA & NEEV",
@@ -68,7 +56,6 @@ const STORIES = [
     tags: "Tags: pastel theme, Modern wedding, Jaipur",
     comments: 42,
     likes: 201,
-    img: IMAGES[4],
   },
 ];
 
@@ -104,6 +91,13 @@ export default function Events() {
   const [navHover, setNavHover] = useState<number | null>(null);
   const [imgHover, setImgHover] = useState<number | null>(null);
   const [readHover, setReadHover] = useState<number | null>(null);
+  const [mob, setMob] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const h = () => setMob(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -119,13 +113,13 @@ export default function Events() {
           zIndex: 100,
           background: "#FFFFFF",
           borderBottom: "1px solid #F2F2F2",
-          padding: "12px 20px",
-          paddingTop: "calc(12px + env(safe-area-inset-top, 0px))",
+          padding: mob ? "8px 16px" : "12px 20px",
+          paddingTop: mob ? "calc(8px + env(safe-area-inset-top, 0px))" : "calc(12px + env(safe-area-inset-top, 0px))",
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: 8 }}>
+        <div style={{ textAlign: "center", marginBottom: mob ? 6 : 8 }}>
           <span
-            style={{ fontFamily: playfair, fontSize: 24, fontWeight: 700, color: "#000000", cursor: "pointer" }}
+            style={{ fontFamily: playfair, fontSize: mob ? 18 : 24, fontWeight: 700, color: "#000000", cursor: "pointer" }}
             onClick={() => navigate("/home")}
           >
             MirrorAI
@@ -135,7 +129,7 @@ export default function Events() {
           style={{
             display: "flex",
             justifyContent: "center",
-            gap: 20,
+            gap: mob ? 12 : 20,
             overflowX: "auto",
             scrollbarWidth: "none",
           }}
@@ -151,7 +145,7 @@ export default function Events() {
                 onMouseLeave={() => setNavHover(null)}
                 style={{
                   fontFamily: montserrat,
-                  fontSize: 14,
+                  fontSize: mob ? 10 : 14,
                   fontWeight: 400,
                   textTransform: "uppercase" as const,
                   letterSpacing: "1px",
@@ -162,7 +156,7 @@ export default function Events() {
                   textDecoration: isHov && !isActive ? "underline" : "none",
                   cursor: "pointer",
                   whiteSpace: "nowrap" as const,
-                  padding: "12px 0",
+                  padding: mob ? "8px 0" : "12px 0",
                   minHeight: 44,
                   transition: "color 0.3s",
                   flexShrink: 0,
@@ -176,8 +170,8 @@ export default function Events() {
       </nav>
 
       {/* STORY CARDS */}
-      <main style={{ maxWidth: 720, margin: "0 auto", padding: "40px 0" }}>
-        <div style={{ display: "flex", flexDirection: "column" as const, gap: 48 }}>
+      <main style={{ maxWidth: 720, margin: "0 auto", padding: mob ? "24px 0" : "40px 0" }}>
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: mob ? 40 : 48 }}>
           {STORIES.map((s, i) => (
             <FadeCard key={i}>
               {/* Cover Image — full bleed */}
@@ -185,36 +179,34 @@ export default function Events() {
                 style={{
                   overflow: "hidden",
                   lineHeight: 0,
-                  height: "50vh",
-                  minHeight: 340,
                   transform: imgHover === i ? "scale(1.02)" : "scale(1)",
                   transition: "transform 0.4s ease",
                 }}
                 onMouseEnter={() => setImgHover(i)}
                 onMouseLeave={() => setImgHover(null)}
               >
-                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={s.names} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={s.names} style={{ width: "100%", height: "auto", objectFit: "cover", display: "block" }} />
               </div>
 
               {/* Text content with padding */}
-              <div style={{ padding: "0 20px" }}>
+              <div style={{ padding: mob ? "0 16px" : "0 20px" }}>
               {/* Couple Names */}
               <div
                 style={{
                   fontFamily: playfair,
-                  fontSize: 18,
+                  fontSize: mob ? 16 : 18,
                   fontWeight: 700,
                   color: "#000000",
                   textTransform: "uppercase" as const,
                   letterSpacing: "0.5px",
-                  marginTop: 20,
+                  marginTop: mob ? 16 : 20,
                 }}
               >
                 {s.names}
               </div>
 
               {/* Date */}
-              <div style={{ fontFamily: montserrat, fontSize: 14, fontWeight: 400, color: "#666666", marginTop: 6 }}>
+              <div style={{ fontFamily: montserrat, fontSize: mob ? 12 : 14, fontWeight: 400, color: "#666666", marginTop: 6 }}>
                 {s.date}
               </div>
 
@@ -222,7 +214,7 @@ export default function Events() {
               <div
                 style={{
                   fontFamily: montserrat,
-                  fontSize: 15,
+                  fontSize: mob ? 13 : 15,
                   fontWeight: 400,
                   color: "#000000",
                   lineHeight: 1.6,
@@ -241,7 +233,7 @@ export default function Events() {
                 <span
                   style={{
                     fontFamily: montserrat,
-                    fontSize: 14,
+                    fontSize: mob ? 12 : 14,
                     fontWeight: 500,
                     color: "#000000",
                     textDecoration: readHover === i ? "underline" : "none",
@@ -256,7 +248,7 @@ export default function Events() {
               <div
                 style={{
                   fontFamily: montserrat,
-                  fontSize: 13,
+                  fontSize: mob ? 11 : 13,
                   fontWeight: 400,
                   color: "#666666",
                   marginTop: 12,
@@ -272,7 +264,7 @@ export default function Events() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   fontFamily: montserrat,
-                  fontSize: 13,
+                  fontSize: mob ? 11 : 13,
                   color: "#666666",
                   marginTop: 14,
                   paddingBottom: 12,
@@ -293,8 +285,8 @@ export default function Events() {
       </main>
 
       {/* FOOTER */}
-      <footer style={{ textAlign: "center", padding: "60px 20px 40px" }}>
-        <div style={{ fontFamily: montserrat, fontSize: 12, color: "#666666" }}>© MIRRORAI</div>
+      <footer style={{ textAlign: "center", padding: mob ? "40px 16px 28px" : "60px 20px 40px", paddingBottom: `calc(${mob ? 28 : 40}px + env(safe-area-inset-bottom, 0px))` }}>
+        <div style={{ fontFamily: montserrat, fontSize: mob ? 10 : 12, color: "#666666" }}>© MIRRORAI</div>
       </footer>
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>

@@ -103,13 +103,13 @@ function Lbl({ children, color = "#666666" }: { children: React.ReactNode; color
   return <p style={{ fontFamily: mont, fontSize: 11, fontWeight: 400, letterSpacing: "1.5px", textTransform: "uppercase", color, margin: 0 }}>{children}</p>;
 }
 
-function SHead({ label, labelColor = "#FFCC00", title, sub }: { label: string; labelColor?: string; title: string; sub?: string }) {
+function SHead({ label, labelColor = "#FFCC00", title, sub, mob = false }: { label: string; labelColor?: string; title: string; sub?: string; mob?: boolean }) {
   return (
-    <div style={{ textAlign: "center", marginBottom: 40 }}>
-      <Lbl color={labelColor}>{label}</Lbl>
-      <h2 style={{ fontFamily: playfair, fontSize: "clamp(28px,6vw,44px)", fontWeight: 700, color: "#000000", letterSpacing: "0.5px", textAlign: "center", margin: "12px 0 0" }}>{title}</h2>
-      <GoldRule width={36} margin="20px auto" />
-      {sub && <p style={{ fontFamily: mont, fontSize: 15, color: "#666666", textAlign: "center", margin: 0 }}>{sub}</p>}
+    <div style={{ textAlign: "center", marginBottom: mob ? 24 : 40 }}>
+      <p style={{ fontFamily: mont, fontSize: mob ? 9 : 11, fontWeight: 400, letterSpacing: "1.5px", textTransform: "uppercase", color: labelColor, margin: 0 }}>{label}</p>
+      <h2 style={{ fontFamily: playfair, fontSize: mob ? "clamp(22px,5vw,44px)" : "clamp(28px,6vw,44px)", fontWeight: 700, color: "#000000", letterSpacing: "0.5px", textAlign: "center", margin: "12px 0 0" }}>{title}</h2>
+      <GoldRule width={36} margin={mob ? "12px auto" : "20px auto"} />
+      {sub && <p style={{ fontFamily: mont, fontSize: mob ? 13 : 15, color: "#666666", textAlign: "center", margin: 0 }}>{sub}</p>}
     </div>
   );
 }
@@ -119,7 +119,7 @@ function SHead({ label, labelColor = "#FFCC00", title, sub }: { label: string; l
 export default function IntelligenceHome() {
   const navigate = useNavigate();
   const [navHov, setNavHov] = useState<number | null>(null);
-  const [mob, setMob] = useState(window.innerWidth < 768);
+  const [mob, setMob] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
   const [pillH, setPillH] = useState(false);
   const [footH, setFootH] = useState(false);
   const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
@@ -165,14 +165,16 @@ export default function IntelligenceHome() {
   };
 
   const pill = (hover: boolean, big = false): React.CSSProperties => ({
-    fontFamily: mont, fontSize: big ? 12 : 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase",
+    fontFamily: mont, fontSize: big ? (mob ? 10 : 12) : (mob ? 9 : 10), fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase",
     background: hover ? "#FFD633" : "#FFCC00", color: "#000000", border: "none", borderRadius: big ? 24 : 20,
-    padding: big ? "16px 40px" : "8px 20px", cursor: "pointer", whiteSpace: "nowrap", transition: "background 0.3s, transform 0.3s, box-shadow 0.3s",
+    padding: big ? (mob ? "12px 28px" : "16px 40px") : (mob ? "6px 14px" : "8px 20px"), cursor: "pointer", whiteSpace: "nowrap", transition: "background 0.3s, transform 0.3s, box-shadow 0.3s",
     transform: hover && big ? "translateY(-2px)" : "translateY(0)", boxShadow: hover && big ? "0 6px 20px rgba(0,0,0,0.12)" : "none",
   });
 
-  const body = (c = "#666666", w = 400): React.CSSProperties => ({ fontFamily: mont, fontSize: 15, fontWeight: w, color: c, lineHeight: 1.7, textAlign: "center", margin: 0 });
-  const h1s = (s = "clamp(28px,6vw,48px)", it = false): React.CSSProperties => ({ fontFamily: playfair, fontSize: s, fontWeight: 700, color: "#000000", letterSpacing: "0.5px", textAlign: "center", margin: 0, fontStyle: it ? "italic" : "normal" });
+  const body = (c = "#666666", w = 400): React.CSSProperties => ({ fontFamily: mont, fontSize: mob ? 14 : 15, fontWeight: w, color: c, lineHeight: 1.7, textAlign: "center", margin: 0 });
+  const h1s = (s?: string, it = false): React.CSSProperties => ({ fontFamily: playfair, fontSize: s || (mob ? "clamp(24px,6vw,48px)" : "clamp(28px,6vw,48px)"), fontWeight: 700, color: "#000000", letterSpacing: "0.5px", textAlign: "center", margin: 0, fontStyle: it ? "italic" : "normal" });
+
+  const px = mob ? 16 : 24; // standard horizontal padding
 
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF", overflowY: "visible", height: "auto" }}>
@@ -183,23 +185,23 @@ export default function IntelligenceHome() {
       {/* ─── NAV ─── */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#FFFFFF", borderBottom: "1px solid #F2F2F2" }}>
         {/* top row */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 24px", height: 50 }}>
-          <div style={{ fontFamily: playfair, fontSize: 18, fontStyle: "italic", color: "#FFCC00", lineHeight: 1 }}>M</div>
-          <div style={{ fontFamily: playfair, fontSize: 26, fontWeight: 700, color: "#000000", position: "absolute", left: "50%", transform: "translateX(-50%)" }}>Art Gallery</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: `8px ${px}px`, height: mob ? 44 : 50 }}>
+          <div style={{ fontFamily: playfair, fontSize: mob ? 16 : 18, fontStyle: "italic", color: "#FFCC00", lineHeight: 1 }}>M</div>
+          <div style={{ fontFamily: playfair, fontSize: mob ? 18 : 26, fontWeight: 700, color: "#000000", position: "absolute", left: "50%", transform: "translateX(-50%)" }}>Art Gallery</div>
           {!mob && <button onClick={() => navigate("/dashboard")} onMouseEnter={() => setPillH(true)} onMouseLeave={() => setPillH(false)} style={pill(pillH)}>REAL INTELLIGENCE →</button>}
           {mob && <div style={{ width: 20 }} />}
         </div>
         {/* by line */}
-        <div style={{ textAlign: "center", paddingBottom: 4 }}>
-          <span style={{ fontFamily: mont, fontSize: 9, letterSpacing: "2px", textTransform: "uppercase", color: "#666666" }}>by MirrorAI</span>
+        <div style={{ textAlign: "center", paddingBottom: 2 }}>
+          <span style={{ fontFamily: mont, fontSize: mob ? 8 : 9, letterSpacing: "2px", textTransform: "uppercase", color: "#666666" }}>by MirrorAI</span>
         </div>
         {/* nav links */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 20, overflowX: "auto", paddingBottom: 10, paddingLeft: 16, paddingRight: 16, scrollbarWidth: "none" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: mob ? 12 : 20, overflowX: "auto", paddingBottom: 8, paddingLeft: px, paddingRight: px, scrollbarWidth: "none" }}>
           {NAV_ITEMS.map((n, i) => {
             const active = activeNav === i;
             return (
               <button key={n.label} onClick={() => go(n.path)} onMouseEnter={() => setNavHov(i)} onMouseLeave={() => setNavHov(null)}
-                style={{ fontFamily: mont, fontSize: 12, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: active || navHov === i ? "#000000" : "#666666", background: "none", border: "none", borderBottom: active ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", padding: "8px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
+                style={{ fontFamily: mont, fontSize: mob ? 10 : 12, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: active || navHov === i ? "#000000" : "#666666", background: "none", border: "none", borderBottom: active ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", padding: mob ? "6px 0" : "8px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
                 {n.label}
               </button>
             );
@@ -209,88 +211,90 @@ export default function IntelligenceHome() {
 
       {/* ─── FLOATING MOBILE CTA ─── */}
       {mob && (
-        <button onClick={() => navigate("/dashboard")} style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 200, fontFamily: mont, fontSize: 11, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", background: "#FFCC00", color: "#000000", border: "none", borderRadius: 24, padding: "14px 28px", boxShadow: "0 4px 24px rgba(0,0,0,0.15)", cursor: "pointer", animation: "pp 2s ease-in-out infinite" }}>
+        <button onClick={() => navigate("/dashboard")} style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", zIndex: 200, fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", background: "#FFCC00", color: "#000000", border: "none", borderRadius: 24, padding: "12px 24px", boxShadow: "0 4px 24px rgba(0,0,0,0.15)", cursor: "pointer", animation: "pp 2s ease-in-out infinite" }}>
           Enter Real Intelligence →
         </button>
       )}
 
       {/* ─── EDUCATION BAR + CARD ─── */}
-      <div id="education" style={{ background: "#FAFAFA", padding: "16px 24px", width: "100%" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, maxWidth: 900, margin: "0 auto" }}>
-          <span style={{ fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1.5px", textTransform: "uppercase", color: "#FFCC00", flexShrink: 0 }}>LEARN</span>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", flex: 1, scrollbarWidth: "none", paddingRight: 8 }}>
+      <div id="education" style={{ background: "#FAFAFA", padding: mob ? "12px 16px" : "16px 24px", width: "100%" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: mob ? 10 : 16, maxWidth: 900, margin: "0 auto" }}>
+          <span style={{ fontFamily: mont, fontSize: mob ? 9 : 10, fontWeight: 600, letterSpacing: "1.5px", textTransform: "uppercase", color: "#FFCC00", flexShrink: 0 }}>LEARN</span>
+          <div style={{ display: "flex", gap: mob ? 6 : 8, overflowX: "auto", flex: 1, scrollbarWidth: "none", paddingRight: 8 }}>
             {EDU_TOPICS.map((t, i) => (
-              <button key={t} onClick={() => setActiveEdu(i)} style={{ fontFamily: mont, fontSize: 11, fontWeight: 400, padding: "6px 14px", border: activeEdu === i ? "none" : "1px solid #F2F2F2", background: activeEdu === i ? "#000000" : "transparent", color: activeEdu === i ? "#FFFFFF" : "#000000", borderRadius: 0, cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s", minHeight: 34 }}>{t}</button>
+              <button key={t} onClick={() => setActiveEdu(i)} style={{ fontFamily: mont, fontSize: mob ? 10 : 11, fontWeight: 400, padding: mob ? "5px 10px" : "6px 14px", border: activeEdu === i ? "none" : "1px solid #F2F2F2", background: activeEdu === i ? "#000000" : "transparent", color: activeEdu === i ? "#FFFFFF" : "#000000", borderRadius: 0, cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s", minHeight: 34 }}>{t}</button>
             ))}
           </div>
-          <span style={{ fontFamily: mont, fontSize: 11, fontWeight: 600, color: "#000000", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>View All →</span>
+          {!mob && <span style={{ fontFamily: mont, fontSize: 11, fontWeight: 600, color: "#000000", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>View All →</span>}
         </div>
       </div>
 
       {/* FEATURED EDUCATION CARD */}
-      <Fade style={{ maxWidth: 900, margin: "20px auto", padding: mob ? "0 20px" : "0 24px" }}>
-        <div style={{ display: "flex", flexDirection: mob ? "column" : "row", border: "1px solid #F2F2F2", overflow: "hidden" }}>
-          <div style={{ width: mob ? "100%" : "40%", height: 200, background: warmGrad, flexShrink: 0 }} />
-          <div style={{ padding: 24, flex: 1 }}>
-            <div style={{ fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>FREE TUTORIAL</div>
-            <div style={{ fontFamily: playfair, fontSize: 22, fontWeight: 700, color: "#000000", marginTop: 8, lineHeight: 1.3 }}>Mastering Natural Light in Indian Wedding Venues</div>
-            <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", lineHeight: 1.6, margin: "10px 0 0" }}>Dark mandaps, mixed lighting, and 500 guests. Learn how top Indian wedding photographers handle the most challenging conditions.</p>
-            <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", marginTop: 10 }}>By Naman Verma · 12 min read</div>
-            <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000000", marginTop: 12, cursor: "pointer" }}>Start Learning →</div>
+      <Fade style={{ maxWidth: 900, margin: "20px auto", padding: `0 ${px}px` }}>
+        <div style={{ display: "flex", flexDirection: mob ? "column" : "row", border: mob ? "none" : "1px solid #F2F2F2", overflow: "hidden" }}>
+          <div style={{ width: mob ? "100%" : "40%", height: mob ? "auto" : 200, minHeight: mob ? 160 : undefined, background: warmGrad, flexShrink: 0 }}>
+            {mob && <div style={{ paddingTop: "55%" }} />}
+          </div>
+          <div style={{ padding: mob ? "16px 0" : 24, flex: 1 }}>
+            <div style={{ fontFamily: mont, fontSize: mob ? 9 : 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>FREE TUTORIAL</div>
+            <div style={{ fontFamily: playfair, fontSize: mob ? 18 : 22, fontWeight: 700, color: "#000000", marginTop: 8, lineHeight: 1.3 }}>Mastering Natural Light in Indian Wedding Venues</div>
+            <p style={{ fontFamily: mont, fontSize: mob ? 12 : 13, color: "#666666", lineHeight: 1.6, margin: "10px 0 0" }}>Dark mandaps, mixed lighting, and 500 guests. Learn how top Indian wedding photographers handle the most challenging conditions.</p>
+            <div style={{ fontFamily: mont, fontSize: mob ? 11 : 12, color: "#666666", marginTop: 10 }}>By Naman Verma · 12 min read</div>
+            <div style={{ fontFamily: mont, fontSize: mob ? 11 : 12, fontWeight: 600, color: "#000000", marginTop: 12, cursor: "pointer" }}>Start Learning →</div>
           </div>
         </div>
       </Fade>
 
       {/* ─── 3. HERO ─── */}
-      <div id="feed" style={{ position: "relative", minHeight: "70vh" }}>
-        <img src="/images/gallery-1.jpg" alt="Hero" style={{ width: "100%", height: "70vh", objectFit: "cover", display: "block" }} />
+      <div id="feed">
+        <img src="/images/gallery-1.jpg" alt="Hero" style={{ width: "100%", height: "auto", objectFit: "cover", display: "block" }} />
       </div>
 
-      <Fade style={{ textAlign: "center", padding: mob ? "60px 20px 40px" : "80px 24px 60px" }}>
-        <Lbl color="#FFCC00">THE REAL INTELLIGENCE</Lbl>
-        <h1 style={{ ...h1s("clamp(36px,8vw,64px)"), marginTop: 16, lineHeight: 1.15 }}>India Celebrates Love Like No Other Nation On Earth</h1>
-        <GoldRule />
+      <Fade style={{ textAlign: "center", padding: `${mob ? 40 : 80}px ${px}px ${mob ? 32 : 60}px` }}>
+        <p style={{ fontFamily: mont, fontSize: mob ? 9 : 11, fontWeight: 400, letterSpacing: "1.5px", textTransform: "uppercase", color: "#FFCC00", margin: 0 }}>THE REAL INTELLIGENCE</p>
+        <h1 style={{ fontFamily: playfair, fontSize: mob ? "clamp(24px,6vw,64px)" : "clamp(36px,8vw,64px)", fontWeight: 700, color: "#000000", marginTop: 16, lineHeight: 1.15, letterSpacing: "0.5px", textAlign: "center" }}>India Celebrates Love Like No Other Nation On Earth</h1>
+        <GoldRule margin={mob ? "16px auto" : "28px auto"} />
         <p style={{ ...body(), maxWidth: 620, margin: "0 auto" }}>Hindu, Muslim, Sikh, Christian, Jain, Buddhist, Parsi — every faith, every region, every ritual. From the saat pheras of a North Indian mandap to the thali tying of a Tamil ceremony. From a Kashmiri lavender garden to a Kerala houseboat. From a Nikah in Lucknow to an Anand Karaj in Amritsar.</p>
         <p style={{ ...body("#000000", 500), maxWidth: 620, margin: "16px auto 0" }}>No country on earth has this many ways of saying forever.</p>
-        <p style={{ fontFamily: mont, fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", color: "#666666", marginTop: 12, textAlign: "center" }}>AND NO PLATFORM WAS EVER BUILT TO SERVE THE PHOTOGRAPHERS WHO CAPTURE IT ALL — UNTIL NOW.</p>
+        <p style={{ fontFamily: mont, fontSize: mob ? 9 : 11, letterSpacing: "1.5px", textTransform: "uppercase", color: "#666666", marginTop: 12, textAlign: "center" }}>AND NO PLATFORM WAS EVER BUILT TO SERVE THE PHOTOGRAPHERS WHO CAPTURE IT ALL — UNTIL NOW.</p>
       </Fade>
 
       {/* 4. FULL WIDTH IMAGE */}
-      <img src="/images/gallery-2.jpg" alt="Culture diversity" style={{ width: "100%", height: mob ? "35vh" : "50vh", objectFit: "cover", display: "block", margin: "30px 0" }} />
+      <img src="/images/gallery-2.jpg" alt="Culture diversity" style={{ width: "100%", height: "auto", objectFit: "cover", display: "block", margin: `${mob ? 20 : 30}px 0` }} />
 
       {/* 5. THE TRUTH */}
-      <Fade style={{ textAlign: "center", padding: mob ? "60px 20px 30px" : "80px 24px 40px", maxWidth: 660, margin: "0 auto" }}>
-        <Lbl>THE TRUTH</Lbl>
+      <Fade style={{ textAlign: "center", padding: `${mob ? 40 : 80}px ${px}px ${mob ? 24 : 40}px`, maxWidth: 660, margin: "0 auto" }}>
+        <p style={{ fontFamily: mont, fontSize: mob ? 9 : 11, fontWeight: 400, letterSpacing: "1.5px", textTransform: "uppercase", color: "#666666", margin: 0 }}>THE TRUTH</p>
         <h2 style={{ ...h1s(), marginTop: 12 }}>You Deserved Better. So We Built It.</h2>
-        <GoldRule width={36} margin="20px auto" />
+        <GoldRule width={36} margin={mob ? "12px auto" : "20px auto"} />
         <p style={{ ...body(), margin: "0 auto" }}>For years, Indian wedding photographers used platforms designed for 200-photo portrait sessions in Portland. You shoot 20,000 images across five days. You deliver to families of 500. You work on Indian internet, price in rupees, and create art that rivals cinema.</p>
         <p style={{ ...body("#000000", 500), margin: "20px auto 0" }}>The tools you were given were never made for you. MirrorAI is.</p>
       </Fade>
 
       {/* 6. FULL WIDTH IMAGE */}
-      <img src="/images/gallery-4.jpg" alt="Couple portrait" style={{ width: "100%", height: mob ? "30vh" : "45vh", objectFit: "cover", display: "block", margin: "30px 0" }} />
+      <img src="/images/gallery-4.jpg" alt="Couple portrait" style={{ width: "100%", height: "auto", objectFit: "cover", display: "block", margin: `${mob ? 20 : 30}px 0` }} />
 
       {/* NEWS SECTION */}
-      <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
+      <Fade style={{ padding: `${mob ? 40 : 80}px ${px}px 0`, maxWidth: 900, margin: "0 auto" }}>
         <div id="news">
-          <SHead label="INDUSTRY NEWS" title="From The Photography World" />
+          <SHead label="INDUSTRY NEWS" title="From The Photography World" mob={mob} />
           {newsLoading ? (
             <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", textAlign: "center" }}>Loading latest news...</p>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: mob ? 20 : 24 }}>
               {news.map((n, i) => (
-                <a key={i} href={n.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit", border: "1px solid #F2F2F2", overflow: "hidden", display: "block", transition: "transform 0.3s, box-shadow 0.3s" }} onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.08)"; }} onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+                <a key={i} href={n.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit", border: mob ? "none" : "1px solid #F2F2F2", borderBottom: mob ? "1px solid #F2F2F2" : undefined, overflow: "hidden", display: "block", transition: "transform 0.3s, box-shadow 0.3s" }} onMouseEnter={e => { if (!mob) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.08)"; }}} onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
                   {n.thumbnail ? (
-                    <img src={n.thumbnail} alt={n.title} style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
+                    <img src={n.thumbnail} alt={n.title} style={{ width: "100%", height: "auto", objectFit: "cover", display: "block" }} />
                   ) : (
-                    <div style={{ width: "100%", height: 180, background: i % 2 === 0 ? warmGrad : coolGrad }} />
+                    <div style={{ width: "100%", paddingTop: "55%", background: i % 2 === 0 ? warmGrad : coolGrad }} />
                   )}
-                  <div style={{ padding: 20 }}>
-                    <div style={{ fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>{n.source}</div>
-                    <div style={{ fontFamily: playfair, fontSize: 18, fontWeight: 700, color: "#000000", marginTop: 8, lineHeight: 1.3 }}>{n.title}</div>
-                    <div style={{ fontFamily: mont, fontSize: 11, color: "#666666", marginTop: 6 }}>{new Date(n.pubDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
-                    <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", lineHeight: 1.6, margin: "8px 0 0" }}>{n.description}</p>
-                    <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000000", marginTop: 12 }}>Read Article →</div>
+                  <div style={{ padding: mob ? "16px 0" : 20 }}>
+                    <div style={{ fontFamily: mont, fontSize: mob ? 9 : 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>{n.source}</div>
+                    <div style={{ fontFamily: playfair, fontSize: mob ? 16 : 18, fontWeight: 700, color: "#000000", marginTop: 8, lineHeight: 1.3 }}>{n.title}</div>
+                    <div style={{ fontFamily: mont, fontSize: mob ? 10 : 11, color: "#666666", marginTop: 6 }}>{new Date(n.pubDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+                    <p style={{ fontFamily: mont, fontSize: mob ? 12 : 13, color: "#666666", lineHeight: 1.6, margin: "8px 0 0" }}>{n.description}</p>
+                    <div style={{ fontFamily: mont, fontSize: mob ? 11 : 12, fontWeight: 600, color: "#000000", marginTop: 12 }}>Read Article →</div>
                   </div>
                 </a>
               ))}
@@ -300,18 +304,18 @@ export default function IntelligenceHome() {
       </Fade>
 
       {/* 7. FEATURED PHOTOGRAPHERS */}
-      <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
+      <Fade style={{ padding: `${mob ? 40 : 80}px ${px}px 0`, maxWidth: 900, margin: "0 auto" }}>
         <div id="featured">
-          <SHead label="SPOTLIGHT" title="Featured Photographers" sub="Celebrating the artists who define Indian wedding photography." />
-          <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr 1fr", gap: 24 }}>
+          <SHead label="SPOTLIGHT" title="Featured Photographers" sub="Celebrating the artists who define Indian wedding photography." mob={mob} />
+          <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr 1fr", gap: mob ? 32 : 24 }}>
             {PHOTOGRAPHERS.map((p, i) => (
-              <div key={i} style={{ border: "1px solid #F2F2F2", overflow: "hidden", transition: "transform 0.3s" }} onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-3px)")} onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}>
-                <img src={`/images/gallery-${i + 3}.jpg`} alt={p.name} style={{ width: "100%", height: 280, objectFit: "cover", display: "block" }} />
-                <div style={{ padding: 24 }}>
-                  <div style={{ fontFamily: playfair, fontSize: 20, fontWeight: 700, color: "#000000" }}>{p.name}</div>
-                  <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>{p.location}</div>
-                  <p style={{ fontFamily: mont, fontSize: 14, color: "#666666", lineHeight: 1.6, marginTop: 12, margin: "12px 0 0" }}>{p.bio}</p>
-                  <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000000", marginTop: 12, cursor: "pointer" }}>View Work →</div>
+              <div key={i} style={{ border: mob ? "none" : "1px solid #F2F2F2", borderBottom: mob ? "1px solid #F2F2F2" : undefined, overflow: "hidden", transition: "transform 0.3s" }} onMouseEnter={e => { if (!mob) e.currentTarget.style.transform = "translateY(-3px)"; }} onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}>
+                <img src={`/images/gallery-${i + 3}.jpg`} alt={p.name} style={{ width: "100%", height: "auto", objectFit: "cover", display: "block" }} />
+                <div style={{ padding: mob ? "16px 0" : 24 }}>
+                  <div style={{ fontFamily: playfair, fontSize: mob ? 16 : 20, fontWeight: 700, color: "#000000" }}>{p.name}</div>
+                  <div style={{ fontFamily: mont, fontSize: mob ? 10 : 12, color: "#666666", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>{p.location}</div>
+                  <p style={{ fontFamily: mont, fontSize: mob ? 13 : 14, color: "#666666", lineHeight: 1.6, marginTop: 12, margin: "12px 0 0" }}>{p.bio}</p>
+                  <div style={{ fontFamily: mont, fontSize: mob ? 11 : 12, fontWeight: 600, color: "#000000", marginTop: 12, cursor: "pointer" }}>View Work →</div>
                 </div>
               </div>
             ))}
@@ -320,18 +324,18 @@ export default function IntelligenceHome() {
       </Fade>
 
       {/* 8. COMMUNITY STORIES */}
-      <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
+      <Fade style={{ padding: `${mob ? 40 : 80}px ${px}px 0`, maxWidth: 900, margin: "0 auto" }}>
         <div id="stories">
-          <SHead label="COMMUNITY" title="Love Stories From Our Community" />
-          <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 20 }}>
+          <SHead label="COMMUNITY" title="Love Stories From Our Community" mob={mob} />
+          <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: mob ? 32 : 20 }}>
             {STORIES.map((s, i) => (
-              <div key={i} style={{ border: "1px solid #F2F2F2", overflow: "hidden", transition: "transform 0.3s" }} onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-3px)")} onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}>
-                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={s.couple} style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} />
-                <div style={{ padding: 20 }}>
-                  <div style={{ fontFamily: playfair, fontSize: 18, fontWeight: 700, color: "#000000" }}>{s.couple}</div>
-                  <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", marginTop: 4 }}>{s.loc}</div>
-                  <p style={{ fontFamily: mont, fontSize: 14, color: "#666666", lineHeight: 1.6, marginTop: 8, margin: "8px 0 0" }}>{s.snippet}</p>
-                  <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000000", marginTop: 8, cursor: "pointer" }}>Read Story →</div>
+              <div key={i} style={{ border: mob ? "none" : "1px solid #F2F2F2", borderBottom: mob ? "1px solid #F2F2F2" : undefined, overflow: "hidden", transition: "transform 0.3s" }} onMouseEnter={e => { if (!mob) e.currentTarget.style.transform = "translateY(-3px)"; }} onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}>
+                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={s.couple} style={{ width: "100%", height: "auto", objectFit: "cover", display: "block" }} />
+                <div style={{ padding: mob ? "16px 0" : 20 }}>
+                  <div style={{ fontFamily: playfair, fontSize: mob ? 16 : 18, fontWeight: 700, color: "#000000" }}>{s.couple}</div>
+                  <div style={{ fontFamily: mont, fontSize: mob ? 11 : 12, color: "#666666", marginTop: 4 }}>{s.loc}</div>
+                  <p style={{ fontFamily: mont, fontSize: mob ? 13 : 14, color: "#666666", lineHeight: 1.6, marginTop: 8, margin: "8px 0 0" }}>{s.snippet}</p>
+                  <div style={{ fontFamily: mont, fontSize: mob ? 11 : 12, fontWeight: 600, color: "#000000", marginTop: 8, cursor: "pointer" }}>Read Story →</div>
                 </div>
               </div>
             ))}
@@ -340,94 +344,94 @@ export default function IntelligenceHome() {
       </Fade>
 
       {/* 9. TRENDING STYLES */}
-      <Fade style={{ padding: mob ? "60px 0 0" : "80px 0 0" }}>
-        <div id="trending" style={{ maxWidth: 900, margin: "0 auto", paddingLeft: mob ? 20 : 24, paddingRight: mob ? 20 : 24 }}>
-          <SHead label="TRENDING NOW" title="Wedding Styles That Define 2026" />
+      <Fade style={{ padding: `${mob ? 40 : 80}px 0 0` }}>
+        <div id="trending" style={{ maxWidth: 900, margin: "0 auto", paddingLeft: px, paddingRight: px }}>
+          <SHead label="TRENDING NOW" title="Wedding Styles That Define 2026" mob={mob} />
         </div>
-        <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingLeft: mob ? 20 : "calc((100% - 900px) / 2 + 24px)", paddingRight: 20, paddingBottom: 8, scrollbarWidth: "none" }}>
+        <div style={{ display: "flex", gap: mob ? 12 : 16, overflowX: "auto", paddingLeft: mob ? px : `calc((100% - 900px) / 2 + 24px)`, paddingRight: 20, paddingBottom: 8, scrollbarWidth: "none" }}>
           {TRENDS.map((t, i) => (
-            <div key={i} style={{ flexShrink: 0, width: 260 }}>
-              <div style={{ height: 320, position: "relative", overflow: "hidden" }}>
+            <div key={i} style={{ flexShrink: 0, width: mob ? 200 : 260 }}>
+              <div style={{ height: mob ? 260 : 320, position: "relative", overflow: "hidden" }}>
                 <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={t.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "40px 16px 16px", background: "linear-gradient(transparent, rgba(0,0,0,0.6))" }}>
-                  <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFFFFF" }}>{t.name}</div>
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: mob ? "30px 12px 12px" : "40px 16px 16px", background: "linear-gradient(transparent, rgba(0,0,0,0.6))" }}>
+                  <div style={{ fontFamily: mont, fontSize: mob ? 10 : 12, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFFFFF" }}>{t.name}</div>
                 </div>
               </div>
-              <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", padding: "16px 0 0", margin: 0 }}>{t.desc}</p>
+              <p style={{ fontFamily: mont, fontSize: mob ? 12 : 13, color: "#666666", padding: "12px 0 0", margin: 0 }}>{t.desc}</p>
             </div>
           ))}
         </div>
       </Fade>
 
       {/* 10. UPDATES */}
-      <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 660, margin: "0 auto" }}>
+      <Fade style={{ padding: `${mob ? 40 : 80}px ${px}px 0`, maxWidth: 660, margin: "0 auto" }}>
         <div id="updates">
-          <SHead label="PRODUCT UPDATES" title="What's New In MirrorAI" />
+          <SHead label="PRODUCT UPDATES" title="What's New In MirrorAI" mob={mob} />
           {UPDATES.map((u, i) => (
-            <div key={i} style={{ padding: "24px 0", borderBottom: "1px solid #F2F2F2" }}>
-              <div style={{ fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>{u.date}</div>
-              <div style={{ fontFamily: playfair, fontSize: 20, fontWeight: 700, color: "#000000", marginTop: 8 }}>{u.title}</div>
-              <p style={{ fontFamily: mont, fontSize: 14, color: "#666666", lineHeight: 1.6, margin: "8px 0 0" }}>{u.desc}</p>
+            <div key={i} style={{ padding: mob ? "16px 0" : "24px 0", borderBottom: "1px solid #F2F2F2" }}>
+              <div style={{ fontFamily: mont, fontSize: mob ? 9 : 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>{u.date}</div>
+              <div style={{ fontFamily: playfair, fontSize: mob ? 16 : 20, fontWeight: 700, color: "#000000", marginTop: 8 }}>{u.title}</div>
+              <p style={{ fontFamily: mont, fontSize: mob ? 13 : 14, color: "#666666", lineHeight: 1.6, margin: "8px 0 0" }}>{u.desc}</p>
             </div>
           ))}
         </div>
       </Fade>
 
       {/* 11. FULL WIDTH IMAGE */}
-      <img src="/images/gallery-6.jpg" alt="Celebration" style={{ width: "100%", height: mob ? "35vh" : "50vh", objectFit: "cover", display: "block", margin: "60px 0 30px" }} />
+      <img src="/images/gallery-6.jpg" alt="Celebration" style={{ width: "100%", height: "auto", objectFit: "cover", display: "block", margin: `${mob ? 40 : 60}px 0 ${mob ? 20 : 30}px` }} />
 
       {/* 12. FEATURES EDITORIAL */}
-      <Fade style={{ maxWidth: 660, margin: "0 auto", padding: mob ? "60px 20px 0" : "80px 24px 0" }}>
-        <Lbl color="#FFCC00">WHAT REAL INTELLIGENCE LOOKS LIKE</Lbl>
-        <div style={{ marginTop: 50 }}>
+      <Fade style={{ maxWidth: 660, margin: "0 auto", padding: `${mob ? 40 : 80}px ${px}px 0` }}>
+        <p style={{ fontFamily: mont, fontSize: mob ? 9 : 11, fontWeight: 400, letterSpacing: "1.5px", textTransform: "uppercase", color: "#FFCC00", margin: 0 }}>WHAT REAL INTELLIGENCE LOOKS LIKE</p>
+        <div style={{ marginTop: mob ? 32 : 50 }}>
           {ALL_FEATURES.map((f, i) => (
-            <div key={i} style={{ marginBottom: 40 }}>
-              <h3 style={{ fontFamily: playfair, fontSize: 24, fontWeight: 700, color: "#000000", margin: 0 }}>{f.name}</h3>
-              <div style={{ width: 24, height: 2, background: "#FFCC00", margin: "10px 0 16px 0" }} />
+            <div key={i} style={{ marginBottom: mob ? 28 : 40 }}>
+              <h3 style={{ fontFamily: playfair, fontSize: mob ? 20 : 24, fontWeight: 700, color: "#000000", margin: 0 }}>{f.name}</h3>
+              <div style={{ width: 24, height: 2, background: "#FFCC00", margin: "10px 0 12px 0" }} />
               <p style={{ ...body(), textAlign: "left" }}>{f.desc}</p>
             </div>
           ))}
         </div>
-        <div style={{ width: "50%", height: 1, background: "#FFCC00", margin: "50px auto" }} />
+        <div style={{ width: "50%", height: 1, background: "#FFCC00", margin: `${mob ? 32 : 50}px auto` }} />
       </Fade>
 
       {/* 13. WHY INDIA */}
-      <Fade style={{ textAlign: "center", padding: mob ? "60px 20px 20px" : "80px 24px 20px", maxWidth: 660, margin: "0 auto" }}>
-        <Lbl>WHY NOW</Lbl>
+      <Fade style={{ textAlign: "center", padding: `${mob ? 40 : 80}px ${px}px 20px`, maxWidth: 660, margin: "0 auto" }}>
+        <p style={{ fontFamily: mont, fontSize: mob ? 9 : 11, fontWeight: 400, letterSpacing: "1.5px", textTransform: "uppercase", color: "#666666", margin: 0 }}>WHY NOW</p>
         <h2 style={{ ...h1s(), marginTop: 12 }}>Built For The ₹10 Lakh Crore Industry</h2>
-        <GoldRule width={36} margin="20px auto" />
+        <GoldRule width={36} margin={mob ? "12px auto" : "20px auto"} />
         <p style={{ ...body(), margin: "0 auto" }}>India hosts over 10 million weddings every year. A ₹10 lakh crore industry — the largest wedding market on earth. Yet every tool photographers use was built in America, priced in dollars, designed for a different world.</p>
         <p style={{ ...body("#000000", 500), margin: "20px auto 0" }}>MirrorAI is the first platform engineered from the ground up for Indian wedding photographers. Indian internet speeds. Indian pricing. Indian workflows. Indian intelligence.</p>
       </Fade>
 
       {/* 14. STATS */}
-      <Fade style={{ display: "flex", flexDirection: mob ? "column" : "row", justifyContent: "center", alignItems: "center", gap: mob ? 30 : 40, padding: mob ? "40px 20px" : "60px 24px" }}>
+      <Fade style={{ display: "flex", flexDirection: mob ? "column" : "row", justifyContent: "center", alignItems: "center", gap: mob ? 24 : 40, padding: `${mob ? 32 : 60}px ${px}px` }}>
         {STATS.map((s, i) => (
           <div key={i} style={{ textAlign: "center" }}>
-            <div style={{ fontFamily: playfair, fontSize: 52, fontWeight: 700, color: "#FFCC00", lineHeight: 1 }}>{s.num}</div>
-            <div style={{ fontFamily: mont, fontSize: 11, letterSpacing: "1px", textTransform: "uppercase", color: "#666666", marginTop: 8 }}>{s.label}</div>
+            <div style={{ fontFamily: playfair, fontSize: mob ? 32 : 52, fontWeight: 700, color: "#FFCC00", lineHeight: 1 }}>{s.num}</div>
+            <div style={{ fontFamily: mont, fontSize: mob ? 9 : 11, letterSpacing: "1px", textTransform: "uppercase", color: "#666666", marginTop: 8 }}>{s.label}</div>
           </div>
         ))}
       </Fade>
 
       {/* 15. ENTER RI BANNER */}
-      <Fade style={{ textAlign: "center", padding: mob ? "60px 20px" : "80px 24px", background: "#FAFAFA" }}>
-        <h2 style={{ fontFamily: playfair, fontSize: 32, fontWeight: 700, color: "#000000", margin: 0 }}>Ready To Create?</h2>
+      <Fade style={{ textAlign: "center", padding: `${mob ? 40 : 80}px ${px}px`, background: "#FAFAFA" }}>
+        <h2 style={{ fontFamily: playfair, fontSize: mob ? 24 : 32, fontWeight: 700, color: "#000000", margin: 0 }}>Ready To Create?</h2>
         <p style={{ ...body(), margin: "12px auto 0" }}>Enter Real Intelligence and start building.</p>
         <button onClick={() => navigate("/dashboard")} onMouseEnter={() => setFootH(true)} onMouseLeave={() => setFootH(false)} style={{ ...pill(footH, true), marginTop: 28 }}>ENTER REAL INTELLIGENCE →</button>
       </Fade>
 
       {/* 16. CLOSING MANIFESTO */}
-      <Fade style={{ textAlign: "center", padding: mob ? "60px 20px 40px" : "80px 24px 60px", maxWidth: 620, margin: "0 auto" }}>
-        <h2 style={{ ...h1s("clamp(28px,6vw,48px)", true) }}>This Is Real Intelligence</h2>
-        <GoldRule width={36} margin="20px auto" />
+      <Fade style={{ textAlign: "center", padding: `${mob ? 40 : 80}px ${px}px ${mob ? 32 : 60}px`, maxWidth: 620, margin: "0 auto" }}>
+        <h2 style={{ ...h1s(mob ? "clamp(22px,5vw,48px)" : "clamp(28px,6vw,48px)", true) }}>This Is Real Intelligence</h2>
+        <GoldRule width={36} margin={mob ? "12px auto" : "20px auto"} />
         <p style={{ ...body(), margin: "0 auto" }}>Not artificial. Not imported. Not borrowed. Built here, for here, by people who understand that an Indian wedding is not an event — it is an emotion that spans generations.</p>
         <p style={{ ...body("#000000", 500), margin: "20px auto 0" }}>MirrorAI exists because you deserve a platform as extraordinary as the weddings you photograph.</p>
       </Fade>
 
       {/* 17. FOOTER */}
-      <footer style={{ textAlign: "center", padding: "40px 24px", borderTop: "1px solid #F2F2F2" }}>
-        <div style={{ fontFamily: mont, fontSize: 12, color: "#666666" }}>© ART GALLERY by MIRRORAI · THE REAL INTELLIGENCE</div>
+      <footer style={{ textAlign: "center", padding: `${mob ? 28 : 40}px ${px}px`, borderTop: "1px solid #F2F2F2", paddingBottom: `calc(${mob ? 28 : 40}px + env(safe-area-inset-bottom, 0px))` }}>
+        <div style={{ fontFamily: mont, fontSize: mob ? 10 : 12, color: "#666666" }}>© ART GALLERY by MIRRORAI · THE REAL INTELLIGENCE</div>
         <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#FFCC00", margin: "16px auto 0" }} />
       </footer>
     </div>
