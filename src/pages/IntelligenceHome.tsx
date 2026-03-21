@@ -106,7 +106,7 @@ export default function IntelligenceHome() {
   });
 
   return (
-    <div style={{ minHeight: "100dvh", width: "100%", background: "#FFFFFF", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", width: "100%", background: "#FFFFFF", overflow: "visible" }}>
       {/* NAV */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#FFFFFF", borderBottom: "1px solid #F2F2F2" }}>
         <div style={{ textAlign: "center", paddingTop: 12 }}>
