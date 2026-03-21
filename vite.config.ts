@@ -18,11 +18,13 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
       react: path.resolve(__dirname, "node_modules/react"),
       "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+      "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
+      "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime"),
     },
-    dedupe: ["react", "react-dom", "react-router-dom", "@radix-ui/react-tooltip", "@radix-ui/react-dialog"],
+    dedupe: ["react", "react-dom", "react-router-dom"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react-dom/client", "react-router-dom", "@radix-ui/react-tooltip"],
+    include: ["react", "react-dom", "react-dom/client", "react-router-dom"],
     force: true,
   },
 }));
