@@ -162,8 +162,7 @@ export default function IntelligenceHome() {
 
       {/* ─── 3. HERO ─── */}
       <div style={{ position: "relative", minHeight: "70vh" }}>
-        {/* TODO: Replace with real image URL */}
-        <div style={{ width: "100%", height: "70vh", background: warmGrad }} />
+        <img src="/images/gallery-1.jpg" alt="Hero" style={{ width: "100%", height: "70vh", objectFit: "cover", display: "block" }} />
       </div>
 
       <Fade style={{ textAlign: "center", padding: mob ? "60px 20px 40px" : "80px 24px 60px" }}>
@@ -175,9 +174,8 @@ export default function IntelligenceHome() {
         <p style={{ fontFamily: mont, fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", color: "#666666", marginTop: 12, textAlign: "center" }}>AND NO PLATFORM WAS EVER BUILT TO SERVE THE PHOTOGRAPHERS WHO CAPTURE IT ALL — UNTIL NOW.</p>
       </Fade>
 
-      {/* 4. FULL WIDTH PLACEHOLDER */}
-      {/* TODO: Replace with real image URL */}
-      <div style={{ width: "100%", height: mob ? "35vh" : "50vh", background: warmGrad, margin: "30px 0" }} />
+      {/* 4. FULL WIDTH IMAGE */}
+      <img src="/images/gallery-2.jpg" alt="Culture diversity" style={{ width: "100%", height: mob ? "35vh" : "50vh", objectFit: "cover", display: "block", margin: "30px 0" }} />
 
       {/* 5. THE TRUTH */}
       <Fade style={{ textAlign: "center", padding: mob ? "60px 20px 30px" : "80px 24px 40px", maxWidth: 660, margin: "0 auto" }}>
@@ -188,9 +186,8 @@ export default function IntelligenceHome() {
         <p style={{ ...body("#000000", 500), margin: "20px auto 0" }}>The tools you were given were never made for you. MirrorAI is.</p>
       </Fade>
 
-      {/* 6. FULL WIDTH PLACEHOLDER */}
-      {/* TODO: Replace with real image URL */}
-      <div style={{ width: "100%", height: mob ? "30vh" : "45vh", background: coolGrad, margin: "30px 0" }} />
+      {/* 6. FULL WIDTH IMAGE */}
+      <img src="/images/gallery-4.jpg" alt="Couple portrait" style={{ width: "100%", height: mob ? "30vh" : "45vh", objectFit: "cover", display: "block", margin: "30px 0" }} />
 
       {/* 7. FEATURED PHOTOGRAPHERS */}
       <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
@@ -199,8 +196,7 @@ export default function IntelligenceHome() {
           <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr 1fr", gap: 24 }}>
             {PHOTOGRAPHERS.map((p, i) => (
               <div key={i} style={{ border: "1px solid #F2F2F2", overflow: "hidden", transition: "transform 0.3s" }} onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-3px)")} onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}>
-                {/* TODO: Replace with real image URL */}
-                <div style={{ height: 280, background: warmGrad }} />
+                <img src={`/images/gallery-${i + 3}.jpg`} alt={p.name} style={{ width: "100%", height: 280, objectFit: "cover", display: "block" }} />
                 <div style={{ padding: 24 }}>
                   <div style={{ fontFamily: playfair, fontSize: 20, fontWeight: 700, color: "#000000" }}>{p.name}</div>
                   <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>{p.location}</div>
@@ -220,8 +216,7 @@ export default function IntelligenceHome() {
           <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 20 }}>
             {STORIES.map((s, i) => (
               <div key={i} style={{ border: "1px solid #F2F2F2", overflow: "hidden", transition: "transform 0.3s" }} onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-3px)")} onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}>
-                {/* TODO: Replace with real image URL */}
-                <div style={{ height: 200, background: i % 2 === 0 ? warmGrad : coolGrad }} />
+                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={s.couple} style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} />
                 <div style={{ padding: 20 }}>
                   <div style={{ fontFamily: playfair, fontSize: 18, fontWeight: 700, color: "#000000" }}>{s.couple}</div>
                   <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", marginTop: 4 }}>{s.loc}</div>
@@ -242,8 +237,8 @@ export default function IntelligenceHome() {
         <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingLeft: mob ? 20 : "calc((100% - 900px) / 2 + 24px)", paddingRight: 20, paddingBottom: 8, scrollbarWidth: "none" }}>
           {TRENDS.map((t, i) => (
             <div key={i} style={{ flexShrink: 0, width: 260 }}>
-              {/* TODO: Replace with real image URL */}
-              <div style={{ height: 320, background: i % 2 === 0 ? warmGrad : coolGrad, position: "relative", overflow: "hidden" }}>
+              <div style={{ height: 320, position: "relative", overflow: "hidden" }}>
+                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={t.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "40px 16px 16px", background: "linear-gradient(transparent, rgba(0,0,0,0.6))" }}>
                   <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFFFFF" }}>{t.name}</div>
                 </div>
@@ -268,9 +263,8 @@ export default function IntelligenceHome() {
         </div>
       </Fade>
 
-      {/* 11. FULL WIDTH PLACEHOLDER */}
-      {/* TODO: Replace with real image URL */}
-      <div style={{ width: "100%", height: mob ? "35vh" : "50vh", background: warmGrad, margin: "60px 0 30px" }} />
+      {/* 11. FULL WIDTH IMAGE */}
+      <img src="/images/gallery-6.jpg" alt="Celebration" style={{ width: "100%", height: mob ? "35vh" : "50vh", objectFit: "cover", display: "block", margin: "60px 0 30px" }} />
 
       {/* 12. FEATURES EDITORIAL */}
       <Fade style={{ maxWidth: 660, margin: "0 auto", padding: mob ? "60px 20px 0" : "80px 24px 0" }}>
