@@ -409,7 +409,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
   // ── Mobile: full-screen ──
   if (isMobile) {
     return (
-      <div className="fixed inset-0" style={{ zIndex: 10002 }} role="dialog" aria-modal="true" aria-label="Daan">
+      <div className="fixed inset-0" style={{ zIndex: 200 }} role="dialog" aria-modal="true" aria-label="Daan">
         <div
           className="absolute inset-0 transition-opacity duration-300"
           style={{

@@ -214,7 +214,7 @@ export default function IntelligenceHome() {
 
       {/* IMAGE 6 — PHOTOGRAPHER */}
       <div style={{ maxWidth: 660, margin: "30px auto", padding: isMobile ? "0 20px" : "0 24px" }}>
-        <img src={IMAGES[5]} alt="" style={{ width: "100%", height: 400, objectFit: "cover", borderRadius: 4, display: "block" }} />
+        <img src={IMAGES[5]} alt="" style={{ width: "100%", maxWidth: "100%", height: 400, objectFit: "cover", background: "#f5f0ea", borderRadius: 4, display: "block" }} />
       </div>
 
       {/* STATS */}
