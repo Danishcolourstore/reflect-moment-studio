@@ -268,11 +268,16 @@ const LegacyEventRedirect = () => {
   return <Navigate to={id ? `/dashboard/events/${id}` : "/dashboard/events"} replace />;
 };
 
+const RealtimeSyncWrapper = ({ enabled }: { enabled: boolean }) => {
+  useRealtimeSync(enabled);
+  return null;
+};
+
 const AppRoutes = () => {
   const { user } = useAuth();
-  useRealtimeSync(!!user);
   return (
     <SuspendedProvider>
+      <RealtimeSyncWrapper enabled={!!user} />
       <Suspense fallback={<PageLoader />}>
         <PageTransition>
           <Routes>
