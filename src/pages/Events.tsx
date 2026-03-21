@@ -106,7 +106,7 @@ export default function Events() {
   }, []);
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#FFFFFF", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", width: "100%", background: "#FFFFFF", overflow: "visible" }}>
       {/* NAV */}
       <nav
         style={{
