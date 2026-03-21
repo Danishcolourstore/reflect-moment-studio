@@ -119,7 +119,7 @@ export default function IntelligenceHome() {
             const isHov = navHover === i;
             return (
               <button key={item.label} onClick={() => navigate(item.path)} onMouseEnter={() => setNavHover(i)} onMouseLeave={() => setNavHover(null)}
-                style={{ fontFamily: mont, fontSize: 14, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: isActive || isHov ? "#000000" : "#666666", background: "none", border: "none", borderBottom: isActive ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", paddingBottom: 4, transition: "color 0.3s", flexShrink: 0 }}>
+                style={{ fontFamily: mont, fontSize: 14, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: isActive || isHov ? "#000000" : "#666666", background: "none", border: "none", borderBottom: isActive ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", padding: "12px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
                 {item.label}
               </button>
             );

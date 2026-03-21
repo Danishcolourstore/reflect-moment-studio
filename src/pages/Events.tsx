@@ -177,6 +177,7 @@ export default function Events() {
           {STORIES.map((s, i) => (
             <FadeCard key={i}>
               {/* Cover Image */}
+              {/* TODO: Replace with real image URL */}
               <div
                 style={{
                   overflow: "hidden",

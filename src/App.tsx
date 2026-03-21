@@ -256,9 +256,9 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
       });
   }, [user, loading]);
 
-  if (loading) return null;
+  if (loading) return <PageLoader />;
   if (!user) return <>{children}</>;
-  if (!checked) return null;
+  if (!checked) return <PageLoader />;
   if (redirectTo) return <Navigate to={redirectTo} replace />;
   return <>{children}</>;
 }
