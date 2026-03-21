@@ -15,6 +15,7 @@ export type SuperAdminModuleKey =
   | 'mirrorai'
   | 'storybooks'
   | 'reflections'
+  | 'art-gallery'
   | 'emails'
   | 'activity'
   | 'settings';
