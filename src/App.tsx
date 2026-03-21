@@ -57,6 +57,7 @@ const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
 const Refyn = lazy(() => import("./pages/Refyn"));
 const ColourStore = lazy(() => import("./pages/ColourStore"));
 const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
+const LandingGate = lazy(() => import("./pages/LandingGate"));
 const RetouchLogin = lazy(() => import("./pages/RetouchLogin"));
 const ClientPreview = lazy(() => import("./pages/ClientPreview"));
 const DomainSettings = lazy(() => import("./pages/DomainSettings"));
