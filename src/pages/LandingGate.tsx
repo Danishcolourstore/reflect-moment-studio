@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { DrawerMenu, HamburgerButton, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { EntiranButton } from "@/components/entiran/EntiranButton";
+import { EntiranPanel } from "@/components/entiran/EntiranPanel";
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
