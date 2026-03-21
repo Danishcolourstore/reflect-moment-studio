@@ -9,7 +9,7 @@ import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StorybookGate } from "@/components/StorybookGate";
 import { GalleryShell } from "./components/GalleryShell";
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense, createContext, useContext } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
@@ -17,7 +17,7 @@ import { SUPER_ADMIN_ROUTES } from "@/config/super-admin-routes";
 import Dashboard from "./pages/Dashboard";
 
 // ─── Lazy-loaded pages ───
-const Auth = lazy(() => import("./pages/Auth").then(m => ({ default: m.default })));
+const Auth = lazy(() => import("./pages/Auth").then((m) => ({ default: m.default })));
 const Events = lazy(() => import("./pages/Events"));
 const EventGallery = lazy(() => import("./pages/EventGallery"));
 const UploadPage = lazy(() => import("./pages/UploadPage"));
@@ -110,12 +110,12 @@ const SUPER_ADMIN_ROUTE_MAP: Record<string, React.LazyExoticComponent<any>> = {
   mirrorai: SuperAdminMirrorAI,
   storybooks: SuperAdminStorybooks,
   settings: SuperAdminSettings,
-  'studio-templates': TemplateBuilder,
-  'grid-manager': SuperAdminGridManager,
+  "studio-templates": TemplateBuilder,
+  "grid-manager": SuperAdminGridManager,
   galleries: SuperAdminGalleries,
-  'dashboard-editor': SuperAdminDashboardEditor,
-  'platform-builder': SuperAdminPlatformBuilder,
-  'ai-developer': SuperAdminAIDeveloper,
+  "dashboard-editor": SuperAdminDashboardEditor,
+  "platform-builder": SuperAdminPlatformBuilder,
+  "ai-developer": SuperAdminAIDeveloper,
   reflections: SuperAdminReflections,
 };
 
@@ -139,9 +139,7 @@ function PageLoader() {
   );
 }
 
-// ─── Shared suspended-user state via context to avoid per-route realtime channels ───
-import { createContext, useContext } from "react";
-
+// ─── Shared suspended-user state via context ───
 const SuspendedContext = createContext<boolean | null>(null);
 
 function SuspendedProvider({ children }: { children: React.ReactNode }) {
@@ -149,12 +147,15 @@ function SuspendedProvider({ children }: { children: React.ReactNode }) {
   const [suspended, setSuspended] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!user) { setSuspended(null); return; }
+    if (!user) {
+      setSuspended(null);
+      return;
+    }
     let mounted = true;
 
     (async () => {
-      const { data, error } = await (supabase.from('profiles').select('suspended') as any)
-        .eq('user_id', user.id)
+      const { data } = await (supabase.from("profiles").select("suspended") as any)
+        .eq("user_id", user.id)
         .maybeSingle();
       if (!mounted) return;
       setSuspended(data?.suspended ?? false);
@@ -162,13 +163,20 @@ function SuspendedProvider({ children }: { children: React.ReactNode }) {
 
     const channel = supabase
       .channel(`profile-live-${user.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `user_id=eq.${user.id}` }, (payload: any) => {
-        const v = payload?.new?.suspended;
-        if (typeof v === 'boolean') setSuspended(v);
-      })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles", filter: `user_id=eq.${user.id}` },
+        (payload: any) => {
+          const v = payload?.new?.suspended;
+          if (typeof v === "boolean") setSuspended(v);
+        },
+      )
       .subscribe();
 
-    return () => { mounted = false; supabase.removeChannel(channel); };
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   return <SuspendedContext.Provider value={suspended}>{children}</SuspendedContext.Provider>;
@@ -185,6 +193,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
         <p className="text-muted-foreground font-serif text-lg">Loading...</p>
       </div>
     );
+
   if (!user) {
     sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
     return <Navigate to="/login" replace />;
@@ -227,23 +236,26 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
-    const rolePromise = supabase.from('user_roles').select('role').eq('user_id', user.id);
+    const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
     const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
     Promise.race([rolePromise, timeout])
       .then((result: any) => {
         const roles = (result?.data || []).map((r: any) => r.role);
 
-        if (roles.includes('super_admin')) {
-          setRedirectTo('/super-admin');
+        if (roles.includes("super_admin")) {
+          setRedirectTo("/super-admin");
           setChecked(true);
           return;
         }
 
-        if (roles.includes('client')) {
-          setRedirectTo('/client');
+        if (roles.includes("client")) {
+          setRedirectTo("/client");
         } else {
           const redirect = sessionStorage.getItem("redirectAfterLogin");
-          if (redirect && (redirect.startsWith("/dashboard") || redirect.startsWith("/home") || redirect.startsWith("/colour-store"))) {
+          if (
+            redirect &&
+            (redirect.startsWith("/dashboard") || redirect.startsWith("/home") || redirect.startsWith("/colour-store"))
+          ) {
             sessionStorage.removeItem("redirectAfterLogin");
             setRedirectTo(redirect);
           } else {
@@ -269,7 +281,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
 
 const LegacyEventRedirect = () => {
   const { id } = useParams<{ id: string }>();
-  return <Navigate to={id ? `/dashboard/events/${id}` : '/dashboard/events'} replace />;
+  return <Navigate to={id ? `/dashboard/events/${id}` : "/dashboard/events"} replace />;
 };
 
 const AppRoutes = () => {
@@ -277,145 +289,428 @@ const AppRoutes = () => {
   useRealtimeSync(!!user);
   return (
     <SuspendedProvider>
-    <Suspense fallback={<PageLoader />}>
-      <PageTransition>
-      <Routes>
+      <Suspense fallback={<PageLoader />}>
+        <PageTransition>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <AuthRoute>
+                  <Auth key="login" initialView="login" />
+                </AuthRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <AuthRoute>
+                  <Auth key="signup" initialView="signup" />
+                </AuthRoute>
+              }
+            />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-access" element={<VerifyAccess />} />
+            <Route path="/verify-otp" element={<VerifyOTP />} />
+            <Route path="/builder-test" element={<BuilderTest />} />
+            <Route
+              path="/refyn"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <Refyn />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/colour-store"
+              element={
+                <ProtectedRoute>
+                  <ColourStore />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/retouch-login" element={<RetouchLogin />} />
+            <Route path="/preview/:previewId" element={<ClientPreview />} />
+            <Route
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <IntelligenceHome />
+                </ProtectedRoute>
+              }
+            />
 
-        <Route
-          path="/login"
-          element={
-            <AuthRoute>
-              <Auth key="login" initialView="login" />
-            </AuthRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <AuthRoute>
-              <Auth key="signup" initialView="signup" />
-            </AuthRoute>
-          }
-        />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/verify-access" element={<VerifyAccess />} />
-        <Route path="/verify-otp" element={<VerifyOTP />} />
-        <Route path="/builder-test" element={<BuilderTest />} />
-        <Route path="/refyn" element={<Suspense fallback={<PageLoader />}><Refyn /></Suspense>} />
-        <Route path="/colour-store" element={<ProtectedRoute><ColourStore /></ProtectedRoute>} />
-        <Route path="/retouch-login" element={<RetouchLogin />} />
-        <Route path="/preview/:previewId" element={<ClientPreview />} />
-        <Route path="/home" element={<ProtectedRoute><IntelligenceHome /></ProtectedRoute>} />
+            <Route
+              path="/super-admin"
+              element={
+                <SuperAdminGate>
+                  <SuperAdminLayout />
+                </SuperAdminGate>
+              }
+            >
+              {SUPER_ADMIN_ROUTES.map((route) => {
+                const Component = SUPER_ADMIN_ROUTE_MAP[route.key];
+                if (!Component) return null;
+                if (route.path === "") {
+                  return <Route key={route.key} index element={<Component />} />;
+                }
+                return <Route key={route.key} path={route.path} element={<Component />} />;
+              })}
+            </Route>
 
-        <Route
-          path="/super-admin"
-          element={
-            <SuperAdminGate>
-              <SuperAdminLayout />
-            </SuperAdminGate>
-          }
-        >
-          {SUPER_ADMIN_ROUTES.map((route) => {
-            const Component = SUPER_ADMIN_ROUTE_MAP[route.key];
-            if (!Component) return null;
+            <Route
+              path="/admin"
+              element={
+                <AdminGate>
+                  <AdminLayout />
+                </AdminGate>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="photographers" element={<AdminPhotographers />} />
+              <Route path="events" element={<AdminEvents />} />
+              <Route path="storage" element={<AdminStorage />} />
+              <Route path="revenue" element={<AdminRevenue />} />
+              <Route path="emails" element={<AdminEmails />} />
+              <Route path="activity" element={<AdminActivity />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
 
-            if (route.path === '') {
-              return <Route key={route.key} index element={<Component />} />;
-            }
+            <Route
+              path="/client"
+              element={
+                <ProtectedRoute>
+                  <ClientDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/events"
+              element={
+                <ProtectedRoute>
+                  <ClientEvents />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/events/:id"
+              element={
+                <ProtectedRoute>
+                  <ClientEventView />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/favorites"
+              element={
+                <ProtectedRoute>
+                  <ClientFavorites />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/downloads"
+              element={
+                <ProtectedRoute>
+                  <ClientDownloads />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/profile"
+              element={
+                <ProtectedRoute>
+                  <ClientProfile />
+                </ProtectedRoute>
+              }
+            />
 
-            return <Route key={route.key} path={route.path} element={<Component />} />;
-          })}
-        </Route>
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/events"
+              element={
+                <ProtectedRoute>
+                  <Events />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/events/:id"
+              element={
+                <ProtectedRoute>
+                  <EventGallery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/events/:id/photos"
+              element={
+                <ProtectedRoute>
+                  <EventGallery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/upload"
+              element={
+                <ProtectedRoute>
+                  <UploadPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/storybook"
+              element={
+                <ProtectedRoute>
+                  <StorybookCreator />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/album-designer"
+              element={
+                <ProtectedRoute>
+                  <AlbumDesigner />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/album-designer/:albumId/editor"
+              element={
+                <ProtectedRoute>
+                  <AlbumEditorPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/ai-album"
+              element={
+                <ProtectedRoute>
+                  <AIAlbumBuilder />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/clients"
+              element={
+                <ProtectedRoute>
+                  <Clients />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/cheetah"
+              element={
+                <ProtectedRoute>
+                  <Cheetah />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/cheetah-live"
+              element={
+                <ProtectedRoute>
+                  <CheetahLive />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/analytics"
+              element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/more"
+              element={
+                <ProtectedRoute>
+                  <MorePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/settings"
+              element={
+                <ProtectedRoute>
+                  <StudioSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/branding"
+              element={
+                <ProtectedRoute>
+                  <Branding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/branding/editor"
+              element={
+                <ProtectedRoute>
+                  <BrandEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/website-editor"
+              element={
+                <ProtectedRoute>
+                  <WebsiteEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/domains"
+              element={
+                <ProtectedRoute>
+                  <DomainSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/template-preview"
+              element={
+                <ProtectedRoute>
+                  <TemplatePreview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/notifications"
+              element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/onboarding"
+              element={
+                <ProtectedRoute>
+                  <Onboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/billing"
+              element={
+                <ProtectedRoute>
+                  <Billing />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/business"
+              element={
+                <ProtectedRoute>
+                  <BusinessSuite />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/reflections"
+              element={
+                <ProtectedRoute>
+                  <Reflections />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/entiran-business"
+              element={
+                <ProtectedRoute>
+                  <EntiranBusiness />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/website-builder"
+              element={
+                <ProtectedRoute>
+                  <WebsiteBuilder />
+                </ProtectedRoute>
+              }
+            />
 
-        <Route
-          path="/admin"
-          element={
-            <AdminGate>
-              <AdminLayout />
-            </AdminGate>
-          }
-        >
-          <Route index element={<AdminDashboard />} />
-          <Route path="photographers" element={<AdminPhotographers />} />
-          <Route path="events" element={<AdminEvents />} />
-          <Route path="storage" element={<AdminStorage />} />
-          <Route path="revenue" element={<AdminRevenue />} />
-          <Route path="emails" element={<AdminEmails />} />
-          <Route path="activity" element={<AdminActivity />} />
-          <Route path="settings" element={<AdminSettings />} />
-        </Route>
+            <Route
+              path="/event/:slug"
+              element={
+                <GalleryShell>
+                  <GalleryCover />
+                </GalleryShell>
+              }
+            />
+            <Route
+              path="/event/:slug/gallery"
+              element={
+                <GalleryShell>
+                  <PublicGallery />
+                </GalleryShell>
+              }
+            />
+            <Route path="/widget/:slug" element={<WidgetPage />} />
+            <Route
+              path="/gallery/:slug"
+              element={
+                <GalleryShell>
+                  <GalleryCover />
+                </GalleryShell>
+              }
+            />
+            <Route
+              path="/gallery/:slug/view"
+              element={
+                <GalleryShell>
+                  <PublicGallery />
+                </GalleryShell>
+              }
+            />
+            <Route path="/gallery-view/:id" element={<PublicGalleryView />} />
 
-        <Route path="/client" element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
-        <Route path="/client/events" element={<ProtectedRoute><ClientEvents /></ProtectedRoute>} />
-        <Route path="/client/events/:id" element={<ProtectedRoute><ClientEventView /></ProtectedRoute>} />
-        <Route path="/client/favorites" element={<ProtectedRoute><ClientFavorites /></ProtectedRoute>} />
-        <Route path="/client/downloads" element={<ProtectedRoute><ClientDownloads /></ProtectedRoute>} />
-        <Route path="/client/profile" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
+            <Route path="/find/:token" element={<GuestFinder />} />
+            <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
+            <Route path="/studio/:username" element={<PhotographerFeed />} />
+            <Route path="/p/:username" element={<PhotographerFeed />} />
 
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/dashboard/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-        <Route path="/dashboard/events/:id" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
-        <Route path="/dashboard/events/:id/photos" element={<ProtectedRoute><EventGallery /></ProtectedRoute>} />
-        <Route path="/dashboard/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
-        <Route path="/dashboard/storybook" element={<ProtectedRoute><StorybookCreator /></ProtectedRoute>} />
-        <Route path="/dashboard/album-designer" element={<ProtectedRoute><AlbumDesigner /></ProtectedRoute>} />
-        <Route path="/dashboard/album-designer/:albumId/editor" element={<ProtectedRoute><AlbumEditorPage /></ProtectedRoute>} />
-        <Route path="/dashboard/ai-album" element={<ProtectedRoute><AIAlbumBuilder /></ProtectedRoute>} />
-        <Route path="/dashboard/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-        <Route path="/dashboard/cheetah" element={<ProtectedRoute><Cheetah /></ProtectedRoute>} />
-        <Route path="/dashboard/cheetah-live" element={<ProtectedRoute><CheetahLive /></ProtectedRoute>} />
-        <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-        <Route path="/dashboard/more" element={<ProtectedRoute><MorePage /></ProtectedRoute>} />
-        <Route path="/dashboard/settings" element={<ProtectedRoute><StudioSettings /></ProtectedRoute>} />
-        <Route path="/dashboard/branding" element={<ProtectedRoute><Branding /></ProtectedRoute>} />
-        <Route path="/dashboard/branding/editor" element={<ProtectedRoute><BrandEditor /></ProtectedRoute>} />
-        <Route path="/dashboard/website-editor" element={<ProtectedRoute><WebsiteEditor /></ProtectedRoute>} />
-        <Route path="/dashboard/domains" element={<ProtectedRoute><DomainSettings /></ProtectedRoute>} />
-        <Route path="/dashboard/template-preview" element={<ProtectedRoute><TemplatePreview /></ProtectedRoute>} />
-        <Route path="/dashboard/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/dashboard/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="/dashboard/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-        <Route path="/dashboard/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-        <Route path="/dashboard/business" element={<ProtectedRoute><BusinessSuite /></ProtectedRoute>} />
-        <Route path="/dashboard/reflections" element={<ProtectedRoute><Reflections /></ProtectedRoute>} />
-        <Route path="/dashboard/entiran-business" element={<ProtectedRoute><EntiranBusiness /></ProtectedRoute>} />
-        <Route path="/dashboard/website-builder" element={<ProtectedRoute><WebsiteBuilder /></ProtectedRoute>} />
+            <Route
+              path="/storybook"
+              element={
+                <StorybookGate>
+                  <StorybookCreator standalone />
+                </StorybookGate>
+              }
+            />
 
-        <Route path="/event/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
-        <Route path="/event/:slug/gallery" element={<GalleryShell><PublicGallery /></GalleryShell>} />
-        <Route path="/widget/:slug" element={<WidgetPage />} />
-        <Route path="/gallery/:slug" element={<GalleryShell><GalleryCover /></GalleryShell>} />
-        <Route path="/gallery/:slug/view" element={<GalleryShell><PublicGallery /></GalleryShell>} />
-        <Route path="/gallery-view/:id" element={<PublicGalleryView />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
+            <Route path="/events/:id" element={<LegacyEventRedirect />} />
+            <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
+            <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
+            <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
+            <Route path="/upload" element={<Navigate to="/dashboard/upload" replace />} />
 
-        <Route path="/find/:token" element={<GuestFinder />} />
-        <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
-        <Route path="/studio/:username" element={<PhotographerFeed />} />
-        <Route path="/p/:username" element={<PhotographerFeed />} />
-<Route
-  path="/storybook"
-  element={
-    <StorybookGate>
-      <StorybookCreator standalone />
-    </StorybookGate>
-  }
-/>
- 
-/>
-          }
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
-        <Route path="/events/:id" element={<LegacyEventRedirect />} />
-        <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
-        <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
-        <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
-        <Route path="/upload" element={<Navigate to="/dashboard/upload" replace />} />
-
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      </PageTransition>
-    </Suspense>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </PageTransition>
+      </Suspense>
     </SuspendedProvider>
   );
 };
