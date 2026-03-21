@@ -174,9 +174,8 @@ export default function IntelligenceHome() {
         <p style={{ fontFamily: mont, fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", color: "#666666", marginTop: 12, textAlign: "center" }}>AND NO PLATFORM WAS EVER BUILT TO SERVE THE PHOTOGRAPHERS WHO CAPTURE IT ALL — UNTIL NOW.</p>
       </Fade>
 
-      {/* 4. FULL WIDTH PLACEHOLDER */}
-      {/* TODO: Replace with real image URL */}
-      <div style={{ width: "100%", height: mob ? "35vh" : "50vh", background: warmGrad, margin: "30px 0" }} />
+      {/* 4. FULL WIDTH IMAGE */}
+      <img src="/images/gallery-2.jpg" alt="Culture diversity" style={{ width: "100%", height: mob ? "35vh" : "50vh", objectFit: "cover", display: "block", margin: "30px 0" }} />
 
       {/* 5. THE TRUTH */}
       <Fade style={{ textAlign: "center", padding: mob ? "60px 20px 30px" : "80px 24px 40px", maxWidth: 660, margin: "0 auto" }}>
