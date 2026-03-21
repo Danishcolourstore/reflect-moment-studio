@@ -1,47 +1,63 @@
-import { ReactNode, useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { NavLink } from '@/components/NavLink';
-import { useAuth } from '@/lib/auth';
-import { supabase } from '@/integrations/supabase/client';
-import { useDeviceDetect } from '@/hooks/use-device-detect';
+import { ReactNode, useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { NavLink } from "@/components/NavLink";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { useDeviceDetect } from "@/hooks/use-device-detect";
 import {
-  LayoutGrid, Camera, BookOpen, Zap, Users, BarChart2, Palette, User,
-  LogOut, Bell, ChevronRight, Menu, Globe, Compass, Bot,
-} from 'lucide-react';
-import { FloatingActionButton } from '@/components/FloatingActionButton';
-import { EntiranProvider, useEntiranOpen } from '@/components/entiran/EntiranProvider';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+  LayoutGrid,
+  Camera,
+  BookOpen,
+  Zap,
+  Users,
+  BarChart2,
+  Palette,
+  User,
+  LogOut,
+  Bell,
+  ChevronRight,
+  Menu,
+  Globe,
+  Compass,
+  Bot,
+  Home,
+} from "lucide-react";
+import { FloatingActionButton } from "@/components/FloatingActionButton";
+import { EntiranProvider, useEntiranOpen } from "@/components/entiran/EntiranProvider";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Sheet, SheetContent, SheetTrigger,
-} from '@/components/ui/sheet';
-import { NotificationBell } from '@/components/NotificationBell';
-import { useStorageUsage, formatBytes, PLAN_LIMITS } from '@/hooks/use-storage-usage';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { NotificationBell } from "@/components/NotificationBell";
+import { useStorageUsage, formatBytes, PLAN_LIMITS } from "@/hooks/use-storage-usage";
 
 const NAV_ITEMS = [
-  { title: 'Overview', url: '/dashboard', icon: LayoutGrid, end: true },
-  { title: 'Events', url: '/dashboard/events', icon: Camera },
-  { title: 'Website', url: '/dashboard/website-editor', icon: Globe },
-  { title: 'Domains', url: '/dashboard/domains', icon: Globe },
-  { title: 'Storybook', url: '/dashboard/storybook', icon: BookOpen },
-  { title: 'Cheetah', url: '/dashboard/cheetah-live', icon: Zap },
-  { title: 'Clients', url: '/dashboard/clients', icon: Users },
-  { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart2 },
-  { title: 'Notifications', url: '/dashboard/notifications', icon: Bell },
-  { title: 'Profile', url: '/dashboard/profile', icon: User },
+  { title: "Home", url: "/home", icon: Home, end: true },
+  { title: "Overview", url: "/dashboard", icon: LayoutGrid, end: true },
+  { title: "Events", url: "/dashboard/events", icon: Camera },
+  { title: "Website", url: "/dashboard/website-editor", icon: Globe },
+  { title: "Domains", url: "/dashboard/domains", icon: Globe },
+  { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
+  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
+  { title: "Clients", url: "/dashboard/clients", icon: Users },
+  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart2 },
+  { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
+  { title: "Profile", url: "/dashboard/profile", icon: User },
 ];
 
 const MOBILE_NAV = [
-  { title: 'Home', url: '/home', icon: LayoutGrid, end: true },
-  { title: 'Events', url: '/dashboard/events', icon: Camera },
-  { title: 'Albums', url: '/dashboard/album-designer', icon: BookOpen },
-  { title: 'Website', url: '/dashboard/website-editor', icon: Globe },
+  { title: "Home", url: "/home", icon: Home, end: true },
+  { title: "Events", url: "/dashboard/events", icon: Camera },
+  { title: "Albums", url: "/dashboard/album-designer", icon: BookOpen },
+  { title: "Website", url: "/dashboard/website-editor", icon: Globe },
 ];
-const MORE_NAV = NAV_ITEMS.filter(i => !MOBILE_NAV.some(m => m.url === i.url));
+
+const MORE_NAV = NAV_ITEMS.filter((i) => !MOBILE_NAV.some((m) => m.url === i.url));
 
 interface Profile {
   studio_name: string;
@@ -55,50 +71,49 @@ function useDomainNudge(userId: string | undefined) {
   const [show, setShow] = useState(false);
   useEffect(() => {
     if (!userId) return;
-    (supabase.from('domains').select('id, custom_domain').eq('user_id', userId) as any)
-      .then(({ data }: any) => {
-        const hasCustom = (data || []).some((d: any) => !!d.custom_domain);
-        setShow(!hasCustom);
-      });
+    (supabase.from("domains").select("id, custom_domain").eq("user_id", userId) as any).then(({ data }: any) => {
+      const hasCustom = (data || []).some((d: any) => !!d.custom_domain);
+      setShow(!hasCustom);
+    });
   }, [userId]);
   return show;
 }
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Overview',
-  '/dashboard/events': 'Events',
-  '/dashboard/website-editor': 'Website Builder',
-  '/dashboard/domains': 'Website Domains',
-  '/dashboard/storybook': 'Storybook',
-  '/dashboard/album-designer': 'Album Designer',
-  '/dashboard/cheetah-live': 'Cheetah',
-  '/dashboard/clients': 'Clients',
-  '/dashboard/analytics': 'Analytics',
-  '/dashboard/notifications': 'Notifications',
-  '/dashboard/branding': 'Branding',
-  '/dashboard/profile': 'Profile',
-  '/dashboard/onboarding': 'Welcome',
+  "/dashboard": "Overview",
+  "/dashboard/events": "Events",
+  "/dashboard/website-editor": "Website Builder",
+  "/dashboard/domains": "Domains",
+  "/dashboard/storybook": "Storybook",
+  "/dashboard/album-designer": "Albums",
+  "/dashboard/cheetah-live": "Cheetah",
+  "/dashboard/clients": "Clients",
+  "/dashboard/analytics": "Analytics",
+  "/dashboard/notifications": "Notifications",
+  "/dashboard/branding": "Branding",
+  "/dashboard/profile": "Profile",
+  "/dashboard/onboarding": "Welcome",
 };
 
-type ThemeMode = 'dark' | 'versace' | 'classic' | 'darkroom';
-type AccentMode = 'gold' | 'red';
+type ThemeMode = "dark" | "versace" | "classic" | "darkroom";
+type AccentMode = "gold" | "red";
 
-const THEME_ORDER: ThemeMode[] = ['dark', 'versace', 'classic', 'darkroom'];
-const THEME_ICONS: Record<ThemeMode, string> = { dark: '🌙', versace: '👑', classic: '☀️', darkroom: '🎞️' };
+const THEME_ORDER: ThemeMode[] = ["dark", "versace", "classic", "darkroom"];
+const THEME_ICONS: Record<ThemeMode, string> = { dark: "🌙", versace: "👑", classic: "☀️", darkroom: "🎞️" };
 
 function applyThemeClass(t: ThemeMode) {
-  document.documentElement.classList.remove('dark', 'editorial', 'classic', 'versace', 'darkroom');
-  if (t !== 'dark') document.documentElement.classList.add(t);
-  localStorage.setItem('theme', t);
+  document.documentElement.classList.remove("dark", "editorial", "classic", "versace", "darkroom");
+  if (t !== "dark") document.documentElement.classList.add(t);
+  localStorage.setItem("theme", t);
 }
 
 function applyAccentClass(a: AccentMode) {
-  if (a === 'red') {
-    document.documentElement.classList.add('accent-red');
+  if (a === "red") {
+    document.documentElement.classList.add("accent-red");
   } else {
-    document.documentElement.classList.remove('accent-red');
+    document.documentElement.classList.remove("accent-red");
   }
-  localStorage.setItem('accent', a);
+  localStorage.setItem("accent", a);
 }
 
 function BotNavTab() {
@@ -106,13 +121,17 @@ function BotNavTab() {
   return (
     <button
       onClick={openBot}
-      className="flex-1 flex flex-col items-center justify-center gap-0.5 text-muted-foreground transition-colors min-h-[44px]"
+      className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors min-h-[44px]"
+      style={{ color: "rgba(255,255,255,0.45)" }}
     >
-      <Bot className="h-5 w-5" strokeWidth={1.8} />
-      <span className="text-[10px] font-medium">Bot</span>
+      <Bot className="h-[22px] w-[22px]" strokeWidth={1.6} />
+      <span className="text-[10px] font-medium tracking-wide">Bot</span>
     </button>
   );
 }
+
+const cormorant = '"Cormorant Garamond", serif';
+const dm = '"DM Sans", sans-serif';
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
@@ -122,14 +141,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem('theme') || 'dark';
-    const t: ThemeMode = THEME_ORDER.includes(saved as ThemeMode) ? (saved as ThemeMode) : 'dark';
+    const saved = localStorage.getItem("theme") || "dark";
+    const t: ThemeMode = THEME_ORDER.includes(saved as ThemeMode) ? (saved as ThemeMode) : "dark";
     applyThemeClass(t);
     return t;
   });
   const [accent, setAccent] = useState<AccentMode>(() => {
-    const saved = localStorage.getItem('accent') || 'gold';
-    const a: AccentMode = saved === 'red' ? 'red' : 'gold';
+    const saved = localStorage.getItem("accent") || "gold";
+    const a: AccentMode = saved === "red" ? "red" : "gold";
     applyAccentClass(a);
     return a;
   });
@@ -138,266 +157,382 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    (supabase.from('profiles').select('studio_name, avatar_url, plan, email, onboarding_completed, theme_preference, accent_preference') as any)
-      .eq('user_id', user.id)
+    (
+      supabase
+        .from("profiles")
+        .select(
+          "studio_name, avatar_url, plan, email, onboarding_completed, theme_preference, accent_preference",
+        ) as any
+    )
+      .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }: any) => {
         if (data) {
           setProfile(data);
-          const dbTheme: ThemeMode = THEME_ORDER.includes(data.theme_preference as ThemeMode) ? (data.theme_preference as ThemeMode) : 'dark';
+          const dbTheme: ThemeMode = THEME_ORDER.includes(data.theme_preference as ThemeMode)
+            ? (data.theme_preference as ThemeMode)
+            : "dark";
           applyThemeClass(dbTheme);
           setTheme(dbTheme);
-          const dbAccent: AccentMode = data.accent_preference === 'red' ? 'red' : 'gold';
+          const dbAccent: AccentMode = data.accent_preference === "red" ? "red" : "gold";
           applyAccentClass(dbAccent);
           setAccent(dbAccent);
-          if (!data.onboarding_completed && !location.pathname.includes('/onboarding')) {
-            navigate('/dashboard/onboarding', { replace: true });
+          if (!data.onboarding_completed && !location.pathname.includes("/onboarding")) {
+            navigate("/dashboard/onboarding", { replace: true });
           }
         }
       });
   }, [user, location.pathname, navigate]);
 
-  const switchTheme = useCallback((next: ThemeMode) => {
-    if (next === theme) return;
-    applyThemeClass(next);
-    setTheme(next);
-    if (user) {
-      (supabase.from('profiles').update({ theme_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
-    }
-  }, [theme, user]);
+  const switchTheme = useCallback(
+    (next: ThemeMode) => {
+      if (next === theme) return;
+      applyThemeClass(next);
+      setTheme(next);
+      if (user) {
+        (supabase.from("profiles").update({ theme_preference: next } as any) as any)
+          .eq("user_id", user.id)
+          .then(() => {});
+      }
+    },
+    [theme, user],
+  );
 
-  const switchAccent = useCallback((next: AccentMode) => {
-    if (next === accent) return;
-    applyAccentClass(next);
-    setAccent(next);
-    if (user) {
-      (supabase.from('profiles').update({ accent_preference: next } as any) as any).eq('user_id', user.id).then(() => {});
-    }
-  }, [accent, user]);
+  const switchAccent = useCallback(
+    (next: AccentMode) => {
+      if (next === accent) return;
+      applyAccentClass(next);
+      setAccent(next);
+      if (user) {
+        (supabase.from("profiles").update({ accent_preference: next } as any) as any)
+          .eq("user_id", user.id)
+          .then(() => {});
+      }
+    },
+    [accent, user],
+  );
 
-  const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || 'MA';
+  const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || "MA";
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/login');
+    navigate("/login");
   };
 
   const storageUsed = storage.data?.used ?? 0;
   const storageLimit = storage.data?.limit ?? PLAN_LIMITS.free;
   const storagePct = Math.min((storageUsed / storageLimit) * 100, 100);
 
-  // Tablet: use sidebar + wider content; Phone: bottom nav; Desktop: sidebar
   const showSidebar = device.isDesktop || device.isTablet;
   const showBottomNav = device.isPhone;
-  const sidebarWidth = device.isTablet ? 200 : 240;
+  const sidebarWidth = 220;
+
+  const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
 
   return (
     <EntiranProvider>
-    <div className="min-h-screen bg-background">
-      {/* Sidebar — desktop and tablet */}
-      {showSidebar && (
-      <aside className="fixed left-0 top-0 z-30 h-screen flex-col flex border-r border-border bg-card" style={{ width: sidebarWidth }}>
-        <div className="px-6 pt-7 pb-5">
-          <h1 className="text-lg font-semibold text-foreground tracking-tight">Mirror AI</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Photography Platform</p>
-        </div>
-
-        <div className="mx-5 h-px bg-border" />
-
-        {/* User info */}
-        <div className="px-5 py-5 flex items-center gap-3">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-secondary text-muted-foreground text-xs font-medium">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {profile?.studio_name || 'My Studio'}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">{profile?.email || ''}</p>
-          </div>
-        </div>
-
-        <div className="mx-5 h-px bg-border" />
-
-        <nav className="flex-1 px-3 pt-4 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map((item) => (
-            <NavLink key={item.url} to={item.url} end={item.end}
-              className="flex items-center gap-3 px-3 py-2 text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary rounded-lg text-sm"
-              activeClassName="text-foreground bg-secondary font-medium"
-            >
-              <item.icon className="h-4 w-4" strokeWidth={1.8} />
-              <span>{item.title}</span>
-              {item.title === 'Domains' && showDomainNudge && (
-                <span className="ml-auto h-2 w-2 rounded-full" style={{ backgroundColor: '#C9A96E' }} />
+      <div className="min-h-screen" style={{ background: "#080808" }}>
+        {/* ── Desktop Sidebar ── */}
+        {showSidebar && (
+          <aside
+            className="fixed left-0 top-0 z-30 h-screen flex flex-col"
+            style={{
+              width: sidebarWidth,
+              background: "#080808",
+              borderRight: "1px solid rgba(240,237,232,0.06)",
+            }}
+          >
+            {/* Brand */}
+            <div className="px-6 pt-8 pb-6">
+              <h1
+                style={{
+                  fontFamily: cormorant,
+                  fontSize: 18,
+                  fontWeight: 500,
+                  color: "#E8C97A",
+                  letterSpacing: "0.15em",
+                }}
+              >
+                MirrorAI
+              </h1>
+              {profile?.studio_name && (
+                <p
+                  className="mt-1.5 truncate"
+                  style={{
+                    fontFamily: dm,
+                    fontSize: 9,
+                    color: "rgba(240,237,232,0.25)",
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {profile.studio_name}
+                </p>
               )}
-            </NavLink>
-          ))}
-        </nav>
+            </div>
 
-        {/* Storage */}
-        <div className="px-5 pb-5 pt-3">
-          <p className="text-xs text-muted-foreground mb-2">Storage</p>
-          <p className="text-xs text-foreground">
-            {formatBytes(storageUsed)} <span className="text-muted-foreground">/ {formatBytes(storageLimit)}</span>
-          </p>
-          <div className="mt-2 h-1 w-full rounded-full bg-border overflow-hidden">
-            <div className="h-full rounded-full bg-foreground/20 transition-all" style={{ width: `${storagePct}%` }} />
-          </div>
-        </div>
-      </aside>
-      )}
+            <div className="mx-5 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
 
-      {/* Header */}
-      <header
-        className="fixed top-0 right-0 z-20 flex items-center justify-between px-3 sm:px-4 lg:px-8 bg-card/80 backdrop-blur-xl border-b border-border h-14"
-        style={{ left: showSidebar ? sidebarWidth : 0 }}
-      >
-        {!showSidebar && (
-          <div className="flex items-center gap-2 min-w-0 mr-2">
-            {location.pathname !== '/dashboard' && location.pathname !== '/home' && (
+            <nav className="flex-1 px-3 pt-5 space-y-0.5 overflow-y-auto">
+              {NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.url}
+                  to={item.url}
+                  end={item.end}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors"
+                  style={{ fontFamily: dm, fontSize: 13 }}
+                  activeClassName="text-[#F0EDE8] bg-[rgba(240,237,232,0.04)]"
+                >
+                  {({ isActive }: { isActive: boolean }) => (
+                    <>
+                      <item.icon
+                        className="h-[15px] w-[15px]"
+                        style={{ color: isActive ? "#F0EDE8" : "rgba(240,237,232,0.3)" }}
+                      />
+                      <span style={{ color: isActive ? "#F0EDE8" : "rgba(240,237,232,0.3)" }}>{item.title}</span>
+                      {item.title === "Domains" && showDomainNudge && (
+                        <span className="ml-auto h-1.5 w-1.5 rounded-full" style={{ background: "#E8C97A" }} />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
+
+            <div className="mx-5 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
+
+            {/* Storage */}
+            <div className="px-6 py-4">
+              <p
+                style={{
+                  fontFamily: dm,
+                  fontSize: 9,
+                  color: "rgba(240,237,232,0.2)",
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  marginBottom: 6,
+                }}
+              >
+                Storage
+              </p>
+              <p style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.35)" }}>
+                {formatBytes(storageUsed)}{" "}
+                <span style={{ color: "rgba(240,237,232,0.15)" }}>/ {formatBytes(storageLimit)}</span>
+              </p>
+              <div className="mt-2 h-px w-full overflow-hidden" style={{ background: "rgba(240,237,232,0.06)" }}>
+                <div className="h-full transition-all" style={{ width: `${storagePct}%`, background: "#E8C97A" }} />
+              </div>
+            </div>
+
+            {/* Sign out */}
+            <div className="px-3 pb-6">
+              <button
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-2.5 px-3 py-2 rounded-sm transition-colors"
+                style={{ fontFamily: dm, fontSize: 13, color: "rgba(240,237,232,0.2)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.2)")}
+              >
+                <LogOut className="h-[15px] w-[15px]" />
+                <span>Sign out</span>
+              </button>
+            </div>
+          </aside>
+        )}
+
+        {/* ── Top Header ── */}
+        <header
+          className="fixed top-0 right-0 z-20 flex items-center justify-between"
+          style={{
+            left: showSidebar ? sidebarWidth : 0,
+            height: 48,
+            padding: "0 20px",
+            background: "rgba(8,8,8,0.9)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            borderBottom: "1px solid rgba(240,237,232,0.05)",
+          }}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            {!showSidebar && location.pathname !== "/dashboard" && location.pathname !== "/home" && (
               <button
                 onClick={() => navigate(-1)}
-                className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+                className="flex items-center justify-center transition-colors"
+                style={{ color: "rgba(240,237,232,0.3)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.3)")}
               >
                 <ChevronRight className="h-5 w-5 rotate-180" />
               </button>
             )}
-            <h2 className="text-foreground font-semibold text-base tracking-tight truncate">
-              {PAGE_TITLES[location.pathname] || 'Mirror AI'}
+            <h2
+              className="truncate"
+              style={{
+                fontFamily: cormorant,
+                fontSize: 16,
+                fontWeight: 400,
+                color: "rgba(240,237,232,0.7)",
+                letterSpacing: "0.08em",
+              }}
+            >
+              {pageTitle}
             </h2>
           </div>
-        )}
-        {showSidebar && (
-          <h2 className="text-sm font-medium text-foreground truncate">
-            {PAGE_TITLES[location.pathname] || ''}
-          </h2>
-        )}
-        <div className="flex items-center gap-1 shrink-0">
-          {/* Accent toggle */}
-          <button
-            onClick={() => switchAccent(accent === 'gold' ? 'red' : 'gold')}
-            className="relative flex items-center gap-1 px-2 py-1.5 rounded-full bg-secondary/80 border border-border/60 hover:bg-secondary transition-all duration-300 group min-h-[36px]"
-            title={`Accent: ${accent === 'gold' ? 'Gold' : 'Red'}`}
-          >
-            <span
-              className="h-3 w-3 rounded-full transition-all duration-300 shadow-sm"
-              style={{
-                background: accent === 'gold'
-                  ? 'hsl(43 76% 53%)'
-                  : 'hsl(0 65% 42%)',
-                boxShadow: accent === 'gold'
-                  ? '0 0 8px hsl(43 76% 53% / 0.5)'
-                  : '0 0 8px hsl(0 65% 42% / 0.5)',
-              }}
-            />
-            <span className="text-[9px] font-semibold tracking-wider uppercase text-muted-foreground group-hover:text-foreground transition-colors hidden sm:inline">
-              {accent === 'gold' ? 'Gold' : 'Red'}
-            </span>
-          </button>
 
-          {/* Theme toggle */}
-          <button
-            onClick={() => {
-              const idx = THEME_ORDER.indexOf(theme);
-              switchTheme(THEME_ORDER[(idx + 1) % THEME_ORDER.length]);
-            }}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-            title={`Theme: ${theme}`}
-          >
-            {THEME_ICONS[theme]}
-          </button>
-          <NotificationBell />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="ml-0.5 min-h-[36px] min-w-[36px] flex items-center justify-center">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-secondary text-muted-foreground text-xs font-medium">{initials}</AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => navigate('/dashboard/profile')}>
-                <User className="mr-2 h-4 w-4" /> Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                <LogOut className="mr-2 h-4 w-4" /> Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
-      {/* Main */}
-      <main
-        className="pb-24 lg:pb-0 pt-14"
-        style={{ marginLeft: showSidebar ? sidebarWidth : 0 }}
-      >
-        <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          {children}
-        </div>
-      </main>
-
-      {!showBottomNav && <FloatingActionButton />}
-
-      {/* Mobile bottom nav — phones only */}
-      {showBottomNav && (
-      <nav
-        className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch border-t border-border"
-        style={{
-          height: 56,
-          background: 'rgba(10,10,10,0.92)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        }}
-      >
-        {MOBILE_NAV.map((item) => (
-          <NavLink key={item.url} to={item.url} end={item.end}
-            className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors min-h-[44px]"
-            activeClassName="[&>svg]:text-[#C8A97E] [&>span]:text-[#C8A97E]"
-            style={{ color: 'rgba(255,255,255,0.45)' }}
-          >
-            <item.icon className="h-[22px] w-[22px] transition-colors" strokeWidth={1.6} />
-            <span className="text-[10px] font-medium tracking-wide transition-colors">{item.title}</span>
-          </NavLink>
-        ))}
-        <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-          <SheetTrigger asChild>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Accent toggle */}
             <button
-              className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
-              style={{ color: 'rgba(255,255,255,0.45)' }}
+              onClick={() => switchAccent(accent === "gold" ? "red" : "gold")}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all"
+              style={{
+                background: "rgba(240,237,232,0.04)",
+                border: "1px solid rgba(240,237,232,0.06)",
+              }}
+              title={`Accent: ${accent}`}
             >
-              <Menu className="h-[22px] w-[22px]" strokeWidth={1.6} />
-              <span className="text-[10px] font-medium tracking-wide">More</span>
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{
+                  background: accent === "gold" ? "#E8C97A" : "#C0392B",
+                  boxShadow: accent === "gold" ? "0 0 6px rgba(232,201,122,0.5)" : "0 0 6px rgba(192,57,43,0.5)",
+                }}
+              />
             </button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-[20px]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
-            <div className="space-y-1 pt-4 pb-4">
-              {MORE_NAV.map((item) => (
-                <button key={item.url}
-                  onClick={() => { navigate(item.url); setMoreOpen(false); }}
-                  className="flex items-center gap-3 w-full px-4 py-3 text-foreground hover:bg-secondary rounded-lg transition-colors text-sm min-h-[48px]"
-                >
-                  <item.icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.8} />
-                  {item.title}
-                  <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground/40" />
+
+            {/* Theme toggle */}
+            <button
+              onClick={() => {
+                const idx = THEME_ORDER.indexOf(theme);
+                switchTheme(THEME_ORDER[(idx + 1) % THEME_ORDER.length]);
+              }}
+              className="flex items-center justify-center transition-colors"
+              style={{ fontSize: 14, minWidth: 32, minHeight: 32 }}
+              title={`Theme: ${theme}`}
+            >
+              {THEME_ICONS[theme]}
+            </button>
+
+            <NotificationBell />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center justify-center">
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback
+                      style={{
+                        background: "rgba(240,237,232,0.06)",
+                        fontFamily: dm,
+                        fontSize: 10,
+                        color: "rgba(240,237,232,0.5)",
+                      }}
+                    >
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
                 </button>
-              ))}
-              <div className="mx-4 my-2 h-px bg-border" />
-              <button onClick={handleSignOut}
-                className="flex items-center gap-3 w-full px-4 py-3 text-destructive hover:bg-destructive/5 rounded-lg transition-colors text-sm min-h-[48px]"
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
+                  <User className="mr-2 h-4 w-4" /> Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        {/* ── Main Content ── */}
+        <main className="pt-12 pb-24 lg:pb-8" style={{ marginLeft: showSidebar ? sidebarWidth : 0 }}>
+          <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</div>
+        </main>
+
+        {!showBottomNav && <FloatingActionButton />}
+
+        {/* ── Mobile Bottom Nav ── */}
+        {showBottomNav && (
+          <nav
+            className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch border-t"
+            style={{
+              height: 56,
+              background: "rgba(8,8,8,0.95)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+              borderColor: "rgba(240,237,232,0.06)",
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            }}
+          >
+            {MOBILE_NAV.map((item) => (
+              <NavLink
+                key={item.url}
+                to={item.url}
+                end={item.end}
+                className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors min-h-[44px]"
+                activeClassName="[&>svg]:text-[#E8C97A] [&>span]:text-[#E8C97A]"
+                style={{ color: "rgba(255,255,255,0.3)" }}
               >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </button>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </nav>
-      )}
-    </div>
+                <item.icon className="h-[20px] w-[20px] transition-colors" strokeWidth={1.5} />
+                <span style={{ fontFamily: dm, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                  {item.title}
+                </span>
+              </NavLink>
+            ))}
+            <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+              <SheetTrigger asChild>
+                <button
+                  className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
+                  style={{ color: "rgba(255,255,255,0.3)" }}
+                >
+                  <Menu className="h-[20px] w-[20px]" strokeWidth={1.5} />
+                  <span style={{ fontFamily: dm, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                    More
+                  </span>
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="bottom"
+                className="rounded-t-[20px]"
+                style={{
+                  background: "#0C0C0C",
+                  border: "none",
+                  paddingBottom: "env(safe-area-inset-bottom, 16px)",
+                }}
+              >
+                <div className="space-y-1 pt-4 pb-4">
+                  {MORE_NAV.map((item) => (
+                    <button
+                      key={item.url}
+                      onClick={() => {
+                        navigate(item.url);
+                        setMoreOpen(false);
+                      }}
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors min-h-[48px]"
+                      style={{ color: "rgba(240,237,232,0.6)", fontFamily: dm, fontSize: 13 }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.6)")}
+                    >
+                      <item.icon className="h-4 w-4" style={{ color: "rgba(240,237,232,0.3)" }} strokeWidth={1.8} />
+                      {item.title}
+                      <ChevronRight className="ml-auto h-4 w-4" style={{ color: "rgba(240,237,232,0.2)" }} />
+                    </button>
+                  ))}
+                  <div className="mx-4 my-2 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors text-sm min-h-[48px]"
+                    style={{ color: "rgba(192,57,43,0.8)", fontFamily: dm, fontSize: 13 }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </nav>
+        )}
+      </div>
     </EntiranProvider>
   );
 }
