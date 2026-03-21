@@ -400,10 +400,7 @@ const AppRoutes = () => {
               <StorybookCreator standalone />
             </StorybookGate>
           }
-        />
-
-        <<Route path="/" element={<Auth initialView="login" />} />
-        <Route path="/auth" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
         <Route path="/events/:id" element={<LegacyEventRedirect />} />
         <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
