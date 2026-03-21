@@ -120,17 +120,38 @@ export default function IntelligenceHome() {
   const [pillH, setPillH] = useState(false);
   const [footH, setFootH] = useState(false);
   const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
+  const [newsLoading, setNewsLoading] = useState(true);
   const [activeNav, setActiveNav] = useState(0);
 
   useEffect(() => { const h = () => setMob(window.innerWidth < 768); window.addEventListener("resize", h); return () => window.removeEventListener("resize", h); }, []);
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }, []);
 
-  // Fetch RSS news
+  // Fetch RSS news from 3 sources in parallel
   useEffect(() => {
-    fetch("https://api.rss2json.com/v1/api.json?rss_url=https://petapixel.com/feed/")
-      .then(r => r.json())
-      .then(d => { if (d.items?.length) setNews(d.items.slice(0, 6).map((it: any) => ({ title: it.title, link: it.link, pubDate: it.pubDate, description: it.description?.replace(/<[^>]+>/g, "").slice(0, 120) + "…", thumbnail: it.thumbnail || it.enclosure?.link || "" }))); })
-      .catch(() => {});
+    const feeds = [
+      { url: "https://api.rss2json.com/v1/api.json?rss_url=https://petapixel.com/feed/", source: "PETAPIXEL" },
+      { url: "https://api.rss2json.com/v1/api.json?rss_url=https://fstoppers.com/feed", source: "FSTOPPERS" },
+      { url: "https://api.rss2json.com/v1/api.json?rss_url=https://www.diyphotography.net/feed/", source: "DIY PHOTOGRAPHY" },
+    ];
+    Promise.all(
+      feeds.map(f =>
+        fetch(f.url)
+          .then(r => r.json())
+          .then(d => (d.items || []).map((it: any) => ({
+            title: it.title,
+            link: it.link,
+            pubDate: it.pubDate,
+            description: (it.description || "").replace(/<[^>]+>/g, "").slice(0, 120) + "…",
+            thumbnail: it.thumbnail || it.enclosure?.link || "",
+            source: f.source,
+          })))
+          .catch(() => [] as NewsItem[])
+      )
+    ).then(results => {
+      const all = results.flat().sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()).slice(0, 6);
+      if (all.length > 0) setNews(all);
+      setNewsLoading(false);
+    });
   }, []);
 
   const go = (p: string) => {
