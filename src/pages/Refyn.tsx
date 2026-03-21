@@ -1,3 +1,5 @@
+// NOTE: Retouching tools are UI shells. Pixel manipulation is CSS-simulated.
+// TODO: Implement real canvas-based retouching with WebGL or WASM
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';

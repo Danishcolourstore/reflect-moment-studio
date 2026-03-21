@@ -512,8 +512,16 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
-            <Route
+             <Route
               path="/dashboard/cheetah"
+              element={
+                <ProtectedRoute>
+                  <CheetahLive />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/cheetah-monitor"
               element={
                 <ProtectedRoute>
                   <Cheetah />
