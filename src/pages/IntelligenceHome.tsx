@@ -171,7 +171,7 @@ export default function IntelligenceHome() {
         {/* nav links */}
         <div style={{ display: "flex", justifyContent: "center", gap: 20, overflowX: "auto", paddingBottom: 10, paddingLeft: 16, paddingRight: 16, scrollbarWidth: "none" }}>
           {NAV_ITEMS.map((n, i) => {
-            const active = i === 0;
+            const active = activeNav === i;
             return (
               <button key={n.label} onClick={() => go(n.path)} onMouseEnter={() => setNavHov(i)} onMouseLeave={() => setNavHov(null)}
                 style={{ fontFamily: mont, fontSize: 12, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: active || navHov === i ? "#000000" : "#666666", background: "none", border: "none", borderBottom: active ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", padding: "8px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
