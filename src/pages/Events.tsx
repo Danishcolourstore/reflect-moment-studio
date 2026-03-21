@@ -226,7 +226,7 @@ export default function Events() {
                   fontWeight: 400,
                   color: "#000000",
                   lineHeight: 1.6,
-                  marginTop: 8,
+                  marginTop: 10,
                 }}
               >
                 {s.snippet}
