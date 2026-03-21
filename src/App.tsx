@@ -48,7 +48,7 @@ const GalleryCover = lazy(() => import("./pages/GalleryCover"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const BuilderTest = lazy(() => import("./pages/BuilderTest"));
-const LandingPage = lazy(() => import("./pages/LandingPage"));
+
 const GuestFinder = lazy(() => import("./pages/GuestFinder"));
 const PhotographerFeed = lazy(() => import("./pages/PhotographerFeed"));
 const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
@@ -402,14 +402,7 @@ const AppRoutes = () => {
           }
         />
 
-        <Route
-          path="/"
-          element={
-            <AuthRoute>
-              <LandingPage />
-            </AuthRoute>
-          }
-        />
+        <<Route path="/" element={<Auth initialView="login" />} />
         <Route path="/auth" element={<Navigate to="/login" replace />} />
         <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
         <Route path="/events/:id" element={<LegacyEventRedirect />} />
