@@ -263,9 +263,8 @@ export default function IntelligenceHome() {
         </div>
       </Fade>
 
-      {/* 11. FULL WIDTH PLACEHOLDER */}
-      {/* TODO: Replace with real image URL */}
-      <div style={{ width: "100%", height: mob ? "35vh" : "50vh", background: warmGrad, margin: "60px 0 30px" }} />
+      {/* 11. FULL WIDTH IMAGE */}
+      <img src="/images/gallery-6.jpg" alt="Celebration" style={{ width: "100%", height: mob ? "35vh" : "50vh", objectFit: "cover", display: "block", margin: "60px 0 30px" }} />
 
       {/* 12. FEATURES EDITORIAL */}
       <Fade style={{ maxWidth: 660, margin: "0 auto", padding: mob ? "60px 20px 0" : "80px 24px 0" }}>
