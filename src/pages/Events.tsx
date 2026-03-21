@@ -14,11 +14,11 @@ const NAV_ITEMS = [
 ];
 
 const IMAGES = [
-  "https://i.ibb.co/kgR7M8wR/IMG-0029-2.jpg",
-  "https://i.ibb.co/bgGy6rKb/MNG05817.jpg",
-  "https://i.ibb.co/hFyyFHgB/DSC01925.jpg",
-  "https://i.ibb.co/JWfqvhPp/DSC04963.jpg",
-  "https://i.ibb.co/LdKbvBPf/MNG06553.jpg",
+  "placeholder-1",
+  "placeholder-2",
+  "placeholder-3",
+  "placeholder-4",
+  "placeholder-5",
 ];
 
 const STORIES = [
@@ -102,18 +102,11 @@ export default function Events() {
   const [readHover, setReadHover] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!document.getElementById("gf-playfair-montserrat")) {
-      const link = document.createElement("link");
-      link.id = "gf-playfair-montserrat";
-      link.rel = "stylesheet";
-      link.href =
-        "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@400;500;600&display=swap";
-      document.head.appendChild(link);
-    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, []);
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#FFFFFF", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", width: "100%", background: "#FFFFFF", overflow: "visible" }}>
       {/* NAV */}
       <nav
         style={{
@@ -165,7 +158,8 @@ export default function Events() {
                   textDecoration: isHov && !isActive ? "underline" : "none",
                   cursor: "pointer",
                   whiteSpace: "nowrap" as const,
-                  paddingBottom: 4,
+                  padding: "12px 0",
+                  minHeight: 44,
                   transition: "color 0.3s",
                   flexShrink: 0,
                 }}
@@ -183,6 +177,7 @@ export default function Events() {
           {STORIES.map((s, i) => (
             <FadeCard key={i}>
               {/* Cover Image */}
+              {/* TODO: Replace with real image URL */}
               <div
                 style={{
                   overflow: "hidden",

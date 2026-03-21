@@ -70,7 +70,7 @@ function FullImg({ src, height = "55vh", mobileHeight = "40vh", style }: { src: 
   const [mob, setMob] = useState(window.innerWidth < 768);
   useEffect(() => { const h = () => setMob(window.innerWidth < 768); window.addEventListener("resize", h); return () => window.removeEventListener("resize", h); }, []);
   return (
-    <img src={src} alt="" style={{ width: "100%", height: mob ? mobileHeight : height, objectFit: "cover", display: "block", ...style }} />
+    <img src={src} alt="" style={{ width: "100%", maxWidth: "100%", height: mob ? mobileHeight : height, objectFit: "cover", background: "#f5f0ea", display: "block", ...style }} />
   );
 }
 
@@ -94,13 +94,7 @@ export default function IntelligenceHome() {
   }, []);
 
   useEffect(() => {
-    if (!document.getElementById("gf-playfair-mont")) {
-      const link = document.createElement("link");
-      link.id = "gf-playfair-mont";
-      link.rel = "stylesheet";
-      link.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Montserrat:wght@400;500;600;700&display=swap";
-      document.head.appendChild(link);
-    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, []);
 
   const heading = (text: string, size = "clamp(28px,6vw,48px)", italic = false): React.CSSProperties => ({
@@ -112,7 +106,7 @@ export default function IntelligenceHome() {
   });
 
   return (
-    <div style={{ minHeight: "100dvh", width: "100%", background: "#FFFFFF", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", width: "100%", background: "#FFFFFF", overflow: "visible" }}>
       {/* NAV */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#FFFFFF", borderBottom: "1px solid #F2F2F2" }}>
         <div style={{ textAlign: "center", paddingTop: 12 }}>
@@ -125,7 +119,7 @@ export default function IntelligenceHome() {
             const isHov = navHover === i;
             return (
               <button key={item.label} onClick={() => navigate(item.path)} onMouseEnter={() => setNavHover(i)} onMouseLeave={() => setNavHover(null)}
-                style={{ fontFamily: mont, fontSize: 14, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: isActive || isHov ? "#000000" : "#666666", background: "none", border: "none", borderBottom: isActive ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", paddingBottom: 4, transition: "color 0.3s", flexShrink: 0 }}>
+                style={{ fontFamily: mont, fontSize: 14, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: isActive || isHov ? "#000000" : "#666666", background: "none", border: "none", borderBottom: isActive ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", padding: "12px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
                 {item.label}
               </button>
             );
@@ -220,7 +214,7 @@ export default function IntelligenceHome() {
 
       {/* IMAGE 6 — PHOTOGRAPHER */}
       <div style={{ maxWidth: 660, margin: "30px auto", padding: isMobile ? "0 20px" : "0 24px" }}>
-        <img src={IMAGES[5]} alt="" style={{ width: "100%", height: 400, objectFit: "cover", borderRadius: 4, display: "block" }} />
+        <img src={IMAGES[5]} alt="" style={{ width: "100%", maxWidth: "100%", height: 400, objectFit: "cover", background: "#f5f0ea", borderRadius: 4, display: "block" }} />
       </div>
 
       {/* STATS */}
@@ -253,7 +247,7 @@ export default function IntelligenceHome() {
 
       {/* IMAGE 9 — COUPLE CANDID */}
       <div style={{ maxWidth: 620, margin: "30px auto", padding: isMobile ? "0 20px" : "0 24px" }}>
-        <img src={IMAGES[8]} alt="" style={{ width: "100%", height: 400, objectFit: "cover", borderRadius: 4, display: "block" }} />
+        <img src={IMAGES[8]} alt="" style={{ width: "100%", maxWidth: "100%", height: 400, objectFit: "cover", background: "#f5f0ea", borderRadius: 4, display: "block" }} />
       </div>
 
       {/* IMAGE 10 — EMOTIONAL */}

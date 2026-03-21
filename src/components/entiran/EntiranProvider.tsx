@@ -29,9 +29,6 @@ function DaanInner({ children }: { children?: ReactNode }) {
   const isMobile = useIsMobile();
   const [showSignature, setShowSignature] = useState(false);
 
-  useEffect(() => {
-    console.log('Daan AI initialized successfully.');
-  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

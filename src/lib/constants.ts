@@ -5,13 +5,13 @@
 export const Z_INDEX = {
   base: 1,
   dropdown: 50,
-  sticky: 60,
-  modal: 100,
-  overlay: 200,
+  sticky: 100,
+  modal: 200,
+  overlay: 190,
   toast: 300,
   floatingButton: 400,
-  daan: 9999,
-  daanPanel: 10000,
+  daan: 200,
+  daanPanel: 200,
 } as const;
 
 /**

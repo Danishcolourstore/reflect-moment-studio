@@ -104,7 +104,7 @@ export function WebsiteLatestWorks({
       {/* Lightbox */}
       {lightboxIdx !== null && (
         <div
-          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center"
           onClick={() => setLightboxIdx(null)}
         >
           <button

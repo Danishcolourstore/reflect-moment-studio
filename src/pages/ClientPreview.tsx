@@ -29,8 +29,7 @@ export default function ClientPreview() {
       retouchedUrl={data.retouchedUrl}
       studioName="Studio"
       previewId={previewId || ''}
-      onSubmitAdjustment={(text) => {
-        console.log('Client adjustment request:', text);
+      onSubmitAdjustment={() => {
       }}
     />
   );

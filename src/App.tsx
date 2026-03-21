@@ -256,9 +256,9 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
       });
   }, [user, loading]);
 
-  if (loading) return null;
+  if (loading) return <PageLoader />;
   if (!user) return <>{children}</>;
-  if (!checked) return null;
+  if (!checked) return <PageLoader />;
   if (redirectTo) return <Navigate to={redirectTo} replace />;
   return <>{children}</>;
 }
@@ -273,10 +273,21 @@ const RealtimeSyncWrapper = ({ enabled }: { enabled: boolean }) => {
   return null;
 };
 
+const ScrollToTop = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
 const AppRoutes = () => {
   const { user } = useAuth();
   return (
     <SuspendedProvider>
+      <ScrollToTop />
       <RealtimeSyncWrapper enabled={!!user} />
       <Suspense fallback={<PageLoader />}>
         <PageTransition>

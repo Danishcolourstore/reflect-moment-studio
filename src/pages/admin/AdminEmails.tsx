@@ -60,7 +60,7 @@ export default function AdminEmails() {
       const { data: emails } = await query;
       const recipients = (emails || []).filter((e: any) => e.email);
 
-      console.log('Bulk email payload:', { subject, target, message, recipients: recipients.map((e: any) => e.email) });
+      
 
       // Log to bulk_emails table
       await (supabase.from('bulk_emails' as any).insert({

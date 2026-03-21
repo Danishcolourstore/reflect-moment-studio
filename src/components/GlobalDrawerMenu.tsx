@@ -100,7 +100,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 z-[9998]"
+            className="fixed inset-0 z-[190]"
             style={{ background: "rgba(0,0,0,0.5)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -111,7 +111,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
 
           {/* Drawer — slides from RIGHT like Naman Verma */}
           <motion.aside
-            className="fixed top-0 right-0 z-[9999] h-[100dvh] w-[82%] max-w-[360px] overflow-y-auto"
+            className="fixed top-0 right-0 z-[200] h-[100dvh] w-[82%] max-w-[360px] overflow-y-auto"
             style={{ background: "#0A0A0A" }}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
