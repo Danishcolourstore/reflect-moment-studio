@@ -65,8 +65,10 @@ export default function IntelligenceHome() {
               style={{
                 fontFamily: '"Cormorant Garamond", serif',
                 fontSize: 18,
+                fontWeight: 600,
                 color: "#E8C97A",
                 letterSpacing: "0.3em",
+                whiteSpace: "nowrap",
               }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -97,7 +99,7 @@ export default function IntelligenceHome() {
         className="fixed inset-0 z-10 pointer-events-none"
         style={{
           background:
-            "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.3) 100%)",
+            "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.3) 100%)",
         }}
       />
 
@@ -110,16 +112,19 @@ export default function IntelligenceHome() {
           paddingTop: "env(safe-area-inset-top, 0px)",
         }}
       >
+        {/* MENU */}
         <motion.button
           onClick={drawer.toggle}
           style={{
             fontFamily: '"DM Sans", sans-serif',
-            fontSize: 10,
-            color: "rgba(240,237,232,0.8)",
-            letterSpacing: "0.28em",
+            fontSize: 11,
+            fontWeight: 700,
+            color: "#F0EDE8",
+            letterSpacing: "0.2em",
             background: "none",
             border: "none",
             cursor: "pointer",
+            textShadow: "0 1px 8px rgba(0,0,0,0.8)",
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: ready ? 1 : 0 }}
@@ -128,22 +133,31 @@ export default function IntelligenceHome() {
           MENU
         </motion.button>
 
+        {/* REAL INTELLIGENCE — signal flicker */}
         <motion.span
-          className="absolute left-1/2 -translate-x-1/2"
+          className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap"
           style={{
             fontFamily: '"Cormorant Garamond", serif',
-            fontSize: 12,
-            fontWeight: 400,
+            fontSize: 14,
+            fontWeight: 600,
             color: "#E8C97A",
-            letterSpacing: "0.28em",
+            letterSpacing: "0.22em",
+            textShadow: "0 1px 12px rgba(232,201,122,0.3)",
           }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: ready ? 1 : 0 }}
-          transition={{ delay: 0.3, duration: 0.8, ease }}
+          animate={{
+            opacity: [1, 1, 0.3, 1, 0.6, 1, 1, 0.2, 1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            times: [0, 0.7, 0.72, 0.74, 0.76, 0.78, 0.9, 0.92, 1],
+          }}
         >
           REAL INTELLIGENCE
         </motion.span>
 
+        {/* Amber pulse dot */}
         <motion.div
           style={{ width: 4, height: 4, borderRadius: "50%", background: "#E8C97A" }}
           animate={{
