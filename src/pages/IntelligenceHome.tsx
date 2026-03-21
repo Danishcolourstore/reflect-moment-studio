@@ -216,8 +216,7 @@ export default function IntelligenceHome() {
           <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 20 }}>
             {STORIES.map((s, i) => (
               <div key={i} style={{ border: "1px solid #F2F2F2", overflow: "hidden", transition: "transform 0.3s" }} onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-3px)")} onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}>
-                {/* TODO: Replace with real image URL */}
-                <div style={{ height: 200, background: i % 2 === 0 ? warmGrad : coolGrad }} />
+                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={s.couple} style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} />
                 <div style={{ padding: 20 }}>
                   <div style={{ fontFamily: playfair, fontSize: 18, fontWeight: 700, color: "#000000" }}>{s.couple}</div>
                   <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", marginTop: 4 }}>{s.loc}</div>
