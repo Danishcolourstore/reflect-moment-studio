@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
@@ -20,13 +19,10 @@ const IMAGES = [
 
 const NAV_ITEMS = [
   { label: "HOME", path: "/home" },
-  { label: "EVENTS", path: "/dashboard/events" },
-  { label: "STORYBOOK", path: "/dashboard/storybook" },
-  { label: "CHEETAH", path: "/dashboard/cheetah" },
-  { label: "RYFINE", path: "/refyn" },
-  { label: "ANALYTICS", path: "/dashboard/analytics" },
-  { label: "WEBSITE", path: "/dashboard/website-editor" },
-  { label: "MORE", path: "__drawer__" },
+  { label: "FEATURED", path: "#featured" },
+  { label: "STORIES", path: "#stories" },
+  { label: "TRENDING", path: "#trending" },
+  { label: "UPDATES", path: "#updates" },
 ];
 
 const FEATURES = [
@@ -47,6 +43,35 @@ const STATS = [
   { num: "₹10L Cr", label: "INDUSTRY SIZE" },
   { num: "800+", label: "WEDDING TRADITIONS" },
 ];
+
+const PHOTOGRAPHERS = [
+  { name: "Naman Verma", location: "DELHI", bio: "Fine art and editorial wedding photographer capturing love across India." },
+  { name: "Joseph Radhik", location: "HYDERABAD", bio: "Storyteller of emotions, creating timeless wedding narratives." },
+  { name: "Recall Pictures", location: "MUMBAI", bio: "Cinematic wedding films and photography for the modern couple." },
+];
+
+const COMMUNITY_STORIES = [
+  { couple: "Meera & Arjun", loc: "Udaipur · Dec 2025", snippet: "A royal celebration at the City Palace that blended tradition with modern elegance." },
+  { couple: "Priya & Karthik", loc: "Kerala · Jan 2026", snippet: "A houseboat ceremony on the backwaters that felt like a dream." },
+  { couple: "Zara & Imran", loc: "Lucknow · Nov 2025", snippet: "A Nawabi nikah that honored centuries of tradition." },
+  { couple: "Simran & Raj", loc: "Amritsar · Feb 2026", snippet: "An Anand Karaj at the Golden Temple, bathed in golden light." },
+];
+
+const TRENDS = [
+  { name: "INTIMATE CEREMONIES", desc: "Small, meaningful gatherings replacing grand affairs" },
+  { name: "PASTEL PALETTES", desc: "Soft pinks, lavenders, and sage greens dominating decor" },
+  { name: "FILM PHOTOGRAPHY", desc: "The analog renaissance in wedding documentation" },
+  { name: "DESTINATION SOUTH", desc: "Kerala, Goa, and Tamil Nadu emerging as top wedding destinations" },
+  { name: "SUSTAINABLE WEDDINGS", desc: "Eco-conscious celebrations gaining momentum" },
+];
+
+const UPDATES = [
+  { date: "MARCH 2026", title: "Cheetah AI Culling — Now Live", desc: "Cull 20,000 photos in minutes. AI-powered smart selection that understands Indian wedding moments." },
+  { date: "FEBRUARY 2026", title: "Ryfine Editor — Indian Skin Tone Presets", desc: "Color grading profiles built specifically for Indian weddings. Warm tones, golden hour, indoor ceremony presets." },
+  { date: "JANUARY 2026", title: "MirrorLive 2.0 — Real-Time Delivery", desc: "Share photos with guests instantly during the event. Now 3x faster with optimized Indian network support." },
+];
+
+const gradient = "linear-gradient(135deg, #f5f0ea 0%, #e8e0d4 50%, #f5f0ea 100%)";
 
 function useOnScreen(ref: React.RefObject<HTMLElement | null>) {
   const [visible, setVisible] = useState(false);
@@ -85,11 +110,22 @@ function Label({ children, color = "#666666" }: { children: React.ReactNode; col
   return <p style={{ fontFamily: mont, fontSize: 11, fontWeight: 400, letterSpacing: "1.5px", textTransform: "uppercase", color, margin: 0 }}>{children}</p>;
 }
 
+function SectionHead({ label, labelColor = "#FFCC00", title }: { label: string; labelColor?: string; title: string }) {
+  return (
+    <div style={{ textAlign: "center", marginBottom: 40 }}>
+      <Label color={labelColor}>{label}</Label>
+      <h2 style={{ fontFamily: playfair, fontSize: "clamp(28px,6vw,44px)", fontWeight: 700, color: "#000000", letterSpacing: "0.5px", textAlign: "center", margin: "12px 0 0" }}>{title}</h2>
+      <GoldRule width={36} margin="20px auto" />
+    </div>
+  );
+}
+
 export default function IntelligenceHome() {
   const navigate = useNavigate();
-  const drawer = useDrawerMenu();
   const [navHover, setNavHover] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [pillHover, setPillHover] = useState(false);
+  const [footerPillHover, setFooterPillHover] = useState(false);
 
   useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);
@@ -97,11 +133,9 @@ export default function IntelligenceHome() {
     return () => window.removeEventListener("resize", h);
   }, []);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, []);
+  useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }, []);
 
-  const heading = (text: string, size = "clamp(28px,6vw,48px)", italic = false): React.CSSProperties => ({
+  const heading = (size = "clamp(28px,6vw,48px)", italic = false): React.CSSProperties => ({
     fontFamily: playfair, fontSize: size, fontWeight: 700, color: "#000000", letterSpacing: "0.5px", textAlign: "center", margin: 0, fontStyle: italic ? "italic" : "normal",
   });
 
@@ -109,35 +143,66 @@ export default function IntelligenceHome() {
     fontFamily: mont, fontSize: 16, fontWeight: weight, color, lineHeight: 1.7, textAlign: "center", margin: 0,
   });
 
+  const handleNav = (path: string) => {
+    if (path.startsWith("#")) {
+      const el = document.getElementById(path.slice(1));
+      el?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate(path);
+    }
+  };
+
+  const pillStyle = (hover: boolean, big = false): React.CSSProperties => ({
+    fontFamily: mont, fontSize: big ? 12 : 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase" as const,
+    background: hover ? "#FFD633" : "#FFCC00", color: "#000000",
+    border: "none", borderRadius: 20, padding: big ? "14px 32px" : "8px 20px",
+    cursor: "pointer", whiteSpace: "nowrap", transition: "background 0.3s",
+  });
+
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: "#FFFFFF", overflow: "visible" }}>
-      {/* NAV */}
+
+      {/* ─── NAV ─── */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#FFFFFF", borderBottom: "1px solid #F2F2F2" }}>
         <div style={{ textAlign: "center", paddingTop: 12 }}>
           <div style={{ fontFamily: playfair, fontSize: 18, fontStyle: "italic", color: "#FFCC00", lineHeight: 1 }}>M</div>
           <div style={{ fontFamily: playfair, fontSize: 28, fontWeight: 700, color: "#000000" }}>MirrorAI</div>
         </div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 20, overflowX: "auto", paddingBottom: 12, paddingLeft: 16, paddingRight: 16, scrollbarWidth: "none" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, overflowX: "auto", paddingBottom: 12, paddingLeft: 16, paddingRight: 16, scrollbarWidth: "none" }}>
           {NAV_ITEMS.map((item, i) => {
             const isActive = i === 0;
             const isHov = navHover === i;
             return (
-              <button key={item.label} onClick={() => item.path === "__drawer__" ? drawer.toggle() : navigate(item.path)} onMouseEnter={() => setNavHover(i)} onMouseLeave={() => setNavHover(null)}
-                style={{ fontFamily: mont, fontSize: 14, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: isActive || isHov ? "#000000" : "#666666", background: "none", border: "none", borderBottom: isActive ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", padding: "12px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
+              <button key={item.label} onClick={() => handleNav(item.path)} onMouseEnter={() => setNavHover(i)} onMouseLeave={() => setNavHover(null)}
+                style={{ fontFamily: mont, fontSize: 12, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: isActive || isHov ? "#000000" : "#666666", background: "none", border: "none", borderBottom: isActive ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", padding: "12px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
                 {item.label}
               </button>
             );
           })}
+          <button onClick={() => navigate("/dashboard")} onMouseEnter={() => setPillHover(true)} onMouseLeave={() => setPillHover(false)} style={pillStyle(pillHover)}>
+            REAL INTELLIGENCE →
+          </button>
         </div>
       </nav>
 
-      {/* IMAGE 1 — HERO */}
+      {/* ─── FLOATING MOBILE CTA ─── */}
+      {isMobile && (
+        <button onClick={() => navigate("/dashboard")}
+          style={{ position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)", zIndex: 200, fontFamily: mont, fontSize: 11, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", background: "#FFCC00", color: "#000000", border: "none", borderRadius: 24, padding: "12px 28px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", cursor: "pointer", animation: "pulse-pill 3s ease-in-out infinite" }}>
+          Enter Real Intelligence →
+        </button>
+      )}
+
+      {/* pulse keyframes */}
+      <style>{`@keyframes pulse-pill { 0%,100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.03); } }`}</style>
+
+      {/* ─── HERO IMAGE ─── */}
       <FullImg src={IMAGES[0]} height="65vh" mobileHeight="45vh" />
 
-      {/* HERO TEXT */}
+      {/* ─── HERO TEXT ─── */}
       <Fade style={{ textAlign: "center", padding: isMobile ? "60px 20px 40px" : "80px 24px 60px" }}>
         <Label color="#FFCC00">THE REAL INTELLIGENCE</Label>
-        <h1 style={{ ...heading("India Celebrates Love Like No Other Nation On Earth", "clamp(36px,8vw,64px)"), marginTop: 16 }}>
+        <h1 style={{ ...heading("clamp(36px,8vw,64px)"), marginTop: 16 }}>
           India Celebrates Love Like No Other Nation On Earth
         </h1>
         <GoldRule />
@@ -152,13 +217,13 @@ export default function IntelligenceHome() {
         </p>
       </Fade>
 
-      {/* IMAGE 2 — CULTURE */}
+      {/* IMAGE 2 */}
       <FullImg src={IMAGES[1]} style={{ margin: "30px 0" }} />
 
       {/* THE PROBLEM */}
       <Fade style={{ textAlign: "center", padding: isMobile ? "40px 20px 30px" : "60px 24px 40px" }}>
         <Label>THE TRUTH</Label>
-        <h2 style={{ ...heading("You Deserved Better. So We Built It."), marginTop: 12 }}>You Deserved Better. So We Built It.</h2>
+        <h2 style={{ ...heading(), marginTop: 12 }}>You Deserved Better. So We Built It.</h2>
         <GoldRule width={36} margin="20px auto" />
         <p style={{ ...body(), maxWidth: 660, margin: "0 auto" }}>
           For years, Indian wedding photographers used platforms designed for 200-photo portrait sessions in Portland. You shoot 20,000 images across five days. You deliver to families of 500. You work on Indian internet, price in rupees, and create art that rivals cinema.
@@ -168,10 +233,94 @@ export default function IntelligenceHome() {
         </p>
       </Fade>
 
-      {/* IMAGE 3 — COUPLE PORTRAIT */}
+      {/* IMAGE 3 */}
       <FullImg src={IMAGES[2]} style={{ margin: "30px 0" }} />
 
-      {/* FEATURES PART 1 */}
+      {/* ─── FEATURED PHOTOGRAPHERS ─── */}
+      <Fade style={{ padding: isMobile ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }} >
+        <div id="featured">
+          <SectionHead label="SPOTLIGHT" title="Featured Photographers" />
+          <p style={{ ...body(), textAlign: "center", maxWidth: 560, margin: "-20px auto 40px" }}>Celebrating the artists who define Indian wedding photography.</p>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 24 }}>
+            {PHOTOGRAPHERS.map((p, i) => (
+              <div key={i} style={{ border: "1px solid #F2F2F2", overflow: "hidden", transition: "transform 0.3s" }}
+                onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-3px)")}
+                onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}>
+                {/* TODO: Replace with real image URL */}
+                <div style={{ height: 280, background: gradient }} />
+                <div style={{ padding: 24 }}>
+                  <div style={{ fontFamily: playfair, fontSize: 20, fontWeight: 700, color: "#000000" }}>{p.name}</div>
+                  <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: 4 }}>{p.location}</div>
+                  <p style={{ fontFamily: mont, fontSize: 14, color: "#666666", lineHeight: 1.6, marginTop: 12 }}>{p.bio}</p>
+                  <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000000", marginTop: 12, cursor: "pointer" }}>View Work →</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Fade>
+
+      {/* ─── COMMUNITY STORIES ─── */}
+      <Fade style={{ padding: isMobile ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
+        <div id="stories">
+          <SectionHead label="COMMUNITY" title="Love Stories From Our Community" />
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20 }}>
+            {COMMUNITY_STORIES.map((s, i) => (
+              <div key={i} style={{ border: "1px solid #F2F2F2", overflow: "hidden", transition: "transform 0.3s" }}
+                onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-3px)")}
+                onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}>
+                {/* TODO: Replace with real image URL */}
+                <div style={{ height: 200, background: gradient }} />
+                <div style={{ padding: 20 }}>
+                  <div style={{ fontFamily: playfair, fontSize: 18, fontWeight: 700, color: "#000000" }}>{s.couple}</div>
+                  <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", marginTop: 4 }}>{s.loc}</div>
+                  <p style={{ fontFamily: mont, fontSize: 14, color: "#666666", lineHeight: 1.6, marginTop: 8 }}>{s.snippet}</p>
+                  <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000000", marginTop: 8, cursor: "pointer" }}>Read Story →</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Fade>
+
+      {/* ─── TRENDING STYLES ─── */}
+      <Fade style={{ padding: isMobile ? "60px 0 0" : "80px 0 0" }}>
+        <div id="trending" style={{ maxWidth: 900, margin: "0 auto", paddingLeft: isMobile ? 20 : 24, paddingRight: isMobile ? 20 : 24 }}>
+          <SectionHead label="TRENDING NOW" title="Wedding Styles That Define 2026" />
+        </div>
+        <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingLeft: isMobile ? 20 : "calc((100% - 900px) / 2 + 24px)", paddingRight: 20, paddingBottom: 8, scrollbarWidth: "none" }}>
+          {TRENDS.map((t, i) => (
+            <div key={i} style={{ flexShrink: 0, width: 260 }}>
+              {/* TODO: Replace with real image URL */}
+              <div style={{ height: 320, background: gradient, position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "40px 16px 16px", background: "linear-gradient(transparent, rgba(0,0,0,0.6))" }}>
+                  <div style={{ fontFamily: mont, fontSize: 13, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFFFFF" }}>{t.name}</div>
+                </div>
+              </div>
+              <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", padding: "16px 0 0", margin: 0 }}>{t.desc}</p>
+            </div>
+          ))}
+        </div>
+      </Fade>
+
+      {/* ─── MIRRORAI UPDATES ─── */}
+      <Fade style={{ padding: isMobile ? "60px 20px 0" : "80px 24px 0", maxWidth: 660, margin: "0 auto" }}>
+        <div id="updates">
+          <SectionHead label="PRODUCT UPDATES" title="What's New In MirrorAI" />
+          {UPDATES.map((u, i) => (
+            <div key={i} style={{ padding: "24px 0", borderBottom: "1px solid #F2F2F2" }}>
+              <div style={{ fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>{u.date}</div>
+              <div style={{ fontFamily: playfair, fontSize: 20, fontWeight: 700, color: "#000000", marginTop: 8 }}>{u.title}</div>
+              <p style={{ fontFamily: mont, fontSize: 14, color: "#666666", lineHeight: 1.6, marginTop: 8, margin: "8px 0 0" }}>{u.desc}</p>
+            </div>
+          ))}
+        </div>
+      </Fade>
+
+      {/* IMAGE 4 — CEREMONY */}
+      <FullImg src={IMAGES[3]} height="50vh" mobileHeight="35vh" style={{ margin: "60px 0 30px" }} />
+
+      {/* ─── FEATURES ─── */}
       <Fade style={{ maxWidth: 660, margin: "0 auto", padding: isMobile ? "40px 20px 0" : "60px 24px 0" }}>
         <Label color="#FFCC00">WHAT REAL INTELLIGENCE LOOKS LIKE</Label>
         <div style={{ marginTop: 50 }}>
@@ -185,10 +334,8 @@ export default function IntelligenceHome() {
         </div>
       </Fade>
 
-      {/* IMAGE 4 — CEREMONY */}
-      <FullImg src={IMAGES[3]} height="50vh" mobileHeight="35vh" style={{ margin: "30px 0" }} />
+      <FullImg src={IMAGES[4]} style={{ margin: "30px 0" }} />
 
-      {/* FEATURES PART 2 */}
       <Fade style={{ maxWidth: 660, margin: "0 auto", padding: isMobile ? "0 20px" : "0 24px" }}>
         {FEATURES2.map((f, i) => (
           <div key={i} style={{ marginBottom: 40 }}>
@@ -200,13 +347,10 @@ export default function IntelligenceHome() {
         <div style={{ width: "50%", height: 1, background: "#FFCC00", margin: "50px auto" }} />
       </Fade>
 
-      {/* IMAGE 5 — CELEBRATION */}
-      <FullImg src={IMAGES[4]} style={{ margin: "30px 0" }} />
-
       {/* WHY INDIA */}
       <Fade style={{ textAlign: "center", padding: isMobile ? "60px 20px 20px" : "80px 24px 20px", maxWidth: 660, margin: "0 auto" }}>
         <Label>WHY NOW</Label>
-        <h2 style={{ ...heading("Built For The ₹10 Lakh Crore Industry"), marginTop: 12 }}>Built For The ₹10 Lakh Crore Industry</h2>
+        <h2 style={{ ...heading(), marginTop: 12 }}>Built For The ₹10 Lakh Crore Industry</h2>
         <GoldRule width={36} margin="20px auto" />
         <p style={{ ...body(), margin: "0 auto" }}>
           India hosts over 10 million weddings every year. A ₹10 lakh crore industry — the largest wedding market on earth. Yet every tool photographers use was built in America, priced in dollars, designed for a different world.
@@ -216,7 +360,6 @@ export default function IntelligenceHome() {
         </p>
       </Fade>
 
-      {/* IMAGE 6 — PHOTOGRAPHER */}
       <div style={{ maxWidth: 660, margin: "30px auto", padding: isMobile ? "0 20px" : "0 24px" }}>
         <img src={IMAGES[5]} alt="" style={{ width: "100%", maxWidth: "100%", height: 400, objectFit: "cover", background: "#f5f0ea", borderRadius: 4, display: "block" }} />
       </div>
@@ -231,15 +374,12 @@ export default function IntelligenceHome() {
         ))}
       </Fade>
 
-      {/* IMAGE 7 — MEHENDI */}
       <FullImg src={IMAGES[6]} style={{ margin: "30px 0" }} />
-
-      {/* IMAGE 8 — GRAND VENUE */}
       <FullImg src={IMAGES[7]} />
 
       {/* CLOSING MANIFESTO */}
       <Fade style={{ textAlign: "center", padding: isMobile ? "60px 20px 40px" : "80px 24px 60px", maxWidth: 620, margin: "0 auto" }}>
-        <h2 style={{ ...heading("This Is Real Intelligence", "clamp(28px,6vw,48px)", true) }}>This Is Real Intelligence</h2>
+        <h2 style={{ ...heading("clamp(28px,6vw,48px)", true) }}>This Is Real Intelligence</h2>
         <GoldRule width={36} margin="20px auto" />
         <p style={{ ...body(), margin: "0 auto" }}>
           Not artificial. Not imported. Not borrowed. Built here, for here, by people who understand that an Indian wedding is not an event — it is an emotion that spans generations.
@@ -249,20 +389,21 @@ export default function IntelligenceHome() {
         </p>
       </Fade>
 
-      {/* IMAGE 9 — COUPLE CANDID */}
       <div style={{ maxWidth: 620, margin: "30px auto", padding: isMobile ? "0 20px" : "0 24px" }}>
         <img src={IMAGES[8]} alt="" style={{ width: "100%", maxWidth: "100%", height: 400, objectFit: "cover", background: "#f5f0ea", borderRadius: 4, display: "block" }} />
       </div>
 
-      {/* IMAGE 10 — EMOTIONAL */}
       <FullImg src={IMAGES[9]} height="50vh" mobileHeight="35vh" style={{ marginTop: 30 }} />
 
-      {/* FOOTER */}
-      <footer style={{ textAlign: "center", padding: "40px 24px", borderTop: "1px solid #F2F2F2" }}>
-        <div style={{ fontFamily: mont, fontSize: 12, color: "#666666" }}>© MIRRORAI · THE REAL INTELLIGENCE</div>
+      {/* ─── FOOTER ─── */}
+      <footer style={{ textAlign: "center", padding: "60px 24px 40px", borderTop: "1px solid #F2F2F2" }}>
+        <div style={{ fontFamily: playfair, fontSize: 20, fontWeight: 700, color: "#000000", marginBottom: 20 }}>Ready To Enter Real Intelligence?</div>
+        <button onClick={() => navigate("/dashboard")} onMouseEnter={() => setFooterPillHover(true)} onMouseLeave={() => setFooterPillHover(false)} style={pillStyle(footerPillHover, true)}>
+          ENTER REAL INTELLIGENCE →
+        </button>
+        <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", marginTop: 32 }}>© MIRRORAI · THE REAL INTELLIGENCE</div>
         <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#FFCC00", margin: "16px auto 0" }} />
       </footer>
-      <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>
   );
 }
