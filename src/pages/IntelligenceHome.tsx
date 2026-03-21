@@ -125,6 +125,7 @@ export default function IntelligenceHome() {
   const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
   const [newsLoading, setNewsLoading] = useState(true);
   const [activeNav, setActiveNav] = useState(0);
+  const [activeEdu, setActiveEdu] = useState(0);
 
   useEffect(() => { const h = () => setMob(window.innerWidth < 768); window.addEventListener("resize", h); return () => window.removeEventListener("resize", h); }, []);
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }, []);
