@@ -7,10 +7,10 @@ const montserrat = '"Montserrat", sans-serif';
 const NAV_ITEMS = [
   { label: "HOME", path: "/home" },
   { label: "EVENTS", path: "/dashboard/events" },
-  { label: "STORYBOOK", path: "/storybook" },
-  { label: "CHEETAH", path: "/cheetah" },
+  { label: "STORYBOOK", path: "/dashboard/storybook" },
+  { label: "CHEETAH", path: "/dashboard/cheetah" },
   { label: "RYFINE", path: "/refyn" },
-  { label: "ANALYTICS", path: "/analytics" },
+  { label: "ANALYTICS", path: "/dashboard/analytics" },
 ];
 
 const IMAGES = [
