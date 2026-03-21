@@ -45,31 +45,33 @@ function FeedPost({ post, index }: { post: typeof POSTS[0]; index: number }) {
   const visible = useOnScreen(ref);
   const [hovered, setHovered] = useState(false);
 
+  const mob = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
     <div ref={ref} style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(16px)", transition: "opacity 0.5s ease, transform 0.5s ease", transitionDelay: `${index * 0.05}s` }}>
-      {/* Image */}
+      {/* Image — full bleed on mobile */}
       <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        style={{ width: "100%", height: window.innerWidth < 768 ? 420 : 500, overflow: "hidden", transform: hovered ? "scale(1.01)" : "scale(1)", transition: "transform 0.4s ease", position: "relative" }}
+        style={{ width: mob ? "calc(100% + 48px)" : "100%", marginLeft: mob ? -24 : 0, height: mob ? "50vh" : 500, overflow: "hidden", transform: hovered ? "scale(1.01)" : "scale(1)", transition: "transform 0.4s ease", position: "relative" }}
       >
         <img src={`/images/gallery-${(index % 8) + 1}.jpg`} alt={post.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </div>
 
       {/* Name */}
-      <div style={{ fontFamily: playfair, fontSize: 20, fontWeight: 700, color: "#000000", letterSpacing: 0.5, marginTop: 20, textTransform: "uppercase" as const }}>{post.name}</div>
+      <div style={{ fontFamily: playfair, fontSize: mob ? 18 : 20, fontWeight: 700, color: "#000000", letterSpacing: 0.5, marginTop: 20, textTransform: "uppercase" as const }}>{post.name}</div>
 
       {/* Date */}
-      <div style={{ fontFamily: mont, fontSize: 13, color: "#666666", marginTop: 4 }}>{post.date}</div>
+      <div style={{ fontFamily: mont, fontSize: mob ? 13 : 13, color: "#666666", marginTop: 6 }}>{post.date}</div>
 
       {/* Desc */}
-      <div style={{ fontFamily: mont, fontSize: 14, color: "#666666", lineHeight: 1.6, marginTop: 8 }}>{post.desc}</div>
+      <div style={{ fontFamily: mont, fontSize: 14, color: "#666666", lineHeight: 1.6, marginTop: 10 }}>{post.desc}</div>
 
       {/* Photo count */}
       <div style={{ fontFamily: mont, fontSize: 11, color: "#999999", marginTop: 8 }}>{post.photos} photos</div>
 
       {/* Engagement */}
-      <div style={{ display: "flex", gap: 16, marginTop: 12, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 16, marginTop: 14, alignItems: "center" }}>
         <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: mont, fontSize: 12, color: "#666666" }}><HeartIcon />{post.likes}</span>
         <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: mont, fontSize: 12, color: "#666666" }}><EyeIcon />{post.views} views</span>
       </div>
