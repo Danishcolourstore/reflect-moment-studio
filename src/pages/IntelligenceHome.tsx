@@ -182,7 +182,7 @@ export default function IntelligenceHome() {
 
         {/* ── Hero Slideshow ── */}
         <div className="relative overflow-hidden" style={{ marginTop: 48, aspectRatio: "4/3" }}>
-          <AnimatePresence mode="crossfade">
+          <AnimatePresence mode="wait">
             <motion.div
               key={current}
               className="absolute inset-0"
@@ -334,7 +334,7 @@ export default function IntelligenceHome() {
                   style={{
                     borderTop: "1px solid rgba(240,237,232,0.06)",
                     background: "none",
-                    border_bottom: i === events.length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
+                    borderBottom: i === events.length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
                   }}
                   onClick={() => navigate(`/dashboard/events/${evt.id}`)}
                   initial={{ opacity: 0, y: 12 }}
