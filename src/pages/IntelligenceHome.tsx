@@ -12,8 +12,11 @@ const NAV_ITEMS = [
   { label: "FEED", path: "#feed" },
   { label: "NEWS", path: "#news" },
   { label: "STORIES", path: "#stories" },
+  { label: "EDUCATION", path: "#education" },
   { label: "DISCOVER", path: "#discover" },
 ];
+
+const EDU_TOPICS = ["Lighting", "Posing", "Business", "Editing", "Gear", "Marketing", "Indian Weddings", "Candid"];
 
 const FALLBACK_NEWS: NewsItem[] = [
   { title: "New Sony A1 II — Full Frame Gets Major Update", link: "#", pubDate: "2026-03-18", description: "Sony's flagship mirrorless camera receives a significant hardware and software overhaul for professional shooters.", thumbnail: "", source: "PETAPIXEL" },
@@ -122,6 +125,7 @@ export default function IntelligenceHome() {
   const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
   const [newsLoading, setNewsLoading] = useState(true);
   const [activeNav, setActiveNav] = useState(0);
+  const [activeEdu, setActiveEdu] = useState(0);
 
   useEffect(() => { const h = () => setMob(window.innerWidth < 768); window.addEventListener("resize", h); return () => window.removeEventListener("resize", h); }, []);
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }, []);
@@ -209,6 +213,33 @@ export default function IntelligenceHome() {
           Enter Real Intelligence →
         </button>
       )}
+
+      {/* ─── EDUCATION BAR + CARD ─── */}
+      <div id="education" style={{ background: "#FAFAFA", padding: "16px 24px", width: "100%" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, maxWidth: 900, margin: "0 auto" }}>
+          <span style={{ fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1.5px", textTransform: "uppercase", color: "#FFCC00", flexShrink: 0 }}>LEARN</span>
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", flex: 1, scrollbarWidth: "none", paddingRight: 8 }}>
+            {EDU_TOPICS.map((t, i) => (
+              <button key={t} onClick={() => setActiveEdu(i)} style={{ fontFamily: mont, fontSize: 11, fontWeight: 400, padding: "6px 14px", border: activeEdu === i ? "none" : "1px solid #F2F2F2", background: activeEdu === i ? "#000000" : "transparent", color: activeEdu === i ? "#FFFFFF" : "#000000", borderRadius: 0, cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s", minHeight: 34 }}>{t}</button>
+            ))}
+          </div>
+          <span style={{ fontFamily: mont, fontSize: 11, fontWeight: 600, color: "#000000", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>View All →</span>
+        </div>
+      </div>
+
+      {/* FEATURED EDUCATION CARD */}
+      <Fade style={{ maxWidth: 900, margin: "20px auto", padding: mob ? "0 20px" : "0 24px" }}>
+        <div style={{ display: "flex", flexDirection: mob ? "column" : "row", border: "1px solid #F2F2F2", overflow: "hidden" }}>
+          <div style={{ width: mob ? "100%" : "40%", height: 200, background: warmGrad, flexShrink: 0 }} />
+          <div style={{ padding: 24, flex: 1 }}>
+            <div style={{ fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>FREE TUTORIAL</div>
+            <div style={{ fontFamily: playfair, fontSize: 22, fontWeight: 700, color: "#000000", marginTop: 8, lineHeight: 1.3 }}>Mastering Natural Light in Indian Wedding Venues</div>
+            <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", lineHeight: 1.6, margin: "10px 0 0" }}>Dark mandaps, mixed lighting, and 500 guests. Learn how top Indian wedding photographers handle the most challenging conditions.</p>
+            <div style={{ fontFamily: mont, fontSize: 12, color: "#666666", marginTop: 10 }}>By Naman Verma · 12 min read</div>
+            <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000000", marginTop: 12, cursor: "pointer" }}>Start Learning →</div>
+          </div>
+        </div>
+      </Fade>
 
       {/* ─── 3. HERO ─── */}
       <div id="feed" style={{ position: "relative", minHeight: "70vh" }}>
