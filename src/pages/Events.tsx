@@ -214,7 +214,7 @@ export default function Events() {
               </div>
 
               {/* Date */}
-              <div style={{ fontFamily: montserrat, fontSize: 14, fontWeight: 400, color: "#666666", marginTop: 4 }}>
+              <div style={{ fontFamily: montserrat, fontSize: 14, fontWeight: 400, color: "#666666", marginTop: 6 }}>
                 {s.date}
               </div>
 
