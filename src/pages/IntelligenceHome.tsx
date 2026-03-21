@@ -21,13 +21,17 @@ const IMAGES = [
   "https://i.ibb.co/rRwfw5Pb/01-35.jpg",
 ];
 
+const INTRO_TEXT = "REAL INTELLIGENCE";
+const LETTER_DELAY = 0.06;
+const INTRO_DURATION = INTRO_TEXT.length * LETTER_DELAY + 1.2;
+
 export default function IntelligenceHome() {
   const drawer = useDrawerMenu();
   const [ready, setReady] = useState(false);
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    const t = setTimeout(() => setReady(true), 800);
+    const t = setTimeout(() => setReady(true), INTRO_DURATION * 1000);
     return () => clearTimeout(t);
   }, []);
 
@@ -52,30 +56,41 @@ export default function IntelligenceHome() {
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
-      {/* Intro overlay */}
+      {/* Intro overlay — letter by letter */}
       <AnimatePresence>
         {!ready && (
           <motion.div
             key="intro"
             className="absolute inset-0 z-[300] bg-black flex items-center justify-center"
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.6, ease }}
+            transition={{ duration: 1.2, ease }}
           >
-            <motion.span
+            <div
               style={{
                 fontFamily: '"Cormorant Garamond", serif',
-                fontSize: 18,
-                fontWeight: 600,
+                fontSize: 22,
+                fontWeight: 400,
                 color: "#E8C97A",
-                letterSpacing: "0.3em",
-                whiteSpace: "nowrap",
+                letterSpacing: "0.28em",
+                display: "flex",
               }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, ease }}
             >
-              REAL INTELLIGENCE
-            </motion.span>
+              {INTRO_TEXT.split("").map((char, i) => (
+                <motion.span
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: i * LETTER_DELAY,
+                    duration: 0.5,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  style={{ display: "inline-block", whiteSpace: "pre" }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -104,16 +119,19 @@ export default function IntelligenceHome() {
       />
 
       {/* Top bar */}
-      <div
+      <motion.div
         className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between"
         style={{
           height: 48,
           padding: "0 24px",
           paddingTop: "env(safe-area-inset-top, 0px)",
         }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: ready ? 1 : 0 }}
+        transition={{ duration: 0.8, ease }}
       >
         {/* MENU */}
-        <motion.button
+        <button
           onClick={drawer.toggle}
           style={{
             fontFamily: '"DM Sans", sans-serif',
@@ -126,12 +144,9 @@ export default function IntelligenceHome() {
             cursor: "pointer",
             textShadow: "0 1px 8px rgba(0,0,0,0.8)",
           }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: ready ? 1 : 0 }}
-          transition={{ delay: 0.2, duration: 0.8, ease }}
         >
           MENU
-        </motion.button>
+        </button>
 
         {/* REAL INTELLIGENCE — signal flicker */}
         <motion.span
@@ -170,7 +185,7 @@ export default function IntelligenceHome() {
           }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         />
-      </div>
+      </motion.div>
     </div>
   );
 }
