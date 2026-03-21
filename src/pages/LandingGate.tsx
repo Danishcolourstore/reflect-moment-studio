@@ -51,9 +51,9 @@ function FeedPost({ post, index }: { post: typeof POSTS[0]; index: number }) {
       <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        style={{ width: "100%", height: window.innerWidth < 768 ? 420 : 500, background: post.warm ? warmGrad : coolGrad, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", transform: hovered ? "scale(1.01)" : "scale(1)", transition: "transform 0.4s ease" }}
+        style={{ width: "100%", height: window.innerWidth < 768 ? 420 : 500, overflow: "hidden", transform: hovered ? "scale(1.01)" : "scale(1)", transition: "transform 0.4s ease", position: "relative" }}
       >
-        <span style={{ fontFamily: playfair, fontSize: 28, color: "rgba(0,0,0,0.06)", fontWeight: 700, letterSpacing: 4 }}>{post.name}</span>
+        <img src={`/images/gallery-${(index % 8) + 1}.jpg`} alt={post.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </div>
 
       {/* Name */}
