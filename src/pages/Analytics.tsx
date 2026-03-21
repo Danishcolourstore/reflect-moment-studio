@@ -187,7 +187,7 @@ const Analytics = () => {
         <p style={{ fontFamily: mont, fontSize: 12, color: "#666666", margin: 0 }}>© MIRRORAI</p>
       </div>
 
-      <GlobalDrawerMenu open={drawer.open} onClose={drawer.close} />
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>
   );
 };
