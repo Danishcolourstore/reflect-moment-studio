@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { GlobalDrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
