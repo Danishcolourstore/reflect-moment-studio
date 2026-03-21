@@ -70,7 +70,7 @@ function FullImg({ src, height = "55vh", mobileHeight = "40vh", style }: { src: 
   const [mob, setMob] = useState(window.innerWidth < 768);
   useEffect(() => { const h = () => setMob(window.innerWidth < 768); window.addEventListener("resize", h); return () => window.removeEventListener("resize", h); }, []);
   return (
-    <img src={src} alt="" style={{ width: "100%", height: mob ? mobileHeight : height, objectFit: "cover", display: "block", ...style }} />
+    <img src={src} alt="" style={{ width: "100%", maxWidth: "100%", height: mob ? mobileHeight : height, objectFit: "cover", background: "#f5f0ea", display: "block", ...style }} />
   );
 }
 
