@@ -24,6 +24,8 @@ const NAV_ITEMS = [
   { label: "CHEETAH", path: "/dashboard/cheetah" },
   { label: "RYFINE", path: "/refyn" },
   { label: "ANALYTICS", path: "/dashboard/analytics" },
+  { label: "WEBSITE", path: "/dashboard/website-editor" },
+  { label: "MORE", path: "__drawer__" },
 ];
 
 const FEATURES = [
