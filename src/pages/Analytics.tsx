@@ -1,33 +1,57 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DashboardLayout } from '@/components/DashboardLayout';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Eye, Heart, Download, MessageSquare, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { format, subDays } from 'date-fns';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
+
+const playfair = '"Playfair Display", serif';
+const mont = '"Montserrat", sans-serif';
+
+const NAV_ITEMS = [
+  { label: "HOME", path: "/home" },
+  { label: "EVENTS", path: "/dashboard/events" },
+  { label: "STORYBOOK", path: "/dashboard/storybook" },
+  { label: "CHEETAH", path: "/dashboard/cheetah" },
+  { label: "RYFINE", path: "/refyn" },
+  { label: "ANALYTICS", path: "/dashboard/analytics" },
+  { label: "WEBSITE", path: "/dashboard/website-editor" },
+  { label: "MORE", path: "__drawer__" },
+];
 
 interface AnalyticRow {
-  event_id: string; event_name: string; event_date: string; cover_url: string | null;
+  event_id: string; event_name: string; event_date: string;
   gallery_views: number; favorites_count: number; downloads_count: number;
 }
 
 type DateRange = '7d' | '30d' | '90d' | 'all';
 
+const RANGES: { key: DateRange; label: string }[] = [
+  { key: '7d', label: '7 Days' },
+  { key: '30d', label: '30 Days' },
+  { key: '90d', label: '90 Days' },
+  { key: 'all', label: 'All Time' },
+];
+
 const Analytics = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const drawer = useDrawerMenu();
   const [rows, setRows] = useState<AnalyticRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<DateRange>('30d');
-  const [viewsChart, setViewsChart] = useState<{ date: string; views: number }[]>([]);
+  const [navHover, setNavHover] = useState<number | null>(null);
+  const [rangeHover, setRangeHover] = useState<number | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
 
   useEffect(() => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const { data: events } = await (supabase.from('events').select('id, name, event_date, cover_url') as any).eq('user_id', user.id);
+      const { data: events } = await (supabase.from('events').select('id, name, event_date') as any).eq('user_id', user.id);
       if (!events || (events as any[]).length === 0) { setRows([]); setLoading(false); return; }
 
       const ids = (events as any[]).map((e: any) => e.id);
@@ -37,20 +61,8 @@ const Analytics = () => {
 
       setRows((events as any[]).map((e: any) => {
         const a = aMap.get(e.id);
-        return { event_id: e.id, event_name: e.name, event_date: e.event_date, cover_url: e.cover_url, gallery_views: a?.gallery_views ?? 0, favorites_count: a?.favorites_count ?? 0, downloads_count: a?.downloads_count ?? 0 };
+        return { event_id: e.id, event_name: e.name, event_date: e.event_date, gallery_views: a?.gallery_views ?? 0, favorites_count: a?.favorites_count ?? 0, downloads_count: a?.downloads_count ?? 0 };
       }).sort((a: AnalyticRow, b: AnalyticRow) => b.gallery_views - a.gallery_views));
-
-      // Views chart data
-      const { data: views } = await (supabase.from('event_views').select('viewed_at') as any).in('event_id', ids).order('viewed_at', { ascending: true });
-      if (views) {
-        const dayMap = new Map<string, number>();
-        for (const v of views as any[]) {
-          const d = format(new Date(v.viewed_at), 'yyyy-MM-dd');
-          dayMap.set(d, (dayMap.get(d) ?? 0) + 1);
-        }
-        setViewsChart(Array.from(dayMap.entries()).map(([date, views]) => ({ date, views })));
-      }
-
       setLoading(false);
     };
     load();
@@ -58,126 +70,126 @@ const Analytics = () => {
 
   const getDays = (r: DateRange) => r === '7d' ? 7 : r === '30d' ? 30 : r === '90d' ? 90 : 99999;
   const cutoff = subDays(new Date(), getDays(range));
-
   const filtered = rows.filter(r => range === 'all' || new Date(r.event_date) >= cutoff);
-  const filteredChart = viewsChart.filter(v => range === 'all' || new Date(v.date) >= cutoff);
   const totalViews = filtered.reduce((s, r) => s + r.gallery_views, 0);
   const totalDownloads = filtered.reduce((s, r) => s + r.downloads_count, 0);
   const totalFavs = filtered.reduce((s, r) => s + r.favorites_count, 0);
+  const engagement = totalViews > 0 ? `${((totalFavs / totalViews) * 100).toFixed(1)}%` : '0%';
 
-  const RANGES: { key: DateRange; label: string }[] = [
-    { key: '7d', label: 'Last 7 Days' }, { key: '30d', label: 'Last 30 Days' },
-    { key: '90d', label: 'Last 90 Days' }, { key: 'all', label: 'All Time' },
+  const stats = [
+    { label: "TOTAL VIEWS", value: totalViews.toLocaleString() },
+    { label: "DOWNLOADS", value: totalDownloads.toLocaleString() },
+    { label: "FAVORITES", value: totalFavs.toLocaleString() },
+    { label: "ENGAGEMENT", value: engagement },
   ];
 
   return (
-    <DashboardLayout>
-      <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">Analytics</h1>
+    <div style={{ minHeight: "100vh", width: "100%", background: "#FFFFFF", overflow: "visible" }}>
+      {/* NAV */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#FFFFFF", borderBottom: "1px solid #F2F2F2", paddingTop: "calc(12px + env(safe-area-inset-top, 0px))" }}>
+        <div style={{ textAlign: "center", marginBottom: 8 }}>
+          <span style={{ fontFamily: playfair, fontSize: 24, fontWeight: 700, color: "#000000", cursor: "pointer" }} onClick={() => navigate("/home")}>MirrorAI</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", gap: 20, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }}>
+          {NAV_ITEMS.map((item, i) => {
+            const isActive = item.label === "ANALYTICS";
+            const isHov = navHover === i;
+            return (
+              <button key={item.label} onClick={() => item.path === "__drawer__" ? drawer.toggle() : navigate(item.path)} onMouseEnter={() => setNavHover(i)} onMouseLeave={() => setNavHover(null)}
+                style={{ fontFamily: mont, fontSize: 14, fontWeight: 400, textTransform: "uppercase" as const, letterSpacing: "1px", color: isActive || isHov ? "#000000" : "#666666", background: "none", border: "none", borderBottom: isActive ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap" as const, padding: "12px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
-      {/* Range pills */}
-      <div className="flex items-center gap-2 mb-4 sm:mb-6 overflow-x-auto pb-1 scrollbar-hide">
-        {RANGES.map(({ key, label }) => (
-          <button key={key} onClick={() => setRange(key)}
-            className={`px-3 sm:px-4 py-1.5 rounded-full text-[11px] tracking-wider transition-all border whitespace-nowrap min-h-[44px] ${
-              range === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-transparent text-muted-foreground border-border hover:border-foreground/30'
-            }`}>{label}</button>
-        ))}
-      </div>
+      {/* CONTENT */}
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 20px 80px" }}>
+        {/* Title */}
+        <h1 style={{ fontFamily: playfair, fontSize: 36, fontWeight: 700, color: "#000000", margin: "0 0 32px", letterSpacing: "0.5px" }}>Analytics</h1>
 
-      {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}</div>
-      ) : rows.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
-            <Eye className="h-7 w-7 text-muted-foreground/20" />
+        {/* Range filters */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 32, flexWrap: "wrap" }}>
+          {RANGES.map((r, i) => (
+            <button key={r.key} onClick={() => setRange(r.key)} onMouseEnter={() => setRangeHover(i)} onMouseLeave={() => setRangeHover(null)}
+              style={{
+                fontFamily: mont, fontSize: 12, fontWeight: 500, textTransform: "uppercase" as const, letterSpacing: "1px",
+                padding: "10px 20px", minHeight: 44, cursor: "pointer", transition: "all 0.2s",
+                border: range === r.key ? "1px solid #000000" : "1px solid #F2F2F2",
+                background: range === r.key ? "#000000" : rangeHover === i ? "#F2F2F2" : "#FFFFFF",
+                color: range === r.key ? "#FFFFFF" : "#666666",
+              }}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
+            {[0,1,2,3].map(i => (
+              <div key={i} style={{ background: "#F2F2F2", height: 100, animation: "pulse 1.5s infinite" }} />
+            ))}
           </div>
-          <h3 className="font-serif text-lg text-foreground/70 mb-1">No analytics yet</h3>
-          <p className="text-[12px] text-muted-foreground/50 max-w-[260px]">
-            Publish your first event gallery and share it with clients to start seeing analytics data here
-          </p>
-        </div>
-      ) : (
-        <>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <AnalyticStat icon={Eye} label="Total Views" value={totalViews} />
-          <AnalyticStat icon={Download} label="Total Downloads" value={totalDownloads} />
-          <AnalyticStat icon={Heart} label="Total Favorites" value={totalFavs} />
-          <AnalyticStat icon={MessageSquare} label="Engagement" value={totalViews > 0 ? `${((totalFavs / totalViews) * 100).toFixed(1)}%` : '0%'} />
-        </div>
-
-      {/* Chart */}
-      {filteredChart.length > 0 && (
-        <div className="bg-card border border-border rounded-xl p-5 mb-8">
-          <h3 className="font-serif text-base text-foreground mb-4">Gallery Views Over Time</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={filteredChart}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={(v) => format(new Date(v), 'MMM d')} />
-              <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-              <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', fontSize: 12 }} />
-              <Line type="monotone" dataKey="views" stroke="hsl(var(--accent))" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* Events table */}
-      <h3 className="font-serif text-lg text-foreground mb-4">Top Events</h3>
-      {loading ? (
-        <div className="space-y-2">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14" />)}</div>
-      ) : filtered.length === 0 ? (
-        <div className="border border-dashed border-border/60 py-20 text-center rounded-xl">
-          <Eye className="mx-auto h-10 w-10 text-muted-foreground/15" />
-          <p className="mt-4 font-serif text-sm text-muted-foreground/60">No analytics data yet</p>
-        </div>
-      ) : (
-        <div className="border border-border rounded-xl overflow-hidden">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-border bg-secondary/30">
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Event</th>
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-right">Views</th>
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-right hidden sm:table-cell">Downloads</th>
-                <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium text-right hidden sm:table-cell">Favorites</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(row => (
-                <tr key={row.event_id} className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/events/${row.event_id}`)}>
-                  <td className="px-4 py-3 flex items-center gap-3">
-                    <div className="h-10 w-10 rounded bg-secondary overflow-hidden shrink-0">
-                      {row.cover_url ? <img src={row.cover_url} className="h-full w-full object-cover" /> : <Image className="h-full w-full p-2 text-muted-foreground/20" />}
-                    </div>
-                    <div>
-                      <p className="font-serif text-[13px] font-medium text-foreground">{row.event_name}</p>
-                      <p className="text-[10px] text-muted-foreground">{format(new Date(row.event_date), 'MMM d, yyyy')}</p>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-[13px] text-foreground text-right font-medium">{row.gallery_views}</td>
-                  <td className="px-4 py-3 text-[13px] text-foreground text-right font-medium hidden sm:table-cell">{row.downloads_count}</td>
-                  <td className="px-4 py-3 text-[13px] text-foreground text-right font-medium hidden sm:table-cell">{row.favorites_count}</td>
-                </tr>
+        ) : rows.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "80px 20px" }}>
+            <p style={{ fontFamily: playfair, fontSize: 20, color: "#000000", margin: "0 0 8px" }}>No analytics yet</p>
+            <p style={{ fontFamily: mont, fontSize: 14, color: "#666666", margin: 0 }}>Publish your first event gallery to start seeing data here</p>
+          </div>
+        ) : (
+          <>
+            {/* Stat cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 48 }}>
+              {stats.map(s => (
+                <div key={s.label} style={{ background: "#FFFFFF", border: "1px solid #F2F2F2", padding: 24 }}>
+                  <p style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", margin: "0 0 8px" }}>{s.label}</p>
+                  <p style={{ fontFamily: playfair, fontSize: 36, fontWeight: 700, color: "#000000", margin: 0, lineHeight: 1 }}>{s.value}</p>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-        </>
-      )}
-    </DashboardLayout>
-  );
-};
+            </div>
 
-function AnalyticStat({ icon: Icon, label, value }: { icon: any; label: string; value: number | string }) {
-  return (
-    <div className="bg-card border border-border rounded-xl p-3 sm:p-5">
-      <div className="flex items-center justify-between mb-1 sm:mb-2">
-        <p className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground/60 font-medium">{label}</p>
-        <Icon className="h-4 w-4 text-muted-foreground/20" />
+            {/* Top events table */}
+            <h2 style={{ fontFamily: playfair, fontSize: 24, fontWeight: 700, color: "#000000", margin: "0 0 20px" }}>Top Events</h2>
+            <div style={{ border: "1px solid #F2F2F2", overflow: "hidden" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid #F2F2F2" }}>
+                    <th style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", textAlign: "left", padding: "14px 16px" }}>Event</th>
+                    <th style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", textAlign: "right", padding: "14px 16px" }}>Views</th>
+                    <th style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", textAlign: "right", padding: "14px 16px", display: window.innerWidth < 640 ? "none" : undefined }}>Downloads</th>
+                    <th style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", textAlign: "right", padding: "14px 16px", display: window.innerWidth < 640 ? "none" : undefined }}>Favorites</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(row => (
+                    <tr key={row.event_id} onClick={() => navigate(`/dashboard/events/${row.event_id}`)}
+                      style={{ borderBottom: "1px solid #F2F2F2", cursor: "pointer", transition: "background 0.2s" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      <td style={{ padding: "14px 16px" }}>
+                        <p style={{ fontFamily: mont, fontSize: 14, fontWeight: 500, color: "#000000", margin: 0 }}>{row.event_name}</p>
+                        <p style={{ fontFamily: mont, fontSize: 12, color: "#666666", margin: "2px 0 0" }}>{format(new Date(row.event_date), 'MMM d, yyyy')}</p>
+                      </td>
+                      <td style={{ fontFamily: mont, fontSize: 14, fontWeight: 600, color: "#000000", textAlign: "right", padding: "14px 16px" }}>{row.gallery_views}</td>
+                      <td style={{ fontFamily: mont, fontSize: 14, fontWeight: 600, color: "#000000", textAlign: "right", padding: "14px 16px", display: window.innerWidth < 640 ? "none" : undefined }}>{row.downloads_count}</td>
+                      <td style={{ fontFamily: mont, fontSize: 14, fontWeight: 600, color: "#000000", textAlign: "right", padding: "14px 16px", display: window.innerWidth < 640 ? "none" : undefined }}>{row.favorites_count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
-      <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground leading-none tracking-tight">{value}</p>
+
+      {/* Footer */}
+      <div style={{ textAlign: "center", padding: "40px 20px", borderTop: "1px solid #F2F2F2" }}>
+        <p style={{ fontFamily: mont, fontSize: 12, color: "#666666", margin: 0 }}>© MIRRORAI</p>
+      </div>
+
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>
   );
-}
+};
 
 export default Analytics;

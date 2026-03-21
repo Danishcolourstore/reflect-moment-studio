@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
@@ -24,6 +25,8 @@ const NAV_ITEMS = [
   { label: "CHEETAH", path: "/dashboard/cheetah" },
   { label: "RYFINE", path: "/refyn" },
   { label: "ANALYTICS", path: "/dashboard/analytics" },
+  { label: "WEBSITE", path: "/dashboard/website-editor" },
+  { label: "MORE", path: "__drawer__" },
 ];
 
 const FEATURES = [
@@ -84,6 +87,7 @@ function Label({ children, color = "#666666" }: { children: React.ReactNode; col
 
 export default function IntelligenceHome() {
   const navigate = useNavigate();
+  const drawer = useDrawerMenu();
   const [navHover, setNavHover] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -118,7 +122,7 @@ export default function IntelligenceHome() {
             const isActive = i === 0;
             const isHov = navHover === i;
             return (
-              <button key={item.label} onClick={() => navigate(item.path)} onMouseEnter={() => setNavHover(i)} onMouseLeave={() => setNavHover(null)}
+              <button key={item.label} onClick={() => item.path === "__drawer__" ? drawer.toggle() : navigate(item.path)} onMouseEnter={() => setNavHover(i)} onMouseLeave={() => setNavHover(null)}
                 style={{ fontFamily: mont, fontSize: 14, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: isActive || isHov ? "#000000" : "#666666", background: "none", border: "none", borderBottom: isActive ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", padding: "12px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
                 {item.label}
               </button>
@@ -258,6 +262,7 @@ export default function IntelligenceHome() {
         <div style={{ fontFamily: mont, fontSize: 12, color: "#666666" }}>© MIRRORAI · THE REAL INTELLIGENCE</div>
         <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#FFCC00", margin: "16px auto 0" }} />
       </footer>
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>
   );
 }

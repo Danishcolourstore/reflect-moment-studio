@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { MobileBottomNav } from '@/components/MobileBottomNav';
+
 import RefynUpload from '@/components/refyn/RefynUpload';
 import RefynProcessing from '@/components/refyn/RefynProcessing';
 import RefynEditor from '@/components/refyn/RefynEditor';
@@ -126,7 +126,7 @@ export default function ColourStore() {
         )}
       </AnimatePresence>
 
-      <MobileBottomNav />
+      
     </div>
   );
 }

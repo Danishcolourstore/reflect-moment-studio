@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 
 const playfair = '"Playfair Display", serif';
 const montserrat = '"Montserrat", sans-serif';
@@ -11,6 +12,8 @@ const NAV_ITEMS = [
   { label: "CHEETAH", path: "/dashboard/cheetah" },
   { label: "RYFINE", path: "/refyn" },
   { label: "ANALYTICS", path: "/dashboard/analytics" },
+  { label: "WEBSITE", path: "/dashboard/website-editor" },
+  { label: "MORE", path: "__drawer__" },
 ];
 
 const IMAGES = [
@@ -97,6 +100,7 @@ function FadeCard({ children }: { children: React.ReactNode }) {
 
 export default function Events() {
   const navigate = useNavigate();
+  const drawer = useDrawerMenu();
   const [navHover, setNavHover] = useState<number | null>(null);
   const [imgHover, setImgHover] = useState<number | null>(null);
   const [readHover, setReadHover] = useState<number | null>(null);
@@ -142,7 +146,7 @@ export default function Events() {
             return (
               <button
                 key={item.label}
-                onClick={() => navigate(item.path)}
+                onClick={() => item.path === "__drawer__" ? drawer.toggle() : navigate(item.path)}
                 onMouseEnter={() => setNavHover(i)}
                 onMouseLeave={() => setNavHover(null)}
                 style={{
@@ -293,6 +297,7 @@ export default function Events() {
       <footer style={{ textAlign: "center", padding: "60px 20px 40px" }}>
         <div style={{ fontFamily: montserrat, fontSize: 12, color: "#666666" }}>© MIRRORAI</div>
       </footer>
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>
   );
 }
