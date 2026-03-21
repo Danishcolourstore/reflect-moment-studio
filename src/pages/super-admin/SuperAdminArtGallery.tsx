@@ -160,7 +160,7 @@ export default function SuperAdminArtGallery() {
   }
 
   /* ── Inline form renderer ── */
-  function renderForm<T extends Record<string, any>>(item: T, setItem: (i: T) => void, fields: { key: keyof T; label: string; type?: string; options?: string[] }[], onSave: () => void, onCancel: () => void) {
+  function renderForm<T extends Record<string, any>>(item: T, setItem: (i: T) => void, fields: { key: string; label: string; type?: string; options?: string[] }[], onSave: () => void, onCancel: () => void) {
     return (
       <div style={s.card}>
         {fields.map(f => (
