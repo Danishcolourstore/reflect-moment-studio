@@ -274,7 +274,7 @@ export default function Events() {
                   fontFamily: montserrat,
                   fontSize: 13,
                   color: "#666666",
-                  marginTop: 8,
+                  marginTop: 14,
                   paddingBottom: 12,
                 }}
               >
@@ -286,6 +286,7 @@ export default function Events() {
                   {s.likes} Likes
                 </span>
               </div>
+              </div>{/* close text padding wrapper */}
             </FadeCard>
           ))}
         </div>

@@ -138,12 +138,12 @@ export default function LandingGate() {
       </div>
 
       {/* ── FEED ── */}
-      <div style={{ maxWidth: 660, margin: "0 auto", padding: 24 }}>
+      <div style={{ maxWidth: 660, margin: "0 auto", padding: "24px 20px" }}>
         <div style={{ fontFamily: mont, fontSize: 10, letterSpacing: "1.5px", color: "#FFCC00", textTransform: "uppercase" as const }}>RECENT WORK</div>
-        <div style={{ fontFamily: playfair, fontSize: 22, fontWeight: 700, color: "#000000", marginTop: 4 }}>Your Moments</div>
+        <div style={{ fontFamily: playfair, fontSize: 28, fontWeight: 700, color: "#000000", marginTop: 4 }}>Your Moments</div>
         <div style={{ width: 24, height: 2, background: "#FFCC00", margin: "12px 0 32px" }} />
 
-        <div style={{ display: "flex", flexDirection: "column" as const, gap: 60 }}>
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 48 }}>
           {POSTS.map((p, i) => <FeedPost key={i} post={p} index={i} />)}
         </div>
       </div>
