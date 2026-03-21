@@ -15,6 +15,7 @@ export type SuperAdminModuleKey =
   | 'mirrorai'
   | 'storybooks'
   | 'reflections'
+  | 'art-gallery'
   | 'emails'
   | 'activity'
   | 'settings';
@@ -45,6 +46,7 @@ export const SUPER_ADMIN_ROUTES: SuperAdminRouteConfig[] = [
   { key: 'mirrorai', path: 'mirrorai', label: 'MirrorAI', icon: 'Shield', nav: true },
   { key: 'storybooks', path: 'storybooks', label: 'Storybooks', icon: 'BookOpen', nav: true },
   { key: 'reflections', path: 'reflections', label: 'Reflections', icon: 'Compass', nav: true },
+  { key: 'art-gallery', path: 'art-gallery', label: 'Art Gallery', icon: 'Images', nav: true },
   { key: 'emails', path: 'emails', label: 'Bulk Email', icon: 'Mail', nav: true },
   { key: 'activity', path: 'activity', label: 'Activity Log', icon: 'Activity', nav: true },
   { key: 'settings', path: 'settings', label: 'Settings', icon: 'Settings', nav: true },
