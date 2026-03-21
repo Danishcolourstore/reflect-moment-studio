@@ -339,7 +339,7 @@ const Onboarding = () => {
                   <label className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-medium">Invite a Client (optional)</label>
                   <div className="flex gap-2 mt-1">
                     <Input value={clientEmail} onChange={e => setClientEmail(e.target.value)} placeholder="client@email.com" className="bg-background h-11 min-h-[44px] rounded-xl" />
-                    <Button variant="outline" className="h-11 min-h-[44px] rounded-xl" onClick={() => { console.log('Send invite to:', clientEmail); toast.success('Invite sent!'); }}>Send</Button>
+                    <Button variant="outline" className="h-11 min-h-[44px] rounded-xl" onClick={() => { toast.success('Invite sent!'); }}>Send</Button>
                   </div>
                 </div>
               )}

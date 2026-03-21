@@ -247,7 +247,7 @@ export default function IntelligenceHome() {
 
       {/* IMAGE 9 — COUPLE CANDID */}
       <div style={{ maxWidth: 620, margin: "30px auto", padding: isMobile ? "0 20px" : "0 24px" }}>
-        <img src={IMAGES[8]} alt="" style={{ width: "100%", height: 400, objectFit: "cover", borderRadius: 4, display: "block" }} />
+        <img src={IMAGES[8]} alt="" style={{ width: "100%", maxWidth: "100%", height: 400, objectFit: "cover", background: "#f5f0ea", borderRadius: 4, display: "block" }} />
       </div>
 
       {/* IMAGE 10 — EMOTIONAL */}

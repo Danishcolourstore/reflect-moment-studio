@@ -83,7 +83,7 @@ export default function RefynExport({ photoUrl, values, cssOverrides, onBack, on
   }, [values, cssOverrides, exporting]);
 
   const handleSendToMirror = useCallback((destination: 'event' | 'album' | 'grid') => {
-    console.log('Send to Mirror:', destination);
+    return destination;
   }, []);
 
   const dims = engineRef.current.getSourceDimensions();
