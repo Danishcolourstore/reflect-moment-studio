@@ -239,6 +239,35 @@ export default function IntelligenceHome() {
       {/* 6. FULL WIDTH IMAGE */}
       <img src="/images/gallery-4.jpg" alt="Couple portrait" style={{ width: "100%", height: mob ? "30vh" : "45vh", objectFit: "cover", display: "block", margin: "30px 0" }} />
 
+      {/* NEWS SECTION */}
+      <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
+        <div id="news">
+          <SHead label="INDUSTRY NEWS" title="From The Photography World" />
+          {newsLoading ? (
+            <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", textAlign: "center" }}>Loading latest news...</p>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 24 }}>
+              {news.map((n, i) => (
+                <a key={i} href={n.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit", border: "1px solid #F2F2F2", overflow: "hidden", display: "block", transition: "transform 0.3s, box-shadow 0.3s" }} onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.08)"; }} onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+                  {n.thumbnail ? (
+                    <img src={n.thumbnail} alt={n.title} style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
+                  ) : (
+                    <div style={{ width: "100%", height: 180, background: i % 2 === 0 ? warmGrad : coolGrad }} />
+                  )}
+                  <div style={{ padding: 20 }}>
+                    <div style={{ fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>{n.source}</div>
+                    <div style={{ fontFamily: playfair, fontSize: 18, fontWeight: 700, color: "#000000", marginTop: 8, lineHeight: 1.3 }}>{n.title}</div>
+                    <div style={{ fontFamily: mont, fontSize: 11, color: "#666666", marginTop: 6 }}>{new Date(n.pubDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+                    <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", lineHeight: 1.6, margin: "8px 0 0" }}>{n.description}</p>
+                    <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000000", marginTop: 12 }}>Read Article →</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </Fade>
+
       {/* 7. FEATURED PHOTOGRAPHERS */}
       <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
         <div id="featured">
