@@ -180,6 +180,12 @@ export default function LandingGate() {
 
       {/* Drawer */}
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
+
+      {/* Entiran AI Bot */}
+      <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 200 }}>
+        <EntiranButton onClick={() => setBotOpen(o => !o)} unreadCount={0} />
+      </div>
+      <EntiranPanel open={botOpen} onClose={() => setBotOpen(false)} pendingSuggestionCount={0} />
     </div>
   );
 }
