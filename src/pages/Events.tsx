@@ -158,7 +158,8 @@ export default function Events() {
                   textDecoration: isHov && !isActive ? "underline" : "none",
                   cursor: "pointer",
                   whiteSpace: "nowrap" as const,
-                  paddingBottom: 4,
+                  padding: "12px 0",
+                  minHeight: 44,
                   transition: "color 0.3s",
                   flexShrink: 0,
                 }}
