@@ -182,7 +182,7 @@ export default function IntelligenceHome() {
 
         {/* ── Hero Slideshow ── */}
         <div className="relative overflow-hidden" style={{ marginTop: 48, aspectRatio: "4/3" }}>
-          <AnimatePresence mode="crossfade">
+          <AnimatePresence mode="wait">
             <motion.div
               key={current}
               className="absolute inset-0"
