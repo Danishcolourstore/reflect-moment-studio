@@ -162,8 +162,7 @@ export default function IntelligenceHome() {
 
       {/* ─── 3. HERO ─── */}
       <div style={{ position: "relative", minHeight: "70vh" }}>
-        {/* TODO: Replace with real image URL */}
-        <div style={{ width: "100%", height: "70vh", background: warmGrad }} />
+        <img src="/images/gallery-1.jpg" alt="Hero" style={{ width: "100%", height: "70vh", objectFit: "cover", display: "block" }} />
       </div>
 
       <Fade style={{ textAlign: "center", padding: mob ? "60px 20px 40px" : "80px 24px 60px" }}>
