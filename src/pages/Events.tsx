@@ -14,11 +14,11 @@ const NAV_ITEMS = [
 ];
 
 const IMAGES = [
-  "https://i.ibb.co/kgR7M8wR/IMG-0029-2.jpg",
-  "https://i.ibb.co/bgGy6rKb/MNG05817.jpg",
-  "https://i.ibb.co/hFyyFHgB/DSC01925.jpg",
-  "https://i.ibb.co/JWfqvhPp/DSC04963.jpg",
-  "https://i.ibb.co/LdKbvBPf/MNG06553.jpg",
+  "placeholder-1",
+  "placeholder-2",
+  "placeholder-3",
+  "placeholder-4",
+  "placeholder-5",
 ];
 
 const STORIES = [

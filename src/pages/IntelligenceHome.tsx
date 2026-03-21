@@ -94,13 +94,7 @@ export default function IntelligenceHome() {
   }, []);
 
   useEffect(() => {
-    if (!document.getElementById("gf-playfair-mont")) {
-      const link = document.createElement("link");
-      link.id = "gf-playfair-mont";
-      link.rel = "stylesheet";
-      link.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Montserrat:wght@400;500;600;700&display=swap";
-      document.head.appendChild(link);
-    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, []);
 
   const heading = (text: string, size = "clamp(28px,6vw,48px)", italic = false): React.CSSProperties => ({

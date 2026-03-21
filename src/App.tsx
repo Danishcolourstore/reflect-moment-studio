@@ -273,10 +273,21 @@ const RealtimeSyncWrapper = ({ enabled }: { enabled: boolean }) => {
   return null;
 };
 
+const ScrollToTop = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
 const AppRoutes = () => {
   const { user } = useAuth();
   return (
     <SuspendedProvider>
+      <ScrollToTop />
       <RealtimeSyncWrapper enabled={!!user} />
       <Suspense fallback={<PageLoader />}>
         <PageTransition>
