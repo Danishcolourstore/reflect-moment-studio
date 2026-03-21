@@ -1,3 +1,4 @@
+export default App;
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -48,7 +49,6 @@ const GalleryCover = lazy(() => import("./pages/GalleryCover"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const BuilderTest = lazy(() => import("./pages/BuilderTest"));
-
 const GuestFinder = lazy(() => import("./pages/GuestFinder"));
 const PhotographerFeed = lazy(() => import("./pages/PhotographerFeed"));
 const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
@@ -96,7 +96,6 @@ const AdminEmails = lazy(() => import("./pages/admin/AdminEmails"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 
-// Lazy map – only instantiate on render, not at module scope
 const SUPER_ADMIN_ROUTE_MAP: Record<string, React.LazyExoticComponent<any>> = {
   overview: SuperAdminOverview,
   users: SuperAdminUsers,
@@ -130,7 +129,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// ─── Suspense fallback ───
 function PageLoader() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -139,7 +137,6 @@ function PageLoader() {
   );
 }
 
-// ─── Shared suspended-user state via context ───
 const SuspendedContext = createContext<boolean | null>(null);
 
 function SuspendedProvider({ children }: { children: React.ReactNode }) {
@@ -236,37 +233,26 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
+    // Always clear any stale redirect
+    sessionStorage.removeItem("redirectAfterLogin");
+
     const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
     const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
+
     Promise.race([rolePromise, timeout])
       .then((result: any) => {
         const roles = (result?.data || []).map((r: any) => r.role);
-
         if (roles.includes("super_admin")) {
           setRedirectTo("/super-admin");
-          setChecked(true);
-          return;
-        }
-
-        if (roles.includes("client")) {
+        } else if (roles.includes("client")) {
           setRedirectTo("/client");
         } else {
-          const redirect = sessionStorage.getItem("redirectAfterLogin");
-          if (
-            redirect &&
-            (redirect.startsWith("/dashboard") || redirect.startsWith("/home") || redirect.startsWith("/colour-store"))
-          ) {
-            sessionStorage.removeItem("redirectAfterLogin");
-            setRedirectTo(redirect);
-          } else {
-            sessionStorage.removeItem("redirectAfterLogin");
-            setRedirectTo("/home");
-          }
+          // Always go to /home — no sessionStorage override
+          setRedirectTo("/home");
         }
         setChecked(true);
       })
       .catch(() => {
-        sessionStorage.removeItem("redirectAfterLogin");
         setRedirectTo("/home");
         setChecked(true);
       });
@@ -351,9 +337,7 @@ const AppRoutes = () => {
               {SUPER_ADMIN_ROUTES.map((route) => {
                 const Component = SUPER_ADMIN_ROUTE_MAP[route.key];
                 if (!Component) return null;
-                if (route.path === "") {
-                  return <Route key={route.key} index element={<Component />} />;
-                }
+                if (route.path === "") return <Route key={route.key} index element={<Component />} />;
                 return <Route key={route.key} path={route.path} element={<Component />} />;
               })}
             </Route>
@@ -684,7 +668,6 @@ const AppRoutes = () => {
               }
             />
             <Route path="/gallery-view/:id" element={<PublicGalleryView />} />
-
             <Route path="/find/:token" element={<GuestFinder />} />
             <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
             <Route path="/studio/:username" element={<PhotographerFeed />} />
