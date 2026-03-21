@@ -336,6 +336,14 @@ const AppRoutes = () => {
               path="/home"
               element={
                 <ProtectedRoute>
+                  <LandingGate />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/art-gallery"
+              element={
+                <ProtectedRoute>
                   <IntelligenceHome />
                 </ProtectedRoute>
               }
