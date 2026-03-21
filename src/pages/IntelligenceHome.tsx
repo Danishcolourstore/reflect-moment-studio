@@ -262,6 +262,7 @@ export default function IntelligenceHome() {
         <div style={{ fontFamily: mont, fontSize: 12, color: "#666666" }}>© MIRRORAI · THE REAL INTELLIGENCE</div>
         <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#FFCC00", margin: "16px auto 0" }} />
       </footer>
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>
   );
 }

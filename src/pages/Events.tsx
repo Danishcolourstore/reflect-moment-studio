@@ -297,6 +297,7 @@ export default function Events() {
       <footer style={{ textAlign: "center", padding: "60px 20px 40px" }}>
         <div style={{ fontFamily: montserrat, fontSize: 12, color: "#666666" }}>© MIRRORAI</div>
       </footer>
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>
   );
 }
