@@ -12,8 +12,11 @@ const NAV_ITEMS = [
   { label: "FEED", path: "#feed" },
   { label: "NEWS", path: "#news" },
   { label: "STORIES", path: "#stories" },
+  { label: "EDUCATION", path: "#education" },
   { label: "DISCOVER", path: "#discover" },
 ];
+
+const EDU_TOPICS = ["Lighting", "Posing", "Business", "Editing", "Gear", "Marketing", "Indian Weddings", "Candid"];
 
 const FALLBACK_NEWS: NewsItem[] = [
   { title: "New Sony A1 II — Full Frame Gets Major Update", link: "#", pubDate: "2026-03-18", description: "Sony's flagship mirrorless camera receives a significant hardware and software overhaul for professional shooters.", thumbnail: "", source: "PETAPIXEL" },
