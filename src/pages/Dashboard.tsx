@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { PageSkeleton, PageError } from "@/components/PageStates";
+import { PageError } from "@/components/PageStates";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
-import { ArrowRight } from "lucide-react";
 import { HamburgerButton, DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import RetouchSignatureCard from "@/components/colour-store/RetouchSignatureCard";
@@ -35,7 +34,19 @@ function FilmGrain() {
   );
 }
 
-function FloatingOrb({ color, size, left, top, speed }: { color: string; size: number; left: string; top: string; speed: number }) {
+function FloatingOrb({
+  color,
+  size,
+  left,
+  top,
+  speed,
+}: {
+  color: string;
+  size: number;
+  left: string;
+  top: string;
+  speed: number;
+}) {
   return (
     <motion.div
       className="absolute rounded-full pointer-events-none"
@@ -47,7 +58,7 @@ function FloatingOrb({ color, size, left, top, speed }: { color: string; size: n
         top,
       }}
       animate={{ x: [0, 15, -10, 0], y: [0, -12, 18, 0], scale: [1, 1.04, 0.97, 1] }}
-      transition={{ duration: speed, repeat: Infinity, ease: 'easeInOut' }}
+      transition={{ duration: speed, repeat: Infinity, ease: "easeInOut" }}
     />
   );
 }
@@ -73,17 +84,20 @@ const Dashboard = () => {
       setError(false);
       try {
         const { data: profile } = await (supabase.from("profiles").select("studio_name") as any)
-          .eq("user_id", user.id).maybeSingle();
+          .eq("user_id", user.id)
+          .maybeSingle();
         if (profile?.studio_name) setStudioName(profile.studio_name);
 
-        const { data: events } = await (supabase.from("events")
-          .select("id, name, slug, event_date, cover_url, photo_count") as any)
+        const { data: events } = await (
+          supabase.from("events").select("id, name, slug, event_date, cover_url, photo_count") as any
+        )
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(8);
         setRecentEvents(events || []);
 
-        const { count: evtCount } = await supabase.from("events")
+        const { count: evtCount } = await supabase
+          .from("events")
           .select("*", { count: "exact", head: true })
           .eq("user_id", user.id);
         setTotalEvents(evtCount || 0);
@@ -91,12 +105,13 @@ const Dashboard = () => {
         const photoSum = (events || []).reduce((s: number, e: any) => s + (e.photo_count || 0), 0);
         setTotalPhotos(photoSum);
 
-        const { count: albCount } = await supabase.from("albums")
+        const { count: albCount } = await supabase
+          .from("albums")
           .select("*", { count: "exact", head: true })
           .eq("user_id", user.id);
         setTotalAlbums(albCount || 0);
       } catch (err) {
-        console.error('Dashboard load failed:', err);
+        console.error("Dashboard load failed:", err);
         setError(true);
       }
       setLoading(false);
@@ -104,13 +119,12 @@ const Dashboard = () => {
     load();
   }, [user]);
 
-  // Get latest 3 photos for collage
-  const collagePhotos = recentEvents.filter(e => e.cover_url).slice(0, 3);
+  const collagePhotos = recentEvents.filter((e) => e.cover_url).slice(0, 3);
 
-  if (error) return <PageError message="Failed to load dashboard" onRetry={() => window.location.reload()} />;
+  if (error) return <PageError message="Failed to load" onRetry={() => window.location.reload()} />;
 
   return (
-    <div className="min-h-[100dvh] relative pb-20" style={{ background: '#080808' }}>
+    <div className="min-h-[100dvh] relative pb-20" style={{ background: "#080808" }}>
       <FilmGrain />
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
@@ -121,12 +135,16 @@ const Dashboard = () => {
           <TooltipTrigger asChild>
             <motion.div
               className="rounded-full"
-              style={{ width: 5, height: 5, background: '#E8C97A' }}
+              style={{ width: 5, height: 5, background: "#E8C97A" }}
               animate={{
                 opacity: [0.5, 1, 0.5],
-                boxShadow: ['0 0 4px 1px rgba(232,201,122,0.2)', '0 0 8px 2px rgba(232,201,122,0.4)', '0 0 4px 1px rgba(232,201,122,0.2)'],
+                boxShadow: [
+                  "0 0 4px 1px rgba(232,201,122,0.2)",
+                  "0 0 8px 2px rgba(232,201,122,0.4)",
+                  "0 0 4px 1px rgba(232,201,122,0.2)",
+                ],
               }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
           </TooltipTrigger>
           <TooltipContent side="left" className="text-[10px] bg-[#111] border-[rgba(240,237,232,0.06)]">
@@ -135,31 +153,45 @@ const Dashboard = () => {
         </Tooltip>
       </div>
 
-      {/* SECTION A — Reflections Hero — mobile: stacked, shorter */}
+      {/* SECTION A — Workspace Hero */}
       <section className="relative overflow-hidden" style={{ paddingTop: 48 }}>
         <div className="px-4 py-8 md:px-12 md:py-12">
+          {/* Page title */}
+          <motion.h1
+            className="font-light leading-[1.0]"
+            style={{
+              fontFamily: cormorant,
+              fontSize: "clamp(48px, 12vw, 96px)",
+              color: "#F0EDE8",
+              letterSpacing: "-0.02em",
+            }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease }}
+          >
+            Workspace
+          </motion.h1>
+
+          {/* Amber rule */}
+          <div className="mt-5 mb-4" style={{ width: 40, height: 1, background: "#E8C97A" }} />
+
+          {/* Stats line */}
           <p
-            className="uppercase mb-4"
-            style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.4em' }}
+            style={{
+              fontFamily: dm,
+              fontSize: 11,
+              color: "rgba(240,237,232,0.35)",
+              letterSpacing: "0.18em",
+            }}
           >
-            Reflections
-          </p>
-          <h1
-            className="text-[32px] md:text-[72px] font-light leading-[1.05]"
-            style={{ fontFamily: cormorant, color: '#F0EDE8', letterSpacing: '-0.01em' }}
-          >
-            Your work.<br />Remembered.
-          </h1>
-          <div className="mt-4 mb-3" style={{ width: 48, height: 1, background: '#E8C97A' }} />
-          <p style={{ fontFamily: dm, fontSize: 11, color: '#2A2A2A', letterSpacing: '0.15em' }}>
-            {loading ? '...' : `${totalPhotos} moments · ${totalEvents} events · ${totalAlbums} albums`}
+            {loading ? "—" : `${totalPhotos} moments · ${totalEvents} events · ${totalAlbums} albums`}
           </p>
         </div>
 
-        {/* Photo collage — horizontal scroll on mobile */}
+        {/* Photo collage */}
         {collagePhotos.length > 0 && (
           <div className="px-4 pb-6 md:px-12">
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
               {collagePhotos.map((evt, i) => (
                 <motion.img
                   key={evt.id}
@@ -167,9 +199,10 @@ const Dashboard = () => {
                   alt=""
                   className="flex-none rounded-lg object-cover"
                   style={{
-                    width: 140, height: 180,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                    scrollSnapAlign: 'start',
+                    width: 140,
+                    height: 180,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                    scrollSnapAlign: "start",
                   }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -181,23 +214,31 @@ const Dashboard = () => {
         )}
       </section>
 
-      {/* SECTION B — Quick Access Row */}
-      <section className="px-4 md:px-12 py-6" style={{ borderTop: '1px solid rgba(240,237,232,0.04)' }}>
+      {/* SECTION B — Quick Access Grid */}
+      <section className="px-4 md:px-12 py-6" style={{ borderTop: "1px solid rgba(240,237,232,0.06)" }}>
         <div className="grid grid-cols-2 gap-3">
           {/* Events card */}
           <button
-            onClick={() => navigate('/dashboard/events')}
-            className="group text-left rounded-2xl p-5 transition-all duration-400"
-            style={{ background: '#0C0C0C', border: '1px solid rgba(240,237,232,0.04)' }}
+            onClick={() => navigate("/dashboard/events")}
+            className="group text-left rounded-2xl p-5 transition-all duration-300"
+            style={{ background: "#0E0E0E", border: "1px solid rgba(240,237,232,0.08)" }}
           >
-            <p className="uppercase" style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.35em' }}>
+            <p
+              className="uppercase"
+              style={{ fontFamily: dm, fontSize: 9, color: "rgba(240,237,232,0.4)", letterSpacing: "0.35em" }}
+            >
               Events
             </p>
-            <p className="mt-3" style={{ fontFamily: cormorant, fontSize: 52, fontWeight: 300, color: '#F0EDE8', lineHeight: 1 }}>
-              {loading ? '—' : totalEvents}
+            <p
+              className="mt-3"
+              style={{ fontFamily: cormorant, fontSize: 52, fontWeight: 300, color: "#F0EDE8", lineHeight: 1 }}
+            >
+              {loading ? "—" : totalEvents}
             </p>
-            <p className="mt-3 flex items-center gap-1 transition-colors duration-300 group-hover:text-[#E8C97A]"
-               style={{ fontFamily: dm, fontSize: 10, color: '#2A2A2A' }}>
+            <p
+              className="mt-3 flex items-center gap-1 transition-colors duration-300 group-hover:text-[#E8C97A]"
+              style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.25)" }}
+            >
               View all
               <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">→</span>
             </p>
@@ -205,13 +246,13 @@ const Dashboard = () => {
 
           {/* Colour Store RI card */}
           <button
-            onClick={() => navigate('/colour-store')}
+            onClick={() => navigate("/colour-store")}
             onMouseEnter={() => setHoverCS(true)}
             onMouseLeave={() => setHoverCS(false)}
-            className="group relative text-left rounded-2xl p-6 md:p-7 overflow-hidden cursor-pointer transition-all duration-400"
+            className="group relative text-left rounded-2xl p-6 md:p-7 overflow-hidden cursor-pointer transition-all duration-300"
             style={{
-              background: 'linear-gradient(135deg, #1A1208, #0C0908)',
-              border: `1px solid ${hoverCS ? 'rgba(232,201,122,0.2)' : 'rgba(232,201,122,0.1)'}`,
+              background: "linear-gradient(135deg, #1A1208, #0C0908)",
+              border: `1px solid ${hoverCS ? "rgba(232,201,122,0.25)" : "rgba(232,201,122,0.12)"}`,
             }}
           >
             <FloatingOrb color="rgba(232,201,122,0.04)" size={100} left="60%" top="50%" speed={6} />
@@ -220,17 +261,25 @@ const Dashboard = () => {
                 className="inline-block px-2.5 py-0.5 rounded-full text-[11px] italic"
                 style={{
                   fontFamily: cormorant,
-                  color: '#E8C97A',
-                  background: 'rgba(232,201,122,0.08)',
-                  border: '1px solid rgba(232,201,122,0.15)',
+                  color: "#E8C97A",
+                  background: "rgba(232,201,122,0.08)",
+                  border: "1px solid rgba(232,201,122,0.15)",
                 }}
               >
                 RI
               </span>
-              <p className="mt-4 text-[24px] font-light leading-[1.2]" style={{ fontFamily: cormorant, color: '#F0EDE8' }}>
-                Retouch with<br />Real Intelligence
+              <p
+                className="mt-4 text-[24px] font-light leading-[1.2]"
+                style={{ fontFamily: cormorant, color: "#F0EDE8" }}
+              >
+                Retouch with
+                <br />
+                Real Intelligence
               </p>
-              <p className="mt-4 uppercase" style={{ fontFamily: dm, fontSize: 10, color: 'rgba(232,201,122,0.6)', letterSpacing: '0.15em' }}>
+              <p
+                className="mt-4 uppercase"
+                style={{ fontFamily: dm, fontSize: 10, color: "rgba(232,201,122,0.6)", letterSpacing: "0.15em" }}
+              >
                 Open Colour Store →
               </p>
             </div>
@@ -238,18 +287,26 @@ const Dashboard = () => {
 
           {/* Albums card */}
           <button
-            onClick={() => navigate('/dashboard/album-designer')}
-            className="group text-left rounded-2xl p-6 md:p-7 transition-all duration-400"
-            style={{ background: '#0C0C0C', border: '1px solid rgba(240,237,232,0.04)' }}
+            onClick={() => navigate("/dashboard/album-designer")}
+            className="group text-left rounded-2xl p-6 md:p-7 transition-all duration-300"
+            style={{ background: "#0E0E0E", border: "1px solid rgba(240,237,232,0.08)" }}
           >
-            <p className="uppercase" style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.35em' }}>
+            <p
+              className="uppercase"
+              style={{ fontFamily: dm, fontSize: 9, color: "rgba(240,237,232,0.4)", letterSpacing: "0.35em" }}
+            >
               Albums
             </p>
-            <p className="mt-3" style={{ fontFamily: cormorant, fontSize: 52, fontWeight: 300, color: '#F0EDE8', lineHeight: 1 }}>
-              {loading ? '—' : totalAlbums}
+            <p
+              className="mt-3"
+              style={{ fontFamily: cormorant, fontSize: 52, fontWeight: 300, color: "#F0EDE8", lineHeight: 1 }}
+            >
+              {loading ? "—" : totalAlbums}
             </p>
-            <p className="mt-3 flex items-center gap-1 transition-colors duration-300 group-hover:text-[#E8C97A]"
-               style={{ fontFamily: dm, fontSize: 10, color: '#2A2A2A' }}>
+            <p
+              className="mt-3 flex items-center gap-1 transition-colors duration-300 group-hover:text-[#E8C97A]"
+              style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.25)" }}
+            >
               View all
               <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">→</span>
             </p>
@@ -257,14 +314,16 @@ const Dashboard = () => {
 
           {/* Grid Builder card */}
           <button
-            onClick={() => navigate('/dashboard/storybook')}
-            className="group text-left rounded-2xl p-6 md:p-7 transition-all duration-400"
-            style={{ background: '#0C0C0C', border: '1px solid rgba(240,237,232,0.04)' }}
+            onClick={() => navigate("/dashboard/storybook")}
+            className="group text-left rounded-2xl p-6 md:p-7 transition-all duration-300"
+            style={{ background: "#0E0E0E", border: "1px solid rgba(240,237,232,0.08)" }}
           >
-            <p className="uppercase" style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.35em' }}>
+            <p
+              className="uppercase"
+              style={{ fontFamily: dm, fontSize: 9, color: "rgba(240,237,232,0.4)", letterSpacing: "0.35em" }}
+            >
               Grid Builder
             </p>
-            {/* Mini grid preview */}
             <div className="mt-4 grid grid-cols-3 gap-[3px] w-fit">
               {Array.from({ length: 9 }).map((_, i) => (
                 <div
@@ -273,13 +332,15 @@ const Dashboard = () => {
                   style={{
                     width: 24,
                     height: 24,
-                    background: i < 4 ? 'rgba(240,237,232,0.08)' : 'rgba(240,237,232,0.02)',
+                    background: i < 4 ? "rgba(240,237,232,0.12)" : "rgba(240,237,232,0.04)",
                   }}
                 />
               ))}
             </div>
-            <p className="mt-4 flex items-center gap-1 transition-colors duration-300 group-hover:text-[#E8C97A]"
-               style={{ fontFamily: dm, fontSize: 10, color: '#2A2A2A' }}>
+            <p
+              className="mt-4 flex items-center gap-1 transition-colors duration-300 group-hover:text-[#E8C97A]"
+              style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.25)" }}
+            >
               Build your grid
               <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">→</span>
             </p>
@@ -290,20 +351,35 @@ const Dashboard = () => {
         <RetouchSignatureCard
           studioName={studioName}
           editCount={12}
-          averages={{ skin: 48, glow: 38, form: 32, light: 28, grain: 22, depth: 65, outfit: 35, jewellery: 20, hair: 25 }}
+          averages={{
+            skin: 48,
+            glow: 38,
+            form: 32,
+            light: 28,
+            grain: 22,
+            depth: 65,
+            outfit: 35,
+            jewellery: 20,
+            hair: 25,
+          }}
         />
       </section>
-      <section className="px-4 md:px-12 py-8" style={{ borderTop: '1px solid rgba(240,237,232,0.04)' }}>
-        <p className="uppercase mb-4" style={{ fontFamily: dm, fontSize: 9, color: '#2A2A2A', letterSpacing: '0.35em' }}>
+
+      {/* SECTION C — Recent Events */}
+      <section className="px-4 md:px-12 py-8" style={{ borderTop: "1px solid rgba(240,237,232,0.06)" }}>
+        <p
+          className="uppercase mb-4"
+          style={{ fontFamily: dm, fontSize: 9, color: "rgba(240,237,232,0.4)", letterSpacing: "0.35em" }}
+        >
           Recent
         </p>
         {recentEvents.length > 0 ? (
-          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollSnapType: 'x mandatory' }}>
+          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
             {recentEvents.map((evt, i) => (
               <motion.button
                 key={evt.id}
                 className="flex-none rounded-xl overflow-hidden text-left"
-                style={{ width: 200, height: 260, background: '#0C0C0C', scrollSnapAlign: 'start' }}
+                style={{ width: 200, height: 260, background: "#0E0E0E", scrollSnapAlign: "start" }}
                 onClick={() => navigate(`/dashboard/events/${evt.id}`)}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -321,10 +397,10 @@ const Dashboard = () => {
                   )}
                 </div>
                 <div className="p-3">
-                  <p className="text-[12px] truncate" style={{ fontFamily: dm, color: '#F0EDE8' }}>
+                  <p className="text-[12px] truncate" style={{ fontFamily: dm, color: "#F0EDE8" }}>
                     {evt.name}
                   </p>
-                  <p className="text-[10px] mt-0.5" style={{ fontFamily: dm, color: '#2A2A2A' }}>
+                  <p className="text-[10px] mt-0.5" style={{ fontFamily: dm, color: "rgba(240,237,232,0.3)" }}>
                     {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date"}
                   </p>
                 </div>
@@ -332,11 +408,12 @@ const Dashboard = () => {
             ))}
           </div>
         ) : !loading ? (
-          <p style={{ fontFamily: dm, fontSize: 11, color: '#2A2A2A' }}>No events yet. Create your first event to get started.</p>
+          <p style={{ fontFamily: dm, fontSize: 11, color: "rgba(240,237,232,0.25)" }}>
+            No events yet. Create your first event to get started.
+          </p>
         ) : null}
       </section>
 
-      {/* Hide scrollbar */}
       <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
     </div>
   );
