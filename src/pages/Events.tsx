@@ -196,6 +196,8 @@ export default function Events() {
                 <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={s.names} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               </div>
 
+              {/* Text content with padding */}
+              <div style={{ padding: "0 20px" }}>
               {/* Couple Names */}
               <div
                 style={{
@@ -205,7 +207,7 @@ export default function Events() {
                   color: "#000000",
                   textTransform: "uppercase" as const,
                   letterSpacing: "0.5px",
-                  marginTop: 16,
+                  marginTop: 20,
                 }}
               >
                 {s.names}
