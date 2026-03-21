@@ -329,6 +329,27 @@ const LandingPage = () => {
 
   return (
     <div className="landing-root">
+      {/* Hero background image */}
+      <img
+        src="/images/login-hero.jpg"
+        alt=""
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          opacity: phase >= 1 ? 0.45 : 0,
+          transition: "opacity 2s ease-out",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to bottom, rgba(10,10,10,0.6), rgba(10,10,10,0.85))",
+        }}
+      />
       {/* Content */}
       <div className="landing-content">
         {/* Top — Logo */}
