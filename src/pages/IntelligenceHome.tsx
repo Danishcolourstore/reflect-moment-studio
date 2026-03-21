@@ -88,16 +88,16 @@ export default function IntelligenceHome() {
         animate={{ opacity: phase >= 3 ? 1 : 0 }}
         transition={{ duration: 1.2, ease }}
       >
-        <motion.div
-          className="absolute inset-0"
-          animate={{ background: GRADIENTS[current % GRADIENTS.length] }}
-          transition={{ duration: FADE_DURATION, ease: [0.4, 0, 0.2, 1] }}
+        <img
+          src="/images/home-hero.jpg"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
         />
 
         <div
           className="absolute inset-0 z-10 pointer-events-none"
           style={{
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.45) 100%)',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.10) 40%, rgba(0,0,0,0.55) 100%)',
           }}
         />
 
