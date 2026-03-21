@@ -28,7 +28,7 @@ const DISCOVER_PHOTOGRAPHERS = [
   { name: "Infinite Memories", loc: "Pune" }, { name: "Shades Photography", loc: "Bangalore" },
 ];
 
-interface NewsItem { title: string; link: string; pubDate: string; description: string; thumbnail: string; }
+interface NewsItem { title: string; link: string; pubDate: string; description: string; thumbnail: string; source: string; }
 
 const PHOTOGRAPHERS = [
   { name: "Naman Verma", location: "DELHI", bio: "Fine art and editorial wedding photographer capturing love across India." },
