@@ -186,9 +186,8 @@ export default function IntelligenceHome() {
         <p style={{ ...body("#000000", 500), margin: "20px auto 0" }}>The tools you were given were never made for you. MirrorAI is.</p>
       </Fade>
 
-      {/* 6. FULL WIDTH PLACEHOLDER */}
-      {/* TODO: Replace with real image URL */}
-      <div style={{ width: "100%", height: mob ? "30vh" : "45vh", background: coolGrad, margin: "30px 0" }} />
+      {/* 6. FULL WIDTH IMAGE */}
+      <img src="/images/gallery-4.jpg" alt="Couple portrait" style={{ width: "100%", height: mob ? "30vh" : "45vh", objectFit: "cover", display: "block", margin: "30px 0" }} />
 
       {/* 7. FEATURED PHOTOGRAPHERS */}
       <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
