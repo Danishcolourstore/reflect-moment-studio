@@ -8,12 +8,27 @@ const warmGrad = "linear-gradient(135deg, #f5f0ea 0%, #e8e0d4 50%, #f5f0ea 100%)
 const coolGrad = "linear-gradient(135deg, #eae4dc 0%, #d4ccc0 50%, #eae4dc 100%)";
 
 const NAV_ITEMS = [
-  { label: "HOME", path: "/home" },
-  { label: "FEATURED", path: "#featured" },
+  { label: "HOME", path: "#top" },
+  { label: "FEED", path: "#feed" },
+  { label: "NEWS", path: "#news" },
   { label: "STORIES", path: "#stories" },
-  { label: "TRENDING", path: "#trending" },
-  { label: "UPDATES", path: "#updates" },
+  { label: "DISCOVER", path: "#discover" },
 ];
+
+const FALLBACK_NEWS = [
+  { title: "The Rise of AI in Wedding Photography", link: "#", pubDate: "2026-03-15", description: "How artificial intelligence is transforming the way photographers cull, edit, and deliver wedding photos.", thumbnail: "" },
+  { title: "Why Indian Weddings Are the Hardest to Photograph", link: "#", pubDate: "2026-03-10", description: "From five-day celebrations to crowds of 500, Indian weddings push photographers to their creative limits.", thumbnail: "" },
+  { title: "Film Photography Makes a Comeback at Weddings", link: "#", pubDate: "2026-03-05", description: "Couples are increasingly requesting analog photography alongside digital for a timeless, nostalgic feel.", thumbnail: "" },
+];
+
+const DISCOVER_PHOTOGRAPHERS = [
+  { name: "Naman Verma", loc: "Delhi" }, { name: "Joseph Radhik", loc: "Hyderabad" },
+  { name: "Recall Pictures", loc: "Mumbai" }, { name: "The Wedding Filmer", loc: "Mumbai" },
+  { name: "Plush Affairs", loc: "Delhi" }, { name: "Beginnings For You", loc: "Kochi" },
+  { name: "Infinite Memories", loc: "Pune" }, { name: "Shades Photography", loc: "Bangalore" },
+];
+
+interface NewsItem { title: string; link: string; pubDate: string; description: string; thumbnail: string; }
 
 const PHOTOGRAPHERS = [
   { name: "Naman Verma", location: "DELHI", bio: "Fine art and editorial wedding photographer capturing love across India." },
@@ -104,11 +119,25 @@ export default function IntelligenceHome() {
   const [mob, setMob] = useState(window.innerWidth < 768);
   const [pillH, setPillH] = useState(false);
   const [footH, setFootH] = useState(false);
+  const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
+  const [activeNav, setActiveNav] = useState(0);
 
   useEffect(() => { const h = () => setMob(window.innerWidth < 768); window.addEventListener("resize", h); return () => window.removeEventListener("resize", h); }, []);
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }, []);
 
-  const go = (p: string) => { if (p.startsWith("#")) { document.getElementById(p.slice(1))?.scrollIntoView({ behavior: "smooth" }); } else { navigate(p); } };
+  // Fetch RSS news
+  useEffect(() => {
+    fetch("https://api.rss2json.com/v1/api.json?rss_url=https://petapixel.com/feed/")
+      .then(r => r.json())
+      .then(d => { if (d.items?.length) setNews(d.items.slice(0, 6).map((it: any) => ({ title: it.title, link: it.link, pubDate: it.pubDate, description: it.description?.replace(/<[^>]+>/g, "").slice(0, 120) + "…", thumbnail: it.thumbnail || it.enclosure?.link || "" }))); })
+      .catch(() => {});
+  }, []);
+
+  const go = (p: string) => {
+    if (p === "#top") { window.scrollTo({ top: 0, behavior: "smooth" }); setActiveNav(0); }
+    else if (p.startsWith("#")) { document.getElementById(p.slice(1))?.scrollIntoView({ behavior: "smooth" }); setActiveNav(NAV_ITEMS.findIndex(n => n.path === p)); }
+    else { navigate(p); }
+  };
 
   const pill = (hover: boolean, big = false): React.CSSProperties => ({
     fontFamily: mont, fontSize: big ? 12 : 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase",
@@ -142,7 +171,7 @@ export default function IntelligenceHome() {
         {/* nav links */}
         <div style={{ display: "flex", justifyContent: "center", gap: 20, overflowX: "auto", paddingBottom: 10, paddingLeft: 16, paddingRight: 16, scrollbarWidth: "none" }}>
           {NAV_ITEMS.map((n, i) => {
-            const active = i === 0;
+            const active = activeNav === i;
             return (
               <button key={n.label} onClick={() => go(n.path)} onMouseEnter={() => setNavHov(i)} onMouseLeave={() => setNavHov(null)}
                 style={{ fontFamily: mont, fontSize: 12, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase", color: active || navHov === i ? "#000000" : "#666666", background: "none", border: "none", borderBottom: active ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap", padding: "8px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
@@ -161,7 +190,7 @@ export default function IntelligenceHome() {
       )}
 
       {/* ─── 3. HERO ─── */}
-      <div style={{ position: "relative", minHeight: "70vh" }}>
+      <div id="feed" style={{ position: "relative", minHeight: "70vh" }}>
         <img src="/images/gallery-1.jpg" alt="Hero" style={{ width: "100%", height: "70vh", objectFit: "cover", display: "block" }} />
       </div>
 
