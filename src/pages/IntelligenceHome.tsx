@@ -119,11 +119,25 @@ export default function IntelligenceHome() {
   const [mob, setMob] = useState(window.innerWidth < 768);
   const [pillH, setPillH] = useState(false);
   const [footH, setFootH] = useState(false);
+  const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
+  const [activeNav, setActiveNav] = useState(0);
 
   useEffect(() => { const h = () => setMob(window.innerWidth < 768); window.addEventListener("resize", h); return () => window.removeEventListener("resize", h); }, []);
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }, []);
 
-  const go = (p: string) => { if (p.startsWith("#")) { document.getElementById(p.slice(1))?.scrollIntoView({ behavior: "smooth" }); } else { navigate(p); } };
+  // Fetch RSS news
+  useEffect(() => {
+    fetch("https://api.rss2json.com/v1/api.json?rss_url=https://petapixel.com/feed/")
+      .then(r => r.json())
+      .then(d => { if (d.items?.length) setNews(d.items.slice(0, 6).map((it: any) => ({ title: it.title, link: it.link, pubDate: it.pubDate, description: it.description?.replace(/<[^>]+>/g, "").slice(0, 120) + "…", thumbnail: it.thumbnail || it.enclosure?.link || "" }))); })
+      .catch(() => {});
+  }, []);
+
+  const go = (p: string) => {
+    if (p === "#top") { window.scrollTo({ top: 0, behavior: "smooth" }); setActiveNav(0); }
+    else if (p.startsWith("#")) { document.getElementById(p.slice(1))?.scrollIntoView({ behavior: "smooth" }); setActiveNav(NAV_ITEMS.findIndex(n => n.path === p)); }
+    else { navigate(p); }
+  };
 
   const pill = (hover: boolean, big = false): React.CSSProperties => ({
     fontFamily: mont, fontSize: big ? 12 : 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase",
