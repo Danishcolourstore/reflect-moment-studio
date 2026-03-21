@@ -393,12 +393,16 @@ const AppRoutes = () => {
         <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
         <Route path="/studio/:username" element={<PhotographerFeed />} />
         <Route path="/p/:username" element={<PhotographerFeed />} />
-        <Route
-          path="/storybook"
-          element={
-            <StorybookGate>
-              <StorybookCreator standalone />
-            </StorybookGate>
+<Route
+  path="/storybook"
+  element={
+    <StorybookGate>
+      <StorybookCreator standalone />
+    </StorybookGate>
+  }
+/>
+ 
+/>
           }
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />

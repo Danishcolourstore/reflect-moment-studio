@@ -21,7 +21,12 @@ const Auth = function Auth({ initialView }: AuthProps) {
     const t2 = setTimeout(() => setPhase(2), 1500);
     const t3 = setTimeout(() => setPhase(3), 2800);
     const t4 = setTimeout(() => setPhase(4), 3600);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
   }, []);
 
   useEffect(() => {
@@ -31,22 +36,32 @@ const Auth = function Auth({ initialView }: AuthProps) {
   }, []);
 
   const handleLogin = async () => {
-    setLoading(true); setError(""); setMessage("");
+    setLoading(true);
+    setError("");
+    setMessage("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message); else navigate("/verify-access");
+    if (error) setError(error.message);
+    else navigate("/verify-access");
     setLoading(false);
   };
 
   const handleSignup = async () => {
-    setLoading(true); setError(""); setMessage("");
+    setLoading(true);
+    setError("");
+    setMessage("");
     const { error } = await supabase.auth.signUp({ email, password });
-    if (error) setError(error.message); else navigate("/verify-otp");
+    if (error) setError(error.message);
+    else navigate("/verify-otp");
     setLoading(false);
   };
 
   const handleForgot = async () => {
-    if (!email) { setError("Enter your email address first"); return; }
-    setError(""); setMessage("");
+    if (!email) {
+      setError("Enter your email address first");
+      return;
+    }
+    setError("");
+    setMessage("");
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
@@ -199,19 +214,33 @@ const Auth = function Auth({ initialView }: AuthProps) {
             </div>
           )}
           {message && (
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", textAlign: "center", marginBottom: 14, lineHeight: 1.5 }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: "rgba(255,255,255,0.7)",
+                textAlign: "center",
+                marginBottom: 14,
+                lineHeight: 1.5,
+              }}
+            >
               {message}
             </div>
           )}
 
           <form
-            onSubmit={(e) => { e.preventDefault(); submit(); }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              submit();
+            }}
             style={{ display: "flex", flexDirection: "column", gap: 18 }}
           >
             <input
               type="email"
               value={email}
-              onChange={(e) => { setEmail(e.target.value); setError(""); }}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setError("");
+              }}
               placeholder="Email"
               required
               autoComplete="email"
@@ -222,7 +251,10 @@ const Auth = function Auth({ initialView }: AuthProps) {
             <input
               type="password"
               value={password}
-              onChange={(e) => { setPassword(e.target.value); setError(""); }}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
               placeholder="Password"
               required
               minLength={6}
@@ -237,10 +269,15 @@ const Auth = function Auth({ initialView }: AuthProps) {
                 type="button"
                 onClick={handleForgot}
                 style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  color: "rgba(255,255,255,0.35)", fontSize: 12,
-                  fontFamily: "Inter, sans-serif", textAlign: "right",
-                  padding: 0, marginTop: -6,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "rgba(255,255,255,0.35)",
+                  fontSize: 12,
+                  fontFamily: "Inter, sans-serif",
+                  textAlign: "right",
+                  padding: 0,
+                  marginTop: -6,
                 }}
               >
                 Forgot password?
@@ -290,10 +327,18 @@ const Auth = function Auth({ initialView }: AuthProps) {
             {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
               type="button"
-              onClick={() => { setIsSignup(!isSignup); setPassword(""); setError(""); setMessage(""); }}
+              onClick={() => {
+                setIsSignup(!isSignup);
+                setPassword("");
+                setError("");
+                setMessage("");
+              }}
               style={{
-                background: "none", border: "none", cursor: "pointer",
-                color: "rgba(255,255,255,0.7)", fontSize: 14,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "rgba(255,255,255,0.7)",
+                fontSize: 14,
                 fontFamily: "Inter, sans-serif",
               }}
             >
