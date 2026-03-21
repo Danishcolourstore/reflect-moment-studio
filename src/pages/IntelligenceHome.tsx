@@ -237,8 +237,8 @@ export default function IntelligenceHome() {
         <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingLeft: mob ? 20 : "calc((100% - 900px) / 2 + 24px)", paddingRight: 20, paddingBottom: 8, scrollbarWidth: "none" }}>
           {TRENDS.map((t, i) => (
             <div key={i} style={{ flexShrink: 0, width: 260 }}>
-              {/* TODO: Replace with real image URL */}
-              <div style={{ height: 320, background: i % 2 === 0 ? warmGrad : coolGrad, position: "relative", overflow: "hidden" }}>
+              <div style={{ height: 320, position: "relative", overflow: "hidden" }}>
+                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={t.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "40px 16px 16px", background: "linear-gradient(transparent, rgba(0,0,0,0.6))" }}>
                   <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFFFFF" }}>{t.name}</div>
                 </div>
