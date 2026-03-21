@@ -102,14 +102,7 @@ export default function Events() {
   const [readHover, setReadHover] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!document.getElementById("gf-playfair-montserrat")) {
-      const link = document.createElement("link");
-      link.id = "gf-playfair-montserrat";
-      link.rel = "stylesheet";
-      link.href =
-        "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@400;500;600&display=swap";
-      document.head.appendChild(link);
-    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, []);
 
   return (
