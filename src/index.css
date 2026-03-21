@@ -214,7 +214,14 @@
     @apply border-border;
   }
 
-  html, body {
+  html {
+    height: auto !important;
+    min-height: 100%;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+  }
+
+  body {
     @apply bg-background text-foreground antialiased;
     font-family: 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
     font-weight: 400;
@@ -234,7 +241,7 @@
   #root {
     width: 100%;
     min-height: 100%;
-    overflow-x: hidden;
+    overflow: visible;
   }
 
   h1, h2, h3, h4, h5, h6 {
