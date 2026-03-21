@@ -334,8 +334,7 @@ export default function IntelligenceHome() {
                   style={{
                     borderTop: "1px solid rgba(240,237,232,0.06)",
                     background: "none",
-                    border_bottom: i === events.length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
-                  }}
+                    borderBottom: i === events.length - 1 ? "1px solid rgba(240,237,232,0.06)" : "none",
                   onClick={() => navigate(`/dashboard/events/${evt.id}`)}
                   initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}

@@ -702,7 +702,6 @@ const App = () => (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
-          <Sonner />
           <BrowserRouter>
             <AuthProvider>
               <ErrorBoundary>
