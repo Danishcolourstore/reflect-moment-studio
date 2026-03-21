@@ -100,6 +100,7 @@ function FadeCard({ children }: { children: React.ReactNode }) {
 
 export default function Events() {
   const navigate = useNavigate();
+  const drawer = useDrawerMenu();
   const [navHover, setNavHover] = useState<number | null>(null);
   const [imgHover, setImgHover] = useState<number | null>(null);
   const [readHover, setReadHover] = useState<number | null>(null);
