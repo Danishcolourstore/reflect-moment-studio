@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { DrawerMenu, HamburgerButton, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { EntiranButton } from "@/components/entiran/EntiranButton";
+import { EntiranPanel } from "@/components/entiran/EntiranPanel";
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
@@ -87,6 +89,7 @@ export default function LandingGate() {
   const drawer = useDrawerMenu();
   const [riHov, setRiHov] = useState(false);
   const [agHov, setAgHov] = useState(false);
+  const [botOpen, setBotOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -178,6 +181,12 @@ export default function LandingGate() {
 
       {/* Drawer */}
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
+
+      {/* Entiran AI Bot */}
+      <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 200 }}>
+        <EntiranButton onClick={() => setBotOpen(o => !o)} unreadCount={0} />
+      </div>
+      <EntiranPanel open={botOpen} onClose={() => setBotOpen(false)} pendingSuggestionCount={0} />
     </div>
   );
 }
