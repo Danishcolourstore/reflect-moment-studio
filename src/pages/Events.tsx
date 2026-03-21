@@ -176,28 +176,24 @@ export default function Events() {
       </nav>
 
       {/* STORY CARDS */}
-      <main style={{ maxWidth: 720, margin: "0 auto", padding: "40px 20px" }}>
-        <div style={{ display: "flex", flexDirection: "column" as const, gap: 30 }}>
+      <main style={{ maxWidth: 720, margin: "0 auto", padding: "40px 0" }}>
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 48 }}>
           {STORIES.map((s, i) => (
             <FadeCard key={i}>
-              {/* Cover Image */}
-              {/* TODO: Replace with real image URL */}
+              {/* Cover Image — full bleed */}
               <div
                 style={{
                   overflow: "hidden",
                   lineHeight: 0,
-                  background: "linear-gradient(135deg, #f5f0ea 0%, #e8e0d4 50%, #f5f0ea 100%)",
-                  height: 400,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  height: "50vh",
+                  minHeight: 340,
                   transform: imgHover === i ? "scale(1.02)" : "scale(1)",
                   transition: "transform 0.4s ease",
                 }}
                 onMouseEnter={() => setImgHover(i)}
                 onMouseLeave={() => setImgHover(null)}
               >
-                <span style={{ fontFamily: playfair, fontSize: 24, color: "rgba(0,0,0,0.1)", fontWeight: 700 }}>{s.names}</span>
+                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={s.names} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               </div>
 
               {/* Couple Names */}
