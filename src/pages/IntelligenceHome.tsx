@@ -190,7 +190,7 @@ export default function IntelligenceHome() {
       )}
 
       {/* ─── 3. HERO ─── */}
-      <div style={{ position: "relative", minHeight: "70vh" }}>
+      <div id="feed" style={{ position: "relative", minHeight: "70vh" }}>
         <img src="/images/gallery-1.jpg" alt="Hero" style={{ width: "100%", height: "70vh", objectFit: "cover", display: "block" }} />
       </div>
 
