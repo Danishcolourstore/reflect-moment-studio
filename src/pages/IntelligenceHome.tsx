@@ -15,10 +15,10 @@ const NAV_ITEMS = [
   { label: "DISCOVER", path: "#discover" },
 ];
 
-const FALLBACK_NEWS = [
-  { title: "The Rise of AI in Wedding Photography", link: "#", pubDate: "2026-03-15", description: "How artificial intelligence is transforming the way photographers cull, edit, and deliver wedding photos.", thumbnail: "" },
-  { title: "Why Indian Weddings Are the Hardest to Photograph", link: "#", pubDate: "2026-03-10", description: "From five-day celebrations to crowds of 500, Indian weddings push photographers to their creative limits.", thumbnail: "" },
-  { title: "Film Photography Makes a Comeback at Weddings", link: "#", pubDate: "2026-03-05", description: "Couples are increasingly requesting analog photography alongside digital for a timeless, nostalgic feel.", thumbnail: "" },
+const FALLBACK_NEWS: NewsItem[] = [
+  { title: "New Sony A1 II — Full Frame Gets Major Update", link: "#", pubDate: "2026-03-18", description: "Sony's flagship mirrorless camera receives a significant hardware and software overhaul for professional shooters.", thumbnail: "", source: "PETAPIXEL" },
+  { title: "The Rise of Film Photography at Indian Weddings", link: "#", pubDate: "2026-03-12", description: "Couples are increasingly requesting analog photography alongside digital for a timeless, nostalgic wedding feel.", thumbnail: "", source: "FSTOPPERS" },
+  { title: "Best Lenses for Wedding Photography in 2026", link: "#", pubDate: "2026-02-28", description: "A comprehensive guide to the sharpest, fastest lenses for capturing ceremonies, portraits, and receptions.", thumbnail: "", source: "DIY PHOTOGRAPHY" },
 ];
 
 const DISCOVER_PHOTOGRAPHERS = [
