@@ -71,10 +71,10 @@ export default function LandingGate() {
         padding: 40, boxSizing: "border-box", borderTop: "1px solid rgba(0,0,0,0.06)",
         animation: "lg-bot 0.6s ease 0.15s both",
       }}>
-        <div style={{ fontFamily: mont, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.5em", color: "#FFCC00", marginBottom: 16 }}>THE PHOTOGRAPHER'S FEED</div>
+        <div style={{ fontFamily: mont, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.5em", color: "#B8960C", marginBottom: 16 }}>THE PHOTOGRAPHER'S FEED</div>
         <div style={{ fontFamily: playfair, fontSize: 64, fontWeight: 700, color: "#000000", letterSpacing: 4, lineHeight: 1 }}>AG</div>
         <div style={{ fontFamily: playfair, fontSize: 24, fontWeight: 700, color: "#000000", marginTop: 8 }}>Art Gallery</div>
-        <div style={{ width: 32, height: 2, background: "#FFCC00", margin: "16px auto" }} />
+        <div style={{ width: 32, height: 2, background: "#B8960C", margin: "16px auto" }} />
         <p style={{ fontFamily: mont, fontSize: 12, color: "#666666", textAlign: "center", maxWidth: 340, lineHeight: 1.7, margin: 0 }}>
           Shoot. Share. Inspire. Discover featured photographers, community stories, trending styles, and the pulse of Indian wedding photography.
         </p>
@@ -83,8 +83,8 @@ export default function LandingGate() {
           onMouseEnter={() => setBotHov(true)}
           onMouseLeave={() => setBotHov(false)}
           style={{
-            marginTop: 24, background: botHov ? "#FFCC00" : "transparent",
-            border: "1px solid #FFCC00", color: "#000000",
+            marginTop: 24, background: botHov ? "#B8960C" : "transparent",
+            border: "1px solid #B8960C", color: botHov ? "#FFFFFF" : "#000000",
             fontFamily: mont, fontSize: 11, textTransform: "uppercase", letterSpacing: 2,
             padding: "12px 44px", borderRadius: 0, cursor: "pointer", transition: "all 0.3s",
           }}
