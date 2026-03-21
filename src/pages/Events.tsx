@@ -184,21 +184,21 @@ export default function Events() {
             <FadeCard key={i}>
               {/* Cover Image */}
               <div
-                style={{ overflow: "hidden", lineHeight: 0 }}
+                style={{
+                  overflow: "hidden",
+                  lineHeight: 0,
+                  background: "linear-gradient(135deg, #f5f0ea 0%, #e8e0d4 50%, #f5f0ea 100%)",
+                  height: 400,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transform: imgHover === i ? "scale(1.02)" : "scale(1)",
+                  transition: "transform 0.4s ease",
+                }}
                 onMouseEnter={() => setImgHover(i)}
                 onMouseLeave={() => setImgHover(null)}
               >
-                <img
-                  src={s.img}
-                  alt={s.names}
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    objectFit: "cover" as const,
-                    transform: imgHover === i ? "scale(1.02)" : "scale(1)",
-                    transition: "transform 0.4s ease",
-                  }}
-                />
+                <span style={{ fontFamily: playfair, fontSize: 24, color: "rgba(0,0,0,0.1)", fontWeight: 700 }}>{s.names}</span>
               </div>
 
               {/* Couple Names */}
