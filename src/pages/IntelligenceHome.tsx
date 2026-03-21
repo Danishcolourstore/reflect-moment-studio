@@ -87,6 +87,7 @@ function Label({ children, color = "#666666" }: { children: React.ReactNode; col
 
 export default function IntelligenceHome() {
   const navigate = useNavigate();
+  const drawer = useDrawerMenu();
   const [navHover, setNavHover] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
