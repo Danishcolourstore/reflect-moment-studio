@@ -146,7 +146,7 @@ export default function Events() {
             return (
               <button
                 key={item.label}
-                onClick={() => navigate(item.path)}
+                onClick={() => item.path === "__drawer__" ? drawer.toggle() : navigate(item.path)}
                 onMouseEnter={() => setNavHover(i)}
                 onMouseLeave={() => setNavHover(null)}
                 style={{

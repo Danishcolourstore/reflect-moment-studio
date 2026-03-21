@@ -1040,7 +1040,7 @@ const WebsiteEditor = () => {
         </main>
       </div>
 
-      <MobileBottomNav />
+      
     </div>
   );
 };
