@@ -15,10 +15,10 @@ const NAV_ITEMS = [
   { label: "DISCOVER", path: "#discover" },
 ];
 
-const FALLBACK_NEWS = [
-  { title: "The Rise of AI in Wedding Photography", link: "#", pubDate: "2026-03-15", description: "How artificial intelligence is transforming the way photographers cull, edit, and deliver wedding photos.", thumbnail: "" },
-  { title: "Why Indian Weddings Are the Hardest to Photograph", link: "#", pubDate: "2026-03-10", description: "From five-day celebrations to crowds of 500, Indian weddings push photographers to their creative limits.", thumbnail: "" },
-  { title: "Film Photography Makes a Comeback at Weddings", link: "#", pubDate: "2026-03-05", description: "Couples are increasingly requesting analog photography alongside digital for a timeless, nostalgic feel.", thumbnail: "" },
+const FALLBACK_NEWS: NewsItem[] = [
+  { title: "New Sony A1 II — Full Frame Gets Major Update", link: "#", pubDate: "2026-03-18", description: "Sony's flagship mirrorless camera receives a significant hardware and software overhaul for professional shooters.", thumbnail: "", source: "PETAPIXEL" },
+  { title: "The Rise of Film Photography at Indian Weddings", link: "#", pubDate: "2026-03-12", description: "Couples are increasingly requesting analog photography alongside digital for a timeless, nostalgic wedding feel.", thumbnail: "", source: "FSTOPPERS" },
+  { title: "Best Lenses for Wedding Photography in 2026", link: "#", pubDate: "2026-02-28", description: "A comprehensive guide to the sharpest, fastest lenses for capturing ceremonies, portraits, and receptions.", thumbnail: "", source: "DIY PHOTOGRAPHY" },
 ];
 
 const DISCOVER_PHOTOGRAPHERS = [
@@ -28,7 +28,7 @@ const DISCOVER_PHOTOGRAPHERS = [
   { name: "Infinite Memories", loc: "Pune" }, { name: "Shades Photography", loc: "Bangalore" },
 ];
 
-interface NewsItem { title: string; link: string; pubDate: string; description: string; thumbnail: string; }
+interface NewsItem { title: string; link: string; pubDate: string; description: string; thumbnail: string; source: string; }
 
 const PHOTOGRAPHERS = [
   { name: "Naman Verma", location: "DELHI", bio: "Fine art and editorial wedding photographer capturing love across India." },
@@ -120,17 +120,38 @@ export default function IntelligenceHome() {
   const [pillH, setPillH] = useState(false);
   const [footH, setFootH] = useState(false);
   const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
+  const [newsLoading, setNewsLoading] = useState(true);
   const [activeNav, setActiveNav] = useState(0);
 
   useEffect(() => { const h = () => setMob(window.innerWidth < 768); window.addEventListener("resize", h); return () => window.removeEventListener("resize", h); }, []);
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }, []);
 
-  // Fetch RSS news
+  // Fetch RSS news from 3 sources in parallel
   useEffect(() => {
-    fetch("https://api.rss2json.com/v1/api.json?rss_url=https://petapixel.com/feed/")
-      .then(r => r.json())
-      .then(d => { if (d.items?.length) setNews(d.items.slice(0, 6).map((it: any) => ({ title: it.title, link: it.link, pubDate: it.pubDate, description: it.description?.replace(/<[^>]+>/g, "").slice(0, 120) + "…", thumbnail: it.thumbnail || it.enclosure?.link || "" }))); })
-      .catch(() => {});
+    const feeds = [
+      { url: "https://api.rss2json.com/v1/api.json?rss_url=https://petapixel.com/feed/", source: "PETAPIXEL" },
+      { url: "https://api.rss2json.com/v1/api.json?rss_url=https://fstoppers.com/feed", source: "FSTOPPERS" },
+      { url: "https://api.rss2json.com/v1/api.json?rss_url=https://www.diyphotography.net/feed/", source: "DIY PHOTOGRAPHY" },
+    ];
+    Promise.all(
+      feeds.map(f =>
+        fetch(f.url)
+          .then(r => r.json())
+          .then(d => (d.items || []).map((it: any) => ({
+            title: it.title,
+            link: it.link,
+            pubDate: it.pubDate,
+            description: (it.description || "").replace(/<[^>]+>/g, "").slice(0, 120) + "…",
+            thumbnail: it.thumbnail || it.enclosure?.link || "",
+            source: f.source,
+          })))
+          .catch(() => [] as NewsItem[])
+      )
+    ).then(results => {
+      const all = results.flat().sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()).slice(0, 6);
+      if (all.length > 0) setNews(all);
+      setNewsLoading(false);
+    });
   }, []);
 
   const go = (p: string) => {
@@ -217,6 +238,35 @@ export default function IntelligenceHome() {
 
       {/* 6. FULL WIDTH IMAGE */}
       <img src="/images/gallery-4.jpg" alt="Couple portrait" style={{ width: "100%", height: mob ? "30vh" : "45vh", objectFit: "cover", display: "block", margin: "30px 0" }} />
+
+      {/* NEWS SECTION */}
+      <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
+        <div id="news">
+          <SHead label="INDUSTRY NEWS" title="From The Photography World" />
+          {newsLoading ? (
+            <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", textAlign: "center" }}>Loading latest news...</p>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 24 }}>
+              {news.map((n, i) => (
+                <a key={i} href={n.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit", border: "1px solid #F2F2F2", overflow: "hidden", display: "block", transition: "transform 0.3s, box-shadow 0.3s" }} onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.08)"; }} onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+                  {n.thumbnail ? (
+                    <img src={n.thumbnail} alt={n.title} style={{ width: "100%", height: 180, objectFit: "cover", display: "block" }} />
+                  ) : (
+                    <div style={{ width: "100%", height: 180, background: i % 2 === 0 ? warmGrad : coolGrad }} />
+                  )}
+                  <div style={{ padding: 20 }}>
+                    <div style={{ fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: "#FFCC00" }}>{n.source}</div>
+                    <div style={{ fontFamily: playfair, fontSize: 18, fontWeight: 700, color: "#000000", marginTop: 8, lineHeight: 1.3 }}>{n.title}</div>
+                    <div style={{ fontFamily: mont, fontSize: 11, color: "#666666", marginTop: 6 }}>{new Date(n.pubDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+                    <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", lineHeight: 1.6, margin: "8px 0 0" }}>{n.description}</p>
+                    <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000000", marginTop: 12 }}>Read Article →</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </Fade>
 
       {/* 7. FEATURED PHOTOGRAPHERS */}
       <Fade style={{ padding: mob ? "60px 20px 0" : "80px 24px 0", maxWidth: 900, margin: "0 auto" }}>
