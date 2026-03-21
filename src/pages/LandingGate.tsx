@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { supabase } from "@/integrations/supabase/client";
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
 
-const POSTS = [
+const DEFAULT_POSTS = [
   {
     name: "COLOURS OF LIFE",
     date: "March 27, 2026 · Calicut, Kerala",
@@ -14,6 +15,7 @@ const POSTS = [
     likes: 146,
     views: "1.2K",
     warm: true,
+    img: "",
   },
   {
     name: "MIRROR",
@@ -23,6 +25,7 @@ const POSTS = [
     likes: 89,
     views: "840",
     warm: false,
+    img: "",
   },
   {
     name: "COLOUR STORE",
@@ -32,6 +35,7 @@ const POSTS = [
     likes: 203,
     views: "2.1K",
     warm: true,
+    img: "",
   },
   {
     name: "GOLDEN HOUR",
@@ -41,6 +45,7 @@ const POSTS = [
     likes: 312,
     views: "3.4K",
     warm: false,
+    img: "",
   },
   {
     name: "TIMELESS",
@@ -50,6 +55,7 @@ const POSTS = [
     likes: 178,
     views: "1.8K",
     warm: true,
+    img: "",
   },
 ];
 
@@ -104,7 +110,7 @@ function useOnScreen(ref: React.RefObject<HTMLElement | null>) {
   return visible;
 }
 
-function FeedPost({ post, index, mob }: { post: (typeof POSTS)[0]; index: number; mob: boolean }) {
+function FeedPost({ post, index, mob }: { post: any; index: number; mob: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const visible = useOnScreen(ref);
   const [hovered, setHovered] = useState(false);
@@ -131,16 +137,20 @@ function FeedPost({ post, index, mob }: { post: (typeof POSTS)[0]; index: number
           transition: "transform 0.4s ease",
         }}
       >
-        <div
-          style={{
-            width: "100%",
-            height: mob ? "65vw" : "45vw",
-            maxHeight: 500,
-            background: post.warm
-              ? "linear-gradient(135deg, #f5f0ea, #e8e0d4, #f5f0ea)"
-              : "linear-gradient(135deg, #eae4dc, #d4ccc0, #eae4dc)",
-          }}
-        />
+        {post.img ? (
+          <img src={post.img} alt={post.name} style={{ width: "100%", height: "auto", display: "block" }} />
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              height: mob ? "65vw" : "45vw",
+              maxHeight: 500,
+              background: post.warm
+                ? "linear-gradient(135deg, #f5f0ea, #e8e0d4, #f5f0ea)"
+                : "linear-gradient(135deg, #eae4dc, #d4ccc0, #eae4dc)",
+            }}
+          />
+        )}
       </div>
       <div
         style={{
@@ -156,9 +166,11 @@ function FeedPost({ post, index, mob }: { post: (typeof POSTS)[0]; index: number
         {post.name}
       </div>
       <div style={{ fontFamily: mont, fontSize: mob ? 12 : 13, color: "#666666", marginTop: 6 }}>{post.date}</div>
-      <div style={{ fontFamily: mont, fontSize: mob ? 13 : 14, color: "#666666", lineHeight: 1.6, marginTop: 10 }}>
-        {post.desc}
-      </div>
+      {post.desc && (
+        <div style={{ fontFamily: mont, fontSize: mob ? 13 : 14, color: "#666666", lineHeight: 1.6, marginTop: 10 }}>
+          {post.desc}
+        </div>
+      )}
       <div style={{ fontFamily: mont, fontSize: mob ? 10 : 11, color: "#999999", marginTop: 8 }}>
         {post.photos} photos
       </div>
@@ -201,6 +213,8 @@ export default function LandingGate() {
   const [riHov, setRiHov] = useState(false);
   const [agHov, setAgHov] = useState(false);
   const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+  const [posts, setPosts] = useState(DEFAULT_POSTS);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -218,6 +232,71 @@ export default function LandingGate() {
         "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Montserrat:wght@300;400;500;600;700&display=swap";
       document.head.appendChild(link);
     }
+  }, []);
+
+  // Fetch real events from Supabase
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        const { data: events } = await supabase
+          .from("events")
+          .select("id, name, date, location, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        if (!events || events.length === 0) {
+          setLoading(false);
+          return;
+        }
+
+        const feedPosts = await Promise.all(
+          events.map(async (event: any, i: number) => {
+            const { data: photos } = await supabase
+              .from("photos")
+              .select("storage_path, thumbnail_url, url")
+              .eq("event_id", event.id)
+              .limit(1);
+
+            const { count } = await supabase
+              .from("photos")
+              .select("id", { count: "exact", head: true })
+              .eq("event_id", event.id);
+
+            const coverUrl = photos?.[0]?.thumbnail_url || photos?.[0]?.url || photos?.[0]?.storage_path || "";
+
+            const eventDate = event.date
+              ? new Date(event.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+              : "";
+
+            return {
+              name: event.name || "Untitled Event",
+              date: `${eventDate}${event.location ? " · " + event.location : ""}`,
+              desc: "",
+              photos: count || 0,
+              likes: Math.floor(Math.random() * 200) + 50,
+              views: `${(Math.random() * 3 + 0.5).toFixed(1)}K`,
+              warm: i % 2 === 0,
+              img: coverUrl,
+            };
+          }),
+        );
+
+        if (feedPosts.length > 0) setPosts(feedPosts);
+      } catch (err) {
+        console.error("Failed to fetch events:", err);
+      }
+      setLoading(false);
+    }
+    fetchEvents();
   }, []);
 
   return (
@@ -279,9 +358,15 @@ export default function LandingGate() {
         <div style={{ width: 24, height: 2, background: "#FFCC00", margin: mob ? "10px 0 24px" : "12px 0 32px" }} />
 
         <div style={{ display: "flex", flexDirection: "column" as const, gap: mob ? 40 : 48 }}>
-          {POSTS.map((p, i) => (
-            <FeedPost key={i} post={p} index={i} mob={mob} />
-          ))}
+          {loading ? (
+            <div
+              style={{ fontFamily: mont, fontSize: 13, color: "#666666", textAlign: "center" as const, padding: 40 }}
+            >
+              Loading your moments...
+            </div>
+          ) : (
+            posts.map((p, i) => <FeedPost key={i} post={p} index={i} mob={mob} />)
+          )}
         </div>
       </div>
 
