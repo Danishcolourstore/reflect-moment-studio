@@ -88,6 +88,7 @@ export default function PublicFeed() {
       setLoading(true);
       let userId: string | null = null;
 
+      // 1. Try studio_profiles.username
       const { data: sp } = await (supabase.from("studio_profiles")
         .select("user_id, display_name, bio, location, cover_url, instagram, whatsapp, section_visibility, testimonials_data") as any)
         .eq("username", username).maybeSingle();
@@ -108,13 +109,37 @@ export default function PublicFeed() {
           })),
         });
       } else {
+        // 2. Try domains.subdomain
         const { data: dom } = await (supabase.from("domains").select("user_id") as any)
           .eq("subdomain", username).maybeSingle();
-        if (!dom) { setNotFound(true); setLoading(false); return; }
-        userId = dom.user_id;
+        if (dom) {
+          userId = dom.user_id;
+        } else {
+          // 3. Fallback: match slugified profiles.studio_name
+          const { data: allProfiles } = await (supabase.from("profiles").select("user_id, studio_name, studio_logo_url, email") as any);
+          const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
+          const match = (allProfiles || []).find((p: any) => p.studio_name && slugify(p.studio_name) === slugify(username));
+          if (!match) { setNotFound(true); setLoading(false); return; }
+          userId = match.user_id;
+        }
+
+        // Load profile + studio_profiles info for this userId
         const { data: prof } = await (supabase.from("profiles").select("studio_name, studio_logo_url, email") as any)
           .eq("user_id", userId).maybeSingle();
-        setInfo(prev => ({ ...prev, studioName: prof?.studio_name || username, logoUrl: prof?.studio_logo_url || null, email: prof?.email || null }));
+        const { data: sp2 } = await (supabase.from("studio_profiles")
+          .select("display_name, bio, location, cover_url, instagram, whatsapp, section_visibility, testimonials_data") as any)
+          .eq("user_id", userId).maybeSingle();
+        setInfo({
+          studioName: sp2?.display_name || prof?.studio_name || username,
+          tagline: null, bio: sp2?.bio || null, location: sp2?.location || null,
+          coverUrl: sp2?.cover_url || null, logoUrl: prof?.studio_logo_url || null,
+          instagram: sp2?.instagram || null, whatsapp: sp2?.whatsapp || null, email: prof?.email || null,
+          sectionVisibility: { ...DEFAULT_VIS, ...(sp2?.section_visibility || {}) },
+          testimonials: (sp2?.testimonials_data || []).map((t: any) => ({
+            name: t.name || t.author || "", text: t.text || t.quote || "",
+            event: t.event || t.role || "", imageUrl: t.imageUrl || t.image_url || undefined,
+          })),
+        });
       }
 
       if (!userId) { setNotFound(true); setLoading(false); return; }
@@ -218,7 +243,7 @@ export default function PublicFeed() {
   };
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: cream }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: cream, overflowY: "auto", overflowX: "hidden" }}>
       {/* ── HEADER / LOGO + NAV ── */}
       <header style={{
         position: "sticky" as const, top: 0, zIndex: 100,
