@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 
 const MORE_ITEMS = [
   { label: "Colour Store", path: "/colour-store" },
-  { label: "Grid Builder", path: "/dashboard/storybook" },
+  { label: "Storybook", path: "/dashboard/storybook" },
   { label: "Analytics", path: "/dashboard/analytics" },
   { label: "Clients", path: "/dashboard/clients" },
   { label: "Billing", path: "/dashboard/billing" },

@@ -178,34 +178,48 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
     <>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="font-serif text-foreground" style={{ fontSize: '32px', fontWeight: 400, fontStyle: 'italic' }}>
+        <h1 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 28, fontWeight: 400, color: '#F0EDE8', letterSpacing: '0.04em' }}>
           Storybook
         </h1>
-        <p className="text-muted-foreground mt-1.5" style={{ fontSize: '13px' }}>
+        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: 'rgba(240,237,232,0.35)', letterSpacing: '0.08em', marginTop: 6 }}>
           Design and manage your creative content
         </p>
       </div>
 
       {/* Primary action */}
       <div className="mb-10">
-        <Button onClick={createStorybook} className="gap-2 h-11 px-6">
+        <button
+          onClick={createStorybook}
+          className="flex items-center gap-2 transition-all"
+          style={{
+            fontFamily: '"DM Sans", sans-serif', fontSize: 11, fontWeight: 600,
+            letterSpacing: '0.15em', textTransform: 'uppercase' as const,
+            color: '#080808', background: '#E8C97A',
+            padding: '12px 28px', border: 'none', cursor: 'pointer',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#d4b56a')}
+          onMouseLeave={e => (e.currentTarget.style.background = '#E8C97A')}
+        >
           <Plus className="h-4 w-4" /> New Storybook
-        </Button>
+        </button>
       </div>
 
       {/* Tools section */}
       <div className="mb-10">
-        <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground mb-4">Tools</p>
+        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 9, color: 'rgba(240,237,232,0.3)', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: 16, fontWeight: 600 }}>Tools</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {tools.map((tool) => (
             <button
               key={tool.name}
               onClick={tool.onClick}
-              className="text-left rounded-2xl border border-border bg-card p-5 hover:border-accent/40 hover:shadow-[0_0_20px_-6px_hsl(var(--accent)/0.15)] transition-all group"
+              className="text-left transition-all group"
+              style={{ padding: 20, border: '1px solid rgba(240,237,232,0.06)', background: 'rgba(240,237,232,0.02)', cursor: 'pointer' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(232,201,122,0.25)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(240,237,232,0.06)')}
             >
-              <tool.icon className="h-5 w-5 text-accent/70 mb-3 group-hover:text-accent transition-colors" strokeWidth={1.5} />
-              <p className="text-foreground text-sm font-medium">{tool.name}</p>
-              <p className="text-muted-foreground text-xs mt-1">{tool.desc}</p>
+              <tool.icon className="h-5 w-5 mb-3" style={{ color: '#E8C97A', opacity: 0.6 }} strokeWidth={1.5} />
+              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 13, fontWeight: 500, color: '#F0EDE8' }}>{tool.name}</p>
+              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 11, color: 'rgba(240,237,232,0.35)', marginTop: 4 }}>{tool.desc}</p>
             </button>
           ))}
         </div>
@@ -213,16 +227,16 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
 
       {/* My Storybooks section */}
       <div>
-        <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground mb-4">My Storybooks</p>
+        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 9, color: 'rgba(240,237,232,0.3)', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: 16, fontWeight: 600 }}>My Storybooks</p>
         {loading ? (
           <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl bg-card animate-pulse" />)}
+            {[1,2,3].map(i => <div key={i} style={{ height: 72, background: 'rgba(240,237,232,0.03)' }} className="animate-pulse" />)}
           </div>
         ) : storybooks.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-12 text-center">
-            <BookOpen className="mx-auto h-10 w-10 text-accent mb-4" strokeWidth={1.5} />
-            <p className="font-serif text-foreground text-xl" style={{ fontStyle: 'italic' }}>No storybooks yet</p>
-            <p className="text-muted-foreground text-sm mt-2">Create your first Instagram carousel</p>
+          <div style={{ border: '1px solid rgba(240,237,232,0.06)', padding: '48px 24px', textAlign: 'center' }}>
+            <BookOpen className="mx-auto h-10 w-10 mb-4" style={{ color: '#E8C97A', opacity: 0.5 }} strokeWidth={1.5} />
+            <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 20, color: '#F0EDE8', fontStyle: 'italic' }}>No storybooks yet</p>
+            <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: 'rgba(240,237,232,0.35)', marginTop: 8 }}>Create your first Instagram carousel</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -230,22 +244,26 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
               <button
                 key={sb.id}
                 onClick={() => setActiveId(sb.id)}
-                className="w-full text-left rounded-2xl border border-border bg-card p-5 hover:border-accent/30 transition-all group"
+                className="w-full text-left transition-all group"
+                style={{ padding: 20, border: '1px solid rgba(240,237,232,0.06)', background: 'transparent', cursor: 'pointer' }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(232,201,122,0.2)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(240,237,232,0.06)')}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-serif text-foreground text-lg">{sb.title}</p>
-                    <p className="text-muted-foreground text-xs mt-1">
+                    <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 18, color: '#F0EDE8' }}>{sb.title}</p>
+                    <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 11, color: 'rgba(240,237,232,0.3)', marginTop: 4 }}>
                       {sb.slides_data && Array.isArray(sb.slides_data) ? `${sb.slides_data.length} slides` : 'Empty'} · {new Date(sb.updated_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] uppercase tracking-[2px] text-accent/60 font-semibold border border-accent/20 rounded-full px-3 py-1">
+                    <span style={{ fontSize: 9, textTransform: 'uppercase' as const, letterSpacing: '0.15em', color: 'rgba(232,201,122,0.5)', fontWeight: 600, border: '1px solid rgba(232,201,122,0.15)', padding: '4px 12px', fontFamily: '"DM Sans", sans-serif' }}>
                       Draft
                     </span>
                     <button
                       onClick={(e) => deleteStorybook(sb.id, e)}
-                      className="opacity-0 group-hover:opacity-100 h-8 w-8 rounded-lg flex items-center justify-center text-destructive hover:bg-destructive/10 transition-all"
+                      className="opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all"
+                      style={{ height: 32, width: 32, color: '#C0392B', background: 'none', border: 'none', cursor: 'pointer' }}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
