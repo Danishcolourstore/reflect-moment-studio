@@ -250,7 +250,10 @@ export default function PublicFeed() {
         } else {
           const { data: allProfiles } = await (supabase.from("profiles").select("user_id, studio_name, studio_logo_url, email") as any);
           const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
-          const match = (allProfiles || []).find((p: any) => p.studio_name && slugify(p.studio_name) === slugify(username));
+          const match = (allProfiles || []).find((p: any) =>
+            (p.studio_name && slugify(p.studio_name) === slugify(username)) ||
+            (p.email && p.email.split("@")[0].toLowerCase() === username.toLowerCase())
+          );
           if (!match) { setNotFound(true); setLoading(false); return; }
           userId = match.user_id;
         }
