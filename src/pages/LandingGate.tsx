@@ -114,6 +114,26 @@ export default function LandingGate() {
 
   useEffect(() => { loadFeed(); }, [loadFeed]);
 
+  // Load art gallery photos
+  useEffect(() => {
+    if (activeTab !== "artgallery" || !user) return;
+    setArtLoading(true);
+    (async () => {
+      const { data } = await (supabase.from("photos").select("id, url, event_id") as any).eq("is_art_gallery", true).order("created_at", { ascending: false }).limit(50);
+      if (data) {
+        // Get event names
+        const eventIds = [...new Set(data.map((p: any) => p.event_id).filter(Boolean))];
+        let eventMap: Record<string, string> = {};
+        if (eventIds.length > 0) {
+          const { data: events } = await supabase.from("events").select("id, name").in("id", eventIds);
+          if (events) events.forEach((e: any) => { eventMap[e.id] = e.name; });
+        }
+        setArtPhotos(data.map((p: any) => ({ id: p.id, url: p.url, event_name: eventMap[p.event_id] || "" })));
+      }
+      setArtLoading(false);
+    })();
+  }, [activeTab, user]);
+
   const fmt = (d: string) => {
     try { return new Date(d).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }); }
     catch { return d; }
