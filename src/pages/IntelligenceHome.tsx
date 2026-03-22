@@ -288,7 +288,7 @@ export default function IntelligenceHome() {
           {NAV_ITEMS.map((n, i) => (
             <button
               key={n.label}
-              onClick={() => scrollTo(n.id, i)}
+              onClick={() => scrollTo(n.id, i, (n as any).isRoute)}
               style={{
                 fontFamily: mont,
                 fontSize: mob ? 10 : 12,
