@@ -243,7 +243,7 @@ export default function PublicFeed() {
   };
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: cream }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: cream, overflowY: "auto", overflowX: "hidden" }}>
       {/* ── HEADER / LOGO + NAV ── */}
       <header style={{
         position: "sticky" as const, top: 0, zIndex: 100,

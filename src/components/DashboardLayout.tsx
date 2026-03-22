@@ -231,7 +231,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <EntiranProvider>
-      <div className="min-h-screen" style={{ background: "#080808" }}>
+      <div className="min-h-screen" style={{ background: "#080808", overflowY: "auto", overflowX: "hidden" }}>
         {/* ── Desktop Sidebar ── */}
         {showSidebar && (
           <aside
