@@ -51,34 +51,18 @@ const FALLBACK_NEWS: NewsItem[] = [
   },
 ];
 
-const STORIES = [
-  {
-    couple: "Meera & Arjun",
-    loc: "Udaipur · Dec 2025",
-    snippet: "A royal celebration at City Palace that blended tradition with modern elegance.",
-  },
-  {
-    couple: "Priya & Karthik",
-    loc: "Kerala · Jan 2026",
-    snippet: "A houseboat ceremony on the backwaters that felt like a dream.",
-  },
-  { couple: "Zara & Imran", loc: "Lucknow · Nov 2025", snippet: "A Nawabi nikah that honored centuries of tradition." },
-  {
-    couple: "Simran & Raj",
-    loc: "Amritsar · Feb 2026",
-    snippet: "An Anand Karaj at the Golden Temple, bathed in golden light.",
-  },
+// Fallback data — used only if DB fetch fails
+const FALLBACK_STORIES = [
+  { couple: "Meera & Arjun", location: "Udaipur", story_date: "Dec 2025", snippet: "A royal celebration at City Palace that blended tradition with modern elegance." },
+  { couple: "Priya & Karthik", location: "Kerala", story_date: "Jan 2026", snippet: "A houseboat ceremony on the backwaters that felt like a dream." },
+  { couple: "Zara & Imran", location: "Lucknow", story_date: "Nov 2025", snippet: "A Nawabi nikah that honored centuries of tradition." },
+  { couple: "Simran & Raj", location: "Amritsar", story_date: "Feb 2026", snippet: "An Anand Karaj at the Golden Temple, bathed in golden light." },
 ];
-
-const DISCOVER_PHOTOGRAPHERS = [
-  { name: "Naman Verma", loc: "Delhi" },
-  { name: "Joseph Radhik", loc: "Hyderabad" },
-  { name: "Recall Pictures", loc: "Mumbai" },
-  { name: "The Wedding Filmer", loc: "Mumbai" },
-  { name: "Plush Affairs", loc: "Delhi" },
-  { name: "Beginnings For You", loc: "Kochi" },
-  { name: "Infinite Memories", loc: "Pune" },
-  { name: "Shades Photography", loc: "Bangalore" },
+const FALLBACK_DISCOVER = [
+  { name: "Naman Verma", location: "Delhi" }, { name: "Joseph Radhik", location: "Hyderabad" },
+  { name: "Recall Pictures", location: "Mumbai" }, { name: "The Wedding Filmer", location: "Mumbai" },
+  { name: "Plush Affairs", location: "Delhi" }, { name: "Beginnings For You", location: "Kochi" },
+  { name: "Infinite Memories", location: "Pune" }, { name: "Shades Photography", location: "Bangalore" },
 ];
 
 const warmGrad = "linear-gradient(135deg, #f5f0ea, #e8e0d4, #f5f0ea)";
