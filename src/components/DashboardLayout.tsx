@@ -245,7 +245,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const showSidebar = device.isDesktop || device.isTablet;
   const showBottomNav = device.isPhone;
-  const sidebarWidth = 220;
+  const sidebarWidth = SIDEBAR_W;
 
   const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
 
