@@ -226,23 +226,35 @@ export default function LandingGate() {
             Moments
           </h1>
         </div>
-        <button
-          onClick={() => setCreateOpen(true)}
-          style={{
-            fontFamily: dm,
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase" as const,
-            color: "#080808",
-            background: "#E8C97A",
-            border: "none",
-            padding: "10px 20px",
-            cursor: "pointer",
-          }}
-        >
-          + Post
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          {shareSlug && (
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/feed/${shareSlug}`;
+                navigator.clipboard.writeText(url);
+                toast.success("Feed link copied!");
+              }}
+              style={{
+                fontFamily: dm, fontSize: 10, fontWeight: 600, letterSpacing: "0.12em",
+                textTransform: "uppercase" as const, color: "#E8C97A",
+                background: "transparent", border: "1px solid rgba(232,201,122,0.25)",
+                padding: "10px 16px", cursor: "pointer",
+              }}
+            >
+              Share
+            </button>
+          )}
+          <button
+            onClick={() => setCreateOpen(true)}
+            style={{
+              fontFamily: dm, fontSize: 10, fontWeight: 600, letterSpacing: "0.15em",
+              textTransform: "uppercase" as const, color: "#080808", background: "#E8C97A",
+              border: "none", padding: "10px 20px", cursor: "pointer",
+            }}
+          >
+            + Post
+          </button>
+        </div>
       </div>
 
       <div style={{ width: 32, height: 1, background: "#E8C97A", margin: "0 20px 24px" }} />
