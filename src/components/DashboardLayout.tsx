@@ -71,13 +71,6 @@ const NAV_SECTIONS = [
 ];
 
 const NAV_ITEMS = NAV_SECTIONS.flatMap(s => s.items);
-  { title: "Home", url: "/home", icon: Home, end: true },
-  { title: "Events", url: "/dashboard/events", icon: Camera },
-  { title: "Albums", url: "/dashboard/album-designer", icon: BookOpen },
-  { title: "Studio Feed", url: "/dashboard/website-editor", icon: Globe },
-];
-
-const MORE_NAV = NAV_ITEMS.filter((i) => !MOBILE_NAV.some((m) => m.url === i.url));
 
 interface Profile {
   studio_name: string;
