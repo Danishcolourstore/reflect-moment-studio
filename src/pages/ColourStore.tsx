@@ -22,6 +22,7 @@ export interface RefynPhoto {
 }
 
 export default function ColourStore() {
+  const { needsOtp } = useRetouchSession();
   const [screen, setScreen] = useState<RefynScreen>('upload');
   const [photo, setPhoto] = useState<RefynPhoto | null>(null);
   const [showIntelBar, setShowIntelBar] = useState(false);
