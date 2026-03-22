@@ -34,6 +34,11 @@ export default function LandingGate() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [editPost, setEditPost] = useState<FeedItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sectionVis, setSectionVis] = useState<Record<string, boolean>>({
+    hero: true, galleries: true, stories: true, testimonials: false, about: true, enquire: true,
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
