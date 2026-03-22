@@ -221,8 +221,23 @@ export default function IntelligenceHome() {
     });
   }, []);
 
-  const scrollTo = (id: string, idx: number) => {
+  const goToFeed = async () => {
+    if (!user) { navigate("/feed/community"); return; }
+    // Get username/slug for the photographer's public feed
+    const { data: sp } = await (supabase.from("studio_profiles").select("username") as any)
+      .eq("user_id", user.id).maybeSingle();
+    if (sp?.username) { navigate(`/feed/${sp.username}`); return; }
+    const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
+      .eq("user_id", user.id).maybeSingle();
+    if (dom?.subdomain) { navigate(`/feed/${dom.subdomain}`); return; }
+    // fallback: use email prefix
+    const slug = (user.email || "photographer").split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "-");
+    navigate(`/feed/${slug}`);
+  };
+
+  const scrollTo = (id: string, idx: number, isRoute?: boolean) => {
     setActiveNav(idx);
+    if (isRoute && id === "feed") { goToFeed(); return; }
     if (id === "top") window.scrollTo({ top: 0, behavior: "smooth" });
     else document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
