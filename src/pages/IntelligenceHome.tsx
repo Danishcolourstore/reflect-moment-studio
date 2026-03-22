@@ -529,7 +529,7 @@ export default function IntelligenceHome() {
             </p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: mob ? 24 : 20 }}>
-            {STORIES.map((s, i) => (
+            {dbStories.map((s, i) => (
               <div
                 key={i}
                 style={{
@@ -550,7 +550,7 @@ export default function IntelligenceHome() {
                   <div style={{ fontFamily: playfair, fontSize: mob ? 16 : 18, fontWeight: 700, color: "#000000" }}>
                     {s.couple}
                   </div>
-                  <div style={{ fontFamily: mont, fontSize: 11, color: "#666666", marginTop: 4 }}>{s.loc}</div>
+                  <div style={{ fontFamily: mont, fontSize: 11, color: "#666666", marginTop: 4 }}>{s.location}{s.story_date ? ` · ${s.story_date}` : ''}</div>
                   <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", lineHeight: 1.6, margin: "8px 0 0" }}>
                     {s.snippet}
                   </p>
