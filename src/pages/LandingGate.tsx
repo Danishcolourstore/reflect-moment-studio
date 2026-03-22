@@ -60,6 +60,17 @@ export default function LandingGate() {
       .eq("user_id", user.id).maybeSingle();
     if (prof?.studio_name) setProfileName(prof.studio_name);
 
+    // Get username/subdomain for share link
+    const { data: sp } = await (supabase.from("studio_profiles").select("username") as any)
+      .eq("user_id", user.id).maybeSingle();
+    if (sp?.username) {
+      setShareSlug(sp.username);
+    } else {
+      const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
+        .eq("user_id", user.id).eq("is_primary", true).maybeSingle();
+      if (dom?.subdomain) setShareSlug(dom.subdomain);
+    }
+
     // Fetch events
     const { data: events } = await supabase
       .from("events")
