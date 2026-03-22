@@ -1,10 +1,15 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// Naman Verma style: warm cream, editorial serif, uppercase spaced labels
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
+const cream = "#F5F0EA";
+const ink = "#1A1A1A";
+const gold = "#C8A060";
+const dimText = "#8A8A8A";
 
 interface FeedItem {
   id: string;
@@ -15,10 +20,12 @@ interface FeedItem {
   location: string | null;
   date: string;
   photoCount?: number;
+  hashtag?: string;
 }
 
 interface StudioInfo {
   studioName: string;
+  tagline: string | null;
   bio: string | null;
   location: string | null;
   coverUrl: string | null;
@@ -26,9 +33,8 @@ interface StudioInfo {
   instagram: string | null;
   whatsapp: string | null;
   email: string | null;
-  phone: string | null;
   sectionVisibility: Record<string, boolean>;
-  testimonials: { name: string; text: string; event: string }[];
+  testimonials: { name: string; text: string; event: string; imageUrl?: string }[];
 }
 
 const DEFAULT_VIS: Record<string, boolean> = {
@@ -38,19 +44,19 @@ const DEFAULT_VIS: Record<string, boolean> = {
 export default function PublicFeed() {
   const { username } = useParams<{ username: string }>();
   const [feed, setFeed] = useState<FeedItem[]>([]);
-  const [galleryPhotos, setGalleryPhotos] = useState<{ url: string; eventName: string }[]>([]);
+  const [galleryPhotos, setGalleryPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
   const [info, setInfo] = useState<StudioInfo>({
-    studioName: "", bio: null, location: null, coverUrl: null, logoUrl: null,
-    instagram: null, whatsapp: null, email: null, phone: null,
+    studioName: "", tagline: null, bio: null, location: null, coverUrl: null, logoUrl: null,
+    instagram: null, whatsapp: null, email: null,
     sectionVisibility: DEFAULT_VIS, testimonials: [],
   });
-  const [activeNav, setActiveNav] = useState("home");
-  const [enquiry, setEnquiry] = useState({ name: "", email: "", phone: "", eventType: "", message: "" });
-  const [sending, setSending] = useState(false);
+  const [heroIdx, setHeroIdx] = useState(0);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [enquiry, setEnquiry] = useState({ firstName: "", lastName: "", email: "", subject: "", details: "" });
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -59,23 +65,31 @@ export default function PublicFeed() {
   }, []);
 
   useEffect(() => {
-    if (!document.getElementById("pf-fonts")) {
+    if (!document.getElementById("pf-nv-fonts")) {
       const link = document.createElement("link");
-      link.id = "pf-fonts";
+      link.id = "pf-nv-fonts";
       link.rel = "stylesheet";
       link.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Montserrat:wght@300;400;500;600;700&display=swap";
       document.head.appendChild(link);
     }
   }, []);
 
+  // Hero auto-slide
+  useEffect(() => {
+    if (galleryPhotos.length <= 1) return;
+    const heroImages = galleryPhotos.slice(0, 5);
+    const timer = setInterval(() => setHeroIdx(i => (i + 1) % heroImages.length), 4000);
+    return () => clearInterval(timer);
+  }, [galleryPhotos]);
+
   useEffect(() => {
     if (!username) return;
     (async () => {
       setLoading(true);
-
-      // Find user
       let userId: string | null = null;
-      const { data: sp } = await (supabase.from("studio_profiles").select("user_id, display_name, bio, location, cover_url, instagram, whatsapp, section_visibility, testimonials_data") as any)
+
+      const { data: sp } = await (supabase.from("studio_profiles")
+        .select("user_id, display_name, bio, location, cover_url, instagram, whatsapp, section_visibility, testimonials_data") as any)
         .eq("username", username).maybeSingle();
 
       if (sp) {
@@ -84,16 +98,14 @@ export default function PublicFeed() {
           .eq("user_id", userId).maybeSingle();
         setInfo({
           studioName: sp.display_name || prof?.studio_name || username,
-          bio: sp.bio || null,
-          location: sp.location || null,
-          coverUrl: sp.cover_url || null,
-          logoUrl: prof?.studio_logo_url || null,
-          instagram: sp.instagram || null,
-          whatsapp: sp.whatsapp || null,
-          email: prof?.email || null,
-          phone: null,
+          tagline: null, bio: sp.bio || null, location: sp.location || null,
+          coverUrl: sp.cover_url || null, logoUrl: prof?.studio_logo_url || null,
+          instagram: sp.instagram || null, whatsapp: sp.whatsapp || null, email: prof?.email || null,
           sectionVisibility: { ...DEFAULT_VIS, ...(sp.section_visibility || {}) },
-          testimonials: (sp.testimonials_data || []).map((t: any) => ({ name: t.name || t.author || "", text: t.text || t.quote || "", event: t.event || t.role || "" })),
+          testimonials: (sp.testimonials_data || []).map((t: any) => ({
+            name: t.name || t.author || "", text: t.text || t.quote || "",
+            event: t.event || t.role || "", imageUrl: t.imageUrl || t.image_url || undefined,
+          })),
         });
       } else {
         const { data: dom } = await (supabase.from("domains").select("user_id") as any)
@@ -107,21 +119,20 @@ export default function PublicFeed() {
 
       if (!userId) { setNotFound(true); setLoading(false); return; }
 
-      // Fetch events
+      // Events
       const { data: events } = await (supabase.from("events")
         .select("id, name, event_date, location, cover_url, photo_count") as any)
         .eq("user_id", userId).eq("is_published", true)
         .order("created_at", { ascending: false }).limit(20);
 
       const eventItems: FeedItem[] = [];
-      const photos: { url: string; eventName: string }[] = [];
+      const allPhotos: string[] = [];
 
       for (const evt of events || []) {
         let img = evt.cover_url || null;
-        const { data: ep } = await supabase.from("photos").select("url").eq("event_id", evt.id).limit(6);
+        const { data: ep } = await supabase.from("photos").select("url").eq("event_id", evt.id).limit(8);
         if (!img && ep?.[0]) img = ep[0].url || null;
-        (ep || []).forEach((p) => photos.push({ url: p.url, eventName: evt.name || "Untitled" }));
-
+        (ep || []).forEach(p => { if (p.url) allPhotos.push(p.url); });
         eventItems.push({
           id: evt.id, type: "event", title: evt.name || "Untitled",
           caption: null, imageUrl: img, location: evt.location,
@@ -129,7 +140,7 @@ export default function PublicFeed() {
         });
       }
 
-      // Feed posts
+      // Posts
       const { data: posts } = await (supabase.from("feed_posts").select("*") as any)
         .eq("user_id", userId).eq("is_published", true)
         .order("created_at", { ascending: false }).limit(20);
@@ -140,7 +151,7 @@ export default function PublicFeed() {
       }));
 
       setFeed([...eventItems, ...postItems].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-      setGalleryPhotos(photos);
+      setGalleryPhotos(allPhotos);
       setLoading(false);
     })();
   }, [username]);
@@ -151,43 +162,38 @@ export default function PublicFeed() {
   };
 
   const scrollTo = (id: string) => {
-    setActiveNav(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const vis = info.sectionVisibility;
-  const navItems = [
-    { id: "home", label: "Home" },
-    vis.galleries && { id: "galleries", label: "Galleries" },
-    vis.stories && { id: "stories", label: "Stories" },
-    vis.testimonials && info.testimonials.length > 0 && { id: "testimonials", label: "Testimonials" },
-    vis.about && { id: "about", label: "About" },
-    vis.enquire && { id: "enquire", label: "Enquire" },
-  ].filter(Boolean) as { id: string; label: string }[];
-
   const handleEnquiry = async () => {
-    if (!enquiry.name || !enquiry.email || !enquiry.message) { toast.error("Please fill required fields"); return; }
+    if (!enquiry.firstName || !enquiry.email || !enquiry.details) { toast.error("Fill required fields"); return; }
     setSending(true);
-    // Try to save to contact_submissions
     const { data: sp } = await (supabase.from("studio_profiles").select("user_id") as any)
       .eq("username", username).maybeSingle();
     if (sp?.user_id) {
       await supabase.from("contact_submissions").insert({
-        site_owner_id: sp.user_id, name: enquiry.name, email: enquiry.email,
-        phone: enquiry.phone || null, event_type: enquiry.eventType || null, message: enquiry.message,
+        site_owner_id: sp.user_id,
+        name: `${enquiry.firstName} ${enquiry.lastName}`.trim(),
+        email: enquiry.email,
+        message: `${enquiry.subject ? enquiry.subject + "\n\n" : ""}${enquiry.details}`,
       });
     }
     setSending(false);
-    toast.success("Enquiry sent! They'll get back to you soon.");
-    setEnquiry({ name: "", email: "", phone: "", eventType: "", message: "" });
+    toast.success("Enquiry sent!");
+    setEnquiry({ firstName: "", lastName: "", email: "", subject: "", details: "" });
   };
+
+  const vis = info.sectionVisibility;
+  const navItems = ["HOME", "GALLERIES", "STORIES", "TESTIMONIALS", "ABOUT", "ENQUIRE"];
+  const heroImages = galleryPhotos.slice(0, 5);
+  const currentHero = heroImages[heroIdx] || info.coverUrl || feed.find(f => f.imageUrl)?.imageUrl;
 
   if (notFound) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <div style={{ width: "100%", minHeight: "100vh", background: cream, display: "flex", justifyContent: "center", alignItems: "center" }}>
         <div style={{ textAlign: "center" as const }}>
-          <div style={{ fontFamily: playfair, fontSize: 28, color: "#000" }}>Not Found</div>
-          <div style={{ fontFamily: mont, fontSize: 13, color: "#999", marginTop: 8 }}>This photographer portfolio doesn't exist.</div>
+          <div style={{ fontFamily: playfair, fontSize: 28, color: ink }}>Not Found</div>
+          <div style={{ fontFamily: mont, fontSize: 13, color: dimText, marginTop: 8 }}>This portfolio doesn't exist.</div>
         </div>
       </div>
     );
@@ -195,111 +201,135 @@ export default function PublicFeed() {
 
   if (loading) {
     return (
-      <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF", display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <div style={{ fontFamily: mont, fontSize: 13, color: "#999" }}>Loading portfolio...</div>
+      <div style={{ width: "100%", minHeight: "100vh", background: cream, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div style={{ fontFamily: mont, fontSize: 13, color: dimText }}>Loading...</div>
       </div>
     );
   }
 
-  const heroImage = info.coverUrl || feed.find(f => f.imageUrl)?.imageUrl || null;
-  const stories = feed.filter(f => f.type === "post" && f.caption);
   const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "14px 16px", fontFamily: mont, fontSize: 13,
-    color: "#000", background: "#FAFAFA", border: "1px solid #E8E8E8",
-    outline: "none", borderRadius: 0,
+    width: "100%", padding: "10px 0", fontFamily: mont, fontSize: 13,
+    color: ink, background: "transparent", border: "none",
+    borderBottom: "1px solid #D0C8BC", outline: "none",
+  };
+  const labelStyle: React.CSSProperties = {
+    fontFamily: mont, fontSize: 11, color: dimText, letterSpacing: "0.05em",
+    marginBottom: 4, display: "block",
   };
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF" }}>
-      {/* ── NAV ── */}
-      <nav style={{
+    <div style={{ width: "100%", minHeight: "100vh", background: cream }}>
+      {/* ── HEADER / LOGO + NAV ── */}
+      <header style={{
         position: "sticky" as const, top: 0, zIndex: 100,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        height: mob ? 52 : 60, padding: "0 24px",
-        background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)",
-        borderBottom: "1px solid #F2F2F2",
+        background: cream, borderBottom: "1px solid rgba(0,0,0,0.06)",
+        padding: mob ? "16px 16px 0" : "24px 40px 0",
+        textAlign: "center" as const,
       }}>
-        <div style={{ fontFamily: playfair, fontSize: mob ? 16 : 18, fontWeight: 700, color: "#000" }}>
-          {info.studioName}
-        </div>
-        <div style={{
-          display: "flex", gap: mob ? 12 : 20, overflowX: "auto" as const,
-          msOverflowStyle: "none" as any, scrollbarWidth: "none" as any,
-        }}>
-          {navItems.map(n => (
-            <button key={n.id} onClick={() => scrollTo(n.id)} style={{
-              background: "none", border: "none", fontFamily: mont, fontSize: mob ? 9 : 11,
-              fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase" as const,
-              color: activeNav === n.id ? "#000" : "#999", cursor: "pointer", whiteSpace: "nowrap" as const,
-              borderBottom: activeNav === n.id ? "2px solid #000" : "2px solid transparent",
-              paddingBottom: 2,
-            }}>{n.label}</button>
-          ))}
-        </div>
-      </nav>
-
-      {/* ── HERO ── */}
-      <section id="home" style={{
-        position: "relative" as const, width: "100%",
-        height: mob ? "70vh" : "90vh", overflow: "hidden",
-      }}>
-        {heroImage ? (
-          <img src={heroImage} alt={info.studioName} style={{
-            width: "100%", height: "100%", objectFit: "cover" as const, display: "block",
-          }} />
+        {/* Logo / Studio Name */}
+        {info.logoUrl ? (
+          <img src={info.logoUrl} alt={info.studioName} style={{ height: mob ? 48 : 64, objectFit: "contain" as const, margin: "0 auto", display: "block" }} />
         ) : (
-          <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #f0ebe3, #e2ddd5)" }} />
-        )}
-        <div style={{
-          position: "absolute" as const, inset: 0,
-          background: "linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%)",
-          display: "flex", flexDirection: "column" as const, justifyContent: "flex-end",
-          padding: mob ? "0 20px 40px" : "0 60px 80px",
-        }}>
-          <h1 style={{
-            fontFamily: playfair, fontSize: mob ? 32 : 56, fontWeight: 700,
-            color: "#FFF", lineHeight: 1.1, maxWidth: 600,
-          }}>
+          <div style={{ fontFamily: playfair, fontSize: mob ? 20 : 28, fontWeight: 700, color: ink, letterSpacing: "0.08em", textTransform: "uppercase" as const }}>
             {info.studioName}
-          </h1>
-          {info.location && (
-            <div style={{ fontFamily: mont, fontSize: mob ? 11 : 13, color: "rgba(255,255,255,0.7)", marginTop: 12, letterSpacing: "0.1em", textTransform: "uppercase" as const }}>
-              {info.location}
-            </div>
-          )}
-          {vis.enquire && (
-            <button onClick={() => scrollTo("enquire")} style={{
-              marginTop: 24, fontFamily: mont, fontSize: 11, fontWeight: 600,
-              letterSpacing: "0.15em", textTransform: "uppercase" as const,
-              background: "#FFF", color: "#000", border: "none",
-              padding: "14px 32px", cursor: "pointer", alignSelf: "flex-start",
-            }}>Get in Touch</button>
-          )}
-        </div>
-      </section>
-
-      {/* ── GALLERIES (Masonry Grid) ── */}
-      {vis.galleries && galleryPhotos.length > 0 && (
-        <section id="galleries" style={{ padding: mob ? "48px 0" : "80px 0" }}>
-          <div style={{ textAlign: "center" as const, marginBottom: mob ? 28 : 48 }}>
-            <div style={{ fontFamily: mont, fontSize: 10, color: "#999", letterSpacing: "0.2em", textTransform: "uppercase" as const, fontWeight: 600 }}>PORTFOLIO</div>
-            <h2 style={{ fontFamily: playfair, fontSize: mob ? 26 : 40, fontWeight: 700, color: "#000", marginTop: 8 }}>Galleries</h2>
-            <div style={{ width: 36, height: 2, background: "#000", margin: "16px auto 0" }} />
           </div>
-          <div style={{
-            columns: mob ? 2 : 3, columnGap: mob ? 4 : 8,
-            padding: mob ? "0 4px" : "0 40px", maxWidth: 1200, margin: "0 auto",
-          }}>
-            {galleryPhotos.slice(0, mob ? 12 : 18).map((p, i) => (
-              <div key={i} onClick={() => setLightbox(p.url)} style={{
-                breakInside: "avoid" as const, marginBottom: mob ? 4 : 8, cursor: "pointer",
-                overflow: "hidden", position: "relative" as const,
+        )}
+        {/* Nav */}
+        <nav style={{
+          display: "flex", justifyContent: "center", gap: mob ? 14 : 28,
+          marginTop: mob ? 12 : 16, paddingBottom: mob ? 10 : 14,
+          overflowX: "auto" as const,
+        }}>
+          {navItems.map(n => {
+            const sectionId = n.toLowerCase();
+            const isVisible = sectionId === "home" || vis[sectionId] !== false;
+            if (!isVisible) return null;
+            return (
+              <button key={n} onClick={() => scrollTo(sectionId === "home" ? "hero" : sectionId)} style={{
+                background: "none", border: "none", fontFamily: mont,
+                fontSize: mob ? 9 : 11, fontWeight: 500, letterSpacing: "0.15em",
+                color: ink, cursor: "pointer", whiteSpace: "nowrap" as const,
+                textTransform: "uppercase" as const, padding: 0,
+              }}>{n}</button>
+            );
+          })}
+        </nav>
+      </header>
+
+      {/* ── HERO SLIDER ── */}
+      {vis.hero && (
+        <section id="hero" style={{ position: "relative" as const, margin: mob ? "0 12px" : "0 32px" }}>
+          <div style={{ position: "relative" as const, overflow: "hidden" }}>
+            {currentHero ? (
+              <img src={currentHero} alt={info.studioName} style={{
+                width: "100%", height: mob ? "55vw" : "70vh", objectFit: "cover" as const, display: "block",
+                transition: "opacity 0.6s ease",
+              }} />
+            ) : (
+              <div style={{ width: "100%", height: mob ? "55vw" : "70vh", background: "linear-gradient(135deg, #e8e0d4, #d4ccc0)" }} />
+            )}
+            {/* Slider arrows */}
+            {heroImages.length > 1 && (
+              <>
+                <button onClick={() => setHeroIdx(i => (i - 1 + heroImages.length) % heroImages.length)} style={{
+                  position: "absolute" as const, left: 16, top: "50%", transform: "translateY(-50%)",
+                  background: "rgba(255,255,255,0.5)", border: "none", width: 36, height: 36,
+                  borderRadius: "50%", fontSize: 18, cursor: "pointer", color: ink, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                }}>‹</button>
+                <button onClick={() => setHeroIdx(i => (i + 1) % heroImages.length)} style={{
+                  position: "absolute" as const, right: 16, top: "50%", transform: "translateY(-50%)",
+                  background: "rgba(255,255,255,0.5)", border: "none", width: 36, height: 36,
+                  borderRadius: "50%", fontSize: 18, cursor: "pointer", color: ink, display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                }}>›</button>
+              </>
+            )}
+          </div>
+
+          {/* Tagline below hero */}
+          <div style={{ textAlign: "center" as const, padding: mob ? "28px 16px" : "48px 40px" }}>
+            <h2 style={{
+              fontFamily: playfair, fontSize: mob ? 16 : 22, fontWeight: 400,
+              color: ink, letterSpacing: "0.2em", textTransform: "uppercase" as const,
+            }}>
+              "{info.tagline || "You Feel. I Focus. We Frame."}"
+            </h2>
+            {info.bio && (
+              <p style={{
+                fontFamily: mont, fontSize: mob ? 12 : 14, color: dimText,
+                lineHeight: 1.8, marginTop: 16, maxWidth: 560, marginLeft: "auto", marginRight: "auto",
               }}>
-                <img src={p.url} alt={p.eventName} loading="lazy" style={{
-                  width: "100%", height: "auto", display: "block", borderRadius: 0,
-                  transition: "transform 0.4s ease",
+                {info.bio}
+              </p>
+            )}
+            <div style={{
+              fontFamily: mont, fontSize: mob ? 9 : 10, fontWeight: 600, color: ink,
+              letterSpacing: "0.25em", textTransform: "uppercase" as const, marginTop: 20,
+            }}>
+              WE ARE CREATING FICTION OUT OF REALITY.
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── PHOTO MOSAIC GRID ── */}
+      {vis.galleries && galleryPhotos.length > 0 && (
+        <section id="galleries" style={{ padding: mob ? "0 4px" : "0 32px", marginBottom: mob ? 32 : 56 }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: mob ? "repeat(4, 1fr)" : "repeat(6, 1fr)",
+            gap: mob ? 2 : 4,
+          }}>
+            {galleryPhotos.slice(0, mob ? 16 : 24).map((url, i) => (
+              <div key={i} onClick={() => setLightbox(url)} style={{
+                cursor: "pointer", overflow: "hidden", aspectRatio: "1",
+              }}>
+                <img src={url} alt="" loading="lazy" style={{
+                  width: "100%", height: "100%", objectFit: "cover" as const, display: "block",
+                  transition: "transform 0.3s ease",
                 }}
-                  onMouseEnter={e => { if (!mob) (e.target as HTMLImageElement).style.transform = "scale(1.03)"; }}
+                  onMouseEnter={e => { if (!mob) (e.target as HTMLImageElement).style.transform = "scale(1.05)"; }}
                   onMouseLeave={e => { if (!mob) (e.target as HTMLImageElement).style.transform = "scale(1)"; }}
                 />
               </div>
@@ -308,182 +338,274 @@ export default function PublicFeed() {
         </section>
       )}
 
-      {/* ── STORIES ── */}
-      {vis.stories && stories.length > 0 && (
-        <section id="stories" style={{ padding: mob ? "48px 16px" : "80px 40px", maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ textAlign: "center" as const, marginBottom: mob ? 32 : 56 }}>
-            <div style={{ fontFamily: mont, fontSize: 10, color: "#999", letterSpacing: "0.2em", textTransform: "uppercase" as const, fontWeight: 600 }}>JOURNAL</div>
-            <h2 style={{ fontFamily: playfair, fontSize: mob ? 26 : 40, fontWeight: 700, color: "#000", marginTop: 8 }}>Stories</h2>
-            <div style={{ width: 36, height: 2, background: "#000", margin: "16px auto 0" }} />
+      {/* ── STORIES / REAL LOVE STORIES ── */}
+      {vis.stories && feed.length > 0 && (
+        <section id="stories" style={{ padding: mob ? "32px 0" : "56px 0" }}>
+          <div style={{ textAlign: "center" as const, marginBottom: mob ? 24 : 40 }}>
+            <h2 style={{
+              fontFamily: playfair, fontSize: mob ? 20 : 28, fontWeight: 400,
+              color: ink, letterSpacing: "0.18em", textTransform: "uppercase" as const,
+            }}>Real Love Stories</h2>
+            <p style={{
+              fontFamily: mont, fontSize: mob ? 11 : 13, color: dimText,
+              marginTop: 8, letterSpacing: "0.05em",
+            }}>Like a river flows surely to the sea, so it goes some things are meant to be.</p>
           </div>
-          {stories.map((s, i) => (
-            <div key={s.id} style={{
-              display: mob ? "block" : "flex",
-              flexDirection: i % 2 === 0 ? "row" : "row-reverse" as any,
-              gap: 40, marginBottom: mob ? 48 : 72, alignItems: "center",
+
+          <div style={{ maxWidth: 900, margin: "0 auto", padding: mob ? "0 12px" : "0 32px" }}>
+            {feed.map((item) => (
+              <div key={item.id} style={{ marginBottom: mob ? 40 : 56 }}>
+                {/* Cover image */}
+                {item.imageUrl ? (
+                  <div style={{ position: "relative" as const, overflow: "hidden" }}>
+                    <img src={item.imageUrl} alt={item.title} loading="lazy" style={{
+                      width: "100%", height: "auto", display: "block", borderRadius: 0,
+                    }} />
+                    {/* Overlay title on image */}
+                    <div style={{
+                      position: "absolute" as const, bottom: 0, left: 0, right: 0,
+                      padding: mob ? "16px" : "24px",
+                      background: "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 100%)",
+                    }}>
+                      <div style={{
+                        fontFamily: playfair, fontSize: mob ? 16 : 22, fontWeight: 700,
+                        color: "#FFF", letterSpacing: "0.12em", textTransform: "uppercase" as const,
+                      }}>{item.title}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{
+                    width: "100%", height: mob ? "55vw" : 400,
+                    background: "linear-gradient(135deg, #e2ddd5, #d4ccc0)",
+                  }} />
+                )}
+
+                {/* Meta below image */}
+                <div style={{ padding: mob ? "12px 0" : "16px 0" }}>
+                  <h3 style={{
+                    fontFamily: playfair, fontSize: mob ? 16 : 20, fontWeight: 400,
+                    color: ink, letterSpacing: "0.12em", textTransform: "uppercase" as const,
+                  }}>{item.title}</h3>
+                  <div style={{ fontFamily: mont, fontSize: 11, color: dimText, marginTop: 4 }}>
+                    {fmt(item.date)}
+                  </div>
+                  {item.caption && (
+                    <p style={{ fontFamily: mont, fontSize: 13, color: "#666", lineHeight: 1.7, marginTop: 10 }}>
+                      {item.caption}
+                    </p>
+                  )}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
+                    <div style={{ display: "flex", gap: 12 }}>
+                      <span style={{ fontFamily: mont, fontSize: 11, color: dimText }}>Read More</span>
+                      {item.type === "event" && item.photoCount && item.photoCount > 0 && (
+                        <span style={{ fontFamily: mont, fontSize: 11, color: dimText }}>{item.photoCount} photos</span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill={gold} stroke="none">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                      <span style={{ fontFamily: mont, fontSize: 11, color: dimText }}>
+                        {Math.floor(Math.random() * 200 + 20)} Likes
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ height: 1, background: "#E0D8CC", marginTop: 16 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── TESTIMONIALS ── */}
+      {vis.testimonials && info.testimonials.length > 0 && (
+        <section id="testimonials" style={{ padding: mob ? "40px 0" : "64px 0" }}>
+          <div style={{
+            background: "#B0A494", padding: mob ? "40px 16px" : "64px 40px",
+            textAlign: "center" as const, position: "relative" as const,
+          }}>
+            <h2 style={{
+              fontFamily: playfair, fontSize: mob ? 36 : 64, fontWeight: 400,
+              color: "rgba(255,255,255,0.15)", letterSpacing: "0.05em",
+              textTransform: "lowercase" as const,
+            }}>testimonials.</h2>
+          </div>
+          {info.testimonials.map((t, i) => (
+            <div key={i} style={{
+              background: `hsl(${15 + i * 5}, 20%, ${72 - i * 3}%)`,
+              display: mob ? "block" : "flex", overflow: "hidden",
             }}>
-              {s.imageUrl && (
-                <div style={{ flex: mob ? undefined : "0 0 50%", marginBottom: mob ? 16 : 0 }}>
-                  <img src={s.imageUrl} alt={s.title} style={{ width: "100%", height: "auto", display: "block", borderRadius: 0 }} loading="lazy" />
+              {t.imageUrl && (
+                <div style={{ flex: mob ? undefined : "0 0 35%", position: "relative" as const }}>
+                  <img src={t.imageUrl} alt={t.name} style={{
+                    width: "100%", height: mob ? "60vw" : "100%", objectFit: "cover" as const, display: "block",
+                  }} />
+                  <div style={{
+                    position: "absolute" as const, bottom: 0, left: 0, right: 0,
+                    fontFamily: playfair, fontSize: mob ? 18 : 24, fontWeight: 700,
+                    color: "#FFF", padding: 20, lineHeight: 1.2,
+                    writingMode: mob ? "horizontal-tb" as const : "vertical-lr" as const,
+                  }}>{t.name}</div>
                 </div>
               )}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: mont, fontSize: 10, color: "#999", letterSpacing: "0.15em", textTransform: "uppercase" as const, marginBottom: 8 }}>
-                  {fmt(s.date)}{s.location ? ` · ${s.location}` : ""}
-                </div>
-                <h3 style={{ fontFamily: playfair, fontSize: mob ? 20 : 26, fontWeight: 700, color: "#000", lineHeight: 1.3 }}>{s.title}</h3>
-                <p style={{ fontFamily: mont, fontSize: 14, color: "#555", lineHeight: 1.8, marginTop: 16 }}>{s.caption}</p>
+              <div style={{
+                flex: 1, padding: mob ? "28px 20px" : "48px 40px",
+                display: "flex", flexDirection: "column" as const, justifyContent: "center",
+              }}>
+                <div style={{
+                  fontFamily: playfair, fontSize: mob ? 16 : 20, fontWeight: 700,
+                  color: "#FFF", letterSpacing: "0.1em", textTransform: "uppercase" as const, marginBottom: 20,
+                }}>{t.name}</div>
+                <p style={{
+                  fontFamily: mont, fontSize: mob ? 12 : 14, color: "rgba(255,255,255,0.85)",
+                  lineHeight: 1.9, whiteSpace: "pre-line" as const,
+                }}>{t.text}</p>
               </div>
             </div>
           ))}
         </section>
       )}
 
-      {/* ── TESTIMONIALS ── */}
-      {vis.testimonials && info.testimonials.length > 0 && (
-        <section id="testimonials" style={{ padding: mob ? "48px 20px" : "80px 40px", background: "#FAFAFA" }}>
-          <div style={{ textAlign: "center" as const, marginBottom: mob ? 32 : 56 }}>
-            <div style={{ fontFamily: mont, fontSize: 10, color: "#999", letterSpacing: "0.2em", textTransform: "uppercase" as const, fontWeight: 600 }}>WORDS</div>
-            <h2 style={{ fontFamily: playfair, fontSize: mob ? 26 : 40, fontWeight: 700, color: "#000", marginTop: 8 }}>Testimonials</h2>
-            <div style={{ width: 36, height: 2, background: "#000", margin: "16px auto 0" }} />
-          </div>
-          <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", flexDirection: "column" as const, gap: mob ? 32 : 48 }}>
-            {info.testimonials.map((t, i) => (
-              <div key={i} style={{ textAlign: "center" as const, padding: mob ? "20px" : "40px" }}>
-                <div style={{ fontFamily: playfair, fontSize: 48, color: "#E0E0E0", lineHeight: 1 }}>"</div>
-                <p style={{ fontFamily: playfair, fontSize: mob ? 16 : 20, fontWeight: 400, fontStyle: "italic", color: "#333", lineHeight: 1.7, marginTop: -16 }}>
-                  {t.text}
-                </p>
-                <div style={{ fontFamily: mont, fontSize: 12, fontWeight: 600, color: "#000", marginTop: 20, letterSpacing: "0.1em", textTransform: "uppercase" as const }}>
-                  {t.name}
-                </div>
-                {t.event && (
-                  <div style={{ fontFamily: mont, fontSize: 11, color: "#999", marginTop: 4 }}>{t.event}</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* ── ABOUT ── */}
       {vis.about && (
-        <section id="about" style={{ padding: mob ? "48px 20px" : "80px 60px", maxWidth: 900, margin: "0 auto" }}>
+        <section id="about" style={{ padding: mob ? "48px 16px" : "80px 60px", background: cream }}>
           <div style={{
-            display: mob ? "block" : "flex", gap: 48, alignItems: "center",
+            maxWidth: 900, margin: "0 auto",
+            display: mob ? "block" : "flex", gap: 48, alignItems: "flex-start",
           }}>
+            <div style={{ flex: 1 }}>
+              <h2 style={{
+                fontFamily: playfair, fontSize: mob ? 22 : 32, fontWeight: 400,
+                color: ink, letterSpacing: "0.12em", textTransform: "uppercase" as const,
+              }}>{info.studioName}.</h2>
+              <div style={{
+                fontFamily: mont, fontSize: mob ? 11 : 12, color: dimText,
+                letterSpacing: "0.05em", marginTop: 8,
+              }}>Moment. Memory. Miracle.</div>
+              {info.bio && (
+                <p style={{
+                  fontFamily: mont, fontSize: mob ? 12 : 14, color: "#555",
+                  lineHeight: 1.9, marginTop: 20,
+                }}>{info.bio}</p>
+              )}
+              <div style={{
+                fontFamily: mont, fontSize: 12, fontWeight: 600, color: ink,
+                letterSpacing: "0.1em", marginTop: 20,
+              }}>People. Photographs. Perfection.</div>
+            </div>
             {info.logoUrl && (
-              <div style={{ flex: "0 0 200px", marginBottom: mob ? 24 : 0, textAlign: "center" as const }}>
-                <img src={info.logoUrl} alt={info.studioName} style={{ width: mob ? 120 : 180, height: mob ? 120 : 180, objectFit: "cover" as const, borderRadius: "50%" }} />
+              <div style={{ flex: "0 0 auto", marginTop: mob ? 24 : 0 }}>
+                <img src={info.logoUrl} alt={info.studioName} style={{
+                  width: mob ? "100%" : 260, height: mob ? "auto" : 360,
+                  objectFit: "cover" as const, display: "block",
+                }} />
               </div>
             )}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: mont, fontSize: 10, color: "#999", letterSpacing: "0.2em", textTransform: "uppercase" as const, fontWeight: 600 }}>ABOUT</div>
-              <h2 style={{ fontFamily: playfair, fontSize: mob ? 26 : 36, fontWeight: 700, color: "#000", marginTop: 8 }}>{info.studioName}</h2>
-              {info.bio && (
-                <p style={{ fontFamily: mont, fontSize: 14, color: "#555", lineHeight: 1.8, marginTop: 20 }}>{info.bio}</p>
-              )}
-              <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 20, marginTop: 24 }}>
-                {info.location && (
-                  <div style={{ fontFamily: mont, fontSize: 12, color: "#777" }}>📍 {info.location}</div>
-                )}
-                {info.email && (
-                  <a href={`mailto:${info.email}`} style={{ fontFamily: mont, fontSize: 12, color: "#777", textDecoration: "none" }}>✉ {info.email}</a>
-                )}
-                {info.instagram && (
-                  <a href={info.instagram} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mont, fontSize: 12, color: "#777", textDecoration: "none" }}>📷 Instagram</a>
-                )}
-              </div>
-            </div>
           </div>
         </section>
       )}
 
       {/* ── ENQUIRE ── */}
       {vis.enquire && (
-        <section id="enquire" style={{ padding: mob ? "48px 20px" : "80px 60px", background: "#FAFAFA" }}>
+        <section id="enquire" style={{ padding: mob ? "40px 16px" : "64px 60px", background: cream }}>
           <div style={{ maxWidth: 600, margin: "0 auto" }}>
-            <div style={{ textAlign: "center" as const, marginBottom: mob ? 28 : 48 }}>
-              <div style={{ fontFamily: mont, fontSize: 10, color: "#999", letterSpacing: "0.2em", textTransform: "uppercase" as const, fontWeight: 600 }}>CONTACT</div>
-              <h2 style={{ fontFamily: playfair, fontSize: mob ? 26 : 40, fontWeight: 700, color: "#000", marginTop: 8 }}>Let's Work Together</h2>
-              <div style={{ width: 36, height: 2, background: "#000", margin: "16px auto 0" }} />
-            </div>
-            <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
-              <input placeholder="Your Name *" value={enquiry.name} onChange={e => setEnquiry({ ...enquiry, name: e.target.value })} style={inputStyle} />
-              <input placeholder="Email Address *" value={enquiry.email} onChange={e => setEnquiry({ ...enquiry, email: e.target.value })} style={inputStyle} />
-              <input placeholder="Phone Number" value={enquiry.phone} onChange={e => setEnquiry({ ...enquiry, phone: e.target.value })} style={inputStyle} />
-              <input placeholder="Event Type (e.g. Wedding, Pre-Wedding)" value={enquiry.eventType} onChange={e => setEnquiry({ ...enquiry, eventType: e.target.value })} style={inputStyle} />
-              <textarea placeholder="Tell us about your event... *" value={enquiry.message} onChange={e => setEnquiry({ ...enquiry, message: e.target.value })} rows={5} style={{ ...inputStyle, resize: "vertical" as const }} />
-              <button onClick={handleEnquiry} disabled={sending} style={{
-                width: "100%", padding: "16px", fontFamily: mont, fontSize: 12, fontWeight: 600,
-                letterSpacing: "0.15em", textTransform: "uppercase" as const,
-                background: "#000", color: "#FFF", border: "none",
-                cursor: sending ? "wait" : "pointer", opacity: sending ? 0.6 : 1,
-              }}>
-                {sending ? "Sending..." : "Send Enquiry"}
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── Recent Work (Feed) ── */}
-      {feed.filter(f => f.type === "event").length > 0 && (
-        <section style={{ padding: mob ? "48px 0" : "80px 0" }}>
-          <div style={{ textAlign: "center" as const, marginBottom: mob ? 28 : 48 }}>
-            <div style={{ fontFamily: mont, fontSize: 10, color: "#999", letterSpacing: "0.2em", textTransform: "uppercase" as const, fontWeight: 600 }}>RECENT</div>
-            <h2 style={{ fontFamily: playfair, fontSize: mob ? 26 : 40, fontWeight: 700, color: "#000", marginTop: 8 }}>Latest Work</h2>
-            <div style={{ width: 36, height: 2, background: "#000", margin: "16px auto 0" }} />
-          </div>
-          <div style={{ maxWidth: 900, margin: "0 auto", padding: mob ? "0" : "0 40px" }}>
-            {feed.filter(f => f.type === "event").slice(0, 6).map((item) => (
-              <div key={item.id} style={{ marginBottom: mob ? 40 : 56 }}>
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.title} style={{ width: "100%", height: "auto", display: "block", borderRadius: 0 }} loading="lazy" />
-                ) : (
-                  <div style={{ width: "100%", height: mob ? "60vw" : 400, background: "linear-gradient(135deg, #f0ebe3, #e2ddd5)" }} />
-                )}
-                <div style={{ padding: mob ? "14px 16px 0" : "16px 0 0" }}>
-                  <h3 style={{ fontFamily: playfair, fontSize: mob ? 18 : 24, fontWeight: 700, color: "#000" }}>{item.title}</h3>
-                  <div style={{ fontFamily: mont, fontSize: 12, color: "#999", marginTop: 4 }}>
-                    {fmt(item.date)}{item.location ? ` · ${item.location}` : ""}
-                  </div>
-                  {item.photoCount !== undefined && item.photoCount > 0 && (
-                    <div style={{ fontFamily: mont, fontSize: 11, color: "#BBB", marginTop: 6 }}>{item.photoCount} photos</div>
-                  )}
-                  <div style={{ height: 1, background: "#F0F0F0", marginTop: 20 }} />
+            {/* Enquire hero image */}
+            {info.coverUrl && (
+              <div style={{ position: "relative" as const, marginBottom: 32, textAlign: "center" as const }}>
+                <img src={info.coverUrl} alt="Let's create magic" style={{
+                  width: mob ? "100%" : "80%", height: "auto", display: "block", margin: "0 auto",
+                }} />
+                <div style={{
+                  position: "absolute" as const, bottom: 20, left: 0, right: 0,
+                  fontFamily: playfair, fontSize: mob ? 28 : 40, fontWeight: 700,
+                  color: "#FFF", textAlign: "center" as const,
+                  textShadow: "0 2px 12px rgba(0,0,0,0.4)",
+                }}>
+                  <div style={{ fontFamily: mont, fontSize: 10, letterSpacing: "0.2em", fontWeight: 400 }}>LET'S CREATE</div>
+                  MAGIC
                 </div>
               </div>
-            ))}
+            )}
+
+            {/* Email display */}
+            {info.email && (
+              <div style={{ textAlign: "center" as const, marginBottom: 20 }}>
+                <div style={{
+                  fontFamily: mont, fontSize: 12, fontWeight: 600, color: ink,
+                  letterSpacing: "0.15em", textTransform: "uppercase" as const,
+                }}>EMAIL: {info.email.toUpperCase()}</div>
+                <p style={{ fontFamily: mont, fontSize: 13, color: dimText, marginTop: 8, lineHeight: 1.7 }}>
+                  You can draft an email to us on the above mentioned address,<br />
+                  or can send us the details by filling the form below.
+                </p>
+                <p style={{ fontFamily: mont, fontSize: 13, color: dimText, marginTop: 8 }}>Thank you!</p>
+              </div>
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 20, marginTop: 24 }}>
+              <div>
+                <span style={labelStyle}>Name</span>
+                <div style={{ display: "flex", gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ ...labelStyle, fontSize: 10 }}>First Name <span style={{ color: "#C00" }}>(required)</span></span>
+                    <input value={enquiry.firstName} onChange={e => setEnquiry({ ...enquiry, firstName: e.target.value })} style={inputStyle} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ ...labelStyle, fontSize: 10 }}>Last Name <span style={{ color: "#C00" }}>(required)</span></span>
+                    <input value={enquiry.lastName} onChange={e => setEnquiry({ ...enquiry, lastName: e.target.value })} style={inputStyle} />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span style={labelStyle}>Email Address <span style={{ color: "#C00" }}>(required)</span></span>
+                <input value={enquiry.email} onChange={e => setEnquiry({ ...enquiry, email: e.target.value })} style={inputStyle} />
+              </div>
+              <div>
+                <span style={labelStyle}>Subject <span style={{ color: "#C00" }}>(required)</span></span>
+                <input value={enquiry.subject} onChange={e => setEnquiry({ ...enquiry, subject: e.target.value })} style={inputStyle} />
+              </div>
+              <div>
+                <span style={labelStyle}>Event Dates / Details <span style={{ color: "#C00" }}>(required)</span></span>
+                <textarea value={enquiry.details} onChange={e => setEnquiry({ ...enquiry, details: e.target.value })} rows={4} style={{ ...inputStyle, resize: "vertical" as const }} />
+              </div>
+              <div style={{ textAlign: "center" as const, marginTop: 8 }}>
+                <button onClick={handleEnquiry} disabled={sending} style={{
+                  fontFamily: mont, fontSize: 11, fontWeight: 600, letterSpacing: "0.15em",
+                  textTransform: "uppercase" as const, background: ink, color: "#FFF",
+                  border: "none", padding: "14px 40px", cursor: sending ? "wait" : "pointer",
+                  opacity: sending ? 0.6 : 1,
+                }}>
+                  {sending ? "Sending..." : "Submit"}
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       )}
 
       {/* ── FOOTER ── */}
-      <footer style={{ padding: mob ? "32px 20px" : "48px 40px", textAlign: "center" as const, borderTop: "1px solid #F0F0F0" }}>
-        <div style={{ fontFamily: playfair, fontSize: 18, fontWeight: 700, color: "#000" }}>{info.studioName}</div>
-        {info.location && <div style={{ fontFamily: mont, fontSize: 11, color: "#999", marginTop: 6 }}>{info.location}</div>}
-        <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 16 }}>
-          {info.instagram && <a href={info.instagram} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mont, fontSize: 10, color: "#999", textDecoration: "none", letterSpacing: "0.1em", textTransform: "uppercase" as const }}>Instagram</a>}
-          {info.email && <a href={`mailto:${info.email}`} style={{ fontFamily: mont, fontSize: 10, color: "#999", textDecoration: "none", letterSpacing: "0.1em", textTransform: "uppercase" as const }}>Email</a>}
-          {info.whatsapp && <a href={`https://wa.me/${info.whatsapp}`} target="_blank" rel="noopener noreferrer" style={{ fontFamily: mont, fontSize: 10, color: "#999", textDecoration: "none", letterSpacing: "0.1em", textTransform: "uppercase" as const }}>WhatsApp</a>}
-        </div>
-        <div style={{ fontFamily: mont, fontSize: 9, color: "#CCC", marginTop: 20, letterSpacing: "0.1em" }}>
-          Powered by MirrorAI
-        </div>
+      <footer style={{
+        padding: mob ? "24px 16px" : "32px 40px", textAlign: "right" as const,
+        borderTop: "1px solid #E0D8CC",
+      }}>
+        <div style={{
+          fontFamily: mont, fontSize: 10, color: dimText,
+          letterSpacing: "0.1em", textTransform: "uppercase" as const,
+        }}>©{info.studioName.toUpperCase()}</div>
       </footer>
 
       {/* ── LIGHTBOX ── */}
       {lightbox && (
         <div onClick={() => setLightbox(null)} style={{
           position: "fixed" as const, inset: 0, zIndex: 9999,
-          background: "rgba(0,0,0,0.92)", display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.95)", display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer",
         }}>
-          <img src={lightbox} alt="" style={{ maxWidth: "92vw", maxHeight: "90vh", objectFit: "contain" as const }} />
+          <img src={lightbox} alt="" style={{ maxWidth: "94vw", maxHeight: "92vh", objectFit: "contain" as const }} />
           <button onClick={() => setLightbox(null)} style={{
             position: "absolute" as const, top: 20, right: 20, background: "none",
-            border: "none", color: "#FFF", fontSize: 24, cursor: "pointer",
+            border: "none", color: "#FFF", fontSize: 28, cursor: "pointer",
           }}>✕</button>
         </div>
       )}
