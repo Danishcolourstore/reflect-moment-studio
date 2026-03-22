@@ -4,9 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { format, subDays } from 'date-fns';
 import { DrawerMenu, useDrawerMenu } from '@/components/GlobalDrawerMenu';
-
-const playfair = '"Playfair Display", serif';
-const mont = '"Montserrat", sans-serif';
+import { colors, fonts, spacing } from '@/styles/design-tokens';
 
 const NAV_ITEMS = [
   { label: "HOME", path: "/home" },
@@ -42,9 +40,16 @@ const Analytics = () => {
   const [range, setRange] = useState<DateRange>('30d');
   const [navHover, setNavHover] = useState<number | null>(null);
   const [rangeHover, setRangeHover] = useState<number | null>(null);
+  const [mob, setMob] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
+
+  useEffect(() => {
+    const h = () => setMob(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
   }, []);
 
   useEffect(() => {
@@ -84,19 +89,54 @@ const Analytics = () => {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", width: "100%", background: "#FFFFFF", overflow: "visible" }}>
+    <div style={{ minHeight: "100vh", width: "100%", background: colors.bg, overflow: "visible" }}>
       {/* NAV */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#FFFFFF", borderBottom: "1px solid #F2F2F2", paddingTop: "calc(12px + env(safe-area-inset-top, 0px))" }}>
-        <div style={{ textAlign: "center", marginBottom: 8 }}>
-          <span style={{ fontFamily: playfair, fontSize: 24, fontWeight: 700, color: "#000000", cursor: "pointer" }} onClick={() => navigate("/home")}>MirrorAI</span>
+      <nav
+        style={{
+          position: "sticky", top: 0, zIndex: 100,
+          background: "rgba(10,10,11,0.92)",
+          backdropFilter: "blur(12px)",
+          borderBottom: `1px solid ${colors.border}`,
+          padding: mob ? "8px 16px" : "12px 20px",
+          paddingTop: mob ? "calc(8px + env(safe-area-inset-top, 0px))" : "calc(12px + env(safe-area-inset-top, 0px))",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: mob ? 6 : 8 }}>
+          <span
+            style={{ fontFamily: fonts.display, fontSize: mob ? 18 : 24, fontWeight: 300, color: colors.gold, cursor: "pointer", letterSpacing: "0.06em" }}
+            onClick={() => navigate("/home")}
+          >
+            MirrorAI
+          </span>
         </div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 20, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: mob ? 12 : 20, overflowX: "auto", scrollbarWidth: "none" }}>
           {NAV_ITEMS.map((item, i) => {
             const isActive = item.label === "ANALYTICS";
             const isHov = navHover === i;
             return (
-              <button key={item.label} onClick={() => item.path === "__drawer__" ? drawer.toggle() : navigate(item.path)} onMouseEnter={() => setNavHover(i)} onMouseLeave={() => setNavHover(null)}
-                style={{ fontFamily: mont, fontSize: 14, fontWeight: 400, textTransform: "uppercase" as const, letterSpacing: "1px", color: isActive || isHov ? "#000000" : "#666666", background: "none", border: "none", borderBottom: isActive ? "2px solid #FFCC00" : "2px solid transparent", cursor: "pointer", whiteSpace: "nowrap" as const, padding: "12px 0", minHeight: 44, transition: "color 0.3s", flexShrink: 0 }}>
+              <button
+                key={item.label}
+                onClick={() => item.path === "__drawer__" ? drawer.toggle() : navigate(item.path)}
+                onMouseEnter={() => setNavHover(i)}
+                onMouseLeave={() => setNavHover(null)}
+                style={{
+                  fontFamily: fonts.body,
+                  fontSize: mob ? 10 : 14,
+                  fontWeight: 400,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em",
+                  color: isActive ? colors.gold : isHov ? colors.cream : colors.textMuted,
+                  background: "none",
+                  border: "none",
+                  borderBottom: isActive ? `2px solid ${colors.gold}` : "2px solid transparent",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  padding: mob ? "8px 0" : "12px 0",
+                  minHeight: 44,
+                  transition: "color 0.3s",
+                  flexShrink: 0,
+                }}
+              >
                 {item.label}
               </button>
             );
@@ -105,87 +145,93 @@ const Analytics = () => {
       </nav>
 
       {/* CONTENT */}
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 20px 80px" }}>
-        {/* Title */}
-        <h1 style={{ fontFamily: playfair, fontSize: 36, fontWeight: 700, color: "#000000", margin: "0 0 32px", letterSpacing: "0.5px" }}>Analytics</h1>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: mob ? `24px ${spacing.pageMobile}` : `40px ${spacing.pageDesktop}` }}>
+        <h1 style={{ fontFamily: fonts.display, fontSize: mob ? 24 : 32, fontWeight: 300, color: colors.text, letterSpacing: "0.04em" }}>
+          Analytics
+        </h1>
+        <div style={{ width: 40, height: 2, background: colors.gold, marginTop: 8, marginBottom: 28 }} />
 
-        {/* Range filters */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 32, flexWrap: "wrap" }}>
+        {/* Date range */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
           {RANGES.map((r, i) => (
-            <button key={r.key} onClick={() => setRange(r.key)} onMouseEnter={() => setRangeHover(i)} onMouseLeave={() => setRangeHover(null)}
+            <button
+              key={r.key}
+              onClick={() => setRange(r.key)}
+              onMouseEnter={() => setRangeHover(i)}
+              onMouseLeave={() => setRangeHover(null)}
               style={{
-                fontFamily: mont, fontSize: 12, fontWeight: 500, textTransform: "uppercase" as const, letterSpacing: "1px",
-                padding: "10px 20px", minHeight: 44, cursor: "pointer", transition: "all 0.2s",
-                border: range === r.key ? "1px solid #000000" : "1px solid #F2F2F2",
-                background: range === r.key ? "#000000" : rangeHover === i ? "#F2F2F2" : "#FFFFFF",
-                color: range === r.key ? "#FFFFFF" : "#666666",
-              }}>
+                fontFamily: fonts.body,
+                fontSize: 11,
+                fontWeight: range === r.key ? 600 : 400,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: range === r.key ? colors.gold : rangeHover === i ? colors.cream : colors.textMuted,
+                background: range === r.key ? colors.goldDim : "transparent",
+                border: `1px solid ${range === r.key ? colors.borderActive : colors.border}`,
+                padding: "8px 16px",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+            >
               {r.label}
             </button>
           ))}
         </div>
 
-        {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
-            {[0,1,2,3].map(i => (
-              <div key={i} style={{ background: "#F2F2F2", height: 100, animation: "pulse 1.5s infinite" }} />
-            ))}
-          </div>
-        ) : rows.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "80px 20px" }}>
-            <p style={{ fontFamily: playfair, fontSize: 20, color: "#000000", margin: "0 0 8px" }}>No analytics yet</p>
-            <p style={{ fontFamily: mont, fontSize: 14, color: "#666666", margin: 0 }}>Publish your first event gallery to start seeing data here</p>
-          </div>
-        ) : (
-          <>
-            {/* Stat cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16, marginBottom: 48 }}>
-              {stats.map(s => (
-                <div key={s.label} style={{ background: "#FFFFFF", border: "1px solid #F2F2F2", padding: 24 }}>
-                  <p style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", margin: "0 0 8px" }}>{s.label}</p>
-                  <p style={{ fontFamily: playfair, fontSize: 36, fontWeight: 700, color: "#000000", margin: 0, lineHeight: 1 }}>{s.value}</p>
-                </div>
+        {/* Stats */}
+        <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4, 1fr)", gap: mob ? 12 : 16, marginBottom: 36 }}>
+          {stats.map(s => (
+            <div key={s.label} style={{ background: colors.surface, border: `1px solid ${colors.border}`, padding: mob ? 16 : 24 }}>
+              <div style={{ fontFamily: fonts.body, fontSize: 9, fontWeight: 500, letterSpacing: "0.2em", textTransform: "uppercase", color: colors.textMuted }}>
+                {s.label}
+              </div>
+              <div style={{ fontFamily: fonts.display, fontSize: mob ? 28 : 36, fontWeight: 300, color: colors.text, marginTop: 8 }}>
+                {loading ? "—" : s.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                {["EVENT", "DATE", "VIEWS", "FAVORITES", "DOWNLOADS"].map(h => (
+                  <th key={h} style={{
+                    fontFamily: fonts.body, fontSize: 9, fontWeight: 500, letterSpacing: "0.15em",
+                    textTransform: "uppercase", color: colors.textMuted,
+                    textAlign: "left", padding: "12px 12px", borderBottom: `1px solid ${colors.border}`,
+                  }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={5} style={{ padding: 40, textAlign: "center", fontFamily: fonts.body, fontSize: 13, color: colors.textMuted }}>Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={5} style={{ padding: 40, textAlign: "center", fontFamily: fonts.body, fontSize: 13, color: colors.textMuted }}>No data</td></tr>
+              ) : filtered.map(r => (
+                <tr key={r.event_id} style={{ cursor: "pointer" }} onClick={() => navigate(`/dashboard/events/${r.event_id}`)}>
+                  <td style={{ fontFamily: fonts.body, fontSize: 13, color: colors.text, padding: "14px 12px", borderBottom: `1px solid ${colors.border}` }}>{r.event_name}</td>
+                  <td style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textDim, padding: "14px 12px", borderBottom: `1px solid ${colors.border}` }}>
+                    {r.event_date ? format(new Date(r.event_date), "MMM d, yyyy") : "—"}
+                  </td>
+                  <td style={{ fontFamily: fonts.body, fontSize: 13, color: colors.text, padding: "14px 12px", borderBottom: `1px solid ${colors.border}` }}>{r.gallery_views}</td>
+                  <td style={{ fontFamily: fonts.body, fontSize: 13, color: colors.text, padding: "14px 12px", borderBottom: `1px solid ${colors.border}` }}>{r.favorites_count}</td>
+                  <td style={{ fontFamily: fonts.body, fontSize: 13, color: colors.text, padding: "14px 12px", borderBottom: `1px solid ${colors.border}` }}>{r.downloads_count}</td>
+                </tr>
               ))}
-            </div>
-
-            {/* Top events table */}
-            <h2 style={{ fontFamily: playfair, fontSize: 24, fontWeight: 700, color: "#000000", margin: "0 0 20px" }}>Top Events</h2>
-            <div style={{ border: "1px solid #F2F2F2", overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid #F2F2F2" }}>
-                    <th style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", textAlign: "left", padding: "14px 16px" }}>Event</th>
-                    <th style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", textAlign: "right", padding: "14px 16px" }}>Views</th>
-                    <th style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", textAlign: "right", padding: "14px 16px", display: window.innerWidth < 640 ? "none" : undefined }}>Downloads</th>
-                    <th style={{ fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" as const, color: "#666666", textAlign: "right", padding: "14px 16px", display: window.innerWidth < 640 ? "none" : undefined }}>Favorites</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map(row => (
-                    <tr key={row.event_id} onClick={() => navigate(`/dashboard/events/${row.event_id}`)}
-                      style={{ borderBottom: "1px solid #F2F2F2", cursor: "pointer", transition: "background 0.2s" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                      <td style={{ padding: "14px 16px" }}>
-                        <p style={{ fontFamily: mont, fontSize: 14, fontWeight: 500, color: "#000000", margin: 0 }}>{row.event_name}</p>
-                        <p style={{ fontFamily: mont, fontSize: 12, color: "#666666", margin: "2px 0 0" }}>{format(new Date(row.event_date), 'MMM d, yyyy')}</p>
-                      </td>
-                      <td style={{ fontFamily: mont, fontSize: 14, fontWeight: 600, color: "#000000", textAlign: "right", padding: "14px 16px" }}>{row.gallery_views}</td>
-                      <td style={{ fontFamily: mont, fontSize: 14, fontWeight: 600, color: "#000000", textAlign: "right", padding: "14px 16px", display: window.innerWidth < 640 ? "none" : undefined }}>{row.downloads_count}</td>
-                      <td style={{ fontFamily: mont, fontSize: 14, fontWeight: 600, color: "#000000", textAlign: "right", padding: "14px 16px", display: window.innerWidth < 640 ? "none" : undefined }}>{row.favorites_count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Footer */}
-      <div style={{ textAlign: "center", padding: "40px 20px", borderTop: "1px solid #F2F2F2" }}>
-        <p style={{ fontFamily: mont, fontSize: 12, color: "#666666", margin: 0 }}>© MIRRORAI</p>
-      </div>
+      <footer style={{ textAlign: "center", padding: "40px 16px", paddingBottom: "calc(40px + env(safe-area-inset-bottom, 0px))" }}>
+        <div style={{ fontFamily: fonts.body, fontSize: 10, color: colors.textMuted, letterSpacing: "0.1em" }}>© MIRRORAI</div>
+      </footer>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>

@@ -2,15 +2,16 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { colors, fonts } from "@/styles/design-tokens";
 
-/* ── Design tokens — Naman Verma / pure-black editorial ── */
-const SERIF = '"Cormorant Garamond", Georgia, serif';
-const SANS  = '"DM Sans", sans-serif';
-const BG    = "#000000";
-const WHITE = "#FFFFFF";
-const DIM   = "#999999";
-const MUTED = "#666666";
-const LINE  = "#333333";
+/* ── Design tokens — derived from unified system for public portfolio ── */
+const SERIF = fonts.display;
+const SANS  = fonts.body;
+const BG    = colors.black;
+const WHITE = colors.white;
+const DIM   = colors.textDim;
+const MUTED = colors.textMuted;
+const LINE  = colors.border;
 
 /* ── Types ── */
 interface FeedItem {

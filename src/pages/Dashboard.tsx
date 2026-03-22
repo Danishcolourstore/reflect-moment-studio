@@ -6,9 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { CreateEventModal } from "@/components/CreateEventModal";
-
-const playfair = '"Playfair Display", serif';
-const mont = '"Montserrat", sans-serif';
+import { colors, fonts, spacing } from "@/styles/design-tokens";
 
 interface RecentEvent {
   id: string;
@@ -54,17 +52,6 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (!document.getElementById("dash-fonts")) {
-      const link = document.createElement("link");
-      link.id = "dash-fonts";
-      link.rel = "stylesheet";
-      link.href =
-        "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Montserrat:wght@300;400;500;600;700&display=swap";
-      document.head.appendChild(link);
-    }
-  }, []);
-
-  useEffect(() => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
@@ -103,7 +90,6 @@ const Dashboard = () => {
           .eq("user_id", user.id);
         setTotalAlbums(albCount || 0);
 
-        // Fetch gallery photos for mosaic
         const evtIds = (events || []).map((e: any) => e.id);
         if (evtIds.length > 0) {
           const { data: photos } = await supabase
@@ -125,7 +111,6 @@ const Dashboard = () => {
     load();
   }, [user]);
 
-  // Hero slider auto-rotate
   const heroImages = recentEvents.filter((e) => e.cover_url).slice(0, 5);
   useEffect(() => {
     if (heroImages.length < 2) return;
@@ -135,28 +120,23 @@ const Dashboard = () => {
 
   if (error) return <PageError message="Failed to load" onRetry={() => window.location.reload()} />;
 
-  const cream = "#F5F0EA";
-  const ink = "#1A1A1A";
-  const gold = "#C8A97E";
-  const lightBorder = "rgba(0,0,0,0.06)";
-
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: cream, overflowY: "auto", overflowX: "hidden" }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: colors.bg, overflowY: "auto", overflowX: "hidden" }}>
       {/* ── Minimal Nav ── */}
       <nav
         style={{
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: "rgba(245,240,234,0.95)",
+          background: "rgba(10,10,11,0.92)",
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
-          borderBottom: `1px solid ${lightBorder}`,
+          borderBottom: `1px solid ${colors.border}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           height: mob ? 52 : 60,
-          padding: mob ? "0 16px" : "0 40px",
+          padding: mob ? `0 ${spacing.pageMobile}` : `0 ${spacing.pageDesktop}`,
         }}
       >
         <button
@@ -171,17 +151,17 @@ const Dashboard = () => {
             padding: 8,
           }}
         >
-          <span style={{ width: 18, height: 1.5, background: ink, display: "block" }} />
-          <span style={{ width: 14, height: 1.5, background: ink, display: "block" }} />
+          <span style={{ width: 18, height: 1.5, background: colors.cream, display: "block" }} />
+          <span style={{ width: 14, height: 1.5, background: colors.cream, display: "block" }} />
         </button>
 
         <span
           style={{
-            fontFamily: playfair,
+            fontFamily: fonts.display,
             fontSize: mob ? 16 : 18,
-            fontWeight: 600,
-            color: ink,
-            letterSpacing: "0.04em",
+            fontWeight: 300,
+            color: colors.gold,
+            letterSpacing: "0.08em",
           }}
         >
           {studioName}
@@ -196,17 +176,17 @@ const Dashboard = () => {
                 style={{
                   background: "none",
                   border: "none",
-                  fontFamily: mont,
+                  fontFamily: fonts.body,
                   fontSize: 11,
                   fontWeight: 400,
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
-                  color: "rgba(26,26,26,0.55)",
+                  color: colors.textMuted,
                   cursor: "pointer",
                   transition: "color 0.3s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = ink)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(26,26,26,0.55)")}
+                onMouseEnter={(e) => (e.currentTarget.style.color = colors.cream)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = colors.textMuted)}
               >
                 {l.label}
               </button>
@@ -218,9 +198,9 @@ const Dashboard = () => {
             style={{
               background: "none",
               border: "none",
-              fontFamily: mont,
+              fontFamily: fonts.body,
               fontSize: 20,
-              color: ink,
+              color: colors.gold,
               cursor: "pointer",
             }}
           >
@@ -253,7 +233,7 @@ const Dashboard = () => {
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)",
+                background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%)",
               }}
             />
           </>
@@ -262,7 +242,7 @@ const Dashboard = () => {
             style={{
               width: "100%",
               height: "100%",
-              background: `linear-gradient(135deg, ${ink} 0%, #2c2c2c 100%)`,
+              background: `linear-gradient(135deg, ${colors.bg} 0%, ${colors.surface2} 100%)`,
             }}
           />
         )}
@@ -276,11 +256,12 @@ const Dashboard = () => {
         >
           <h1
             style={{
-              fontFamily: playfair,
+              fontFamily: fonts.display,
               fontSize: mob ? 32 : 56,
-              fontWeight: 700,
-              color: "#FFFFFF",
+              fontWeight: 300,
+              color: colors.white,
               lineHeight: 1.1,
+              letterSpacing: "0.04em",
               textShadow: "0 2px 20px rgba(0,0,0,0.3)",
             }}
           >
@@ -288,10 +269,10 @@ const Dashboard = () => {
           </h1>
           <p
             style={{
-              fontFamily: mont,
+              fontFamily: fonts.body,
               fontSize: mob ? 12 : 14,
               fontWeight: 300,
-              color: "rgba(255,255,255,0.8)",
+              color: "rgba(255,255,255,0.7)",
               marginTop: 8,
               letterSpacing: "0.05em",
             }}
@@ -302,30 +283,29 @@ const Dashboard = () => {
             onClick={() => setCreateOpen(true)}
             style={{
               marginTop: mob ? 16 : 24,
-              fontFamily: mont,
+              fontFamily: fonts.body,
               fontSize: 11,
               fontWeight: 500,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              background: "rgba(255,255,255,0.15)",
+              background: "rgba(200,169,126,0.15)",
               backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255,255,255,0.3)",
-              color: "#FFFFFF",
+              border: `1px solid ${colors.borderActive}`,
+              color: colors.gold,
               padding: "12px 32px",
               cursor: "pointer",
               transition: "all 0.3s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.25)";
+              e.currentTarget.style.background = "rgba(200,169,126,0.25)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.15)";
+              e.currentTarget.style.background = "rgba(200,169,126,0.15)";
             }}
           >
             + Create Event
           </button>
         </div>
-        {/* Hero dots */}
         {heroImages.length > 1 && (
           <div
             style={{
@@ -344,7 +324,7 @@ const Dashboard = () => {
                   width: i === heroIdx ? 20 : 6,
                   height: 6,
                   borderRadius: 3,
-                  background: i === heroIdx ? "#FFFFFF" : "rgba(255,255,255,0.4)",
+                  background: i === heroIdx ? colors.gold : "rgba(255,255,255,0.3)",
                   border: "none",
                   cursor: "pointer",
                   transition: "all 0.3s",
@@ -362,7 +342,7 @@ const Dashboard = () => {
           justifyContent: "center",
           gap: mob ? 32 : 64,
           padding: mob ? "28px 16px" : "40px 24px",
-          borderBottom: `1px solid ${lightBorder}`,
+          borderBottom: `1px solid ${colors.border}`,
         }}
       >
         {[
@@ -373,10 +353,10 @@ const Dashboard = () => {
           <div key={s.l} style={{ textAlign: "center" }}>
             <div
               style={{
-                fontFamily: playfair,
+                fontFamily: fonts.display,
                 fontSize: mob ? 28 : 40,
-                fontWeight: 600,
-                color: ink,
+                fontWeight: 300,
+                color: colors.text,
                 lineHeight: 1,
               }}
             >
@@ -384,12 +364,12 @@ const Dashboard = () => {
             </div>
             <div
               style={{
-                fontFamily: mont,
+                fontFamily: fonts.body,
                 fontSize: 9,
                 fontWeight: 500,
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: gold,
+                color: colors.gold,
                 marginTop: 6,
               }}
             >
@@ -401,31 +381,32 @@ const Dashboard = () => {
 
       {/* ── Recent Galleries ── */}
       {recentEvents.length > 0 && (
-        <section style={{ padding: mob ? "40px 16px" : "60px 40px", maxWidth: 1200, margin: "0 auto" }}>
+        <section style={{ padding: mob ? `${spacing.sectionMobile} ${spacing.pageMobile}` : `${spacing.sectionDesktop} ${spacing.pageDesktop}`, maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: mob ? 24 : 36 }}>
             <div>
               <h2
                 style={{
-                  fontFamily: playfair,
+                  fontFamily: fonts.display,
                   fontSize: mob ? 24 : 32,
-                  fontWeight: 600,
-                  color: ink,
+                  fontWeight: 300,
+                  color: colors.text,
+                  letterSpacing: "0.04em",
                 }}
               >
                 Recent Work
               </h2>
-              <div style={{ width: 40, height: 2, background: gold, marginTop: 8 }} />
+              <div style={{ width: 40, height: 2, background: colors.gold, marginTop: 8 }} />
             </div>
             <button
               onClick={() => navigate("/dashboard/events")}
               style={{
                 background: "none",
                 border: "none",
-                fontFamily: mont,
+                fontFamily: fonts.body,
                 fontSize: 11,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: gold,
+                color: colors.gold,
                 cursor: "pointer",
               }}
             >
@@ -457,7 +438,7 @@ const Dashboard = () => {
                     width: "100%",
                     aspectRatio: "4/5",
                     overflow: "hidden",
-                    background: "#E8E4DE",
+                    background: colors.surface,
                     position: "relative",
                   }}
                 >
@@ -482,9 +463,9 @@ const Dashboard = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontFamily: playfair,
+                        fontFamily: fonts.display,
                         fontSize: 24,
-                        color: "rgba(26,26,26,0.15)",
+                        color: colors.textMuted,
                       }}
                     >
                       {evt.name.charAt(0)}
@@ -494,10 +475,10 @@ const Dashboard = () => {
                 <div style={{ marginTop: 12 }}>
                   <h3
                     style={{
-                      fontFamily: playfair,
+                      fontFamily: fonts.display,
                       fontSize: mob ? 16 : 18,
-                      fontWeight: 600,
-                      color: ink,
+                      fontWeight: 400,
+                      color: colors.text,
                       margin: 0,
                     }}
                   >
@@ -505,9 +486,9 @@ const Dashboard = () => {
                   </h3>
                   <p
                     style={{
-                      fontFamily: mont,
+                      fontFamily: fonts.body,
                       fontSize: 11,
-                      color: "rgba(26,26,26,0.45)",
+                      color: colors.textMuted,
                       marginTop: 4,
                       letterSpacing: "0.03em",
                     }}
@@ -518,9 +499,9 @@ const Dashboard = () => {
                   {evt.photo_count > 0 && (
                     <p
                       style={{
-                        fontFamily: mont,
+                        fontFamily: fonts.body,
                         fontSize: 10,
-                        color: gold,
+                        color: colors.gold,
                         marginTop: 2,
                         letterSpacing: "0.08em",
                       }}
@@ -537,19 +518,19 @@ const Dashboard = () => {
 
       {/* ── Photo Mosaic ── */}
       {allPhotos.length > 0 && (
-        <section style={{ padding: mob ? "0 0 40px" : "0 40px 60px", maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ padding: mob ? "0 16px" : "0", marginBottom: mob ? 20 : 28 }}>
+        <section style={{ padding: mob ? "0 0 40px" : `0 ${spacing.pageDesktop} 60px`, maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ padding: mob ? `0 ${spacing.pageMobile}` : "0", marginBottom: mob ? 20 : 28 }}>
             <h2
               style={{
-                fontFamily: playfair,
+                fontFamily: fonts.display,
                 fontSize: mob ? 22 : 28,
-                fontWeight: 600,
-                color: ink,
+                fontWeight: 300,
+                color: colors.text,
               }}
             >
               Gallery
             </h2>
-            <div style={{ width: 32, height: 2, background: gold, marginTop: 6 }} />
+            <div style={{ width: 32, height: 2, background: colors.gold, marginTop: 6 }} />
           </div>
           <div
             style={{
@@ -582,18 +563,18 @@ const Dashboard = () => {
       {/* ── Quick Actions ── */}
       <section
         style={{
-          padding: mob ? "32px 16px" : "48px 40px",
+          padding: mob ? `32px ${spacing.pageMobile}` : `48px ${spacing.pageDesktop}`,
           maxWidth: 1200,
           margin: "0 auto",
-          borderTop: `1px solid ${lightBorder}`,
+          borderTop: `1px solid ${colors.border}`,
         }}
       >
         <h2
           style={{
-            fontFamily: playfair,
+            fontFamily: fonts.display,
             fontSize: mob ? 22 : 28,
-            fontWeight: 600,
-            color: ink,
+            fontWeight: 300,
+            color: colors.text,
             marginBottom: mob ? 20 : 28,
           }}
         >
@@ -618,34 +599,35 @@ const Dashboard = () => {
               style={{
                 textAlign: "left",
                 padding: mob ? 20 : 28,
-                background: item.accent ? "rgba(200,169,126,0.08)" : "rgba(255,255,255,0.7)",
-                border: `1px solid ${item.accent ? "rgba(200,169,126,0.2)" : lightBorder}`,
+                background: item.accent ? colors.goldDim : colors.surface,
+                border: `1px solid ${item.accent ? colors.borderActive : colors.border}`,
                 cursor: "pointer",
                 transition: "all 0.3s",
+                borderRadius: 0,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = gold)}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = colors.gold)}
               onMouseLeave={(e) =>
-                (e.currentTarget.style.borderColor = item.accent ? "rgba(200,169,126,0.2)" : lightBorder)
+                (e.currentTarget.style.borderColor = item.accent ? String(colors.borderActive) : colors.border)
               }
             >
               <div
                 style={{
-                  fontFamily: mont,
+                  fontFamily: fonts.body,
                   fontSize: 9,
                   fontWeight: 500,
                   letterSpacing: "0.25em",
                   textTransform: "uppercase",
-                  color: item.accent ? gold : "rgba(26,26,26,0.4)",
+                  color: item.accent ? colors.gold : colors.textMuted,
                 }}
               >
                 {item.label}
               </div>
               <div
                 style={{
-                  fontFamily: playfair,
+                  fontFamily: fonts.display,
                   fontSize: mob ? 18 : 22,
-                  fontWeight: 600,
-                  color: ink,
+                  fontWeight: 300,
+                  color: colors.text,
                   marginTop: 8,
                   lineHeight: 1.2,
                 }}
@@ -654,9 +636,9 @@ const Dashboard = () => {
               </div>
               <div
                 style={{
-                  fontFamily: mont,
+                  fontFamily: fonts.body,
                   fontSize: 10,
-                  color: item.accent ? gold : "rgba(26,26,26,0.35)",
+                  color: item.accent ? colors.gold : colors.textMuted,
                   marginTop: 10,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
@@ -671,22 +653,22 @@ const Dashboard = () => {
 
       {/* ── No events empty state ── */}
       {!loading && recentEvents.length === 0 && (
-        <section style={{ padding: mob ? "60px 16px" : "100px 40px", textAlign: "center" }}>
+        <section style={{ padding: mob ? `60px ${spacing.pageMobile}` : `100px ${spacing.pageDesktop}`, textAlign: "center" }}>
           <h2
             style={{
-              fontFamily: playfair,
+              fontFamily: fonts.display,
               fontSize: mob ? 28 : 40,
-              fontWeight: 600,
-              color: ink,
+              fontWeight: 300,
+              color: colors.text,
             }}
           >
             Your Story Begins Here
           </h2>
           <p
             style={{
-              fontFamily: mont,
+              fontFamily: fonts.body,
               fontSize: 13,
-              color: "rgba(26,26,26,0.45)",
+              color: colors.textMuted,
               marginTop: 12,
               maxWidth: 400,
               marginLeft: "auto",
@@ -699,19 +681,19 @@ const Dashboard = () => {
             onClick={() => setCreateOpen(true)}
             style={{
               marginTop: 24,
-              fontFamily: mont,
+              fontFamily: fonts.body,
               fontSize: 11,
               fontWeight: 500,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              background: ink,
-              color: cream,
+              background: colors.gold,
+              color: colors.bg,
               border: "none",
               padding: "14px 40px",
               cursor: "pointer",
               transition: "opacity 0.3s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
             + Create Event
@@ -722,16 +704,16 @@ const Dashboard = () => {
       {/* ── Footer ── */}
       <footer
         style={{
-          padding: mob ? "40px 16px" : "60px 40px",
+          padding: mob ? `${spacing.sectionMobile} ${spacing.pageMobile}` : `${spacing.sectionDesktop} ${spacing.pageDesktop}`,
           textAlign: "center",
-          borderTop: `1px solid ${lightBorder}`,
+          borderTop: `1px solid ${colors.border}`,
         }}
       >
         <div
           style={{
-            fontFamily: playfair,
+            fontFamily: fonts.display,
             fontSize: mob ? 14 : 16,
-            color: "rgba(26,26,26,0.25)",
+            color: colors.textMuted,
             fontStyle: "italic",
           }}
         >
@@ -739,9 +721,9 @@ const Dashboard = () => {
         </div>
         <div
           style={{
-            fontFamily: mont,
+            fontFamily: fonts.body,
             fontSize: 9,
-            color: "rgba(26,26,26,0.2)",
+            color: colors.textMuted,
             marginTop: 8,
             letterSpacing: "0.15em",
             textTransform: "uppercase",
@@ -749,7 +731,7 @@ const Dashboard = () => {
         >
           Powered by MirrorAI
         </div>
-        <div style={{ width: 4, height: 4, borderRadius: "50%", background: gold, margin: "12px auto 0" }} />
+        <div style={{ width: 4, height: 4, borderRadius: "50%", background: colors.gold, margin: "12px auto 0" }} />
       </footer>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
@@ -758,11 +740,6 @@ const Dashboard = () => {
         onOpenChange={setCreateOpen}
         onCreated={(eventId) => navigate(`/dashboard/events/${eventId}`)}
       />
-
-      <style>{`
-        *::-webkit-scrollbar { display: none; }
-        * { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
     </div>
   );
 };

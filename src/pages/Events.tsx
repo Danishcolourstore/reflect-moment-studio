@@ -5,9 +5,7 @@ import { CreateEventModal } from "@/components/CreateEventModal";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-
-const playfair = '"Playfair Display", serif';
-const montserrat = '"Montserrat", sans-serif';
+import { colors, fonts, spacing } from "@/styles/design-tokens";
 
 const NAV_ITEMS = [
   { label: "HOME", path: "/home" },
@@ -94,22 +92,23 @@ export default function Events() {
   }, [user]);
 
   return (
-    <div style={{ minHeight: "100vh", width: "100%", background: "#FFFFFF", overflow: "visible" }}>
+    <div style={{ minHeight: "100vh", width: "100%", background: colors.bg, overflow: "visible" }}>
       {/* NAV */}
       <nav
         style={{
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: "#FFFFFF",
-          borderBottom: "1px solid #F2F2F2",
+          background: "rgba(10,10,11,0.92)",
+          backdropFilter: "blur(12px)",
+          borderBottom: `1px solid ${colors.border}`,
           padding: mob ? "8px 16px" : "12px 20px",
           paddingTop: mob ? "calc(8px + env(safe-area-inset-top, 0px))" : "calc(12px + env(safe-area-inset-top, 0px))",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: mob ? 6 : 8 }}>
           <span
-            style={{ fontFamily: playfair, fontSize: mob ? 18 : 24, fontWeight: 700, color: "#000000", cursor: "pointer" }}
+            style={{ fontFamily: fonts.display, fontSize: mob ? 18 : 24, fontWeight: 300, color: colors.gold, cursor: "pointer", letterSpacing: "0.06em" }}
             onClick={() => navigate("/home")}
           >
             MirrorAI
@@ -134,16 +133,15 @@ export default function Events() {
                 onMouseEnter={() => setNavHover(i)}
                 onMouseLeave={() => setNavHover(null)}
                 style={{
-                  fontFamily: montserrat,
+                  fontFamily: fonts.body,
                   fontSize: mob ? 10 : 14,
                   fontWeight: 400,
                   textTransform: "uppercase" as const,
-                  letterSpacing: "1px",
-                  color: isActive || isHov ? "#000000" : "#666666",
+                  letterSpacing: "0.12em",
+                  color: isActive ? colors.gold : isHov ? colors.cream : colors.textMuted,
                   background: "none",
                   border: "none",
-                  borderBottom: isActive ? "2px solid #000000" : "2px solid transparent",
-                  textDecoration: isHov && !isActive ? "underline" : "none",
+                  borderBottom: isActive ? `2px solid ${colors.gold}` : "2px solid transparent",
                   cursor: "pointer",
                   whiteSpace: "nowrap" as const,
                   padding: mob ? "8px 0" : "12px 0",
@@ -160,24 +158,24 @@ export default function Events() {
       </nav>
 
       {/* CREATE BUTTON */}
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: mob ? "20px 16px 0" : "28px 20px 0" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto", padding: mob ? `20px ${spacing.pageMobile} 0` : "28px 20px 0" }}>
         <button
           onClick={() => setCreateOpen(true)}
           style={{
-            fontFamily: montserrat,
+            fontFamily: fonts.body,
             fontSize: 11,
             fontWeight: 600,
             textTransform: "uppercase" as const,
-            letterSpacing: "1px",
-            background: "#000000",
-            color: "#FFFFFF",
+            letterSpacing: "0.12em",
+            background: colors.gold,
+            color: colors.bg,
             border: "none",
             padding: "12px 28px",
             cursor: "pointer",
-            transition: "background 0.3s",
+            transition: "opacity 0.3s",
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = "#333333")}
-          onMouseLeave={e => (e.currentTarget.style.background = "#000000")}
+          onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
+          onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
         >
           + Create Event
         </button>
@@ -187,26 +185,26 @@ export default function Events() {
       <main style={{ maxWidth: 720, margin: "0 auto", padding: mob ? "24px 0" : "40px 0" }}>
         {loading ? (
           <div style={{ textAlign: "center", padding: "60px 24px" }}>
-            <p style={{ fontFamily: montserrat, fontSize: 14, color: "#666666" }}>Loading events...</p>
+            <p style={{ fontFamily: fonts.body, fontSize: 14, color: colors.textMuted }}>Loading events...</p>
           </div>
         ) : events.length === 0 ? (
           <div style={{ textAlign: "center", padding: "60px 24px" }}>
-            <p style={{ fontFamily: playfair, fontSize: 22, fontWeight: 700, color: "#000000", marginBottom: 12 }}>
+            <p style={{ fontFamily: fonts.display, fontSize: 22, fontWeight: 300, color: colors.text, marginBottom: 12 }}>
               No events yet
             </p>
-            <p style={{ fontFamily: montserrat, fontSize: 14, color: "#666666", marginBottom: 24 }}>
+            <p style={{ fontFamily: fonts.body, fontSize: 14, color: colors.textMuted, marginBottom: 24 }}>
               Create your first event to get started.
             </p>
             <button
               onClick={() => setCreateOpen(true)}
               style={{
-                fontFamily: montserrat,
+                fontFamily: fonts.body,
                 fontSize: 11,
                 fontWeight: 600,
                 textTransform: "uppercase" as const,
-                letterSpacing: "1px",
-                background: "#000000",
-                color: "#FFFFFF",
+                letterSpacing: "0.12em",
+                background: colors.gold,
+                color: colors.bg,
                 border: "none",
                 padding: "12px 28px",
                 cursor: "pointer",
@@ -219,7 +217,6 @@ export default function Events() {
           <div style={{ display: "flex", flexDirection: "column" as const, gap: mob ? 40 : 48 }}>
             {events.map((evt) => (
               <FadeCard key={evt.id}>
-                {/* Cover Image — full bleed */}
                 <div
                   style={{
                     overflow: "hidden",
@@ -242,52 +239,50 @@ export default function Events() {
                     <div style={{
                       width: "100%",
                       height: mob ? "65vw" : 400,
-                      background: "linear-gradient(135deg, #f5f0ea, #e8e0d4, #f5f0ea)",
+                      background: `linear-gradient(135deg, ${colors.surface}, ${colors.surface2})`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                     }}>
-                      <span style={{ fontFamily: montserrat, fontSize: 12, color: "#999999" }}>No cover photo</span>
+                      <span style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textMuted }}>No cover photo</span>
                     </div>
                   )}
                 </div>
 
-                {/* Text content */}
                 <div
-                  style={{ padding: mob ? "0 16px" : "0 20px", cursor: "pointer" }}
+                  style={{ padding: mob ? `0 ${spacing.pageMobile}` : "0 20px", cursor: "pointer" }}
                   onClick={() => navigate(`/dashboard/events/${evt.id}`)}
                 >
                   <div
                     style={{
-                      fontFamily: playfair,
+                      fontFamily: fonts.display,
                       fontSize: mob ? 16 : 18,
-                      fontWeight: 700,
-                      color: "#000000",
+                      fontWeight: 400,
+                      color: colors.text,
                       textTransform: "uppercase" as const,
-                      letterSpacing: "0.5px",
+                      letterSpacing: "0.06em",
                       marginTop: mob ? 16 : 20,
                     }}
                   >
                     {evt.name}
                   </div>
 
-                  <div style={{ fontFamily: montserrat, fontSize: mob ? 12 : 14, fontWeight: 400, color: "#666666", marginTop: 6 }}>
+                  <div style={{ fontFamily: fonts.body, fontSize: mob ? 12 : 14, fontWeight: 400, color: colors.textMuted, marginTop: 6 }}>
                     {evt.event_date ? format(new Date(evt.event_date), "MMMM d, yyyy") : "No date set"}
                     {evt.location ? ` · ${evt.location}` : ""}
                   </div>
 
                   <div style={{
-                    fontFamily: montserrat,
+                    fontFamily: fonts.body,
                     fontSize: mob ? 11 : 13,
                     fontWeight: 400,
-                    color: "#999999",
+                    color: colors.textDim,
                     marginTop: 8,
                   }}>
                     {evt.photo_count || 0} photos
                   </div>
 
-                  {/* Divider */}
-                  <div style={{ height: 1, background: "#F2F2F2", marginTop: 20 }} />
+                  <div style={{ height: 1, background: colors.border, marginTop: 20 }} />
                 </div>
               </FadeCard>
             ))}
@@ -295,9 +290,8 @@ export default function Events() {
         )}
       </main>
 
-      {/* FOOTER */}
       <footer style={{ textAlign: "center", padding: mob ? "40px 16px 28px" : "60px 20px 40px", paddingBottom: `calc(${mob ? 28 : 40}px + env(safe-area-inset-bottom, 0px))` }}>
-        <div style={{ fontFamily: montserrat, fontSize: mob ? 10 : 12, color: "#666666" }}>© MIRRORAI</div>
+        <div style={{ fontFamily: fonts.body, fontSize: mob ? 10 : 12, color: colors.textMuted, letterSpacing: "0.1em" }}>© MIRRORAI</div>
       </footer>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
