@@ -82,6 +82,46 @@ export default function RefynUpload({ onUpload }: Props) {
           or tap to browse
         </p>
       </motion.button>
+
+      {/* Style Stealer + Library nav */}
+      <div className="flex items-center gap-3 mt-8">
+        <button
+          onClick={() => navigate('/refyn/steal')}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all active:scale-95"
+          style={{
+            background: 'rgba(201,169,110,0.1)',
+            border: '1px solid rgba(201,169,110,0.2)',
+            color: '#c9a96e',
+            fontFamily: '"DM Sans", sans-serif',
+            fontSize: 12,
+            fontWeight: 500,
+            letterSpacing: '0.04em',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L15 8.5L22 9.5L17 14.5L18 21.5L12 18.5L6 21.5L7 14.5L2 9.5L9 8.5L12 2Z" stroke="currentColor" strokeWidth="1.5" fill="rgba(201,169,110,0.15)"/>
+          </svg>
+          Steal
+        </button>
+        <button
+          onClick={() => navigate('/refyn/styles')}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all active:scale-95"
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            color: 'rgba(240,237,232,0.5)',
+            fontFamily: '"DM Sans", sans-serif',
+            fontSize: 12,
+            fontWeight: 500,
+            letterSpacing: '0.04em',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M19 21L12 16L5 21V5C5 3.9 5.9 3 7 3H17C18.1 3 19 3.9 19 5V21Z" stroke="currentColor" strokeWidth="1.5"/>
+          </svg>
+          Styles
+        </button>
+      </div>
     </motion.div>
   );
 }
