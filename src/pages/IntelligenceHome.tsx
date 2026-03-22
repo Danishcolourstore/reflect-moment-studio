@@ -113,6 +113,21 @@ export default function IntelligenceHome() {
 
   // Feed data removed — feed is now a separate page at /feed/:username
 
+  // DB-driven stories and discover
+  const [dbStories, setDbStories] = useState(FALLBACK_STORIES);
+  const [dbDiscover, setDbDiscover] = useState(FALLBACK_DISCOVER);
+
+  useEffect(() => {
+    (async () => {
+      const [storiesRes, discoverRes] = await Promise.all([
+        (supabase.from('ag_stories').select('*').eq('status', 'active').order('sort_order') as any),
+        (supabase.from('ag_discover_profiles').select('*').order('sort_order') as any),
+      ]);
+      if (storiesRes.data?.length) setDbStories(storiesRes.data);
+      if (discoverRes.data?.length) setDbDiscover(discoverRes.data);
+    })();
+  }, []);
+
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
     window.addEventListener("resize", h);
