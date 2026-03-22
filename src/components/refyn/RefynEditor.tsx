@@ -857,22 +857,28 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
 }
 
 /* ── Export Screen (inline) ── */
-function RefynExportScreen({ photoUrl, onBack, onDownload }: { photoUrl: string; onBack: () => void; onDownload: () => Promise<void> }) {
+function RefynExportScreen({ photoUrl, onBack, onSaveDevice, onSaveWeb, onSaveXMP }: {
+  photoUrl: string;
+  onBack: () => void;
+  onSaveDevice: () => Promise<void>;
+  onSaveWeb: () => Promise<void>;
+  onSaveXMP: () => Promise<void>;
+}) {
   const [exporting, setExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [savedIdx, setSavedIdx] = useState<number | null>(null);
 
   const rows = [
-    { label: 'Save to Device', sub: 'Full resolution JPEG' },
-    { label: 'Save for Web', sub: 'Optimized, 2000px longest edge' },
-    { label: 'Save with XMP', sub: 'JPEG + Lightroom sidecar file' },
+    { label: 'Save to Device', sub: 'Full resolution JPEG', fn: onSaveDevice },
+    { label: 'Save for Web', sub: 'Optimized, 2000px longest edge', fn: onSaveWeb },
+    { label: 'Save with XMP', sub: 'JPEG + Lightroom sidecar file', fn: onSaveXMP },
   ];
 
   const handleRow = async (idx: number) => {
     if (exporting) return;
     setExporting(true); setExportProgress(0);
     const interval = setInterval(() => setExportProgress(p => Math.min(p + 0.15, 0.9)), 100);
-    await onDownload();
+    await rows[idx].fn();
     clearInterval(interval);
     setExportProgress(1);
     setSavedIdx(idx);
@@ -888,14 +894,11 @@ function RefynExportScreen({ photoUrl, onBack, onDownload }: { photoUrl: string;
         position: 'absolute', inset: 0, zIndex: 80,
         background: '#000', display: 'flex', flexDirection: 'column',
       }}>
-      {/* Progress bar */}
       {exporting && (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'rgba(255,255,255,0.1)' }}>
           <div style={{ height: '100%', width: `${exportProgress * 100}%`, background: '#fff', transition: 'width 0.15s' }} />
         </div>
       )}
-
-      {/* Top bar */}
       <div style={{
         display: 'flex', alignItems: 'center', height: 44,
         paddingTop: 'env(safe-area-inset-top, 0px)', paddingLeft: 16,
@@ -904,14 +907,10 @@ function RefynExportScreen({ photoUrl, onBack, onDownload }: { photoUrl: string;
           <ChevronLeft size={24} strokeWidth={1.5} color="rgba(255,255,255,0.7)" />
         </button>
       </div>
-
-      {/* Preview */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
         <img src={photoUrl} alt="Preview"
           style={{ maxWidth: '100%', maxHeight: '50vh', objectFit: 'contain' }} />
       </div>
-
-      {/* Export rows */}
       <div style={{ padding: '20px 24px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)' }}>
         {rows.map((row, i) => (
           <button key={i} onClick={() => handleRow(i)}
