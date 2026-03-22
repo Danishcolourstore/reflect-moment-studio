@@ -73,10 +73,10 @@ export default function LandingGate() {
       if (!img) {
         const { data: photos } = await supabase
           .from("photos")
-          .select("thumbnail_url, url")
+          .select("url")
           .eq("event_id", evt.id)
           .limit(1);
-        img = photos?.[0]?.thumbnail_url || photos?.[0]?.url || null;
+        img = photos?.[0]?.url || null;
       }
       eventItems.push({
         id: evt.id,
