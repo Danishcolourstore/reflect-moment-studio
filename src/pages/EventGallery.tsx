@@ -438,7 +438,7 @@ const EventGallery = () => {
   useEffect(() => {
     if (!id) return;
     (async () => {
-      const { data } = await supabase.from('photos').select('id').eq('event_id', id).eq('is_art_gallery' as any, true);
+      const { data } = await (supabase.from('photos').select('id').eq('event_id', id) as any).eq('is_art_gallery', true);
       if (data) setArtGalleryIds(new Set(data.map((p: any) => p.id)));
     })();
   }, [id]);
