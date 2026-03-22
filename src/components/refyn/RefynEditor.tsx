@@ -71,14 +71,10 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
   }, []);
 
   const handleExport = useCallback(async () => {
+    toast.info('Rendering full resolution...');
     const blob = await exportFullResolution(0.95);
     if (!blob) { toast.error('Export failed'); return; }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `retouched_${Date.now()}.jpg`;
-    a.click();
-    URL.revokeObjectURL(url);
+    saveAs(blob, `retouched_${Date.now()}.jpg`);
     toast.success('Exported at full resolution');
   }, [exportFullResolution]);
 
