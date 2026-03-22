@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { format } from "date-fns";
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
@@ -117,11 +120,51 @@ function Fade({ children, style }: { children: React.ReactNode; style?: React.CS
 
 export default function IntelligenceHome() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
   const [activeNav, setActiveNav] = useState(0);
   const [pillH, setPillH] = useState(false);
   const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
   const [newsLoading, setNewsLoading] = useState(true);
+
+  // Real events feed
+  interface FeedEvent {
+    id: string;
+    name: string;
+    event_date: string | null;
+    location: string | null;
+    cover_url: string | null;
+    photo_count: number;
+    firstPhoto: string | null;
+  }
+  const [feedEvents, setFeedEvents] = useState<FeedEvent[]>([]);
+  const [feedLoading, setFeedLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) { setFeedLoading(false); return; }
+    (async () => {
+      setFeedLoading(true);
+      const { data: events } = await (supabase
+        .from('events')
+        .select('id, name, event_date, location, cover_url, photo_count') as any)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (!events || events.length === 0) { setFeedEvents([]); setFeedLoading(false); return; }
+      // Get first photo for each event
+      const withPhotos = await Promise.all(events.map(async (evt: any) => {
+        const { data: photos } = await (supabase
+          .from('photos')
+          .select('thumbnail_url, url, storage_path') as any)
+          .eq('event_id', evt.id)
+          .limit(1);
+        const p = photos?.[0];
+        return { ...evt, firstPhoto: p?.thumbnail_url || p?.url || null };
+      }));
+      setFeedEvents(withPhotos);
+      setFeedLoading(false);
+    })();
+  }, [user]);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -365,6 +408,68 @@ export default function IntelligenceHome() {
           earth has this many ways of saying forever.
         </p>
       </Fade>
+
+      {/* ─── YOUR FEED ─── */}
+      {user && (
+        <Fade style={{ padding: `${mob ? 32 : 60}px ${px}px 0`, maxWidth: 660, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: mob ? 20 : 32 }}>
+            <p style={{ fontFamily: mont, fontSize: mob ? 9 : 11, letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#FFCC00", margin: 0 }}>YOUR WORK</p>
+            <h2 style={{ fontFamily: playfair, fontSize: mob ? 22 : 32, fontWeight: 700, color: "#000000", margin: "12px 0 0" }}>Recent Events</h2>
+            <div style={{ width: 36, height: 2, background: "#FFCC00", margin: `${mob ? 12 : 20}px auto` }} />
+          </div>
+          {feedLoading ? (
+            <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", textAlign: "center" }}>Loading your feed...</p>
+          ) : feedEvents.length === 0 ? (
+            <p style={{ fontFamily: mont, fontSize: 14, color: "#666666", textAlign: "center", lineHeight: 1.7 }}>
+              Your feed will appear here automatically when you create events.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: mob ? 40 : 48 }}>
+              {feedEvents.map((evt) => {
+                const imgSrc = evt.cover_url || evt.firstPhoto;
+                const fakeLikes = Math.floor(50 + Math.random() * 200);
+                const fakeViews = Math.floor(200 + Math.random() * 2000);
+                return (
+                  <div key={evt.id}>
+                    <div
+                      style={{ cursor: "pointer", lineHeight: 0 }}
+                      onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                    >
+                      {imgSrc ? (
+                        <img src={imgSrc} alt={evt.name} style={{ width: "100%", height: "auto", display: "block" }} />
+                      ) : (
+                        <div style={{ width: "100%", paddingTop: "65%", background: warmGrad }} />
+                      )}
+                    </div>
+                    <div style={{ padding: mob ? "0" : "0", marginTop: mob ? 12 : 16 }}>
+                      <div style={{ fontFamily: playfair, fontSize: mob ? 16 : 18, fontWeight: 700, color: "#000000", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>
+                        {evt.name}
+                      </div>
+                      <div style={{ fontFamily: mont, fontSize: mob ? 12 : 13, color: "#666666", marginTop: 6 }}>
+                        {evt.event_date ? format(new Date(evt.event_date), "MMMM d, yyyy") : "No date"}{evt.location ? ` · ${evt.location}` : ""}
+                      </div>
+                      <div style={{ fontFamily: mont, fontSize: mob ? 10 : 11, color: "#999999", marginTop: 6 }}>
+                        {evt.photo_count || 0} photos
+                      </div>
+                      <div style={{ display: "flex", gap: 16, marginTop: 10, alignItems: "center" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: mont, fontSize: 12, color: "#666666" }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666666" strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          {fakeLikes}
+                        </span>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: mont, fontSize: 12, color: "#666666" }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666666" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          {fakeViews} views
+                        </span>
+                      </div>
+                      <div style={{ height: 1, background: "#F2F2F2", marginTop: 20 }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Fade>
+      )}
 
       {/* ─── NEWS ─── */}
       <Fade style={{ padding: `${mob ? 32 : 60}px ${px}px 0`, maxWidth: 900, margin: "0 auto" }}>
