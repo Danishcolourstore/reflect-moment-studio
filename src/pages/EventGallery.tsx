@@ -693,6 +693,8 @@ const EventGallery = () => {
         deletePhoto={deletePhoto}
         isPortfolioPhoto={isPortfolioPhoto}
         togglePortfolioPhoto={togglePortfolioPhoto}
+        isArtGallery={isArtGalleryPhoto}
+        toggleArtGallery={toggleArtGallery}
       />
     );
   };
