@@ -34,6 +34,11 @@ export default function LandingGate() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [editPost, setEditPost] = useState<FeedItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sectionVis, setSectionVis] = useState<Record<string, boolean>>({
+    hero: true, galleries: true, stories: true, testimonials: false, about: true, enquire: true,
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -60,7 +65,7 @@ export default function LandingGate() {
       .eq("user_id", user.id).maybeSingle();
     if (prof?.studio_name) setProfileName(prof.studio_name);
 
-    const { data: sp } = await (supabase.from("studio_profiles").select("username") as any)
+    const { data: sp } = await (supabase.from("studio_profiles").select("username, section_visibility") as any)
       .eq("user_id", user.id).maybeSingle();
     if (sp?.username) {
       setShareSlug(sp.username);
@@ -68,6 +73,9 @@ export default function LandingGate() {
       const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
         .eq("user_id", user.id).eq("is_primary", true).maybeSingle();
       if (dom?.subdomain) setShareSlug(dom.subdomain);
+    }
+    if (sp?.section_visibility) {
+      setSectionVis(prev => ({ ...prev, ...sp.section_visibility }));
     }
 
     const { data: events } = await supabase
@@ -221,8 +229,62 @@ export default function LandingGate() {
         </div>
       </div>
 
+      {/* ── Portfolio Settings ── */}
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "12px 16px 0" : "16px 24px 0" }}>
+        <button onClick={() => setSettingsOpen(!settingsOpen)} style={{
+          background: "none", border: "none", fontFamily: mont, fontSize: 10,
+          fontWeight: 600, color: "#999", letterSpacing: "0.12em", cursor: "pointer",
+          textTransform: "uppercase" as const, display: "flex", alignItems: "center", gap: 6,
+        }}>
+          ⚙ Portfolio Sections {settingsOpen ? "▲" : "▼"}
+        </button>
+        {settingsOpen && (
+          <div style={{ marginTop: 12, padding: 16, background: "#FAFAFA", border: "1px solid #F0F0F0" }}>
+            <div style={{ fontFamily: mont, fontSize: 11, color: "#666", marginBottom: 12 }}>
+              Toggle which sections appear on your public portfolio
+            </div>
+            {[
+              { key: "hero", label: "Hero Banner" },
+              { key: "galleries", label: "Photo Gallery" },
+              { key: "stories", label: "Stories / Blog" },
+              { key: "testimonials", label: "Testimonials" },
+              { key: "about", label: "About Section" },
+              { key: "enquire", label: "Enquiry Form" },
+            ].map(s => (
+              <label key={s.key} style={{
+                display: "flex", alignItems: "center", gap: 10, padding: "8px 0",
+                fontFamily: mont, fontSize: 12, color: "#333", cursor: "pointer",
+                borderBottom: "1px solid #F5F5F5",
+              }}>
+                <input type="checkbox" checked={sectionVis[s.key] ?? true}
+                  onChange={() => setSectionVis(prev => ({ ...prev, [s.key]: !prev[s.key] }))}
+                  style={{ width: 16, height: 16, accentColor: "#000" }}
+                />
+                {s.label}
+              </label>
+            ))}
+            <button onClick={async () => {
+              if (!user) return;
+              setSavingSettings(true);
+              await (supabase.from("studio_profiles").update({ section_visibility: sectionVis }) as any)
+                .eq("user_id", user.id);
+              setSavingSettings(false);
+              toast.success("Portfolio sections updated!");
+            }} disabled={savingSettings} style={{
+              marginTop: 12, fontFamily: mont, fontSize: 10, fontWeight: 600,
+              letterSpacing: "0.12em", textTransform: "uppercase" as const,
+              background: "#000", color: "#FFF", border: "none",
+              padding: "10px 20px", cursor: savingSettings ? "wait" : "pointer",
+              opacity: savingSettings ? 0.6 : 1,
+            }}>
+              {savingSettings ? "Saving..." : "Save Sections"}
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* ── Feed Header ── */}
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "28px 16px 0" : "40px 24px 0" }}>
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 16px 0" : "32px 24px 0" }}>
         <div style={{ fontFamily: mont, fontSize: 10, color: "#FFCC00", letterSpacing: "0.2em", textTransform: "uppercase" as const, fontWeight: 600 }}>
           YOUR FEED
         </div>
