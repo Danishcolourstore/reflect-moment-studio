@@ -52,5 +52,3 @@ export default function LandingGate() {
     </div>
   );
 }
-Delete → paste → save. Split screen will be back.
-The feed code you had before — save it separately as src/pages/PhotographerFeed.tsx if you want to use it later. That file already exists in your codebase.
