@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { colors, fonts } from "@/styles/design-tokens";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -39,10 +40,10 @@ export function HamburgerButton({ onClick }: { onClick: () => void }) {
       style={{
         background: "none",
         border: "none",
-        fontFamily: '"DM Sans", sans-serif',
+        fontFamily: fonts.body,
         fontSize: 11,
         fontWeight: 700,
-        color: "#F0EDE8",
+        color: colors.cream,
         letterSpacing: "0.2em",
         textShadow: "0 1px 8px rgba(0,0,0,0.8)",
       }}
@@ -78,7 +79,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  // Reset more panel when menu closes
   useEffect(() => {
     if (!open) setShowMore(false);
   }, [open]);
@@ -98,7 +98,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.div
             className="fixed inset-0 z-[190]"
             style={{ background: "rgba(0,0,0,0.5)" }}
@@ -109,24 +108,22 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
             onClick={onClose}
           />
 
-          {/* Drawer — slides from RIGHT like Naman Verma */}
           <motion.aside
             className="fixed top-0 right-0 z-[200] h-[100dvh] w-[82%] max-w-[360px] overflow-y-auto"
-            style={{ background: "#0A0A0A" }}
+            style={{ background: colors.bg }}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ duration: 0.45, ease }}
           >
             <div className="flex flex-col min-h-full px-8 pt-6 pb-10">
-              {/* Top row */}
               <div className="flex items-center justify-between mb-10">
                 <span
                   style={{
-                    fontFamily: '"Cormorant Garamond", serif',
+                    fontFamily: fonts.display,
                     fontSize: 13,
                     fontWeight: 500,
-                    color: "#E8C97A",
+                    color: colors.gold,
                     letterSpacing: "0.2em",
                   }}
                 >
@@ -135,10 +132,10 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                 <button
                   onClick={onClose}
                   style={{
-                    fontFamily: '"DM Sans", sans-serif',
+                    fontFamily: fonts.body,
                     fontSize: 11,
                     fontWeight: 600,
-                    color: "rgba(240,237,232,0.5)",
+                    color: colors.textMuted,
                     letterSpacing: "0.2em",
                     background: "none",
                     border: "none",
@@ -149,7 +146,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                 </button>
               </div>
 
-              {/* Main nav — Naman Verma style */}
               <nav className="flex-1">
                 <AnimatePresence mode="wait">
                   {!showMore ? (
@@ -173,18 +169,18 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                           >
                             <span
                               style={{
-                                fontFamily: '"Cormorant Garamond", serif',
+                                fontFamily: fonts.display,
                                 fontSize: 42,
                                 fontWeight: isActive ? 600 : 300,
-                                color: isActive ? "#F0EDE8" : "rgba(240,237,232,0.35)",
+                                color: isActive ? colors.cream : colors.textMuted,
                                 letterSpacing: "-0.01em",
                                 lineHeight: 1.15,
                                 display: "block",
                                 transition: "color 0.2s ease",
                               }}
-                              onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = colors.cream)}
                               onMouseLeave={(e) =>
-                                (e.currentTarget.style.color = isActive ? "#F0EDE8" : "rgba(240,237,232,0.35)")
+                                (e.currentTarget.style.color = isActive ? colors.cream : colors.textMuted)
                               }
                             >
                               {item.label}
@@ -193,7 +189,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                         );
                       })}
 
-                      {/* More button */}
                       <motion.button
                         className="block w-full text-left py-2 mt-2"
                         initial={{ opacity: 0, y: 12 }}
@@ -203,10 +198,10 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                       >
                         <span
                           style={{
-                            fontFamily: '"Cormorant Garamond", serif',
+                            fontFamily: fonts.display,
                             fontSize: 42,
                             fontWeight: 300,
-                            color: "rgba(240,237,232,0.2)",
+                            color: colors.border,
                             letterSpacing: "-0.01em",
                             lineHeight: 1.15,
                             display: "block",
@@ -224,14 +219,13 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.3, ease }}
                     >
-                      {/* Back */}
                       <button
                         onClick={() => setShowMore(false)}
                         className="flex items-center gap-2 mb-8"
                         style={{
-                          fontFamily: '"DM Sans", sans-serif',
+                          fontFamily: fonts.body,
                           fontSize: 10,
-                          color: "rgba(240,237,232,0.3)",
+                          color: colors.textMuted,
                           letterSpacing: "0.2em",
                           background: "none",
                           border: "none",
@@ -252,17 +246,17 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                         >
                           <span
                             style={{
-                              fontFamily: '"Cormorant Garamond", serif',
+                              fontFamily: fonts.display,
                               fontSize: 36,
                               fontWeight: 300,
-                              color: "rgba(240,237,232,0.5)",
+                              color: colors.textDim,
                               letterSpacing: "-0.01em",
                               lineHeight: 1.2,
                               display: "block",
                               transition: "color 0.2s ease",
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.5)")}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = colors.cream)}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = colors.textDim)}
                           >
                             {item.label}
                           </span>
@@ -273,15 +267,14 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                 </AnimatePresence>
               </nav>
 
-              {/* Bottom */}
-              <div className="mt-auto pt-8 border-t" style={{ borderColor: "rgba(240,237,232,0.06)" }}>
+              <div className="mt-auto pt-8 border-t" style={{ borderColor: colors.border }}>
                 {studioName && (
                   <p
                     className="mb-3"
                     style={{
-                      fontFamily: '"Cormorant Garamond", serif',
+                      fontFamily: fonts.display,
                       fontSize: 14,
-                      color: "rgba(240,237,232,0.4)",
+                      color: colors.textMuted,
                       letterSpacing: "0.05em",
                     }}
                   >
@@ -291,16 +284,16 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                 <button
                   onClick={handleSignOut}
                   style={{
-                    fontFamily: '"DM Sans", sans-serif',
+                    fontFamily: fonts.body,
                     fontSize: 10,
-                    color: "rgba(240,237,232,0.25)",
+                    color: colors.textMuted,
                     letterSpacing: "0.2em",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.25)")}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = colors.cream)}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = colors.textMuted)}
                 >
                   SIGN OUT
                 </button>
