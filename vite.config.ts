@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom", "react-router-dom"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react-dom/client", "react-router-dom"],
+    include: ["react", "react-dom", "react-dom/client", "react-router-dom", "@tanstack/react-query"],
     force: true,
   },
 }));
