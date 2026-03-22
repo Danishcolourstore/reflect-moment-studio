@@ -127,44 +127,7 @@ export default function IntelligenceHome() {
   const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
   const [newsLoading, setNewsLoading] = useState(true);
 
-  // Real events feed
-  interface FeedEvent {
-    id: string;
-    name: string;
-    event_date: string | null;
-    location: string | null;
-    cover_url: string | null;
-    photo_count: number;
-    firstPhoto: string | null;
-  }
-  const [feedEvents, setFeedEvents] = useState<FeedEvent[]>([]);
-  const [feedLoading, setFeedLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) { setFeedLoading(false); return; }
-    (async () => {
-      setFeedLoading(true);
-      const { data: events } = await (supabase
-        .from('events')
-        .select('id, name, event_date, location, cover_url, photo_count') as any)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      if (!events || events.length === 0) { setFeedEvents([]); setFeedLoading(false); return; }
-      // Get first photo for each event
-      const withPhotos = await Promise.all(events.map(async (evt: any) => {
-        const { data: photos } = await (supabase
-          .from('photos')
-          .select('url') as any)
-          .eq('event_id', evt.id)
-          .limit(1);
-        const p = photos?.[0];
-        return { ...evt, firstPhoto: p?.url || null };
-      }));
-      setFeedEvents(withPhotos);
-      setFeedLoading(false);
-    })();
-  }, [user]);
+  // Feed data removed — feed is now a separate page at /feed/:username
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
