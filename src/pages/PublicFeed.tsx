@@ -118,9 +118,9 @@ export default function PublicFeed() {
 
       for (const evt of events || []) {
         let img = evt.cover_url || null;
-        const { data: ep } = await supabase.from("photos").select("url, thumbnail_url").eq("event_id", evt.id).limit(6);
-        if (!img && ep?.[0]) img = ep[0].url || ep[0].thumbnail_url || null;
-        (ep || []).forEach((p: any) => photos.push({ url: p.url || p.thumbnail_url, eventName: evt.name }));
+        const { data: ep } = await supabase.from("photos").select("url").eq("event_id", evt.id).limit(6);
+        if (!img && ep?.[0]) img = ep[0].url || null;
+        (ep || []).forEach((p) => photos.push({ url: p.url, eventName: evt.name || "Untitled" }));
 
         eventItems.push({
           id: evt.id, type: "event", title: evt.name || "Untitled",
