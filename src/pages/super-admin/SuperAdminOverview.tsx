@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Camera, Image, BookOpen, HardDrive, Activity } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { Users, Camera, Image, BookOpen, HardDrive, Activity, RefreshCw } from 'lucide-react';
+
+const playfair = '"Playfair Display", serif';
+const mont = '"Montserrat", sans-serif';
 
 interface Stats {
   totalUsers: number;
@@ -32,8 +32,6 @@ export default function SuperAdminOverview() {
     ]);
 
     const totalBytes = (storage.data || []).reduce((sum: number, p: any) => sum + (p.file_size || 0), 0);
-
-    // Active users = profiles updated in last 30 days
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
     const active = await supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('updated_at', thirtyDaysAgo);
 
@@ -50,6 +48,16 @@ export default function SuperAdminOverview() {
 
   useEffect(() => { loadStats(); }, []);
 
+  useEffect(() => {
+    if (!document.getElementById("sa-fonts")) {
+      const link = document.createElement("link");
+      link.id = "sa-fonts";
+      link.rel = "stylesheet";
+      link.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap";
+      document.head.appendChild(link);
+    }
+  }, []);
+
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -58,45 +66,80 @@ export default function SuperAdminOverview() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
+  const ink = '#1A1A1A';
+  const gold = '#C8A97E';
+  const border = 'rgba(0,0,0,0.06)';
+
   const cards = [
-    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-blue-400' },
-    { label: 'Active Users (30d)', value: stats.activeUsers, icon: Activity, color: 'text-green-400' },
-    { label: 'Total Events', value: stats.totalEvents, icon: Camera, color: 'text-emerald-400' },
-    { label: 'Total Photos', value: stats.totalPhotos, icon: Image, color: 'text-amber-400' },
-    { label: 'Storybooks', value: stats.totalStorybooks, icon: BookOpen, color: 'text-purple-400' },
-    { label: 'Storage Used', value: formatBytes(stats.totalStorage), icon: HardDrive, color: 'text-rose-400', raw: true },
+    { label: 'Total Users', value: stats.totalUsers, icon: Users, accent: false },
+    { label: 'Active (30d)', value: stats.activeUsers, icon: Activity, accent: true },
+    { label: 'Events', value: stats.totalEvents, icon: Camera, accent: false },
+    { label: 'Photos', value: stats.totalPhotos, icon: Image, accent: false },
+    { label: 'Storybooks', value: stats.totalStorybooks, icon: BookOpen, accent: false },
+    { label: 'Storage', value: formatBytes(stats.totalStorage), icon: HardDrive, accent: false, raw: true },
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ padding: '40px 32px', maxWidth: 1000 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
         <div>
-          <h1 className="text-2xl font-bold text-foreground font-serif">Platform Overview</h1>
-          <p className="text-sm text-muted-foreground">Real-time platform statistics</p>
+          <h1 style={{ fontFamily: playfair, fontSize: 28, fontWeight: 600, color: ink, margin: 0 }}>
+            Platform Overview
+          </h1>
+          <div style={{ width: 40, height: 2, background: gold, marginTop: 8 }} />
+          <p style={{ fontFamily: mont, fontSize: 12, color: 'rgba(26,26,26,0.45)', marginTop: 8 }}>
+            Real-time statistics
+          </p>
         </div>
-        <Button variant="outline" size="sm" onClick={loadStats} disabled={loading}>
-          <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+        <button
+          onClick={loadStats}
+          disabled={loading}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: mont, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em',
+            textTransform: 'uppercase', color: gold, background: 'none',
+            border: `1px solid ${gold}`, borderRadius: 4, padding: '8px 16px',
+            cursor: 'pointer', opacity: loading ? 0.5 : 1,
+          }}
+        >
+          <RefreshCw style={{ width: 13, height: 13, animation: loading ? 'spin 1s linear infinite' : 'none' }} />
           Refresh
-        </Button>
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {cards.map((c) => (
-          <Card key={c.label} className="border-border/50">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center ${c.color}`}>
-                <c.icon className="h-5 w-5" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        {cards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <div
+              key={c.label}
+              style={{
+                background: c.accent ? 'rgba(200,169,126,0.06)' : '#FFFFFF',
+                border: `1px solid ${c.accent ? 'rgba(200,169,126,0.15)' : border}`,
+                padding: 24,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Icon style={{ width: 16, height: 16, color: c.accent ? gold : 'rgba(26,26,26,0.3)' }} />
+                <span style={{
+                  fontFamily: mont, fontSize: 9, fontWeight: 500,
+                  letterSpacing: '0.2em', textTransform: 'uppercase',
+                  color: c.accent ? gold : 'rgba(26,26,26,0.4)',
+                }}>
+                  {c.label}
+                </span>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {loading ? '—' : c.raw ? c.value : (c.value as number).toLocaleString()}
-                </p>
-                <p className="text-[11px] text-muted-foreground">{c.label}</p>
+              <div style={{
+                fontFamily: playfair, fontSize: 32, fontWeight: 600, color: ink, lineHeight: 1,
+              }}>
+                {loading ? '—' : c.raw ? c.value : (c.value as number).toLocaleString()}
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          );
+        })}
       </div>
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
