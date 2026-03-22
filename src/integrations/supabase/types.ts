@@ -2027,6 +2027,72 @@ export type Database = {
           },
         ]
       }
+      feed_posts: {
+        Row: {
+          caption: string | null
+          created_at: string
+          event_id: string | null
+          id: string
+          image_url: string | null
+          is_published: boolean
+          likes_count: number
+          location: string | null
+          post_type: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+          views_count: number
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          likes_count?: number
+          location?: string | null
+          post_type?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+          views_count?: number
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          likes_count?: number
+          location?: string | null
+          post_type?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          views_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_posts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follow_up_rules: {
         Row: {
           auto_send: boolean

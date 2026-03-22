@@ -155,11 +155,11 @@ export default function IntelligenceHome() {
       const withPhotos = await Promise.all(events.map(async (evt: any) => {
         const { data: photos } = await (supabase
           .from('photos')
-          .select('thumbnail_url, url, storage_path') as any)
+          .select('url') as any)
           .eq('event_id', evt.id)
           .limit(1);
         const p = photos?.[0];
-        return { ...evt, firstPhoto: p?.thumbnail_url || p?.url || null };
+        return { ...evt, firstPhoto: p?.url || null };
       }));
       setFeedEvents(withPhotos);
       setFeedLoading(false);
