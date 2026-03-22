@@ -522,6 +522,13 @@ const Dashboard = () => {
       </div>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
+      <CreateEventModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={(eventId) => {
+          navigate(`/dashboard/events/${eventId}`);
+        }}
+      />
 
       <style>{`
         *::-webkit-scrollbar { display: none; }
