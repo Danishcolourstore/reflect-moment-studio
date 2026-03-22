@@ -9,7 +9,7 @@ const mont = '"Montserrat", sans-serif';
 
 const NAV_ITEMS = [
   { label: "HOME", id: "top" },
-  { label: "FEED", id: "feed" },
+  { label: "FEED", id: "feed", isRoute: true },
   { label: "NEWS", id: "news" },
   { label: "STORIES", id: "stories" },
   { label: "DISCOVER", id: "discover" },
