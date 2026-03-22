@@ -7,6 +7,7 @@ interface Props {
 }
 
 export default function RefynUpload({ onUpload }: Props) {
+  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
