@@ -3,50 +3,18 @@ import { useMemo } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  Crown,
-  Users,
-  Camera,
-  BookOpen,
-  Settings,
-  BarChart3,
-  LogOut,
-  Shield,
-  Home,
-  Layout,
-  HardDrive,
-  DollarSign,
-  Mail,
-  Activity,
-  Grid3X3,
-  Images,
-  LayoutDashboard,
-  Code,
-  Bot,
-  type LucideIcon,
+  Crown, Users, Camera, BookOpen, Settings, BarChart3, LogOut, Shield,
+  Home, Layout, HardDrive, DollarSign, Mail, Activity, Grid3X3, Images,
+  LayoutDashboard, Code, Bot, type LucideIcon,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 import { SUPER_ADMIN_ROUTES } from '@/config/super-admin-routes';
 
+const playfair = '"Playfair Display", serif';
+const mont = '"Montserrat", sans-serif';
+
 const iconMap: Record<string, LucideIcon> = {
-  Home,
-  Code,
-  Bot,
-  LayoutDashboard,
-  Users,
-  Camera,
-  HardDrive,
-  DollarSign,
-  BarChart3,
-  Layout,
-  BookOpen,
-  Grid3X3,
-  Images,
-  Shield,
-  Mail,
-  Activity,
-  Settings,
+  Home, Code, Bot, LayoutDashboard, Users, Camera, HardDrive, DollarSign,
+  BarChart3, Layout, BookOpen, Grid3X3, Images, Shield, Mail, Activity, Settings,
 };
 
 export default function SuperAdminLayout() {
@@ -70,71 +38,116 @@ export default function SuperAdminLayout() {
     navigate('/login', { replace: true });
   };
 
+  const cream = '#F5F0EA';
+  const ink = '#1A1A1A';
+  const gold = '#C8A97E';
+  const border = 'rgba(0,0,0,0.06)';
+
   return (
-    <div className="min-h-screen bg-background flex">
-      <aside className="w-56 border-r border-border bg-card/50 flex flex-col sticky top-0 h-screen">
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <Crown className="h-4 w-4 text-primary" />
+    <div style={{ minHeight: '100vh', display: 'flex', background: cream }}>
+      {/* Sidebar */}
+      <aside
+        style={{
+          width: 220,
+          borderRight: `1px solid ${border}`,
+          background: '#FFFFFF',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          flexShrink: 0,
+        }}
+      >
+        {/* Brand */}
+        <div style={{ padding: '24px 20px 16px', borderBottom: `1px solid ${border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: `linear-gradient(135deg, ${gold}, #D4B896)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <Crown style={{ width: 14, height: 14, color: '#FFFFFF' }} />
             </div>
             <div>
-              <p className="text-sm font-bold text-foreground font-serif">Super Admin</p>
-              <Badge className="bg-primary/15 text-primary border-primary/30 text-[8px] px-1.5 py-0 uppercase tracking-widest font-semibold">
+              <p style={{ fontFamily: playfair, fontSize: 15, fontWeight: 600, color: ink, margin: 0 }}>
+                Super Admin
+              </p>
+              <p style={{
+                fontFamily: mont, fontSize: 8, fontWeight: 600, letterSpacing: '0.2em',
+                textTransform: 'uppercase', color: gold, margin: 0,
+              }}>
                 Full Control
-              </Badge>
+              </p>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: '8px 8px', overflowY: 'auto' }}>
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
-                  isActive
-                    ? 'bg-primary/10 text-primary font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                )
-              }
+              style={({ isActive }) => ({
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '9px 12px',
+                borderRadius: 4,
+                textDecoration: 'none',
+                fontFamily: mont,
+                fontSize: 12,
+                fontWeight: isActive ? 500 : 400,
+                color: isActive ? ink : 'rgba(26,26,26,0.45)',
+                background: isActive ? 'rgba(200,169,126,0.08)' : 'transparent',
+                borderLeft: isActive ? `2px solid ${gold}` : '2px solid transparent',
+                transition: 'all 0.2s',
+                marginBottom: 1,
+              })}
             >
-              <item.Icon className="h-4 w-4" />
+              <item.Icon style={{ width: 15, height: 15 }} />
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="p-2 border-t border-border space-y-0.5">
+        {/* Bottom */}
+        <div style={{ padding: '8px', borderTop: `1px solid ${border}` }}>
           <button
             onClick={() => navigate('/admin')}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 w-full"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+              padding: '9px 12px', borderRadius: 4, border: 'none', cursor: 'pointer',
+              background: 'transparent', fontFamily: mont, fontSize: 12, color: 'rgba(26,26,26,0.45)',
+            }}
           >
-            <Shield className="h-4 w-4" />
-            Admin Panel
+            <Shield style={{ width: 15, height: 15 }} /> Admin Panel
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-destructive hover:bg-destructive/10 w-full"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+              padding: '9px 12px', borderRadius: 4, border: 'none', cursor: 'pointer',
+              background: 'transparent', fontFamily: mont, fontSize: 12, color: '#C0392B',
+            }}
           >
-            <LogOut className="h-4 w-4" />
-            Sign Out
+            <LogOut style={{ width: 15, height: 15 }} /> Sign Out
           </button>
         </div>
 
-        <div className="p-3 border-t border-border space-y-1.5">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
-            <RealtimeStatusIndicator showLabel={false} />
-          </div>
-          <RealtimeStatusIndicator showLabel className="justify-center" />
+        <div style={{ padding: '12px 16px', borderTop: `1px solid ${border}` }}>
+          <p style={{ fontFamily: mont, fontSize: 10, color: 'rgba(26,26,26,0.3)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {user?.email}
+          </p>
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">
+      {/* Main */}
+      <main style={{ flex: 1, overflowY: 'auto', background: cream }}>
         <Outlet />
       </main>
     </div>
