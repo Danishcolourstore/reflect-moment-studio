@@ -422,7 +422,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           </button>
           <div />
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button className="vsco-tap" style={{ color: hasEdits ? '#fff' : 'rgba(255,255,255,0.3)' }}>
+            <button className="vsco-tap" onClick={handleUndo} style={{ color: canUndo ? '#fff' : 'rgba(255,255,255,0.3)' }}>
               <Undo2 size={20} strokeWidth={1.5} />
             </button>
             <button className="vsco-tap"
