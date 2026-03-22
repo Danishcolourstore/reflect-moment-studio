@@ -163,8 +163,8 @@ export default function SuperAdminArtGallery() {
     if (ni < 0 || ni >= list.length) return;
     const a = list[idx], b = list[ni];
     await Promise.all([
-      (supabase.from(table).update({ sort_order: ni }).eq('id', a.id) as any),
-      (supabase.from(table).update({ sort_order: idx }).eq('id', b.id) as any),
+      (supabase.from(table as any).update({ sort_order: ni } as any).eq('id', a.id) as any),
+      (supabase.from(table as any).update({ sort_order: idx } as any).eq('id', b.id) as any),
     ]);
     loadAll();
   };
