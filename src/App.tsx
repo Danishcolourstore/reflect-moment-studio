@@ -248,13 +248,12 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
         } else if (roles.includes("client")) {
           setRedirectTo("/client");
         } else {
-          // Always go to /home — no sessionStorage override
-          setRedirectTo("/home");
+          setRedirectTo("/dashboard");
         }
         setChecked(true);
       })
       .catch(() => {
-        setRedirectTo("/home");
+        setRedirectTo("/dashboard");
         setChecked(true);
       });
   }, [user, loading]);

@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { CreateEventModal } from "@/components/CreateEventModal";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 const playfair = '"Playfair Display", serif';
 const montserrat = '"Montserrat", sans-serif';
@@ -16,48 +20,15 @@ const NAV_ITEMS = [
   { label: "MORE", path: "__drawer__" },
 ];
 
-const STORIES = [
-  {
-    names: "TRISHA & NIHAAL",
-    date: "October 13, 2022",
-    snippet: "It unfolded like a scene straight out of a movie as Nihaal & Trisha took their last phera.",
-    tags: "Tags: destination weddings, Luxury wedding, Hyderabad",
-    comments: 33,
-    likes: 146,
-  },
-  {
-    names: "ALISHA & RAHUL",
-    date: "May 20, 2021",
-    snippet: "A celebration that painted the town in hues of love and tradition.",
-    tags: "Tags: traditional wedding, Grand celebration, Udaipur",
-    comments: 21,
-    likes: 98,
-  },
-  {
-    names: "KAVYA & KARAN",
-    date: "June 4, 2021",
-    snippet: "Two souls, one journey — from the ghats of Varanasi to forever.",
-    tags: "Tags: intimate wedding, Heritage venue, Varanasi",
-    comments: 18,
-    likes: 112,
-  },
-  {
-    names: "SHRAVYA & SHARAN",
-    date: "May 10, 2020",
-    snippet: "When the monsoon rains blessed their union, every frame became poetry.",
-    tags: "Tags: monsoon wedding, South Indian, Kochi",
-    comments: 27,
-    likes: 134,
-  },
-  {
-    names: "TANYA & NEEV",
-    date: "March 15, 2023",
-    snippet: "A pastel dream woven with laughter, music, and endless celebrations.",
-    tags: "Tags: pastel theme, Modern wedding, Jaipur",
-    comments: 42,
-    likes: 201,
-  },
-];
+interface EventItem {
+  id: string;
+  name: string;
+  slug: string | null;
+  event_date: string | null;
+  location: string | null;
+  cover_url: string | null;
+  photo_count: number;
+}
 
 function FadeCard({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -88,10 +59,13 @@ function FadeCard({ children }: { children: React.ReactNode }) {
 export default function Events() {
   const navigate = useNavigate();
   const drawer = useDrawerMenu();
+  const { user } = useAuth();
   const [navHover, setNavHover] = useState<number | null>(null);
-  const [imgHover, setImgHover] = useState<number | null>(null);
-  const [readHover, setReadHover] = useState<number | null>(null);
+  const [imgHover, setImgHover] = useState<string | null>(null);
   const [mob, setMob] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -102,6 +76,22 @@ export default function Events() {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, []);
+
+  const fetchEvents = async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data } = await (supabase
+      .from('events')
+      .select('id, name, event_date, location, cover_url, photo_count, slug') as any)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    setEvents(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [user]);
 
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: "#FFFFFF", overflow: "visible" }}>
@@ -169,126 +159,156 @@ export default function Events() {
         </div>
       </nav>
 
-      {/* STORY CARDS */}
+      {/* CREATE BUTTON */}
+      <div style={{ maxWidth: 720, margin: "0 auto", padding: mob ? "20px 16px 0" : "28px 20px 0" }}>
+        <button
+          onClick={() => setCreateOpen(true)}
+          style={{
+            fontFamily: montserrat,
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase" as const,
+            letterSpacing: "1px",
+            background: "#000000",
+            color: "#FFFFFF",
+            border: "none",
+            padding: "12px 28px",
+            cursor: "pointer",
+            transition: "background 0.3s",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = "#333333")}
+          onMouseLeave={e => (e.currentTarget.style.background = "#000000")}
+        >
+          + Create Event
+        </button>
+      </div>
+
+      {/* EVENT CARDS */}
       <main style={{ maxWidth: 720, margin: "0 auto", padding: mob ? "24px 0" : "40px 0" }}>
-        <div style={{ display: "flex", flexDirection: "column" as const, gap: mob ? 40 : 48 }}>
-          {STORIES.map((s, i) => (
-            <FadeCard key={i}>
-              {/* Cover Image — full bleed */}
-              <div
-                style={{
-                  overflow: "hidden",
-                  lineHeight: 0,
-                  transform: imgHover === i ? "scale(1.02)" : "scale(1)",
-                  transition: "transform 0.4s ease",
-                }}
-                onMouseEnter={() => setImgHover(i)}
-                onMouseLeave={() => setImgHover(null)}
-              >
-                <img src={`/images/gallery-${(i % 8) + 1}.jpg`} alt={s.names} style={{ width: "100%", height: "auto", objectFit: "cover", display: "block" }} />
-              </div>
-
-              {/* Text content with padding */}
-              <div style={{ padding: mob ? "0 16px" : "0 20px" }}>
-              {/* Couple Names */}
-              <div
-                style={{
-                  fontFamily: playfair,
-                  fontSize: mob ? 16 : 18,
-                  fontWeight: 700,
-                  color: "#000000",
-                  textTransform: "uppercase" as const,
-                  letterSpacing: "0.5px",
-                  marginTop: mob ? 16 : 20,
-                }}
-              >
-                {s.names}
-              </div>
-
-              {/* Date */}
-              <div style={{ fontFamily: montserrat, fontSize: mob ? 12 : 14, fontWeight: 400, color: "#666666", marginTop: 6 }}>
-                {s.date}
-              </div>
-
-              {/* Snippet */}
-              <div
-                style={{
-                  fontFamily: montserrat,
-                  fontSize: mob ? 13 : 15,
-                  fontWeight: 400,
-                  color: "#000000",
-                  lineHeight: 1.6,
-                  marginTop: 10,
-                }}
-              >
-                {s.snippet}
-              </div>
-
-              {/* Read More */}
-              <div
-                style={{ marginTop: 8 }}
-                onMouseEnter={() => setReadHover(i)}
-                onMouseLeave={() => setReadHover(null)}
-              >
-                <span
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "60px 24px" }}>
+            <p style={{ fontFamily: montserrat, fontSize: 14, color: "#666666" }}>Loading events...</p>
+          </div>
+        ) : events.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "60px 24px" }}>
+            <p style={{ fontFamily: playfair, fontSize: 22, fontWeight: 700, color: "#000000", marginBottom: 12 }}>
+              No events yet
+            </p>
+            <p style={{ fontFamily: montserrat, fontSize: 14, color: "#666666", marginBottom: 24 }}>
+              Create your first event to get started.
+            </p>
+            <button
+              onClick={() => setCreateOpen(true)}
+              style={{
+                fontFamily: montserrat,
+                fontSize: 11,
+                fontWeight: 600,
+                textTransform: "uppercase" as const,
+                letterSpacing: "1px",
+                background: "#000000",
+                color: "#FFFFFF",
+                border: "none",
+                padding: "12px 28px",
+                cursor: "pointer",
+              }}
+            >
+              + Create Event
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: mob ? 40 : 48 }}>
+            {events.map((evt) => (
+              <FadeCard key={evt.id}>
+                {/* Cover Image — full bleed */}
+                <div
                   style={{
-                    fontFamily: montserrat,
-                    fontSize: mob ? 12 : 14,
-                    fontWeight: 500,
-                    color: "#000000",
-                    textDecoration: readHover === i ? "underline" : "none",
+                    overflow: "hidden",
+                    lineHeight: 0,
                     cursor: "pointer",
+                    transform: imgHover === evt.id ? "scale(1.02)" : "scale(1)",
+                    transition: "transform 0.4s ease",
                   }}
+                  onMouseEnter={() => setImgHover(evt.id)}
+                  onMouseLeave={() => setImgHover(null)}
+                  onClick={() => navigate(`/dashboard/events/${evt.id}`)}
                 >
-                  Read More
-                </span>
-              </div>
+                  {evt.cover_url ? (
+                    <img
+                      src={evt.cover_url}
+                      alt={evt.name}
+                      style={{ width: "100%", height: "auto", objectFit: "cover", display: "block" }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: "100%",
+                      height: mob ? "65vw" : 400,
+                      background: "linear-gradient(135deg, #f5f0ea, #e8e0d4, #f5f0ea)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                      <span style={{ fontFamily: montserrat, fontSize: 12, color: "#999999" }}>No cover photo</span>
+                    </div>
+                  )}
+                </div>
 
-              {/* Tags */}
-              <div
-                style={{
-                  fontFamily: montserrat,
-                  fontSize: mob ? 11 : 13,
-                  fontWeight: 400,
-                  color: "#666666",
-                  marginTop: 12,
-                }}
-              >
-                {s.tags}
-              </div>
+                {/* Text content */}
+                <div
+                  style={{ padding: mob ? "0 16px" : "0 20px", cursor: "pointer" }}
+                  onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                >
+                  <div
+                    style={{
+                      fontFamily: playfair,
+                      fontSize: mob ? 16 : 18,
+                      fontWeight: 700,
+                      color: "#000000",
+                      textTransform: "uppercase" as const,
+                      letterSpacing: "0.5px",
+                      marginTop: mob ? 16 : 20,
+                    }}
+                  >
+                    {evt.name}
+                  </div>
 
-              {/* Engagement Row */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  fontFamily: montserrat,
-                  fontSize: mob ? 11 : 13,
-                  color: "#666666",
-                  marginTop: 14,
-                  paddingBottom: 12,
-                }}
-              >
-                <span>{s.comments} Comments · Share</span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666666" strokeWidth="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                  {s.likes} Likes
-                </span>
-              </div>
-              </div>{/* close text padding wrapper */}
-            </FadeCard>
-          ))}
-        </div>
+                  <div style={{ fontFamily: montserrat, fontSize: mob ? 12 : 14, fontWeight: 400, color: "#666666", marginTop: 6 }}>
+                    {evt.event_date ? format(new Date(evt.event_date), "MMMM d, yyyy") : "No date set"}
+                    {evt.location ? ` · ${evt.location}` : ""}
+                  </div>
+
+                  <div style={{
+                    fontFamily: montserrat,
+                    fontSize: mob ? 11 : 13,
+                    fontWeight: 400,
+                    color: "#999999",
+                    marginTop: 8,
+                  }}>
+                    {evt.photo_count || 0} photos
+                  </div>
+
+                  {/* Divider */}
+                  <div style={{ height: 1, background: "#F2F2F2", marginTop: 20 }} />
+                </div>
+              </FadeCard>
+            ))}
+          </div>
+        )}
       </main>
 
       {/* FOOTER */}
       <footer style={{ textAlign: "center", padding: mob ? "40px 16px 28px" : "60px 20px 40px", paddingBottom: `calc(${mob ? 28 : 40}px + env(safe-area-inset-bottom, 0px))` }}>
         <div style={{ fontFamily: montserrat, fontSize: mob ? 10 : 12, color: "#666666" }}>© MIRRORAI</div>
       </footer>
+
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
+      <CreateEventModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={(eventId) => {
+          fetchEvents();
+          navigate(`/dashboard/events/${eventId}`);
+        }}
+      />
     </div>
   );
 }

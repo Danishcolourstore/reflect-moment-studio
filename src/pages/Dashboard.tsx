@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { CreateEventModal } from "@/components/CreateEventModal";
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
@@ -31,6 +32,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -162,6 +164,27 @@ const Dashboard = () => {
         <p style={{ fontFamily: mont, fontSize: mob ? 12 : 13, color: "#666666", letterSpacing: "0.5px" }}>
           {loading ? "—" : `${totalPhotos} moments · ${totalEvents} events · ${totalAlbums} albums`}
         </p>
+        <button
+          onClick={() => setCreateOpen(true)}
+          style={{
+            fontFamily: mont,
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase" as const,
+            letterSpacing: "1px",
+            background: "#000000",
+            color: "#FFFFFF",
+            border: "none",
+            padding: "12px 28px",
+            cursor: "pointer",
+            marginTop: 16,
+            transition: "background 0.3s",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = "#333333")}
+          onMouseLeave={e => (e.currentTarget.style.background = "#000000")}
+        >
+          + New Event
+        </button>
       </div>
 
       {collagePhotos.length > 0 && (
@@ -499,6 +522,13 @@ const Dashboard = () => {
       </div>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
+      <CreateEventModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={(eventId) => {
+          navigate(`/dashboard/events/${eventId}`);
+        }}
+      />
 
       <style>{`
         *::-webkit-scrollbar { display: none; }
