@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { useRetouchSession } from './RetouchLogin';
+import RetouchLogin from './RetouchLogin';
 
 import RefynUpload from '@/components/refyn/RefynUpload';
 import RefynProcessing from '@/components/refyn/RefynProcessing';
@@ -20,6 +22,7 @@ export interface RefynPhoto {
 }
 
 export default function ColourStore() {
+  const { needsOtp } = useRetouchSession();
   const [screen, setScreen] = useState<RefynScreen>('upload');
   const [photo, setPhoto] = useState<RefynPhoto | null>(null);
   const [showIntelBar, setShowIntelBar] = useState(false);
@@ -88,6 +91,8 @@ export default function ColourStore() {
   }, [photo]);
 
   const isEditorActive = screen === 'editor';
+
+  if (needsOtp) return <RetouchLogin />;
 
   return (
     <div className="refyn-app min-h-[100dvh] bg-[#0A0A0A] text-[#F0EDE8] overflow-hidden relative">

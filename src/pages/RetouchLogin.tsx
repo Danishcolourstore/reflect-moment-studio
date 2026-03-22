@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const SESSION_KEY = "retouch_session_ts";
 const OTP_KEY = "retouch_otp_verified";
-const UNIVERSAL_OTP = "1963";
+const PENDING_OTP_KEY = "retouch_pending_otp";
 const SESSION_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
 export function useRetouchSession() {
@@ -28,17 +28,18 @@ export function useRetouchSession() {
       }
     };
     check();
-    const interval = setInterval(check, 30_000); // check every 30s
+    const interval = setInterval(check, 30_000);
     return () => clearInterval(interval);
   }, []);
 
   const verify = (otp: string): boolean => {
-    if (otp === UNIVERSAL_OTP) {
+    const pending = sessionStorage.getItem(PENDING_OTP_KEY);
+    if (pending && otp === pending) {
       sessionStorage.setItem(OTP_KEY, "true");
       sessionStorage.setItem(SESSION_KEY, Date.now().toString());
+      sessionStorage.removeItem(PENDING_OTP_KEY);
       setNeedsOtp(false);
 
-      // Notify admin via edge function (fire & forget)
       supabase.functions.invoke("send-comment-notification", {
         body: {
           type: "retouch_login",
@@ -54,11 +55,18 @@ export function useRetouchSession() {
   return { needsOtp, verify };
 }
 
+function generateOTP(): string {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
 export default function RetouchLogin() {
   const navigate = useNavigate();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [introPhase, setIntroPhase] = useState(0);
+  const [otpSent, setOtpSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
     const t1 = setTimeout(() => setIntroPhase(1), 300);
@@ -66,10 +74,43 @@ export default function RetouchLogin() {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => setCooldown(c => c - 1), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
+
+  const sendOtp = async () => {
+    if (sending || cooldown > 0) return;
+    setSending(true);
+    const code = generateOTP();
+    sessionStorage.setItem(PENDING_OTP_KEY, code);
+
+    try {
+      await supabase.functions.invoke("send-access-pin", {
+        body: {
+          type: "send_pin",
+          pin: code,
+          user_email: "Colour Store RI Access",
+          timestamp: new Date().toISOString(),
+        },
+      });
+      setOtpSent(true);
+      setCooldown(60);
+    } catch {
+      setError("Failed to send OTP. Try again.");
+      setTimeout(() => setError(""), 3000);
+    }
+    setSending(false);
+  };
+
   const handleSubmit = () => {
-    if (otp === UNIVERSAL_OTP) {
+    const pending = sessionStorage.getItem(PENDING_OTP_KEY);
+    if (pending && otp === pending) {
       sessionStorage.setItem(OTP_KEY, "true");
       sessionStorage.setItem(SESSION_KEY, Date.now().toString());
+      sessionStorage.removeItem(PENDING_OTP_KEY);
 
       supabase.functions.invoke("send-comment-notification", {
         body: {
@@ -80,7 +121,7 @@ export default function RetouchLogin() {
 
       navigate("/colour-store");
     } else {
-      setError("Invalid access code");
+      setError("Invalid OTP");
       setTimeout(() => setError(""), 2000);
     }
   };
@@ -131,7 +172,6 @@ export default function RetouchLogin() {
           Colour Store Intelligence
         </p>
 
-        {/* OTP input */}
         <div
           style={{
             opacity: introPhase >= 2 ? 1 : 0,
@@ -140,49 +180,115 @@ export default function RetouchLogin() {
             width: "100%",
           }}
         >
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={4}
-            value={otp}
-            onChange={(e) => {
-              const v = e.target.value.replace(/\D/g, "").slice(0, 4);
-              setOtp(v);
-              setError("");
-            }}
-            onKeyDown={(e) => e.key === "Enter" && otp.length === 4 && handleSubmit()}
-            placeholder="Enter access code"
-            className="w-full text-center text-xl font-medium bg-transparent outline-none"
-            style={{
-              color: "#F0EDE8",
-              letterSpacing: "0.4em",
-              padding: "14px 0",
-              borderBottom: "1px solid rgba(240,237,232,0.1)",
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          />
+          {!otpSent ? (
+            <>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "rgba(240,237,232,0.5)",
+                  textAlign: "center",
+                  marginBottom: 20,
+                  lineHeight: 1.6,
+                }}
+              >
+                Tap below to request access. An OTP will be sent to the admin for approval.
+              </p>
+              <button
+                onClick={sendOtp}
+                disabled={sending}
+                className="w-full py-3 rounded-xl text-sm uppercase tracking-[0.15em] font-medium active:scale-[0.97] transition-all"
+                style={{
+                  background: sending ? "rgba(232,201,122,0.15)" : "#E8C97A",
+                  color: sending ? "rgba(232,201,122,0.4)" : "#080808",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                {sending ? "Sending..." : "Request Access"}
+              </button>
+            </>
+          ) : (
+            <>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "rgba(240,237,232,0.5)",
+                  textAlign: "center",
+                  marginBottom: 20,
+                  lineHeight: 1.6,
+                }}
+              >
+                OTP sent to admin. Enter the code below.
+              </p>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                value={otp}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  setOtp(v);
+                  setError("");
+                }}
+                onKeyDown={(e) => e.key === "Enter" && otp.length === 4 && handleSubmit()}
+                placeholder="Enter OTP"
+                className="w-full text-center text-xl font-medium bg-transparent outline-none"
+                style={{
+                  color: "#F0EDE8",
+                  letterSpacing: "0.4em",
+                  padding: "14px 0",
+                  borderBottom: "1px solid rgba(240,237,232,0.1)",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              />
 
-          {error && (
+              {error && (
+                <p
+                  className="text-center mt-3"
+                  style={{ fontSize: 12, color: "#e55", fontFamily: "'DM Sans', sans-serif" }}
+                >
+                  {error}
+                </p>
+              )}
+
+              <button
+                onClick={handleSubmit}
+                disabled={otp.length < 4}
+                className="w-full mt-6 py-3 rounded-xl text-sm uppercase tracking-[0.15em] font-medium active:scale-[0.97] transition-all"
+                style={{
+                  background: otp.length === 4 ? "#E8C97A" : "rgba(232,201,122,0.15)",
+                  color: otp.length === 4 ? "#080808" : "rgba(232,201,122,0.4)",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                Continue
+              </button>
+
+              <button
+                onClick={sendOtp}
+                disabled={cooldown > 0}
+                className="w-full mt-3 py-2 text-center transition-all"
+                style={{
+                  fontSize: 11,
+                  color: cooldown > 0 ? "rgba(240,237,232,0.2)" : "rgba(240,237,232,0.5)",
+                  background: "none",
+                  border: "none",
+                  cursor: cooldown > 0 ? "default" : "pointer",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
+              </button>
+            </>
+          )}
+
+          {error && !otpSent && (
             <p
               className="text-center mt-3"
-              style={{ fontSize: 12, color: "#e55", fontFamily: "'DM Sans', sans-serif" }}
+              style={{ fontSize: 12, color: "#e55" }}
             >
               {error}
             </p>
           )}
-
-          <button
-            onClick={handleSubmit}
-            disabled={otp.length < 4}
-            className="w-full mt-6 py-3 rounded-xl text-sm uppercase tracking-[0.15em] font-medium active:scale-[0.97] transition-all"
-            style={{
-              background: otp.length === 4 ? "#E8C97A" : "rgba(232,201,122,0.15)",
-              color: otp.length === 4 ? "#080808" : "rgba(232,201,122,0.4)",
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            Continue
-          </button>
 
           <p
             className="text-center mt-6"
@@ -196,7 +302,6 @@ export default function RetouchLogin() {
           </p>
         </div>
       </div>
-
     </div>
   );
 }

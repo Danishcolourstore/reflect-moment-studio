@@ -324,14 +324,7 @@ const AppRoutes = () => {
                 </Suspense>
               }
             />
-            <Route
-              path="/colour-store"
-              element={
-                <ProtectedRoute>
-                  <ColourStore />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/colour-store" element={<ColourStore />} />
             <Route path="/retouch-login" element={<RetouchLogin />} />
             <Route path="/preview/:previewId" element={<ClientPreview />} />
             <Route
