@@ -563,7 +563,13 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
       {/* ── Export screen ── */}
       <AnimatePresence>
         {showExport && (
-          <RefynExportScreen photoUrl={photoUrl} onBack={() => setShowExport(false)} onDownload={handleExport} />
+          <RefynExportScreen
+            photoUrl={photoUrl}
+            onBack={() => setShowExport(false)}
+            onSaveDevice={handleSaveDevice}
+            onSaveWeb={handleSaveWeb}
+            onSaveXMP={handleSaveXMP}
+          />
         )}
       </AnimatePresence>
 
