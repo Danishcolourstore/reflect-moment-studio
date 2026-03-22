@@ -51,34 +51,18 @@ const FALLBACK_NEWS: NewsItem[] = [
   },
 ];
 
-const STORIES = [
-  {
-    couple: "Meera & Arjun",
-    loc: "Udaipur · Dec 2025",
-    snippet: "A royal celebration at City Palace that blended tradition with modern elegance.",
-  },
-  {
-    couple: "Priya & Karthik",
-    loc: "Kerala · Jan 2026",
-    snippet: "A houseboat ceremony on the backwaters that felt like a dream.",
-  },
-  { couple: "Zara & Imran", loc: "Lucknow · Nov 2025", snippet: "A Nawabi nikah that honored centuries of tradition." },
-  {
-    couple: "Simran & Raj",
-    loc: "Amritsar · Feb 2026",
-    snippet: "An Anand Karaj at the Golden Temple, bathed in golden light.",
-  },
+// Fallback data — used only if DB fetch fails
+const FALLBACK_STORIES = [
+  { couple: "Meera & Arjun", location: "Udaipur", story_date: "Dec 2025", snippet: "A royal celebration at City Palace that blended tradition with modern elegance." },
+  { couple: "Priya & Karthik", location: "Kerala", story_date: "Jan 2026", snippet: "A houseboat ceremony on the backwaters that felt like a dream." },
+  { couple: "Zara & Imran", location: "Lucknow", story_date: "Nov 2025", snippet: "A Nawabi nikah that honored centuries of tradition." },
+  { couple: "Simran & Raj", location: "Amritsar", story_date: "Feb 2026", snippet: "An Anand Karaj at the Golden Temple, bathed in golden light." },
 ];
-
-const DISCOVER_PHOTOGRAPHERS = [
-  { name: "Naman Verma", loc: "Delhi" },
-  { name: "Joseph Radhik", loc: "Hyderabad" },
-  { name: "Recall Pictures", loc: "Mumbai" },
-  { name: "The Wedding Filmer", loc: "Mumbai" },
-  { name: "Plush Affairs", loc: "Delhi" },
-  { name: "Beginnings For You", loc: "Kochi" },
-  { name: "Infinite Memories", loc: "Pune" },
-  { name: "Shades Photography", loc: "Bangalore" },
+const FALLBACK_DISCOVER = [
+  { name: "Naman Verma", location: "Delhi" }, { name: "Joseph Radhik", location: "Hyderabad" },
+  { name: "Recall Pictures", location: "Mumbai" }, { name: "The Wedding Filmer", location: "Mumbai" },
+  { name: "Plush Affairs", location: "Delhi" }, { name: "Beginnings For You", location: "Kochi" },
+  { name: "Infinite Memories", location: "Pune" }, { name: "Shades Photography", location: "Bangalore" },
 ];
 
 const warmGrad = "linear-gradient(135deg, #f5f0ea, #e8e0d4, #f5f0ea)";
@@ -128,6 +112,21 @@ export default function IntelligenceHome() {
   const [newsLoading, setNewsLoading] = useState(true);
 
   // Feed data removed — feed is now a separate page at /feed/:username
+
+  // DB-driven stories and discover
+  const [dbStories, setDbStories] = useState(FALLBACK_STORIES);
+  const [dbDiscover, setDbDiscover] = useState(FALLBACK_DISCOVER);
+
+  useEffect(() => {
+    (async () => {
+      const [storiesRes, discoverRes] = await Promise.all([
+        (supabase.from('ag_stories').select('*').eq('status', 'active').order('sort_order') as any),
+        (supabase.from('ag_discover_profiles').select('*').order('sort_order') as any),
+      ]);
+      if (storiesRes.data?.length) setDbStories(storiesRes.data);
+      if (discoverRes.data?.length) setDbDiscover(discoverRes.data);
+    })();
+  }, []);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -530,7 +529,7 @@ export default function IntelligenceHome() {
             </p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: mob ? 24 : 20 }}>
-            {STORIES.map((s, i) => (
+            {dbStories.map((s, i) => (
               <div
                 key={i}
                 style={{
@@ -551,7 +550,7 @@ export default function IntelligenceHome() {
                   <div style={{ fontFamily: playfair, fontSize: mob ? 16 : 18, fontWeight: 700, color: "#000000" }}>
                     {s.couple}
                   </div>
-                  <div style={{ fontFamily: mont, fontSize: 11, color: "#666666", marginTop: 4 }}>{s.loc}</div>
+                  <div style={{ fontFamily: mont, fontSize: 11, color: "#666666", marginTop: 4 }}>{s.location}{s.story_date ? ` · ${s.story_date}` : ''}</div>
                   <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", lineHeight: 1.6, margin: "8px 0 0" }}>
                     {s.snippet}
                   </p>
@@ -612,7 +611,7 @@ export default function IntelligenceHome() {
               scrollbarWidth: "none" as const,
             }}
           >
-            {DISCOVER_PHOTOGRAPHERS.map((p, i) => (
+            {dbDiscover.map((p, i) => (
               <div key={i} style={{ flexShrink: 0, textAlign: "center", cursor: "pointer" }}>
                 <div
                   style={{
@@ -626,7 +625,7 @@ export default function IntelligenceHome() {
                 <div style={{ fontFamily: mont, fontSize: mob ? 10 : 12, color: "#000000", marginTop: 8 }}>
                   {p.name}
                 </div>
-                <div style={{ fontFamily: mont, fontSize: mob ? 9 : 10, color: "#666666" }}>{p.loc}</div>
+                <div style={{ fontFamily: mont, fontSize: mob ? 9 : 10, color: "#666666" }}>{p.location}</div>
               </div>
             ))}
           </div>
