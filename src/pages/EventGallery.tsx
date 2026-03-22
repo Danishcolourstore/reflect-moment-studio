@@ -214,6 +214,22 @@ function StandardGridRenderer({
                 </button>
               )}
 
+              {/* Art Gallery toggle (owner only) */}
+              {isOwner && isArtGallery && toggleArtGallery && (
+                <button
+                  onClick={() => toggleArtGallery(photo.id)}
+                  className={`absolute top-2 z-10 rounded-full backdrop-blur-md p-1.5 transition-all duration-200 ${
+                    isPortfolioPhoto ? 'left-10' : 'left-2'
+                  } ${
+                    isArtGallery(photo.id)
+                      ? 'bg-[#C8A97E]/80 hover:bg-[#C8A97E]/90'
+                      : 'bg-black/40 opacity-0 group-hover:opacity-100 hover:bg-black/60'
+                  }`}
+                  title={isArtGallery(photo.id) ? 'Remove from Art Gallery' : 'Add to Art Gallery'}
+                >
+                  <Diamond className={`h-3.5 w-3.5 ${isArtGallery(photo.id) ? 'text-white' : 'text-white/70'}`} />
+                </button>
+              )}
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 pointer-events-none" />
 
