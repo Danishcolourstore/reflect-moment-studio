@@ -7,8 +7,8 @@ import CreateFeedPostModal from "@/components/CreateFeedPostModal";
 import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { toast } from "sonner";
 
-const cormorant = '"Cormorant Garamond", serif';
-const dm = '"DM Sans", sans-serif';
+const playfair = '"Playfair Display", serif';
+const mont = '"Montserrat", sans-serif';
 
 interface FeedItem {
   id: string;
@@ -21,36 +21,33 @@ interface FeedItem {
   photoCount?: number;
 }
 
-const warmGrad = "linear-gradient(135deg, #f5f0ea, #e8e0d4, #f5f0ea)";
-const coolGrad = "linear-gradient(135deg, #eae4dc, #d4ccc0, #eae4dc)";
-
 export default function LandingGate() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const drawer = useDrawerMenu();
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profileName, setProfileName] = useState("Photographer");
+  const [profileName, setProfileName] = useState("My Studio");
   const [createOpen, setCreateOpen] = useState(false);
   const [shareSlug, setShareSlug] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+  const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [editPost, setEditPost] = useState<FeedItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
-    const h = () => setIsMobile(window.innerWidth < 768);
+    const h = () => setMob(window.innerWidth < 768);
     window.addEventListener("resize", h);
     return () => window.removeEventListener("resize", h);
   }, []);
 
   useEffect(() => {
-    if (!document.getElementById("feed-fonts")) {
+    if (!document.getElementById("home-fonts")) {
       const link = document.createElement("link");
-      link.id = "feed-fonts";
+      link.id = "home-fonts";
       link.rel = "stylesheet";
       link.href =
-        "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@400;500;600;700&display=swap";
+        "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Montserrat:wght@300;400;500;600;700&display=swap";
       document.head.appendChild(link);
     }
   }, []);
@@ -115,10 +112,9 @@ export default function LandingGate() {
 
   useEffect(() => { loadFeed(); }, [loadFeed]);
 
-  const formatDate = (d: string) => {
-    try {
-      return new Date(d).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
-    } catch { return d; }
+  const fmt = (d: string) => {
+    try { return new Date(d).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }); }
+    catch { return d; }
   };
 
   const handleDeletePost = async (id: string) => {
@@ -133,7 +129,7 @@ export default function LandingGate() {
   const handleHideEvent = (id: string) => {
     setFeed(prev => prev.filter(f => f.id !== id));
     setMenuOpenId(null);
-    toast.success("Event hidden from feed");
+    toast.success("Hidden from feed");
   };
 
   const handleEditPost = (item: FeedItem) => {
@@ -142,234 +138,226 @@ export default function LandingGate() {
     setMenuOpenId(null);
   };
 
+  // --- SVG Icons ---
   const HeartIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,237,232,0.35)" strokeWidth="1.5">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CCCCCC" strokeWidth="1.5">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
-
   const DotsIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(240,237,232,0.35)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#999999">
       <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
     </svg>
   );
 
-  const menuBtnStyle: React.CSSProperties = {
-    width: "100%", padding: "10px 16px", fontFamily: dm, fontSize: 12,
-    color: "#F0EDE8", background: "transparent", border: "none",
+  const menuBtn: React.CSSProperties = {
+    width: "100%", padding: "10px 16px", fontFamily: mont, fontSize: 12,
+    color: "#000000", background: "transparent", border: "none",
     textAlign: "left" as const, cursor: "pointer",
   };
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "#080808", overflowY: "auto" as const }}>
-      {/* Top Bar */}
+    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF", overflowY: "auto" as const }}>
+      {/* ── Top Bar ── */}
       <div style={{
-        position: "sticky" as const, top: 0, zIndex: 100, height: 52,
+        position: "sticky" as const, top: 0, zIndex: 100, height: mob ? 52 : 56,
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 20px", background: "rgba(8,8,8,0.92)",
-        backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(240,237,232,0.06)",
+        padding: "0 20px", background: "rgba(255,255,255,0.96)",
+        backdropFilter: "blur(20px)", borderBottom: "1px solid #F2F2F2",
       }}>
         <button onClick={drawer.toggle} style={{
-          background: "none", border: "none", fontFamily: dm, fontSize: 10,
-          fontWeight: 600, color: "rgba(240,237,232,0.4)", letterSpacing: "0.2em",
+          background: "none", border: "none", fontFamily: mont, fontSize: 10,
+          fontWeight: 600, color: "#999999", letterSpacing: "0.2em",
           cursor: "pointer", textTransform: "uppercase" as const,
         }}>MENU</button>
-        <span style={{ fontFamily: cormorant, fontSize: 16, fontWeight: 400, color: "#F0EDE8", letterSpacing: "0.06em" }}>
+        <span style={{ fontFamily: playfair, fontSize: 16, fontWeight: 700, color: "#000000", letterSpacing: "0.02em" }}>
           {profileName}
         </span>
-        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#E8C97A" }} />
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button onClick={() => navigate("/dashboard")} style={{
+            background: "none", border: "none", fontFamily: mont, fontSize: 9,
+            fontWeight: 600, color: "#999999", letterSpacing: "0.15em",
+            cursor: "pointer", textTransform: "uppercase" as const,
+          }}>WORKSPACE</button>
+        </div>
       </div>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
-      {/* Quick access */}
-      <div style={{ display: "flex", gap: 10, padding: "16px 20px", borderBottom: "1px solid rgba(240,237,232,0.04)" }}>
-        <button onClick={() => navigate("/dashboard")} style={{
-          flex: 1, padding: "10px 0", fontFamily: dm, fontSize: 10, fontWeight: 600,
-          letterSpacing: "0.15em", textTransform: "uppercase" as const, color: "#E8C97A",
-          background: "transparent", border: "1px solid rgba(232,201,122,0.2)", cursor: "pointer",
-        }}>Workspace</button>
-        <button onClick={() => navigate("/art-gallery")} style={{
-          flex: 1, padding: "10px 0", fontFamily: dm, fontSize: 10, fontWeight: 600,
-          letterSpacing: "0.15em", textTransform: "uppercase" as const, color: "rgba(240,237,232,0.4)",
-          background: "transparent", border: "1px solid rgba(240,237,232,0.06)", cursor: "pointer",
-        }}>Art Gallery</button>
-      </div>
-
-      {/* Feed Header */}
-      <div style={{ padding: "32px 20px 16px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-        <div>
-          <div style={{ fontFamily: dm, fontSize: 9, color: "#E8C97A", letterSpacing: "0.2em", textTransform: "uppercase" as const }}>
-            YOUR FEED
-          </div>
-          <h1 style={{ fontFamily: cormorant, fontSize: isMobile ? 26 : 32, fontWeight: 300, color: "#F0EDE8", marginTop: 4, letterSpacing: "0.02em" }}>
-            Moments
-          </h1>
+      {/* ── Sub Nav ── */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "12px 20px", borderBottom: "1px solid #F2F2F2", overflowX: "auto" as const,
+      }}>
+        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          {["FEED", "ART GALLERY"].map((label, i) => (
+            <button key={label} onClick={() => i === 1 ? navigate("/art-gallery") : null} style={{
+              background: "none", border: "none", fontFamily: mont, fontSize: 10,
+              fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase" as const,
+              color: i === 0 ? "#000000" : "#999999", cursor: "pointer",
+              borderBottom: i === 0 ? "2px solid #FFCC00" : "2px solid transparent",
+              paddingBottom: 4,
+            }}>{label}</button>
+          ))}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           {shareSlug && (
             <button onClick={() => {
               const url = `${window.location.origin}/feed/${shareSlug}`;
               navigator.clipboard.writeText(url);
-              toast.success("Feed link copied!");
+              toast.success("Public feed link copied!");
             }} style={{
-              fontFamily: dm, fontSize: 10, fontWeight: 600, letterSpacing: "0.12em",
-              textTransform: "uppercase" as const, color: "#E8C97A",
-              background: "transparent", border: "1px solid rgba(232,201,122,0.25)",
-              padding: "10px 16px", cursor: "pointer",
-            }}>Share</button>
+              fontFamily: mont, fontSize: 9, fontWeight: 600, letterSpacing: "0.12em",
+              textTransform: "uppercase" as const, color: "#000000",
+              background: "transparent", border: "1px solid #E0E0E0",
+              padding: "8px 14px", cursor: "pointer",
+            }}>Share Feed</button>
           )}
           <button onClick={() => setCreateOpen(true)} style={{
-            fontFamily: dm, fontSize: 10, fontWeight: 600, letterSpacing: "0.15em",
-            textTransform: "uppercase" as const, color: "#080808", background: "#E8C97A",
-            border: "none", padding: "10px 20px", cursor: "pointer",
-          }}>+ Post</button>
+            fontFamily: mont, fontSize: 9, fontWeight: 600, letterSpacing: "0.15em",
+            textTransform: "uppercase" as const, color: "#000000", background: "#FFCC00",
+            border: "none", padding: "8px 16px", cursor: "pointer",
+          }}>+ New Post</button>
         </div>
       </div>
 
-      <div style={{ width: 32, height: 1, background: "#E8C97A", margin: "0 20px 24px" }} />
+      {/* ── Feed Header ── */}
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "28px 16px 0" : "40px 24px 0" }}>
+        <div style={{ fontFamily: mont, fontSize: 10, color: "#FFCC00", letterSpacing: "0.2em", textTransform: "uppercase" as const, fontWeight: 600 }}>
+          YOUR FEED
+        </div>
+        <h1 style={{ fontFamily: playfair, fontSize: mob ? 28 : 36, fontWeight: 700, color: "#000000", marginTop: 4 }}>
+          Moments
+        </h1>
+        <div style={{ width: 36, height: 2, background: "#FFCC00", marginTop: 12, marginBottom: 28 }} />
+      </div>
 
-      {/* Feed */}
-      <div style={{ maxWidth: 660, margin: "0 auto", padding: "0 0 80px" }}>
+      {/* ── Feed Content ── */}
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "0 0 80px" : "0 0 100px" }}>
         {loading ? (
           <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-            <div style={{ fontFamily: dm, fontSize: 12, color: "rgba(240,237,232,0.3)" }}>Loading your feed...</div>
+            <div style={{ fontFamily: mont, fontSize: 13, color: "#999999" }}>Loading your feed...</div>
           </div>
         ) : feed.length === 0 ? (
           <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-            <div style={{ fontFamily: cormorant, fontSize: 22, color: "rgba(240,237,232,0.5)", fontStyle: "italic" }}>
+            <div style={{ fontFamily: playfair, fontSize: 24, color: "#000000", fontStyle: "italic" }}>
               Your feed is empty
             </div>
-            <div style={{ fontFamily: dm, fontSize: 13, color: "rgba(240,237,232,0.25)", marginTop: 12, lineHeight: 1.7 }}>
+            <div style={{ fontFamily: mont, fontSize: 13, color: "#999999", marginTop: 12, lineHeight: 1.7 }}>
               Create events or write posts — they'll appear here automatically.
             </div>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24 }}>
               <button onClick={() => navigate("/dashboard/events")} style={{
-                fontFamily: dm, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
-                textTransform: "uppercase" as const, color: "#E8C97A",
-                border: "1px solid rgba(232,201,122,0.3)", background: "transparent",
+                fontFamily: mont, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
+                textTransform: "uppercase" as const, color: "#000000",
+                border: "1px solid #E0E0E0", background: "transparent",
                 padding: "10px 24px", cursor: "pointer",
               }}>Create Event</button>
               <button onClick={() => setCreateOpen(true)} style={{
-                fontFamily: dm, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
-                textTransform: "uppercase" as const, color: "#080808", background: "#E8C97A",
+                fontFamily: mont, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
+                textTransform: "uppercase" as const, color: "#000000", background: "#FFCC00",
                 border: "none", padding: "10px 24px", cursor: "pointer",
               }}>Write Post</button>
             </div>
           </div>
         ) : (
           feed.map((item, idx) => (
-            <div key={item.id} style={{ marginBottom: isMobile ? 40 : 56, position: "relative" as const }}>
-              {/* ··· Menu Button */}
+            <div key={item.id} style={{ marginBottom: mob ? 40 : 56, position: "relative" as const }}>
+              {/* ··· Menu */}
               <button
                 onClick={(e) => { e.stopPropagation(); setMenuOpenId(menuOpenId === item.id ? null : item.id); }}
                 style={{
-                  position: "absolute" as const, top: item.imageUrl ? 12 : 12, right: 12, zIndex: 10,
+                  position: "absolute" as const, top: 12, right: mob ? 12 : 16, zIndex: 10,
                   width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center",
-                  justifyContent: "center", background: "rgba(8,8,8,0.6)", backdropFilter: "blur(8px)",
-                  border: "1px solid rgba(240,237,232,0.1)", cursor: "pointer",
+                  justifyContent: "center", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)",
+                  border: "1px solid #F0F0F0", cursor: "pointer",
                 }}
-              >
-                <DotsIcon />
-              </button>
+              ><DotsIcon /></button>
 
-              {/* Dropdown Menu */}
+              {/* Dropdown */}
               {menuOpenId === item.id && (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    position: "absolute" as const, top: item.imageUrl ? 48 : 48, right: 12, zIndex: 20,
-                    background: "#1A1A1A", border: "1px solid rgba(240,237,232,0.1)",
-                    minWidth: 160, boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-                  }}
-                >
+                <div onClick={(e) => e.stopPropagation()} style={{
+                  position: "absolute" as const, top: 48, right: mob ? 12 : 16, zIndex: 20,
+                  background: "#FFFFFF", border: "1px solid #F0F0F0",
+                  minWidth: 170, boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                }}>
                   {item.type === "post" && (
                     <>
-                      <button
-                        onClick={() => handleEditPost(item)}
-                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(240,237,232,0.06)")}
+                      <button onClick={() => handleEditPost(item)}
+                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                        style={menuBtnStyle}
-                      >✏️ Edit Post</button>
-                      <button
-                        onClick={() => handleDeletePost(item.id)}
-                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(240,237,232,0.06)")}
+                        style={menuBtn}>✏️ Edit Post</button>
+                      <button onClick={() => handleDeletePost(item.id)}
+                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                        style={{ ...menuBtnStyle, color: "#E85C5C" }}
-                      >🗑 Delete Post</button>
+                        style={{ ...menuBtn, color: "#CC3333" }}>🗑 Delete Post</button>
                     </>
                   )}
                   {item.type === "event" && (
                     <>
-                      <button
-                        onClick={() => { navigate(`/dashboard/events/${item.id}`); setMenuOpenId(null); }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(240,237,232,0.06)")}
+                      <button onClick={() => { navigate(`/dashboard/events/${item.id}`); setMenuOpenId(null); }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                        style={menuBtnStyle}
-                      >📂 Open Event</button>
-                      <button
-                        onClick={() => handleHideEvent(item.id)}
-                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(240,237,232,0.06)")}
+                        style={menuBtn}>📂 Open Event</button>
+                      <button onClick={() => handleHideEvent(item.id)}
+                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                        style={menuBtnStyle}
-                      >👁 Hide from Feed</button>
+                        style={menuBtn}>👁 Hide from Feed</button>
                     </>
                   )}
                   {shareSlug && (
-                    <button
-                      onClick={() => {
-                        const url = `${window.location.origin}/feed/${shareSlug}`;
-                        navigator.clipboard.writeText(url);
-                        toast.success("Link copied!");
-                        setMenuOpenId(null);
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(240,237,232,0.06)")}
+                    <button onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/feed/${shareSlug}`);
+                      toast.success("Link copied!"); setMenuOpenId(null);
+                    }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                      style={menuBtnStyle}
-                    >🔗 Copy Share Link</button>
+                      style={menuBtn}>🔗 Copy Share Link</button>
                   )}
                 </div>
               )}
 
-              {/* Card content — click navigates for events */}
+              {/* Card */}
               <div
                 style={{ cursor: item.type === "event" ? "pointer" : "default" }}
                 onClick={() => item.type === "event" && navigate(`/dashboard/events/${item.id}`)}
               >
                 {item.imageUrl ? (
                   <img src={item.imageUrl} alt={item.title}
-                    style={{ width: "100%", height: "auto", objectFit: "cover" as const, display: "block" }}
-                    loading="lazy"
-                  />
+                    style={{ width: "100%", height: "auto", objectFit: "cover" as const, display: "block", borderRadius: 0 }}
+                    loading="lazy" />
                 ) : (
-                  <div style={{ width: "100%", height: isMobile ? "65vw" : 420, background: idx % 2 === 0 ? warmGrad : coolGrad }} />
+                  <div style={{
+                    width: "100%", height: mob ? "65vw" : 420,
+                    background: idx % 2 === 0 ? "linear-gradient(135deg, #f5f0ea, #e8e0d4)" : "linear-gradient(135deg, #eae4dc, #d4ccc0)",
+                  }} />
                 )}
 
-                <div style={{ padding: "16px 20px 0" }}>
+                <div style={{ padding: mob ? "14px 16px 0" : "16px 24px 0" }}>
                   <div style={{
-                    fontFamily: dm, fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase" as const,
-                    color: item.type === "event" ? "#E8C97A" : "rgba(240,237,232,0.3)", marginBottom: 8,
+                    fontFamily: mont, fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase" as const,
+                    color: item.type === "event" ? "#FFCC00" : "#CCCCCC", marginBottom: 8, fontWeight: 600,
                   }}>
                     {item.type === "event" ? "EVENT" : "POST"}
                   </div>
 
                   <h2 style={{
-                    fontFamily: cormorant, fontSize: isMobile ? 20 : 24, fontWeight: 400,
-                    color: "#F0EDE8", letterSpacing: "0.04em",
+                    fontFamily: playfair, fontSize: mob ? 18 : 22, fontWeight: 700,
+                    color: "#000000", letterSpacing: "0.02em",
                   }}>{item.title}</h2>
 
-                  <div style={{ fontFamily: dm, fontSize: 12, color: "rgba(240,237,232,0.35)", marginTop: 6 }}>
-                    {formatDate(item.date)}{item.location ? ` · ${item.location}` : ""}
+                  <div style={{ fontFamily: mont, fontSize: 12, color: "#999999", marginTop: 6 }}>
+                    {fmt(item.date)}{item.location ? ` · ${item.location}` : ""}
                   </div>
 
                   {item.caption && (
-                    <p style={{ fontFamily: dm, fontSize: 13, color: "rgba(240,237,232,0.45)", lineHeight: 1.7, marginTop: 12 }}>
+                    <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", lineHeight: 1.7, marginTop: 12 }}>
                       {item.caption}
                     </p>
                   )}
 
                   {item.type === "event" && item.photoCount !== undefined && item.photoCount > 0 && (
-                    <div style={{ fontFamily: dm, fontSize: 11, color: "rgba(240,237,232,0.2)", marginTop: 10 }}>
+                    <div style={{ fontFamily: mont, fontSize: 11, color: "#BBBBBB", marginTop: 10 }}>
                       {item.photoCount} photos
                     </div>
                   )}
@@ -377,13 +365,13 @@ export default function LandingGate() {
                   <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <HeartIcon />
-                      <span style={{ fontFamily: dm, fontSize: 11, color: "rgba(240,237,232,0.25)" }}>
+                      <span style={{ fontFamily: mont, fontSize: 11, color: "#CCCCCC" }}>
                         {Math.floor(Math.random() * 200 + 10)}
                       </span>
                     </div>
                   </div>
 
-                  <div style={{ height: 1, background: "rgba(240,237,232,0.04)", marginTop: 20 }} />
+                  <div style={{ height: 1, background: "#F2F2F2", marginTop: 20 }} />
                 </div>
               </div>
             </div>
@@ -391,22 +379,19 @@ export default function LandingGate() {
         )}
       </div>
 
-      {/* Footer */}
-      <div style={{ padding: "24px 20px 40px", textAlign: "center" as const, borderTop: "1px solid rgba(240,237,232,0.04)" }}>
-        <div style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.15)", letterSpacing: "0.1em" }}>
+      {/* ── Footer ── */}
+      <div style={{ padding: "24px 20px 40px", textAlign: "center" as const, borderTop: "1px solid #F2F2F2" }}>
+        <div style={{ fontFamily: mont, fontSize: 10, color: "#CCCCCC", letterSpacing: "0.1em" }}>
           © MirrorAI · Real Intelligence
         </div>
-        <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#E8C97A", margin: "12px auto 0" }} />
+        <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#FFCC00", margin: "12px auto 0" }} />
       </div>
 
       <CreateFeedPostModal open={createOpen} onOpenChange={setCreateOpen} onCreated={loadFeed} />
       <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={loadFeed} />
 
-      {/* Close menu on outside click */}
       {menuOpenId && (
-        <div onClick={() => setMenuOpenId(null)} style={{
-          position: "fixed" as const, inset: 0, zIndex: 5,
-        }} />
+        <div onClick={() => setMenuOpenId(null)} style={{ position: "fixed" as const, inset: 0, zIndex: 5 }} />
       )}
     </div>
   );
