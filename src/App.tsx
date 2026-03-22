@@ -248,12 +248,12 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
         } else if (roles.includes("client")) {
           setRedirectTo("/client");
         } else {
-          setRedirectTo("/dashboard");
+          setRedirectTo("/home");
         }
         setChecked(true);
       })
       .catch(() => {
-        setRedirectTo("/dashboard");
+        setRedirectTo("/home");
         setChecked(true);
       });
   }, [user, loading]);
