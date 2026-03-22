@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { saveAs } from 'file-saver';
 import { motion, AnimatePresence } from 'framer-motion';
 import RefynToolbar, { type RetouchToolId } from './RefynToolbar';
 import FrequencySeparation from '../retouching/FrequencySeparation';
