@@ -36,21 +36,41 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useStorageUsage, formatBytes, PLAN_LIMITS } from "@/hooks/use-storage-usage";
 
-const NAV_ITEMS = [
-  { title: "Home", url: "/home", icon: Home, end: true },
-  { title: "Overview", url: "/dashboard", icon: LayoutGrid, end: true },
-  { title: "Events", url: "/dashboard/events", icon: Camera },
-  { title: "Studio Feed", url: "/dashboard/website-editor", icon: Globe },
-  { title: "Domains", url: "/dashboard/domains", icon: Globe },
-  { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
-  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
-  { title: "Clients", url: "/dashboard/clients", icon: Users },
-  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart2 },
-  { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
-  { title: "Profile", url: "/dashboard/profile", icon: User },
+const NAV_SECTIONS = [
+  {
+    label: "STUDIO",
+    items: [
+      { title: "Home", url: "/home", icon: Home, end: true },
+      { title: "Overview", url: "/dashboard", icon: LayoutGrid, end: true },
+      { title: "Events", url: "/dashboard/events", icon: Camera },
+      { title: "Studio Feed", url: "/dashboard/website-editor", icon: Globe },
+    ],
+  },
+  {
+    label: "TOOLS",
+    items: [
+      { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
+      { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
+    ],
+  },
+  {
+    label: "BUSINESS",
+    items: [
+      { title: "Clients", url: "/dashboard/clients", icon: Users },
+      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart2 },
+    ],
+  },
+  {
+    label: "SETTINGS",
+    items: [
+      { title: "Domains", url: "/dashboard/domains", icon: Globe },
+      { title: "Profile", url: "/dashboard/profile", icon: User },
+      { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
+    ],
+  },
 ];
 
-const MOBILE_NAV = [
+const NAV_ITEMS = NAV_SECTIONS.flatMap(s => s.items);
   { title: "Home", url: "/home", icon: Home, end: true },
   { title: "Events", url: "/dashboard/events", icon: Camera },
   { title: "Albums", url: "/dashboard/album-designer", icon: BookOpen },
