@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { CreateEventModal } from "@/components/CreateEventModal";
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
