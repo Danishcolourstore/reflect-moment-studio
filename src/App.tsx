@@ -740,7 +740,7 @@ const App = () => (
               <ErrorBoundary>
                 <AppRoutes />
               </ErrorBoundary>
-              <BetaFeedbackButton />
+              {/* BetaFeedbackButton hidden in production */}
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
