@@ -422,6 +422,26 @@ const EventGallery = () => {
   const zipUpload = useZipUpload(id, user?.id);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
   const { isPortfolioPhoto, togglePortfolioPhoto, count: portfolioCount, max: portfolioMax } = usePortfolioPhotos(user?.id);
+  const [artGalleryIds, setArtGalleryIds] = useState<Set<string>>(new Set());
+
+  const isArtGalleryPhoto = useCallback((id: string) => artGalleryIds.has(id), [artGalleryIds]);
+  const toggleArtGallery = useCallback(async (photoId: string) => {
+    const isNow = artGalleryIds.has(photoId);
+    const next = new Set(artGalleryIds);
+    if (isNow) next.delete(photoId); else next.add(photoId);
+    setArtGalleryIds(next);
+    await (supabase.from('photos').update({ is_art_gallery: !isNow } as any).eq('id', photoId) as any);
+    toast({ title: isNow ? 'Removed from Art Gallery' : 'Added to Art Gallery' });
+  }, [artGalleryIds, toast]);
+
+  // Load art gallery flags
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data } = await supabase.from('photos').select('id').eq('event_id', id).eq('is_art_gallery' as any, true);
+      if (data) setArtGalleryIds(new Set(data.map((p: any) => p.id)));
+    })();
+  }, [id]);
 
   /* ── Data fetching ── */
   const fetchEvent = useCallback(async () => {
