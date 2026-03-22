@@ -1,0 +1,1 @@
+ALTER TABLE public.photos ADD COLUMN IF NOT EXISTS is_art_gallery BOOLEAN NOT NULL DEFAULT false;

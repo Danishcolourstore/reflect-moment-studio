@@ -156,6 +156,7 @@ function PremiumGridRenderer({
 function StandardGridRenderer({
   layout, paginatedPhotos, isFavorite, toggleFavorite, canDownload, isOwner, hasMore, sentinelRef,
   setSharePhoto, deletePhoto, isPortfolioPhoto, togglePortfolioPhoto,
+  isArtGallery, toggleArtGallery,
 }: {
   layout: string;
   paginatedPhotos: Photo[];
@@ -169,6 +170,8 @@ function StandardGridRenderer({
   deletePhoto: (p: Photo) => void;
   isPortfolioPhoto?: (id: string) => boolean;
   togglePortfolioPhoto?: (id: string) => void;
+  isArtGallery?: (id: string) => boolean;
+  toggleArtGallery?: (id: string) => void;
 }) {
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
   const { toast } = useToast();
