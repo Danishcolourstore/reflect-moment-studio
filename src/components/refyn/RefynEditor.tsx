@@ -10,6 +10,7 @@ import { useCanvasEngine } from '@/hooks/useCanvasEngine';
 import { useUndoHistory } from '@/hooks/useUndoHistory';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { applyRetouchEffects } from '@/lib/canvas-effects';
 
 interface Props {
   photoUrl: string;
