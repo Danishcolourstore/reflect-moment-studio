@@ -788,7 +788,7 @@ const WebsiteEditor = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <p className="text-xs font-semibold text-foreground">Website Editor</p>
+            <p className="text-xs font-semibold text-foreground">Studio Feed</p>
             <p className="text-[10px] text-muted-foreground/50">{studioName || 'Your Studio'}</p>
           </div>
         </div>

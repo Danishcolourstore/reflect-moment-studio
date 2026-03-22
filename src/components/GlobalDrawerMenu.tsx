@@ -10,8 +10,8 @@ const NAV_ITEMS = [
   { label: "Home", path: "/home" },
   { label: "Workspace", path: "/dashboard" },
   { label: "Events", path: "/dashboard/events" },
+  { label: "Studio Feed", path: "/dashboard/website-editor" },
   { label: "Albums", path: "/dashboard/album-designer" },
-  { label: "Website", path: "/dashboard/website-editor" },
 ];
 
 const MORE_ITEMS = [
