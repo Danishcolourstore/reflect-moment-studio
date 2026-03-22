@@ -65,6 +65,201 @@ export type Database = {
         }
         Relationships: []
       }
+      ag_discover_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          location: string
+          name: string
+          profile_link: string | null
+          sort_order: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          location?: string
+          name: string
+          profile_link?: string | null
+          sort_order?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          location?: string
+          name?: string
+          profile_link?: string | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      ag_education: {
+        Row: {
+          author: string
+          created_at: string
+          description: string
+          duration: string | null
+          id: string
+          sort_order: number
+          status: string
+          tag: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          author?: string
+          created_at?: string
+          description?: string
+          duration?: string | null
+          id?: string
+          sort_order?: number
+          status?: string
+          tag?: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          description?: string
+          duration?: string | null
+          id?: string
+          sort_order?: number
+          status?: string
+          tag?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      ag_featured_photographers: {
+        Row: {
+          bio: string
+          created_at: string
+          id: string
+          location: string
+          name: string
+          photo_url: string | null
+          sort_order: number
+          status: string
+          website: string | null
+        }
+        Insert: {
+          bio?: string
+          created_at?: string
+          id?: string
+          location?: string
+          name: string
+          photo_url?: string | null
+          sort_order?: number
+          status?: string
+          website?: string | null
+        }
+        Update: {
+          bio?: string
+          created_at?: string
+          id?: string
+          location?: string
+          name?: string
+          photo_url?: string | null
+          sort_order?: number
+          status?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      ag_manual_news: {
+        Row: {
+          created_at: string
+          id: string
+          news_date: string | null
+          sort_order: number
+          source: string
+          thumbnail_url: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          news_date?: string | null
+          sort_order?: number
+          source?: string
+          thumbnail_url?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          news_date?: string | null
+          sort_order?: number
+          source?: string
+          thumbnail_url?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      ag_settings: {
+        Row: {
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ag_stories: {
+        Row: {
+          couple: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          location: string
+          snippet: string
+          sort_order: number
+          status: string
+          story_date: string | null
+        }
+        Insert: {
+          couple: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          location?: string
+          snippet?: string
+          sort_order?: number
+          status?: string
+          story_date?: string | null
+        }
+        Update: {
+          couple?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          location?: string
+          snippet?: string
+          sort_order?: number
+          status?: string
+          story_date?: string | null
+        }
+        Relationships: []
+      }
       ai_developer_prompts: {
         Row: {
           applied_at: string | null
