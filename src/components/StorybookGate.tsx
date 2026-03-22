@@ -85,7 +85,7 @@ export function StorybookGate({ children }: { children: ReactNode }) {
               />
             </div>
             <p className="text-center" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '11px', fontWeight: 400, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-              Access code provided by Colour Store
+              Access code provided by MirrorAI
             </p>
             <button
               onClick={handleCodeSubmit}

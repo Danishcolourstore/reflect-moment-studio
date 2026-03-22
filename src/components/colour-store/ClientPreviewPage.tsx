@@ -132,7 +132,7 @@ export default function ClientPreviewPage({ originalUrl, retouchedUrl, studioNam
           Retouched by {studioName}
         </p>
         <p className="mt-2" style={{ fontFamily: dm, fontSize: 9, color: 'rgba(240,237,232,0.25)', letterSpacing: '0.25em' }}>
-          COLOUR STORE RI · REAL INTELLIGENCE
+          MIRRORAI RI · REAL INTELLIGENCE
         </p>
       </div>
 

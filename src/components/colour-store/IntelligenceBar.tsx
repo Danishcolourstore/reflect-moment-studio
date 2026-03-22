@@ -36,7 +36,7 @@ export default function IntelligenceBar({ visible, detectedText }: Props) {
               className="text-[10px] tracking-[0.3em] uppercase text-[#E8C97A]/70"
               style={{ fontFamily: '"Cormorant Garamond", serif' }}
             >
-              Colour Store Intelligence
+              MirrorAI Intelligence
             </span>
           </div>
           <motion.span

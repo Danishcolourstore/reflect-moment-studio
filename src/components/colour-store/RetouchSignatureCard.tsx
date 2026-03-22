@@ -194,7 +194,7 @@ export default function RetouchSignatureCard({ studioName, editCount, averages }
             bottom: 80,
             letterSpacing: '0.15em',
           }}>
-            Powered by Colour Store RI
+            Powered by MirrorAI RI
           </p>
         </div>
       </div>
