@@ -122,7 +122,7 @@ export default function LandingGate() {
       const { data } = await (supabase.from("photos").select("id, url, event_id") as any).eq("is_art_gallery", true).order("created_at", { ascending: false }).limit(50);
       if (data) {
         // Get event names
-        const eventIds = [...new Set(data.map((p: any) => p.event_id).filter(Boolean))];
+        const eventIds = [...new Set(data.map((p: any) => p.event_id).filter(Boolean))] as string[];
         let eventMap: Record<string, string> = {};
         if (eventIds.length > 0) {
           const { data: events } = await supabase.from("events").select("id, name").in("id", eventIds);
