@@ -293,29 +293,35 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
             <div className="mx-5 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
 
-            <nav className="flex-1 px-3 pt-5 space-y-0.5 overflow-y-auto">
-              {NAV_ITEMS.map((item) => (
-                <NavLink
-                  key={item.url}
-                  to={item.url}
-                  end={item.end}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-sm transition-colors"
-                  style={{ fontFamily: dm, fontSize: 13 }}
-                  activeClassName="text-[#F0EDE8] bg-[rgba(240,237,232,0.04)]"
-                >
-                  {({ isActive }: { isActive: boolean }) => (
-                    <>
-                      <item.icon
-                        className="h-[15px] w-[15px]"
-                        style={{ color: isActive ? "#F0EDE8" : "rgba(240,237,232,0.3)" }}
-                      />
-                      <span style={{ color: isActive ? "#F0EDE8" : "rgba(240,237,232,0.3)" }}>{item.title}</span>
-                      {item.title === "Domains" && showDomainNudge && (
-                        <span className="ml-auto h-1.5 w-1.5 rounded-full" style={{ background: "#E8C97A" }} />
+            <nav className="flex-1 px-3 pt-5 space-y-4 overflow-y-auto">
+              {NAV_SECTIONS.map((section) => (
+                <div key={section.label}>
+                  <p className="px-3 mb-1.5" style={{
+                    fontFamily: dm, fontSize: 9, fontWeight: 600,
+                    color: "rgba(240,237,232,0.2)", letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                  }}>{section.label}</p>
+                  {section.items.map((item) => (
+                    <NavLink
+                      key={item.url}
+                      to={item.url}
+                      end={item.end}
+                      className="flex items-center gap-2.5 px-3 py-2 transition-colors"
+                      style={{ fontFamily: dm, fontSize: 13, borderLeft: "2px solid transparent" }}
+                      activeClassName="text-[#E8C97A] !border-l-[#E8C97A] bg-[rgba(232,201,122,0.04)]"
+                    >
+                      {({ isActive }: { isActive: boolean }) => (
+                        <>
+                          <item.icon
+                            className="h-[15px] w-[15px]"
+                            style={{ color: isActive ? "#E8C97A" : "rgba(240,237,232,0.3)" }}
+                          />
+                          <span style={{ color: isActive ? "#E8C97A" : "rgba(240,237,232,0.3)" }}>{item.title}</span>
+                        </>
                       )}
-                    </>
-                  )}
-                </NavLink>
+                    </NavLink>
+                  ))}
+                </div>
               ))}
             </nav>
 
