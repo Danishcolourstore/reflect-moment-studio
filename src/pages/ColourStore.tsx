@@ -92,6 +92,8 @@ export default function ColourStore() {
 
   const isEditorActive = screen === 'editor';
 
+  if (needsOtp) return <RetouchLogin />;
+
   return (
     <div className="refyn-app min-h-[100dvh] bg-[#0A0A0A] text-[#F0EDE8] overflow-hidden relative">
       <svg className="pointer-events-none fixed inset-0 w-full h-full z-50 opacity-[0.03]">
