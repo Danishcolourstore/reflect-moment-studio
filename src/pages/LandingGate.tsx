@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import CreateFeedPostModal from "@/components/CreateFeedPostModal";
+import { toast } from "sonner";
 
 const cormorant = '"Cormorant Garamond", serif';
 const dm = '"DM Sans", sans-serif';
