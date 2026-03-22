@@ -249,143 +249,193 @@ export default function LandingGate() {
       </div>
 
       {/* ── Feed Content ── */}
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 80px" : "32px 0 100px" }}>
-        {loading ? (
-          <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-            <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading your feed...</div>
-          </div>
-        ) : feed.length === 0 ? (
-          <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-            <div style={{ fontFamily: fonts.display, fontSize: 24, color: "#000000", fontStyle: "italic" }}>
-              Your feed is empty
+      {activeTab === "feed" && (
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 80px" : "32px 0 100px" }}>
+          {loading ? (
+            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading your feed...</div>
             </div>
-            <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999", marginTop: 12, lineHeight: 1.7 }}>
-              Create events or write posts — they'll appear here automatically.
-            </div>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24 }}>
-              <button onClick={() => navigate("/dashboard/events")} style={{
-                fontFamily: fonts.body, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
-                textTransform: "uppercase" as const, color: "#000000",
-                border: "1px solid #E0E0E0", background: "transparent",
-                padding: "10px 24px", cursor: "pointer",
-              }}>Create Event</button>
-              <button onClick={() => setCreateOpen(true)} style={{
-                fontFamily: fonts.body, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
-                textTransform: "uppercase" as const, color: colors.gold,
-                border: `1px solid ${colors.gold}`, background: "transparent",
-                padding: "10px 24px", cursor: "pointer",
-              }}>Write Post</button>
-            </div>
-          </div>
-        ) : (
-          feed.map((item, idx) => (
-            <div key={item.id} style={{ marginBottom: mob ? 40 : 56, position: "relative" as const }}>
-              {/* ··· Menu */}
-              <button
-                onClick={(e) => { e.stopPropagation(); setMenuOpenId(menuOpenId === item.id ? null : item.id); }}
-                style={{
-                  position: "absolute" as const, top: 12, right: mob ? 12 : 16, zIndex: 10,
-                  width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center",
-                  justifyContent: "center", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)",
-                  border: "1px solid #F0F0F0", cursor: "pointer",
-                }}
-              ><DotsIcon /></button>
-
-              {/* Dropdown */}
-              {menuOpenId === item.id && (
-                <div onClick={(e) => e.stopPropagation()} style={{
-                  position: "absolute" as const, top: 48, right: mob ? 12 : 16, zIndex: 20,
-                  background: "#FFFFFF", border: "1px solid #F0F0F0",
-                  minWidth: 170, boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                }}>
-                  {item.type === "post" && (
-                    <>
-                      <button onClick={() => handleEditPost(item)}
-                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                        style={menuBtn}>✏️ Edit Post</button>
-                      <button onClick={() => handleDeletePost(item.id)}
-                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                        style={{ ...menuBtn, color: "#CC3333" }}>🗑 Delete Post</button>
-                    </>
-                  )}
-                  {item.type === "event" && (
-                    <>
-                      <button onClick={() => { navigate(`/dashboard/events/${item.id}`); setMenuOpenId(null); }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                        style={menuBtn}>📂 Open Event</button>
-                      <button onClick={() => handleHideEvent(item.id)}
-                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                        style={menuBtn}>👁 Hide from Feed</button>
-                    </>
-                  )}
-                  {shareSlug && (
-                    <button onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/feed/${shareSlug}`);
-                      toast.success("Link copied!"); setMenuOpenId(null);
-                    }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                      style={menuBtn}>🔗 Copy Share Link</button>
-                  )}
-                </div>
-              )}
-
-              {/* Card */}
-              <div
-                style={{ cursor: item.type === "event" ? "pointer" : "default" }}
-                onClick={() => item.type === "event" && navigate(`/dashboard/events/${item.id}`)}
-              >
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.title}
-                    style={{ width: "100%", height: "auto", objectFit: "cover" as const, display: "block", borderRadius: 0 }}
-                    loading="lazy" />
-                ) : (
-                  <div style={{
-                    width: "100%", height: mob ? "65vw" : 420,
-                    background: idx % 2 === 0 ? "linear-gradient(135deg, #f5f0ea, #e8e0d4)" : "linear-gradient(135deg, #eae4dc, #d4ccc0)",
-                  }} />
-                )}
-
-                <div style={{ padding: mob ? "14px 16px 0" : "16px 24px 0" }}>
-                  <div style={{
-                    fontFamily: fonts.body, fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase" as const,
-                    color: item.type === "event" ? colors.gold : "#CCCCCC", marginBottom: 8, fontWeight: 600,
-                  }}>
-                    {item.type === "event" ? "EVENT" : "POST"}
-                  </div>
-
-                  <h2 style={{
-                    fontFamily: fonts.display, fontSize: mob ? 18 : 22, fontWeight: 500,
-                    color: "#000000", letterSpacing: "0.02em",
-                  }}>{item.title}</h2>
-
-                  <div style={{ fontFamily: fonts.body, fontSize: 12, color: "#999999", marginTop: 6 }}>
-                    {fmt(item.date)}{item.location ? ` · ${item.location}` : ""}
-                  </div>
-
-                  {item.caption && (
-                    <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#666666", lineHeight: 1.7, marginTop: 12 }}>
-                      {item.caption}
-                    </p>
-                  )}
-
-                  {item.type === "event" && item.photoCount !== undefined && item.photoCount > 0 && (
-                    <div style={{ fontFamily: fonts.body, fontSize: 11, color: "#BBBBBB", marginTop: 10 }}>
-                      {item.photoCount} photos
-                    </div>
-                  )}
-
-                  <div style={{ height: 1, background: "#F2F2F2", marginTop: 20 }} />
-                </div>
+          ) : feed.length === 0 ? (
+            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
+              <div style={{ fontFamily: fonts.display, fontSize: 24, color: "#000000", fontStyle: "italic" }}>
+                Your feed is empty
+              </div>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999", marginTop: 12, lineHeight: 1.7 }}>
+                Create events or write posts — they'll appear here automatically.
+              </div>
+              <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24 }}>
+                <button onClick={() => navigate("/dashboard/events")} style={{
+                  fontFamily: fonts.body, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
+                  textTransform: "uppercase" as const, color: "#000000",
+                  border: "1px solid #E0E0E0", background: "transparent",
+                  padding: "10px 24px", cursor: "pointer",
+                }}>Create Event</button>
+                <button onClick={() => setCreateOpen(true)} style={{
+                  fontFamily: fonts.body, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
+                  textTransform: "uppercase" as const, color: colors.gold,
+                  border: `1px solid ${colors.gold}`, background: "transparent",
+                  padding: "10px 24px", cursor: "pointer",
+                }}>Write Post</button>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ) : (
+            feed.map((item, idx) => (
+              <div key={item.id} style={{ marginBottom: mob ? 40 : 56, position: "relative" as const }}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setMenuOpenId(menuOpenId === item.id ? null : item.id); }}
+                  style={{
+                    position: "absolute" as const, top: 12, right: mob ? 12 : 16, zIndex: 10,
+                    width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center",
+                    justifyContent: "center", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)",
+                    border: "1px solid #F0F0F0", cursor: "pointer",
+                  }}
+                ><DotsIcon /></button>
+
+                {menuOpenId === item.id && (
+                  <div onClick={(e) => e.stopPropagation()} style={{
+                    position: "absolute" as const, top: 48, right: mob ? 12 : 16, zIndex: 20,
+                    background: "#FFFFFF", border: "1px solid #F0F0F0",
+                    minWidth: 170, boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                  }}>
+                    {item.type === "post" && (
+                      <>
+                        <button onClick={() => handleEditPost(item)}
+                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                          style={menuBtn}>✏️ Edit Post</button>
+                        <button onClick={() => handleDeletePost(item.id)}
+                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                          style={{ ...menuBtn, color: "#CC3333" }}>🗑 Delete Post</button>
+                      </>
+                    )}
+                    {item.type === "event" && (
+                      <>
+                        <button onClick={() => { navigate(`/dashboard/events/${item.id}`); setMenuOpenId(null); }}
+                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                          style={menuBtn}>📂 Open Event</button>
+                        <button onClick={() => handleHideEvent(item.id)}
+                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                          style={menuBtn}>👁 Hide from Feed</button>
+                      </>
+                    )}
+                    {shareSlug && (
+                      <button onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/feed/${shareSlug}`);
+                        toast.success("Link copied!"); setMenuOpenId(null);
+                      }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                        style={menuBtn}>🔗 Copy Share Link</button>
+                    )}
+                  </div>
+                )}
+
+                <div
+                  style={{ cursor: item.type === "event" ? "pointer" : "default" }}
+                  onClick={() => item.type === "event" && navigate(`/dashboard/events/${item.id}`)}
+                >
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.title}
+                      style={{ width: "100%", height: "auto", objectFit: "cover" as const, display: "block", borderRadius: 0 }}
+                      loading="lazy" />
+                  ) : (
+                    <div style={{
+                      width: "100%", height: mob ? "65vw" : 420,
+                      background: idx % 2 === 0 ? "linear-gradient(135deg, #f5f0ea, #e8e0d4)" : "linear-gradient(135deg, #eae4dc, #d4ccc0)",
+                    }} />
+                  )}
+
+                  <div style={{ padding: mob ? "14px 16px 0" : "16px 24px 0" }}>
+                    <div style={{
+                      fontFamily: fonts.body, fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase" as const,
+                      color: item.type === "event" ? colors.gold : "#CCCCCC", marginBottom: 8, fontWeight: 600,
+                    }}>
+                      {item.type === "event" ? "EVENT" : "POST"}
+                    </div>
+
+                    <h2 style={{
+                      fontFamily: fonts.display, fontSize: mob ? 18 : 22, fontWeight: 500,
+                      color: "#000000", letterSpacing: "0.02em",
+                    }}>{item.title}</h2>
+
+                    <div style={{ fontFamily: fonts.body, fontSize: 12, color: "#999999", marginTop: 6 }}>
+                      {fmt(item.date)}{item.location ? ` · ${item.location}` : ""}
+                    </div>
+
+                    {item.caption && (
+                      <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#666666", lineHeight: 1.7, marginTop: 12 }}>
+                        {item.caption}
+                      </p>
+                    )}
+
+                    {item.type === "event" && item.photoCount !== undefined && item.photoCount > 0 && (
+                      <div style={{ fontFamily: fonts.body, fontSize: 11, color: "#BBBBBB", marginTop: 10 }}>
+                        {item.photoCount} photos
+                      </div>
+                    )}
+
+                    <div style={{ height: 1, background: "#F2F2F2", marginTop: 20 }} />
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ── Art Gallery Content ── */}
+      {activeTab === "artgallery" && (
+        <div style={{ padding: mob ? "12px 0 80px" : "20px 0 100px" }}>
+          {artLoading ? (
+            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading art gallery...</div>
+            </div>
+          ) : artPhotos.length === 0 ? (
+            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
+              <Diamond style={{ color: colors.gold, margin: "0 auto 16px", width: 28, height: 28 }} />
+              <div style={{ fontFamily: fonts.display, fontSize: 22, color: "#000000", fontStyle: "italic" }}>
+                No art gallery photos yet
+              </div>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999", marginTop: 10, lineHeight: 1.7 }}>
+                Open any event gallery and tap the diamond icon on photos to feature them here.
+              </div>
+            </div>
+          ) : (
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: mob ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
+              gap: 3,
+            }}>
+              {artPhotos.map((photo, i) => (
+                <div key={photo.id} style={{
+                  position: "relative" as const,
+                  aspectRatio: i % 5 === 0 ? "1 / 1.2" : i % 3 === 0 ? "1.2 / 1" : "1 / 1",
+                  overflow: "hidden",
+                }}>
+                  <img src={photo.url} alt="" loading="lazy" style={{
+                    width: "100%", height: "100%", objectFit: "cover" as const, display: "block",
+                  }} />
+                  {photo.event_name && (
+                    <div style={{
+                      position: "absolute" as const, bottom: 0, left: 0, right: 0,
+                      padding: "20px 10px 8px",
+                      background: "linear-gradient(transparent, rgba(0,0,0,0.5))",
+                    }}>
+                      <span style={{
+                        fontFamily: fonts.body, fontSize: 9, color: "rgba(255,255,255,0.8)",
+                        letterSpacing: "0.15em", textTransform: "uppercase" as const,
+                      }}>{photo.event_name}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Footer ── */}
       <div style={{ padding: "24px 20px 40px", textAlign: "center" as const, borderTop: "1px solid #F2F2F2" }}>
