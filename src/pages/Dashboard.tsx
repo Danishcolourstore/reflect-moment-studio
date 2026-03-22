@@ -164,6 +164,27 @@ const Dashboard = () => {
         <p style={{ fontFamily: mont, fontSize: mob ? 12 : 13, color: "#666666", letterSpacing: "0.5px" }}>
           {loading ? "—" : `${totalPhotos} moments · ${totalEvents} events · ${totalAlbums} albums`}
         </p>
+        <button
+          onClick={() => setCreateOpen(true)}
+          style={{
+            fontFamily: mont,
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase" as const,
+            letterSpacing: "1px",
+            background: "#000000",
+            color: "#FFFFFF",
+            border: "none",
+            padding: "12px 28px",
+            cursor: "pointer",
+            marginTop: 16,
+            transition: "background 0.3s",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = "#333333")}
+          onMouseLeave={e => (e.currentTarget.style.background = "#000000")}
+        >
+          + New Event
+        </button>
       </div>
 
       {collagePhotos.length > 0 && (
