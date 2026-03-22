@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { format } from "date-fns";
+
 
 const playfair = '"Playfair Display", serif';
 const mont = '"Montserrat", sans-serif';
