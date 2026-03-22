@@ -144,9 +144,90 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { mainCanvasRef, layers, isLoaded, exportFullResolution } = useCanvasEngine(photoUrl);
-  const { } = useUndoHistory();
+  // Source canvas stores the original unedited image
+  const sourceCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const { mainCanvasRef, sourceImageRef, isLoaded, renderComposite } = useCanvasEngine(photoUrl);
+  const { push: historyPush, undo: historyUndo, redo: historyRedo, canUndo, canRedo } = useUndoHistory<Record<string, number>>();
   const { transform, onPointerDown, onPointerMove, onPointerUp, resetZoom } = usePinchZoom();
+
+  // Undo debounce timer
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Initialize source canvas when image loads
+  useEffect(() => {
+    if (!isLoaded || !sourceImageRef.current) return;
+    const img = sourceImageRef.current;
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext('2d');
+    if (ctx) ctx.drawImage(img, 0, 0);
+    sourceCanvasRef.current = c;
+    // Push initial empty state
+    historyPush('Initial', {});
+  }, [isLoaded]);
+
+  // ══ CORE: Apply effects whenever params change ══
+  const renderEffectsRef = useRef<number>(0);
+  useEffect(() => {
+    cancelAnimationFrame(renderEffectsRef.current);
+    renderEffectsRef.current = requestAnimationFrame(() => {
+      const source = sourceCanvasRef.current;
+      const canvas = mainCanvasRef.current;
+      if (!source || !canvas || !isLoaded) return;
+
+      // Create a temp canvas at display resolution
+      const container = canvas.parentElement;
+      if (!container) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const img = sourceImageRef.current;
+      if (!img) return;
+
+      const imgRatio = img.naturalWidth / img.naturalHeight;
+      const cW = container.clientWidth;
+      const cH = container.clientHeight;
+      const containerRatio = cW / cH;
+      let fitW: number, fitH: number;
+      if (imgRatio > containerRatio) { fitW = cW; fitH = cW / imgRatio; }
+      else { fitH = cH; fitW = cH * imgRatio; }
+
+      const renderW = Math.round(fitW * dpr);
+      const renderH = Math.round(fitH * dpr);
+
+      // Create a source at display resolution for effects
+      const dispSource = document.createElement('canvas');
+      dispSource.width = renderW;
+      dispSource.height = renderH;
+      const dsCtx = dispSource.getContext('2d')!;
+      dsCtx.drawImage(source, 0, 0, renderW, renderH);
+
+      // Resize main canvas
+      if (canvas.width !== renderW || canvas.height !== renderH) {
+        canvas.width = renderW;
+        canvas.height = renderH;
+        canvas.style.width = fitW + 'px';
+        canvas.style.height = fitH + 'px';
+      }
+
+      // Apply effects directly onto the main canvas
+      applyRetouchEffects(dispSource, params, canvas);
+    });
+
+    return () => cancelAnimationFrame(renderEffectsRef.current);
+  }, [params, isLoaded]);
+
+  // Debounced undo push — commit after 500ms of no changes
+  useEffect(() => {
+    const hasAny = Object.values(params).some(v => v !== 0);
+    if (!hasAny) return;
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => {
+      historyPush('Edit', { ...params });
+    }, 500);
+    return () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); };
+  }, [params]);
 
   // Fade in UI
   useEffect(() => { const t = setTimeout(() => setUiVisible(true), 1000); return () => clearTimeout(t); }, []);
@@ -168,6 +249,11 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
   const getVal = (key: string) => params[key] ?? 0;
   const setVal = (key: string, v: number) => setParams(prev => ({ ...prev, [key]: v }));
 
+  const handleUndo = useCallback(() => {
+    const prev = historyUndo();
+    if (prev) setParams(prev);
+  }, [historyUndo]);
+
   const currentTool = TOOLS.find(t => t.id === activeTool);
   const isZoomed = transform.scale > 1.05;
   const hasEdits = Object.values(params).some(v => v !== 0);
@@ -186,12 +272,68 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
     else navigate(-1);
   };
 
-  const handleExport = useCallback(async () => {
-    const blob = await exportFullResolution(0.95);
+  // Export with effects applied at full resolution
+  const handleExport = useCallback(async (quality = 0.95, maxEdge?: number) => {
+    const source = sourceCanvasRef.current;
+    if (!source) { toast.error('Export failed'); return; }
+
+    let w = source.width;
+    let h = source.height;
+
+    // Resize for web export
+    if (maxEdge && Math.max(w, h) > maxEdge) {
+      const ratio = maxEdge / Math.max(w, h);
+      w = Math.round(w * ratio);
+      h = Math.round(h * ratio);
+    }
+
+    const resizedSource = document.createElement('canvas');
+    resizedSource.width = w;
+    resizedSource.height = h;
+    const rsCtx = resizedSource.getContext('2d')!;
+    rsCtx.drawImage(source, 0, 0, w, h);
+
+    const outputCanvas = document.createElement('canvas');
+    applyRetouchEffects(resizedSource, params, outputCanvas);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      outputCanvas.toBlob((b) => resolve(b), 'image/jpeg', quality);
+    });
+
     if (!blob) { toast.error('Export failed'); return; }
+    return blob;
+  }, [params]);
+
+  const handleSaveDevice = useCallback(async () => {
+    const blob = await handleExport(0.95);
+    if (blob) { saveAs(blob, `retouched_${Date.now()}.jpg`); toast.success('Exported'); }
+  }, [handleExport]);
+
+  const handleSaveWeb = useCallback(async () => {
+    const blob = await handleExport(0.85, 2000);
+    if (blob) { saveAs(blob, `retouched_web_${Date.now()}.jpg`); toast.success('Exported for web'); }
+  }, [handleExport]);
+
+  const handleSaveXMP = useCallback(async () => {
+    const blob = await handleExport(0.95);
+    if (!blob) return;
     saveAs(blob, `retouched_${Date.now()}.jpg`);
-    toast.success('Exported');
-  }, [exportFullResolution]);
+
+    // Generate XMP sidecar
+    const xmpContent = `<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description rdf:about=""
+      xmlns:refyn="http://refyn.app/ns/1.0/"
+      ${Object.entries(params).map(([k, v]) => `refyn:${k}="${v}"`).join('\n      ')}
+    />
+  </rdf:RDF>
+</x:xmpmeta>
+<?xpacket end="w"?>`;
+    const xmpBlob = new Blob([xmpContent], { type: 'application/xml' });
+    saveAs(xmpBlob, `retouched_${Date.now()}.xmp`);
+    toast.success('Exported with XMP sidecar');
+  }, [handleExport, params]);
 
   const handleSendChat = () => {
     if (!chatInput.trim()) return;
