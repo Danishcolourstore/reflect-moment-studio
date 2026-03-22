@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import CreateFeedPostModal from "@/components/CreateFeedPostModal";
+import { toast } from "sonner";
 
 const cormorant = '"Cormorant Garamond", serif';
 const dm = '"DM Sans", sans-serif';
@@ -30,6 +31,7 @@ export default function LandingGate() {
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState("Photographer");
   const [createOpen, setCreateOpen] = useState(false);
+  const [shareSlug, setShareSlug] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 
   useEffect(() => {
@@ -57,6 +59,17 @@ export default function LandingGate() {
     const { data: prof } = await (supabase.from("profiles").select("studio_name") as any)
       .eq("user_id", user.id).maybeSingle();
     if (prof?.studio_name) setProfileName(prof.studio_name);
+
+    // Get username/subdomain for share link
+    const { data: sp } = await (supabase.from("studio_profiles").select("username") as any)
+      .eq("user_id", user.id).maybeSingle();
+    if (sp?.username) {
+      setShareSlug(sp.username);
+    } else {
+      const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
+        .eq("user_id", user.id).eq("is_primary", true).maybeSingle();
+      if (dom?.subdomain) setShareSlug(dom.subdomain);
+    }
 
     // Fetch events
     const { data: events } = await supabase
@@ -213,23 +226,35 @@ export default function LandingGate() {
             Moments
           </h1>
         </div>
-        <button
-          onClick={() => setCreateOpen(true)}
-          style={{
-            fontFamily: dm,
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase" as const,
-            color: "#080808",
-            background: "#E8C97A",
-            border: "none",
-            padding: "10px 20px",
-            cursor: "pointer",
-          }}
-        >
-          + Post
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          {shareSlug && (
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/feed/${shareSlug}`;
+                navigator.clipboard.writeText(url);
+                toast.success("Feed link copied!");
+              }}
+              style={{
+                fontFamily: dm, fontSize: 10, fontWeight: 600, letterSpacing: "0.12em",
+                textTransform: "uppercase" as const, color: "#E8C97A",
+                background: "transparent", border: "1px solid rgba(232,201,122,0.25)",
+                padding: "10px 16px", cursor: "pointer",
+              }}
+            >
+              Share
+            </button>
+          )}
+          <button
+            onClick={() => setCreateOpen(true)}
+            style={{
+              fontFamily: dm, fontSize: 10, fontWeight: 600, letterSpacing: "0.15em",
+              textTransform: "uppercase" as const, color: "#080808", background: "#E8C97A",
+              border: "none", padding: "10px 20px", cursor: "pointer",
+            }}
+          >
+            + Post
+          </button>
+        </div>
       </div>
 
       <div style={{ width: 32, height: 1, background: "#E8C97A", margin: "0 20px 24px" }} />

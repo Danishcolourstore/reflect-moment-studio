@@ -49,6 +49,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const BuilderTest = lazy(() => import("./pages/BuilderTest"));
 const GuestFinder = lazy(() => import("./pages/GuestFinder"));
 const PhotographerFeed = lazy(() => import("./pages/PhotographerFeed"));
+const PublicFeed = lazy(() => import("./pages/PublicFeed"));
 const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
 const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
@@ -704,6 +705,7 @@ const AppRoutes = () => {
             <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
             <Route path="/studio/:username" element={<PhotographerFeed />} />
             <Route path="/p/:username" element={<PhotographerFeed />} />
+            <Route path="/feed/:username" element={<PublicFeed />} />
 
             <Route
               path="/storybook"
