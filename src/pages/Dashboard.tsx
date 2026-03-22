@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
