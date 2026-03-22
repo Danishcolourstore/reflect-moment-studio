@@ -82,7 +82,7 @@ function useDomainNudge(userId: string | undefined) {
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Overview",
   "/dashboard/events": "Events",
-  "/dashboard/website-editor": "Website Builder",
+  "/dashboard/website-editor": "Studio Feed",
   "/dashboard/domains": "Domains",
   "/dashboard/storybook": "Storybook",
   "/dashboard/album-designer": "Albums",
