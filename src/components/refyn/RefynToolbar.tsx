@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion';
-
 export type RetouchToolId =
   | 'freqSep' | 'skinSmooth' | 'dodgeBurn' | 'blemish'
   | 'liquify' | 'sharpen' | 'hairCleanup' | 'eyeEnhance'
@@ -110,63 +108,75 @@ interface Props {
 
 export default function RefynToolbar({ activeTool, onToolTap }: Props) {
   return (
-    <div
-      className="flex items-end overflow-x-auto"
-      style={{
-        height: '48px',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch',
-        msOverflowStyle: 'none',
-        padding: '0 4px',
-      }}
-    >
+    <div className="luminar-toolbar-scroll">
       {TOOLS.map((tool) => {
         const isActive = activeTool === tool.id;
         return (
           <button
             key={tool.id}
             onClick={() => onToolTap(tool.id)}
-            className="flex flex-col items-center justify-center flex-shrink-0 relative"
-            style={{
-              width: '48px',
-              height: '44px',
-              color: isActive ? '#c9a96e' : 'rgba(240,237,232,0.35)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'color 150ms',
-              gap: '2px',
-            }}
+            className={`luminar-tool-pill ${isActive ? 'active' : ''}`}
           >
-            {tool.icon}
-            <span
-              style={{
-                fontFamily: '"DM Sans", sans-serif',
-                fontSize: '8px',
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
-                lineHeight: 1,
-              }}
-            >
-              {tool.label}
-            </span>
-            {isActive && (
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '0px',
-                  width: '3px',
-                  height: '3px',
-                  borderRadius: '50%',
-                  background: '#c9a96e',
-                  boxShadow: '0 0 6px rgba(201,169,110,0.6)',
-                }}
-              />
-            )}
+            <span className="luminar-tool-icon">{tool.icon}</span>
+            <span className="luminar-tool-label">{tool.label}</span>
           </button>
         );
       })}
+
+      <style>{`
+        .luminar-toolbar-scroll {
+          display: flex;
+          align-items: center;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          padding: 8px 8px 4px;
+          gap: 6px;
+        }
+        .luminar-toolbar-scroll::-webkit-scrollbar { display: none; }
+
+        .luminar-tool-pill {
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          flex-shrink: 0;
+          width: 52px; height: 48px;
+          border-radius: 12px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.04);
+          cursor: pointer;
+          transition: all 0.2s;
+          gap: 2px;
+        }
+        .luminar-tool-pill.active {
+          background: rgba(201,169,110,0.12);
+          border-color: rgba(201,169,110,0.25);
+        }
+        .luminar-tool-pill:active {
+          transform: scale(0.93);
+        }
+
+        .luminar-tool-icon {
+          display: flex; align-items: center; justify-content: center;
+          color: rgba(240,237,232,0.4);
+          transition: color 0.15s;
+        }
+        .luminar-tool-pill.active .luminar-tool-icon {
+          color: #c9a96e;
+        }
+
+        .luminar-tool-label {
+          font-family: "DM Sans", sans-serif;
+          font-size: 8px;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          color: rgba(240,237,232,0.3);
+          transition: color 0.15s;
+        }
+        .luminar-tool-pill.active .luminar-tool-label {
+          color: #c9a96e;
+        }
+      `}</style>
     </div>
   );
 }
