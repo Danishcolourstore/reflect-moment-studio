@@ -3381,6 +3381,7 @@ export type Database = {
           file_name: string | null
           file_size: number | null
           id: string
+          is_art_gallery: boolean
           is_favorite: boolean
           section: string | null
           sort_order: number | null
@@ -3393,6 +3394,7 @@ export type Database = {
           file_name?: string | null
           file_size?: number | null
           id?: string
+          is_art_gallery?: boolean
           is_favorite?: boolean
           section?: string | null
           sort_order?: number | null
@@ -3405,6 +3407,7 @@ export type Database = {
           file_name?: string | null
           file_size?: number | null
           id?: string
+          is_art_gallery?: boolean
           is_favorite?: boolean
           section?: string | null
           sort_order?: number | null

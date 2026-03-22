@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
   Heart, Download, Trash2, Share2, Upload, X,
-  PackageOpen, Loader2, FolderDown, Settings, FileArchive, LayoutGrid, Image,
+  PackageOpen, Loader2, FolderDown, Settings, FileArchive, LayoutGrid, Image, Diamond,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -156,6 +156,7 @@ function PremiumGridRenderer({
 function StandardGridRenderer({
   layout, paginatedPhotos, isFavorite, toggleFavorite, canDownload, isOwner, hasMore, sentinelRef,
   setSharePhoto, deletePhoto, isPortfolioPhoto, togglePortfolioPhoto,
+  isArtGallery, toggleArtGallery,
 }: {
   layout: string;
   paginatedPhotos: Photo[];
@@ -169,6 +170,8 @@ function StandardGridRenderer({
   deletePhoto: (p: Photo) => void;
   isPortfolioPhoto?: (id: string) => boolean;
   togglePortfolioPhoto?: (id: string) => void;
+  isArtGallery?: (id: string) => boolean;
+  toggleArtGallery?: (id: string) => void;
 }) {
   const gridClass = GRID_CLASSES[layout] ?? GRID_CLASSES.masonry;
   const { toast } = useToast();
@@ -211,6 +214,22 @@ function StandardGridRenderer({
                 </button>
               )}
 
+              {/* Art Gallery toggle (owner only) */}
+              {isOwner && isArtGallery && toggleArtGallery && (
+                <button
+                  onClick={() => toggleArtGallery(photo.id)}
+                  className={`absolute top-2 z-10 rounded-full backdrop-blur-md p-1.5 transition-all duration-200 ${
+                    isPortfolioPhoto ? 'left-10' : 'left-2'
+                  } ${
+                    isArtGallery(photo.id)
+                      ? 'bg-[#C8A97E]/80 hover:bg-[#C8A97E]/90'
+                      : 'bg-black/40 opacity-0 group-hover:opacity-100 hover:bg-black/60'
+                  }`}
+                  title={isArtGallery(photo.id) ? 'Remove from Art Gallery' : 'Add to Art Gallery'}
+                >
+                  <Diamond className={`h-3.5 w-3.5 ${isArtGallery(photo.id) ? 'text-white' : 'text-white/70'}`} />
+                </button>
+              )}
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 pointer-events-none" />
 
@@ -403,6 +422,26 @@ const EventGallery = () => {
   const zipUpload = useZipUpload(id, user?.id);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
   const { isPortfolioPhoto, togglePortfolioPhoto, count: portfolioCount, max: portfolioMax } = usePortfolioPhotos(user?.id);
+  const [artGalleryIds, setArtGalleryIds] = useState<Set<string>>(new Set());
+
+  const isArtGalleryPhoto = useCallback((id: string) => artGalleryIds.has(id), [artGalleryIds]);
+  const toggleArtGallery = useCallback(async (photoId: string) => {
+    const isNow = artGalleryIds.has(photoId);
+    const next = new Set(artGalleryIds);
+    if (isNow) next.delete(photoId); else next.add(photoId);
+    setArtGalleryIds(next);
+    await (supabase.from('photos').update({ is_art_gallery: !isNow } as any).eq('id', photoId) as any);
+    toast({ title: isNow ? 'Removed from Art Gallery' : 'Added to Art Gallery' });
+  }, [artGalleryIds, toast]);
+
+  // Load art gallery flags
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data } = await (supabase.from('photos').select('id').eq('event_id', id) as any).eq('is_art_gallery', true);
+      if (data) setArtGalleryIds(new Set(data.map((p: any) => p.id)));
+    })();
+  }, [id]);
 
   /* ── Data fetching ── */
   const fetchEvent = useCallback(async () => {
@@ -654,6 +693,8 @@ const EventGallery = () => {
         deletePhoto={deletePhoto}
         isPortfolioPhoto={isPortfolioPhoto}
         togglePortfolioPhoto={togglePortfolioPhoto}
+        isArtGallery={isArtGalleryPhoto}
+        toggleArtGallery={toggleArtGallery}
       />
     );
   };
