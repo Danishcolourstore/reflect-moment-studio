@@ -538,7 +538,7 @@ const Dashboard = () => {
       {/* ── Photo Mosaic ── */}
       {allPhotos.length > 0 && (
         <section style={{ padding: mob ? "0 0 40px" : "0 40px 60px", maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ padding: mob ? "0 16px", marginBottom: mob ? 20 : 28 }}>
+          <div style={{ padding: mob ? "0 16px" : "0", marginBottom: mob ? 20 : 28 }}>
             <h2
               style={{
                 fontFamily: playfair,
