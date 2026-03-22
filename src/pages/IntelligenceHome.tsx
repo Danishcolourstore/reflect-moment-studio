@@ -611,7 +611,7 @@ export default function IntelligenceHome() {
               scrollbarWidth: "none" as const,
             }}
           >
-            {DISCOVER_PHOTOGRAPHERS.map((p, i) => (
+            {dbDiscover.map((p, i) => (
               <div key={i} style={{ flexShrink: 0, textAlign: "center", cursor: "pointer" }}>
                 <div
                   style={{
@@ -625,7 +625,7 @@ export default function IntelligenceHome() {
                 <div style={{ fontFamily: mont, fontSize: mob ? 10 : 12, color: "#000000", marginTop: 8 }}>
                   {p.name}
                 </div>
-                <div style={{ fontFamily: mont, fontSize: mob ? 9 : 10, color: "#666666" }}>{p.loc}</div>
+                <div style={{ fontFamily: mont, fontSize: mob ? 9 : 10, color: "#666666" }}>{p.location}</div>
               </div>
             ))}
           </div>
