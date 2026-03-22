@@ -10,7 +10,7 @@ const MOBILE_NAV = [
   { title: "Home", url: "/home", icon: Home, end: true },
   { title: "Events", url: "/dashboard/events", icon: Camera },
   { title: "Albums", url: "/dashboard/album-designer", icon: BookOpen },
-  { title: "Website", url: "/dashboard/website-editor", icon: Globe },
+  { title: "Studio Feed", url: "/dashboard/website-editor", icon: Globe },
 ];
 
 const MORE_NAV = [

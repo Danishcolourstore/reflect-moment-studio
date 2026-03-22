@@ -40,7 +40,7 @@ const NAV_ITEMS = [
   { title: "Home", url: "/home", icon: Home, end: true },
   { title: "Overview", url: "/dashboard", icon: LayoutGrid, end: true },
   { title: "Events", url: "/dashboard/events", icon: Camera },
-  { title: "Website", url: "/dashboard/website-editor", icon: Globe },
+  { title: "Studio Feed", url: "/dashboard/website-editor", icon: Globe },
   { title: "Domains", url: "/dashboard/domains", icon: Globe },
   { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
   { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
@@ -54,7 +54,7 @@ const MOBILE_NAV = [
   { title: "Home", url: "/home", icon: Home, end: true },
   { title: "Events", url: "/dashboard/events", icon: Camera },
   { title: "Albums", url: "/dashboard/album-designer", icon: BookOpen },
-  { title: "Website", url: "/dashboard/website-editor", icon: Globe },
+  { title: "Studio Feed", url: "/dashboard/website-editor", icon: Globe },
 ];
 
 const MORE_NAV = NAV_ITEMS.filter((i) => !MOBILE_NAV.some((m) => m.url === i.url));
@@ -82,7 +82,7 @@ function useDomainNudge(userId: string | undefined) {
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Overview",
   "/dashboard/events": "Events",
-  "/dashboard/website-editor": "Website Builder",
+  "/dashboard/website-editor": "Studio Feed",
   "/dashboard/domains": "Domains",
   "/dashboard/storybook": "Storybook",
   "/dashboard/album-designer": "Albums",
