@@ -29,7 +29,7 @@ export function StorybookGate({ children }: { children: ReactNode }) {
       sessionStorage.setItem('storybook_email', email.trim().toLowerCase());
       setVerified(true);
     } else {
-      setError('Invalid access code. Please use the code provided by Colour Store.');
+      setError('Invalid access code. Please use the code provided by MirrorAI.');
     }
   };
 
