@@ -29,7 +29,7 @@ export function StorybookGate({ children }: { children: ReactNode }) {
       sessionStorage.setItem('storybook_email', email.trim().toLowerCase());
       setVerified(true);
     } else {
-      setError('Invalid access code. Please use the code provided by Colour Store.');
+      setError('Invalid access code. Please use the code provided by MirrorAI.');
     }
   };
 
@@ -85,7 +85,7 @@ export function StorybookGate({ children }: { children: ReactNode }) {
               />
             </div>
             <p className="text-center" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '11px', fontWeight: 400, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-              Access code provided by Colour Store
+              Access code provided by MirrorAI
             </p>
             <button
               onClick={handleCodeSubmit}

@@ -6,9 +6,8 @@ import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import CreateFeedPostModal from "@/components/CreateFeedPostModal";
 import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { toast } from "sonner";
-
-const playfair = '"Playfair Display", serif';
-const mont = '"Montserrat", sans-serif';
+import { LayoutGrid } from "lucide-react";
+import { colors, fonts } from "@/styles/design-tokens";
 
 interface FeedItem {
   id: string;
@@ -34,11 +33,6 @@ export default function LandingGate() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [editPost, setEditPost] = useState<FeedItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [sectionVis, setSectionVis] = useState<Record<string, boolean>>({
-    hero: true, galleries: true, stories: true, testimonials: false, about: true, enquire: true,
-  });
-  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -52,7 +46,7 @@ export default function LandingGate() {
       link.id = "home-fonts";
       link.rel = "stylesheet";
       link.href =
-        "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Montserrat:wght@300;400;500;600;700&display=swap";
+        "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&display=swap";
       document.head.appendChild(link);
     }
   }, []);
@@ -65,7 +59,7 @@ export default function LandingGate() {
       .eq("user_id", user.id).maybeSingle();
     if (prof?.studio_name) setProfileName(prof.studio_name);
 
-    const { data: sp } = await (supabase.from("studio_profiles").select("username, section_visibility") as any)
+    const { data: sp } = await (supabase.from("studio_profiles").select("username") as any)
       .eq("user_id", user.id).maybeSingle();
     if (sp?.username) {
       setShareSlug(sp.username);
@@ -73,9 +67,6 @@ export default function LandingGate() {
       const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
         .eq("user_id", user.id).eq("is_primary", true).maybeSingle();
       if (dom?.subdomain) setShareSlug(dom.subdomain);
-    }
-    if (sp?.section_visibility) {
-      setSectionVis(prev => ({ ...prev, ...sp.section_visibility }));
     }
 
     const { data: events } = await supabase
@@ -146,20 +137,14 @@ export default function LandingGate() {
     setMenuOpenId(null);
   };
 
-  // --- SVG Icons ---
-  const HeartIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CCCCCC" strokeWidth="1.5">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
-  );
   const DotsIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="#999999">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={colors.textMuted}>
       <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
     </svg>
   );
 
   const menuBtn: React.CSSProperties = {
-    width: "100%", padding: "10px 16px", fontFamily: mont, fontSize: 12,
+    width: "100%", padding: "10px 16px", fontFamily: fonts.body, fontSize: 12,
     color: "#000000", background: "transparent", border: "none",
     textAlign: "left" as const, cursor: "pointer",
   };
@@ -174,40 +159,29 @@ export default function LandingGate() {
         backdropFilter: "blur(20px)", borderBottom: "1px solid #F2F2F2",
       }}>
         <button onClick={drawer.toggle} style={{
-          background: "none", border: "none", fontFamily: mont, fontSize: 10,
+          background: "none", border: "none", fontFamily: fonts.body, fontSize: 10,
           fontWeight: 600, color: "#999999", letterSpacing: "0.2em",
           cursor: "pointer", textTransform: "uppercase" as const,
         }}>MENU</button>
-        <span style={{ fontFamily: playfair, fontSize: 16, fontWeight: 700, color: "#000000", letterSpacing: "0.02em" }}>
-          {profileName}
+        <span style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 500, color: "#000000", letterSpacing: "0.08em" }}>
+          MirrorAI
         </span>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button onClick={() => navigate("/dashboard")} style={{
-            background: "none", border: "none", fontFamily: mont, fontSize: 9,
-            fontWeight: 600, color: "#999999", letterSpacing: "0.15em",
-            cursor: "pointer", textTransform: "uppercase" as const,
-          }}>WORKSPACE</button>
-        </div>
+        <button onClick={() => navigate("/dashboard")} style={{
+          background: "none", border: "none", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          width: 36, height: 36,
+        }}>
+          <LayoutGrid className="h-[18px] w-[18px]" style={{ color: "#999999" }} strokeWidth={1.5} />
+        </button>
       </div>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
-      {/* ── Sub Nav ── */}
+      {/* ── Action Bar ── */}
       <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "12px 20px", borderBottom: "1px solid #F2F2F2", overflowX: "auto" as const,
+        display: "flex", alignItems: "center", justifyContent: "flex-end",
+        padding: "12px 20px", borderBottom: "1px solid #F2F2F2",
       }}>
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          {["FEED", "ART GALLERY"].map((label, i) => (
-            <button key={label} onClick={() => i === 1 ? navigate("/art-gallery") : null} style={{
-              background: "none", border: "none", fontFamily: mont, fontSize: 10,
-              fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase" as const,
-              color: i === 0 ? "#000000" : "#999999", cursor: "pointer",
-              borderBottom: i === 0 ? "2px solid #FFCC00" : "2px solid transparent",
-              paddingBottom: 4,
-            }}>{label}</button>
-          ))}
-        </div>
         <div style={{ display: "flex", gap: 8 }}>
           {shareSlug && (
             <button onClick={() => {
@@ -215,110 +189,47 @@ export default function LandingGate() {
               navigator.clipboard.writeText(url);
               toast.success("Public feed link copied!");
             }} style={{
-              fontFamily: mont, fontSize: 9, fontWeight: 600, letterSpacing: "0.12em",
+              fontFamily: fonts.body, fontSize: 9, fontWeight: 600, letterSpacing: "0.12em",
               textTransform: "uppercase" as const, color: "#000000",
               background: "transparent", border: "1px solid #E0E0E0",
               padding: "8px 14px", cursor: "pointer",
             }}>Share Feed</button>
           )}
           <button onClick={() => setCreateOpen(true)} style={{
-            fontFamily: mont, fontSize: 9, fontWeight: 600, letterSpacing: "0.15em",
-            textTransform: "uppercase" as const, color: "#000000", background: "#FFCC00",
-            border: "none", padding: "8px 16px", cursor: "pointer",
+            fontFamily: fonts.body, fontSize: 9, fontWeight: 600, letterSpacing: "0.15em",
+            textTransform: "uppercase" as const, color: colors.gold,
+            background: "transparent", border: `1px solid ${colors.gold}`,
+            padding: "8px 16px", cursor: "pointer",
           }}>+ New Post</button>
         </div>
       </div>
 
-      {/* ── Portfolio Settings ── */}
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "12px 16px 0" : "16px 24px 0" }}>
-        <button onClick={() => setSettingsOpen(!settingsOpen)} style={{
-          background: "none", border: "none", fontFamily: mont, fontSize: 10,
-          fontWeight: 600, color: "#999", letterSpacing: "0.12em", cursor: "pointer",
-          textTransform: "uppercase" as const, display: "flex", alignItems: "center", gap: 6,
-        }}>
-          ⚙ Portfolio Sections {settingsOpen ? "▲" : "▼"}
-        </button>
-        {settingsOpen && (
-          <div style={{ marginTop: 12, padding: 16, background: "#FAFAFA", border: "1px solid #F0F0F0" }}>
-            <div style={{ fontFamily: mont, fontSize: 11, color: "#666", marginBottom: 12 }}>
-              Toggle which sections appear on your public portfolio
-            </div>
-            {[
-              { key: "hero", label: "Hero Banner" },
-              { key: "galleries", label: "Photo Gallery" },
-              { key: "stories", label: "Stories / Blog" },
-              { key: "testimonials", label: "Testimonials" },
-              { key: "about", label: "About Section" },
-              { key: "enquire", label: "Enquiry Form" },
-            ].map(s => (
-              <label key={s.key} style={{
-                display: "flex", alignItems: "center", gap: 10, padding: "8px 0",
-                fontFamily: mont, fontSize: 12, color: "#333", cursor: "pointer",
-                borderBottom: "1px solid #F5F5F5",
-              }}>
-                <input type="checkbox" checked={sectionVis[s.key] ?? true}
-                  onChange={() => setSectionVis(prev => ({ ...prev, [s.key]: !prev[s.key] }))}
-                  style={{ width: 16, height: 16, accentColor: "#000" }}
-                />
-                {s.label}
-              </label>
-            ))}
-            <button onClick={async () => {
-              if (!user) return;
-              setSavingSettings(true);
-              await (supabase.from("studio_profiles").update({ section_visibility: sectionVis }) as any)
-                .eq("user_id", user.id);
-              setSavingSettings(false);
-              toast.success("Portfolio sections updated!");
-            }} disabled={savingSettings} style={{
-              marginTop: 12, fontFamily: mont, fontSize: 10, fontWeight: 600,
-              letterSpacing: "0.12em", textTransform: "uppercase" as const,
-              background: "#000", color: "#FFF", border: "none",
-              padding: "10px 20px", cursor: savingSettings ? "wait" : "pointer",
-              opacity: savingSettings ? 0.6 : 1,
-            }}>
-              {savingSettings ? "Saving..." : "Save Sections"}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* ── Feed Header ── */}
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 16px 0" : "32px 24px 0" }}>
-        <div style={{ fontFamily: mont, fontSize: 10, color: "#FFCC00", letterSpacing: "0.2em", textTransform: "uppercase" as const, fontWeight: 600 }}>
-          YOUR FEED
-        </div>
-        <h1 style={{ fontFamily: playfair, fontSize: mob ? 28 : 36, fontWeight: 700, color: "#000000", marginTop: 4 }}>
-          Moments
-        </h1>
-        <div style={{ width: 36, height: 2, background: "#FFCC00", marginTop: 12, marginBottom: 28 }} />
-      </div>
-
       {/* ── Feed Content ── */}
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "0 0 80px" : "0 0 100px" }}>
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 80px" : "32px 0 100px" }}>
         {loading ? (
           <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-            <div style={{ fontFamily: mont, fontSize: 13, color: "#999999" }}>Loading your feed...</div>
+            <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading your feed...</div>
           </div>
         ) : feed.length === 0 ? (
           <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-            <div style={{ fontFamily: playfair, fontSize: 24, color: "#000000", fontStyle: "italic" }}>
+            <div style={{ fontFamily: fonts.display, fontSize: 24, color: "#000000", fontStyle: "italic" }}>
               Your feed is empty
             </div>
-            <div style={{ fontFamily: mont, fontSize: 13, color: "#999999", marginTop: 12, lineHeight: 1.7 }}>
+            <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999", marginTop: 12, lineHeight: 1.7 }}>
               Create events or write posts — they'll appear here automatically.
             </div>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24 }}>
               <button onClick={() => navigate("/dashboard/events")} style={{
-                fontFamily: mont, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
+                fontFamily: fonts.body, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
                 textTransform: "uppercase" as const, color: "#000000",
                 border: "1px solid #E0E0E0", background: "transparent",
                 padding: "10px 24px", cursor: "pointer",
               }}>Create Event</button>
               <button onClick={() => setCreateOpen(true)} style={{
-                fontFamily: mont, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
-                textTransform: "uppercase" as const, color: "#000000", background: "#FFCC00",
-                border: "none", padding: "10px 24px", cursor: "pointer",
+                fontFamily: fonts.body, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
+                textTransform: "uppercase" as const, color: colors.gold,
+                border: `1px solid ${colors.gold}`, background: "transparent",
+                padding: "10px 24px", cursor: "pointer",
               }}>Write Post</button>
             </div>
           </div>
@@ -397,41 +308,32 @@ export default function LandingGate() {
 
                 <div style={{ padding: mob ? "14px 16px 0" : "16px 24px 0" }}>
                   <div style={{
-                    fontFamily: mont, fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase" as const,
-                    color: item.type === "event" ? "#FFCC00" : "#CCCCCC", marginBottom: 8, fontWeight: 600,
+                    fontFamily: fonts.body, fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase" as const,
+                    color: item.type === "event" ? colors.gold : "#CCCCCC", marginBottom: 8, fontWeight: 600,
                   }}>
                     {item.type === "event" ? "EVENT" : "POST"}
                   </div>
 
                   <h2 style={{
-                    fontFamily: playfair, fontSize: mob ? 18 : 22, fontWeight: 700,
+                    fontFamily: fonts.display, fontSize: mob ? 18 : 22, fontWeight: 500,
                     color: "#000000", letterSpacing: "0.02em",
                   }}>{item.title}</h2>
 
-                  <div style={{ fontFamily: mont, fontSize: 12, color: "#999999", marginTop: 6 }}>
+                  <div style={{ fontFamily: fonts.body, fontSize: 12, color: "#999999", marginTop: 6 }}>
                     {fmt(item.date)}{item.location ? ` · ${item.location}` : ""}
                   </div>
 
                   {item.caption && (
-                    <p style={{ fontFamily: mont, fontSize: 13, color: "#666666", lineHeight: 1.7, marginTop: 12 }}>
+                    <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#666666", lineHeight: 1.7, marginTop: 12 }}>
                       {item.caption}
                     </p>
                   )}
 
                   {item.type === "event" && item.photoCount !== undefined && item.photoCount > 0 && (
-                    <div style={{ fontFamily: mont, fontSize: 11, color: "#BBBBBB", marginTop: 10 }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 11, color: "#BBBBBB", marginTop: 10 }}>
                       {item.photoCount} photos
                     </div>
                   )}
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 12 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <HeartIcon />
-                      <span style={{ fontFamily: mont, fontSize: 11, color: "#CCCCCC" }}>
-                        {Math.floor(Math.random() * 200 + 10)}
-                      </span>
-                    </div>
-                  </div>
 
                   <div style={{ height: 1, background: "#F2F2F2", marginTop: 20 }} />
                 </div>
@@ -443,10 +345,10 @@ export default function LandingGate() {
 
       {/* ── Footer ── */}
       <div style={{ padding: "24px 20px 40px", textAlign: "center" as const, borderTop: "1px solid #F2F2F2" }}>
-        <div style={{ fontFamily: mont, fontSize: 10, color: "#CCCCCC", letterSpacing: "0.1em" }}>
+        <div style={{ fontFamily: fonts.body, fontSize: 10, color: "#CCCCCC", letterSpacing: "0.1em" }}>
           © MirrorAI · Real Intelligence
         </div>
-        <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#FFCC00", margin: "12px auto 0" }} />
+        <div style={{ width: 4, height: 4, borderRadius: "50%", background: colors.gold, margin: "12px auto 0" }} />
       </div>
 
       <CreateFeedPostModal open={createOpen} onOpenChange={setCreateOpen} onCreated={loadFeed} />

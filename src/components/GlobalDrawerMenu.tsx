@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 ];
 
 const MORE_ITEMS = [
-  { label: "Colour Store", path: "/colour-store" },
+  { label: "MirrorAI Retouch", path: "/colour-store" },
   { label: "Storybook", path: "/dashboard/storybook" },
   { label: "Analytics", path: "/dashboard/analytics" },
   { label: "Clients", path: "/dashboard/clients" },

@@ -60,7 +60,7 @@ const LandingPage = () => {
         }}
       >
         Welcome to <br />
-        <span style={{ letterSpacing: "0.12em" }}>Colour Store Universe</span>
+        <span style={{ letterSpacing: "0.12em" }}>MirrorAI</span>
       </motion.h1>
 
       {/* Hint text */}

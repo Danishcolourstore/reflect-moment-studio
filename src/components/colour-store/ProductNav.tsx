@@ -6,8 +6,8 @@ export default function ProductNav() {
   const location = useLocation();
 
   const isColourStore = location.pathname.startsWith('/colour-store');
-  const currentLabel = isColourStore ? 'Colour Store' : 'Mirror';
-  const otherLabel = isColourStore ? 'Mirror' : 'Colour Store';
+  const currentLabel = isColourStore ? 'MirrorAI' : 'Mirror';
+  const otherLabel = isColourStore ? 'Mirror' : 'MirrorAI';
   const otherPath = isColourStore ? '/dashboard' : '/colour-store';
 
   return (

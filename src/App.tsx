@@ -4,7 +4,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
-import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
+// BetaFeedbackButton removed from production render
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StorybookGate } from "@/components/StorybookGate";
 import { GalleryShell } from "./components/GalleryShell";
@@ -740,7 +740,7 @@ const App = () => (
               <ErrorBoundary>
                 <AppRoutes />
               </ErrorBoundary>
-              <BetaFeedbackButton />
+              {/* BetaFeedbackButton hidden in production */}
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>

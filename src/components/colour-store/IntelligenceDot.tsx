@@ -35,7 +35,7 @@ export default function IntelligenceDot({ active = false }: Props) {
         className="text-[9px] tracking-wider text-[#6B6B6B] whitespace-nowrap"
         style={{ fontFamily: '"DM Sans", sans-serif' }}
       >
-        Colour Store Intelligence · {active ? 'Analysing' : 'Active'}
+        MirrorAI Intelligence · {active ? 'Analysing' : 'Active'}
       </motion.span>
     </motion.div>
   );

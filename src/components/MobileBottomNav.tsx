@@ -1,101 +1,164 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { NavLink } from "@/components/NavLink";
-import { Camera, BookOpen, Globe, Menu, ChevronRight, LogOut, Home } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Home, Calendar, Plus, Sparkles, User, Camera, Upload, BookOpen, Zap, Palette, Layers } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
-import { useAuth } from "@/lib/auth";
+import { colors, fonts } from "@/styles/design-tokens";
 
-const MOBILE_NAV = [
-  { title: "Home", url: "/home", icon: Home, end: true },
-  { title: "Events", url: "/dashboard/events", icon: Camera },
-  { title: "Albums", url: "/dashboard/album-designer", icon: BookOpen },
-  { title: "Studio Feed", url: "/dashboard/website-editor", icon: Globe },
+const TABS = [
+  { title: "Home", url: "/home", icon: Home },
+  { title: "Events", url: "/dashboard/events", icon: Calendar },
+  { title: "Create", url: "", icon: Plus, isAction: true },
+  { title: "Tools", url: "", icon: Sparkles, isAction: true },
+  { title: "Profile", url: "/dashboard/profile", icon: User },
 ];
 
-const MORE_NAV = [
-  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Camera },
-  { title: "Clients", url: "/dashboard/clients", icon: Camera },
-  { title: "Analytics", url: "/dashboard/analytics", icon: Camera },
-  { title: "Profile", url: "/dashboard/profile", icon: Camera },
-  { title: "Notifications", url: "/dashboard/notifications", icon: Camera },
+const CREATE_ACTIONS = [
+  { title: "New Event", url: "/dashboard/events", icon: Camera },
+  { title: "Upload Photos", url: "/dashboard/upload", icon: Upload },
+  { title: "New Storybook", url: "/dashboard/storybook", icon: BookOpen },
+];
+
+const TOOL_ACTIONS = [
+  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
+  { title: "Refyn", url: "/colour-store", icon: Palette },
+  { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
+  { title: "Album Designer", url: "/dashboard/album-designer", icon: Layers },
 ];
 
 export function MobileBottomNav() {
   const device = useDeviceDetect();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const [moreOpen, setMoreOpen] = useState(false);
+  const location = useLocation();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
 
   if (!device.isPhone) return null;
 
+  const isActive = (url: string) => {
+    if (!url) return false;
+    if (url === "/home") return location.pathname === "/home";
+    return location.pathname.startsWith(url);
+  };
+
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch border-t border-border"
-      style={{
-        height: 56,
-        background: "rgba(10,10,10,0.92)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
-      }}
-    >
-      {MOBILE_NAV.map((item) => (
-        <NavLink
-          key={item.url}
-          to={item.url}
-          end={item.end}
-          className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors min-h-[44px]"
-          activeClassName="[&>svg]:text-[#C8A97E] [&>span]:text-[#C8A97E]"
-          style={{ color: "rgba(255,255,255,0.45)" }}
-        >
-          <item.icon className="h-[22px] w-[22px] transition-colors" strokeWidth={1.6} />
-          <span className="text-[10px] font-medium tracking-wide transition-colors">{item.title}</span>
-        </NavLink>
-      ))}
-      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetTrigger asChild>
-          <button
-            className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
-            style={{ color: "rgba(255,255,255,0.45)" }}
-          >
-            <Menu className="h-[22px] w-[22px]" strokeWidth={1.6} />
-            <span className="text-[10px] font-medium tracking-wide">More</span>
-          </button>
-        </SheetTrigger>
-        <SheetContent
-          side="bottom"
-          className="rounded-t-[20px]"
-          style={{ paddingBottom: "env(safe-area-inset-bottom, 16px)" }}
-        >
-          <div className="space-y-1 pt-4 pb-4">
-            {MORE_NAV.map((item) => (
-              <button
-                key={item.url}
-                onClick={() => {
-                  navigate(item.url);
-                  setMoreOpen(false);
-                }}
-                className="flex items-center gap-3 w-full px-4 py-3 text-foreground hover:bg-secondary rounded-lg transition-colors text-sm min-h-[48px]"
-              >
-                {item.title}
-                <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground/40" />
-              </button>
-            ))}
-            <div className="mx-4 my-2 h-px bg-border" />
+    <>
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch"
+        style={{
+          height: 56,
+          background: colors.bg,
+          borderTop: `1px solid ${colors.border}`,
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
+      >
+        {TABS.map((tab) => {
+          if (tab.title === "Create") {
+            return (
+              <Sheet key="create" open={createOpen} onOpenChange={setCreateOpen}>
+                <SheetTrigger asChild>
+                  <button
+                    className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
+                    style={{ color: "rgba(255,255,255,0.45)" }}
+                  >
+                    <div
+                      className="flex items-center justify-center rounded-full"
+                      style={{ width: 28, height: 28, background: colors.gold }}
+                    >
+                      <Plus className="h-[16px] w-[16px]" style={{ color: colors.bg }} strokeWidth={2.5} />
+                    </div>
+                  </button>
+                </SheetTrigger>
+                <SheetContent
+                  side="bottom"
+                  className="rounded-t-[20px]"
+                  style={{
+                    background: colors.surface,
+                    border: "none",
+                    paddingBottom: "env(safe-area-inset-bottom, 16px)",
+                  }}
+                >
+                  <div className="pt-4 pb-4 space-y-1">
+                    <p style={{
+                      fontFamily: fonts.body, fontSize: 9, fontWeight: 600,
+                      color: colors.textMuted, letterSpacing: "0.2em",
+                      textTransform: "uppercase", padding: "0 16px", marginBottom: 12,
+                    }}>Create</p>
+                    {CREATE_ACTIONS.map((action) => (
+                      <button
+                        key={action.url}
+                        onClick={() => { navigate(action.url); setCreateOpen(false); }}
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors min-h-[48px]"
+                        style={{ color: colors.text, fontFamily: fonts.body, fontSize: 14 }}
+                      >
+                        <action.icon className="h-5 w-5" style={{ color: colors.gold }} strokeWidth={1.5} />
+                        {action.title}
+                      </button>
+                    ))}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            );
+          }
+
+          if (tab.title === "Tools") {
+            return (
+              <Sheet key="tools" open={toolsOpen} onOpenChange={setToolsOpen}>
+                <SheetTrigger asChild>
+                  <button
+                    className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
+                    style={{ color: "rgba(255,255,255,0.45)" }}
+                  >
+                    <tab.icon className="h-[22px] w-[22px]" strokeWidth={1.6} />
+                    <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 500 }}>{tab.title}</span>
+                  </button>
+                </SheetTrigger>
+                <SheetContent
+                  side="bottom"
+                  className="rounded-t-[20px]"
+                  style={{
+                    background: colors.surface,
+                    border: "none",
+                    paddingBottom: "env(safe-area-inset-bottom, 16px)",
+                  }}
+                >
+                  <div className="pt-4 pb-4 space-y-1">
+                    <p style={{
+                      fontFamily: fonts.body, fontSize: 9, fontWeight: 600,
+                      color: colors.textMuted, letterSpacing: "0.2em",
+                      textTransform: "uppercase", padding: "0 16px", marginBottom: 12,
+                    }}>Tools</p>
+                    {TOOL_ACTIONS.map((action) => (
+                      <button
+                        key={action.url}
+                        onClick={() => { navigate(action.url); setToolsOpen(false); }}
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors min-h-[48px]"
+                        style={{ color: colors.text, fontFamily: fonts.body, fontSize: 14 }}
+                      >
+                        <action.icon className="h-5 w-5" style={{ color: colors.gold }} strokeWidth={1.5} />
+                        {action.title}
+                      </button>
+                    ))}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            );
+          }
+
+          const active = isActive(tab.url);
+          return (
             <button
-              onClick={async () => {
-                await signOut();
-                navigate("/login");
-              }}
-              className="flex items-center gap-3 w-full px-4 py-3 text-destructive hover:bg-destructive/5 rounded-lg transition-colors text-sm min-h-[48px]"
+              key={tab.url}
+              onClick={() => navigate(tab.url)}
+              className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors"
+              style={{ color: active ? colors.gold : "rgba(255,255,255,0.4)" }}
             >
-              <LogOut className="h-4 w-4" />
-              Sign Out
+              <tab.icon className="h-[22px] w-[22px]" strokeWidth={1.6} />
+              <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 500 }}>{tab.title}</span>
             </button>
-          </div>
-        </SheetContent>
-      </Sheet>
-    </nav>
+          );
+        })}
+      </nav>
+    </>
   );
 }
