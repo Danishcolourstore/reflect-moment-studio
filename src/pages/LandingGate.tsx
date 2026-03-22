@@ -200,11 +200,30 @@ export default function LandingGate() {
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
-      {/* ── Action Bar ── */}
+      {/* ── Tabs ── */}
       <div style={{
-        display: "flex", alignItems: "center", justifyContent: "flex-end",
-        padding: "12px 20px", borderBottom: "1px solid #F2F2F2",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 20px", borderBottom: "1px solid #F2F2F2",
       }}>
+        <div style={{ display: "flex", gap: 24 }}>
+          {(["feed", "artgallery"] as const).map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)} style={{
+              fontFamily: fonts.body, fontSize: 12, fontWeight: 500, letterSpacing: "0.15em",
+              textTransform: "uppercase" as const, background: "none", border: "none",
+              padding: "14px 0", cursor: "pointer", position: "relative" as const,
+              color: activeTab === tab ? "#000000" : "rgba(0,0,0,0.4)",
+              transition: "color 0.2s",
+            }}>
+              {tab === "feed" ? "Feed" : "Art Gallery"}
+              {activeTab === tab && (
+                <span style={{
+                  position: "absolute" as const, bottom: 0, left: 0, right: 0, height: 2,
+                  background: colors.gold,
+                }} />
+              )}
+            </button>
+          ))}
+        </div>
         <div style={{ display: "flex", gap: 8 }}>
           {shareSlug && (
             <button onClick={() => {
@@ -218,12 +237,14 @@ export default function LandingGate() {
               padding: "8px 14px", cursor: "pointer",
             }}>Share Feed</button>
           )}
-          <button onClick={() => setCreateOpen(true)} style={{
-            fontFamily: fonts.body, fontSize: 9, fontWeight: 600, letterSpacing: "0.15em",
-            textTransform: "uppercase" as const, color: colors.gold,
-            background: "transparent", border: `1px solid ${colors.gold}`,
-            padding: "8px 16px", cursor: "pointer",
-          }}>+ New Post</button>
+          {activeTab === "feed" && (
+            <button onClick={() => setCreateOpen(true)} style={{
+              fontFamily: fonts.body, fontSize: 9, fontWeight: 600, letterSpacing: "0.15em",
+              textTransform: "uppercase" as const, color: colors.gold,
+              background: "transparent", border: `1px solid ${colors.gold}`,
+              padding: "8px 16px", cursor: "pointer",
+            }}>+ New Post</button>
+          )}
         </div>
       </div>
 
