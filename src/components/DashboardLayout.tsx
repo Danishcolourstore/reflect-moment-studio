@@ -22,7 +22,7 @@ import {
   Bot,
   Home,
 } from "lucide-react";
-import { FloatingActionButton } from "@/components/FloatingActionButton";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { EntiranProvider, useEntiranOpen } from "@/components/entiran/EntiranProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
