@@ -65,7 +65,7 @@ export default function LandingGate() {
       .eq("user_id", user.id).maybeSingle();
     if (prof?.studio_name) setProfileName(prof.studio_name);
 
-    const { data: sp } = await (supabase.from("studio_profiles").select("username") as any)
+    const { data: sp } = await (supabase.from("studio_profiles").select("username, section_visibility") as any)
       .eq("user_id", user.id).maybeSingle();
     if (sp?.username) {
       setShareSlug(sp.username);
@@ -73,6 +73,9 @@ export default function LandingGate() {
       const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
         .eq("user_id", user.id).eq("is_primary", true).maybeSingle();
       if (dom?.subdomain) setShareSlug(dom.subdomain);
+    }
+    if (sp?.section_visibility) {
+      setSectionVis(prev => ({ ...prev, ...sp.section_visibility }));
     }
 
     const { data: events } = await supabase
