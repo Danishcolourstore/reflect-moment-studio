@@ -3984,6 +3984,39 @@ export type Database = {
           },
         ]
       }
+      retouch_styles: {
+        Row: {
+          compression_confidence: number | null
+          created_at: string | null
+          id: string
+          is_favorite: boolean | null
+          parameters: Json
+          reference_image_url: string | null
+          style_name: string
+          user_id: string
+        }
+        Insert: {
+          compression_confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          parameters?: Json
+          reference_image_url?: string | null
+          style_name: string
+          user_id: string
+        }
+        Update: {
+          compression_confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          parameters?: Json
+          reference_image_url?: string | null
+          style_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       seo_pages: {
         Row: {
           body_html: string | null

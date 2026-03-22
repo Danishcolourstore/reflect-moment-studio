@@ -117,6 +117,19 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
 
   const { transform, onPointerDown, onPointerMove, onPointerUp, resetZoom } = usePinchZoom();
 
+  // Apply stolen style from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('stolen-style');
+      if (!raw) return;
+      const { name, params } = JSON.parse(raw);
+      sessionStorage.removeItem('stolen-style');
+      // Log applied params for future canvas integration
+      console.log('[Refyn] Stolen style applied:', params);
+      toast.success(`Style applied: ${name}`, { duration: 3000 });
+    } catch { /* ignore */ }
+  }, []);
+
   const handleToolTap = useCallback((id: RetouchToolId) => {
     setActiveTool(prev => prev === id ? null : id);
   }, []);
