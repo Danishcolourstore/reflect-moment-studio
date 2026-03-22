@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
 import { PageError } from "@/components/PageStates";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
-import { HamburgerButton, DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import RetouchSignatureCard from "@/components/colour-store/RetouchSignatureCard";
+import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 
-const ease = [0.16, 1, 0.3, 1];
-const dm = '"DM Sans", sans-serif';
-const cormorant = '"Cormorant Garamond", serif';
+const playfair = '"Playfair Display", serif';
+const mont = '"Montserrat", sans-serif';
 
 interface RecentEvent {
   id: string;
@@ -20,47 +16,6 @@ interface RecentEvent {
   event_date: string | null;
   cover_url: string | null;
   photo_count: number;
-}
-
-function FilmGrain() {
-  return (
-    <svg className="pointer-events-none fixed inset-0 w-full h-full z-50 opacity-[0.025]">
-      <filter id="dash-grain">
-        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
-        <feColorMatrix type="saturate" values="0" />
-      </filter>
-      <rect width="100%" height="100%" filter="url(#dash-grain)" />
-    </svg>
-  );
-}
-
-function FloatingOrb({
-  color,
-  size,
-  left,
-  top,
-  speed,
-}: {
-  color: string;
-  size: number;
-  left: string;
-  top: string;
-  speed: number;
-}) {
-  return (
-    <motion.div
-      className="absolute rounded-full pointer-events-none"
-      style={{
-        width: size,
-        height: size,
-        background: `radial-gradient(circle, ${color}, transparent 70%)`,
-        left,
-        top,
-      }}
-      animate={{ x: [0, 15, -10, 0], y: [0, -12, 18, 0], scale: [1, 1.04, 0.97, 1] }}
-      transition={{ duration: speed, repeat: Infinity, ease: "easeInOut" }}
-    />
-  );
 }
 
 const Dashboard = () => {
@@ -75,7 +30,24 @@ const Dashboard = () => {
   const [totalAlbums, setTotalAlbums] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [hoverCS, setHoverCS] = useState(false);
+  const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+
+  useEffect(() => {
+    const h = () => setMob(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+
+  useEffect(() => {
+    if (!document.getElementById("dash-fonts")) {
+      const link = document.createElement("link");
+      link.id = "dash-fonts";
+      link.rel = "stylesheet";
+      link.href =
+        "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Montserrat:wght@300;400;500;600;700&display=swap";
+      document.head.appendChild(link);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -124,297 +96,414 @@ const Dashboard = () => {
   if (error) return <PageError message="Failed to load" onRetry={() => window.location.reload()} />;
 
   return (
-    <div className="min-h-[100dvh] relative pb-20" style={{ background: "#080808" }}>
-      <FilmGrain />
-      <DrawerMenu open={drawer.open} onClose={drawer.close} />
-
-      {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4" style={{ height: 48 }}>
-        <HamburgerButton onClick={drawer.toggle} />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <motion.div
-              className="rounded-full"
-              style={{ width: 5, height: 5, background: "#E8C97A" }}
-              animate={{
-                opacity: [0.5, 1, 0.5],
-                boxShadow: [
-                  "0 0 4px 1px rgba(232,201,122,0.2)",
-                  "0 0 8px 2px rgba(232,201,122,0.4)",
-                  "0 0 4px 1px rgba(232,201,122,0.2)",
-                ],
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </TooltipTrigger>
-          <TooltipContent side="left" className="text-[10px] bg-[#111] border-[rgba(240,237,232,0.06)]">
-            RI · Active
-          </TooltipContent>
-        </Tooltip>
+    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF", overflowY: "visible" as const }}>
+      <div
+        style={{
+          position: "sticky" as const,
+          top: 0,
+          zIndex: 100,
+          background: "#FFFFFF",
+          height: mob ? 48 : 56,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: mob ? "0 16px" : "0 24px",
+          borderBottom: "1px solid #F2F2F2",
+        }}
+      >
+        <button
+          onClick={drawer.toggle}
+          style={{
+            background: "none",
+            border: "none",
+            fontFamily: mont,
+            fontSize: mob ? 9 : 10,
+            fontWeight: 600,
+            letterSpacing: "1.5px",
+            color: "#666666",
+            cursor: "pointer",
+            textTransform: "uppercase" as const,
+            minHeight: 44,
+          }}
+        >
+          MENU
+        </button>
+        <span style={{ fontFamily: playfair, fontSize: mob ? 14 : 16, fontWeight: 700, color: "#000000" }}>
+          Workspace
+        </span>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#FFCC00" }} />
       </div>
 
-      {/* SECTION A — Workspace Hero */}
-      <section className="relative overflow-hidden" style={{ paddingTop: 48 }}>
-        <div className="px-4 py-8 md:px-12 md:py-12">
-          {/* Page title */}
-          <motion.h1
-            className="font-light leading-[1.0]"
-            style={{
-              fontFamily: cormorant,
-              fontSize: "clamp(48px, 12vw, 96px)",
-              color: "#F0EDE8",
-              letterSpacing: "-0.02em",
-            }}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease }}
-          >
-            Workspace
-          </motion.h1>
-
-          {/* Amber rule */}
-          <div className="mt-5 mb-4" style={{ width: 40, height: 1, background: "#E8C97A" }} />
-
-          {/* Stats line */}
-          <p
-            style={{
-              fontFamily: dm,
-              fontSize: 11,
-              color: "rgba(240,237,232,0.35)",
-              letterSpacing: "0.18em",
-            }}
-          >
-            {loading ? "—" : `${totalPhotos} moments · ${totalEvents} events · ${totalAlbums} albums`}
-          </p>
+      <div style={{ padding: mob ? "32px 16px" : "48px 24px", maxWidth: 900, margin: "0 auto" }}>
+        <div
+          style={{
+            fontFamily: mont,
+            fontSize: mob ? 9 : 10,
+            letterSpacing: "1.5px",
+            color: "#FFCC00",
+            textTransform: "uppercase" as const,
+          }}
+        >
+          REAL INTELLIGENCE
         </div>
+        <h1
+          style={{
+            fontFamily: playfair,
+            fontSize: mob ? 36 : 48,
+            fontWeight: 700,
+            color: "#000000",
+            marginTop: 4,
+            lineHeight: 1.1,
+          }}
+        >
+          Workspace
+        </h1>
+        <div style={{ width: 32, height: 2, background: "#FFCC00", margin: "12px 0" }} />
+        <p style={{ fontFamily: mont, fontSize: mob ? 12 : 13, color: "#666666", letterSpacing: "0.5px" }}>
+          {loading ? "—" : `${totalPhotos} moments · ${totalEvents} events · ${totalAlbums} albums`}
+        </p>
+      </div>
 
-        {/* Photo collage */}
-        {collagePhotos.length > 0 && (
-          <div className="px-4 pb-6 md:px-12">
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
-              {collagePhotos.map((evt, i) => (
-                <motion.img
-                  key={evt.id}
-                  src={evt.cover_url!}
-                  alt=""
-                  className="flex-none rounded-lg object-cover"
-                  style={{
-                    width: 140,
-                    height: 180,
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-                    scrollSnapAlign: "start",
-                  }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + i * 0.15, duration: 0.6, ease }}
-                />
-              ))}
-            </div>
+      {collagePhotos.length > 0 && (
+        <div style={{ padding: mob ? "0 16px 24px" : "0 24px 32px", maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ display: "flex", gap: 12, overflowX: "auto" as const }}>
+            {collagePhotos.map((evt) => (
+              <img
+                key={evt.id}
+                src={evt.cover_url!}
+                alt=""
+                style={{ width: 160, height: 200, objectFit: "cover" as const, flexShrink: 0, borderRadius: 0 }}
+              />
+            ))}
           </div>
-        )}
-      </section>
+        </div>
+      )}
 
-      {/* SECTION B — Quick Access Grid */}
-      <section className="px-4 md:px-12 py-6" style={{ borderTop: "1px solid rgba(240,237,232,0.06)" }}>
-        <div className="grid grid-cols-2 gap-3">
-          {/* Events card */}
+      <div
+        style={{
+          padding: mob ? "24px 16px" : "32px 24px",
+          maxWidth: 900,
+          margin: "0 auto",
+          borderTop: "1px solid #F2F2F2",
+        }}
+      >
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: mob ? 12 : 16 }}>
           <button
             onClick={() => navigate("/dashboard/events")}
-            className="group text-left rounded-2xl p-5 transition-all duration-300"
-            style={{ background: "#0E0E0E", border: "1px solid rgba(240,237,232,0.08)" }}
+            style={{
+              textAlign: "left" as const,
+              padding: mob ? 20 : 24,
+              background: "#FFFFFF",
+              border: "1px solid #F2F2F2",
+              cursor: "pointer",
+              transition: "all 0.3s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#FFCC00")}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#F2F2F2")}
           >
-            <p
-              className="uppercase"
-              style={{ fontFamily: dm, fontSize: 9, color: "rgba(240,237,232,0.4)", letterSpacing: "0.35em" }}
+            <div
+              style={{
+                fontFamily: mont,
+                fontSize: 9,
+                color: "#666666",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase" as const,
+              }}
             >
               Events
-            </p>
-            <p
-              className="mt-3"
-              style={{ fontFamily: cormorant, fontSize: 52, fontWeight: 300, color: "#F0EDE8", lineHeight: 1 }}
+            </div>
+            <div
+              style={{
+                fontFamily: playfair,
+                fontSize: mob ? 36 : 48,
+                fontWeight: 700,
+                color: "#000000",
+                lineHeight: 1,
+                marginTop: 8,
+              }}
             >
               {loading ? "—" : totalEvents}
-            </p>
-            <p
-              className="mt-3 flex items-center gap-1 transition-colors duration-300 group-hover:text-[#E8C97A]"
-              style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.25)" }}
-            >
-              View all
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">→</span>
-            </p>
+            </div>
+            <div style={{ fontFamily: mont, fontSize: 10, color: "#999999", marginTop: 8 }}>View all →</div>
           </button>
 
-          {/* Colour Store RI card */}
           <button
             onClick={() => navigate("/colour-store")}
-            onMouseEnter={() => setHoverCS(true)}
-            onMouseLeave={() => setHoverCS(false)}
-            className="group relative text-left rounded-2xl p-6 md:p-7 overflow-hidden cursor-pointer transition-all duration-300"
             style={{
-              background: "linear-gradient(135deg, #1A1208, #0C0908)",
-              border: `1px solid ${hoverCS ? "rgba(232,201,122,0.25)" : "rgba(232,201,122,0.12)"}`,
+              textAlign: "left" as const,
+              padding: mob ? 20 : 24,
+              background: "#FAFAF5",
+              border: "1px solid #E8E0C8",
+              cursor: "pointer",
+              transition: "all 0.3s",
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#FFCC00")}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#E8E0C8")}
           >
-            <FloatingOrb color="rgba(232,201,122,0.04)" size={100} left="60%" top="50%" speed={6} />
-            <div className="relative z-10">
-              <span
-                className="inline-block px-2.5 py-0.5 rounded-full text-[11px] italic"
-                style={{
-                  fontFamily: cormorant,
-                  color: "#E8C97A",
-                  background: "rgba(232,201,122,0.08)",
-                  border: "1px solid rgba(232,201,122,0.15)",
-                }}
-              >
-                RI
-              </span>
-              <p
-                className="mt-4 text-[24px] font-light leading-[1.2]"
-                style={{ fontFamily: cormorant, color: "#F0EDE8" }}
-              >
-                Retouch with
-                <br />
-                Real Intelligence
-              </p>
-              <p
-                className="mt-4 uppercase"
-                style={{ fontFamily: dm, fontSize: 10, color: "rgba(232,201,122,0.6)", letterSpacing: "0.15em" }}
-              >
-                Open Colour Store →
-              </p>
+            <div
+              style={{
+                fontFamily: mont,
+                fontSize: 9,
+                color: "#B8960C",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase" as const,
+              }}
+            >
+              RI
+            </div>
+            <div
+              style={{
+                fontFamily: playfair,
+                fontSize: mob ? 18 : 22,
+                fontWeight: 700,
+                color: "#000000",
+                lineHeight: 1.2,
+                marginTop: 8,
+              }}
+            >
+              Retouch with
+              <br />
+              Real Intelligence
+            </div>
+            <div
+              style={{
+                fontFamily: mont,
+                fontSize: 10,
+                color: "#B8960C",
+                marginTop: 12,
+                letterSpacing: "0.15em",
+                textTransform: "uppercase" as const,
+              }}
+            >
+              Open Colour Store →
             </div>
           </button>
 
-          {/* Albums card */}
           <button
             onClick={() => navigate("/dashboard/album-designer")}
-            className="group text-left rounded-2xl p-6 md:p-7 transition-all duration-300"
-            style={{ background: "#0E0E0E", border: "1px solid rgba(240,237,232,0.08)" }}
+            style={{
+              textAlign: "left" as const,
+              padding: mob ? 20 : 24,
+              background: "#FFFFFF",
+              border: "1px solid #F2F2F2",
+              cursor: "pointer",
+              transition: "all 0.3s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#FFCC00")}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#F2F2F2")}
           >
-            <p
-              className="uppercase"
-              style={{ fontFamily: dm, fontSize: 9, color: "rgba(240,237,232,0.4)", letterSpacing: "0.35em" }}
+            <div
+              style={{
+                fontFamily: mont,
+                fontSize: 9,
+                color: "#666666",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase" as const,
+              }}
             >
               Albums
-            </p>
-            <p
-              className="mt-3"
-              style={{ fontFamily: cormorant, fontSize: 52, fontWeight: 300, color: "#F0EDE8", lineHeight: 1 }}
+            </div>
+            <div
+              style={{
+                fontFamily: playfair,
+                fontSize: mob ? 36 : 48,
+                fontWeight: 700,
+                color: "#000000",
+                lineHeight: 1,
+                marginTop: 8,
+              }}
             >
               {loading ? "—" : totalAlbums}
-            </p>
-            <p
-              className="mt-3 flex items-center gap-1 transition-colors duration-300 group-hover:text-[#E8C97A]"
-              style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.25)" }}
-            >
-              View all
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">→</span>
-            </p>
+            </div>
+            <div style={{ fontFamily: mont, fontSize: 10, color: "#999999", marginTop: 8 }}>View all →</div>
           </button>
 
-          {/* Grid Builder card */}
           <button
             onClick={() => navigate("/dashboard/storybook")}
-            className="group text-left rounded-2xl p-6 md:p-7 transition-all duration-300"
-            style={{ background: "#0E0E0E", border: "1px solid rgba(240,237,232,0.08)" }}
+            style={{
+              textAlign: "left" as const,
+              padding: mob ? 20 : 24,
+              background: "#FFFFFF",
+              border: "1px solid #F2F2F2",
+              cursor: "pointer",
+              transition: "all 0.3s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#FFCC00")}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#F2F2F2")}
           >
-            <p
-              className="uppercase"
-              style={{ fontFamily: dm, fontSize: 9, color: "rgba(240,237,232,0.4)", letterSpacing: "0.35em" }}
+            <div
+              style={{
+                fontFamily: mont,
+                fontSize: 9,
+                color: "#666666",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase" as const,
+              }}
             >
               Grid Builder
-            </p>
-            <div className="mt-4 grid grid-cols-3 gap-[3px] w-fit">
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 3,
+                width: "fit-content",
+                marginTop: 12,
+              }}
+            >
               {Array.from({ length: 9 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="rounded-sm"
-                  style={{
-                    width: 24,
-                    height: 24,
-                    background: i < 4 ? "rgba(240,237,232,0.12)" : "rgba(240,237,232,0.04)",
-                  }}
-                />
+                <div key={i} style={{ width: 20, height: 20, background: i < 4 ? "#E0E0E0" : "#F2F2F2" }} />
               ))}
             </div>
-            <p
-              className="mt-4 flex items-center gap-1 transition-colors duration-300 group-hover:text-[#E8C97A]"
-              style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.25)" }}
-            >
-              Build your grid
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">→</span>
-            </p>
+            <div style={{ fontFamily: mont, fontSize: 10, color: "#999999", marginTop: 12 }}>Build your grid →</div>
           </button>
         </div>
 
-        {/* Retouch Signature */}
-        <RetouchSignatureCard
-          studioName={studioName}
-          editCount={12}
-          averages={{
-            skin: 48,
-            glow: 38,
-            form: 32,
-            light: 28,
-            grain: 22,
-            depth: 65,
-            outfit: 35,
-            jewellery: 20,
-            hair: 25,
+        <div
+          style={{
+            marginTop: mob ? 12 : 16,
+            padding: mob ? 20 : 28,
+            background: "#FAFAF5",
+            border: "1px solid #F2F2F2",
           }}
-        />
-      </section>
-
-      {/* SECTION C — Recent Events */}
-      <section className="px-4 md:px-12 py-8" style={{ borderTop: "1px solid rgba(240,237,232,0.06)" }}>
-        <p
-          className="uppercase mb-4"
-          style={{ fontFamily: dm, fontSize: 9, color: "rgba(240,237,232,0.4)", letterSpacing: "0.35em" }}
         >
-          Recent
-        </p>
+          <div
+            style={{
+              fontFamily: mont,
+              fontSize: 9,
+              color: "#B8960C",
+              letterSpacing: "0.35em",
+              textTransform: "uppercase" as const,
+            }}
+          >
+            YOUR SIGNATURE
+          </div>
+          <div
+            style={{ fontFamily: playfair, fontSize: mob ? 22 : 28, fontWeight: 700, color: "#000000", marginTop: 8 }}
+          >
+            Warm · Natural · Textured
+          </div>
+          <div style={{ fontFamily: mont, fontSize: 11, color: "#666666", marginTop: 6 }}>
+            Depth 65 · Skin 48 · Glow 38
+          </div>
+          <div style={{ width: 32, height: 2, background: "#B8960C", margin: "12px 0" }} />
+          <div
+            style={{
+              fontFamily: mont,
+              fontSize: 10,
+              color: "#B8960C",
+              letterSpacing: "0.15em",
+              textTransform: "uppercase" as const,
+              cursor: "pointer",
+            }}
+          >
+            Share your signature →
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          padding: mob ? "24px 16px" : "32px 24px",
+          maxWidth: 900,
+          margin: "0 auto",
+          borderTop: "1px solid #F2F2F2",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: mont,
+            fontSize: 9,
+            color: "#666666",
+            letterSpacing: "0.35em",
+            textTransform: "uppercase" as const,
+            marginBottom: 16,
+          }}
+        >
+          RECENT
+        </div>
+
         {recentEvents.length > 0 ? (
-          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollSnapType: "x mandatory" }}>
-            {recentEvents.map((evt, i) => (
-              <motion.button
+          <div style={{ display: "flex", gap: 12, overflowX: "auto" as const, paddingBottom: 8 }}>
+            {recentEvents.map((evt) => (
+              <button
                 key={evt.id}
-                className="flex-none rounded-xl overflow-hidden text-left"
-                style={{ width: 200, height: 260, background: "#0E0E0E", scrollSnapAlign: "start" }}
                 onClick={() => navigate(`/dashboard/events/${evt.id}`)}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08, duration: 0.5, ease }}
+                style={{
+                  flexShrink: 0,
+                  width: mob ? 160 : 200,
+                  textAlign: "left" as const,
+                  background: "#FFFFFF",
+                  border: "1px solid #F2F2F2",
+                  cursor: "pointer",
+                  overflow: "hidden",
+                  transition: "border-color 0.3s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#FFCC00")}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#F2F2F2")}
               >
-                <div className="w-full h-[70%] bg-[#111] overflow-hidden">
+                <div style={{ width: "100%", height: mob ? 140 : 180, background: "#F5F5F5", overflow: "hidden" }}>
                   {evt.cover_url ? (
-                    <img src={evt.cover_url} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={evt.cover_url}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" as const }}
+                    />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 opacity-10">
-                        <rect x="2" y="2" width="20" height="20" rx="4" stroke="#F0EDE8" strokeWidth="1" />
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#CCCCCC" strokeWidth="1">
+                        <rect x="2" y="2" width="20" height="20" rx="2" />
                       </svg>
                     </div>
                   )}
                 </div>
-                <div className="p-3">
-                  <p className="text-[12px] truncate" style={{ fontFamily: dm, color: "#F0EDE8" }}>
+                <div style={{ padding: 12 }}>
+                  <div
+                    style={{
+                      fontFamily: mont,
+                      fontSize: 12,
+                      color: "#000000",
+                      fontWeight: 500,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap" as const,
+                    }}
+                  >
                     {evt.name}
-                  </p>
-                  <p className="text-[10px] mt-0.5" style={{ fontFamily: dm, color: "rgba(240,237,232,0.3)" }}>
+                  </div>
+                  <div style={{ fontFamily: mont, fontSize: 10, color: "#999999", marginTop: 2 }}>
                     {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date"}
-                  </p>
+                  </div>
                 </div>
-              </motion.button>
+              </button>
             ))}
           </div>
         ) : !loading ? (
-          <p style={{ fontFamily: dm, fontSize: 11, color: "rgba(240,237,232,0.25)" }}>
+          <p style={{ fontFamily: mont, fontSize: 12, color: "#999999" }}>
             No events yet. Create your first event to get started.
           </p>
         ) : null}
-      </section>
+      </div>
 
-      <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
+      <div style={{ padding: mob ? "32px 16px" : "48px 24px", textAlign: "center" as const }}>
+        <div style={{ fontFamily: mont, fontSize: 10, color: "#CCCCCC" }}>© MirrorAI · Real Intelligence</div>
+        <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#FFCC00", margin: "12px auto 0" }} />
+      </div>
+
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
+
+      <style>{`
+        *::-webkit-scrollbar { display: none; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 };
