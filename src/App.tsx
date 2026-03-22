@@ -327,6 +327,8 @@ const AppRoutes = () => {
               }
             />
             <Route path="/colour-store" element={<ColourStore />} />
+            <Route path="/refyn/steal" element={<Suspense fallback={<PageLoader />}><StyleStealer /></Suspense>} />
+            <Route path="/refyn/styles" element={<Suspense fallback={<PageLoader />}><StyleLibrary /></Suspense>} />
             <Route path="/retouch-login" element={<RetouchLogin />} />
             <Route path="/preview/:previewId" element={<ClientPreview />} />
             <Route
