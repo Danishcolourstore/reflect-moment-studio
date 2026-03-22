@@ -31,6 +31,7 @@ export default function LandingGate() {
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState("Photographer");
   const [createOpen, setCreateOpen] = useState(false);
+  const [shareSlug, setShareSlug] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 
   useEffect(() => {
