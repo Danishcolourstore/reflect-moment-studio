@@ -257,8 +257,8 @@ export default function RetouchLogin() {
                 disabled={otp.length < 4}
                 className="w-full mt-6 py-3 rounded-xl text-sm uppercase tracking-[0.15em] font-medium active:scale-[0.97] transition-all"
                 style={{
-                  background: otp.length === 4 ? "#E8C97A" : "rgba(232,201,122,0.15)",
-                  color: otp.length === 4 ? "#080808" : "rgba(232,201,122,0.4)",
+                  background: otp.length >= 4 ? "#E8C97A" : "rgba(232,201,122,0.15)",
+                  color: otp.length >= 4 ? "#080808" : "rgba(232,201,122,0.4)",
                   fontFamily: "'DM Sans', sans-serif",
                 }}
               >
