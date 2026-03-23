@@ -19,9 +19,9 @@ serve(async (req) => {
       });
     }
 
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!ANTHROPIC_API_KEY) {
-      return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -29,29 +29,21 @@ serve(async (req) => {
 
     const systemPrompt = `You are a professional photo retouching analyst for Indian wedding photography. Analyze the uploaded reference image and extract ONLY skin retouching parameters. Ignore all color grading, HSL, white balance, and toning decisions. Account for JPEG compression — estimate the INTENDED retouching, not compression damage. Respond ONLY with this exact JSON structure, no markdown, no explanation: {"skin_texture_preservation":0,"smoothing_radius":0,"texture_sharpness":0,"blend_uniformity":0,"highlight_boost":0,"shadow_sculpt":0,"contour_strength":0,"eye_clarity":0,"skin_luminosity":0,"micro_contrast":0,"retouch_aggression":0,"compression_confidence":0}. All values must be integers 0-100.`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        system: systemPrompt,
+        model: "google/gemini-2.5-flash",
         messages: [
+          { role: "system", content: systemPrompt },
           {
             role: "user",
             content: [
-              {
-                type: "image",
-                source: { type: "url", url: image_url },
-              },
-              {
-                type: "text",
-                text: "Analyze the retouching style of this photograph.",
-              },
+              { type: "image_url", image_url: { url: image_url } },
+              { type: "text", text: "Analyze the retouching style of this photograph." },
             ],
           },
         ],
@@ -60,7 +52,21 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Anthropic API error:", response.status, errText);
+      console.error("AI gateway error:", response.status, errText);
+      
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limited, please try again later." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "Credits exhausted. Please add funds." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       return new Response(JSON.stringify({ error: "AI analysis failed", details: errText }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -68,14 +74,13 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const text = data.content?.[0]?.text || "";
+    const text = data.choices?.[0]?.message?.content || "";
 
-    // Parse the JSON from Claude's response
+    // Parse the JSON from the response
     let parameters;
     try {
       parameters = JSON.parse(text.trim());
     } catch {
-      // Try to extract JSON from the response if it has extra text
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parameters = JSON.parse(jsonMatch[0]);
