@@ -224,14 +224,14 @@ export default function RetouchLogin() {
               <input
                 type="text"
                 inputMode="numeric"
-                maxLength={4}
+                maxLength={6}
                 value={otp}
                 onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 6);
                   setOtp(v);
                   setError("");
                 }}
-                onKeyDown={(e) => e.key === "Enter" && otp.length === 4 && handleSubmit()}
+                onKeyDown={(e) => e.key === "Enter" && otp.length >= 4 && handleSubmit()}
                 placeholder="Enter OTP"
                 className="w-full text-center text-xl font-medium bg-transparent outline-none"
                 style={{
