@@ -193,19 +193,58 @@ export default function RetouchLogin() {
                   lineHeight: 1.6,
                 }}
               >
-                Tap below to request access. An OTP will be sent to the admin for approval.
+                Enter admin code or request an OTP.
               </p>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  setOtp(v);
+                  setError("");
+                }}
+                onKeyDown={(e) => e.key === "Enter" && otp.length >= 4 && handleSubmit()}
+                placeholder="Enter Code"
+                className="w-full text-center text-xl font-medium bg-transparent outline-none"
+                style={{
+                  color: "#F0EDE8",
+                  letterSpacing: "0.4em",
+                  padding: "14px 0",
+                  borderBottom: "1px solid rgba(240,237,232,0.1)",
+                  fontFamily: "'DM Sans', sans-serif",
+                  marginBottom: 16,
+                }}
+              />
+              {otp.length >= 4 && (
+                <button
+                  onClick={handleSubmit}
+                  className="w-full py-3 rounded-xl text-sm uppercase tracking-[0.15em] font-medium active:scale-[0.97] transition-all mb-3"
+                  style={{
+                    background: "#E8C97A",
+                    color: "#080808",
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                >
+                  Continue
+                </button>
+              )}
+              {error && (
+                <p className="text-center mb-3" style={{ fontSize: 12, color: "#e55" }}>{error}</p>
+              )}
               <button
                 onClick={sendOtp}
                 disabled={sending}
                 className="w-full py-3 rounded-xl text-sm uppercase tracking-[0.15em] font-medium active:scale-[0.97] transition-all"
                 style={{
-                  background: sending ? "rgba(232,201,122,0.15)" : "#E8C97A",
-                  color: sending ? "rgba(232,201,122,0.4)" : "#080808",
+                  background: sending ? "rgba(232,201,122,0.15)" : "rgba(232,201,122,0.08)",
+                  color: sending ? "rgba(232,201,122,0.4)" : "rgba(232,201,122,0.6)",
                   fontFamily: "'DM Sans', sans-serif",
+                  border: "1px solid rgba(232,201,122,0.15)",
                 }}
               >
-                {sending ? "Sending..." : "Request Access"}
+                {sending ? "Sending..." : "Request OTP Instead"}
               </button>
             </>
           ) : (
