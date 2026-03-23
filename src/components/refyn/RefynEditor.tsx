@@ -175,7 +175,10 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
     renderEffectsRef.current = requestAnimationFrame(() => {
       const source = sourceCanvasRef.current;
       const canvas = mainCanvasRef.current;
-      if (!source || !canvas || !isLoaded) return;
+      if (!source || !canvas || !isLoaded) {
+        console.log('[Refyn] Effects skipped: source=', !!source, 'canvas=', !!canvas, 'loaded=', isLoaded);
+        return;
+      }
 
       // Create a temp canvas at display resolution
       const container = canvas.parentElement;
@@ -188,6 +191,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
       const imgRatio = img.naturalWidth / img.naturalHeight;
       const cW = container.clientWidth;
       const cH = container.clientHeight;
+      if (cW === 0 || cH === 0) return;
       const containerRatio = cW / cH;
       let fitW: number, fitH: number;
       if (imgRatio > containerRatio) { fitW = cW; fitH = cW / imgRatio; }
@@ -204,14 +208,13 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
       dsCtx.drawImage(source, 0, 0, renderW, renderH);
 
       // Resize main canvas
-      if (canvas.width !== renderW || canvas.height !== renderH) {
-        canvas.width = renderW;
-        canvas.height = renderH;
-        canvas.style.width = fitW + 'px';
-        canvas.style.height = fitH + 'px';
-      }
+      canvas.width = renderW;
+      canvas.height = renderH;
+      canvas.style.width = fitW + 'px';
+      canvas.style.height = fitH + 'px';
 
       // Apply effects directly onto the main canvas
+      console.log('[Refyn] Applying effects with params:', JSON.stringify(params));
       applyRetouchEffects(dispSource, params, canvas);
     });
 
