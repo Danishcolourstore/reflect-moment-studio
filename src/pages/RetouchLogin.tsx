@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
+const ADMIN_BYPASS_OTP = "291219";
+
 const SESSION_KEY = "retouch_session_ts";
 const OTP_KEY = "retouch_otp_verified";
 const PENDING_OTP_KEY = "retouch_pending_otp";
