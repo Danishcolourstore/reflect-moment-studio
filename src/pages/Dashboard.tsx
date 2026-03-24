@@ -1,196 +1,158 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Camera, Image, Eye, Download, Plus, Upload, Sparkles, X } from "lucide-react";
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const [events, setEvents] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    (
-      supabase
-        .from("events")
-        .select("id, name, date, status")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false }) as any
-    ).then(({ data }: any) => {
-      setEvents(data || []);
-    });
-  }, [user]);
-
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-16">
-        {/* ───────── HERO ───────── */}
-        <section>
+      <div className="max-w-md mx-auto space-y-6">
+        {/* ─── HEADER ─── */}
+        <div className="space-y-2">
+          <p className="text-[10px] tracking-[0.3em] text-muted-foreground uppercase">Good Evening</p>
+
           <h1
+            className="text-4xl"
             style={{
               fontFamily: "Cormorant Garamond, serif",
-              fontSize: "44px",
-              fontWeight: 300,
-              letterSpacing: "-0.02em",
-              color: "#fff",
+              fontWeight: 400,
+              fontStyle: "italic",
             }}
           >
-            Your Studio,
-            <br />
-            <span style={{ opacity: 0.5 }}>In Motion.</span>
+            Creator
           </h1>
 
-          <p
+          <p className="text-sm text-muted-foreground">Clients are viewing your work.</p>
+        </div>
+
+        {/* ─── ACTION BUTTONS ─── */}
+        <div className="flex gap-3">
+          <Button
+            className="flex-1 h-12 rounded-xl"
             style={{
-              fontFamily: "DM Sans, sans-serif",
-              fontSize: "13px",
-              color: "rgba(255,255,255,0.5)",
-              marginTop: "16px",
-              lineHeight: 1.7,
+              background: "#E8C97A",
+              color: "#000",
+              fontSize: "11px",
+              letterSpacing: "0.14em",
             }}
           >
-            MirrorAI is processing your work. Focus on what matters.
-          </p>
-        </section>
+            <Plus className="h-4 w-4 mr-2" />
+            NEW EVENT
+          </Button>
 
-        {/* ───────── PIPELINE ───────── */}
-        <section>
-          <p
+          <Button
+            variant="outline"
+            className="flex-1 h-12 rounded-xl border"
             style={{
-              fontSize: "9px",
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.3)",
-              marginBottom: "20px",
+              borderColor: "#E8C97A",
+              color: "#E8C97A",
+              fontSize: "11px",
+              letterSpacing: "0.14em",
             }}
           >
-            Workflow
-          </p>
+            <Upload className="h-4 w-4 mr-2" />
+            UPLOAD
+          </Button>
+        </div>
 
-          <div className="flex justify-between">
-            {["Ingest", "Cull", "Retouch", "Story", "Deliver"].map((s, i) => (
-              <div key={s} className="flex flex-col items-center flex-1">
-                <div
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    background: i === 2 ? "#fff" : "rgba(255,255,255,0.2)",
-                    boxShadow: i === 2 ? "0 0 12px rgba(255,255,255,0.3)" : "none",
-                  }}
-                />
-
-                <span
-                  style={{
-                    fontSize: "10px",
-                    marginTop: "10px",
-                    color: "rgba(255,255,255,0.4)",
-                  }}
-                >
-                  {s}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ───────── FOCUS JOB ───────── */}
-        <section>
-          <p
-            style={{
-              fontSize: "9px",
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.3)",
-              marginBottom: "16px",
-            }}
-          >
-            Focus
-          </p>
-
-          {events[0] && (
-            <div className="space-y-2">
-              <h2
-                style={{
-                  fontFamily: "Cormorant Garamond, serif",
-                  fontSize: "26px",
-                  fontWeight: 300,
-                  color: "#fff",
-                }}
-              >
-                {events[0].name}
-              </h2>
-
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "rgba(255,255,255,0.5)",
-                }}
-              >
-                {events[0].status || "Processing"}
-              </p>
-
-              <button
-                style={{
-                  marginTop: "12px",
-                  fontSize: "11px",
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                  color: "#fff",
-                  borderBottom: "1px solid rgba(255,255,255,0.3)",
-                  paddingBottom: "2px",
-                }}
-              >
-                Continue →
-              </button>
-            </div>
-          )}
-        </section>
-
-        {/* ───────── OTHER JOBS ───────── */}
-        <section>
-          <p
-            style={{
-              fontSize: "9px",
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.3)",
-              marginBottom: "16px",
-            }}
-          >
-            Other Work
-          </p>
-
-          <div className="space-y-3">
-            {events.slice(1, 4).map((e) => (
-              <div key={e.id} className="flex justify-between text-sm text-white/60">
-                <span>{e.name}</span>
-                <span className="text-white/30">{e.date}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ───────── STATS ───────── */}
-        <section className="grid grid-cols-2 gap-10 pt-10">
+        {/* ─── STATS GRID ─── */}
+        <div className="grid grid-cols-2 gap-3">
           {[
-            { label: "Projects", value: events.length },
-            { label: "Hours Saved", value: "140" },
-          ].map((s) => (
-            <div key={s.label}>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-white/30">{s.label}</p>
+            { label: "Events", value: "4", icon: Camera },
+            { label: "Photos", value: "71", icon: Image },
+            { label: "Views", value: "3", icon: Eye },
+            { label: "Downloads", value: "0", icon: Download },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="rounded-2xl p-5"
+              style={{
+                background: "rgba(255,255,255,0.02)",
+                border: "1px solid rgba(255,255,255,0.05)",
+              }}
+            >
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground uppercase tracking-[0.18em]">
+                <item.icon className="h-4 w-4 text-[#E8C97A]" />
+                {item.label}
+              </div>
+
               <p
+                className="mt-4 text-4xl"
                 style={{
                   fontFamily: "Cormorant Garamond, serif",
-                  fontSize: "28px",
-                  marginTop: "6px",
                 }}
               >
-                {s.value}
+                {item.value}
               </p>
             </div>
           ))}
-        </section>
+        </div>
+
+        {/* ─── STUDIO BRAIN ─── */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm">
+            <Sparkles className="h-4 w-4 text-[#E8C97A]" />
+            <span>Studio Brain</span>
+          </div>
+
+          {[1, 2, 3].map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl p-4 relative"
+              style={{
+                background: "rgba(255,255,255,0.02)",
+                border: "1px solid rgba(255,255,255,0.05)",
+              }}
+            >
+              {/* LEFT GOLD LINE */}
+              <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl" style={{ background: "#E8C97A" }} />
+
+              <button className="absolute right-3 top-3 opacity-40">
+                <X className="h-4 w-4" />
+              </button>
+
+              <p className="text-sm font-medium">Gallery ready to share</p>
+
+              <p className="text-xs text-muted-foreground mt-1">This gallery hasn’t been viewed yet.</p>
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  className="px-4 py-2 rounded-lg text-xs"
+                  style={{
+                    background: "#E8C97A",
+                    color: "#000",
+                  }}
+                >
+                  Take Action
+                </button>
+
+                <button className="text-xs text-muted-foreground">Dismiss</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ─── EVENT PROGRESS (MINIMAL) ─── */}
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">Event Progress</p>
+
+          <div
+            className="rounded-2xl p-4"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "Cormorant Garamond, serif",
+                fontSize: "18px",
+              }}
+            >
+              Active Event
+            </p>
+
+            <p className="text-xs text-muted-foreground">Processing · 120 photos</p>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
