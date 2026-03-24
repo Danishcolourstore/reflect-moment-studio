@@ -1,7 +1,7 @@
-limport { useState } from "react";
+import React, { useState } from "react";
 
 const Dashboard = () => {
-  const [events] = useState([]);
+  const [events] = useState<any[]>([]);
 
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0b", color: "#fff", padding: 20 }}>
@@ -28,9 +28,25 @@ const Dashboard = () => {
 
       {/* STATS */}
       <div style={{ display: "flex", gap: 20, marginBottom: 30 }}>
-        <div>Events: 0</div>
-        <div>Photos: 0</div>
-        <div>Albums: 0</div>
+        {[
+          { label: "Events", value: 0 },
+          { label: "Photos", value: 0 },
+          { label: "Albums", value: 0 }
+        ].map((item) => (
+          <div
+            key={item.label}
+            style={{
+              flex: 1,
+              background: "#111",
+              padding: 20,
+              borderRadius: 12,
+              border: "1px solid #222"
+            }}
+          >
+            <p style={{ color: "#888", fontSize: 12 }}>{item.label}</p>
+            <h2 style={{ fontSize: 22, marginTop: 5 }}>{item.value}</h2>
+          </div>
+        ))}
       </div>
 
       {/* EMPTY STATE */}
@@ -38,24 +54,3 @@ const Dashboard = () => {
         <div style={{ textAlign: "center", marginTop: 100 }}>
           <h2>Start your first wedding</h2>
           <p style={{ color: "#aaa" }}>
-            Create Event → Upload Photos → Share
-          </p>
-
-          <button style={{
-            marginTop: 20,
-            background: "#c8a97e",
-            color: "#000",
-            border: "none",
-            padding: "12px 30px",
-            cursor: "pointer"
-          }}>
-            Create Wedding
-          </button>
-        </div>
-      )}
-
-    </div>
-  );
-};
-
-export default Dashboard;
