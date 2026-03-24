@@ -1,18 +1,20 @@
 const renderSection = (sectionId: string) => {
   switch (sectionId) {
-    case "hero":
+    case "hero": {
+      const cover = websiteImages.hero_cover || coverUrl;
+
       return (
         <WebsiteHero
           key="hero"
           branding={{
             ...branding,
-            cover_url:
-              websiteImages.hero_cover || coverUrl ? `${websiteImages.hero_cover || coverUrl}?v=${Date.now()}` : null,
+            cover_url: cover ? `${cover}?v=${Date.now()}` : null,
           }}
           id="hero"
           template={websiteTemplate}
         />
       );
+    }
 
     case "social":
       return (
