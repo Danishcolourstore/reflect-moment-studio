@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, PointerEvent as RPointerEvent } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { saveAs } from 'file-saver';
 import {
@@ -55,54 +55,105 @@ const TOOLS: ToolDef[] = [
   { id: 'teeth', label: 'TEETH', icon: Smile, slider: { key: 'teethWhiten', label: 'Whitening', min: 0, max: 100 } },
 ];
 
-/* ── Pinch-to-zoom hook ── */
-function usePinchZoom() {
+/* ── Pinch-to-zoom hook (fixed) ── */
+function usePinchZoom(containerRef: React.RefObject<HTMLDivElement | null>) {
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
-  const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const lastDist = useRef(0);
-  const lastCenter = useRef({ x: 0, y: 0 });
-  const baseTransform = useRef({ scale: 1, x: 0, y: 0 });
+  const pinchState = useRef<{
+    pointers: Map<number, { x: number; y: number }>;
+    lastDist: number;
+    lastCenter: { x: number; y: number };
+    baseTransform: { scale: number; x: number; y: number };
+    isPinching: boolean;
+    lastSinglePointer: { x: number; y: number } | null;
+  }>({
+    pointers: new Map(),
+    lastDist: 0,
+    lastCenter: { x: 0, y: 0 },
+    baseTransform: { scale: 1, x: 0, y: 0 },
+    isPinching: false,
+    lastSinglePointer: null,
+  });
 
-  const onPointerDown = useCallback((e: RPointerEvent) => {
-    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.current.size === 2) {
-      const pts = Array.from(pointers.current.values());
-      lastDist.current = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-      lastCenter.current = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
-      baseTransform.current = { ...transform };
-    }
-  }, [transform]);
+  // Use native touch events to prevent conflicts with slider
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-  const onPointerMove = useCallback((e: RPointerEvent) => {
-    if (!pointers.current.has(e.pointerId)) return;
-    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.current.size === 2) {
-      const pts = Array.from(pointers.current.values());
-      const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-      const center = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
-      const ratio = dist / lastDist.current;
-      const newScale = Math.min(Math.max(baseTransform.current.scale * ratio, 0.5), 5);
-      const dx = center.x - lastCenter.current.x;
-      const dy = center.y - lastCenter.current.y;
-      setTransform({ scale: newScale, x: baseTransform.current.x + dx, y: baseTransform.current.y + dy });
-    } else if (pointers.current.size === 1 && transform.scale > 1.05) {
-      const prev = pointers.current.get(e.pointerId);
-      if (prev) {
-        setTransform(t => ({ ...t, x: t.x + (e.clientX - prev.x), y: t.y + (e.clientY - prev.y) }));
-        pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const state = pinchState.current;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault(); // prevent native zoom
+        state.isPinching = true;
+        const t1 = e.touches[0], t2 = e.touches[1];
+        state.lastDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        state.lastCenter = { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
+        setTransform(t => { state.baseTransform = { ...t }; return t; });
+      } else if (e.touches.length === 1) {
+        state.lastSinglePointer = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       }
-    }
-  }, [transform.scale]);
+    };
 
-  const onPointerUp = useCallback((e: RPointerEvent) => {
-    pointers.current.delete(e.pointerId);
-    if (pointers.current.size === 0) {
-      setTransform(t => t.scale < 1.05 ? { scale: 1, x: 0, y: 0 } : t);
-    }
-  }, []);
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && state.isPinching) {
+        e.preventDefault();
+        const t1 = e.touches[0], t2 = e.touches[1];
+        const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        const center = { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
+        const ratio = dist / state.lastDist;
+        const newScale = Math.min(Math.max(state.baseTransform.scale * ratio, 1), 5);
+        const dx = center.x - state.lastCenter.x;
+        const dy = center.y - state.lastCenter.y;
+        setTransform({
+          scale: newScale,
+          x: state.baseTransform.x + dx,
+          y: state.baseTransform.y + dy,
+        });
+      } else if (e.touches.length === 1 && state.lastSinglePointer) {
+        // Only pan if already zoomed in
+        setTransform(t => {
+          if (t.scale <= 1.05) return t;
+          const dx = e.touches[0].clientX - state.lastSinglePointer!.x;
+          const dy = e.touches[0].clientY - state.lastSinglePointer!.y;
+          state.lastSinglePointer = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          return { ...t, x: t.x + dx, y: t.y + dy };
+        });
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) state.isPinching = false;
+      if (e.touches.length === 0) {
+        state.lastSinglePointer = null;
+        setTransform(t => t.scale < 1.05 ? { scale: 1, x: 0, y: 0 } : t);
+      }
+    };
+
+    // Desktop: scroll wheel to zoom
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      setTransform(t => {
+        const newScale = Math.min(Math.max(t.scale * delta, 1), 5);
+        return { ...t, scale: newScale };
+      });
+    };
+
+    el.addEventListener('touchstart', handleTouchStart, { passive: false });
+    el.addEventListener('touchmove', handleTouchMove, { passive: false });
+    el.addEventListener('touchend', handleTouchEnd);
+    el.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchmove', handleTouchMove);
+      el.removeEventListener('touchend', handleTouchEnd);
+      el.removeEventListener('wheel', handleWheel);
+    };
+  }, [containerRef]);
 
   const resetZoom = useCallback(() => setTransform({ scale: 1, x: 0, y: 0 }), []);
-  return { transform, onPointerDown, onPointerMove, onPointerUp, resetZoom };
+  return { transform, resetZoom };
 }
 
 /* ── Entiran Chat ── */
@@ -146,10 +197,11 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
 
   // Source canvas stores the original unedited image
   const sourceCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   const { mainCanvasRef, sourceImageRef, isLoaded, renderComposite } = useCanvasEngine(photoUrl);
   const { push: historyPush, undo: historyUndo, redo: historyRedo, canUndo, canRedo } = useUndoHistory<Record<string, number>>();
-  const { transform, onPointerDown, onPointerMove, onPointerUp, resetZoom } = usePinchZoom();
+  const { transform, resetZoom } = usePinchZoom(canvasContainerRef);
 
   // Undo debounce timer
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -374,16 +426,12 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
       {/* ── Canvas ── */}
       <div
         className="vsco-canvas"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        onPointerLeave={onPointerUp}
-        style={{ touchAction: 'none' }}
+        ref={canvasContainerRef}
       >
         <div
           style={{
             position: 'relative', width: '100%', height: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
             transformOrigin: 'center center',
             transition: isZoomed ? 'none' : 'transform 0.2s ease-out',
@@ -392,10 +440,10 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         >
           {isComparing && (
             <img src={photoUrl} alt="Original" draggable={false}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 3 }} />
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', zIndex: 3, position: 'absolute' }} />
           )}
           <canvas ref={mainCanvasRef}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: isComparing ? 0 : 1, zIndex: 2 }} />
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', opacity: isComparing ? 0 : 1, zIndex: 2 }} />
         </div>
 
         {!isLoaded && (
@@ -585,6 +633,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         .vsco-canvas {
           flex: 1; position: relative; overflow: hidden;
           display: flex; align-items: center; justify-content: center;
+          touch-action: pan-x pan-y;
         }
         .vsco-loader {
           position: absolute; inset: 0; z-index: 10;
