@@ -197,10 +197,11 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
 
   // Source canvas stores the original unedited image
   const sourceCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   const { mainCanvasRef, sourceImageRef, isLoaded, renderComposite } = useCanvasEngine(photoUrl);
   const { push: historyPush, undo: historyUndo, redo: historyRedo, canUndo, canRedo } = useUndoHistory<Record<string, number>>();
-  const { transform, onPointerDown, onPointerMove, onPointerUp, resetZoom } = usePinchZoom();
+  const { transform, resetZoom } = usePinchZoom(canvasContainerRef);
 
   // Undo debounce timer
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
