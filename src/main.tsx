@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// Theme setup
+// Theme
 const savedTheme = localStorage.getItem("mirrorai-theme") || localStorage.getItem("theme") || "dark";
 
 const rootEl = document.documentElement;
@@ -17,22 +17,16 @@ if (savedTheme === "light" || savedTheme === "classic") {
   rootEl.classList.add("dark");
 }
 
-// Remove all service workers + cache (one time)
+// Remove ALL service workers + cache
 if ("serviceWorker" in navigator) {
-  const cleanupKey = "mirrorai_cache_clean_v2";
+  navigator.serviceWorker.getRegistrations().then((regs) => {
+    regs.forEach((reg) => reg.unregister());
+  });
 
-  if (!localStorage.getItem(cleanupKey)) {
-    navigator.serviceWorker.getRegistrations().then((regs) => {
-      regs.forEach((reg) => reg.unregister());
+  if ("caches" in window) {
+    caches.keys().then((keys) => {
+      keys.forEach((key) => caches.delete(key));
     });
-
-    if ("caches" in window) {
-      caches.keys().then((keys) => {
-        keys.forEach((key) => caches.delete(key));
-      });
-    }
-
-    localStorage.setItem(cleanupKey, "1");
   }
 }
 
@@ -60,7 +54,7 @@ if ("serviceWorker" in navigator) {
   else el.classList.add("input-mouse");
 })();
 
-// Render app
+// Render (NO QueryClientProvider)
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
