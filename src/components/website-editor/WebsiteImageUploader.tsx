@@ -56,8 +56,7 @@ export function WebsiteImageUploader({
         if (error) throw error;
 
         let url = supabase.storage.from("studio-website-assets").getPublicUrl(path).data.publicUrl;
-
-        url = `${url}?t=${Date.now()}`; // cache fix
+        url = `${url}?t=${Date.now()}`;
 
         onChange(url);
         toast.success("Image uploaded");
@@ -128,13 +127,15 @@ export function WebsiteImageUploader({
   );
 }
 
-/* ========================= GRID (FIXED EXPORT) ========================= */
+/* ========================= GRID ========================= */
 
 interface WebsiteImageGridUploaderProps {
   values: string[];
   onChange: (urls: string[]) => void;
   userId: string;
   folder?: string;
+  label?: string;
+  maxImages?: number;
 }
 
 export function WebsiteImageGridUploader({
@@ -162,7 +163,6 @@ export function WebsiteImageGridUploader({
       await supabase.storage.from("studio-website-assets").upload(path, compressed, { upsert: true });
 
       let url = supabase.storage.from("studio-website-assets").getPublicUrl(path).data.publicUrl;
-
       url = `${url}?t=${Date.now()}`;
       urls.push(url);
     }
