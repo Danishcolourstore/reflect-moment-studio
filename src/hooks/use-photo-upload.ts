@@ -10,7 +10,7 @@ export interface FileUploadInfo {
   progress: number;
   error?: string;
   originalSize: number;
-  compressedSize?: number; // Added back for UI compatibility
+  compressedSize?: number;
 }
 
 export interface UploadState {
@@ -19,7 +19,7 @@ export interface UploadState {
   completedFiles: number;
   successCount: number;
   failedFiles: File[];
-  duplicateCount: number; // Added back
+  duplicateCount: number;
   isDone: boolean;
   percent: number;
   fileInfos: FileUploadInfo[];
@@ -52,7 +52,7 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
       if (!eventId || !userId) return;
       abortRef.current = false;
 
-      const newInfos: FileUploadInfo[] = files.map((file) => ({
+      const newInfos: FileUploadInfo[] = Array.from(files).map((file) => ({
         file,
         id: Math.random().toString(36).substr(2, 9),
         status: "pending",
@@ -118,16 +118,12 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
   return {
     ...state,
     startUpload,
-    uploadFiles: startUpload, // Fix for "Property uploadFiles does not exist"
-    onCancel: () => {
+    uploadFiles: startUpload, // Match EventGallery call
+    retry: () => {}, // Match EventGallery call
+    retrySingle: (id: string) => {}, // Match EventGallery call
+    cancel: () => {
       abortRef.current = true;
-    },
-    onDismiss: () => setState(INITIAL),
-    onRetry: () => {
-      /* Logic for retry all */
-    },
-    onRetrySingle: (id: string) => {
-      /* Logic for single retry */
-    },
+    }, // Match EventGallery call
+    dismiss: () => setState(INITIAL), // Match EventGallery call
   };
 }
