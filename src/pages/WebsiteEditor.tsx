@@ -1,34 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WebsiteImageGridUploader } from "@/components/website-editor/WebsiteImageUploader";
-import { WebsiteHero } from "@/components/website/WebsiteHero";
 import { useAuth } from "@/lib/auth";
 
-const getBranding = (data: any) => ({
-  studio_name: data.hero.title || "Studio",
-  display_name: data.hero.tagline || "",
-  cover_url: data.hero.cover ? `${data.hero.cover}?v=${data.hero.coverUpdatedAt}` : null,
-  studio_logo_url: "",
-  studio_accent_color: "#c6a96b",
-});
+/* ---------- STYLES ---------- */
+const inputStyle = {
+  width: "100%",
+  padding: "12px",
+  marginBottom: "10px",
+  background: "#111",
+  border: "1px solid #333",
+  color: "#fff",
+};
 
-function generateHomepage(images: string[]) {
-  return {
-    hero: images[0] || null,
-    cinematic: images,
-  };
-}
-
+/* ---------- COMPONENT ---------- */
 const WebsiteEditor = () => {
   const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
+  const [activeStory, setActiveStory] = useState<any>(null);
 
   const [data, setData] = useState<any>({
     hero: {
       title: "Colour Store",
       tagline: "Colours that inspire",
       cover: null,
-      coverUpdatedAt: Date.now(),
     },
     cinematic: [],
     stories: [],
@@ -36,6 +31,27 @@ const WebsiteEditor = () => {
 
   if (!user) return null;
 
+  /* ---------- FADE ANIMATION ---------- */
+  useEffect(() => {
+    const elements = document.querySelectorAll(".fade-in");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add("visible");
+          }
+        });
+      },
+      { threshold: 0.1 },
+    );
+
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  /* ---------- RENDER ---------- */
   return (
     <div style={{ background: "#0a0a0a", color: "#fff", padding: 20 }}>
       {/* TABS */}
@@ -52,61 +68,44 @@ const WebsiteEditor = () => {
           <WebsiteImageGridUploader
             values={data.cinematic}
             onChange={(urls) => {
-              const result = generateHomepage(urls);
-
               setData({
                 ...data,
-                hero: {
-                  ...data.hero,
-                  cover: result.hero,
-                  coverUpdatedAt: Date.now(),
-                },
-                cinematic: result.cinematic,
+                cinematic: urls,
+                hero: { ...data.hero, cover: urls[0] },
               });
             }}
             userId={user.id}
             folder="homepage"
           />
 
+          <input
+            placeholder="Studio Name"
+            value={data.hero.title}
+            onChange={(e) =>
+              setData({
+                ...data,
+                hero: { ...data.hero, title: e.target.value },
+              })
+            }
+          />
+
+          <input
+            placeholder="Tagline"
+            value={data.hero.tagline}
+            onChange={(e) =>
+              setData({
+                ...data,
+                hero: { ...data.hero, tagline: e.target.value },
+              })
+            }
+          />
+
           <div style={{ marginTop: 30 }}>
-            <input
-              placeholder="Studio Name"
-              value={data.hero.title}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  hero: { ...data.hero, title: e.target.value },
-                })
-              }
-              style={{ width: "100%", marginBottom: 10 }}
-            />
-
-            <input
-              placeholder="Tagline"
-              value={data.hero.tagline}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  hero: { ...data.hero, tagline: e.target.value },
-                })
-              }
-              style={{ width: "100%" }}
-            />
-          </div>
-
-          <div style={{ marginTop: 40 }}>
             <button
               onClick={() =>
                 setData({
                   ...data,
-                  stories: [
-                    ...data.stories,
-                    {
-                      name: `Couple ${data.stories.length + 1}`,
-                      location: "",
-                      images: [],
-                    },
-                  ],
+                  stories: [...data.stories, { name: "Couple", location: "", images: [] }],
                 })
               }
             >
@@ -146,126 +145,88 @@ const WebsiteEditor = () => {
               </div>
             ))}
           </div>
+
+          {/* PUBLISH */}
+          <button
+            onClick={() => {
+              localStorage.setItem("published-site", JSON.stringify(data));
+              alert("Published ✅");
+            }}
+            style={{
+              marginTop: 40,
+              padding: 12,
+              background: "#c6a96b",
+              border: "none",
+            }}
+          >
+            Publish Website
+          </button>
         </div>
       )}
 
       {/* ================= PREVIEW ================= */}
       {activeTab === "preview" && (
-        <div style={{ background: "#000", color: "#fff", fontFamily: "'Playfair Display', serif" }}>
+        <div style={{ background: "#000", fontFamily: "'Playfair Display', serif" }}>
           {/* HERO */}
           {data.hero.cover && (
-            <div style={{ height: "92vh", position: "relative" }}>
+            <div style={{ height: "90vh", position: "relative" }}>
               <img src={data.hero.cover} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
 
               <div
                 style={{
                   position: "absolute",
-                  bottom: "12%",
+                  bottom: "10%",
                   left: "50%",
                   transform: "translateX(-50%)",
                   textAlign: "center",
                 }}
               >
-                <p
-                  style={{
-                    fontFamily: "'Inter', sans-serif",
-                    letterSpacing: "5px",
-                    fontSize: "12px",
-                    opacity: 0.7,
-                  }}
-                >
-                  {data.hero.tagline}
-                </p>
-
-                <h1
-                  style={{
-                    fontSize: "52px",
-                    letterSpacing: "10px",
-                    fontWeight: 400,
-                  }}
-                >
-                  {data.hero.title}
-                </h1>
+                <p style={{ fontFamily: "'Inter'", letterSpacing: "4px" }}>{data.hero.tagline}</p>
+                <h1 style={{ letterSpacing: "8px" }}>{data.hero.title}</h1>
               </div>
             </div>
           )}
 
-          <div style={{ height: 140 }} />
-
-          {/* INTRO */}
-          <div
-            style={{
-              maxWidth: 640,
-              margin: "0 auto",
-              textAlign: "center",
-              fontFamily: "'Inter', sans-serif",
-              fontSize: "15px",
-              lineHeight: 1.8,
-              opacity: 0.75,
-            }}
-          >
-            <p>Every wedding is not just an event — it is a story, a feeling, a memory meant to live forever.</p>
-          </div>
-
-          <div style={{ height: 140 }} />
+          <div style={{ height: 120 }} />
 
           {/* STORIES */}
-          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }}>
+          <div style={{ maxWidth: 1100, margin: "auto" }}>
             {data.stories.map((story: any, i: number) => (
-              <div key={i} style={{ marginBottom: 140 }}>
+              <div key={i} className="fade-in" style={{ marginBottom: 120 }} onClick={() => setActiveStory(story)}>
                 {story.images[0] && (
-                  <img
-                    src={story.images[0]}
-                    style={{
-                      width: "100%",
-                      height: "72vh",
-                      objectFit: "cover",
-                      marginBottom: 30,
-                    }}
-                  />
+                  <img src={story.images[0]} style={{ width: "100%", height: "70vh", objectFit: "cover" }} />
                 )}
-
-                <div style={{ textAlign: "center" }}>
-                  <h2
-                    style={{
-                      fontSize: "28px",
-                      letterSpacing: "4px",
-                      fontWeight: 400,
-                      marginBottom: 8,
-                    }}
-                  >
-                    {story.name}
-                  </h2>
-
-                  <p
-                    style={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: "13px",
-                      letterSpacing: "2px",
-                      opacity: 0.6,
-                    }}
-                  >
-                    {story.location}
-                  </p>
-                </div>
+                <h2 style={{ textAlign: "center" }}>{story.name}</h2>
               </div>
             ))}
           </div>
 
-          {/* FOOTER */}
-          <div
-            style={{
-              marginTop: 180,
-              paddingBottom: 60,
-              textAlign: "center",
-              fontFamily: "'Inter', sans-serif",
-              fontSize: "12px",
-              letterSpacing: "2px",
-              opacity: 0.5,
-            }}
-          >
-            © {new Date().getFullYear()} {data.hero.title}
+          {/* TESTIMONIALS */}
+          <div style={{ textAlign: "center", marginTop: 120 }}>
+            <h2>Testimonials</h2>
+            <p className="fade-in">“Amazing work and beautiful memories.”</p>
           </div>
+
+          {/* ENQUIRY */}
+          <div style={{ textAlign: "center", marginTop: 120 }}>
+            <h2>Enquire</h2>
+            <div style={{ maxWidth: 400, margin: "auto" }}>
+              <input placeholder="Name" style={inputStyle} />
+              <input placeholder="Email" style={inputStyle} />
+              <textarea placeholder="Message" style={inputStyle} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= STORY VIEW ================= */}
+      {activeStory && (
+        <div style={{ position: "fixed", inset: 0, background: "#000", overflow: "auto" }}>
+          <button onClick={() => setActiveStory(null)}>Close</button>
+
+          {activeStory.images.map((img: string, i: number) => (
+            <img key={i} src={img} style={{ width: "100%", marginBottom: 20 }} />
+          ))}
         </div>
       )}
     </div>
