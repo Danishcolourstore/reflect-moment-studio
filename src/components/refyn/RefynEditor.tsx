@@ -496,7 +496,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           <AnimatePresence mode="wait">
             {activeTool && (
               <motion.div key={activeTool + (activeSubTool || '')}
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.2 }}
                 className="vsco-slider-area">
                 {/* Sub-tool strip for multi-param tools */}
@@ -506,7 +506,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
                       <button key={st.key}
                         onClick={() => setActiveSubTool(st.key)}
                         className="vsco-subtool-btn"
-                        style={{ color: activeSubTool === st.key ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)' }}>
+                        style={{ color: activeSubTool === st.key ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)' }}>
                         {st.label}
                         {activeSubTool === st.key && <div className="vsco-subtool-dot" />}
                       </button>
@@ -517,10 +517,16 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
                 {showSlider && (
                   <div className="vsco-slider-wrap">
                     <span className="vsco-slider-val">{sliderVal > 0 ? `+${sliderVal}` : sliderVal}</span>
-                    <input type="range" className="vsco-slider"
-                      min={sliderMin} max={sliderMax} step={1}
-                      value={sliderVal}
-                      onChange={e => setVal(sliderKey, Number(e.target.value))} />
+                    <div className="vsco-slider-track-wrap">
+                      <div className="vsco-slider-track-bg" />
+                      <div className="vsco-slider-track-fill" style={{ width: `${((sliderVal - sliderMin) / (sliderMax - sliderMin)) * 100}%` }} />
+                      <input type="range" className="vsco-slider"
+                        min={sliderMin} max={sliderMax} step={1}
+                        value={sliderVal}
+                        onChange={e => setVal(sliderKey, Number(e.target.value))}
+                        onDoubleClick={() => setVal(sliderKey, 0)} />
+                    </div>
+                    <span className="vsco-slider-label">{sliderLabel}</span>
                   </div>
                 )}
               </motion.div>
@@ -532,12 +538,16 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
             {TOOLS.map(tool => {
               const Icon = tool.icon;
               const active = activeTool === tool.id;
+              const hasValue = tool.subTools
+                ? tool.subTools.some(st => getVal(st.key) > 0)
+                : tool.slider ? getVal(tool.slider.key) > 0 : false;
               return (
                 <button key={tool.id} className="vsco-tool-item" onClick={() => handleToolTap(tool.id)}>
-                  <Icon size={20} strokeWidth={1.5}
-                    style={{ color: active ? '#fff' : 'rgba(255,255,255,0.4)', transition: 'color 0.2s ease-out' }} />
-                  <span style={{ color: active ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)' }}>{tool.label}</span>
+                  <Icon size={22} strokeWidth={1.5}
+                    style={{ color: active ? '#fff' : hasValue ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.35)', transition: 'color 0.2s ease-out' }} />
+                  <span style={{ color: active ? 'rgba(255,255,255,0.85)' : hasValue ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)' }}>{tool.label}</span>
                   {active && <div className="vsco-tool-dot" />}
+                  {!active && hasValue && <div className="vsco-tool-dot-edited" />}
                 </button>
               );
             })}
