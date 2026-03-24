@@ -1,9 +1,11 @@
 import { useRef, useState, useCallback } from "react";
-import { Upload, X, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
+import { Upload, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import browserImageCompression from "browser-image-compression";
+
+/* ========================= SINGLE IMAGE ========================= */
 
 interface WebsiteImageUploaderProps {
   value: string | null;
@@ -44,8 +46,7 @@ export function WebsiteImageUploader({
           fileType: "image/webp",
         });
 
-        const ext = "webp";
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`;
         const path = `${userId}/${folder}/${fileName}`;
 
         const { error } = await supabase.storage
@@ -56,8 +57,7 @@ export function WebsiteImageUploader({
 
         let url = supabase.storage.from("studio-website-assets").getPublicUrl(path).data.publicUrl;
 
-        // ✅ FORCE REFRESH (FIX)
-        url = `${url}?t=${Date.now()}`;
+        url = `${url}?t=${Date.now()}`; // cache fix
 
         onChange(url);
         toast.success("Image uploaded");
@@ -82,120 +82,120 @@ export function WebsiteImageUploader({
     if (f) uploadFile(f);
   };
 
-  const handleRemove = () => {
-    onChange(null);
-  };
-
   const displayUrl = value ? `${value}${value.includes("?") ? "&" : "?"}v=${Date.now()}` : null;
-
-  if (compact) {
-    return (
-      <div className="relative group">
-        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-        {displayUrl ? (
-          <div className="relative rounded-lg overflow-hidden border border-border">
-            <img src={displayUrl} alt="" className={`w-full ${aspectClass} object-cover`} />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="h-7 text-[10px]"
-                onClick={() => inputRef.current?.click()}
-                disabled={uploading}
-              >
-                {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3 mr-1" />}
-                Replace
-              </Button>
-              <Button variant="destructive" size="sm" className="h-7 text-[10px]" onClick={handleRemove}>
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
-            }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
-            disabled={uploading}
-            className={`w-full ${aspectClass} rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors ${
-              dragOver ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
-            }`}
-          >
-            {uploading ? (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            ) : (
-              <>
-                <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
-                <span className="text-[9px] text-muted-foreground/40">Upload</span>
-              </>
-            )}
-          </button>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div>
-      <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">{label}</label>
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 
       {displayUrl ? (
         <div className="mt-1 space-y-2">
-          <img
-            src={displayUrl}
-            alt=""
-            className={`w-full ${aspectClass} object-cover rounded-lg border border-border`}
-          />
+          <img src={displayUrl} alt="" className={`w-full ${aspectClass} object-cover rounded-lg border`} />
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-[10px] h-7"
-              onClick={() => inputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Upload className="h-3 w-3 mr-1" />}
+            <Button size="sm" onClick={() => inputRef.current?.click()} disabled={uploading}>
+              {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3 mr-1" />}
               Replace
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-[10px] h-7 text-destructive hover:text-destructive"
-              onClick={handleRemove}
-            >
+            <Button size="sm" variant="ghost" onClick={() => onChange(null)}>
               <Trash2 className="h-3 w-3 mr-1" /> Remove
             </Button>
           </div>
         </div>
       ) : (
         <div
+          onClick={() => inputRef.current?.click()}
           onDragOver={(e) => {
             e.preventDefault();
             setDragOver(true);
           }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          onClick={() => inputRef.current?.click()}
-          className={`mt-1 cursor-pointer rounded-lg border-2 border-dashed p-6 flex flex-col items-center justify-center gap-2 transition-colors ${
-            dragOver ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"
+          className={`mt-1 cursor-pointer rounded-lg border-2 border-dashed p-6 flex flex-col items-center gap-2 ${
+            dragOver ? "border-primary bg-primary/5" : ""
           }`}
         >
           {uploading ? (
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              <Upload className="h-5 w-5 text-muted-foreground/40" />
-              <span className="text-[10px] text-muted-foreground/50">Click or drag to upload</span>
-              <span className="text-[8px] text-muted-foreground/30">Images auto-optimized for web</span>
+              <Upload className="h-5 w-5" />
+              <span className="text-xs">Upload</span>
             </>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ========================= GRID (FIXED EXPORT) ========================= */
+
+interface WebsiteImageGridUploaderProps {
+  values: string[];
+  onChange: (urls: string[]) => void;
+  userId: string;
+  folder?: string;
+}
+
+export function WebsiteImageGridUploader({
+  values,
+  onChange,
+  userId,
+  folder = "portfolio",
+}: WebsiteImageGridUploaderProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const uploadMultiple = async (files: File[]) => {
+    const urls: string[] = [];
+
+    for (const file of files) {
+      const compressed = await browserImageCompression(file, {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 2400,
+        useWebWorker: true,
+        fileType: "image/webp",
+      });
+
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`;
+      const path = `${userId}/${folder}/${fileName}`;
+
+      await supabase.storage.from("studio-website-assets").upload(path, compressed, { upsert: true });
+
+      let url = supabase.storage.from("studio-website-assets").getPublicUrl(path).data.publicUrl;
+
+      url = `${url}?t=${Date.now()}`;
+      urls.push(url);
+    }
+
+    onChange([...values, ...urls]);
+  };
+
+  return (
+    <div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files || []);
+          uploadMultiple(files);
+        }}
+      />
+
+      <div className="grid grid-cols-2 gap-2">
+        {values.map((url, i) => (
+          <img key={i} src={`${url}?v=${Date.now()}`} className="w-full aspect-square object-cover rounded" />
+        ))}
+
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="aspect-square border-2 border-dashed flex items-center justify-center"
+        >
+          <Upload className="h-5 w-5" />
+        </button>
+      </div>
     </div>
   );
 }
