@@ -215,6 +215,7 @@
 
   html {
     scroll-behavior: smooth;
+    height: auto !important;
   }
 
   body {
@@ -232,12 +233,14 @@
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
+    overflow-x: hidden;
+    height: auto !important;
+    min-height: 100%;
   }
 
   #root {
     width: 100%;
     min-height: 100vh;
-    overflow-x: clip;
   }
 
   img,
@@ -590,4 +593,16 @@
 .darkroom select,
 .darkroom textarea {
   font-family: "Inter", "DM Sans", system-ui, sans-serif;
+}
+
+/* =========================================
+   NUCLEAR SCROLL OVERRIDE (THE FIX)
+   This forces drag-and-drop libraries to 
+   let go of vertical scroll events.
+   ========================================= */
+html,
+body,
+#root,
+main {
+  touch-action: pan-y !important;
 }
