@@ -1,7 +1,7 @@
 const renderSection = (sectionId: string) => {
   switch (sectionId) {
     case "hero": {
-      const cover = websiteImages.hero_cover || coverUrl;
+      const cover = websiteImages?.hero_cover || coverUrl;
 
       return (
         <WebsiteHero
@@ -48,18 +48,14 @@ const renderSection = (sectionId: string) => {
       return albums.length > 0 ? (
         <WebsiteAlbums key="albums" id="albums" albums={albums} accent={accentColor} template={websiteTemplate} />
       ) : (
-        <div className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>
-          No albums yet
-        </div>
+        <div className="py-16 text-center opacity-30">No albums yet</div>
       );
 
     case "about":
       return bio ? (
         <WebsiteAbout key="about" id="about" template={websiteTemplate} branding={branding} />
       ) : (
-        <div className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>
-          Add a bio
-        </div>
+        <div className="py-16 text-center opacity-30">Add a bio</div>
       );
 
     case "featured":
@@ -118,9 +114,9 @@ const renderSection = (sectionId: string) => {
           key="latest_works"
           id="latest-works"
           template={websiteTemplate}
-          images={websiteImages.latest_works_photos || []}
+          images={websiteImages?.latest_works_photos || []}
           accent={accentColor}
-          title={websiteImages.latest_works_title || "My Latest Works"}
+          title={websiteImages?.latest_works_title || "My Latest Works"}
         />
       );
 
@@ -130,9 +126,9 @@ const renderSection = (sectionId: string) => {
           key="newsletter"
           id="newsletter"
           template={websiteTemplate}
-          title={websiteImages.newsletter_title}
-          description={websiteImages.newsletter_description}
-          buttonText={websiteImages.newsletter_button_text}
+          title={websiteImages?.newsletter_title}
+          description={websiteImages?.newsletter_description}
+          buttonText={websiteImages?.newsletter_button_text}
         />
       );
 
@@ -142,7 +138,7 @@ const renderSection = (sectionId: string) => {
           key="image_strip"
           id="image-strip"
           template={websiteTemplate}
-          images={websiteImages.image_strip_photos || []}
+          images={websiteImages?.image_strip_photos || []}
         />
       );
 
