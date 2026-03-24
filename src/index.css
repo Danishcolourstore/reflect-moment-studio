@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cinzel:wght@400;500;600;700&family=Jost:wght@300;400;500;600&family=Special+Elite&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cinzel:wght@400;500;600;700&family=Jost:wght@300;400;500;600&family=Special+Elite&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -7,33 +7,33 @@
 @layer base {
   /* ── Dark (default) ── pure black + gold ── */
   :root {
-    --background: 0 0% 0%;              /* #000000 */
-    --foreground: 45 6% 90%;            /* #E8E4DF */
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 45 6% 90%; /* #E8E4DF */
 
-    --card: 0 0% 4%;                    /* #0B0B0B */
+    --card: 0 0% 4%; /* #0B0B0B */
     --card-foreground: 45 6% 90%;
 
     --popover: 0 0% 4%;
     --popover-foreground: 45 6% 90%;
 
-    --primary: 43 76% 53%;              /* #D4AF37 gold */
+    --primary: 43 76% 53%; /* #D4AF37 gold */
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 10%;              /* #1A1A1A */
+    --secondary: 0 0% 10%; /* #1A1A1A */
     --secondary-foreground: 45 6% 90%;
 
     --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 45%;       /* #737373 */
+    --muted-foreground: 0 0% 45%; /* #737373 */
 
-    --accent: 43 76% 53%;               /* gold */
+    --accent: 43 76% 53%; /* gold */
     --accent-foreground: 0 0% 0%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 10%;                 /* #1A1A1A */
+    --border: 0 0% 10%; /* #1A1A1A */
     --input: 0 0% 10%;
-    --ring: 43 76% 53%;                 /* gold */
+    --ring: 43 76% 53%; /* gold */
 
     --radius: 0.5rem;
 
@@ -49,31 +49,31 @@
 
   /* ── Versace / Luxe ── black + gold Medusa opulence ── */
   .versace {
-    --background: 0 0% 2%;              /* #050505 */
-    --foreground: 44 30% 88%;           /* #E8DFC8 warm ivory */
+    --background: 0 0% 2%; /* #050505 */
+    --foreground: 44 30% 88%; /* #E8DFC8 warm ivory */
 
-    --card: 0 0% 5%;                    /* #0D0D0D */
+    --card: 0 0% 5%; /* #0D0D0D */
     --card-foreground: 44 30% 88%;
 
     --popover: 0 0% 5%;
     --popover-foreground: 44 30% 88%;
 
-    --primary: 46 100% 50%;             /* #FFD700 pure gold */
+    --primary: 46 100% 50%; /* #FFD700 pure gold */
     --primary-foreground: 0 0% 2%;
 
-    --secondary: 0 0% 8%;              /* #141414 */
+    --secondary: 0 0% 8%; /* #141414 */
     --secondary-foreground: 44 30% 88%;
 
     --muted: 0 0% 8%;
-    --muted-foreground: 44 10% 50%;    /* muted gold-gray */
+    --muted-foreground: 44 10% 50%; /* muted gold-gray */
 
-    --accent: 46 100% 50%;             /* gold */
+    --accent: 46 100% 50%; /* gold */
     --accent-foreground: 0 0% 2%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 46 50% 18%;              /* dark gold border */
+    --border: 46 50% 18%; /* dark gold border */
     --input: 0 0% 8%;
     --ring: 46 100% 50%;
 
@@ -89,31 +89,31 @@
 
   /* ── Classic / Editorial ── warm neutral Pixieset ── */
   .classic {
-    --background: 34 23% 93%;           /* #F3EFE9 */
-    --foreground: 30 4% 16%;            /* #2B2A28 */
+    --background: 34 23% 93%; /* #F3EFE9 */
+    --foreground: 30 4% 16%; /* #2B2A28 */
 
-    --card: 0 0% 100%;                  /* #FFFFFF */
+    --card: 0 0% 100%; /* #FFFFFF */
     --card-foreground: 30 4% 16%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 30 4% 16%;
 
-    --primary: 30 4% 16%;               /* #2B2A28 */
+    --primary: 30 4% 16%; /* #2B2A28 */
     --primary-foreground: 34 23% 93%;
 
-    --secondary: 34 18% 88%;            /* #E6E0D8 */
+    --secondary: 34 18% 88%; /* #E6E0D8 */
     --secondary-foreground: 30 4% 16%;
 
     --muted: 34 18% 88%;
-    --muted-foreground: 30 17% 44%;     /* #846F5B */
+    --muted-foreground: 30 17% 44%; /* #846F5B */
 
-    --accent: 32 19% 65%;               /* #B7AA98 */
+    --accent: 32 19% 65%; /* #B7AA98 */
     --accent-foreground: 30 4% 16%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 34 14% 83%;               /* #D9D3CB */
+    --border: 34 14% 83%; /* #D9D3CB */
     --input: 34 14% 83%;
     --ring: 30 4% 16%;
 
@@ -129,36 +129,36 @@
 
   /* ── Darkroom / Analog ── 35mm film darkroom aesthetic ── */
   .darkroom {
-    --background: 0 0% 5%;              /* #0D0D0D matte black */
-    --foreground: 38 24% 92%;           /* #F4F1EA warm paper white */
+    --background: 0 0% 5%; /* #0D0D0D matte black */
+    --foreground: 38 24% 92%; /* #F4F1EA warm paper white */
 
-    --card: 0 0% 8%;                    /* #141414 */
+    --card: 0 0% 8%; /* #141414 */
     --card-foreground: 38 24% 92%;
 
     --popover: 0 0% 8%;
     --popover-foreground: 38 24% 92%;
 
-    --primary: 0 61% 30%;               /* #7A1C1C darkroom red */
+    --primary: 0 61% 30%; /* #7A1C1C darkroom red */
     --primary-foreground: 38 24% 92%;
 
-    --secondary: 0 0% 12%;              /* #1F1F1F */
-    --secondary-foreground: 0 0% 71%;   /* #B5B5B5 film silver */
+    --secondary: 0 0% 12%; /* #1F1F1F */
+    --secondary-foreground: 0 0% 71%; /* #B5B5B5 film silver */
 
     --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 50%;       /* #808080 */
+    --muted-foreground: 0 0% 50%; /* #808080 */
 
-    --accent: 0 61% 30%;                /* darkroom red */
+    --accent: 0 61% 30%; /* darkroom red */
     --accent-foreground: 38 24% 92%;
 
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 15%;                 /* #262626 */
+    --border: 0 0% 15%; /* #262626 */
     --input: 0 0% 12%;
     --ring: 0 61% 30%;
 
-    --sidebar-background: 0 0% 4%;      /* #0A0A0A */
-    --sidebar-foreground: 0 0% 71%;     /* #B5B5B5 */
+    --sidebar-background: 0 0% 4%; /* #0A0A0A */
+    --sidebar-foreground: 0 0% 71%; /* #B5B5B5 */
     --sidebar-primary: 0 61% 30%;
     --sidebar-primary-foreground: 38 24% 92%;
     --sidebar-accent: 0 0% 10%;
@@ -167,12 +167,11 @@
     --sidebar-ring: 0 61% 30%;
   }
 
-
   /* ── Accent: Red ── deep cinematic red override for dark themes ── */
   .accent-red:root,
   :root.accent-red,
   .accent-red {
-    --primary: 0 65% 42%;                /* #B22222 deep red */
+    --primary: 0 65% 42%; /* #B22222 deep red */
     --primary-foreground: 0 0% 100%;
     --accent: 0 65% 42%;
     --accent-foreground: 0 0% 100%;
@@ -184,12 +183,12 @@
 
   /* Red accent for Versace theme */
   .versace.accent-red {
-    --primary: 0 70% 38%;                /* deeper red for versace contrast */
+    --primary: 0 70% 38%; /* deeper red for versace contrast */
     --primary-foreground: 0 0% 100%;
     --accent: 0 70% 38%;
     --accent-foreground: 0 0% 100%;
     --ring: 0 70% 38%;
-    --border: 0 30% 18%;                 /* dark red border */
+    --border: 0 30% 18%; /* dark red border */
     --sidebar-primary: 0 70% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-border: 0 30% 18%;
@@ -215,16 +214,17 @@
   }
 
   html {
-    height: auto !important;
-    min-height: 100vh;
-    overflow-y: auto !important;
-    overflow-x: hidden;
     scroll-behavior: smooth;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    font-family:
+      "DM Sans",
+      "Inter",
+      system-ui,
+      -apple-system,
+      sans-serif;
     font-weight: 400;
     font-size: 15px;
     line-height: 1.6;
@@ -232,42 +232,63 @@
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
-    width: 100%;
-    min-height: 100vh;
-    height: auto;
-    overflow-x: hidden;
-    overflow-y: auto;
   }
 
   #root {
     width: 100%;
     min-height: 100vh;
-    overflow: visible;
+    overflow-x: clip;
   }
 
-  img, video, canvas, svg {
+  img,
+  video,
+  canvas,
+  svg {
     max-width: 100%;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Playfair Display", "Cormorant Garamond", serif;
     font-weight: 600;
   }
 
-  h1 { font-size: 28px; }
-  h2 { font-size: 22px; }
-  h3 { font-size: 18px; }
+  h1 {
+    font-size: 28px;
+  }
+  h2 {
+    font-size: 22px;
+  }
+  h3 {
+    font-size: 18px;
+  }
 
   ::selection {
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
   }
 
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
-  * { scrollbar-color: hsl(var(--border)) transparent; scrollbar-width: thin; }
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+  * {
+    scrollbar-color: hsl(var(--border)) transparent;
+    scrollbar-width: thin;
+  }
 }
 
 @layer components {
@@ -286,18 +307,42 @@
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
-  .text-responsive-sm { @apply text-xs sm:text-sm; }
-  .text-responsive-base { @apply text-sm sm:text-base; }
-  .text-responsive-lg { @apply text-base sm:text-lg lg:text-xl; }
-  .text-responsive-xl { @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl; }
-  .p-responsive { @apply p-4 sm:p-5 md:p-6 lg:p-8; }
-  .px-responsive { @apply px-4 sm:px-5 md:px-6 lg:px-8; }
-  .py-responsive { @apply py-4 sm:py-5 md:py-6 lg:py-8; }
-  .gap-responsive { @apply gap-3 sm:gap-4 md:gap-5 lg:gap-6; }
-  .card-responsive { @apply rounded-lg sm:rounded-xl; }
-  .hide-mobile { @apply hidden sm:block; }
-  .hide-desktop { @apply block lg:hidden; }
-  .show-desktop { @apply hidden lg:block; }
+  .text-responsive-sm {
+    @apply text-xs sm:text-sm;
+  }
+  .text-responsive-base {
+    @apply text-sm sm:text-base;
+  }
+  .text-responsive-lg {
+    @apply text-base sm:text-lg lg:text-xl;
+  }
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
+  }
+  .p-responsive {
+    @apply p-4 sm:p-5 md:p-6 lg:p-8;
+  }
+  .px-responsive {
+    @apply px-4 sm:px-5 md:px-6 lg:px-8;
+  }
+  .py-responsive {
+    @apply py-4 sm:py-5 md:py-6 lg:py-8;
+  }
+  .gap-responsive {
+    @apply gap-3 sm:gap-4 md:gap-5 lg:gap-6;
+  }
+  .card-responsive {
+    @apply rounded-lg sm:rounded-xl;
+  }
+  .hide-mobile {
+    @apply hidden sm:block;
+  }
+  .hide-desktop {
+    @apply block lg:hidden;
+  }
+  .show-desktop {
+    @apply hidden lg:block;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -314,7 +359,9 @@
 .platform-ios button,
 .platform-ios a,
 .platform-ios [role="button"] {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .platform-ios button:active,
@@ -337,7 +384,9 @@
 .platform-android button,
 .platform-android a,
 .platform-android [role="button"] {
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
   position: relative;
   overflow: hidden;
 }
@@ -402,17 +451,6 @@
   --header-offset: env(safe-area-inset-top, 0px);
 }
 
-/* ── Smooth scrolling per-platform ── */
-.platform-ios * {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-}
-
-.platform-android * {
-  overscroll-behavior: contain;
-  scroll-behavior: smooth;
-}
-
 /* ── Keyboard shortcut hint visibility ── */
 .input-touch .kbd-hint {
   display: none;
@@ -423,8 +461,14 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Darkroom theme utilities ── */
@@ -436,7 +480,7 @@
 }
 
 .darkroom .min-h-screen::after {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -449,16 +493,37 @@
 }
 
 @keyframes grain-drift {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-2%, -3%); }
-  20% { transform: translate(3%, 1%); }
-  30% { transform: translate(-1%, 2%); }
-  40% { transform: translate(2%, -2%); }
-  50% { transform: translate(-3%, 3%); }
-  60% { transform: translate(1%, -1%); }
-  70% { transform: translate(-2%, 2%); }
-  80% { transform: translate(3%, -3%); }
-  90% { transform: translate(-1%, 1%); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-2%, -3%);
+  }
+  20% {
+    transform: translate(3%, 1%);
+  }
+  30% {
+    transform: translate(-1%, 2%);
+  }
+  40% {
+    transform: translate(2%, -2%);
+  }
+  50% {
+    transform: translate(-3%, 3%);
+  }
+  60% {
+    transform: translate(1%, -1%);
+  }
+  70% {
+    transform: translate(-2%, 2%);
+  }
+  80% {
+    transform: translate(3%, -3%);
+  }
+  90% {
+    transform: translate(-1%, 1%);
+  }
 }
 
 /* Vignette on panels */
@@ -486,7 +551,7 @@
 
 /* Typewriter caption utility */
 .font-typewriter {
-  font-family: 'Special Elite', 'Courier New', monospace;
+  font-family: "Special Elite", "Courier New", monospace;
 }
 
 /* Film-developing fade-in for images */
@@ -495,18 +560,34 @@
 }
 
 @keyframes film-develop {
-  from { opacity: 0; filter: brightness(1.4) contrast(0.7); }
-  to { opacity: 1; filter: brightness(1) contrast(1); }
+  from {
+    opacity: 0;
+    filter: brightness(1.4) contrast(0.7);
+  }
+  to {
+    opacity: 1;
+    filter: brightness(1) contrast(1);
+  }
 }
 
 /* Darkroom-specific heading/body fonts */
-.darkroom h1, .darkroom h2, .darkroom h3,
-.darkroom h4, .darkroom h5, .darkroom h6 {
-  font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+.darkroom h1,
+.darkroom h2,
+.darkroom h3,
+.darkroom h4,
+.darkroom h5,
+.darkroom h6 {
+  font-family: "Playfair Display", "Cormorant Garamond", serif;
   letter-spacing: 0.02em;
 }
 
-.darkroom body, .darkroom p, .darkroom span, .darkroom label,
-.darkroom input, .darkroom button, .darkroom select, .darkroom textarea {
-  font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
+.darkroom body,
+.darkroom p,
+.darkroom span,
+.darkroom label,
+.darkroom input,
+.darkroom button,
+.darkroom select,
+.darkroom textarea {
+  font-family: "Inter", "DM Sans", system-ui, sans-serif;
 }
