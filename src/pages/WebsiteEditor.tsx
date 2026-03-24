@@ -2,17 +2,16 @@ import { useState, useEffect } from "react";
 import { WebsiteImageGridUploader } from "@/components/website-editor/WebsiteImageUploader";
 import { useAuth } from "@/lib/auth";
 
-/* ---------- STYLES ---------- */
 const inputStyle = {
   width: "100%",
-  padding: "12px",
-  marginBottom: "10px",
+  padding: "14px",
+  marginBottom: "12px",
   background: "#111",
   border: "1px solid #333",
   color: "#fff",
+  borderRadius: 4,
 };
 
-/* ---------- COMPONENT ---------- */
 const WebsiteEditor = () => {
   const { user } = useAuth();
 
@@ -31,27 +30,21 @@ const WebsiteEditor = () => {
 
   if (!user) return null;
 
-  /* ---------- FADE ANIMATION ---------- */
+  /* FADE ANIMATION */
   useEffect(() => {
     const elements = document.querySelectorAll(".fade-in");
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            (entry.target as HTMLElement).classList.add("visible");
-          }
-        });
-      },
-      { threshold: 0.1 },
-    );
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          (entry.target as HTMLElement).classList.add("visible");
+        }
+      });
+    });
 
     elements.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
   }, []);
 
-  /* ---------- RENDER ---------- */
   return (
     <div style={{ background: "#0a0a0a", color: "#fff", padding: 20 }}>
       {/* TABS */}
@@ -62,22 +55,26 @@ const WebsiteEditor = () => {
 
       {/* ================= EDIT ================= */}
       {activeTab === "edit" && (
-        <div>
-          <h2>Upload Photos</h2>
+        <div style={{ maxWidth: 500, margin: "0 auto" }}>
+          <h2 style={{ marginBottom: 20 }}>Upload Photos</h2>
 
-          <WebsiteImageGridUploader
-            values={data.cinematic}
-            onChange={(urls) => {
-              setData({
-                ...data,
-                cinematic: urls,
-                hero: { ...data.hero, cover: urls[0] },
-              });
-            }}
-            userId={user.id}
-            folder="homepage"
-          />
+          {/* UPLOADER */}
+          <div style={{ marginBottom: 20 }}>
+            <WebsiteImageGridUploader
+              values={data.cinematic}
+              onChange={(urls) => {
+                setData({
+                  ...data,
+                  cinematic: urls,
+                  hero: { ...data.hero, cover: urls[0] },
+                });
+              }}
+              userId={user.id}
+              folder="homepage"
+            />
+          </div>
 
+          {/* TEXT */}
           <input
             placeholder="Studio Name"
             value={data.hero.title}
@@ -87,6 +84,7 @@ const WebsiteEditor = () => {
                 hero: { ...data.hero, title: e.target.value },
               })
             }
+            style={inputStyle}
           />
 
           <input
@@ -98,53 +96,64 @@ const WebsiteEditor = () => {
                 hero: { ...data.hero, tagline: e.target.value },
               })
             }
+            style={inputStyle}
           />
 
-          <div style={{ marginTop: 30 }}>
-            <button
-              onClick={() =>
-                setData({
-                  ...data,
-                  stories: [...data.stories, { name: "Couple", location: "", images: [] }],
-                })
-              }
-            >
-              + Add Couple
-            </button>
+          {/* STORIES */}
+          <button
+            onClick={() =>
+              setData({
+                ...data,
+                stories: [...data.stories, { name: "Couple", location: "", images: [] }],
+              })
+            }
+            style={{
+              marginTop: 20,
+              marginBottom: 20,
+              padding: 10,
+              width: "100%",
+              background: "#1a1a1a",
+              color: "#fff",
+              border: "1px solid #333",
+            }}
+          >
+            + Add Couple
+          </button>
 
-            {data.stories.map((story: any, i: number) => (
-              <div key={i} style={{ marginTop: 20 }}>
-                <input
-                  value={story.name}
-                  onChange={(e) => {
-                    const updated = [...data.stories];
-                    updated[i].name = e.target.value;
-                    setData({ ...data, stories: updated });
-                  }}
-                />
+          {data.stories.map((story: any, i: number) => (
+            <div key={i} style={{ marginBottom: 30 }}>
+              <input
+                value={story.name}
+                onChange={(e) => {
+                  const updated = [...data.stories];
+                  updated[i].name = e.target.value;
+                  setData({ ...data, stories: updated });
+                }}
+                style={inputStyle}
+              />
 
-                <input
-                  value={story.location}
-                  onChange={(e) => {
-                    const updated = [...data.stories];
-                    updated[i].location = e.target.value;
-                    setData({ ...data, stories: updated });
-                  }}
-                />
+              <input
+                value={story.location}
+                onChange={(e) => {
+                  const updated = [...data.stories];
+                  updated[i].location = e.target.value;
+                  setData({ ...data, stories: updated });
+                }}
+                style={inputStyle}
+              />
 
-                <WebsiteImageGridUploader
-                  values={story.images}
-                  onChange={(urls) => {
-                    const updated = [...data.stories];
-                    updated[i].images = urls;
-                    setData({ ...data, stories: updated });
-                  }}
-                  userId={user.id}
-                  folder={`story-${i}`}
-                />
-              </div>
-            ))}
-          </div>
+              <WebsiteImageGridUploader
+                values={story.images}
+                onChange={(urls) => {
+                  const updated = [...data.stories];
+                  updated[i].images = urls;
+                  setData({ ...data, stories: updated });
+                }}
+                userId={user.id}
+                folder={`story-${i}`}
+              />
+            </div>
+          ))}
 
           {/* PUBLISH */}
           <button
@@ -153,10 +162,13 @@ const WebsiteEditor = () => {
               alert("Published ✅");
             }}
             style={{
-              marginTop: 40,
-              padding: 12,
+              marginTop: 20,
+              padding: 14,
               background: "#c6a96b",
               border: "none",
+              width: "100%",
+              color: "#000",
+              fontWeight: 500,
             }}
           >
             Publish Website
@@ -192,7 +204,12 @@ const WebsiteEditor = () => {
           {/* STORIES */}
           <div style={{ maxWidth: 1100, margin: "auto" }}>
             {data.stories.map((story: any, i: number) => (
-              <div key={i} className="fade-in" style={{ marginBottom: 120 }} onClick={() => setActiveStory(story)}>
+              <div
+                key={i}
+                className="fade-in"
+                style={{ marginBottom: 120, cursor: "pointer" }}
+                onClick={() => setActiveStory(story)}
+              >
                 {story.images[0] && (
                   <img src={story.images[0]} style={{ width: "100%", height: "70vh", objectFit: "cover" }} />
                 )}
@@ -219,10 +236,12 @@ const WebsiteEditor = () => {
         </div>
       )}
 
-      {/* ================= STORY VIEW ================= */}
+      {/* STORY VIEW */}
       {activeStory && (
         <div style={{ position: "fixed", inset: 0, background: "#000", overflow: "auto" }}>
-          <button onClick={() => setActiveStory(null)}>Close</button>
+          <button onClick={() => setActiveStory(null)} style={{ margin: 20 }}>
+            Close
+          </button>
 
           {activeStory.images.map((img: string, i: number) => (
             <img key={i} src={img} style={{ width: "100%", marginBottom: 20 }} />
