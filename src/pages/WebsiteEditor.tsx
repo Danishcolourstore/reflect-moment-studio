@@ -1,28 +1,20 @@
-// ✅ ONLY CHANGE: hero section render fixed (cache + correct source)
-
-...
-
-// ── Render section ──
 const renderSection = (sectionId: string) => {
   switch (sectionId) {
-
-    case 'hero':
+    case "hero":
       return (
         <WebsiteHero
           key="hero"
           branding={{
             ...branding,
             cover_url:
-              (websiteImages.hero_cover || coverUrl)
-                ? `${websiteImages.hero_cover || coverUrl}?v=${Date.now()}`
-                : null,
+              websiteImages.hero_cover || coverUrl ? `${websiteImages.hero_cover || coverUrl}?v=${Date.now()}` : null,
           }}
           id="hero"
           template={websiteTemplate}
         />
       );
 
-    case 'social':
+    case "social":
       return (
         <WebsiteSocialBar
           key="social"
@@ -36,7 +28,7 @@ const renderSection = (sectionId: string) => {
         />
       );
 
-    case 'portfolio':
+    case "portfolio":
       return (
         <WebsitePortfolio
           key="portfolio"
@@ -50,22 +42,16 @@ const renderSection = (sectionId: string) => {
         />
       );
 
-    case 'albums':
+    case "albums":
       return albums.length > 0 ? (
-        <WebsiteAlbums
-          key="albums"
-          id="albums"
-          albums={albums}
-          accent={accentColor}
-          template={websiteTemplate}
-        />
+        <WebsiteAlbums key="albums" id="albums" albums={albums} accent={accentColor} template={websiteTemplate} />
       ) : (
         <div className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>
           No albums yet
         </div>
       );
 
-    case 'about':
+    case "about":
       return bio ? (
         <WebsiteAbout key="about" id="about" template={websiteTemplate} branding={branding} />
       ) : (
@@ -74,7 +60,7 @@ const renderSection = (sectionId: string) => {
         </div>
       );
 
-    case 'featured':
+    case "featured":
       return (
         <>
           {portfolioPhotos.length > 0 && (
@@ -98,7 +84,7 @@ const renderSection = (sectionId: string) => {
         </>
       );
 
-    case 'services':
+    case "services":
       return servicesData.length > 0 ? (
         <WebsiteServices
           key="services"
@@ -111,7 +97,7 @@ const renderSection = (sectionId: string) => {
         <div className="py-16 text-center opacity-30">Add services</div>
       );
 
-    case 'testimonials':
+    case "testimonials":
       return testimonialsData.length > 0 ? (
         <WebsiteTestimonials
           key="testimonials"
@@ -124,7 +110,7 @@ const renderSection = (sectionId: string) => {
         <div className="py-16 text-center opacity-30">Add testimonials</div>
       );
 
-    case 'latest_works':
+    case "latest_works":
       return (
         <WebsiteLatestWorks
           key="latest_works"
@@ -132,11 +118,11 @@ const renderSection = (sectionId: string) => {
           template={websiteTemplate}
           images={websiteImages.latest_works_photos || []}
           accent={accentColor}
-          title={websiteImages.latest_works_title || 'My Latest Works'}
+          title={websiteImages.latest_works_title || "My Latest Works"}
         />
       );
 
-    case 'newsletter':
+    case "newsletter":
       return (
         <WebsiteNewsletter
           key="newsletter"
@@ -148,7 +134,7 @@ const renderSection = (sectionId: string) => {
         />
       );
 
-    case 'image_strip':
+    case "image_strip":
       return (
         <WebsiteImageStrip
           key="image_strip"
@@ -158,7 +144,7 @@ const renderSection = (sectionId: string) => {
         />
       );
 
-    case 'contact':
+    case "contact":
       return (
         <WebsiteContact
           key="contact"
