@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, PointerEvent as RPointerEvent } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { saveAs } from 'file-saver';
 import {
