@@ -1,62 +1,31 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { WebsiteImageUploader, WebsiteImageGridUploader } from "@/components/website-editor/WebsiteImageUploader";
+import { WebsiteHero } from "@/components/website/WebsiteHero";
 import { useAuth } from "@/lib/auth";
 
-import { WebsiteHero } from "@/components/website/WebsiteHero";
-import { WebsiteImageUploader } from "@/components/website-editor/WebsiteImageUploader";
-
-export default function WebsiteEditor() {
+const WebsiteEditor = () => {
   const { user } = useAuth();
 
-  const [loading, setLoading] = useState(true);
-
+  // ✅ CLEAN STATE
   const [data, setData] = useState<any>({
     hero: {
-      title: "",
-      tagline: "",
+      title: "Colour Store",
+      tagline: "Colours that inspire",
       cover: null,
+      coverUpdatedAt: Date.now(),
     },
+    portfolio: [],
   });
 
-  // LOAD DATA
-  useEffect(() => {
-    if (!user) return;
-
-    (async () => {
-      const { data: res } = await supabase
-        .from("studio_profiles")
-        .select("website_data")
-        .eq("user_id", user.id)
-        .single();
-
-      if (res?.website_data) {
-        setData(res.website_data);
-      }
-
-      setLoading(false);
-    })();
-  }, [user]);
-
-  // SAVE
-  const save = async () => {
-    if (!user) return;
-
-    await supabase
-      .from("studio_profiles")
-      .update({
-        website_data: data,
-      })
-      .eq("user_id", user.id);
-  };
-
-  if (loading) return <div>Loading...</div>;
+  if (!user) return null;
 
   return (
     <div style={{ padding: 20 }}>
-      {/* HERO EDITOR */}
+      {/* ================= HERO EDITOR ================= */}
       <h2>Hero Section</h2>
 
       <input
+        placeholder="Title"
         value={data.hero.title}
         onChange={(e) =>
           setData({
@@ -64,10 +33,10 @@ export default function WebsiteEditor() {
             hero: { ...data.hero, title: e.target.value },
           })
         }
-        placeholder="Studio Name"
       />
 
       <input
+        placeholder="Tagline"
         value={data.hero.tagline}
         onChange={(e) =>
           setData({
@@ -75,7 +44,6 @@ export default function WebsiteEditor() {
             hero: { ...data.hero, tagline: e.target.value },
           })
         }
-        placeholder="Tagline"
       />
 
       <WebsiteImageUploader
@@ -83,27 +51,62 @@ export default function WebsiteEditor() {
         onChange={(url) =>
           setData({
             ...data,
-            hero: { ...data.hero, cover: url },
+            hero: {
+              ...data.hero,
+              cover: url,
+              coverUpdatedAt: Date.now(), // ✅ FIXED CACHE
+            },
           })
         }
         userId={user.id}
         folder="hero"
       />
 
-      <button onClick={save}>Save</button>
+      {/* ================= PORTFOLIO EDITOR ================= */}
+      <h2 style={{ marginTop: 40 }}>Portfolio</h2>
 
-      {/* PREVIEW */}
+      <WebsiteImageGridUploader
+        values={data.portfolio}
+        onChange={(urls) =>
+          setData({
+            ...data,
+            portfolio: urls,
+          })
+        }
+        userId={user.id}
+        folder="portfolio"
+      />
+
+      {/* ================= PREVIEW ================= */}
+      <h2 style={{ marginTop: 50 }}>Preview</h2>
+
+      {/* HERO PREVIEW */}
+      <WebsiteHero
+        branding={{
+          studio_name: data.hero.title,
+          display_name: data.hero.tagline,
+          cover_url: data.hero.cover ? `${data.hero.cover}?v=${data.hero.coverUpdatedAt}` : null,
+        }}
+        id="hero"
+        template="vows-elegance"
+      />
+
+      {/* PORTFOLIO PREVIEW */}
       <div style={{ marginTop: 40 }}>
-        <WebsiteHero
-          branding={{
-            studio_name: data.hero.title,
-            display_name: data.hero.tagline,
-            cover_url: data.hero.cover ? `${data.hero.cover}?v=${Date.now()}` : null,
-          }}
-          id="hero"
-          template="vows-elegance"
-        />
+        {data.portfolio.map((img: string, i: number) => (
+          <img
+            key={i}
+            src={`${img}?v=${i}`}
+            style={{
+              width: "100%",
+              marginBottom: 10,
+              borderRadius: 8,
+            }}
+          />
+        ))}
       </div>
     </div>
   );
-}
+};
+
+export default WebsiteEditor;
