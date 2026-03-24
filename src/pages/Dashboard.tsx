@@ -1,21 +1,11 @@
-import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Loader2 } from "lucide-react";
-
-interface Event {
-  id: string;
-  name: string;
-  date: string;
-  status: string;
-  photo_count?: number;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -25,120 +15,179 @@ export default function Dashboard() {
         .from("events")
         .select("id, name, date, status")
         .eq("user_id", user.id)
-        .order("date", { ascending: false }) as any
+        .order("created_at", { ascending: false }) as any
     ).then(({ data }: any) => {
       setEvents(data || []);
-      setLoading(false);
     });
   }, [user]);
 
   return (
     <DashboardLayout>
-      <div className="space-y-10">
-        {/* ───────── HERO / STATE ───────── */}
-        <section className="space-y-3">
-          <h1 className="text-3xl font-serif text-white tracking-tight">Your studio is active</h1>
-          <p className="text-sm text-white/40">Work is progressing. Here’s what needs your attention.</p>
+      <div className="max-w-4xl mx-auto space-y-16">
+        {/* ───────── HERO ───────── */}
+        <section>
+          <h1
+            style={{
+              fontFamily: "Cormorant Garamond, serif",
+              fontSize: "44px",
+              fontWeight: 300,
+              letterSpacing: "-0.02em",
+              color: "#fff",
+            }}
+          >
+            Your Studio,
+            <br />
+            <span style={{ opacity: 0.5 }}>In Motion.</span>
+          </h1>
+
+          <p
+            style={{
+              fontFamily: "DM Sans, sans-serif",
+              fontSize: "13px",
+              color: "rgba(255,255,255,0.5)",
+              marginTop: "16px",
+              lineHeight: 1.7,
+            }}
+          >
+            MirrorAI is processing your work. Focus on what matters.
+          </p>
         </section>
 
         {/* ───────── PIPELINE ───────── */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] tracking-[0.25em] text-white/30 uppercase">Workflow</p>
-            <span className="text-[10px] text-green-400 tracking-wide">● Live</span>
-          </div>
+        <section>
+          <p
+            style={{
+              fontSize: "9px",
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.3)",
+              marginBottom: "20px",
+            }}
+          >
+            Workflow
+          </p>
 
-          <div className="flex items-center justify-between">
-            {["Ingest", "Cull", "Retouch", "Story", "Deliver"].map((stage, i) => (
-              <div key={stage} className="flex flex-col items-center flex-1">
+          <div className="flex justify-between">
+            {["Ingest", "Cull", "Retouch", "Story", "Deliver"].map((s, i) => (
+              <div key={s} className="flex flex-col items-center flex-1">
                 <div
-                  className={`w-5 h-5 rounded-full border ${
-                    i === 2 ? "border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]" : "border-white/20"
-                  }`}
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: i === 2 ? "#fff" : "rgba(255,255,255,0.2)",
+                    boxShadow: i === 2 ? "0 0 12px rgba(255,255,255,0.3)" : "none",
+                  }}
                 />
-                <span className="text-[10px] mt-2 text-white/40">{stage}</span>
+
+                <span
+                  style={{
+                    fontSize: "10px",
+                    marginTop: "10px",
+                    color: "rgba(255,255,255,0.4)",
+                  }}
+                >
+                  {s}
+                </span>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ───────── ACTIVE JOBS ───────── */}
-        <section className="space-y-4">
-          <p className="text-[10px] tracking-[0.25em] text-white/30 uppercase">Active Work</p>
+        {/* ───────── FOCUS JOB ───────── */}
+        <section>
+          <p
+            style={{
+              fontSize: "9px",
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.3)",
+              marginBottom: "16px",
+            }}
+          >
+            Focus
+          </p>
 
-          <div className="space-y-2">
-            {loading && (
-              <div className="flex items-center gap-2 text-white/40">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Loading...
-              </div>
-            )}
+          {events[0] && (
+            <div className="space-y-2">
+              <h2
+                style={{
+                  fontFamily: "Cormorant Garamond, serif",
+                  fontSize: "26px",
+                  fontWeight: 300,
+                  color: "#fff",
+                }}
+              >
+                {events[0].name}
+              </h2>
 
-            {!loading &&
-              events.slice(0, 3).map((e) => (
-                <div
-                  key={e.id}
-                  className="flex items-center justify-between px-4 py-4 border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-white/30" />
-                    <div>
-                      <p className="text-white text-sm">{e.name}</p>
-                      <p className="text-[10px] text-white/30 uppercase tracking-wide">{e.status || "processing"}</p>
-                    </div>
-                  </div>
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "rgba(255,255,255,0.5)",
+                }}
+              >
+                {events[0].status || "Processing"}
+              </p>
 
-                  <span className="text-xs text-white/30">{e.date}</span>
-                </div>
-              ))}
-          </div>
+              <button
+                style={{
+                  marginTop: "12px",
+                  fontSize: "11px",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: "#fff",
+                  borderBottom: "1px solid rgba(255,255,255,0.3)",
+                  paddingBottom: "2px",
+                }}
+              >
+                Continue →
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* ───────── AI SUGGESTIONS ───────── */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-4">
-            <p className="text-[10px] tracking-[0.25em] text-white/30 uppercase">MirrorAI Suggests</p>
-            <div className="flex-1 h-px bg-white/5" />
-          </div>
+        {/* ───────── OTHER JOBS ───────── */}
+        <section>
+          <p
+            style={{
+              fontSize: "9px",
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.3)",
+              marginBottom: "16px",
+            }}
+          >
+            Other Work
+          </p>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-4 py-4 border-l border-white/20 bg-white/[0.02] hover:bg-white/[0.04] transition">
-              <div>
-                <p className="text-sm text-white">Run culling on pending photos</p>
-                <p className="text-[10px] text-white/40">Saves ~3 hours</p>
+          <div className="space-y-3">
+            {events.slice(1, 4).map((e) => (
+              <div key={e.id} className="flex justify-between text-sm text-white/60">
+                <span>{e.name}</span>
+                <span className="text-white/30">{e.date}</span>
               </div>
-              <button className="text-xs text-white/40 hover:text-white">Start →</button>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-4 border-l border-white/20 bg-white/[0.02] hover:bg-white/[0.04] transition">
-              <div>
-                <p className="text-sm text-white">Generate story preview</p>
-                <p className="text-[10px] text-white/40">Ready in ~2 min</p>
-              </div>
-              <button className="text-xs text-white/40 hover:text-white">Preview →</button>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-4 border-l border-white/20 bg-white/[0.02] hover:bg-white/[0.04] transition">
-              <div>
-                <p className="text-sm text-white">Prepare upcoming shoot</p>
-                <p className="text-[10px] text-white/40">Setup gallery structure</p>
-              </div>
-              <button className="text-xs text-white/40 hover:text-white">Setup →</button>
-            </div>
+            ))}
           </div>
         </section>
 
         {/* ───────── STATS ───────── */}
-        <section className="grid grid-cols-2 sm:grid-cols-4 border border-white/5 divide-x divide-white/5">
+        <section className="grid grid-cols-2 gap-10 pt-10">
           {[
-            { label: "Events", value: events.length },
-            { label: "Photos", value: "24k" },
-            { label: "Views", value: "9.2k" },
+            { label: "Projects", value: events.length },
             { label: "Hours Saved", value: "140" },
           ].map((s) => (
-            <div key={s.label} className="p-5">
+            <div key={s.label}>
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/30">{s.label}</p>
-              <p className="text-2xl font-serif text-white mt-2">{s.value}</p>
+              <p
+                style={{
+                  fontFamily: "Cormorant Garamond, serif",
+                  fontSize: "28px",
+                  marginTop: "6px",
+                }}
+              >
+                {s.value}
+              </p>
             </div>
           ))}
         </section>
