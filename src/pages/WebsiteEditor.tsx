@@ -20,8 +20,8 @@ const WebsiteEditor = () => {
 
   const [data, setData] = useState<any>({
     hero: {
-      title: "Colour Store",
-      tagline: "Colours that inspire",
+      title: "",
+      tagline: "",
       cover: null,
     },
     cinematic: [],
@@ -46,20 +46,45 @@ const WebsiteEditor = () => {
   }, []);
 
   return (
-    <div style={{ background: "#0a0a0a", color: "#fff", padding: 20 }}>
+    <div style={{ background: "#000", color: "#fff", minHeight: "100vh" }}>
       {/* TABS */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 30 }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 10, padding: 20 }}>
         <button onClick={() => setActiveTab("edit")}>Edit</button>
         <button onClick={() => setActiveTab("preview")}>Preview</button>
       </div>
 
-      {/* ================= EDIT ================= */}
+      {/* ================= EDIT (LANDING BUILDER) ================= */}
       {activeTab === "edit" && (
-        <div style={{ maxWidth: 500, margin: "0 auto" }}>
-          <h2 style={{ marginBottom: 20 }}>Upload Photos</h2>
+        <div style={{ maxWidth: 520, margin: "0 auto", padding: "40px 20px" }}>
+          {/* HEADLINE */}
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <h1
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: "38px",
+                letterSpacing: "6px",
+                fontWeight: 400,
+                marginBottom: 20,
+              }}
+            >
+              Craft Your Timeless Showcase
+            </h1>
 
-          {/* UPLOADER */}
-          <div style={{ marginBottom: 20 }}>
+            <p
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: "14px",
+                opacity: 0.7,
+                lineHeight: 1.6,
+              }}
+            >
+              Upload your photographs — and watch them transform into a cinematic, elegant website. Every image becomes
+              part of a story. Your story.
+            </p>
+          </div>
+
+          {/* UPLOAD CENTER */}
+          <div style={{ marginBottom: 30 }}>
             <WebsiteImageGridUploader
               values={data.cinematic}
               onChange={(urls) => {
@@ -74,7 +99,7 @@ const WebsiteEditor = () => {
             />
           </div>
 
-          {/* TEXT */}
+          {/* TEXT INPUTS */}
           <input
             placeholder="Studio Name"
             value={data.hero.title}
@@ -110,7 +135,7 @@ const WebsiteEditor = () => {
             style={{
               marginTop: 20,
               marginBottom: 20,
-              padding: 10,
+              padding: 12,
               width: "100%",
               background: "#1a1a1a",
               color: "#fff",
@@ -159,7 +184,7 @@ const WebsiteEditor = () => {
           <button
             onClick={() => {
               localStorage.setItem("published-site", JSON.stringify(data));
-              alert("Published ✅");
+              alert("Website Published ✅");
             }}
             style={{
               marginTop: 20,
@@ -178,8 +203,7 @@ const WebsiteEditor = () => {
 
       {/* ================= PREVIEW ================= */}
       {activeTab === "preview" && (
-        <div style={{ background: "#000", fontFamily: "'Playfair Display', serif" }}>
-          {/* HERO */}
+        <div style={{ fontFamily: "'Playfair Display', serif" }}>
           {data.hero.cover && (
             <div style={{ height: "90vh", position: "relative" }}>
               <img src={data.hero.cover} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -221,7 +245,7 @@ const WebsiteEditor = () => {
           {/* TESTIMONIALS */}
           <div style={{ textAlign: "center", marginTop: 120 }}>
             <h2>Testimonials</h2>
-            <p className="fade-in">“Amazing work and beautiful memories.”</p>
+            <p className="fade-in">“Every moment beautifully captured.”</p>
           </div>
 
           {/* ENQUIRY */}
