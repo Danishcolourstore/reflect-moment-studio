@@ -639,11 +639,12 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           position: relative; width: 100%; height: 100dvh;
           overflow: hidden; background: #000;
           display: flex; flex-direction: column;
+          -webkit-user-select: none; user-select: none;
         }
         .vsco-canvas {
           flex: 1; position: relative; overflow: hidden;
           display: flex; align-items: center; justify-content: center;
-          touch-action: pan-x pan-y;
+          touch-action: none;
         }
         .vsco-loader {
           position: absolute; inset: 0; z-index: 10;
@@ -659,11 +660,12 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         @keyframes vsco-spin { to { transform: rotate(360deg); } }
 
         .vsco-zoom {
-          position: absolute; top: 56px; right: 16px; z-index: 35;
-          background: none; border: none;
+          position: absolute; top: 60px; right: 16px; z-index: 35;
+          background: rgba(0,0,0,0.5); border: none;
+          padding: 4px 10px; border-radius: 12px;
           font-family: "DM Sans", sans-serif;
-          font-size: 12px; color: rgba(255,255,255,0.6);
-          cursor: pointer;
+          font-size: 12px; color: rgba(255,255,255,0.8);
+          cursor: pointer; backdrop-filter: blur(8px);
         }
 
         /* ── UI layer ── */
@@ -673,91 +675,120 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         }
         .vsco-ui > * { pointer-events: auto; }
 
-        /* ── Top bar ── */
+        /* ── Top bar with gradient for visibility ── */
         .vsco-topbar {
           position: absolute; top: 0; left: 0; right: 0;
           display: flex; align-items: center; justify-content: space-between;
-          height: 44px;
-          padding: 0 16px;
-          padding-top: env(safe-area-inset-top, 0px);
-          background: transparent;
+          height: calc(44px + env(safe-area-inset-top, 0px));
+          padding: env(safe-area-inset-top, 0px) 12px 0 12px;
+          background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
         }
         .vsco-tap {
           width: 44px; height: 44px;
           display: flex; align-items: center; justify-content: center;
           background: none; border: none; cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
         }
         .vsco-tap:active { opacity: 0.5; }
         .vsco-next {
           background: none; border: none;
           font-family: "DM Sans", sans-serif;
-          font-size: 14px; font-weight: 600; color: #fff;
+          font-size: 14px; font-weight: 600; color: #C9A96E;
           cursor: pointer; padding: 0 8px; height: 44px;
           display: flex; align-items: center;
+          -webkit-tap-highlight-color: transparent;
         }
         .vsco-next:active { opacity: 0.5; }
 
         .vsco-compare-label {
-          position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+          position: absolute; top: calc(56px + env(safe-area-inset-top, 0px));
+          left: 50%; transform: translateX(-50%);
           font-family: "DM Sans", sans-serif;
           font-size: 11px; color: rgba(255,255,255,0.5);
-          letter-spacing: 0.1em; text-transform: uppercase;
+          letter-spacing: 0.15em; text-transform: uppercase;
+          background: rgba(0,0,0,0.4); padding: 4px 12px; border-radius: 10px;
         }
 
-        /* ── Bottom ── */
+        /* ── Bottom with gradient ── */
         .vsco-bottom {
           position: absolute; bottom: 0; left: 0; right: 0;
-          padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-          background: transparent;
+          padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+          background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
         }
 
         /* Slider area */
-        .vsco-slider-area { padding: 0 20px 8px; }
+        .vsco-slider-area { padding: 0 24px 8px; }
         .vsco-slider-wrap {
-          display: flex; flex-direction: column; align-items: center; gap: 4px;
+          display: flex; flex-direction: column; align-items: center; gap: 6px;
         }
         .vsco-slider-val {
           font-family: "DM Sans", sans-serif;
-          font-size: 13px; color: #fff; font-variant-numeric: tabular-nums;
+          font-size: 15px; font-weight: 500; color: #fff;
+          font-variant-numeric: tabular-nums;
+          min-width: 40px; text-align: center;
+        }
+        .vsco-slider-label {
+          font-family: "DM Sans", sans-serif;
+          font-size: 10px; color: rgba(255,255,255,0.3);
+          text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .vsco-slider-track-wrap {
+          position: relative; width: 100%; height: 44px;
+          display: flex; align-items: center;
+        }
+        .vsco-slider-track-bg {
+          position: absolute; left: 0; right: 0; height: 2px;
+          background: rgba(255,255,255,0.12); top: 50%;
+          transform: translateY(-50%);
+        }
+        .vsco-slider-track-fill {
+          position: absolute; left: 0; height: 2px;
+          background: rgba(255,255,255,0.5); top: 50%;
+          transform: translateY(-50%);
+          transition: width 0.05s ease-out;
         }
         .vsco-slider {
           -webkit-appearance: none; appearance: none;
-          width: 100%; height: 28px; background: transparent; cursor: pointer;
+          width: 100%; height: 44px; background: transparent;
+          cursor: pointer; position: relative; z-index: 2;
+          touch-action: pan-x;
         }
-        .vsco-slider::-webkit-slider-track {
-          height: 2px; border-radius: 0;
-          background: rgba(255,255,255,0.15);
+        .vsco-slider::-webkit-slider-runnable-track {
+          height: 2px; background: transparent;
         }
         .vsco-slider::-moz-range-track {
-          height: 2px; border-radius: 0;
-          background: rgba(255,255,255,0.15);
+          height: 2px; background: transparent;
         }
-        .vsco-slider::-moz-range-progress { height: 2px; background: rgba(255,255,255,0.6); }
         .vsco-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 28px; height: 28px; border-radius: 50%;
-          background: #fff; border: none; margin-top: -13px;
+          width: 32px; height: 32px; border-radius: 50%;
+          background: #fff; border: none; margin-top: -15px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
         .vsco-slider::-moz-range-thumb {
-          width: 28px; height: 28px; border-radius: 50%;
+          width: 32px; height: 32px; border-radius: 50%;
           background: #fff; border: none;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
         /* Sub-tool strip */
         .vsco-subtool-strip {
           display: flex; align-items: center; justify-content: center;
-          gap: 20px; padding: 8px 0;
+          gap: 16px; padding: 10px 0 6px;
           overflow-x: auto; scrollbar-width: none;
         }
         .vsco-subtool-strip::-webkit-scrollbar { display: none; }
         .vsco-subtool-btn {
           background: none; border: none; cursor: pointer;
           font-family: "DM Sans", sans-serif;
-          font-size: 9px; font-weight: 500;
+          font-size: 10px; font-weight: 500;
           letter-spacing: 0.1em; text-transform: uppercase;
-          position: relative; padding: 4px 0;
-          display: flex; flex-direction: column; align-items: center; gap: 4px;
+          position: relative; padding: 6px 4px;
+          min-width: 44px; min-height: 36px;
+          display: flex; flex-direction: column; align-items: center;
+          justify-content: center; gap: 4px;
           transition: color 0.2s ease-out;
+          -webkit-tap-highlight-color: transparent;
         }
         .vsco-subtool-dot {
           width: 3px; height: 3px; border-radius: 50%; background: #fff;
@@ -769,48 +800,59 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           overflow-x: auto; scrollbar-width: none;
           -webkit-overflow-scrolling: touch;
           scroll-snap-type: x mandatory;
-          padding: 4px 0;
+          padding: 6px 0 2px;
         }
         .vsco-tool-strip::-webkit-scrollbar { display: none; }
         .vsco-tool-item {
           display: flex; flex-direction: column;
           align-items: center; justify-content: center;
-          flex-shrink: 0; gap: 3px;
-          width: 60px; min-height: 54px;
+          flex-shrink: 0; gap: 4px;
+          width: 64px; min-height: 56px;
           background: none; border: none; cursor: pointer;
           scroll-snap-align: center;
           position: relative;
-          padding-bottom: 6px;
+          padding-bottom: 8px;
+          -webkit-tap-highlight-color: transparent;
         }
-        .vsco-tool-item:first-child { margin-left: 20px; }
-        .vsco-tool-item:last-child { margin-right: 20px; }
+        .vsco-tool-item:first-child { margin-left: 16px; }
+        .vsco-tool-item:last-child { margin-right: 16px; }
         .vsco-tool-item:active { opacity: 0.5; }
         .vsco-tool-item span {
           font-family: "DM Sans", sans-serif;
-          font-size: 10px; font-weight: 500;
+          font-size: 9px; font-weight: 500;
           letter-spacing: 0.05em; text-transform: uppercase;
           white-space: nowrap;
           transition: color 0.2s ease-out;
         }
         .vsco-tool-dot {
           position: absolute; bottom: 0;
-          width: 3px; height: 3px; border-radius: 50%; background: #fff;
+          width: 4px; height: 4px; border-radius: 50%; background: #fff;
+        }
+        .vsco-tool-dot-edited {
+          position: absolute; bottom: 0;
+          width: 3px; height: 3px; border-radius: 50%;
+          background: rgba(201,169,110,0.7);
         }
 
         /* ── Chat bubble ── */
         .vsco-chat-bubble {
-          position: fixed; bottom: 90px; right: 16px;
+          position: fixed;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 140px);
+          right: 16px;
           width: 44px; height: 44px; border-radius: 50%;
           background: #C9A96E; border: none;
           display: flex; align-items: center; justify-content: center;
           cursor: pointer; z-index: 50;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+          -webkit-tap-highlight-color: transparent;
         }
         .vsco-chat-bubble:active { transform: scale(0.92); }
 
         /* ── Chat panel ── */
         .vsco-chat-panel {
           position: fixed; z-index: 60;
-          bottom: 90px; right: 16px;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 140px);
+          right: 16px;
           width: min(320px, 88vw);
           height: min(420px, 55vh);
           background: rgba(0,0,0,0.95);
@@ -821,8 +863,8 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         }
         @media (max-width: 480px) {
           .vsco-chat-panel {
-            bottom: 80px; right: auto;
-            left: 50%; transform: translateX(-50%);
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 130px);
+            right: 8px; left: 8px; width: auto;
           }
         }
         .vsco-chat-header {
@@ -860,9 +902,8 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           display: inline-block; margin-top: 6px;
           background: none; border: none;
           font-family: "DM Sans", sans-serif;
-          font-size: 11px; color: #fff;
-          text-decoration: underline;
-          cursor: pointer;
+          font-size: 12px; color: #C9A96E;
+          cursor: pointer; font-weight: 500;
         }
         .vsco-chat-suggestions {
           display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0;
@@ -874,7 +915,8 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
           font-family: "DM Sans", sans-serif;
           font-size: 10px; text-transform: uppercase;
           color: rgba(255,255,255,0.4);
-          padding: 6px 12px; cursor: pointer;
+          padding: 8px 14px; cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
         }
         .vsco-chat-pill:active { background: rgba(255,255,255,0.05); }
         .vsco-chat-input-wrap {
@@ -891,7 +933,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         }
         .vsco-chat-input::placeholder { color: rgba(255,255,255,0.2); }
         .vsco-chat-send {
-          width: 28px; height: 28px; border-radius: 50%;
+          width: 32px; height: 32px; border-radius: 50%;
           background: #fff; border: none;
           display: flex; align-items: center; justify-content: center;
           cursor: pointer; flex-shrink: 0;
@@ -900,9 +942,10 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         /* ── Discard overlay ── */
         .vsco-discard {
           position: absolute; inset: 0; z-index: 100;
-          background: rgba(0,0,0,0.8);
+          background: rgba(0,0,0,0.85);
           display: flex; flex-direction: column;
-          align-items: center; justify-content: center; gap: 24px;
+          align-items: center; justify-content: center; gap: 28px;
+          backdrop-filter: blur(4px);
         }
         .vsco-discard p {
           font-family: "DM Sans", sans-serif;
@@ -911,7 +954,22 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         .vsco-discard button {
           background: none; border: none;
           font-family: "DM Sans", sans-serif;
-          cursor: pointer;
+          cursor: pointer; min-width: 44px; min-height: 44px;
+          display: flex; align-items: center; justify-content: center;
+        }
+
+        /* ── Desktop: larger layout ── */
+        @media (min-width: 768px) {
+          .vsco-slider-area { padding: 0 15% 12px; }
+          .vsco-tool-item { width: 72px; min-height: 60px; }
+          .vsco-tool-item span { font-size: 10px; }
+          .vsco-slider-val { font-size: 16px; }
+        }
+        @media (min-width: 1024px) {
+          .vsco-slider-area { padding: 0 25% 12px; }
+          .vsco-bottom {
+            padding-bottom: 20px;
+          }
         }
       `}</style>
     </div>
