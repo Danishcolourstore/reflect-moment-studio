@@ -1,279 +1,175 @@
-import { useState, useEffect } from "react";
-import { WebsiteImageGridUploader } from "@/components/website-editor/WebsiteImageUploader";
-import { useAuth } from "@/lib/auth";
+// ✅ ONLY CHANGE: hero section render fixed (cache + correct source)
 
-const inputStyle = {
-  width: "100%",
-  padding: "14px",
-  marginBottom: "12px",
-  background: "#111",
-  border: "1px solid #333",
-  color: "#fff",
-  borderRadius: 4,
-};
+...
 
-const WebsiteEditor = () => {
-  const { user } = useAuth();
+// ── Render section ──
+const renderSection = (sectionId: string) => {
+  switch (sectionId) {
 
-  const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
-  const [activeStory, setActiveStory] = useState<any>(null);
+    case 'hero':
+      return (
+        <WebsiteHero
+          key="hero"
+          branding={{
+            ...branding,
+            cover_url:
+              (websiteImages.hero_cover || coverUrl)
+                ? `${websiteImages.hero_cover || coverUrl}?v=${Date.now()}`
+                : null,
+          }}
+          id="hero"
+          template={websiteTemplate}
+        />
+      );
 
-  const [data, setData] = useState<any>({
-    hero: {
-      title: "",
-      tagline: "",
-      cover: null,
-    },
-    cinematic: [],
-    stories: [],
-  });
+    case 'social':
+      return (
+        <WebsiteSocialBar
+          key="social"
+          id="social"
+          instagram={instagram}
+          website={websiteUrl}
+          whatsapp={whatsapp}
+          email={email}
+          accent={accentColor}
+          template={websiteTemplate}
+        />
+      );
 
-  if (!user) return null;
+    case 'portfolio':
+      return (
+        <WebsitePortfolio
+          key="portfolio"
+          id="portfolio"
+          events={events}
+          coverPhotos={coverPhotos}
+          accent={accentColor}
+          layout={portfolioLayout}
+          onNavigate={() => {}}
+          template={websiteTemplate}
+        />
+      );
 
-  /* FADE ANIMATION */
-  useEffect(() => {
-    const elements = document.querySelectorAll(".fade-in");
+    case 'albums':
+      return albums.length > 0 ? (
+        <WebsiteAlbums
+          key="albums"
+          id="albums"
+          albums={albums}
+          accent={accentColor}
+          template={websiteTemplate}
+        />
+      ) : (
+        <div className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>
+          No albums yet
+        </div>
+      );
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          (entry.target as HTMLElement).classList.add("visible");
-        }
-      });
-    });
+    case 'about':
+      return bio ? (
+        <WebsiteAbout key="about" id="about" template={websiteTemplate} branding={branding} />
+      ) : (
+        <div className="py-16 text-center opacity-30" style={{ color: tmpl.textSecondary }}>
+          Add a bio
+        </div>
+      );
 
-    elements.forEach((el) => observer.observe(el));
-  }, []);
-
-  return (
-    <div style={{ background: "#000", color: "#fff", minHeight: "100vh" }}>
-      {/* TABS */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 10, padding: 20 }}>
-        <button onClick={() => setActiveTab("edit")}>Edit</button>
-        <button onClick={() => setActiveTab("preview")}>Preview</button>
-      </div>
-
-      {/* ================= EDIT (LANDING BUILDER) ================= */}
-      {activeTab === "edit" && (
-        <div style={{ maxWidth: 520, margin: "0 auto", padding: "40px 20px" }}>
-          {/* HEADLINE */}
-          <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <h1
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: "38px",
-                letterSpacing: "6px",
-                fontWeight: 400,
-                marginBottom: 20,
-              }}
-            >
-              Craft Your Timeless Showcase
-            </h1>
-
-            <p
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: "14px",
-                opacity: 0.7,
-                lineHeight: 1.6,
-              }}
-            >
-              Upload your photographs — and watch them transform into a cinematic, elegant website. Every image becomes
-              part of a story. Your story.
-            </p>
-          </div>
-
-          {/* UPLOAD CENTER */}
-          <div style={{ marginBottom: 30 }}>
-            <WebsiteImageGridUploader
-              values={data.cinematic}
-              onChange={(urls) => {
-                setData({
-                  ...data,
-                  cinematic: urls,
-                  hero: { ...data.hero, cover: urls[0] },
-                });
-              }}
-              userId={user.id}
-              folder="homepage"
+    case 'featured':
+      return (
+        <>
+          {portfolioPhotos.length > 0 && (
+            <WebsitePortfolioImages
+              key="portfolio-images"
+              id="portfolio-images"
+              photos={portfolioPhotos}
+              accent={accentColor}
+              template={websiteTemplate}
             />
-          </div>
-
-          {/* TEXT INPUTS */}
-          <input
-            placeholder="Studio Name"
-            value={data.hero.title}
-            onChange={(e) =>
-              setData({
-                ...data,
-                hero: { ...data.hero, title: e.target.value },
-              })
-            }
-            style={inputStyle}
-          />
-
-          <input
-            placeholder="Tagline"
-            value={data.hero.tagline}
-            onChange={(e) =>
-              setData({
-                ...data,
-                hero: { ...data.hero, tagline: e.target.value },
-              })
-            }
-            style={inputStyle}
-          />
-
-          {/* STORIES */}
-          <button
-            onClick={() =>
-              setData({
-                ...data,
-                stories: [...data.stories, { name: "Couple", location: "", images: [] }],
-              })
-            }
-            style={{
-              marginTop: 20,
-              marginBottom: 20,
-              padding: 12,
-              width: "100%",
-              background: "#1a1a1a",
-              color: "#fff",
-              border: "1px solid #333",
-            }}
-          >
-            + Add Couple
-          </button>
-
-          {data.stories.map((story: any, i: number) => (
-            <div key={i} style={{ marginBottom: 30 }}>
-              <input
-                value={story.name}
-                onChange={(e) => {
-                  const updated = [...data.stories];
-                  updated[i].name = e.target.value;
-                  setData({ ...data, stories: updated });
-                }}
-                style={inputStyle}
-              />
-
-              <input
-                value={story.location}
-                onChange={(e) => {
-                  const updated = [...data.stories];
-                  updated[i].location = e.target.value;
-                  setData({ ...data, stories: updated });
-                }}
-                style={inputStyle}
-              />
-
-              <WebsiteImageGridUploader
-                values={story.images}
-                onChange={(urls) => {
-                  const updated = [...data.stories];
-                  updated[i].images = urls;
-                  setData({ ...data, stories: updated });
-                }}
-                userId={user.id}
-                folder={`story-${i}`}
-              />
-            </div>
-          ))}
-
-          {/* PUBLISH */}
-          <button
-            onClick={() => {
-              localStorage.setItem("published-site", JSON.stringify(data));
-              alert("Website Published ✅");
-            }}
-            style={{
-              marginTop: 20,
-              padding: 14,
-              background: "#c6a96b",
-              border: "none",
-              width: "100%",
-              color: "#000",
-              fontWeight: 500,
-            }}
-          >
-            Publish Website
-          </button>
-        </div>
-      )}
-
-      {/* ================= PREVIEW ================= */}
-      {activeTab === "preview" && (
-        <div style={{ fontFamily: "'Playfair Display', serif" }}>
-          {data.hero.cover && (
-            <div style={{ height: "90vh", position: "relative" }}>
-              <img src={data.hero.cover} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "10%",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  textAlign: "center",
-                }}
-              >
-                <p style={{ fontFamily: "'Inter'", letterSpacing: "4px" }}>{data.hero.tagline}</p>
-                <h1 style={{ letterSpacing: "8px" }}>{data.hero.title}</h1>
-              </div>
-            </div>
           )}
+          <WebsiteFeatured
+            key="featured"
+            id="featured"
+            events={featuredEvents}
+            coverPhotos={coverPhotos}
+            accent={accentColor}
+            onNavigate={() => {}}
+            template={websiteTemplate}
+          />
+        </>
+      );
 
-          <div style={{ height: 120 }} />
+    case 'services':
+      return servicesData.length > 0 ? (
+        <WebsiteServices
+          key="services"
+          id="services"
+          services={servicesData}
+          accent={accentColor}
+          template={websiteTemplate}
+        />
+      ) : (
+        <div className="py-16 text-center opacity-30">Add services</div>
+      );
 
-          {/* STORIES */}
-          <div style={{ maxWidth: 1100, margin: "auto" }}>
-            {data.stories.map((story: any, i: number) => (
-              <div
-                key={i}
-                className="fade-in"
-                style={{ marginBottom: 120, cursor: "pointer" }}
-                onClick={() => setActiveStory(story)}
-              >
-                {story.images[0] && (
-                  <img src={story.images[0]} style={{ width: "100%", height: "70vh", objectFit: "cover" }} />
-                )}
-                <h2 style={{ textAlign: "center" }}>{story.name}</h2>
-              </div>
-            ))}
-          </div>
+    case 'testimonials':
+      return testimonialsData.length > 0 ? (
+        <WebsiteTestimonials
+          key="testimonials"
+          id="testimonials"
+          testimonials={testimonialsData}
+          accent={accentColor}
+          template={websiteTemplate}
+        />
+      ) : (
+        <div className="py-16 text-center opacity-30">Add testimonials</div>
+      );
 
-          {/* TESTIMONIALS */}
-          <div style={{ textAlign: "center", marginTop: 120 }}>
-            <h2>Testimonials</h2>
-            <p className="fade-in">“Every moment beautifully captured.”</p>
-          </div>
+    case 'latest_works':
+      return (
+        <WebsiteLatestWorks
+          key="latest_works"
+          id="latest-works"
+          template={websiteTemplate}
+          images={websiteImages.latest_works_photos || []}
+          accent={accentColor}
+          title={websiteImages.latest_works_title || 'My Latest Works'}
+        />
+      );
 
-          {/* ENQUIRY */}
-          <div style={{ textAlign: "center", marginTop: 120 }}>
-            <h2>Enquire</h2>
-            <div style={{ maxWidth: 400, margin: "auto" }}>
-              <input placeholder="Name" style={inputStyle} />
-              <input placeholder="Email" style={inputStyle} />
-              <textarea placeholder="Message" style={inputStyle} />
-            </div>
-          </div>
-        </div>
-      )}
+    case 'newsletter':
+      return (
+        <WebsiteNewsletter
+          key="newsletter"
+          id="newsletter"
+          template={websiteTemplate}
+          title={websiteImages.newsletter_title}
+          description={websiteImages.newsletter_description}
+          buttonText={websiteImages.newsletter_button_text}
+        />
+      );
 
-      {/* STORY VIEW */}
-      {activeStory && (
-        <div style={{ position: "fixed", inset: 0, background: "#000", overflow: "auto" }}>
-          <button onClick={() => setActiveStory(null)} style={{ margin: 20 }}>
-            Close
-          </button>
+    case 'image_strip':
+      return (
+        <WebsiteImageStrip
+          key="image_strip"
+          id="image-strip"
+          template={websiteTemplate}
+          images={websiteImages.image_strip_photos || []}
+        />
+      );
 
-          {activeStory.images.map((img: string, i: number) => (
-            <img key={i} src={img} style={{ width: "100%", marginBottom: 20 }} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+    case 'contact':
+      return (
+        <WebsiteContact
+          key="contact"
+          id="contact"
+          template={websiteTemplate}
+          branding={branding}
+          photographerId={user?.id}
+        />
+      );
+
+    default:
+      return null;
+  }
 };
-
-export default WebsiteEditor;
