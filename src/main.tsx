@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// ✅ Apply saved theme immediately (FIXED)
+// ✅ Apply saved theme immediately
 const savedTheme = localStorage.getItem("mirrorai-theme") || localStorage.getItem("theme") || "dark";
 
 const root = document.documentElement;
@@ -19,15 +19,17 @@ if (savedTheme === "light" || savedTheme === "classic") {
   root.classList.add("dark");
 }
 
-// ✅ Service worker cleanup + register
+// 🚨 FULL CACHE CLEAN (RUNS ONCE)
 if ("serviceWorker" in navigator) {
-  const cleanupKey = "mirrorai_sw_v3";
+  const cleanupKey = "mirrorai_cache_clean_v1";
 
   if (!localStorage.getItem(cleanupKey)) {
+    // Remove ALL service workers
     navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => registration.unregister());
+      registrations.forEach((reg) => reg.unregister());
     });
 
+    // Clear ALL caches
     if ("caches" in window) {
       caches.keys().then((keys) => {
         keys.forEach((key) => caches.delete(key));
@@ -36,9 +38,10 @@ if ("serviceWorker" in navigator) {
 
     localStorage.setItem(cleanupKey, "1");
   }
-
-  navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
 }
+
+// ❌ DO NOT REGISTER SERVICE WORKER (IMPORTANT)
+// navigator.serviceWorker.register("/sw.js", { scope: "/" });
 
 // ✅ Platform detection (unchanged)
 (function detectPlatformEarly() {
