@@ -3,16 +3,14 @@ import { WebsiteImageGridUploader } from "@/components/website-editor/WebsiteIma
 import { WebsiteHero } from "@/components/website/WebsiteHero";
 import { useAuth } from "@/lib/auth";
 
-// 🔥 SAFE BRANDING BUILDER (IMPORTANT FIX)
 const getBranding = (data: any) => ({
   studio_name: data?.hero?.title || "Studio",
   display_name: data?.hero?.tagline || "",
   cover_url: data?.hero?.cover ? `${data.hero.cover}?v=${data.hero.coverUpdatedAt || 1}` : null,
-  studio_logo_url: "", // ✅ REQUIRED
-  studio_accent_color: "#b08d57", // ✅ REQUIRED
+  studio_logo_url: "",
+  studio_accent_color: "#c6a96b", // more luxury gold
 });
 
-// 🔥 AUTO GENERATOR
 function generateHomepage(images: string[]) {
   if (!images || images.length === 0) {
     return {
@@ -46,9 +44,16 @@ const WebsiteEditor = () => {
   if (!user) return null;
 
   return (
-    <div style={{ padding: 20 }}>
+    <div
+      style={{
+        background: "#0a0a0a",
+        color: "#fff",
+        padding: 20,
+        fontFamily: "Helvetica Neue, sans-serif",
+      }}
+    >
       {/* ================= UPLOAD ================= */}
-      <h2>Upload Photos (Auto Homepage)</h2>
+      <h2 style={{ marginBottom: 10 }}>Upload Photos</h2>
 
       <WebsiteImageGridUploader
         values={data.portfolio}
@@ -71,74 +76,133 @@ const WebsiteEditor = () => {
       />
 
       {/* ================= TEXT ================= */}
-      <h2 style={{ marginTop: 40 }}>Edit Text</h2>
+      <div style={{ marginTop: 50 }}>
+        <input
+          placeholder="Studio Name"
+          value={data.hero.title}
+          onChange={(e) =>
+            setData({
+              ...data,
+              hero: { ...data.hero, title: e.target.value },
+            })
+          }
+          style={{
+            width: "100%",
+            padding: 12,
+            marginBottom: 10,
+            background: "#111",
+            border: "1px solid #333",
+            color: "#fff",
+          }}
+        />
 
-      <input
-        placeholder="Studio Name"
-        value={data.hero.title}
-        onChange={(e) =>
-          setData({
-            ...data,
-            hero: { ...data.hero, title: e.target.value },
-          })
-        }
-        style={{ width: "100%", padding: 10, marginBottom: 10 }}
-      />
-
-      <input
-        placeholder="Tagline"
-        value={data.hero.tagline}
-        onChange={(e) =>
-          setData({
-            ...data,
-            hero: { ...data.hero, tagline: e.target.value },
-          })
-        }
-        style={{ width: "100%", padding: 10 }}
-      />
+        <input
+          placeholder="Tagline"
+          value={data.hero.tagline}
+          onChange={(e) =>
+            setData({
+              ...data,
+              hero: { ...data.hero, tagline: e.target.value },
+            })
+          }
+          style={{
+            width: "100%",
+            padding: 12,
+            background: "#111",
+            border: "1px solid #333",
+            color: "#fff",
+          }}
+        />
+      </div>
 
       {/* ================= PREVIEW ================= */}
-      <h2 style={{ marginTop: 50 }}>Live Preview</h2>
+      <div style={{ marginTop: 80 }}>
+        {/* HERO */}
+        <div style={{ position: "relative" }}>
+          <WebsiteHero branding={getBranding(data)} id="hero" template="vows-elegance" />
 
-      <WebsiteHero
-        branding={getBranding(data)} // ✅ FIXED HERE
-        id="hero"
-        template="vows-elegance"
-      />
-
-      {/* ================= CINEMATIC ================= */}
-      <div style={{ marginTop: 40 }}>
-        {data.cinematic.map((img: string, i: number) => {
-          if (i % 5 !== 0) {
-            return (
-              <img
-                key={i}
-                src={`${img}?v=${i}`}
-                style={{
-                  width: "100%",
-                  marginBottom: 40,
-                  borderRadius: 8,
-                }}
-              />
-            );
-          }
-
-          return (
-            <div
-              key={i}
+          {/* 🔥 CINEMATIC TEXT OVERLAY */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "15%",
+              width: "100%",
+              textAlign: "center",
+              pointerEvents: "none",
+            }}
+          >
+            <h1
               style={{
-                display: "flex",
-                gap: 10,
-                marginBottom: 40,
+                fontSize: "42px",
+                letterSpacing: "6px",
+                fontWeight: 300,
               }}
             >
-              <img src={`${img}?v=${i}`} style={{ width: "50%", borderRadius: 8 }} />
-              {data.cinematic[i + 1] && (
-                <img src={`${data.cinematic[i + 1]}?v=${i}`} style={{ width: "50%", borderRadius: 8 }} />
-              )}
-            </div>
-          );
-        })}
+              {data.hero.title}
+            </h1>
+
+            <p
+              style={{
+                marginTop: 10,
+                fontSize: "14px",
+                letterSpacing: "3px",
+                color: "#c6a96b",
+              }}
+            >
+              {data.hero.tagline}
+            </p>
+          </div>
+        </div>
+
+        {/* ================= STORY FLOW ================= */}
+        <div style={{ marginTop: 100 }}>
+          {data.cinematic.map((img: string, i: number) => {
+            // full cinematic blocks
+            if (i % 6 !== 0) {
+              return (
+                <img
+                  key={i}
+                  src={`${img}?v=${i}`}
+                  style={{
+                    width: "100%",
+                    marginBottom: 80,
+                    objectFit: "cover",
+                    transition: "0.4s",
+                  }}
+                />
+              );
+            }
+
+            // premium split layout
+            return (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  gap: 20,
+                  marginBottom: 100,
+                }}
+              >
+                <img
+                  src={`${img}?v=${i}`}
+                  style={{
+                    width: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+                {data.cinematic[i + 1] && (
+                  <img
+                    src={`${data.cinematic[i + 1]}?v=${i}`}
+                    style={{
+                      width: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
