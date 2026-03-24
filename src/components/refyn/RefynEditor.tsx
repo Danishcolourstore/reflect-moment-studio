@@ -426,16 +426,12 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
       {/* ── Canvas ── */}
       <div
         className="vsco-canvas"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        onPointerLeave={onPointerUp}
-        style={{ touchAction: 'none' }}
+        ref={canvasContainerRef}
       >
         <div
           style={{
             position: 'relative', width: '100%', height: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
             transformOrigin: 'center center',
             transition: isZoomed ? 'none' : 'transform 0.2s ease-out',
@@ -444,10 +440,10 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         >
           {isComparing && (
             <img src={photoUrl} alt="Original" draggable={false}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 3 }} />
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', zIndex: 3, position: 'absolute' }} />
           )}
           <canvas ref={mainCanvasRef}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: isComparing ? 0 : 1, zIndex: 2 }} />
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', opacity: isComparing ? 0 : 1, zIndex: 2 }} />
         </div>
 
         {!isLoaded && (
