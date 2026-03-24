@@ -121,91 +121,141 @@ const WebsiteEditor = () => {
         <div style={{ position: "relative" }}>
           <WebsiteHero branding={getBranding(data)} id="hero" template="vows-elegance" />
 
-          {/* 🔥 CINEMATIC TEXT OVERLAY */}
-          <div
+          {activeTab === "preview" && (
+  <div
+    style={{
+      background: "#000",
+      color: "#fff",
+      fontFamily: "'Playfair Display', serif",
+    }}
+  >
+    {/* HERO */}
+    {data.hero.cover && (
+      <div style={{ height: "92vh", position: "relative" }}>
+        <img
+          src={data.hero.cover}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            bottom: "12%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            textAlign: "center",
+          }}
+        >
+          <p
             style={{
-              position: "absolute",
-              bottom: "15%",
-              width: "100%",
-              textAlign: "center",
-              pointerEvents: "none",
+              fontFamily: "'Inter', sans-serif",
+              letterSpacing: "5px",
+              fontSize: "12px",
+              opacity: 0.7,
+              marginBottom: 10,
             }}
           >
-            <h1
+            {data.hero.tagline}
+          </p>
+
+          <h1
+            style={{
+              fontSize: "52px",
+              letterSpacing: "10px",
+              fontWeight: 400,
+            }}
+          >
+            {data.hero.title}
+          </h1>
+        </div>
+      </div>
+    )}
+
+    {/* SPACE */}
+    <div style={{ height: 140 }} />
+
+    {/* INTRO */}
+    <div
+      style={{
+        maxWidth: 640,
+        margin: "0 auto",
+        textAlign: "center",
+        fontFamily: "'Inter', sans-serif",
+        fontSize: "15px",
+        lineHeight: 1.8,
+        opacity: 0.75,
+      }}
+    >
+      <p>
+        Every wedding is not just an event — it is a story, a feeling, a memory
+        meant to live forever.
+      </p>
+    </div>
+
+    <div style={{ height: 140 }} />
+
+    {/* STORIES */}
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }}>
+      {data.stories.map((story) => (
+        <div key={story.id} style={{ marginBottom: 140 }}>
+          {story.images[0] && (
+            <img
+              src={story.images[0]}
               style={{
-                fontSize: "42px",
-                letterSpacing: "6px",
-                fontWeight: 300,
+                width: "100%",
+                height: "72vh",
+                objectFit: "cover",
+                marginBottom: 30,
+              }}
+            />
+          )}
+
+          <div style={{ textAlign: "center" }}>
+            <h2
+              style={{
+                fontSize: "28px",
+                letterSpacing: "4px",
+                fontWeight: 400,
+                marginBottom: 8,
               }}
             >
-              {data.hero.title}
-            </h1>
+              {story.name}
+            </h2>
 
             <p
               style={{
-                marginTop: 10,
-                fontSize: "14px",
-                letterSpacing: "3px",
-                color: "#c6a96b",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: "13px",
+                letterSpacing: "2px",
+                opacity: 0.6,
               }}
             >
-              {data.hero.tagline}
+              {story.location}
             </p>
           </div>
         </div>
-
-        {/* ================= STORY FLOW ================= */}
-        <div style={{ marginTop: 100 }}>
-          {data.cinematic.map((img: string, i: number) => {
-            // full cinematic blocks
-            if (i % 6 !== 0) {
-              return (
-                <img
-                  key={i}
-                  src={`${img}?v=${i}`}
-                  style={{
-                    width: "100%",
-                    marginBottom: 80,
-                    objectFit: "cover",
-                    transition: "0.4s",
-                  }}
-                />
-              );
-            }
-
-            // premium split layout
-            return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  gap: 20,
-                  marginBottom: 100,
-                }}
-              >
-                <img
-                  src={`${img}?v=${i}`}
-                  style={{
-                    width: "50%",
-                    objectFit: "cover",
-                  }}
-                />
-                {data.cinematic[i + 1] && (
-                  <img
-                    src={`${data.cinematic[i + 1]}?v=${i}`}
-                    style={{
-                      width: "50%",
-                      objectFit: "cover",
-                    }}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      ))}
     </div>
-  );
-};
+
+    {/* FOOTER */}
+    <div
+      style={{
+        marginTop: 180,
+        paddingBottom: 60,
+        textAlign: "center",
+        fontFamily: "'Inter', sans-serif",
+        fontSize: "12px",
+        letterSpacing: "2px",
+        opacity: 0.5,
+      }}
+    >
+      © {new Date().getFullYear()} {data.hero.title}
+    </div>
+  </div>
+)}
 
 export default WebsiteEditor;
