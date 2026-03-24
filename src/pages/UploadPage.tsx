@@ -1,55 +1,45 @@
-import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Upload, CheckCircle2, Camera } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { useDeviceDetect } from "@/hooks/use-device-detect";
-import { toast } from "sonner";
-import { usePhotoUpload } from "@/hooks/use-photo-upload";
-import { UploadProgressPanel } from "@/components/UploadProgressPanel";
+import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Upload, CheckCircle2, Camera, ImagePlus } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/lib/auth';
+import { useDeviceDetect } from '@/hooks/use-device-detect';
+import { toast } from 'sonner';
+import { usePhotoUpload } from '@/hooks/use-photo-upload';
+import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 
 const UploadPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const device = useDeviceDetect();
   const isMobile = device.isPhone;
-
   const [events, setEvents] = useState<{ id: string; name: string }[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [optimizedUpload, setOptimizedUpload] = useState(true);
-
   const inputRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
 
-  // ✅ FIX: only 2 arguments
-  const upload = usePhotoUpload(selectedEvent || undefined, user?.id);
+  const upload = usePhotoUpload(selectedEvent || undefined, user?.id, optimizedUpload);
 
   useEffect(() => {
     if (!user) return;
-
-    (supabase.from("events").select("id, name") as any)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .then(({ data }: any) => {
-        if (data) setEvents(data);
-      });
+    (supabase.from('events').select('id, name') as any).eq('user_id', user.id).order('created_at', { ascending: false })
+      .then(({ data }: any) => { if (data) setEvents(data); });
   }, [user]);
 
   const handleUpload = async (files: File[]) => {
     if (!user || !selectedEvent) {
-      toast.error("Please select an event first");
+      toast.error('Please select an event first');
       return;
     }
-
-    const imageFiles = files.filter((f) => f.type.startsWith("image/"));
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
     if (imageFiles.length === 0) return;
-
     upload.uploadFiles(imageFiles);
   };
 
@@ -60,75 +50,40 @@ const UploadPage = () => {
       <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">Upload Photos</h1>
 
       <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
-        {/* Event Selector */}
+        {/* Event selector */}
         <div className="space-y-1.5">
-          <label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">
-            Select Event
-          </label>
-
+          <label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Select Event</label>
           <Select value={selectedEvent} onValueChange={setSelectedEvent}>
             <SelectTrigger className="bg-card border-border h-11 sm:h-10 text-[13px]">
               <SelectValue placeholder="Choose an event..." />
             </SelectTrigger>
             <SelectContent>
-              {events.map((e) => (
-                <SelectItem key={e.id} value={e.id}>
-                  {e.name}
-                </SelectItem>
-              ))}
+              {events.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Upload Zone */}
+        {/* Upload zone */}
         <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragging(false);
-            if (e.dataTransfer.files) {
-              handleUpload(Array.from(e.dataTransfer.files));
-            }
-          }}
+          onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files) handleUpload(Array.from(e.dataTransfer.files)); }}
           onClick={() => canUpload && inputRef.current?.click()}
           className={`flex cursor-pointer flex-col items-center justify-center border-2 border-dashed rounded-xl transition-colors ${
-            isMobile ? "py-10" : "py-16"
+            isMobile ? 'py-10' : 'py-16'
           } ${
-            isDragging
-              ? "border-primary bg-primary/5"
-              : canUpload
-                ? "border-border hover:border-primary/40 hover:bg-secondary/30 active:bg-secondary/40"
-                : "border-border opacity-50 cursor-not-allowed"
+            isDragging ? 'border-primary bg-primary/5' : canUpload ? 'border-border hover:border-primary/40 hover:bg-secondary/30 active:bg-secondary/40' : 'border-border opacity-50 cursor-not-allowed'
           }`}
         >
-          <Upload className={`text-muted-foreground/25 mb-3 ${isMobile ? "h-8 w-8" : "h-10 w-10"}`} />
-
+          <Upload className={`text-muted-foreground/25 mb-3 ${isMobile ? 'h-8 w-8' : 'h-10 w-10'}`} />
           <p className="text-sm text-muted-foreground font-medium text-center px-4">
-            {upload.isUploading
-              ? `Uploading ${upload.completedFiles}/${upload.totalFiles}...`
-              : isMobile
-                ? "Tap to select photos"
-                : "Drag photos here or click to upload"}
+            {upload.isUploading ? `Uploading ${upload.completedFiles}/${upload.totalFiles}...` : isMobile ? 'Tap to select photos' : 'Drag photos here or click to upload'}
           </p>
-
           <p className="mt-1 text-[11px] text-muted-foreground/50">JPG, PNG, WEBP up to 100MB each</p>
-
-          <input
-            ref={inputRef}
-            type="file"
-            multiple
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => e.target.files && handleUpload(Array.from(e.target.files))}
-            disabled={!canUpload}
-          />
+          <input ref={inputRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => e.target.files && handleUpload(Array.from(e.target.files))} disabled={!canUpload} />
         </div>
 
-        {/* Mobile Camera */}
+        {/* Mobile camera button */}
         {isMobile && (
           <button
             onClick={() => canUpload && cameraRef.current?.click()}
@@ -137,27 +92,18 @@ const UploadPage = () => {
           >
             <Camera className="h-5 w-5" />
             Take Photo
-            <input
-              ref={cameraRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={(e) => e.target.files && handleUpload(Array.from(e.target.files))}
-              disabled={!canUpload}
-            />
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => e.target.files && handleUpload(Array.from(e.target.files))} disabled={!canUpload} />
           </button>
         )}
 
-        {/* Optimized Upload Toggle */}
+        {/* Optimized upload toggle */}
         <div className="flex items-center justify-between bg-card border border-border/60 rounded-xl px-4 py-3">
           <div className="flex-1 min-w-0">
             <Label className="text-[12px] text-foreground/80 font-medium">Optimized Upload</Label>
             <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-              {optimizedUpload ? "Faster uploads, no visible quality loss" : "Original files preserved for print"}
+              {optimizedUpload ? 'Faster uploads, no visible quality loss' : 'Original files preserved for print'}
             </p>
           </div>
-
           <Switch checked={optimizedUpload} onCheckedChange={setOptimizedUpload} />
         </div>
 
@@ -171,21 +117,14 @@ const UploadPage = () => {
           duplicateCount={upload.duplicateCount}
         />
 
-        {/* Success */}
+        {/* Success state */}
         {upload.isDone && upload.successCount > 0 && upload.failedFiles.length === 0 && (
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 text-primary">
               <CheckCircle2 className="h-5 w-5" />
               <p className="text-sm font-medium">{upload.successCount} photos uploaded successfully</p>
             </div>
-
-            <Button
-              variant="outline"
-              className="min-h-[44px]"
-              onClick={() => navigate(`/dashboard/events/${selectedEvent}`)}
-            >
-              View Event
-            </Button>
+            <Button variant="outline" className="min-h-[44px]" onClick={() => navigate(`/dashboard/events/${selectedEvent}`)}>View Event</Button>
           </div>
         )}
       </div>

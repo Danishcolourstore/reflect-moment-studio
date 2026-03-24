@@ -1,7 +1,9 @@
-import { useState, useCallback, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import imageCompression from 'browser-image-compression';
 
-export type FileStatus = "pending" | "uploading" | "success" | "failed" | "duplicate" | "compressing" | "finalizing";
+export type FileStatus = 'pending' | 'uploading' | 'compressing' | 'finalizing' | 'success' | 'failed' | 'duplicate';
+export type ErrorType = 'size' | 'cors' | 'network' | 'timeout' | 'storage' | 'duplicate' | 'unknown';
 
 export interface FileUploadInfo {
   file: File;
@@ -9,7 +11,9 @@ export interface FileUploadInfo {
   status: FileStatus;
   progress: number;
   error?: string;
-  originalSize: number;
+  errorType?: ErrorType;
+  retryCount: number;
+  originalSize?: number;
   compressedSize?: number;
 }
 
@@ -23,7 +27,7 @@ export interface UploadState {
   isDone: boolean;
   percent: number;
   fileInfos: FileUploadInfo[];
-  overallSpeed: number;
+  startTime: number | null;
   estimatedTimeRemaining: number | null;
 }
 
@@ -37,93 +41,351 @@ const INITIAL: UploadState = {
   isDone: false,
   percent: 0,
   fileInfos: [],
-  overallSpeed: 0,
+  startTime: null,
   estimatedTimeRemaining: null,
 };
 
-const MAX_CONCURRENT = 3;
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
+const MAX_RETRIES = 3;
+const UPLOAD_TIMEOUT = 300_000;
+const KEEPALIVE_INTERVAL = 30_000;
+const CONCURRENCY = 5;
+const BATCH_SIZE = 10;
 
-export function usePhotoUpload(eventId: string | undefined, userId: string | undefined) {
+function classifyError(err: any): { message: string; type: ErrorType } {
+  const msg = String(err?.message || err || '').toLowerCase();
+  if (msg.includes('cors') || msg.includes('access-control'))
+    return { message: 'Server configuration issue — contact support', type: 'cors' };
+  if (msg.includes('timeout') || msg.includes('aborted') || msg.includes('timed out'))
+    return { message: 'Upload timed out — check connection and retry', type: 'timeout' };
+  if (msg.includes('network') || msg.includes('failed to fetch') || msg.includes('err_connection') || msg.includes('load failed'))
+    return { message: 'Network issue — try a different connection', type: 'network' };
+  if (msg.includes('payload too large') || msg.includes('entity too large') || msg.includes('too large'))
+    return { message: `Photo too large — max ${MAX_FILE_SIZE / (1024 * 1024)}MB`, type: 'size' };
+  if (msg.includes('storage') || msg.includes('bucket') || msg.includes('policy'))
+    return { message: 'Storage error — please try again', type: 'storage' };
+  return { message: err?.message || 'Upload failed — please retry', type: 'unknown' };
+}
+
+async function compressImage(file: File, optimized: boolean): Promise<File> {
+  if (!optimized) return file;
+  if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) return file;
+  try {
+    const compressed = await imageCompression(file, {
+      maxSizeMB: 2,
+      maxWidthOrHeight: 4096,
+      initialQuality: 0.85,
+      useWebWorker: true,
+      exifOrientation: undefined,
+    });
+    // Strip EXIF by re-encoding
+    return new File([compressed], file.name, { type: compressed.type || 'image/jpeg' });
+  } catch {
+    return file;
+  }
+}
+
+/** Fast hash for duplicate detection using first+last 64KB + size */
+async function fileHash(file: File): Promise<string> {
+  const size = file.size;
+  const chunkSize = 65536;
+  const first = file.slice(0, Math.min(chunkSize, size));
+  const last = size > chunkSize ? file.slice(size - chunkSize) : new Blob();
+  const buf = await new Blob([first, last]).arrayBuffer();
+  const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+  const hashArr = Array.from(new Uint8Array(hashBuf));
+  return `${size}-${hashArr.slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** Get a presigned R2 URL from our edge function */
+async function getR2PresignedUrl(
+  fileName: string, contentType: string, eventId: string,
+): Promise<{ presignedUrl: string; publicUrl: string; key: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase.functions.invoke('get-r2-presigned-url', {
+    body: { fileName, contentType, eventId },
+  });
+  if (error) throw new Error(error.message || 'Failed to get upload URL');
+  if (!data?.presignedUrl) throw new Error('No presigned URL returned');
+  return data;
+}
+
+/** Upload directly to R2 via presigned PUT URL with progress tracking */
+function uploadToR2(
+  presignedUrl: string, file: File, contentType: string, timeoutMs: number,
+  onProgress: (pct: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.timeout = timeoutMs;
+    const keepalive = setInterval(() => {}, KEEPALIVE_INTERVAL);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.min(Math.round((e.loaded / e.total) * 100), 95));
+    };
+    xhr.onload = () => {
+      clearInterval(keepalive);
+      if (xhr.status >= 200 && xhr.status < 300) { onProgress(100); resolve(); }
+      else reject(new Error(`R2 upload failed (${xhr.status})`));
+    };
+    xhr.onerror = () => { clearInterval(keepalive); reject(new Error('Network error — failed to fetch')); };
+    xhr.ontimeout = () => { clearInterval(keepalive); reject(new Error('Upload timed out')); };
+    xhr.open('PUT', presignedUrl, true);
+    xhr.setRequestHeader('Content-Type', contentType);
+    xhr.send(file);
+  });
+}
+
+/** Legacy Supabase Storage upload — kept as fallback */
+function uploadWithXHR(
+  bucket: string, path: string, file: File, timeoutMs: number,
+  onProgress: (pct: number) => void,
+): Promise<{ error: any }> {
+  return new Promise((resolve, reject) => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    supabase.auth.getSession().then(({ data }) => {
+      const token = data.session?.access_token || supabaseKey;
+      const url = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
+      const xhr = new XMLHttpRequest();
+      xhr.timeout = timeoutMs;
+      const keepalive = setInterval(() => {}, KEEPALIVE_INTERVAL);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) onProgress(Math.min(Math.round((e.loaded / e.total) * 100), 95));
+      };
+      xhr.onload = () => {
+        clearInterval(keepalive);
+        if (xhr.status >= 200 && xhr.status < 300) { onProgress(100); resolve({ error: null }); }
+        else {
+          let errMsg = 'Upload failed';
+          try { const body = JSON.parse(xhr.responseText); errMsg = body.message || body.error || errMsg; } catch {}
+          reject(new Error(errMsg));
+        }
+      };
+      xhr.onerror = () => { clearInterval(keepalive); reject(new Error('Network error — failed to fetch')); };
+      xhr.ontimeout = () => { clearInterval(keepalive); reject(new Error('Upload timed out')); };
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.setRequestHeader('apikey', supabaseKey);
+      xhr.setRequestHeader('x-upsert', 'false');
+      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+      xhr.send(file);
+    }).catch(reject);
+  });
+}
+
+function uploadWithSDK(bucket: string, path: string, file: File, timeoutMs: number): Promise<{ error: any }> {
+  return Promise.race([
+    supabase.storage.from(bucket).upload(path, file),
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Upload timed out')), timeoutMs)),
+  ]);
+}
+
+export function usePhotoUpload(eventId: string | undefined, userId: string | undefined, optimizedUpload: boolean = true) {
   const [state, setState] = useState<UploadState>(INITIAL);
   const abortRef = useRef(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
-  const startUpload = useCallback(
+  const updateFileInfo = useCallback((id: string, patch: Partial<FileUploadInfo>) => {
+    setState((prev) => ({
+      ...prev,
+      fileInfos: prev.fileInfos.map((f) => (f.id === id ? { ...f, ...patch } : f)),
+    }));
+  }, []);
+
+  const uploadSingleFile = useCallback(async (info: FileUploadInfo, existingHashes: Set<string>): Promise<boolean> => {
+    const { file, id } = info;
+
+    if (file.size > MAX_FILE_SIZE) {
+      updateFileInfo(id, { status: 'failed', error: `Photo too large — max ${MAX_FILE_SIZE / (1024 * 1024)}MB`, errorType: 'size' });
+      return false;
+    }
+
+    // Duplicate detection
+    try {
+      const hash = await fileHash(file);
+      if (existingHashes.has(hash)) {
+        updateFileInfo(id, { status: 'duplicate', error: 'Duplicate photo skipped', errorType: 'duplicate' });
+        return false;
+      }
+      existingHashes.add(hash);
+    } catch {}
+
+    // Compress (only if optimized upload is enabled)
+    updateFileInfo(id, { status: optimizedUpload ? 'compressing' : 'uploading', originalSize: file.size });
+    let processedFile: File;
+    try {
+      processedFile = await compressImage(file, optimizedUpload);
+    } catch {
+      processedFile = file;
+    }
+    updateFileInfo(id, { compressedSize: processedFile.size });
+
+    // Upload with retries — R2 primary, Supabase Storage fallback
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      if (abortRef.current) return false;
+      updateFileInfo(id, { status: 'uploading', retryCount: attempt, progress: attempt > 0 ? 0 : 5 });
+
+      try {
+        const contentType = processedFile.type || 'image/jpeg';
+        let publicUrl: string;
+
+        try {
+          // Primary: R2 via presigned URL
+          const r2 = await getR2PresignedUrl(file.name, contentType, eventId!);
+          await uploadToR2(r2.presignedUrl, processedFile, contentType, UPLOAD_TIMEOUT, (pct) => {
+            updateFileInfo(id, pct >= 95 ? { status: 'finalizing', progress: pct } : { progress: pct });
+          });
+          publicUrl = r2.publicUrl;
+        } catch (r2Err: any) {
+          // Fallback: Supabase Storage
+          const ext = file.name.split('.').pop();
+          const path = `${userId}/${eventId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+          await uploadWithXHR('gallery-photos', path, processedFile, UPLOAD_TIMEOUT, (pct) => {
+            updateFileInfo(id, pct >= 95 ? { status: 'finalizing', progress: pct } : { progress: pct });
+          });
+          publicUrl = supabase.storage.from('gallery-photos').getPublicUrl(path).data.publicUrl;
+        }
+
+        updateFileInfo(id, { status: 'finalizing', progress: 96 });
+
+        const { error: insertError } = await supabase.from('photos').insert({
+          event_id: eventId, user_id: userId, url: publicUrl, file_name: file.name, file_size: file.size,
+        } as any);
+        if (insertError) throw insertError;
+
+        updateFileInfo(id, { status: 'success', progress: 100 });
+        return true;
+      } catch (err: any) {
+        const classified = classifyError(err);
+        if (attempt === MAX_RETRIES) {
+          updateFileInfo(id, { status: 'failed', error: classified.message, errorType: classified.type, retryCount: attempt });
+          return false;
+        }
+        const waitSec = Math.pow(2, attempt + 1);
+        updateFileInfo(id, { progress: 0, error: `Retrying in ${waitSec}s...` });
+        await new Promise((r) => setTimeout(r, waitSec * 1000));
+      }
+    }
+    return false;
+  }, [eventId, userId, updateFileInfo]);
+
+  const uploadFiles = useCallback(
     async (files: File[]) => {
-      if (!eventId || !userId) return;
+      if (!eventId || !userId || files.length === 0) return;
       abortRef.current = false;
 
-      const newInfos: FileUploadInfo[] = Array.from(files).map((file) => ({
-        file,
-        id: Math.random().toString(36).substr(2, 9),
-        status: "pending",
-        progress: 0,
+      const infos: FileUploadInfo[] = files.map((file, i) => ({
+        file, id: `${Date.now()}-${i}`, status: 'pending' as FileStatus, progress: 0, retryCount: 0,
         originalSize: file.size,
       }));
 
-      setState((prev) => ({
-        ...prev,
-        isUploading: true,
-        isDone: false,
-        totalFiles: prev.totalFiles + files.length,
-        fileInfos: [...prev.fileInfos, ...newInfos],
-      }));
+      const startTime = Date.now();
+      setState({
+        isUploading: true, totalFiles: files.length, completedFiles: 0, successCount: 0,
+        failedFiles: [], duplicateCount: 0, isDone: false, percent: 0, fileInfos: infos,
+        startTime, estimatedTimeRemaining: null,
+      });
 
-      const queue = [...newInfos];
-      const uploadNext = async () => {
-        if (queue.length === 0 || abortRef.current) return;
+      // Load existing file names for duplicate detection
+      const existingHashes = new Set<string>();
+      try {
+        const { data: existingPhotos } = await (supabase.from('photos').select('file_name, file_size') as any)
+          .eq('event_id', eventId).limit(1000);
+        if (existingPhotos) {
+          existingPhotos.forEach((p: any) => {
+            if (p.file_name && p.file_size) existingHashes.add(`${p.file_size}-existing`);
+          });
+        }
+      } catch {}
 
-        const info = queue.shift()!;
-        const filePath = `${userId}/${eventId}/${Date.now()}-${info.file.name}`;
+      let success = 0;
+      let duplicates = 0;
+      const failed: File[] = [];
+      let completed = 0;
 
-        try {
+      // Process in batches of BATCH_SIZE, with CONCURRENCY concurrent uploads per batch
+      for (let batchStart = 0; batchStart < infos.length; batchStart += BATCH_SIZE) {
+        if (abortRef.current) break;
+        const batch = infos.slice(batchStart, batchStart + BATCH_SIZE);
+
+        // Within each batch, run CONCURRENCY uploads at a time
+        for (let i = 0; i < batch.length; i += CONCURRENCY) {
+          if (abortRef.current) break;
+          const chunk = batch.slice(i, i + CONCURRENCY);
+
+          const results = await Promise.all(
+            chunk.map(async (info) => {
+              const result = await uploadSingleFile(info, existingHashes);
+              return { info, result };
+            })
+          );
+
+          for (const { info, result } of results) {
+            completed++;
+            if (result) {
+              success++;
+            } else {
+              // Check if it was a duplicate
+              const fi = stateRef.current.fileInfos.find(f => f.id === info.id);
+              if (fi?.status === 'duplicate') {
+                duplicates++;
+              } else {
+                failed.push(info.file);
+              }
+            }
+          }
+
+          const elapsed = Date.now() - startTime;
+          const avgPerFile = elapsed / completed;
+          const remaining = (infos.length - completed) * avgPerFile;
+
           setState((prev) => ({
             ...prev,
-            fileInfos: prev.fileInfos.map((f) => (f.id === info.id ? { ...f, status: "uploading" } : f)),
-          }));
-
-          const { error } = await supabase.storage.from("photos").upload(filePath, info.file);
-
-          if (error) throw error;
-
-          setState((prev) => ({
-            ...prev,
-            successCount: prev.successCount + 1,
-            completedFiles: prev.completedFiles + 1,
-            percent: ((prev.completedFiles + 1) / prev.totalFiles) * 100,
-            fileInfos: prev.fileInfos.map((f) => (f.id === info.id ? { ...f, status: "success", progress: 100 } : f)),
-          }));
-        } catch (err: any) {
-          setState((prev) => ({
-            ...prev,
-            completedFiles: prev.completedFiles + 1,
-            failedFiles: [...prev.failedFiles, info.file],
-            fileInfos: prev.fileInfos.map((f) =>
-              f.id === info.id ? { ...f, status: "failed", error: err.message } : f,
-            ),
+            completedFiles: completed,
+            successCount: success,
+            duplicateCount: duplicates,
+            failedFiles: [...failed],
+            percent: Math.round((completed / infos.length) * 100),
+            estimatedTimeRemaining: Math.round(remaining / 1000),
           }));
         }
-        await uploadNext();
-      };
+      }
 
-      await Promise.all(
-        Array(Math.min(MAX_CONCURRENT, files.length))
-          .fill(null)
-          .map(() => uploadNext()),
-      );
-      setState((prev) => ({ ...prev, isUploading: false, isDone: true }));
+      setState((prev) => ({
+        ...prev, isUploading: false, isDone: true, percent: 100, estimatedTimeRemaining: null,
+      }));
     },
-    [eventId, userId],
+    [eventId, userId, uploadSingleFile],
   );
 
-  return {
-    ...state,
-    startUpload,
-    uploadFiles: startUpload, // Match EventGallery call
-    retry: () => {}, // Match EventGallery call
-    retrySingle: (id: string) => {}, // Match EventGallery call
-    cancel: () => {
-      abortRef.current = true;
-    }, // Match EventGallery call
-    dismiss: () => setState(INITIAL), // Match EventGallery call
-  };
+  const retrySingle = useCallback(
+    async (fileId: string) => {
+      if (!eventId || !userId) return;
+      const info = state.fileInfos.find((f) => f.id === fileId);
+      if (!info) return;
+      setState((prev) => ({ ...prev, isUploading: true, isDone: false }));
+      const result = await uploadSingleFile({ ...info, retryCount: 0, status: 'pending', progress: 0, error: undefined }, new Set());
+      setState((prev) => {
+        const newFailed = result ? prev.failedFiles.filter((f) => f !== info.file) : prev.failedFiles;
+        const allDone = prev.fileInfos.every(
+          (f) => f.id === fileId ? (result ? true : f.status === 'failed') : f.status === 'success' || f.status === 'failed' || f.status === 'duplicate',
+        );
+        return { ...prev, isUploading: !allDone, isDone: allDone, successCount: result ? prev.successCount + 1 : prev.successCount, failedFiles: newFailed };
+      });
+    },
+    [eventId, userId, state.fileInfos, uploadSingleFile],
+  );
+
+  const retry = useCallback(() => {
+    const filesToRetry = [...state.failedFiles];
+    if (filesToRetry.length > 0) uploadFiles(filesToRetry);
+  }, [state.failedFiles, uploadFiles]);
+
+  const cancel = useCallback(() => { abortRef.current = true; }, []);
+  const dismiss = useCallback(() => { setState(INITIAL); }, []);
+
+  return { ...state, uploadFiles, retry, retrySingle, cancel, dismiss };
 }
