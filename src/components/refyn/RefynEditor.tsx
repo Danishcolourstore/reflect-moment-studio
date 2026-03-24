@@ -633,6 +633,7 @@ export default function RefynEditor({ photoUrl, onExport, onReset }: Props) {
         .vsco-canvas {
           flex: 1; position: relative; overflow: hidden;
           display: flex; align-items: center; justify-content: center;
+          touch-action: pan-x pan-y;
         }
         .vsco-loader {
           position: absolute; inset: 0; z-index: 10;
