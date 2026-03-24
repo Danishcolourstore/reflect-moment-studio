@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type FileStatus = "pending" | "uploading" | "success" | "failed";
+export type FileStatus = "pending" | "uploading" | "success" | "failed" | "duplicate" | "compressing" | "finalizing";
 
 export interface FileUploadInfo {
   file: File;
@@ -10,6 +10,7 @@ export interface FileUploadInfo {
   progress: number;
   error?: string;
   originalSize: number;
+  compressedSize?: number; // Added back for UI compatibility
 }
 
 export interface UploadState {
@@ -18,6 +19,7 @@ export interface UploadState {
   completedFiles: number;
   successCount: number;
   failedFiles: File[];
+  duplicateCount: number; // Added back
   isDone: boolean;
   percent: number;
   fileInfos: FileUploadInfo[];
@@ -31,6 +33,7 @@ const INITIAL: UploadState = {
   completedFiles: 0,
   successCount: 0,
   failedFiles: [],
+  duplicateCount: 0,
   isDone: false,
   percent: 0,
   fileInfos: [],
@@ -38,7 +41,7 @@ const INITIAL: UploadState = {
   estimatedTimeRemaining: null,
 };
 
-const MAX_CONCURRENT = 3; // Crucial for MVP stability
+const MAX_CONCURRENT = 3;
 
 export function usePhotoUpload(eventId: string | undefined, userId: string | undefined) {
   const [state, setState] = useState<UploadState>(INITIAL);
@@ -47,8 +50,8 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
   const startUpload = useCallback(
     async (files: File[]) => {
       if (!eventId || !userId) return;
+      abortRef.current = false;
 
-      // 1. Initialize State
       const newInfos: FileUploadInfo[] = files.map((file) => ({
         file,
         id: Math.random().toString(36).substr(2, 9),
@@ -65,7 +68,6 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
         fileInfos: [...prev.fileInfos, ...newInfos],
       }));
 
-      // 2. Simple Concurrency Queue
       const queue = [...newInfos];
       const uploadNext = async () => {
         if (queue.length === 0 || abortRef.current) return;
@@ -74,23 +76,15 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
         const filePath = `${userId}/${eventId}/${Date.now()}-${info.file.name}`;
 
         try {
-          // Update status to uploading
           setState((prev) => ({
             ...prev,
             fileInfos: prev.fileInfos.map((f) => (f.id === info.id ? { ...f, status: "uploading" } : f)),
           }));
 
-          // Supabase Standard Upload
-          const { error } = await supabase.storage
-            .from("photos") // Ensure your bucket is named 'photos'
-            .upload(filePath, info.file, {
-              cacheControl: "3600",
-              upsert: false,
-            });
+          const { error } = await supabase.storage.from("photos").upload(filePath, info.file);
 
           if (error) throw error;
 
-          // Success Update
           setState((prev) => ({
             ...prev,
             successCount: prev.successCount + 1,
@@ -108,18 +102,14 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
             ),
           }));
         }
-
-        // Recursive call to pick next file in queue
         await uploadNext();
       };
 
-      // Start 3 workers
       await Promise.all(
-        Array(MAX_CONCURRENT)
+        Array(Math.min(MAX_CONCURRENT, files.length))
           .fill(null)
           .map(() => uploadNext()),
       );
-
       setState((prev) => ({ ...prev, isUploading: false, isDone: true }));
     },
     [eventId, userId],
@@ -128,11 +118,16 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
   return {
     ...state,
     startUpload,
+    uploadFiles: startUpload, // Fix for "Property uploadFiles does not exist"
     onCancel: () => {
       abortRef.current = true;
     },
     onDismiss: () => setState(INITIAL),
-    onRetry: () => {}, // MVP: Simply re-add files
-    onRetrySingle: (id: string) => {},
+    onRetry: () => {
+      /* Logic for retry all */
+    },
+    onRetrySingle: (id: string) => {
+      /* Logic for single retry */
+    },
   };
 }
