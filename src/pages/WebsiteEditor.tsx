@@ -3,10 +3,26 @@ import { WebsiteImageUploader, WebsiteImageGridUploader } from "@/components/web
 import { WebsiteHero } from "@/components/website/WebsiteHero";
 import { useAuth } from "@/lib/auth";
 
+// 🔥 AUTO GENERATOR
+function generateHomepage(images: string[]) {
+  if (!images || images.length === 0) {
+    return {
+      hero: null,
+      portfolio: [],
+      cinematic: [],
+    };
+  }
+
+  return {
+    hero: images[0],
+    portfolio: images.slice(1),
+    cinematic: images,
+  };
+}
+
 const WebsiteEditor = () => {
   const { user } = useAuth();
 
-  // ✅ CLEAN STATE
   const [data, setData] = useState<any>({
     hero: {
       title: "Colour Store",
@@ -15,17 +31,41 @@ const WebsiteEditor = () => {
       coverUpdatedAt: Date.now(),
     },
     portfolio: [],
+    cinematic: [],
   });
 
   if (!user) return null;
 
   return (
     <div style={{ padding: 20 }}>
-      {/* ================= HERO EDITOR ================= */}
-      <h2>Hero Section</h2>
+      {/* ================= UPLOAD (MAIN) ================= */}
+      <h2>Upload Photos (Homepage Auto Build)</h2>
+
+      <WebsiteImageGridUploader
+        values={data.portfolio}
+        onChange={(urls) => {
+          const result = generateHomepage(urls);
+
+          setData({
+            ...data,
+            hero: {
+              ...data.hero,
+              cover: result.hero,
+              coverUpdatedAt: Date.now(),
+            },
+            portfolio: result.portfolio,
+            cinematic: result.cinematic,
+          });
+        }}
+        userId={user.id}
+        folder="homepage"
+      />
+
+      {/* ================= HERO EDIT ================= */}
+      <h2 style={{ marginTop: 40 }}>Edit Text</h2>
 
       <input
-        placeholder="Title"
+        placeholder="Studio Name"
         value={data.hero.title}
         onChange={(e) =>
           setData({
@@ -33,6 +73,7 @@ const WebsiteEditor = () => {
             hero: { ...data.hero, title: e.target.value },
           })
         }
+        style={{ display: "block", marginBottom: 10, width: "100%", padding: 10 }}
       />
 
       <input
@@ -44,43 +85,13 @@ const WebsiteEditor = () => {
             hero: { ...data.hero, tagline: e.target.value },
           })
         }
-      />
-
-      <WebsiteImageUploader
-        value={data.hero.cover}
-        onChange={(url) =>
-          setData({
-            ...data,
-            hero: {
-              ...data.hero,
-              cover: url,
-              coverUpdatedAt: Date.now(), // ✅ FIXED CACHE
-            },
-          })
-        }
-        userId={user.id}
-        folder="hero"
-      />
-
-      {/* ================= PORTFOLIO EDITOR ================= */}
-      <h2 style={{ marginTop: 40 }}>Portfolio</h2>
-
-      <WebsiteImageGridUploader
-        values={data.portfolio}
-        onChange={(urls) =>
-          setData({
-            ...data,
-            portfolio: urls,
-          })
-        }
-        userId={user.id}
-        folder="portfolio"
+        style={{ display: "block", marginBottom: 20, width: "100%", padding: 10 }}
       />
 
       {/* ================= PREVIEW ================= */}
-      <h2 style={{ marginTop: 50 }}>Preview</h2>
+      <h2 style={{ marginTop: 50 }}>Live Preview</h2>
 
-      {/* HERO PREVIEW */}
+      {/* HERO */}
       <WebsiteHero
         branding={{
           studio_name: data.hero.title,
@@ -91,19 +102,36 @@ const WebsiteEditor = () => {
         template="vows-elegance"
       />
 
-      {/* PORTFOLIO PREVIEW */}
+      {/* ================= CINEMATIC FLOW ================= */}
       <div style={{ marginTop: 40 }}>
-        {data.portfolio.map((img: string, i: number) => (
-          <img
-            key={i}
-            src={`${img}?v=${i}`}
-            style={{
-              width: "100%",
-              marginBottom: 10,
-              borderRadius: 8,
-            }}
-          />
-        ))}
+        {data.cinematic.map((img: string, i: number) => {
+          // 🔥 MIXED LAYOUT (like Naman Verma)
+
+          // Full width
+          if (i % 5 !== 0) {
+            return (
+              <img
+                key={i}
+                src={`${img}?v=${i}`}
+                style={{
+                  width: "100%",
+                  marginBottom: 40,
+                  objectFit: "cover",
+                }}
+              />
+            );
+          }
+
+          // Split layout
+          return (
+            <div key={i} style={{ display: "flex", gap: 10, marginBottom: 40 }}>
+              <img src={`${img}?v=${i}`} style={{ width: "50%", objectFit: "cover" }} />
+              {data.cinematic[i + 1] && (
+                <img src={`${data.cinematic[i + 1]}?v=${i}`} style={{ width: "50%", objectFit: "cover" }} />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
