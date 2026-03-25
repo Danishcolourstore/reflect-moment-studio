@@ -86,7 +86,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="w-full min-h-screen overflow-y-auto overflow-x-hidden" style={{ background: "#0D0D0D" }}>
+    <div className="w-full min-h-screen overflow-y-auto overflow-x-hidden pb-24" style={{ background: "#0D0D0D" }}>
 
       {/* ── Stats Row ── */}
       <section className="px-5 sm:px-8 pt-6 pb-2">
