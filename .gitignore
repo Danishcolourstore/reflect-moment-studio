@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+mirror-ai-backend/node_modules
+mirror-ai-backend/dist
 
 # Editor directories and files
 .vscode/*

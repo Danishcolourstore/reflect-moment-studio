@@ -1,73 +1,125 @@
-# Welcome to your Lovable project
+# Mirror AI - Real-Time Photography Assistant
 
-## Project info
+Mirror AI is a complete real-time photography pipeline:
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Camera -> FTP -> Server -> AI Processing -> Instant app updates
 
-## How can I edit this code?
+This repo now includes:
 
-There are several ways of editing your application.
+- Premium React + Tailwind frontend page at `/mirror-ai`
+- Dedicated backend service in `mirror-ai-backend` with:
+  - FTP ingestion server
+  - Auto-detection watcher
+  - Async processing queue
+  - Image analysis and preset engine
+  - Natural retouch intensity
+  - REST API + WebSocket
+  - Persistent file + metadata storage
 
-**Use Lovable**
+## Folder structure
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+```text
+.
+├── mirror-ai-backend/
+│   ├── src/
+│   │   ├── api.ts
+│   │   ├── config.ts
+│   │   ├── eventBus.ts
+│   │   ├── ftp.ts
+│   │   ├── logger.ts
+│   │   ├── metadata.ts
+│   │   ├── presets.ts
+│   │   ├── processor.ts
+│   │   ├── queue.ts
+│   │   ├── repository.ts
+│   │   ├── server.ts
+│   │   ├── storage.ts
+│   │   ├── types.ts
+│   │   └── websocket.ts
+│   ├── .env.example
+│   ├── package.json
+│   └── tsconfig.json
+├── src/
+│   ├── App.tsx
+│   └── pages/
+│       └── MirrorAI.tsx
+└── package.json
+```
 
-Changes made via Lovable will be committed automatically to this repo.
+## Environment
 
-**Use your preferred IDE**
+Frontend `.env`:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```env
+VITE_MIRROR_AI_API_BASE=http://localhost:8787
+VITE_MIRROR_AI_WS_BASE=ws://localhost:8787/ws
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Backend `.env`:
 
-Follow these steps:
+```bash
+cp mirror-ai-backend/.env.example mirror-ai-backend/.env
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Setup
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+npm install
+npm install --prefix mirror-ai-backend
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Run commands
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Backend (FTP + API + WS + processing):
+
+```bash
+npm run mirror:backend:dev
+```
+
+Frontend:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Open:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Frontend: `http://localhost:8080/mirror-ai`
+- Health: `http://localhost:8787/health`
+- WebSocket: `ws://localhost:8787/ws`
+- FTP: `ftp://localhost:2121` (see backend `.env`)
 
-**Use GitHub Codespaces**
+## API summary
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- `GET /api/bootstrap`
+- `GET /api/images`
+- `GET /api/images/:id`
+- `PATCH /api/controls`
+- `PATCH /api/images/:id`
+- `POST /api/images/batch`
+- `GET /api/metadata/:id`
 
-## What technologies are used for this project?
+## Storage
 
-This project is built with:
+Under backend `STORAGE_ROOT` (default `mirror-ai-backend/storage`):
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- `ftp-inbox/` incoming uploads
+- `originals/` originals
+- `processed/preview/` previews
+- `processed/full/` full resolution
+- `meta/images.json` metadata
 
-## How can I deploy this project?
+## Product features shipped
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Real FTP ingestion + auto-detect
+- Exposure / lighting / skin analysis
+- Preset-based enhancement pipeline
+- Optional natural retouch
+- Fast preview + full-resolution output
+- Async queue processing
+- Live WebSocket updates (no refresh)
+- Premium dark responsive UI
+- Before/After toggle
+- Preset/category/retouch controls
+- Batch apply edits
+- Status badges for processing lifecycle

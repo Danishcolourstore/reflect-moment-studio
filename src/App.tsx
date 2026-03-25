@@ -9,6 +9,7 @@ import { useEffect, Suspense } from "react";
 
 // 👉 KEEP YOUR EXISTING IMPORTS (pages etc.)
 import Dashboard from "./pages/Dashboard";
+import MirrorAI from "./pages/MirrorAI";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,6 +52,7 @@ const AppRoutes = () => {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/mirror-ai" element={<MirrorAI />} />
 
           {/* ADD ALL YOUR OTHER ROUTES BELOW (unchanged) */}
         </Routes>
