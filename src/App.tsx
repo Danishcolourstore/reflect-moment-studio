@@ -2,11 +2,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Suspense } from "react";
-import AppRoutes from "./AppRoutes"; // ✅ keep your routes in separate file
+import { useEffect, Suspense } from "react";
+
+// 👉 KEEP YOUR EXISTING IMPORTS (pages etc.)
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,39 +29,60 @@ function PageLoader() {
   );
 }
 
-const App = () => {
+const ScrollToTop = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
+const AppRoutes = () => {
   return (
-    <ErrorBoundary>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <Toaster />
+    <>
+      <ScrollToTop />
 
-            <BrowserRouter>
-              <AuthProvider>
-                <ErrorBoundary>
-                  {/* ✅ GLOBAL ROOT LAYOUT (SCROLL FIXED) */}
-                  <div className="h-[100dvh] flex flex-col overflow-hidden bg-background text-foreground">
-                    {/* OPTIONAL HEADER */}
-                    {/* <header className="shrink-0 border-b border-border p-3">
-                      Mirror AI
-                    </header> */}
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* 👉 SAMPLE ROUTES (KEEP YOUR ORIGINAL ROUTES HERE) */}
 
-                    {/* ✅ ONLY SCROLLABLE AREA */}
-                    <main className="flex-1 overflow-y-auto">
-                      <Suspense fallback={<PageLoader />}>
-                        <AppRoutes />
-                      </Suspense>
-                    </main>
-                  </div>
-                </ErrorBoundary>
-              </AuthProvider>
-            </BrowserRouter>
-          </TooltipProvider>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </ErrorBoundary>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+          <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* ADD ALL YOUR OTHER ROUTES BELOW (unchanged) */}
+        </Routes>
+      </Suspense>
+    </>
   );
 };
+
+const App = () => (
+  <ErrorBoundary>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+
+          <BrowserRouter>
+            <AuthProvider>
+              <ErrorBoundary>
+                {/* ✅ GLOBAL SCROLL FIX */}
+                <div className="h-[100dvh] flex flex-col overflow-hidden bg-background text-foreground">
+                  {/* ✅ ONLY SCROLLABLE AREA */}
+                  <main className="flex-1 overflow-y-auto">
+                    <AppRoutes />
+                  </main>
+                </div>
+              </ErrorBoundary>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </ErrorBoundary>
+);
 
 export default App;
