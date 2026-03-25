@@ -298,6 +298,87 @@
   .hide-mobile { @apply hidden sm:block; }
   .hide-desktop { @apply block lg:hidden; }
   .show-desktop { @apply hidden lg:block; }
+
+  /* ── Neumorphic Design System ── */
+  .neu-surface {
+    background: hsl(0 0% 10%);
+    border-radius: 16px;
+    box-shadow:
+      8px 8px 16px rgba(0, 0, 0, 0.6),
+      -8px -8px 16px rgba(255, 255, 255, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .neu-card {
+    background: hsl(0 0% 11%);
+    border-radius: 20px;
+    box-shadow:
+      6px 6px 14px rgba(0, 0, 0, 0.55),
+      -6px -6px 14px rgba(255, 255, 255, 0.025),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  .neu-card:hover {
+    box-shadow:
+      4px 4px 10px rgba(0, 0, 0, 0.5),
+      -4px -4px 10px rgba(255, 255, 255, 0.02),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transform: translateY(-1px);
+  }
+
+  .neu-card-sm {
+    background: hsl(0 0% 11%);
+    border-radius: 14px;
+    box-shadow:
+      4px 4px 10px rgba(0, 0, 0, 0.5),
+      -4px -4px 10px rgba(255, 255, 255, 0.02),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+  }
+
+  .neu-inset {
+    background: hsl(0 0% 7%);
+    border-radius: 12px;
+    box-shadow:
+      inset 4px 4px 8px rgba(0, 0, 0, 0.5),
+      inset -4px -4px 8px rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+  }
+
+  .neu-btn {
+    background: hsl(0 0% 12%);
+    border-radius: 12px;
+    box-shadow:
+      4px 4px 10px rgba(0, 0, 0, 0.5),
+      -4px -4px 10px rgba(255, 255, 255, 0.02),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    transition: all 0.2s ease;
+  }
+
+  .neu-btn:active {
+    box-shadow:
+      inset 3px 3px 6px rgba(0, 0, 0, 0.4),
+      inset -3px -3px 6px rgba(255, 255, 255, 0.01);
+    transform: scale(0.98);
+  }
+
+  .neu-icon-circle {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: hsl(0 0% 13%);
+    box-shadow:
+      4px 4px 8px rgba(0, 0, 0, 0.45),
+      -4px -4px 8px rgba(255, 255, 255, 0.02),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
