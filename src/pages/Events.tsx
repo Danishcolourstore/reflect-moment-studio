@@ -34,10 +34,8 @@ function FadeCard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!ref.current) return;
     const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) setVisible(true);
-      },
-      { threshold: 0.1 },
+      ([e]) => { if (e.isIntersecting) setVisible(true); },
+      { threshold: 0.1 }
     );
     obs.observe(ref.current);
     return () => obs.disconnect();
@@ -62,7 +60,7 @@ export default function Events() {
   const { user } = useAuth();
   const [navHover, setNavHover] = useState<number | null>(null);
   const [imgHover, setImgHover] = useState<string | null>(null);
-  const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+  const [mob, setMob] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -80,11 +78,11 @@ export default function Events() {
   const fetchEvents = async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await (
-      supabase.from("events").select("id, name, event_date, location, cover_url, photo_count, slug") as any
-    )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+    const { data } = await (supabase
+      .from('events')
+      .select('id, name, event_date, location, cover_url, photo_count, slug') as any)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
     setEvents(data || []);
     setLoading(false);
   };
@@ -95,6 +93,7 @@ export default function Events() {
 
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: colors.bg, overflow: "visible" }}>
+      {/* NAV */}
       <nav
         style={{
           position: "sticky",
@@ -109,14 +108,7 @@ export default function Events() {
       >
         <div style={{ textAlign: "center", marginBottom: mob ? 6 : 8 }}>
           <span
-            style={{
-              fontFamily: fonts.display,
-              fontSize: mob ? 18 : 24,
-              fontWeight: 300,
-              color: colors.gold,
-              cursor: "pointer",
-              letterSpacing: "0.06em",
-            }}
+            style={{ fontFamily: fonts.display, fontSize: mob ? 18 : 24, fontWeight: 300, color: colors.gold, cursor: "pointer", letterSpacing: "0.06em" }}
             onClick={() => navigate("/home")}
           >
             MirrorAI
@@ -137,7 +129,7 @@ export default function Events() {
             return (
               <button
                 key={item.label}
-                onClick={() => (item.path === "__drawer__" ? drawer.toggle() : navigate(item.path))}
+                onClick={() => item.path === "__drawer__" ? drawer.toggle() : navigate(item.path)}
                 onMouseEnter={() => setNavHover(i)}
                 onMouseLeave={() => setNavHover(null)}
                 style={{
@@ -165,6 +157,7 @@ export default function Events() {
         </div>
       </nav>
 
+      {/* CREATE BUTTON */}
       <div style={{ maxWidth: 720, margin: "0 auto", padding: mob ? `20px ${spacing.pageMobile} 0` : "28px 20px 0" }}>
         <button
           onClick={() => setCreateOpen(true)}
@@ -181,13 +174,14 @@ export default function Events() {
             cursor: "pointer",
             transition: "opacity 0.3s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
+          onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
         >
           + Create Event
         </button>
       </div>
 
+      {/* EVENT CARDS */}
       <main style={{ maxWidth: 720, margin: "0 auto", padding: mob ? "24px 0" : "40px 0" }}>
         {loading ? (
           <div style={{ textAlign: "center", padding: "60px 24px" }}>
@@ -195,9 +189,7 @@ export default function Events() {
           </div>
         ) : events.length === 0 ? (
           <div style={{ textAlign: "center", padding: "60px 24px" }}>
-            <p
-              style={{ fontFamily: fonts.display, fontSize: 22, fontWeight: 300, color: colors.text, marginBottom: 12 }}
-            >
+            <p style={{ fontFamily: fonts.display, fontSize: 22, fontWeight: 300, color: colors.text, marginBottom: 12 }}>
               No events yet
             </p>
             <p style={{ fontFamily: fonts.body, fontSize: 14, color: colors.textMuted, marginBottom: 24 }}>
@@ -239,29 +231,20 @@ export default function Events() {
                 >
                   {evt.cover_url ? (
                     <img
-                      src={`${evt.cover_url}?v=${evt.id}`}
+                      src={evt.cover_url}
                       alt={evt.name}
-                      style={{
-                        width: "100%",
-                        height: mob ? "65vw" : 400,
-                        objectFit: "cover",
-                        display: "block",
-                      }}
+                      style={{ width: "100%", height: "auto", objectFit: "cover", display: "block" }}
                     />
                   ) : (
-                    <div
-                      style={{
-                        width: "100%",
-                        height: mob ? "65vw" : 400,
-                        background: `linear-gradient(135deg, ${colors.surface}, ${colors.surface2})`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <span style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textMuted }}>
-                        No cover photo
-                      </span>
+                    <div style={{
+                      width: "100%",
+                      height: mob ? "65vw" : 400,
+                      background: `linear-gradient(135deg, ${colors.surface}, ${colors.surface2})`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                      <span style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textMuted }}>No cover photo</span>
                     </div>
                   )}
                 </div>
@@ -284,28 +267,18 @@ export default function Events() {
                     {evt.name}
                   </div>
 
-                  <div
-                    style={{
-                      fontFamily: fonts.body,
-                      fontSize: mob ? 12 : 14,
-                      fontWeight: 400,
-                      color: colors.textMuted,
-                      marginTop: 6,
-                    }}
-                  >
+                  <div style={{ fontFamily: fonts.body, fontSize: mob ? 12 : 14, fontWeight: 400, color: colors.textMuted, marginTop: 6 }}>
                     {evt.event_date ? format(new Date(evt.event_date), "MMMM d, yyyy") : "No date set"}
                     {evt.location ? ` · ${evt.location}` : ""}
                   </div>
 
-                  <div
-                    style={{
-                      fontFamily: fonts.body,
-                      fontSize: mob ? 11 : 13,
-                      fontWeight: 400,
-                      color: colors.textDim,
-                      marginTop: 8,
-                    }}
-                  >
+                  <div style={{
+                    fontFamily: fonts.body,
+                    fontSize: mob ? 11 : 13,
+                    fontWeight: 400,
+                    color: colors.textDim,
+                    marginTop: 8,
+                  }}>
                     {evt.photo_count || 0} photos
                   </div>
 
@@ -317,18 +290,8 @@ export default function Events() {
         )}
       </main>
 
-      <footer
-        style={{
-          textAlign: "center",
-          padding: mob ? "40px 16px 28px" : "60px 20px 40px",
-          paddingBottom: `calc(${mob ? 28 : 40}px + env(safe-area-inset-bottom, 0px))`,
-        }}
-      >
-        <div
-          style={{ fontFamily: fonts.body, fontSize: mob ? 10 : 12, color: colors.textMuted, letterSpacing: "0.1em" }}
-        >
-          © MIRRORAI
-        </div>
+      <footer style={{ textAlign: "center", padding: mob ? "40px 16px 28px" : "60px 20px 40px", paddingBottom: `calc(${mob ? 28 : 40}px + env(safe-area-inset-bottom, 0px))` }}>
+        <div style={{ fontFamily: fonts.body, fontSize: mob ? 10 : 12, color: colors.textMuted, letterSpacing: "0.1em" }}>© MIRRORAI</div>
       </footer>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
