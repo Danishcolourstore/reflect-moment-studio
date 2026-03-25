@@ -357,10 +357,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             left: showSidebar ? sidebarWidth : 0,
             height: 48,
             padding: "0 20px",
-            background: "rgba(8,8,8,0.9)",
+            background: "rgba(13,13,13,0.92)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            borderBottom: "1px solid rgba(240,237,232,0.05)",
+            borderBottom: "none",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
           }}
         >
           <div className="flex items-center gap-3 min-w-0">
@@ -368,9 +369,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <button
                 onClick={() => navigate(-1)}
                 className="flex items-center justify-center transition-colors"
-                style={{ color: "rgba(240,237,232,0.3)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.3)")}
+                style={{ color: "rgba(255,255,255,0.3)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.8)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}
               >
                 <ChevronRight className="h-5 w-5 rotate-180" />
               </button>
@@ -381,7 +382,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 fontFamily: cormorant,
                 fontSize: 16,
                 fontWeight: 400,
-                color: "rgba(240,237,232,0.7)",
+                color: "rgba(255,255,255,0.65)",
                 letterSpacing: "0.08em",
               }}
             >
@@ -393,18 +394,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             {/* Accent toggle */}
             <button
               onClick={() => switchAccent(accent === "gold" ? "red" : "gold")}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all"
-              style={{
-                background: "rgba(240,237,232,0.04)",
-                border: "1px solid rgba(240,237,232,0.06)",
-              }}
+              className="neu-card-sm flex items-center gap-1.5 px-2.5 py-1.5"
               title={`Accent: ${accent}`}
             >
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{
-                  background: accent === "gold" ? "#E8C97A" : "#C0392B",
-                  boxShadow: accent === "gold" ? "0 0 6px rgba(232,201,122,0.5)" : "0 0 6px rgba(192,57,43,0.5)",
+                  background: accent === "gold" ? "hsl(var(--primary))" : "#C0392B",
+                  boxShadow: accent === "gold" ? "0 0 8px hsla(var(--primary) / 0.5)" : "0 0 8px rgba(192,57,43,0.5)",
                 }}
               />
             </button>
@@ -415,8 +412,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 const idx = THEME_ORDER.indexOf(theme);
                 switchTheme(THEME_ORDER[(idx + 1) % THEME_ORDER.length]);
               }}
-              className="flex items-center justify-center transition-colors"
-              style={{ fontSize: 14, minWidth: 32, minHeight: 32 }}
+              className="neu-card-sm flex items-center justify-center transition-colors"
+              style={{ fontSize: 14, minWidth: 34, minHeight: 34 }}
               title={`Theme: ${theme}`}
             >
               {THEME_ICONS[theme]}
@@ -430,11 +427,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   <Avatar className="h-7 w-7">
                     <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback
+                      className="neu-card-sm"
                       style={{
-                        background: "rgba(240,237,232,0.06)",
                         fontFamily: dm,
                         fontSize: 10,
-                        color: "rgba(240,237,232,0.5)",
+                        color: "rgba(255,255,255,0.5)",
                       }}
                     >
                       {initials}
@@ -455,7 +452,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* ── Main Content ── */}
-        <main className="pt-12 pb-24 lg:pb-8" style={{ marginLeft: showSidebar ? sidebarWidth : 0 }}>
+        <main className="pt-12 pb-24 lg:pb-8" style={{ marginLeft: showSidebar ? sidebarWidth : 0, background: "#0D0D0D" }}>
           <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</div>
         </main>
 
