@@ -251,8 +251,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             className="fixed left-0 top-0 z-30 h-screen flex flex-col"
             style={{
               width: sidebarWidth,
-              background: "#080808",
-              borderRight: "1px solid rgba(240,237,232,0.06)",
+              background: "#0D0D0D",
+              borderRight: "none",
+              boxShadow: "4px 0 20px rgba(0,0,0,0.5)",
             }}
           >
             {/* Brand */}
@@ -262,7 +263,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   fontFamily: cormorant,
                   fontSize: 18,
                   fontWeight: 500,
-                  color: "#E8C97A",
+                  color: "hsl(var(--primary))",
                   letterSpacing: "0.15em",
                 }}
               >
@@ -274,7 +275,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   style={{
                     fontFamily: dm,
                     fontSize: 9,
-                    color: "rgba(240,237,232,0.25)",
+                    color: "rgba(255,255,255,0.2)",
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
                   }}
@@ -284,14 +285,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               )}
             </div>
 
-            <div className="mx-5 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
-
-            <nav className="flex-1 px-3 pt-5 space-y-4 overflow-y-auto">
+            <nav className="flex-1 px-4 pt-3 space-y-5 overflow-y-auto">
               {NAV_SECTIONS.map((section) => (
                 <div key={section.label}>
-                  <p className="px-3 mb-1.5" style={{
+                  <p className="px-3 mb-2" style={{
                     fontFamily: dm, fontSize: 9, fontWeight: 600,
-                    color: "rgba(240,237,232,0.2)", letterSpacing: "0.18em",
+                    color: "rgba(255,255,255,0.15)", letterSpacing: "0.18em",
                     textTransform: "uppercase",
                   }}>{section.label}</p>
                   {section.items.map((item) => (
@@ -299,17 +298,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                       key={item.url}
                       to={item.url}
                       end={item.end}
-                      className="flex items-center gap-2.5 px-3 py-2 transition-colors"
-                      style={{ fontFamily: dm, fontSize: 13, borderLeft: "2px solid transparent" }}
-                      activeClassName="text-[#E8C97A] !border-l-[#E8C97A] bg-[rgba(232,201,122,0.04)]"
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all mb-0.5"
+                      style={{ fontFamily: dm, fontSize: 13, border: "none" }}
+                      activeClassName="neu-card-sm !bg-[hsl(0,0%,13%)]"
                     >
                       {({ isActive }: { isActive: boolean }) => (
                         <>
                           <item.icon
                             className="h-[15px] w-[15px]"
-                            style={{ color: isActive ? "#E8C97A" : "rgba(240,237,232,0.3)" }}
+                            strokeWidth={1.5}
+                            style={{ color: isActive ? "hsl(var(--primary))" : "rgba(255,255,255,0.25)" }}
                           />
-                          <span style={{ color: isActive ? "#E8C97A" : "rgba(240,237,232,0.3)" }}>{item.title}</span>
+                          <span style={{ color: isActive ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.3)" }}>{item.title}</span>
                         </>
                       )}
                     </NavLink>
@@ -318,41 +318,32 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               ))}
             </nav>
 
-            <div className="mx-5 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
-
             {/* Storage */}
-            <div className="px-6 py-4">
-              <p
-                style={{
-                  fontFamily: dm,
-                  fontSize: 9,
-                  color: "rgba(240,237,232,0.2)",
-                  letterSpacing: "0.15em",
-                  textTransform: "uppercase",
-                  marginBottom: 6,
-                }}
-              >
-                Storage
-              </p>
-              <p style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.35)" }}>
-                {formatBytes(storageUsed)}{" "}
-                <span style={{ color: "rgba(240,237,232,0.15)" }}>/ {formatBytes(storageLimit)}</span>
-              </p>
-              <div className="mt-2 h-px w-full overflow-hidden" style={{ background: "rgba(240,237,232,0.06)" }}>
-                <div className="h-full transition-all" style={{ width: `${storagePct}%`, background: "#E8C97A" }} />
+            <div className="px-5 py-4">
+              <div className="neu-inset p-3">
+                <p style={{ fontFamily: dm, fontSize: 9, color: "rgba(255,255,255,0.2)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>
+                  Storage
+                </p>
+                <p style={{ fontFamily: dm, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
+                  {formatBytes(storageUsed)}{" "}
+                  <span style={{ color: "rgba(255,255,255,0.12)" }}>/ {formatBytes(storageLimit)}</span>
+                </p>
+                <div className="mt-2 h-1 w-full overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <div className="h-full rounded-full transition-all" style={{ width: `${storagePct}%`, background: "hsl(var(--primary))" }} />
+                </div>
               </div>
             </div>
 
             {/* Sign out */}
-            <div className="px-3 pb-6">
+            <div className="px-4 pb-6">
               <button
                 onClick={handleSignOut}
-                className="flex w-full items-center gap-2.5 px-3 py-2 rounded-sm transition-colors"
-                style={{ fontFamily: dm, fontSize: 13, color: "rgba(240,237,232,0.2)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.2)")}
+                className="flex w-full items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors"
+                style={{ fontFamily: dm, fontSize: 13, color: "rgba(255,255,255,0.2)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.2)")}
               >
-                <LogOut className="h-[15px] w-[15px]" />
+                <LogOut className="h-[15px] w-[15px]" strokeWidth={1.5} />
                 <span>Sign out</span>
               </button>
             </div>
