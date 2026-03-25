@@ -1,297 +1,145 @@
-import { useEffect, useState } from "react";
-import { PageError } from "@/components/PageStates";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { format } from "date-fns";
-import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import { CreateEventModal } from "@/components/CreateEventModal";
-import {
-  Camera, FolderOpen, Layers, Grid3X3, Image, Users, BarChart2,
-  Globe, Palette, Plus, ArrowRight, Sparkles
-} from "lucide-react";
+import React from "react";
 
-interface RecentEvent {
-  id: string;
-  name: string;
-  slug: string | null;
-  event_date: string | null;
-  cover_url: string | null;
-  photo_count: number;
-  location: string | null;
+// \u2500\u2500 Types \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+interface StatCardProps {
+  num: number | string;
+  label: string;
 }
 
-const Dashboard = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const drawer = useDrawerMenu();
+interface FeatureCardProps {
+  icon: React.ReactNode;
+  name: string;
+  sub: string;
+}
 
-  const [studioName, setStudioName] = useState("Studio");
-  const [recentEvents, setRecentEvents] = useState<RecentEvent[]>([]);
-  const [totalEvents, setTotalEvents] = useState(0);
-  const [totalPhotos, setTotalPhotos] = useState(0);
-  const [totalAlbums, setTotalAlbums] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
+interface WorkCardProps {
+  name: string;
+  date: string;
+  thumb?: React.ReactNode;
+}
 
-  useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      setLoading(true);
-      setError(false);
-      try {
-        const { data: profile } = await (supabase.from("profiles").select("studio_name") as any)
-          .eq("user_id", user.id).maybeSingle();
-        if (profile?.studio_name) setStudioName(profile.studio_name);
+// \u2500\u2500 Icons \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
-        const { data: events } = await (
-          supabase.from("events").select("id, name, slug, event_date, cover_url, photo_count, location") as any
-        ).eq("user_id", user.id).order("created_at", { ascending: false }).limit(12);
-        setRecentEvents(events || []);
+const CalendarIcon = () => (
+  <svg viewBox="0 0 24 24" style={styles.featureSvg}>
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
 
-        const { count: evtCount } = await supabase.from("events")
-          .select("*", { count: "exact", head: true }).eq("user_id", user.id);
-        setTotalEvents(evtCount || 0);
+const MirrorAIIcon = () => (
+  <svg viewBox="0 0 24 24" style={styles.featureSvg}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9 12a3 3 0 0 0 6 0" />
+    <circle cx="9" cy="9" r="1" fill="#888888" stroke="none" />
+    <circle cx="15" cy="9" r="1" fill="#888888" stroke="none" />
+  </svg>
+);
 
-        const photoSum = (events || []).reduce((s: number, e: any) => s + (e.photo_count || 0), 0);
-        setTotalPhotos(photoSum);
+const AlbumsIcon = () => (
+  <svg viewBox="0 0 24 24" style={styles.featureSvg}>
+    <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+    <path d="M3 9h18M9 21V9" />
+  </svg>
+);
 
-        const { count: albCount } = await supabase.from("albums")
-          .select("*", { count: "exact", head: true }).eq("user_id", user.id);
-        setTotalAlbums(albCount || 0);
-      } catch {
-        setError(true);
-      }
-      setLoading(false);
-    };
-    load();
-  }, [user]);
+const GridIcon = () => (
+  <svg viewBox="0 0 24 24" style={styles.featureSvg}>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+  </svg>
+);
 
-  if (error) return <PageError message="Failed to load" onRetry={() => window.location.reload()} />;
+const ClientsIcon = () => (
+  <svg viewBox="0 0 24 24" style={styles.featureSvg}>
+    <circle cx="9" cy="7" r="4" />
+    <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
+  </svg>
+);
 
-  const FEATURES = [
-    { icon: Camera, label: "Events", sub: `${totalEvents} galleries`, path: "/dashboard/events" },
-    { icon: Palette, label: "MirrorAI\nRetouch", sub: "RI Retouching", path: "/colour-store" },
-    { icon: Layers, label: "Albums", sub: `${totalAlbums} designed`, path: "/dashboard/album-designer" },
-    { icon: Grid3X3, label: "Grid\nBuilder", sub: "Social media", path: "/dashboard/storybook" },
-    { icon: Users, label: "Clients", sub: "CRM", path: "/dashboard/clients" },
-    { icon: BarChart2, label: "Analytics", sub: "Insights", path: "/dashboard/analytics" },
-  ];
+const AnalyticsIcon = () => (
+  <svg viewBox="0 0 24 24" style={styles.featureSvg}>
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+);
 
-  const STATS = [
-    { value: loading ? "—" : totalEvents, label: "Events" },
-    { value: loading ? "—" : totalPhotos, label: "Photos" },
-    { value: loading ? "—" : totalAlbums, label: "Albums" },
-  ];
+const ImagePlaceholderIcon = () => (
+  <svg viewBox="0 0 24 24" style={styles.thumbSvg}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <circle cx="8.5" cy="8.5" r="1.5" />
+    <path d="M21 15l-5-5L5 21" />
+  </svg>
+);
 
-  return (
-    <div className="w-full min-h-screen overflow-y-auto overflow-x-hidden pb-24" style={{ background: "#0D0D0D" }}>
+// \u2500\u2500 Thumbnails \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
-      {/* ── Stats Row ── */}
-      <section className="px-5 sm:px-8 pt-6 pb-2">
-        <div className="flex items-center gap-2 mb-6">
-          <Sparkles className="h-4 w-4" style={{ color: "hsl(var(--primary))" }} />
-          <h2
-            className="text-lg font-light tracking-wide"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.85)" }}
-          >
-            Welcome back
-          </h2>
-        </div>
+const ColoursOfLifeThumb = () => (
+  <svg
+    viewBox="0 0 160 210"
+    style={{ width: "100%", height: "100%" }}
+    preserveAspectRatio="xMidYMid slice"
+  >
+    <defs>
+      <linearGradient id="wg1" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#8B6914" stopOpacity={0.6} />
+        <stop offset="100%" stopColor="#2a1a08" stopOpacity={0.9} />
+      </linearGradient>
+    </defs>
+    <rect width="160" height="210" fill="url(#wg1)" />
+    <line x1="30" y1="210" x2="130" y2="60" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+    <line x1="60" y1="210" x2="160" y2="60" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+    <ellipse cx="90" cy="120" rx="12" ry="22" fill="rgba(255,220,180,0.3)" />
+    <ellipse cx="110" cy="130" rx="14" ry="24" fill="rgba(220,160,120,0.35)" />
+  </svg>
+);
 
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          {STATS.map((s) => (
-            <div key={s.label} className="neu-card-sm p-4 text-center">
-              <div
-                className="text-2xl sm:text-3xl font-light"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.9)" }}
-              >
-                {s.value}
-              </div>
-              <div
-                className="text-[9px] font-medium mt-1 uppercase tracking-[0.2em]"
-                style={{ fontFamily: "'DM Sans', sans-serif", color: "hsl(var(--primary))" }}
-              >
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+const DanceThumb = () => (
+  <svg
+    viewBox="0 0 160 210"
+    style={{ width: "100%", height: "100%" }}
+    preserveAspectRatio="xMidYMid slice"
+  >
+    <defs>
+      <radialGradient id="spot" cx="50%" cy="60%">
+        <stop offset="0%" stopColor="white" stopOpacity={0.6} />
+        <stop offset="60%" stopColor="white" stopOpacity={0.05} />
+        <stop offset="100%" stopColor="white" stopOpacity={0} />
+      </radialGradient>
+    </defs>
+    <rect width="160" height="210" fill="#0a0a0a" />
+    <ellipse cx="80" cy="130" rx="70" ry="80" fill="url(#spot)" />
+    <ellipse cx="80" cy="95" rx="9" ry="12" fill="rgba(255,255,255,0.7)" />
+    <rect x="72" y="107" width="16" height="30" rx="3" fill="rgba(255,255,255,0.65)" />
+    <line x1="72" y1="115" x2="55" y2="130" stroke="rgba(255,255,255,0.6)" strokeWidth="3" strokeLinecap="round" />
+    <line x1="88" y1="115" x2="105" y2="128" stroke="rgba(255,255,255,0.5)" strokeWidth="3" strokeLinecap="round" />
+    <line x1="76" y1="137" x2="68" y2="165" stroke="rgba(255,255,255,0.6)" strokeWidth="3" strokeLinecap="round" />
+    <line x1="84" y1="137" x2="90" y2="165" stroke="rgba(255,255,255,0.6)" strokeWidth="3" strokeLinecap="round" />
+  </svg>
+);
 
-      {/* ── Features Grid (Neumorphic) ── */}
-      <section className="px-5 sm:px-8 py-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2
-            className="text-xl sm:text-2xl font-light italic"
-            style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.85)" }}
-          >
-            Features
-          </h2>
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="neu-btn flex items-center gap-2 px-4 py-2.5"
-            style={{ color: "hsl(var(--primary))" }}
-          >
-            <Plus className="h-4 w-4" />
-            <span className="text-xs font-medium uppercase tracking-wider" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-              New Event
-            </span>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
-          {FEATURES.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => navigate(item.path)}
-              className="neu-card p-5 sm:p-6 text-left flex flex-col gap-4 group"
-            >
-              <div className="neu-icon-circle">
-                <item.icon
-                  className="h-5 w-5 transition-colors"
-                  style={{ color: "rgba(255,255,255,0.5)" }}
-                  strokeWidth={1.5}
-                />
-              </div>
-              <div>
-                <div
-                  className="text-[13px] sm:text-sm font-medium leading-tight whitespace-pre-line"
-                  style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.75)" }}
-                >
-                  {item.label}
-                </div>
-                <div
-                  className="text-[10px] mt-1 font-normal"
-                  style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.25)" }}
-                >
-                  {item.sub}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Recent Work ── */}
-      {recentEvents.length > 0 && (
-        <section className="px-5 sm:px-8 py-6">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2
-                className="text-xl sm:text-2xl font-light"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.85)" }}
-              >
-                Recent Work
-              </h2>
-              <div className="w-8 h-[2px] mt-2" style={{ background: "hsl(var(--primary))" }} />
-            </div>
-            <button
-              onClick={() => navigate("/dashboard/events")}
-              className="flex items-center gap-1 text-[11px] uppercase tracking-wider font-medium"
-              style={{ fontFamily: "'DM Sans', sans-serif", color: "hsl(var(--primary))", background: "none", border: "none" }}
-            >
-              View All <ArrowRight className="h-3 w-3" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {recentEvents.slice(0, 6).map((evt) => (
-              <button
-                key={evt.id}
-                onClick={() => navigate(`/dashboard/events/${evt.id}`)}
-                className="neu-card overflow-hidden text-left group"
-                style={{ padding: 0 }}
-              >
-                <div className="aspect-[4/5] overflow-hidden" style={{ borderRadius: "20px 20px 0 0" }}>
-                  {evt.cover_url ? (
-                    <img
-                      src={evt.cover_url}
-                      alt={evt.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{ background: "hsl(0 0% 8%)" }}
-                    >
-                      <Image className="h-8 w-8" style={{ color: "rgba(255,255,255,0.1)" }} />
-                    </div>
-                  )}
-                </div>
-                <div className="p-3.5">
-                  <h3
-                    className="text-sm font-normal truncate"
-                    style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.8)" }}
-                  >
-                    {evt.name}
-                  </h3>
-                  <p
-                    className="text-[10px] mt-0.5 truncate"
-                    style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.25)" }}
-                  >
-                    {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : ""}
-                    {evt.photo_count > 0 ? ` · ${evt.photo_count} photos` : ""}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── Empty State ── */}
-      {!loading && recentEvents.length === 0 && (
-        <section className="px-5 sm:px-8 py-16 text-center">
-          <div className="neu-card max-w-md mx-auto p-10">
-            <div className="neu-icon-circle mx-auto mb-5">
-              <Camera className="h-5 w-5" style={{ color: "rgba(255,255,255,0.4)" }} strokeWidth={1.5} />
-            </div>
-            <h2
-              className="text-2xl font-light"
-              style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.85)" }}
-            >
-              Your Story Begins Here
-            </h2>
-            <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>
-              Create your first event to start building your portfolio
-            </p>
-            <button
-              onClick={() => setCreateOpen(true)}
-              className="neu-btn mt-6 px-8 py-3 text-xs font-medium uppercase tracking-wider"
-              style={{ fontFamily: "'DM Sans', sans-serif", color: "hsl(var(--primary))" }}
-            >
-              + Create Event
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* ── Footer ── */}
-      <footer className="py-10 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div
-          className="text-sm italic"
-          style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.2)" }}
-        >
-          {studioName}
-        </div>
-        <div
-          className="text-[9px] mt-2 uppercase tracking-[0.15em]"
-          style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.12)" }}
-        >
-          Powered by MirrorAI
-        </div>
-      </footer>
-
-      <DrawerMenu open={drawer.open} onClose={drawer.close} />
-      <CreateEventModal
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onCreated={(eventId) => navigate(`/dashboard/events/${eventId}`)}
-      />
-    </div>
-  );
-};
-
-export default Dashboard;
+const CoupleThumb = () => (
+  <svg
+    viewBox="0 0 160 210"
+    style={{ width: "100%", height: "100%" }}
+    preserveAspectRatio="xMidYMid slice"
+  >
+    <defs>
+      <radialGradient id="wl" cx="50%" cy="40%">
+        <stop offset="0%" stopColor="#d4b896" stopOpacity={0.5} />
+        <stop offset="100%" stopColor="#c9a882" stopOpacity={0.1} />
+      </radialGradient>
+    </defs>
+    <rect width="160" height="210" fill="#e8e0d5" />
+    <rect width="160" height="210" fill="url(#wl)" />
+    <ellipse cx="75" cy="90" rx="10" ry="13" fill="rgba(50,40,30,0.7)" />
+    <rect x="65" y="103" width="20" height="55" rx="4" fill="rgba(30,25,20,0.8)" />
+    <ellipse cx="100" cy="78" rx="8" ry="11" fill="
