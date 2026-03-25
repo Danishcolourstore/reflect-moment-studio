@@ -6,7 +6,10 @@ import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { CreateEventModal } from "@/components/CreateEventModal";
-import { colors, fonts, spacing } from "@/styles/design-tokens";
+import {
+  Camera, FolderOpen, Layers, Grid3X3, Image, Users, BarChart2,
+  Globe, Palette, Plus, ArrowRight, Sparkles
+} from "lucide-react";
 
 interface RecentEvent {
   id: string;
@@ -18,38 +21,19 @@ interface RecentEvent {
   location: string | null;
 }
 
-const NAV_LINKS = [
-  { label: "Home", path: "/home" },
-  { label: "Events", path: "/dashboard/events" },
-  { label: "Studio Feed", path: "/dashboard/website-editor" },
-  { label: "Albums", path: "/dashboard/album-designer" },
-  { label: "Storybook", path: "/dashboard/storybook" },
-  { label: "Clients", path: "/dashboard/clients" },
-];
-
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const drawer = useDrawerMenu();
 
   const [studioName, setStudioName] = useState("Studio");
-  const [studioTag, setStudioTag] = useState("Capturing moments that last forever");
   const [recentEvents, setRecentEvents] = useState<RecentEvent[]>([]);
-  const [allPhotos, setAllPhotos] = useState<string[]>([]);
   const [totalEvents, setTotalEvents] = useState(0);
   const [totalPhotos, setTotalPhotos] = useState(0);
   const [totalAlbums, setTotalAlbums] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
   const [createOpen, setCreateOpen] = useState(false);
-  const [heroIdx, setHeroIdx] = useState(0);
-
-  useEffect(() => {
-    const h = () => setMob(window.innerWidth < 768);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -58,52 +42,25 @@ const Dashboard = () => {
       setError(false);
       try {
         const { data: profile } = await (supabase.from("profiles").select("studio_name") as any)
-          .eq("user_id", user.id)
-          .maybeSingle();
+          .eq("user_id", user.id).maybeSingle();
         if (profile?.studio_name) setStudioName(profile.studio_name);
-
-        const { data: sp } = await (supabase.from("studio_profiles").select("tagline") as any)
-          .eq("user_id", user.id)
-          .maybeSingle();
-        if (sp?.tagline) setStudioTag(sp.tagline);
 
         const { data: events } = await (
           supabase.from("events").select("id, name, slug, event_date, cover_url, photo_count, location") as any
-        )
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(12);
+        ).eq("user_id", user.id).order("created_at", { ascending: false }).limit(12);
         setRecentEvents(events || []);
 
-        const { count: evtCount } = await supabase
-          .from("events")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", user.id);
+        const { count: evtCount } = await supabase.from("events")
+          .select("*", { count: "exact", head: true }).eq("user_id", user.id);
         setTotalEvents(evtCount || 0);
 
         const photoSum = (events || []).reduce((s: number, e: any) => s + (e.photo_count || 0), 0);
         setTotalPhotos(photoSum);
 
-        const { count: albCount } = await supabase
-          .from("albums")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", user.id);
+        const { count: albCount } = await supabase.from("albums")
+          .select("*", { count: "exact", head: true }).eq("user_id", user.id);
         setTotalAlbums(albCount || 0);
-
-        const evtIds = (events || []).map((e: any) => e.id);
-        if (evtIds.length > 0) {
-          const { data: photos } = await supabase
-            .from("photos")
-            .select("thumbnail_url, url, storage_path")
-            .in("event_id", evtIds)
-            .limit(24);
-          const urls = (photos || [])
-            .map((p: any) => p.thumbnail_url || p.url || p.storage_path)
-            .filter(Boolean);
-          setAllPhotos(urls);
-        }
-      } catch (err) {
-        console.error("Dashboard load failed:", err);
+      } catch {
         setError(true);
       }
       setLoading(false);
@@ -111,627 +68,220 @@ const Dashboard = () => {
     load();
   }, [user]);
 
-  const heroImages = recentEvents.filter((e) => e.cover_url).slice(0, 5);
-  useEffect(() => {
-    if (heroImages.length < 2) return;
-    const t = setInterval(() => setHeroIdx((p) => (p + 1) % heroImages.length), 5000);
-    return () => clearInterval(t);
-  }, [heroImages.length]);
-
   if (error) return <PageError message="Failed to load" onRetry={() => window.location.reload()} />;
 
+  const FEATURES = [
+    { icon: Camera, label: "Events", sub: `${totalEvents} galleries`, path: "/dashboard/events" },
+    { icon: Palette, label: "MirrorAI\nRetouch", sub: "RI Retouching", path: "/colour-store" },
+    { icon: Layers, label: "Albums", sub: `${totalAlbums} designed`, path: "/dashboard/album-designer" },
+    { icon: Grid3X3, label: "Grid\nBuilder", sub: "Social media", path: "/dashboard/storybook" },
+    { icon: Users, label: "Clients", sub: "CRM", path: "/dashboard/clients" },
+    { icon: BarChart2, label: "Analytics", sub: "Insights", path: "/dashboard/analytics" },
+  ];
+
+  const STATS = [
+    { value: loading ? "—" : totalEvents, label: "Events" },
+    { value: loading ? "—" : totalPhotos, label: "Photos" },
+    { value: loading ? "—" : totalAlbums, label: "Albums" },
+  ];
+
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: colors.bg, overflowY: "auto", overflowX: "hidden" }}>
-      {/* ── Minimal Nav ── */}
-      <nav
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
-          background: "rgba(10,10,11,0.92)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          borderBottom: `1px solid ${colors.border}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: mob ? 52 : 60,
-          padding: mob ? `0 ${spacing.pageMobile}` : `0 ${spacing.pageDesktop}`,
-        }}
-      >
-        <button
-          onClick={drawer.toggle}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            padding: 8,
-          }}
-        >
-          <span style={{ width: 18, height: 1.5, background: colors.cream, display: "block" }} />
-          <span style={{ width: 14, height: 1.5, background: colors.cream, display: "block" }} />
-        </button>
+    <div className="w-full min-h-screen overflow-y-auto overflow-x-hidden" style={{ background: "#0D0D0D" }}>
 
-        <span
-          style={{
-            fontFamily: fonts.display,
-            fontSize: mob ? 16 : 18,
-            fontWeight: 300,
-            color: colors.gold,
-            letterSpacing: "0.08em",
-          }}
-        >
-          {studioName}
-        </span>
+      {/* ── Stats Row ── */}
+      <section className="px-5 sm:px-8 pt-6 pb-2">
+        <div className="flex items-center gap-2 mb-6">
+          <Sparkles className="h-4 w-4" style={{ color: "hsl(var(--primary))" }} />
+          <h2
+            className="text-lg font-light tracking-wide"
+            style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.85)" }}
+          >
+            Welcome back
+          </h2>
+        </div>
 
-        {!mob ? (
-          <div style={{ display: "flex", gap: 28, alignItems: "center" }}>
-            {NAV_LINKS.map((l) => (
-              <button
-                key={l.path}
-                onClick={() => navigate(l.path)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontFamily: fonts.body,
-                  fontSize: 11,
-                  fontWeight: 400,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: colors.textMuted,
-                  cursor: "pointer",
-                  transition: "color 0.3s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = colors.cream)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = colors.textMuted)}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          {STATS.map((s) => (
+            <div key={s.label} className="neu-card-sm p-4 text-center">
+              <div
+                className="text-2xl sm:text-3xl font-light"
+                style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.9)" }}
               >
-                {l.label}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <button
-            onClick={() => setCreateOpen(true)}
-            style={{
-              background: "none",
-              border: "none",
-              fontFamily: fonts.body,
-              fontSize: 20,
-              color: colors.gold,
-              cursor: "pointer",
-            }}
-          >
-            +
-          </button>
-        )}
-      </nav>
+                {s.value}
+              </div>
+              <div
+                className="text-[9px] font-medium mt-1 uppercase tracking-[0.2em]"
+                style={{ fontFamily: "'DM Sans', sans-serif", color: "hsl(var(--primary))" }}
+              >
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      {/* ── Hero Section ── */}
-      <section style={{ position: "relative", width: "100%", height: mob ? "55vh" : "80vh", overflow: "hidden" }}>
-        {heroImages.length > 0 ? (
-          <>
-            {heroImages.map((evt, i) => (
-              <img
-                key={evt.id}
-                src={evt.cover_url!}
-                alt={evt.name}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  opacity: i === heroIdx ? 1 : 0,
-                  transition: "opacity 1.2s ease",
-                }}
-              />
-            ))}
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%)",
-              }}
-            />
-          </>
-        ) : (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              background: `linear-gradient(135deg, ${colors.bg} 0%, ${colors.surface2} 100%)`,
-            }}
-          />
-        )}
-        <div
-          style={{
-            position: "absolute",
-            bottom: mob ? 32 : 60,
-            left: mob ? 20 : 60,
-            right: mob ? 20 : 60,
-          }}
-        >
-          <h1
-            style={{
-              fontFamily: fonts.display,
-              fontSize: mob ? 32 : 56,
-              fontWeight: 300,
-              color: colors.white,
-              lineHeight: 1.1,
-              letterSpacing: "0.04em",
-              textShadow: "0 2px 20px rgba(0,0,0,0.3)",
-            }}
+      {/* ── Features Grid (Neumorphic) ── */}
+      <section className="px-5 sm:px-8 py-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2
+            className="text-xl sm:text-2xl font-light italic"
+            style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.85)" }}
           >
-            {studioName}
-          </h1>
-          <p
-            style={{
-              fontFamily: fonts.body,
-              fontSize: mob ? 12 : 14,
-              fontWeight: 300,
-              color: "rgba(255,255,255,0.7)",
-              marginTop: 8,
-              letterSpacing: "0.05em",
-            }}
-          >
-            {studioTag}
-          </p>
+            Features
+          </h2>
           <button
             onClick={() => setCreateOpen(true)}
-            style={{
-              marginTop: mob ? 16 : 24,
-              fontFamily: fonts.body,
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              background: "rgba(200,169,126,0.15)",
-              backdropFilter: "blur(10px)",
-              border: `1px solid ${colors.borderActive}`,
-              color: colors.gold,
-              padding: "12px 32px",
-              cursor: "pointer",
-              transition: "all 0.3s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(200,169,126,0.25)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(200,169,126,0.15)";
-            }}
+            className="neu-btn flex items-center gap-2 px-4 py-2.5"
+            style={{ color: "hsl(var(--primary))" }}
           >
-            + Create Event
+            <Plus className="h-4 w-4" />
+            <span className="text-xs font-medium uppercase tracking-wider" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              New Event
+            </span>
           </button>
         </div>
-        {heroImages.length > 1 && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: mob ? 12 : 24,
-              right: mob ? 20 : 60,
-              display: "flex",
-              gap: 6,
-            }}
-          >
-            {heroImages.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setHeroIdx(i)}
-                style={{
-                  width: i === heroIdx ? 20 : 6,
-                  height: 6,
-                  borderRadius: 3,
-                  background: i === heroIdx ? colors.gold : "rgba(255,255,255,0.3)",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "all 0.3s",
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </section>
 
-      {/* ── Stats Strip ── */}
-      <section
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: mob ? 32 : 64,
-          padding: mob ? "28px 16px" : "40px 24px",
-          borderBottom: `1px solid ${colors.border}`,
-        }}
-      >
-        {[
-          { n: loading ? "—" : totalEvents, l: "Events" },
-          { n: loading ? "—" : totalPhotos, l: "Photos" },
-          { n: loading ? "—" : totalAlbums, l: "Albums" },
-        ].map((s) => (
-          <div key={s.l} style={{ textAlign: "center" }}>
-            <div
-              style={{
-                fontFamily: fonts.display,
-                fontSize: mob ? 28 : 40,
-                fontWeight: 300,
-                color: colors.text,
-                lineHeight: 1,
-              }}
-            >
-              {s.n}
-            </div>
-            <div
-              style={{
-                fontFamily: fonts.body,
-                fontSize: 9,
-                fontWeight: 500,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: colors.gold,
-                marginTop: 6,
-              }}
-            >
-              {s.l}
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* ── Recent Galleries ── */}
-      {recentEvents.length > 0 && (
-        <section style={{ padding: mob ? `${spacing.sectionMobile} ${spacing.pageMobile}` : `${spacing.sectionDesktop} ${spacing.pageDesktop}`, maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: mob ? 24 : 36 }}>
-            <div>
-              <h2
-                style={{
-                  fontFamily: fonts.display,
-                  fontSize: mob ? 24 : 32,
-                  fontWeight: 300,
-                  color: colors.text,
-                  letterSpacing: "0.04em",
-                }}
-              >
-                Recent Work
-              </h2>
-              <div style={{ width: 40, height: 2, background: colors.gold, marginTop: 8 }} />
-            </div>
-            <button
-              onClick={() => navigate("/dashboard/events")}
-              style={{
-                background: "none",
-                border: "none",
-                fontFamily: fonts.body,
-                fontSize: 11,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: colors.gold,
-                cursor: "pointer",
-              }}
-            >
-              View All →
-            </button>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: mob ? "1fr" : "repeat(3, 1fr)",
-              gap: mob ? 24 : 20,
-            }}
-          >
-            {recentEvents.slice(0, mob ? 4 : 6).map((evt) => (
-              <button
-                key={evt.id}
-                onClick={() => navigate(`/dashboard/events/${evt.id}`)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  padding: 0,
-                }}
-              >
-                <div
-                  style={{
-                    width: "100%",
-                    aspectRatio: "4/5",
-                    overflow: "hidden",
-                    background: colors.surface,
-                    position: "relative",
-                  }}
-                >
-                  {evt.cover_url ? (
-                    <img
-                      src={evt.cover_url}
-                      alt={evt.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        transition: "transform 0.6s ease",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontFamily: fonts.display,
-                        fontSize: 24,
-                        color: colors.textMuted,
-                      }}
-                    >
-                      {evt.name.charAt(0)}
-                    </div>
-                  )}
-                </div>
-                <div style={{ marginTop: 12 }}>
-                  <h3
-                    style={{
-                      fontFamily: fonts.display,
-                      fontSize: mob ? 16 : 18,
-                      fontWeight: 400,
-                      color: colors.text,
-                      margin: 0,
-                    }}
-                  >
-                    {evt.name}
-                  </h3>
-                  <p
-                    style={{
-                      fontFamily: fonts.body,
-                      fontSize: 11,
-                      color: colors.textMuted,
-                      marginTop: 4,
-                      letterSpacing: "0.03em",
-                    }}
-                  >
-                    {evt.event_date ? format(new Date(evt.event_date), "MMMM d, yyyy") : ""}
-                    {evt.location ? ` · ${evt.location}` : ""}
-                  </p>
-                  {evt.photo_count > 0 && (
-                    <p
-                      style={{
-                        fontFamily: fonts.body,
-                        fontSize: 10,
-                        color: colors.gold,
-                        marginTop: 2,
-                        letterSpacing: "0.08em",
-                      }}
-                    >
-                      {evt.photo_count} photos
-                    </p>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── Photo Mosaic ── */}
-      {allPhotos.length > 0 && (
-        <section style={{ padding: mob ? "0 0 40px" : `0 ${spacing.pageDesktop} 60px`, maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ padding: mob ? `0 ${spacing.pageMobile}` : "0", marginBottom: mob ? 20 : 28 }}>
-            <h2
-              style={{
-                fontFamily: fonts.display,
-                fontSize: mob ? 22 : 28,
-                fontWeight: 300,
-                color: colors.text,
-              }}
-            >
-              Gallery
-            </h2>
-            <div style={{ width: 32, height: 2, background: colors.gold, marginTop: 6 }} />
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: mob ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
-              gap: mob ? 2 : 3,
-            }}
-          >
-            {allPhotos.slice(0, mob ? 12 : 24).map((url, i) => (
-              <div key={i} style={{ aspectRatio: "1", overflow: "hidden" }}>
-                <img
-                  src={url}
-                  alt=""
-                  loading="lazy"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    transition: "transform 0.4s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── Quick Actions ── */}
-      <section
-        style={{
-          padding: mob ? `32px ${spacing.pageMobile}` : `48px ${spacing.pageDesktop}`,
-          maxWidth: 1200,
-          margin: "0 auto",
-          borderTop: `1px solid ${colors.border}`,
-        }}
-      >
-        <h2
-          style={{
-            fontFamily: fonts.display,
-            fontSize: mob ? 22 : 28,
-            fontWeight: 300,
-            color: colors.text,
-            marginBottom: mob ? 20 : 28,
-          }}
-        >
-          Quick Actions
-        </h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4, 1fr)",
-            gap: mob ? 12 : 16,
-          }}
-        >
-          {[
-            { label: "Events", sub: `${totalEvents} total`, path: "/dashboard/events", accent: false },
-            { label: "Colour Store", sub: "RI Retouching", path: "/colour-store", accent: true },
-            { label: "Albums", sub: `${totalAlbums} total`, path: "/dashboard/album-designer", accent: false },
-            { label: "Grid Builder", sub: "Social media", path: "/dashboard/storybook", accent: false },
-          ].map((item) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
+          {FEATURES.map((item) => (
             <button
               key={item.label}
               onClick={() => navigate(item.path)}
-              style={{
-                textAlign: "left",
-                padding: mob ? 20 : 28,
-                background: item.accent ? colors.goldDim : colors.surface,
-                border: `1px solid ${item.accent ? colors.borderActive : colors.border}`,
-                cursor: "pointer",
-                transition: "all 0.3s",
-                borderRadius: 0,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = colors.gold)}
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.borderColor = item.accent ? String(colors.borderActive) : colors.border)
-              }
+              className="neu-card p-5 sm:p-6 text-left flex flex-col gap-4 group"
             >
-              <div
-                style={{
-                  fontFamily: fonts.body,
-                  fontSize: 9,
-                  fontWeight: 500,
-                  letterSpacing: "0.25em",
-                  textTransform: "uppercase",
-                  color: item.accent ? colors.gold : colors.textMuted,
-                }}
-              >
-                {item.label}
+              <div className="neu-icon-circle">
+                <item.icon
+                  className="h-5 w-5 transition-colors"
+                  style={{ color: "rgba(255,255,255,0.5)" }}
+                  strokeWidth={1.5}
+                />
               </div>
-              <div
-                style={{
-                  fontFamily: fonts.display,
-                  fontSize: mob ? 18 : 22,
-                  fontWeight: 300,
-                  color: colors.text,
-                  marginTop: 8,
-                  lineHeight: 1.2,
-                }}
-              >
-                {item.sub}
-              </div>
-              <div
-                style={{
-                  fontFamily: fonts.body,
-                  fontSize: 10,
-                  color: item.accent ? colors.gold : colors.textMuted,
-                  marginTop: 10,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Open →
+              <div>
+                <div
+                  className="text-[13px] sm:text-sm font-medium leading-tight whitespace-pre-line"
+                  style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.75)" }}
+                >
+                  {item.label}
+                </div>
+                <div
+                  className="text-[10px] mt-1 font-normal"
+                  style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.25)" }}
+                >
+                  {item.sub}
+                </div>
               </div>
             </button>
           ))}
         </div>
       </section>
 
-      {/* ── No events empty state ── */}
+      {/* ── Recent Work ── */}
+      {recentEvents.length > 0 && (
+        <section className="px-5 sm:px-8 py-6">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2
+                className="text-xl sm:text-2xl font-light"
+                style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.85)" }}
+              >
+                Recent Work
+              </h2>
+              <div className="w-8 h-[2px] mt-2" style={{ background: "hsl(var(--primary))" }} />
+            </div>
+            <button
+              onClick={() => navigate("/dashboard/events")}
+              className="flex items-center gap-1 text-[11px] uppercase tracking-wider font-medium"
+              style={{ fontFamily: "'DM Sans', sans-serif", color: "hsl(var(--primary))", background: "none", border: "none" }}
+            >
+              View All <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {recentEvents.slice(0, 6).map((evt) => (
+              <button
+                key={evt.id}
+                onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                className="neu-card overflow-hidden text-left group"
+                style={{ padding: 0 }}
+              >
+                <div className="aspect-[4/5] overflow-hidden" style={{ borderRadius: "20px 20px 0 0" }}>
+                  {evt.cover_url ? (
+                    <img
+                      src={evt.cover_url}
+                      alt={evt.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      style={{ background: "hsl(0 0% 8%)" }}
+                    >
+                      <Image className="h-8 w-8" style={{ color: "rgba(255,255,255,0.1)" }} />
+                    </div>
+                  )}
+                </div>
+                <div className="p-3.5">
+                  <h3
+                    className="text-sm font-normal truncate"
+                    style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.8)" }}
+                  >
+                    {evt.name}
+                  </h3>
+                  <p
+                    className="text-[10px] mt-0.5 truncate"
+                    style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.25)" }}
+                  >
+                    {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : ""}
+                    {evt.photo_count > 0 ? ` · ${evt.photo_count} photos` : ""}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Empty State ── */}
       {!loading && recentEvents.length === 0 && (
-        <section style={{ padding: mob ? `60px ${spacing.pageMobile}` : `100px ${spacing.pageDesktop}`, textAlign: "center" }}>
-          <h2
-            style={{
-              fontFamily: fonts.display,
-              fontSize: mob ? 28 : 40,
-              fontWeight: 300,
-              color: colors.text,
-            }}
-          >
-            Your Story Begins Here
-          </h2>
-          <p
-            style={{
-              fontFamily: fonts.body,
-              fontSize: 13,
-              color: colors.textMuted,
-              marginTop: 12,
-              maxWidth: 400,
-              marginLeft: "auto",
-              marginRight: "auto",
-            }}
-          >
-            Create your first event to start building your portfolio
-          </p>
-          <button
-            onClick={() => setCreateOpen(true)}
-            style={{
-              marginTop: 24,
-              fontFamily: fonts.body,
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              background: colors.gold,
-              color: colors.bg,
-              border: "none",
-              padding: "14px 40px",
-              cursor: "pointer",
-              transition: "opacity 0.3s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-          >
-            + Create Event
-          </button>
+        <section className="px-5 sm:px-8 py-16 text-center">
+          <div className="neu-card max-w-md mx-auto p-10">
+            <div className="neu-icon-circle mx-auto mb-5">
+              <Camera className="h-5 w-5" style={{ color: "rgba(255,255,255,0.4)" }} strokeWidth={1.5} />
+            </div>
+            <h2
+              className="text-2xl font-light"
+              style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.85)" }}
+            >
+              Your Story Begins Here
+            </h2>
+            <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif" }}>
+              Create your first event to start building your portfolio
+            </p>
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="neu-btn mt-6 px-8 py-3 text-xs font-medium uppercase tracking-wider"
+              style={{ fontFamily: "'DM Sans', sans-serif", color: "hsl(var(--primary))" }}
+            >
+              + Create Event
+            </button>
+          </div>
         </section>
       )}
 
       {/* ── Footer ── */}
-      <footer
-        style={{
-          padding: mob ? `${spacing.sectionMobile} ${spacing.pageMobile}` : `${spacing.sectionDesktop} ${spacing.pageDesktop}`,
-          textAlign: "center",
-          borderTop: `1px solid ${colors.border}`,
-        }}
-      >
+      <footer className="py-10 text-center" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
         <div
-          style={{
-            fontFamily: fonts.display,
-            fontSize: mob ? 14 : 16,
-            color: colors.textMuted,
-            fontStyle: "italic",
-          }}
+          className="text-sm italic"
+          style={{ fontFamily: "'Cormorant Garamond', serif", color: "rgba(255,255,255,0.2)" }}
         >
           {studioName}
         </div>
         <div
-          style={{
-            fontFamily: fonts.body,
-            fontSize: 9,
-            color: colors.textMuted,
-            marginTop: 8,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-          }}
+          className="text-[9px] mt-2 uppercase tracking-[0.15em]"
+          style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.12)" }}
         >
           Powered by MirrorAI
         </div>
-        <div style={{ width: 4, height: 4, borderRadius: "50%", background: colors.gold, margin: "12px auto 0" }} />
       </footer>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
