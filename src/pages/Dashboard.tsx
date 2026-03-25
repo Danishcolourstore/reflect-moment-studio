@@ -67,44 +67,41 @@ const themes: Record<
 };
 
 // ─────────────────────────────────────────────
-// MOCK DATA (Anonymized)
+// MOCK DATA (Zero Stock Images)
 // ─────────────────────────────────────────────
-const weddings = [
+const projects = [
   {
     id: 1,
     couple: "Client A & Client B",
     lastName: "Project 01",
-    date: "March 15, 2024",
+    date: "March 15, 2026",
     location: "Location 01",
     photos: 847,
     guests: 24,
     views: 312,
     status: "delivered",
-    cover: "https://images.unsplash.com/photo-1606800052052-a08af7148866?w=800&q=80",
   },
   {
     id: 2,
     couple: "Client C & Client D",
     lastName: "Project 02",
-    date: "February 3, 2024",
+    date: "February 3, 2026",
     location: "Location 02",
     photos: 1203,
     guests: 38,
     views: 891,
     status: "delivered",
-    cover: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80",
   },
   {
     id: 3,
     couple: "Client E & Client F",
     lastName: "Project 03",
-    date: "April 20, 2024",
+    date: "April 20, 2026",
     location: "Location 03",
     photos: 0,
     guests: 0,
     views: 0,
     status: "upcoming",
-    cover: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80",
   },
 ];
 
@@ -123,17 +120,22 @@ const activity = [
 ];
 
 // ─────────────────────────────────────────────
-// GLOBAL STYLES
+// GLOBAL STYLES (No Scroll Locks)
 // ─────────────────────────────────────────────
 const buildStyles = (t: typeof themes.noir) => `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
+  
+  .dashboard-wrapper {
     background: ${t.bg};
     font-family: 'DM Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
-    overscroll-behavior: none;
+    color: ${t.text};
+    min-height: 100vh;
+    transition: background 0.5s, color 0.4s;
+    position: relative;
+    z-index: 1;
   }
 
   @keyframes fadeUp {
@@ -152,19 +154,9 @@ const buildStyles = (t: typeof themes.noir) => `
     0%, 100% { opacity: 1; }
     50%       { opacity: 0.3; }
   }
-  @keyframes grain {
-    0%,100% { transform:translate(0,0) }
-    20% { transform:translate(-1%,2%) }
-    40% { transform:translate(2%,-1%) }
-    60% { transform:translate(-2%,1%) }
-    80% { transform:translate(1%,-2%) }
-  }
-
-  .grain {
-    position:fixed; inset:-50%; width:200%; height:200%;
-    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    opacity:0.022; animation:grain 6s steps(1) infinite;
-    pointer-events:none; z-index:9998;
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 
   .atm-btn {
@@ -186,25 +178,41 @@ const buildStyles = (t: typeof themes.noir) => `
     transition: border-color 0.4s;
   }
   .wedding-card:hover { border-color: ${t.borderHover}; }
-  .wedding-card .card-img {
-    width: 100%; aspect-ratio: 3/2;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.7s cubic-bezier(0.16,1,0.3,1), filter 0.4s;
-    filter: brightness(0.92) saturate(0.9);
+  
+  /* Premium Shimmer Placeholder */
+  .card-placeholder {
+    width: 100%; 
+    aspect-ratio: 16/9;
+    background: linear-gradient(90deg, ${t.surface} 25%, ${t.surfaceHover} 50%, ${t.surface} 75%);
+    background-size: 200% 100%;
+    animation: shimmer 4s infinite linear;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);
   }
-  .wedding-card:hover .card-img {
+  .wedding-card:hover .card-placeholder {
     transform: scale(1.04);
-    filter: brightness(1) saturate(1.05);
   }
-  .wedding-card .card-overlay {
+  
+  /* Placeholder Monogram/Icon */
+  .card-placeholder::after {
+    content: '◈';
+    font-size: 24px;
+    color: ${t.borderHover};
+    opacity: 0.5;
+  }
+
+  .card-overlay {
     position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%);
+    background: linear-gradient(to top, ${t.bg} 0%, transparent 80%);
+    opacity: 0.9;
     transition: opacity 0.4s;
   }
+  
   .wedding-card .card-body {
     position: absolute; bottom: 0; left: 0; right: 0;
-    padding: 20px;
+    padding: 24px;
     transform: translateY(0);
     transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
   }
@@ -212,7 +220,7 @@ const buildStyles = (t: typeof themes.noir) => `
     opacity: 0;
     transform: translateY(6px);
     transition: opacity 0.3s, transform 0.3s;
-    margin-top: 10px;
+    margin-top: 12px;
   }
   .wedding-card:hover .card-action {
     opacity: 1;
@@ -220,20 +228,20 @@ const buildStyles = (t: typeof themes.noir) => `
   }
 
   .stat-item {
-    padding: 28px 24px;
+    padding: 32px 24px;
     border-right: 1px solid ${t.border};
+    border-bottom: 1px solid ${t.border};
     transition: background 0.3s;
   }
-  .stat-item:last-child { border-right: none; }
   .stat-item:hover { background: ${t.surface}; }
 
   .quick-btn {
-    display: flex; align-items: center; gap: 10px;
-    padding: 16px 20px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 20px 24px;
     background: transparent;
     border: 1px solid ${t.border};
     color: ${t.text};
-    font-size: 12px; font-weight: 400;
+    font-size: 13px; font-weight: 400;
     letter-spacing: 0.08em;
     cursor: pointer;
     font-family: 'DM Sans', sans-serif;
@@ -259,7 +267,6 @@ const buildStyles = (t: typeof themes.noir) => `
     -webkit-tap-highlight-color: transparent;
   }
   .primary-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-  .primary-btn:active { opacity: 1; transform: translateY(0); }
 
   .ghost-btn {
     display: inline-flex; align-items: center; gap: 8px;
@@ -273,7 +280,7 @@ const buildStyles = (t: typeof themes.noir) => `
     transition: background 0.25s, border-color 0.25s, color 0.25s;
     -webkit-tap-highlight-color: transparent;
   }
-  .ghost-btn:hover, .ghost-btn:active {
+  .ghost-btn:hover {
     background: ${t.surface};
     border-color: ${t.borderHover};
   }
@@ -303,15 +310,6 @@ const buildStyles = (t: typeof themes.noir) => `
     animation: fadeIn 0.2s ease forwards;
     backdrop-filter: blur(20px);
   }
-  .menu-nav-item {
-    font-size: 14px; letter-spacing: 0.16em;
-    text-transform: uppercase; color: ${t.textMid};
-    cursor: pointer; padding: 22px 24px;
-    border-bottom: 1px solid ${t.border};
-    transition: color 0.2s, padding-left 0.25s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .menu-nav-item:hover { color: ${t.text}; padding-left: 32px; }
 
   .activity-dot {
     animation: pulse 2s ease-in-out infinite;
@@ -319,23 +317,30 @@ const buildStyles = (t: typeof themes.noir) => `
 
   .status-pill {
     display: inline-block;
-    padding: 3px 10px;
+    padding: 4px 12px;
     font-size: 9px; letter-spacing: 0.14em;
     text-transform: uppercase;
     font-family: 'DM Sans', sans-serif;
   }
+
+  /* ── Responsive Grids ── */
+  .stats-row { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid ${t.border}; border-left: 1px solid ${t.border}; }
+  .quick-grid { display: grid; grid-template-columns: 1fr; gap: 1px; background-color: ${t.border}; }
+  .weddings-grid { display: grid; grid-template-columns: 1fr; gap: 1px; background-color: ${t.border}; }
+  .bottom-grid { display: grid; grid-template-columns: 1fr; gap: 1px; background-color: transparent; }
 
   @media (min-width: 768px) {
     .hamburger-wrap { display: none !important; }
     .desktop-nav    { display: flex !important; }
     .hero-wrap      { flex-direction: row !important; align-items: flex-end !important; }
     .hero-actions   { flex-direction: row !important; margin-top: 0 !important; align-items: center !important; }
-    .weddings-grid  { grid-template-columns: repeat(3, 1fr) !important; }
-    .stats-row      { grid-template-columns: repeat(4, 1fr) !important; }
-    .bottom-grid    { grid-template-columns: 1fr 380px !important; }
+    .stats-row      { grid-template-columns: repeat(4, 1fr); border-right: 1px solid ${t.border}; }
+    .stat-item      { border-bottom: none; }
+    .quick-grid     { grid-template-columns: repeat(4, 1fr); }
+    .weddings-grid  { grid-template-columns: repeat(3, 1fr); }
+    .bottom-grid    { grid-template-columns: 1fr 400px; }
     .pad            { padding-left: 56px !important; padding-right: 56px !important; }
     .header-inner   { padding: 0 56px !important; }
-    .quick-grid     { grid-template-columns: repeat(4, 1fr) !important; }
   }
 `;
 
@@ -351,7 +356,6 @@ const Dashboard: React.FC = () => {
 
   const t = themes[atm];
 
-  // inject styles
   useEffect(() => {
     if (!styleRef.current) {
       const el = document.createElement("style");
@@ -378,11 +382,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div
-      style={{ minHeight: "100vh", backgroundColor: t.bg, color: t.text, transition: "background 0.5s, color 0.4s" }}
-    >
-      <div className="grain" />
-
+    <div className="dashboard-wrapper">
       {/* ── MOBILE MENU ── */}
       {menuOpen && (
         <div className="menu-overlay">
@@ -392,7 +392,7 @@ const Dashboard: React.FC = () => {
               alignItems: "center",
               justifyContent: "space-between",
               padding: "0 24px",
-              height: "56px",
+              height: "64px",
               borderBottom: `1px solid ${t.border}`,
             }}
           >
@@ -414,7 +414,7 @@ const Dashboard: React.FC = () => {
                 background: "none",
                 border: "none",
                 color: t.textMid,
-                fontSize: "18px",
+                fontSize: "20px",
                 cursor: "pointer",
                 padding: "8px",
                 lineHeight: 1,
@@ -430,20 +430,19 @@ const Dashboard: React.FC = () => {
               </div>
             ))}
           </div>
-          {/* Atmosphere picker in menu */}
-          <div style={{ padding: "20px 24px", borderTop: `1px solid ${t.border}` }}>
+          <div style={{ padding: "24px", borderTop: `1px solid ${t.border}` }}>
             <p
               style={{
                 fontSize: "9px",
                 letterSpacing: "0.24em",
                 textTransform: "uppercase",
                 color: t.label,
-                marginBottom: "14px",
+                marginBottom: "16px",
               }}
             >
               Atmosphere
             </p>
-            <div style={{ display: "flex", gap: "12px", marginBottom: "20px" }}>
+            <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
               {(Object.keys(atmColors) as Atmosphere[]).map((a) => (
                 <button
                   key={a}
@@ -477,7 +476,7 @@ const Dashboard: React.FC = () => {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "0 20px",
-          height: "56px",
+          height: "64px",
           borderBottom: `1px solid ${t.border}`,
           backgroundColor: t.overlayBg,
           backdropFilter: "blur(20px)",
@@ -485,17 +484,15 @@ const Dashboard: React.FC = () => {
           ...anm(0, 0.4),
         }}
       >
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "baseline", gap: "1px" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "2px" }}>
           <span
             style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "19px",
+              fontSize: "20px",
               fontWeight: 300,
               letterSpacing: "0.24em",
               textTransform: "uppercase",
               color: t.text,
-              transition: "color 0.4s",
             }}
           >
             Mirror
@@ -503,12 +500,11 @@ const Dashboard: React.FC = () => {
           <span
             style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "19px",
+              fontSize: "20px",
               fontWeight: 600,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               color: t.text,
-              transition: "color 0.4s",
             }}
           >
             AI
@@ -518,25 +514,22 @@ const Dashboard: React.FC = () => {
               fontSize: "8px",
               letterSpacing: "0.3em",
               color: t.label,
-              marginLeft: "7px",
+              marginLeft: "8px",
               textTransform: "uppercase",
               alignSelf: "center",
-              transition: "color 0.4s",
             }}
           >
             for Photographers
           </span>
         </div>
 
-        {/* Desktop nav + atmosphere */}
-        <div className="desktop-nav" style={{ display: "none", alignItems: "center", gap: "36px" }}>
+        <div className="desktop-nav" style={{ display: "none", alignItems: "center", gap: "40px" }}>
           {["Projects", "Gallery", "Clients", "Deliveries"].map((item) => (
             <span key={item} className="nav-link">
               {item}
             </span>
           ))}
-          {/* Atmosphere */}
-          <div style={{ display: "flex", gap: "8px", alignItems: "center", marginLeft: "8px" }}>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", marginLeft: "12px" }}>
             {(Object.keys(atmColors) as Atmosphere[]).map((a) => (
               <button
                 key={a}
@@ -549,7 +542,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Hamburger */}
         <button
           className="hamburger-wrap"
           onClick={() => setMenuOpen(true)}
@@ -560,28 +552,19 @@ const Dashboard: React.FC = () => {
             padding: "8px",
             display: "flex",
             flexDirection: "column",
-            gap: "5px",
+            gap: "6px",
             alignItems: "flex-end",
           }}
         >
-          <span style={{ display: "block", width: "22px", height: "1px", backgroundColor: t.text }} />
-          <span style={{ display: "block", width: "14px", height: "1px", backgroundColor: t.text }} />
-          <span style={{ display: "block", width: "18px", height: "1px", backgroundColor: t.text }} />
+          <span style={{ display: "block", width: "24px", height: "1px", backgroundColor: t.text }} />
+          <span style={{ display: "block", width: "16px", height: "1px", backgroundColor: t.text }} />
         </button>
       </header>
 
       {/* ── HERO ── */}
-      <section
-        className="pad"
-        style={{
-          padding: "60px 20px 48px",
-          borderBottom: `1px solid ${t.border}`,
-          transition: "border-color 0.4s",
-        }}
-      >
+      <section className="pad" style={{ padding: "64px 20px 48px", transition: "border-color 0.4s" }}>
         <div className="hero-wrap" style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
           <div style={{ flex: 1 }}>
-            {/* Eyebrow */}
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", ...anm(0.1, 0.5) }}>
               <div
                 style={{
@@ -590,18 +573,9 @@ const Dashboard: React.FC = () => {
                   backgroundColor: t.text,
                   animation: `revealX 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s both`,
                   transformOrigin: "left",
-                  transition: "background 0.4s",
                 }}
               />
-              <span
-                style={{
-                  fontSize: "9px",
-                  letterSpacing: "0.3em",
-                  textTransform: "uppercase",
-                  color: t.label,
-                  transition: "color 0.4s",
-                }}
-              >
+              <span style={{ fontSize: "9px", letterSpacing: "0.3em", textTransform: "uppercase", color: t.label }}>
                 Studio Overview
               </span>
             </div>
@@ -609,30 +583,28 @@ const Dashboard: React.FC = () => {
             <h1
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(48px, 11vw, 80px)",
+                fontSize: "clamp(52px, 12vw, 88px)",
                 fontWeight: 300,
-                lineHeight: 0.92,
+                lineHeight: 0.95,
                 letterSpacing: "-0.02em",
                 color: t.text,
-                transition: "color 0.4s",
                 ...anm(0.18, 1.0),
               }}
             >
               Your
               <br />
-              <em style={{ fontStyle: "italic", color: t.textMid, transition: "color 0.4s" }}>Projects</em>
+              <em style={{ fontStyle: "italic", color: t.textMid }}>Projects</em>
             </h1>
 
             <p
               style={{
-                fontSize: "13px",
+                fontSize: "14px",
                 fontWeight: 300,
                 letterSpacing: "0.02em",
                 color: t.textMid,
                 lineHeight: 1.8,
-                marginTop: "20px",
-                maxWidth: "360px",
-                transition: "color 0.4s",
+                marginTop: "24px",
+                maxWidth: "400px",
                 ...anm(0.32, 0.8),
               }}
             >
@@ -642,7 +614,7 @@ const Dashboard: React.FC = () => {
 
           <div
             className="hero-actions"
-            style={{ display: "flex", flexDirection: "column", gap: "10px", ...anm(0.4, 0.7) }}
+            style={{ display: "flex", flexDirection: "column", gap: "12px", ...anm(0.4, 0.7) }}
           >
             <button className="primary-btn" style={{ justifyContent: "center" }}>
               <span style={{ fontSize: "16px", fontWeight: 200, lineHeight: 1 }}>+</span>
@@ -656,24 +628,17 @@ const Dashboard: React.FC = () => {
       </section>
 
       {/* ── STATS ── */}
-      <section
-        style={{
-          borderBottom: `1px solid ${t.border}`,
-          transition: "border-color 0.4s",
-          ...anm(0.45, 0.7),
-        }}
-      >
-        <div className="stats-row" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)" }}>
+      <section style={{ ...anm(0.45, 0.7) }}>
+        <div className="stats-row">
           {stats.map((s) => (
-            <div key={s.label} className="stat-item" style={{ transition: "background 0.4s, border-color 0.4s" }}>
+            <div key={s.label} className="stat-item">
               <p
                 style={{
                   fontSize: "9px",
                   letterSpacing: "0.22em",
                   textTransform: "uppercase",
                   color: t.label,
-                  marginBottom: "12px",
-                  transition: "color 0.4s",
+                  marginBottom: "14px",
                 }}
               >
                 {s.label}
@@ -686,7 +651,6 @@ const Dashboard: React.FC = () => {
                   lineHeight: 1,
                   letterSpacing: "-0.03em",
                   color: t.text,
-                  transition: "color 0.4s",
                 }}
               >
                 {s.value}
@@ -697,29 +661,19 @@ const Dashboard: React.FC = () => {
       </section>
 
       {/* ── QUICK ACTIONS ── */}
-      <section className="pad" style={{ padding: "36px 20px 0", ...anm(0.5, 0.7) }}>
+      <section className="pad" style={{ padding: "48px 20px 0", ...anm(0.5, 0.7) }}>
         <p
           style={{
             fontSize: "9px",
             letterSpacing: "0.24em",
             textTransform: "uppercase",
             color: t.label,
-            marginBottom: "16px",
-            transition: "color 0.4s",
+            marginBottom: "20px",
           }}
         >
           Quick Actions
         </p>
-        <div
-          className="quick-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "1px",
-            backgroundColor: t.border,
-            transition: "background 0.4s",
-          }}
-        >
+        <div className="quick-grid">
           {[
             { icon: "◈", label: "New Project", sub: "Start a project" },
             { icon: "↑", label: "Upload Photos", sub: "Add to gallery" },
@@ -727,34 +681,20 @@ const Dashboard: React.FC = () => {
             { icon: "↗", label: "Share Gallery", sub: "Send link" },
           ].map((action) => (
             <button key={action.label} className="quick-btn">
-              <span style={{ fontSize: "16px", color: t.textMid, fontFamily: "monospace", transition: "color 0.4s" }}>
-                {action.icon}
-              </span>
+              <span style={{ fontSize: "16px", color: t.textMid, fontFamily: "monospace" }}>{action.icon}</span>
               <div style={{ textAlign: "left" }}>
-                <p style={{ fontSize: "12px", color: t.text, letterSpacing: "0.02em", transition: "color 0.4s" }}>
-                  {action.label}
-                </p>
-                <p style={{ fontSize: "10px", color: t.label, marginTop: "2px", transition: "color 0.4s" }}>
-                  {action.sub}
-                </p>
+                <p style={{ fontSize: "13px", color: t.text, letterSpacing: "0.02em" }}>{action.label}</p>
+                <p style={{ fontSize: "11px", color: t.label, marginTop: "4px" }}>{action.sub}</p>
               </div>
             </button>
           ))}
         </div>
       </section>
 
-      {/* ── RECENT PROJECTS ── */}
-      <section className="pad" style={{ padding: "40px 20px 0", ...anm(0.55, 0.8) }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <p
-            style={{
-              fontSize: "9px",
-              letterSpacing: "0.24em",
-              textTransform: "uppercase",
-              color: t.label,
-              transition: "color 0.4s",
-            }}
-          >
+      {/* ── RECENT PROJECTS (NO IMAGES) ── */}
+      <section className="pad" style={{ padding: "56px 20px 0", ...anm(0.55, 0.8) }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+          <p style={{ fontSize: "9px", letterSpacing: "0.24em", textTransform: "uppercase", color: t.label }}>
             Recent Projects
           </p>
           <span
@@ -763,90 +703,73 @@ const Dashboard: React.FC = () => {
               color: t.textMid,
               cursor: "pointer",
               letterSpacing: "0.06em",
-              transition: "color 0.4s",
+              textTransform: "uppercase",
             }}
           >
             View all →
           </span>
         </div>
 
-        <div
-          className="weddings-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr",
-            gap: "1px",
-            backgroundColor: t.border,
-            transition: "background 0.4s",
-          }}
-        >
-          {weddings.map((w) => (
+        <div className="weddings-grid">
+          {projects.map((p) => (
             <div
-              key={w.id}
+              key={p.id}
               className="wedding-card"
-              onMouseEnter={() => setHoveredCard(w.id)}
+              onMouseEnter={() => setHoveredCard(p.id)}
               onMouseLeave={() => setHoveredCard(null)}
-              style={{ transition: "border-color 0.4s" }}
             >
-              <img src={w.cover} alt={`${w.couple} project`} className="card-img" loading="lazy" />
+              {/* Premium Shimmer Box */}
+              <div className="card-placeholder" />
               <div className="card-overlay" />
+
               <div className="card-body">
-                {/* Status */}
                 <span
                   className="status-pill"
                   style={{
-                    backgroundColor: w.status === "delivered" ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.06)",
-                    color: w.status === "delivered" ? "#a8e6c0" : "#aac4ff",
-                    marginBottom: "10px",
-                    display: "inline-block",
+                    backgroundColor: p.status === "delivered" ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)",
+                    color: p.status === "delivered" ? "#8EE8B6" : "#A6C2FF",
+                    marginBottom: "12px",
+                    border: `1px solid rgba(255,255,255,0.1)`,
                   }}
                 >
-                  {w.status === "delivered" ? "Delivered" : "Upcoming"}
+                  {p.status === "delivered" ? "Delivered" : "Upcoming"}
                 </span>
 
-                {/* Couple */}
                 <p
                   style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "22px",
+                    fontSize: "24px",
                     fontWeight: 300,
-                    color: "#fff",
+                    color: t.text,
                     lineHeight: 1.1,
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  {w.couple}
-                  <span style={{ color: "rgba(255,255,255,0.45)", fontStyle: "italic" }}> {w.lastName}</span>
+                  {p.couple}
+                  <span style={{ color: t.textMid, fontStyle: "italic" }}> {p.lastName}</span>
                 </p>
 
-                <div style={{ display: "flex", gap: "16px", marginTop: "8px", alignItems: "center" }}>
-                  <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", letterSpacing: "0.04em" }}>{w.date}</p>
-                  {w.photos > 0 && (
-                    <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.04em" }}>
-                      {w.photos.toLocaleString()} photos
-                    </p>
-                  )}
-                  {w.views > 0 && (
-                    <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.04em" }}>
-                      {w.views} views
+                <div style={{ display: "flex", gap: "16px", marginTop: "12px", alignItems: "center" }}>
+                  <p style={{ fontSize: "11px", color: t.textMid, letterSpacing: "0.04em" }}>{p.date}</p>
+                  {p.photos > 0 && (
+                    <p style={{ fontSize: "11px", color: t.textDim, letterSpacing: "0.04em" }}>
+                      {p.photos.toLocaleString()} photos
                     </p>
                   )}
                 </div>
 
-                {/* Hover action */}
                 <div className="card-action">
                   <span
                     style={{
                       fontSize: "10px",
                       letterSpacing: "0.18em",
                       textTransform: "uppercase",
-                      color: "rgba(255,255,255,0.7)",
-                      borderBottom: "1px solid rgba(255,255,255,0.3)",
+                      color: t.text,
+                      borderBottom: `1px solid ${t.textDim}`,
                       paddingBottom: "2px",
-                      cursor: "pointer",
                     }}
                   >
-                    {w.status === "delivered" ? "View Gallery →" : "Manage Shoot →"}
+                    {p.status === "delivered" ? "View Gallery →" : "Manage Shoot →"}
                   </span>
                 </div>
               </div>
@@ -856,47 +779,17 @@ const Dashboard: React.FC = () => {
       </section>
 
       {/* ── ACTIVITY + GUESTS ── */}
-      <section
-        className="pad bottom-grid"
-        style={{
-          padding: "40px 20px 0",
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: "1px",
-          backgroundColor: "transparent",
-          ...anm(0.65, 0.7),
-        }}
-      >
+      <section className="pad bottom-grid" style={{ padding: "56px 20px 0", ...anm(0.65, 0.7) }}>
         {/* Activity */}
-        <div
-          style={{
-            border: `1px solid ${t.border}`,
-            backgroundColor: t.cardBg,
-            padding: "28px 24px",
-            transition: "background 0.4s, border-color 0.4s",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "22px" }}>
-            <p
-              style={{
-                fontSize: "9px",
-                letterSpacing: "0.24em",
-                textTransform: "uppercase",
-                color: t.label,
-                transition: "color 0.4s",
-              }}
-            >
+        <div style={{ border: `1px solid ${t.border}`, backgroundColor: t.cardBg, padding: "32px 28px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+            <p style={{ fontSize: "9px", letterSpacing: "0.24em", textTransform: "uppercase", color: t.label }}>
               Live Activity
             </p>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div
                 className="activity-dot"
-                style={{
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  backgroundColor: "#4ecb8d",
-                }}
+                style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#4ecb8d" }}
               />
               <span style={{ fontSize: "9px", color: "#4ecb8d", letterSpacing: "0.1em" }}>Live</span>
             </div>
@@ -908,10 +801,9 @@ const Dashboard: React.FC = () => {
               style={{
                 display: "flex",
                 alignItems: "flex-start",
-                gap: "14px",
-                padding: "14px 0",
+                gap: "16px",
+                padding: "16px 0",
                 borderBottom: i < activity.length - 1 ? `1px solid ${t.border}` : "none",
-                transition: "border-color 0.4s",
               }}
             >
               <div
@@ -921,24 +813,13 @@ const Dashboard: React.FC = () => {
                   borderRadius: "50%",
                   flexShrink: 0,
                   backgroundColor: item.dot ? "#4ecb8d" : t.textDim,
-                  marginTop: "5px",
+                  marginTop: "6px",
                   animation: item.dot ? "pulse 2s ease-in-out infinite" : "none",
-                  transition: "background 0.4s",
                 }}
               />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: "12px", color: t.textMid, lineHeight: 1.5, transition: "color 0.4s" }}>
-                  {item.text}
-                </p>
-                <p
-                  style={{
-                    fontSize: "10px",
-                    color: t.label,
-                    marginTop: "3px",
-                    letterSpacing: "0.04em",
-                    transition: "color 0.4s",
-                  }}
-                >
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: "13px", color: t.textMid, lineHeight: 1.5 }}>{item.text}</p>
+                <p style={{ fontSize: "11px", color: t.label, marginTop: "4px", letterSpacing: "0.04em" }}>
                   {item.time}
                 </p>
               </div>
@@ -946,14 +827,13 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
 
-        {/* Guest summary */}
+        {/* Guest Engagement */}
         <div
           style={{
             border: `1px solid ${t.border}`,
             borderTop: "none",
             backgroundColor: t.cardBg,
-            padding: "28px 24px",
-            transition: "background 0.4s, border-color 0.4s",
+            padding: "32px 28px",
           }}
         >
           <p
@@ -962,8 +842,7 @@ const Dashboard: React.FC = () => {
               letterSpacing: "0.24em",
               textTransform: "uppercase",
               color: t.label,
-              marginBottom: "22px",
-              transition: "color 0.4s",
+              marginBottom: "28px",
             }}
           >
             Guest Engagement
@@ -980,23 +859,13 @@ const Dashboard: React.FC = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "baseline",
-                padding: "13px 0",
+                padding: "16px 0",
                 borderBottom: i < 3 ? `1px solid ${t.border}` : "none",
-                transition: "border-color 0.4s",
               }}
             >
-              <p style={{ fontSize: "11px", color: t.textMid, letterSpacing: "0.04em", transition: "color 0.4s" }}>
-                {g.label}
-              </p>
+              <p style={{ fontSize: "12px", color: t.textMid, letterSpacing: "0.04em" }}>{g.label}</p>
               <p
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "24px",
-                  fontWeight: 300,
-                  color: t.text,
-                  letterSpacing: "-0.02em",
-                  transition: "color 0.4s",
-                }}
+                style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "28px", fontWeight: 300, color: t.text }}
               >
                 {g.value}
               </p>
@@ -1012,35 +881,25 @@ const Dashboard: React.FC = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "24px 20px",
-          marginTop: "48px",
+          padding: "32px 20px",
+          marginTop: "64px",
           borderTop: `1px solid ${t.border}`,
-          transition: "border-color 0.4s",
           ...anm(0.75, 0.5),
         }}
       >
         <span
           style={{
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "13px",
+            fontSize: "14px",
             letterSpacing: "0.1em",
             color: t.textDim,
             fontStyle: "italic",
-            transition: "color 0.4s",
           }}
         >
           MirrorAI for Photographers
         </span>
-        <span
-          style={{
-            fontSize: "9px",
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
-            color: t.textDim,
-            transition: "color 0.4s",
-          }}
-        >
-          © 2024
+        <span style={{ fontSize: "9px", letterSpacing: "0.22em", textTransform: "uppercase", color: t.textDim }}>
+          © 2026
         </span>
       </footer>
     </div>
