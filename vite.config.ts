@@ -20,8 +20,10 @@ export default defineConfig(({ mode }) => ({
       "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
       "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
       "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime"),
+      "react-router-dom": path.resolve(__dirname, "node_modules/react-router-dom"),
+      "@tanstack/react-query": path.resolve(__dirname, "node_modules/@tanstack/react-query"),
     },
-    dedupe: ["react", "react-dom", "react-router-dom"],
+    dedupe: ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
   },
   optimizeDeps: {
     include: ["react", "react-dom", "react-dom/client", "react-router-dom", "@tanstack/react-query"],
