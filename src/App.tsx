@@ -13,7 +13,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { SUPER_ADMIN_ROUTES } from "@/config/super-admin-routes";
-import Dashboard from "./pages/Dashboard";
+// Dashboard.tsx is no longer routed — /dashboard redirects to /home
 
 // ─── Lazy-loaded pages ───
 const Auth = lazy(() => import("./pages/Auth").then((m) => ({ default: m.default })));
