@@ -6,7 +6,7 @@ import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import CreateFeedPostModal from "@/components/CreateFeedPostModal";
 import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { toast } from "sonner";
-import { LayoutGrid, Diamond } from "lucide-react";
+import { LayoutGrid, Diamond, Sun, Moon } from "lucide-react";
 import { colors, fonts } from "@/styles/design-tokens";
 
 /** Read current theme and return adaptive colors */
