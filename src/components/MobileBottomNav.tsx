@@ -20,10 +20,9 @@ const CREATE_ACTIONS = [
 ];
 
 const TOOL_ACTIONS = [
-  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
-  { title: "Refyn", url: "/colour-store", icon: Palette },
   { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
-  { title: "Album Designer", url: "/dashboard/album-designer", icon: Layers },
+  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
+  { title: "Retouch", url: "/colour-store", icon: Palette },
 ];
 
 export function MobileBottomNav() {

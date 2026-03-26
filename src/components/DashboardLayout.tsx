@@ -50,6 +50,7 @@ const NAV_SECTIONS = [
     items: [
       { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
       { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
+      { title: "Retouch", url: "/colour-store", icon: Palette },
     ],
   },
   {
@@ -60,11 +61,11 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: "SETTINGS",
+    label: "ACCOUNT",
     items: [
-      { title: "Domains", url: "/dashboard/domains", icon: Globe },
+      { title: "Settings", url: "/dashboard/settings", icon: Compass },
       { title: "Profile", url: "/dashboard/profile", icon: User },
-      { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
+      { title: "Billing", url: "/dashboard/billing", icon: BarChart2 },
     ],
   },
 ];
