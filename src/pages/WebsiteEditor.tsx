@@ -149,6 +149,17 @@ const WebsiteEditor = () => {
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
 
+  // ── Load template fonts ──
+  useEffect(() => {
+    if (!document.getElementById('website-template-fonts')) {
+      const link = document.createElement('link');
+      link.id = 'website-template-fonts';
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Syne:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Nunito+Sans:wght@300;400;500;600;700&display=swap';
+      document.head.appendChild(link);
+    }
+  }, []);
+
   // ── Load all data ──
   useEffect(() => {
     if (!user) return;

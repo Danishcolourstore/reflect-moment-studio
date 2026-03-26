@@ -30,7 +30,7 @@ export function WebsiteHeader({ template, branding, eventName, onScrollToGallery
     ...(onScrollToContact ? [{ label: 'Contact', onClick: onScrollToContact }] : []),
   ];
 
-  const isTransparent = ['vows-elegance'].includes(template);
+  const isTransparent = t.headerStyle === 'transparent';
 
   if (!isTransparent) {
     return (
