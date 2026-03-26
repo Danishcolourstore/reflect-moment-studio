@@ -22,6 +22,8 @@ import {
   Compass,
   Bot,
   Home,
+  Smartphone,
+  Monitor,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { EntiranProvider, useEntiranOpen } from "@/components/entiran/EntiranProvider";
