@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { useDeviceDetect } from "@/hooks/use-device-detect";
 import { useViewMode } from "@/lib/ViewModeContext";
 import {
   LayoutGrid,
@@ -24,6 +23,7 @@ import {
   Home,
   Smartphone,
   Monitor,
+  RotateCw,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { EntiranProvider, useEntiranOpen } from "@/components/entiran/EntiranProvider";
@@ -158,9 +158,7 @@ function useIsLightTheme(theme: ThemeMode) {
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
-  const device = useDeviceDetect();
-  const { isLandscape, toggleViewMode } = useViewMode();
-  const showDomainNudge = useDomainNudge(user?.id);
+  const { viewMode, isDesktop, isMobile, setViewMode, cycleViewMode } = useViewMode();
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -247,8 +245,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const storageLimit = storage.data?.limit ?? PLAN_LIMITS.free;
   const storagePct = Math.min((storageUsed / storageLimit) * 100, 100);
 
-  const showSidebar = device.isDesktop || device.isTablet || (device.isPhone && isLandscape);
-  const showBottomNav = device.isPhone && !isLandscape;
+  const showSidebar = isDesktop;
+  const showBottomNav = isMobile;
   const sidebarWidth = 200;
 
   const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
@@ -275,26 +273,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     avatarText: isLt ? "rgba(0,0,0,0.5)" : "rgba(240,237,232,0.5)",
   };
 
-  // Landscape mode on phone: render at desktop width, scale down to fit
-  const isScaledLandscape = device.isPhone && isLandscape;
-  const VIRTUAL_WIDTH = 1280;
-  const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 404;
-  const scaleFactor = isScaledLandscape ? screenWidth / VIRTUAL_WIDTH : 1;
+  // View mode icon & label
+  const ViewModeIcon = viewMode === 'desktop' ? Monitor : viewMode === 'mobile' ? Smartphone : RotateCw;
+  const viewModeLabel = viewMode === 'desktop' ? 'Desktop' : viewMode === 'mobile' ? 'Mobile' : 'Auto';
 
   return (
     <EntiranProvider>
       <div
-        className="min-h-screen"
+        className="min-h-screen transition-all duration-300"
         style={{
           background: pal.bg,
           overflowY: "auto",
-          overflowX: isScaledLandscape ? "hidden" : "hidden",
-          ...(isScaledLandscape ? {
-            width: VIRTUAL_WIDTH,
-            minHeight: `${100 / scaleFactor}vh`,
-            transform: `scale(${scaleFactor})`,
-            transformOrigin: "top left",
-          } : {}),
+          overflowX: "hidden",
         }}
       >
         {/* ── Desktop Sidebar ── */}
@@ -466,21 +456,23 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* View mode toggle - portrait/landscape */}
+            {/* View mode toggle - auto/desktop/mobile */}
             <button
-              onClick={toggleViewMode}
-              className="flex items-center justify-center transition-colors rounded-full"
+              onClick={cycleViewMode}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all"
               style={{
-                minWidth: 32, minHeight: 32,
+                minHeight: 32,
                 background: pal.accentDotBg,
                 border: `1px solid ${pal.accentDotBorder}`,
+                fontFamily: dm,
+                fontSize: 10,
+                color: pal.textMuted,
+                fontWeight: 500,
               }}
-              title={isLandscape ? "Switch to Portrait" : "Switch to Landscape"}
+              title={`View: ${viewModeLabel}`}
             >
-              {isLandscape
-                ? <Smartphone className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
-                : <Monitor className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
-              }
+              <ViewModeIcon className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
+              <span className="hidden sm:inline">{viewModeLabel}</span>
             </button>
             {/* Accent toggle */}
             <button
@@ -553,25 +545,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         {showBottomNav && <MobileBottomNav />}
 
-        {/* Floating exit landscape button */}
-        {isScaledLandscape && (
-          <button
-            onClick={toggleViewMode}
-            className="fixed z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg transition-all"
-            style={{
-              bottom: 16 / scaleFactor,
-              right: 16 / scaleFactor,
-              background: pal.brandColor,
-              color: pal.bg,
-              fontFamily: dm,
-              fontSize: 11,
-              fontWeight: 600,
-            }}
-          >
-            <Smartphone className="h-3.5 w-3.5" />
-            Exit PC View
-          </button>
-        )}
       </div>
     </EntiranProvider>
   );
