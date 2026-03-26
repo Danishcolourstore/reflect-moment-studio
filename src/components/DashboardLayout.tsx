@@ -471,7 +471,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               }}
               title={`View: ${viewModeLabel}`}
             >
-              <viewModeIcon className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
+              <ViewModeIcon className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
               <span className="hidden sm:inline">{viewModeLabel}</span>
             </button>
             {/* Accent toggle */}
