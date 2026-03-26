@@ -66,6 +66,9 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
   const isEditorial = template === 'editorial-luxury';
   const isModernGrid = template === 'modern-photography-grid';
   const isCinematic = template === 'cinematic-wedding-story';
+  const isCleanMinimal = template === 'clean-minimal';
+  const isMagazine = template === 'magazine-editorial';
+  const isWarmOrganic = template === 'warm-organic';
 
   // ── Cinematic Wedding Story Hero ──
   if (isCinematic) {
