@@ -342,12 +342,12 @@ export default function LandingGate() {
                   }}>
                     {item.type === "post" && (
                       <>
-                        <button onClick={() => handleEditPost(item)}
-                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                         <button onClick={() => handleEditPost(item)}
+                          onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                           style={menuBtn}>✏️ Edit Post</button>
                         <button onClick={() => handleDeletePost(item.id)}
-                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                           style={{ ...menuBtn, color: "#CC3333" }}>🗑 Delete Post</button>
                       </>
@@ -355,11 +355,11 @@ export default function LandingGate() {
                     {item.type === "event" && (
                       <>
                         <button onClick={() => { navigate(`/dashboard/events/${item.id}`); setMenuOpenId(null); }}
-                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                           style={menuBtn}>📂 Open Event</button>
                         <button onClick={() => handleHideEvent(item.id)}
-                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                           style={menuBtn}>👁 Hide from Feed</button>
                       </>
@@ -369,7 +369,7 @@ export default function LandingGate() {
                         navigator.clipboard.writeText(`${window.location.origin}/feed/${shareSlug}`);
                         toast.success("Link copied!"); setMenuOpenId(null);
                       }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                        onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                         style={menuBtn}>🔗 Copy Share Link</button>
                     )}
