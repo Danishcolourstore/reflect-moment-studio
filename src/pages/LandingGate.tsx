@@ -232,13 +232,34 @@ export default function LandingGate() {
         <span style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 500, color: c.text, letterSpacing: "0.08em" }}>
           MirrorAI
         </span>
-        <button onClick={() => navigate("/dashboard/events")} style={{
-          background: "none", border: "none", cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          width: 36, height: 36,
-        }}>
-          <LayoutGrid className="h-[18px] w-[18px]" style={{ color: c.textMuted }} strokeWidth={1.5} />
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <button
+            onClick={() => {
+              const cur = localStorage.getItem("theme") || "dark";
+              const next = cur === "dark" ? "light" : "dark";
+              document.documentElement.className = next;
+              localStorage.setItem("theme", next);
+              localStorage.setItem("andhakaar-mode", next === "dark" ? "on" : "off");
+            }}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: 36, height: 36,
+            }}
+            aria-label="Toggle theme"
+          >
+            {c.isLight
+              ? <Moon className="h-[16px] w-[16px]" style={{ color: c.textMuted }} strokeWidth={1.5} />
+              : <Sun className="h-[16px] w-[16px]" style={{ color: c.textMuted }} strokeWidth={1.5} />}
+          </button>
+          <button onClick={() => navigate("/dashboard/events")} style={{
+            background: "none", border: "none", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: 36, height: 36,
+          }}>
+            <LayoutGrid className="h-[18px] w-[18px]" style={{ color: c.textMuted }} strokeWidth={1.5} />
+          </button>
+        </div>
       </div>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
