@@ -96,16 +96,19 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Home",
   "/dashboard/events": "Events",
   "/dashboard/website-editor": "Portfolio",
-  "/dashboard/domains": "Domains",
   "/dashboard/storybook": "Storybook",
-  "/dashboard/album-designer": "Albums",
+  "/dashboard/album-designer": "Storybook · Albums",
   "/dashboard/cheetah-live": "Cheetah",
   "/dashboard/clients": "Clients",
   "/dashboard/analytics": "Analytics",
-  "/dashboard/notifications": "Notifications",
+  "/dashboard/settings": "Settings",
+  "/dashboard/domains": "Settings · Domains",
   "/dashboard/branding": "Branding",
   "/dashboard/profile": "Profile",
+  "/dashboard/billing": "Billing",
+  "/dashboard/notifications": "Notifications",
   "/dashboard/onboarding": "Welcome",
+  "/colour-store": "Retouch",
 };
 
 type ThemeMode = "dark" | "light" | "versace" | "classic" | "darkroom";
