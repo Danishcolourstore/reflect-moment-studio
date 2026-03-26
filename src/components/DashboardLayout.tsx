@@ -247,9 +247,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const storageLimit = storage.data?.limit ?? PLAN_LIMITS.free;
   const storagePct = Math.min((storageUsed / storageLimit) * 100, 100);
 
-  const showSidebar = device.isDesktop || device.isTablet;
-  const showBottomNav = device.isPhone;
-  const sidebarWidth = 200;
+  const showSidebar = device.isDesktop || device.isTablet || (device.isPhone && isLandscape);
+  const showBottomNav = device.isPhone && !isLandscape;
+  const sidebarWidth = isLandscape && device.isPhone ? 180 : 200;
 
   const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
   const isLt = useIsLightTheme(theme);
