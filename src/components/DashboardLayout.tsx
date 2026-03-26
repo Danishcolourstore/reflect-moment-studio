@@ -41,9 +41,8 @@ const NAV_SECTIONS = [
     label: "STUDIO",
     items: [
       { title: "Home", url: "/home", icon: Home, end: true },
-      { title: "Overview", url: "/dashboard", icon: LayoutGrid, end: true },
       { title: "Events", url: "/dashboard/events", icon: Camera },
-      { title: "Studio Feed", url: "/dashboard/website-editor", icon: Globe },
+      { title: "Portfolio", url: "/dashboard/website-editor", icon: Globe },
     ],
   },
   {
@@ -93,9 +92,9 @@ function useDomainNudge(userId: string | undefined) {
 }
 
 const PAGE_TITLES: Record<string, string> = {
-  "/dashboard": "Overview",
+  "/dashboard": "Home",
   "/dashboard/events": "Events",
-  "/dashboard/website-editor": "Studio Feed",
+  "/dashboard/website-editor": "Portfolio",
   "/dashboard/domains": "Domains",
   "/dashboard/storybook": "Storybook",
   "/dashboard/album-designer": "Albums",

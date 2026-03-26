@@ -21,7 +21,7 @@ interface RecentEvent {
 const NAV_LINKS = [
   { label: "Home", path: "/home" },
   { label: "Events", path: "/dashboard/events" },
-  { label: "Studio Feed", path: "/dashboard/website-editor" },
+  { label: "Portfolio", path: "/dashboard/website-editor" },
   { label: "Albums", path: "/dashboard/album-designer" },
   { label: "Storybook", path: "/dashboard/storybook" },
   { label: "Clients", path: "/dashboard/clients" },
