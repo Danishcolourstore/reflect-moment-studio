@@ -216,28 +216,28 @@ export default function LandingGate() {
   };
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF", overflowY: "auto" as const }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: c.bg, overflowY: "auto" as const }}>
       {/* ── Top Bar ── */}
       <div style={{
         position: "sticky" as const, top: 0, zIndex: 100, height: mob ? 52 : 56,
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 20px", background: "rgba(255,255,255,0.96)",
-        backdropFilter: "blur(20px)", borderBottom: "1px solid #F2F2F2",
+        padding: "0 20px", background: c.bgBar,
+        backdropFilter: "blur(20px)", borderBottom: `1px solid ${c.border}`,
       }}>
         <button onClick={drawer.toggle} style={{
           background: "none", border: "none", fontFamily: fonts.body, fontSize: 10,
-          fontWeight: 600, color: "#999999", letterSpacing: "0.2em",
+          fontWeight: 600, color: c.textMuted, letterSpacing: "0.2em",
           cursor: "pointer", textTransform: "uppercase" as const,
         }}>MENU</button>
-        <span style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 500, color: "#000000", letterSpacing: "0.08em" }}>
+        <span style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 500, color: c.text, letterSpacing: "0.08em" }}>
           MirrorAI
         </span>
-        <button onClick={() => navigate("/dashboard")} style={{
+        <button onClick={() => navigate("/dashboard/events")} style={{
           background: "none", border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
           width: 36, height: 36,
         }}>
-          <LayoutGrid className="h-[18px] w-[18px]" style={{ color: "#999999" }} strokeWidth={1.5} />
+          <LayoutGrid className="h-[18px] w-[18px]" style={{ color: c.textMuted }} strokeWidth={1.5} />
         </button>
       </div>
 
