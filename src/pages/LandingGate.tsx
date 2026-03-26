@@ -7,7 +7,7 @@ import CreateFeedPostModal from "@/components/CreateFeedPostModal";
 import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { toast } from "sonner";
 import { LayoutGrid, Sun, Moon } from "lucide-react";
-import { BusinessDashboard } from "@/components/business/BusinessDashboard";
+import { HomeDashboardHub } from "@/components/HomeDashboardHub";
 import { useBusinessSuite } from "@/hooks/use-business-suite";
 import { colors, fonts } from "@/styles/design-tokens";
 
@@ -435,12 +435,7 @@ export default function LandingGate() {
       {/* ── Dashboard Content ── */}
       {activeTab === "dashboard" && (
         <div style={{ padding: mob ? "12px 16px 80px" : "20px 24px 100px" }}>
-          <BusinessDashboard
-            insights={insights}
-            leads={leads}
-            bookings={bookings}
-            onTabChange={() => navigate("/dashboard/business")}
-          />
+          <HomeDashboardHub insights={insights} leads={leads} bookings={bookings} />
         </div>
       )}
 
