@@ -204,14 +204,14 @@ export default function LandingGate() {
   };
 
   const DotsIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill={colors.textMuted}>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={c.dotsColor}>
       <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
     </svg>
   );
 
   const menuBtn: React.CSSProperties = {
     width: "100%", padding: "10px 16px", fontFamily: fonts.body, fontSize: 12,
-    color: "#000000", background: "transparent", border: "none",
+    color: c.text, background: "transparent", border: "none",
     textAlign: "left" as const, cursor: "pointer",
   };
 
