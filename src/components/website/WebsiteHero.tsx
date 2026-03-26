@@ -69,6 +69,238 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
   const isCleanMinimal = template === 'clean-minimal';
   const isMagazine = template === 'magazine-editorial';
   const isWarmOrganic = template === 'warm-organic';
+  const isBoldPortfolio = template === 'bold-portfolio';
+  const isElegantFolio = template === 'elegant-folio';
+  const isStarterOne = template === 'starter-one';
+  const isNoirStarter = template === 'noir-starter';
+
+  // ── Bold Portfolio Hero ──
+  if (isBoldPortfolio) {
+    const navItems = ['Work', 'About', 'Contact'];
+    return (
+      <section id={id} className="relative min-h-screen" style={{ minHeight: '100dvh', backgroundColor: '#0A0A0A' }}>
+        {coverUrl ? (
+          <>
+            <div className="absolute inset-0 overflow-hidden">
+              <img src={coverUrl} alt={heroAlt(studioName, 'bold portfolio photography')} className="absolute inset-0 h-full w-full object-cover" loading="eager" style={{ filter: 'grayscale(0.15) contrast(1.15) brightness(0.7)' }} />
+            </div>
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(10,10,10,0.5) 0%, rgba(10,10,10,0.2) 40%, rgba(10,10,10,0.7) 80%, rgba(10,10,10,0.95) 100%)' }} />
+          </>
+        ) : (
+          <div className="absolute inset-0" style={{ backgroundColor: '#0A0A0A' }} />
+        )}
+        <MobileNavOverlay items={navItems} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} color="#F0F0F0" />
+        <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-8 md:px-16 py-6 sm:py-8">
+          {branding.studio_logo_url ? (
+            <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-8 sm:h-10 object-contain" loading="eager" />
+          ) : (
+            <span className="text-sm sm:text-base uppercase tracking-[0.25em] font-bold" style={{ color: '#F0F0F0', fontFamily: '"Space Grotesk", sans-serif' }}>
+              {studioName}
+            </span>
+          )}
+          <div className="hidden md:flex items-center gap-10">
+            {navItems.map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-[11px] uppercase tracking-[0.2em] font-semibold transition-opacity hover:opacity-100" style={{ color: '#F0F0F0', opacity: 0.5, fontFamily: '"Space Grotesk", sans-serif' }}>
+                {item}
+              </a>
+            ))}
+          </div>
+          <button className="md:hidden p-2 -mr-2" onClick={() => setMobileMenuOpen(true)} aria-label="Menu">
+            <Menu className="h-5 w-5" style={{ color: '#F0F0F0' }} />
+          </button>
+        </nav>
+        <div className="relative z-10 flex flex-col items-start justify-end min-h-screen px-6 sm:px-12 md:px-20 pb-16 sm:pb-24" style={{ minHeight: '100dvh' }}>
+          {tagline && (
+            <p className="text-[11px] sm:text-xs tracking-[0.3em] uppercase font-semibold mb-4 sm:mb-6" style={{ color: '#888', fontFamily: '"Space Grotesk", sans-serif' }}>
+              {tagline}
+            </p>
+          )}
+          <h1 className="text-[clamp(3rem,12vw,10rem)] font-normal uppercase leading-[0.85] tracking-[0.02em]" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif', color: '#F0F0F0' }}>
+            {studioName}
+          </h1>
+          {btnLabel && (
+            <a href={btnUrl || '#work'} className="mt-8 sm:mt-12 inline-block">
+              <button className="h-12 px-10 text-[11px] uppercase tracking-[0.25em] font-bold bg-white text-black transition-all duration-300 hover:bg-white/90" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                {btnLabel}
+              </button>
+            </a>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  // ── Elegant Folio Hero ──
+  if (isElegantFolio) {
+    const navItems = ['Portfolio', 'About', 'Journal', 'Contact'];
+    return (
+      <section id={id} style={{ backgroundColor: '#FDFBF8' }}>
+        <MobileNavOverlay items={navItems} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} color="#1C1917" />
+        <nav className="flex items-center justify-between px-4 sm:px-6 md:px-16 py-5 sm:py-6" style={{ borderBottom: '1px solid rgba(28,25,23,0.06)' }}>
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.slice(0, 2).map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-[10px] uppercase tracking-[0.18em] font-medium transition-opacity hover:opacity-60" style={{ color: '#78716C', fontFamily: '"Outfit", sans-serif' }}>
+                {item}
+              </a>
+            ))}
+          </div>
+          <div className="flex-1 md:flex-none text-center">
+            {branding.studio_logo_url ? (
+              <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-8 sm:h-10 object-contain mx-auto" loading="eager" />
+            ) : (
+              <span className="text-lg sm:text-xl tracking-[0.06em] font-light" style={{ color: '#1C1917', fontFamily: '"Cormorant Garamond", Georgia, serif' }}>
+                {studioName}
+              </span>
+            )}
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.slice(2).map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-[10px] uppercase tracking-[0.18em] font-medium transition-opacity hover:opacity-60" style={{ color: '#78716C', fontFamily: '"Outfit", sans-serif' }}>
+                {item}
+              </a>
+            ))}
+          </div>
+          <button className="md:hidden p-2 -mr-2" onClick={() => setMobileMenuOpen(true)} aria-label="Menu">
+            <Menu className="h-5 w-5" style={{ color: '#1C1917' }} />
+          </button>
+        </nav>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-12 py-14 sm:py-20 md:py-28 text-center">
+          {tagline && (
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] font-medium mb-4 sm:mb-6" style={{ color: '#78716C', fontFamily: '"Outfit", sans-serif' }}>
+              {tagline}
+            </p>
+          )}
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-[0.03em] leading-[1.05]" style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: '#1C1917' }}>
+            {studioName}
+          </h1>
+          <div className="mt-6 w-12 h-[1px] mx-auto" style={{ backgroundColor: '#78716C', opacity: 0.3 }} />
+          {coverUrl && (
+            <div className="mt-10 sm:mt-14 overflow-hidden">
+              <img src={coverUrl} alt={heroAlt(studioName, 'elegant fine art photography')} className="w-full aspect-[16/7] object-cover" loading="eager" />
+            </div>
+          )}
+          {btnLabel && (
+            <a href={btnUrl || '#portfolio'} className="mt-8 sm:mt-10 inline-block">
+              <button className="h-11 px-8 text-[10px] uppercase tracking-[0.2em] font-medium border rounded-full transition-all duration-300 hover:bg-[#1C1917] hover:text-[#FDFBF8]" style={{ color: '#1C1917', borderColor: '#1C1917', fontFamily: '"Outfit", sans-serif' }}>
+                {btnLabel}
+              </button>
+            </a>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  // ── Starter One Hero ──
+  if (isStarterOne) {
+    const navItems = ['Work', 'About', 'Contact'];
+    return (
+      <section id={id} style={{ backgroundColor: '#FFFFFF' }}>
+        <MobileNavOverlay items={navItems} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} color="#111111" />
+        <nav className="flex items-center justify-between px-4 sm:px-6 md:px-12 py-4 sm:py-5" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          {branding.studio_logo_url ? (
+            <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-7 sm:h-8 object-contain" loading="eager" />
+          ) : (
+            <span className="text-sm sm:text-base font-semibold" style={{ color: '#111111', fontFamily: '"Inter", system-ui, sans-serif' }}>
+              {studioName}
+            </span>
+          )}
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-[11px] uppercase tracking-[0.12em] font-medium transition-opacity hover:opacity-60" style={{ color: '#6B7280', fontFamily: '"Inter", system-ui, sans-serif' }}>
+                {item}
+              </a>
+            ))}
+          </div>
+          <button className="md:hidden p-2 -mr-2" onClick={() => setMobileMenuOpen(true)} aria-label="Menu">
+            <Menu className="h-5 w-5" style={{ color: '#111111' }} />
+          </button>
+        </nav>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-20 md:py-28 text-center">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold leading-tight tracking-tight" style={{ fontFamily: '"Inter", system-ui, sans-serif', color: '#111111' }}>
+            {studioName}
+          </h1>
+          {tagline && (
+            <p className="text-sm sm:text-base mt-3 sm:mt-4 max-w-lg mx-auto" style={{ color: '#6B7280', fontFamily: '"Inter", system-ui, sans-serif' }}>
+              {tagline}
+            </p>
+          )}
+          {coverUrl && (
+            <div className="mt-8 sm:mt-12 overflow-hidden rounded-xl">
+              <img src={coverUrl} alt={heroAlt(studioName, 'photography portfolio')} className="w-full aspect-[16/9] object-cover" loading="eager" />
+            </div>
+          )}
+          {btnLabel && (
+            <a href={btnUrl || '#work'} className="mt-6 sm:mt-8 inline-block">
+              <button className="h-10 sm:h-11 px-6 sm:px-8 text-[11px] uppercase tracking-[0.14em] font-semibold rounded-full transition-all duration-300" style={{ backgroundColor: '#111111', color: '#FFFFFF', fontFamily: '"Inter", system-ui, sans-serif' }}>
+                {btnLabel}
+              </button>
+            </a>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  // ── Noir Starter Hero ──
+  if (isNoirStarter) {
+    const navItems = ['Portfolio', 'About', 'Contact'];
+    return (
+      <section id={id} className="relative min-h-screen" style={{ minHeight: '100dvh', backgroundColor: '#0D0D0D' }}>
+        {coverUrl ? (
+          <>
+            <div className="absolute inset-0 overflow-hidden">
+              <img src={coverUrl} alt={heroAlt(studioName, 'noir cinematic photography')} className="absolute inset-0 h-full w-full object-cover" loading="eager" style={{ filter: 'brightness(0.55) contrast(1.1)', animation: 'noirZoom 20s ease-in-out infinite alternate' }} />
+            </div>
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(13,13,13,0.3) 0%, rgba(13,13,13,0.1) 30%, rgba(13,13,13,0.6) 75%, rgba(13,13,13,0.95) 100%)' }} />
+          </>
+        ) : (
+          <div className="absolute inset-0" style={{ backgroundColor: '#0D0D0D' }} />
+        )}
+        <MobileNavOverlay items={navItems} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} color="#E8E4DF" />
+        <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-8 md:px-14 py-6 sm:py-8">
+          {branding.studio_logo_url ? (
+            <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-8 sm:h-10 object-contain" loading="eager" />
+          ) : (
+            <span className="text-base sm:text-lg tracking-[0.04em] font-normal" style={{ color: '#E8E4DF', fontFamily: '"Prata", Georgia, serif' }}>
+              {studioName}
+            </span>
+          )}
+          <div className="hidden md:flex items-center gap-10">
+            {navItems.map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-[10px] uppercase tracking-[0.22em] font-medium transition-opacity hover:opacity-100" style={{ color: '#E8E4DF', opacity: 0.5, fontFamily: '"Manrope", sans-serif' }}>
+                {item}
+              </a>
+            ))}
+          </div>
+          <button className="md:hidden p-2 -mr-2" onClick={() => setMobileMenuOpen(true)} aria-label="Menu">
+            <Menu className="h-5 w-5" style={{ color: '#E8E4DF' }} />
+          </button>
+        </nav>
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center" style={{ minHeight: '100dvh' }}>
+          {tagline && (
+            <p className="text-[10px] sm:text-xs tracking-[0.35em] uppercase font-medium mb-4 sm:mb-6" style={{ color: '#7A756E', fontFamily: '"Manrope", sans-serif' }}>
+              {tagline}
+            </p>
+          )}
+          <h1 className="text-[clamp(2.5rem,9vw,8rem)] font-normal tracking-[0.02em] leading-[0.95]" style={{ fontFamily: '"Prata", Georgia, serif', color: '#E8E4DF' }}>
+            {studioName}
+          </h1>
+          {btnLabel && (
+            <a href={btnUrl || '#portfolio'} className="mt-10 sm:mt-14 inline-block group">
+              <span className="text-[11px] uppercase tracking-[0.25em] font-medium pb-1 border-b transition-all duration-300 group-hover:border-white/60" style={{ color: '#E8E4DF', borderColor: 'rgba(232,228,223,0.3)', fontFamily: '"Manrope", sans-serif' }}>
+                {btnLabel}
+              </span>
+            </a>
+          )}
+        </div>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 opacity-25 animate-bounce">
+          <ChevronDown className="h-5 w-5" style={{ color: '#E8E4DF' }} />
+        </div>
+        <style>{`@keyframes noirZoom { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }`}</style>
+      </section>
+    );
+  }
 
   // ── Clean Minimal Hero ──
   if (isCleanMinimal) {
