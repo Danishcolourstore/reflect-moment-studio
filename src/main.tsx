@@ -3,20 +3,13 @@ import App from "./App.tsx";
 import "./index.css";
 
 // Apply saved theme immediately to prevent flash
+// Default: 8am–9pm → classic (white), otherwise → dark
 const savedTheme = localStorage.getItem('mirrorai-theme') || localStorage.getItem('theme');
-if (savedTheme === 'editorial') {
-  document.documentElement.classList.add('editorial');
-} else if (savedTheme === 'light') {
-  document.documentElement.classList.add('light');
-} else if (savedTheme === 'classic') {
-  document.documentElement.classList.add('classic');
-} else if (savedTheme === 'versace') {
-  document.documentElement.classList.add('versace');
-} else if (savedTheme === 'darkroom') {
-  document.documentElement.classList.add('darkroom');
-} else {
-  document.documentElement.classList.add('dark');
-}
+const resolvedTheme = savedTheme || (() => {
+  const hour = new Date().getHours();
+  return (hour >= 8 && hour < 21) ? 'classic' : 'dark';
+})();
+document.documentElement.classList.add(resolvedTheme);
 
 // One-time cleanup of legacy service workers/caches that can keep stale UI in production
 if ('serviceWorker' in navigator) {
