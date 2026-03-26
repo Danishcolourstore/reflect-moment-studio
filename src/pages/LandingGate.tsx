@@ -434,15 +434,15 @@ export default function LandingGate() {
         <div style={{ padding: mob ? "12px 0 80px" : "20px 0 100px" }}>
           {artLoading ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading art gallery...</div>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted }}>Loading art gallery...</div>
             </div>
           ) : artPhotos.length === 0 ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
               <Diamond style={{ color: colors.gold, margin: "0 auto 16px", width: 28, height: 28 }} />
-              <div style={{ fontFamily: fonts.display, fontSize: 22, color: "#000000", fontStyle: "italic" }}>
+              <div style={{ fontFamily: fonts.display, fontSize: 22, color: c.text, fontStyle: "italic" }}>
                 No art gallery photos yet
               </div>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999", marginTop: 10, lineHeight: 1.7 }}>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted, marginTop: 10, lineHeight: 1.7 }}>
                 Open any event gallery and tap the diamond icon on photos to feature them here.
               </div>
             </div>
@@ -481,8 +481,8 @@ export default function LandingGate() {
       )}
 
       {/* ── Footer ── */}
-      <div style={{ padding: "24px 20px 40px", textAlign: "center" as const, borderTop: "1px solid #F2F2F2" }}>
-        <div style={{ fontFamily: fonts.body, fontSize: 10, color: "#CCCCCC", letterSpacing: "0.1em" }}>
+      <div style={{ padding: "24px 20px 40px", textAlign: "center" as const, borderTop: `1px solid ${c.border}` }}>
+        <div style={{ fontFamily: fonts.body, fontSize: 10, color: c.textMuted, letterSpacing: "0.1em" }}>
           © MirrorAI · Real Intelligence
         </div>
         <div style={{ width: 4, height: 4, borderRadius: "50%", background: colors.gold, margin: "12px auto 0" }} />
