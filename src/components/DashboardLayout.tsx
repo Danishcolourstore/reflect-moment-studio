@@ -343,7 +343,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               ))}
             </nav>
 
-            <div className="mx-5 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
+            <div className="mx-5 h-px" style={{ background: pal.sidebarBorder }} />
 
             {/* Storage */}
             <div className="px-6 py-4">
@@ -351,7 +351,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 style={{
                   fontFamily: dm,
                   fontSize: 9,
-                  color: "rgba(240,237,232,0.2)",
+                  color: pal.textFaint,
                   letterSpacing: "0.15em",
                   textTransform: "uppercase",
                   marginBottom: 6,
@@ -359,12 +359,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               >
                 Storage
               </p>
-              <p style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.35)" }}>
+              <p style={{ fontFamily: dm, fontSize: 10, color: pal.textMuted }}>
                 {formatBytes(storageUsed)}{" "}
-                <span style={{ color: "rgba(240,237,232,0.15)" }}>/ {formatBytes(storageLimit)}</span>
+                <span style={{ color: pal.textFaint }}>/ {formatBytes(storageLimit)}</span>
               </p>
-              <div className="mt-2 h-px w-full overflow-hidden" style={{ background: "rgba(240,237,232,0.06)" }}>
-                <div className="h-full transition-all" style={{ width: `${storagePct}%`, background: "#E8C97A" }} />
+              <div className="mt-2 h-px w-full overflow-hidden" style={{ background: pal.storageBg }}>
+                <div className="h-full transition-all" style={{ width: `${storagePct}%`, background: pal.brandColor }} />
               </div>
             </div>
 
@@ -373,9 +373,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <button
                 onClick={handleSignOut}
                 className="flex w-full items-center gap-2.5 px-3 py-2 rounded-sm transition-colors"
-                style={{ fontFamily: dm, fontSize: 13, color: "rgba(240,237,232,0.2)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.2)")}
+                style={{ fontFamily: dm, fontSize: 13, color: pal.textFaint }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = pal.textPrimary)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = pal.textFaint)}
               >
                 <LogOut className="h-[15px] w-[15px]" />
                 <span>Sign out</span>
@@ -391,10 +391,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             left: showSidebar ? sidebarWidth : 0,
             height: 48,
             padding: "0 20px",
-            background: "rgba(8,8,8,0.9)",
+            background: pal.headerBg,
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            borderBottom: "1px solid rgba(240,237,232,0.05)",
+            borderBottom: `1px solid ${pal.headerBorder}`,
           }}
         >
           <div className="flex items-center gap-3 min-w-0">
