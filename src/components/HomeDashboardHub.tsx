@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import {
   Camera, Image, Palette, BookOpen, Zap, PenTool,
-  Users, BarChart3, Settings, User, CreditCard, Plus,
+  Users, BarChart3, Settings, User, CreditCard, Plus, ArrowRight,
 } from "lucide-react";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { BusinessInsights, Lead, Booking } from "@/hooks/use-business-suite";
+import { useViewMode } from "@/lib/ViewModeContext";
+import { useDeviceDetect } from "@/hooks/use-device-detect";
+import { colors, fonts, fragments } from "@/styles/design-tokens";
 
 interface HomeDashboardHubProps {
   insights: BusinessInsights;
@@ -13,144 +15,204 @@ interface HomeDashboardHubProps {
   bookings: Booking[];
 }
 
-const FEATURES = [
-  {
-    title: "Events",
-    icon: Camera,
-    url: "/dashboard/events",
-    desc: "Manage galleries",
-    meta: "Photo delivery",
-    gradient: "from-amber-900/40 to-stone-900/60",
-  },
-  {
-    title: "Portfolio",
-    icon: Image,
-    url: "/dashboard/website-editor",
-    desc: "Public website",
-    meta: "Brand presence",
-    gradient: "from-stone-800/50 to-neutral-900/60",
-  },
-  {
-    title: "Branding",
-    icon: Palette,
-    url: "/dashboard/branding",
-    desc: "Brand studio",
-    meta: "Visual identity",
-    gradient: "from-rose-900/30 to-stone-900/60",
-  },
-  {
-    title: "Storybook",
-    icon: BookOpen,
-    url: "/dashboard/storybook",
-    desc: "Albums & stories",
-    meta: "Print design",
-    gradient: "from-indigo-900/30 to-stone-900/60",
-  },
-  {
-    title: "Cheetah",
-    icon: Zap,
-    url: "/dashboard/cheetah-live",
-    desc: "AI culling",
-    meta: "Smart selection",
-    gradient: "from-emerald-900/30 to-stone-900/60",
-  },
-  {
-    title: "Retouch",
-    icon: PenTool,
-    url: "/colour-store",
-    desc: "Photo editing",
-    meta: "Color grading",
-    gradient: "from-violet-900/30 to-stone-900/60",
-  },
-  {
-    title: "Clients",
-    icon: Users,
-    url: "/dashboard/clients",
-    desc: "CRM & leads",
-    meta: "Relationships",
-    gradient: "from-sky-900/30 to-stone-900/60",
-  },
-  {
-    title: "Analytics",
-    icon: BarChart3,
-    url: "/dashboard/analytics",
-    desc: "Performance",
-    meta: "Business insights",
-    gradient: "from-orange-900/30 to-stone-900/60",
-  },
-  {
-    title: "Settings",
-    icon: Settings,
-    url: "/dashboard/settings",
-    desc: "Preferences",
-    meta: "Configuration",
-    gradient: "from-zinc-800/40 to-stone-900/60",
-  },
-  {
-    title: "Profile",
-    icon: User,
-    url: "/dashboard/profile",
-    desc: "Your profile",
-    meta: "Account",
-    gradient: "from-teal-900/30 to-stone-900/60",
-  },
+const QUICK_ACTIONS = [
+  { title: "Events", icon: Camera, url: "/dashboard/events", desc: "Manage galleries & delivery" },
+  { title: "Portfolio", icon: Image, url: "/dashboard/website-editor", desc: "Public website & brand" },
+  { title: "Storybook", icon: BookOpen, url: "/dashboard/storybook", desc: "Albums & print design" },
+  { title: "Cheetah", icon: Zap, url: "/dashboard/cheetah-live", desc: "AI-powered culling" },
+  { title: "Retouch", icon: PenTool, url: "/colour-store", desc: "Color grading & editing" },
+  { title: "Clients", icon: Users, url: "/dashboard/clients", desc: "CRM & relationships" },
+];
+
+const SECONDARY = [
+  { title: "Analytics", icon: BarChart3, url: "/dashboard/analytics" },
+  { title: "Branding", icon: Palette, url: "/dashboard/branding" },
+  { title: "Settings", icon: Settings, url: "/dashboard/settings" },
+  { title: "Profile", icon: User, url: "/dashboard/profile" },
 ];
 
 export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHubProps) {
   const navigate = useNavigate();
+  const device = useDeviceDetect();
+  const { isLandscape } = useViewMode();
+  const isDesktopView = device.isDesktop || device.isTablet || isLandscape;
 
+  // ── Desktop / Landscape layout ──
+  if (isDesktopView) {
+    return (
+      <div style={{ fontFamily: fonts.body }}>
+        {/* Hero header */}
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <p style={{ ...fragments.label, marginBottom: 8 }}>DASHBOARD</p>
+            <h1 style={{ fontFamily: fonts.display, fontSize: 36, fontWeight: 300, color: colors.text, letterSpacing: "0.04em" }}>
+              Your Studio
+            </h1>
+          </div>
+          <Button
+            onClick={() => navigate("/dashboard/events")}
+            className="h-11 px-5 gap-2 rounded-lg"
+            style={{ fontFamily: fonts.body, fontSize: 13, fontWeight: 600 }}
+          >
+            <Plus className="h-4 w-4" />
+            New Event
+          </Button>
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-4 gap-4 mb-10">
+          {[
+            { label: "Gallery Views", value: (insights.totalBookings + insights.totalLeads).toString() },
+            { label: "Active Leads", value: leads.length.toString() },
+            { label: "Bookings", value: bookings.length.toString() },
+            { label: "Conversion", value: `${insights.conversionRate || 0}%` },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="p-5 rounded-xl"
+              style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
+            >
+              <p style={{ ...fragments.label, fontSize: 9, marginBottom: 10 }}>{stat.label}</p>
+              <p style={{ fontFamily: fonts.display, fontSize: 28, fontWeight: 300, color: colors.gold, letterSpacing: "0.02em" }}>
+                {stat.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Main feature grid - 3 cols */}
+        <div className="grid grid-cols-3 gap-5 mb-8">
+          {QUICK_ACTIONS.map((item) => (
+            <button
+              key={item.url}
+              onClick={() => navigate(item.url)}
+              className="group text-left p-6 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
+              style={{
+                background: colors.surface,
+                border: `1px solid ${colors.border}`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(200,169,110,0.3)";
+                e.currentTarget.style.boxShadow = "0 8px 32px rgba(200,169,110,0.06)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = colors.border;
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div
+                  className="flex items-center justify-center rounded-lg"
+                  style={{ width: 44, height: 44, background: "rgba(200,169,126,0.08)" }}
+                >
+                  <item.icon className="h-5 w-5" style={{ color: colors.gold }} strokeWidth={1.5} />
+                </div>
+                <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: colors.textDim }} />
+              </div>
+              <h3 style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 500, color: colors.text, marginBottom: 4 }}>
+                {item.title}
+              </h3>
+              <p style={{ fontSize: 12, color: colors.textDim, lineHeight: 1.5 }}>{item.desc}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* Secondary actions */}
+        <div className="flex items-center gap-3">
+          {SECONDARY.map((item) => (
+            <button
+              key={item.url}
+              onClick={() => navigate(item.url)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all hover:opacity-80"
+              style={{ background: colors.surface, border: `1px solid ${colors.border}`, fontSize: 12, color: colors.textDim }}
+            >
+              <item.icon className="h-3.5 w-3.5" style={{ color: colors.textMuted }} strokeWidth={1.5} />
+              {item.title}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Mobile (Portrait) layout ──
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-1" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-            Dashboard
-          </p>
-          <h1 className="text-2xl sm:text-[32px] font-light tracking-wide text-foreground" style={{ fontFamily: '"Cormorant Garamond", serif' }}>
+    <div style={{ fontFamily: fonts.body }}>
+      {/* Minimal header */}
+      <div className="mb-6">
+        <p style={{ ...fragments.label, fontSize: 9, marginBottom: 6 }}>DASHBOARD</p>
+        <div className="flex items-center justify-between">
+          <h1 style={{ fontFamily: fonts.display, fontSize: 24, fontWeight: 300, color: colors.text, letterSpacing: "0.04em" }}>
             Your Studio
           </h1>
+          <button
+            onClick={() => navigate("/dashboard/events")}
+            className="flex items-center justify-center rounded-full"
+            style={{ width: 36, height: 36, background: colors.gold }}
+          >
+            <Plus className="h-4 w-4" style={{ color: colors.bg }} strokeWidth={2.5} />
+          </button>
         </div>
-        <Button
-          size="sm"
-          onClick={() => navigate("/dashboard/events")}
-          className="h-10 px-4 gap-1.5 rounded-lg"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="text-xs font-medium">New Event</span>
-        </Button>
       </div>
 
-      {/* 2-Column Card Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:gap-5">
-        {FEATURES.map((item) => (
+      {/* Stats - horizontal scroll */}
+      <div className="flex gap-3 mb-6 overflow-x-auto pb-1 -mx-4 px-4" style={{ scrollbarWidth: "none" }}>
+        {[
+          { label: "Activity", value: (insights.totalBookings + insights.totalLeads).toString() },
+          { label: "Leads", value: leads.length.toString() },
+          { label: "Bookings", value: bookings.length.toString() },
+          { label: "Conv.", value: `${insights.conversionRate || 0}%` },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className="flex-shrink-0 px-4 py-3 rounded-lg"
+            style={{ background: colors.surface, border: `1px solid ${colors.border}`, minWidth: 80 }}
+          >
+            <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase" as const, color: colors.textMuted, marginBottom: 4 }}>
+              {stat.label}
+            </p>
+            <p style={{ fontFamily: fonts.display, fontSize: 20, fontWeight: 300, color: colors.gold }}>
+              {stat.value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Feature list - clean, touch-friendly */}
+      <div className="space-y-2 mb-6">
+        {QUICK_ACTIONS.map((item) => (
           <button
             key={item.url}
             onClick={() => navigate(item.url)}
-            className="group text-left rounded-xl border border-border bg-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98]"
+            className="flex items-center gap-4 w-full px-4 py-4 rounded-xl transition-all active:scale-[0.98]"
+            style={{ background: colors.surface, border: `1px solid ${colors.border}` }}
           >
-            {/* Square image area */}
-            <AspectRatio ratio={1}>
-              <div className={`h-full w-full bg-gradient-to-br ${item.gradient} flex items-center justify-center transition-all group-hover:opacity-90`}>
-                <item.icon
-                  className="h-8 w-8 sm:h-10 sm:w-10 text-foreground/50 group-hover:text-primary/80 transition-colors"
-                  strokeWidth={1.2}
-                />
-              </div>
-            </AspectRatio>
-
-            {/* Text content */}
-            <div className="p-3 sm:p-4 space-y-0.5">
-              <h3 className="text-sm sm:text-base font-semibold text-foreground leading-tight" style={{ fontFamily: '"Cormorant Garamond", serif' }}>
-                {item.title}
-              </h3>
-              <p className="text-[11px] sm:text-xs text-muted-foreground leading-snug">
-                {item.desc}
-              </p>
-              <p className="text-[10px] text-muted-foreground/50 pt-0.5" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-                {item.meta}
-              </p>
+            <div
+              className="flex items-center justify-center rounded-lg flex-shrink-0"
+              style={{ width: 40, height: 40, background: "rgba(200,169,126,0.08)" }}
+            >
+              <item.icon className="h-[18px] w-[18px]" style={{ color: colors.gold }} strokeWidth={1.5} />
             </div>
+            <div className="flex-1 text-left min-w-0">
+              <h3 style={{ fontFamily: fonts.display, fontSize: 15, fontWeight: 500, color: colors.text }}>{item.title}</h3>
+              <p className="truncate" style={{ fontSize: 11, color: colors.textDim, marginTop: 1 }}>{item.desc}</p>
+            </div>
+            <ArrowRight className="h-4 w-4 flex-shrink-0" style={{ color: colors.textMuted }} />
+          </button>
+        ))}
+      </div>
+
+      {/* Secondary - compact chips */}
+      <div className="flex flex-wrap gap-2">
+        {SECONDARY.map((item) => (
+          <button
+            key={item.url}
+            onClick={() => navigate(item.url)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all active:scale-[0.97]"
+            style={{ background: colors.surface, border: `1px solid ${colors.border}`, fontSize: 11, color: colors.textDim }}
+          >
+            <item.icon className="h-3 w-3" style={{ color: colors.textMuted }} strokeWidth={1.5} />
+            {item.title}
           </button>
         ))}
       </div>

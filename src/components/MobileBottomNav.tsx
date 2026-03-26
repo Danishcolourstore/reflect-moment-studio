@@ -61,9 +61,11 @@ export function MobileBottomNav() {
       <nav
         className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch"
         style={{
-          height: 56,
-          background: isLt ? "#FFFFFF" : colors.bg,
-          borderTop: `1px solid ${isLt ? "rgba(0,0,0,0.08)" : colors.border}`,
+          height: 60,
+          background: isLt ? "rgba(255,255,255,0.95)" : "rgba(10,10,11,0.95)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderTop: `1px solid ${isLt ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)"}`,
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >
@@ -78,7 +80,7 @@ export function MobileBottomNav() {
                   >
                     <div
                       className="flex items-center justify-center rounded-full"
-                      style={{ width: 28, height: 28, background: colors.gold }}
+                      style={{ width: 32, height: 32, background: colors.gold, boxShadow: "0 2px 8px rgba(200,169,126,0.3)" }}
                     >
                       <Plus className="h-[16px] w-[16px]" style={{ color: colors.bg }} strokeWidth={2.5} />
                     </div>
@@ -88,7 +90,7 @@ export function MobileBottomNav() {
                   side="bottom"
                   className="rounded-t-[20px]"
                   style={{
-                    background: colors.surface,
+                    background: isLt ? "#FFFFFF" : colors.surface,
                     border: "none",
                     paddingBottom: "env(safe-area-inset-bottom, 16px)",
                   }}
@@ -103,10 +105,12 @@ export function MobileBottomNav() {
                       <button
                         key={action.url}
                         onClick={() => { navigate(action.url); setCreateOpen(false); }}
-                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors min-h-[48px]"
-                        style={{ color: colors.text, fontFamily: fonts.body, fontSize: 14 }}
+                        className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl transition-colors min-h-[48px] active:scale-[0.98]"
+                        style={{ color: isLt ? "#1A1A1A" : colors.text, fontFamily: fonts.body, fontSize: 14 }}
                       >
-                        <action.icon className="h-5 w-5" style={{ color: colors.gold }} strokeWidth={1.5} />
+                        <div className="flex items-center justify-center rounded-lg" style={{ width: 36, height: 36, background: "rgba(200,169,126,0.1)" }}>
+                          <action.icon className="h-[18px] w-[18px]" style={{ color: colors.gold }} strokeWidth={1.5} />
+                        </div>
                         {action.title}
                       </button>
                     ))}
@@ -122,17 +126,17 @@ export function MobileBottomNav() {
                 <SheetTrigger asChild>
                   <button
                     className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
-                    style={{ color: isLt ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.45)" }}
+                    style={{ color: isLt ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.4)" }}
                   >
-                    <tab.icon className="h-[22px] w-[22px]" strokeWidth={1.6} />
-                    <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 500 }}>{tab.title}</span>
+                    <tab.icon className="h-[20px] w-[20px]" strokeWidth={1.6} />
+                    <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 500, letterSpacing: "0.02em" }}>{tab.title}</span>
                   </button>
                 </SheetTrigger>
                 <SheetContent
                   side="bottom"
                   className="rounded-t-[20px]"
                   style={{
-                    background: colors.surface,
+                    background: isLt ? "#FFFFFF" : colors.surface,
                     border: "none",
                     paddingBottom: "env(safe-area-inset-bottom, 16px)",
                   }}
@@ -147,10 +151,12 @@ export function MobileBottomNav() {
                       <button
                         key={action.url}
                         onClick={() => { navigate(action.url); setToolsOpen(false); }}
-                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors min-h-[48px]"
-                        style={{ color: colors.text, fontFamily: fonts.body, fontSize: 14 }}
+                        className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl transition-colors min-h-[48px] active:scale-[0.98]"
+                        style={{ color: isLt ? "#1A1A1A" : colors.text, fontFamily: fonts.body, fontSize: 14 }}
                       >
-                        <action.icon className="h-5 w-5" style={{ color: colors.gold }} strokeWidth={1.5} />
+                        <div className="flex items-center justify-center rounded-lg" style={{ width: 36, height: 36, background: "rgba(200,169,126,0.1)" }}>
+                          <action.icon className="h-[18px] w-[18px]" style={{ color: colors.gold }} strokeWidth={1.5} />
+                        </div>
                         {action.title}
                       </button>
                     ))}
@@ -165,11 +171,18 @@ export function MobileBottomNav() {
             <button
               key={tab.url}
               onClick={() => navigate(tab.url)}
-              className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors"
-              style={{ color: active ? colors.gold : (isLt ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.4)") }}
+              className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-all active:scale-[0.95]"
+              style={{ color: active ? colors.gold : (isLt ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.35)") }}
             >
-              <tab.icon className="h-[22px] w-[22px]" strokeWidth={1.6} />
-              <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 500 }}>{tab.title}</span>
+              <tab.icon className="h-[20px] w-[20px]" strokeWidth={active ? 2 : 1.6} />
+              <span style={{
+                fontFamily: fonts.body, fontSize: 10, fontWeight: active ? 600 : 500,
+                letterSpacing: "0.02em",
+                opacity: active ? 1 : 0.8,
+              }}>{tab.title}</span>
+              {active && (
+                <div style={{ width: 4, height: 4, borderRadius: "50%", background: colors.gold, marginTop: -2 }} />
+              )}
             </button>
           );
         })}

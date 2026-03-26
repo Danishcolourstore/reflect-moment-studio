@@ -416,38 +416,53 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           className="fixed top-0 right-0 z-20 flex items-center justify-between"
           style={{
             left: showSidebar ? sidebarWidth : 0,
-            height: 48,
-            padding: "0 20px",
+            height: showBottomNav ? 52 : 48,
+            padding: showBottomNav ? "0 16px" : "0 20px",
             background: pal.headerBg,
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
             borderBottom: `1px solid ${pal.headerBorder}`,
           }}
         >
-          <div className="flex items-center gap-3 min-w-0">
-            {!showSidebar && location.pathname !== "/dashboard" && location.pathname !== "/home" && (
-              <button
-                onClick={() => navigate(-1)}
-                className="flex items-center justify-center transition-colors"
-                style={{ color: pal.textMuted }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = pal.textPrimary)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = pal.textMuted)}
+          <div className="flex items-center gap-2.5 min-w-0">
+            {showBottomNav && location.pathname === "/home" ? (
+              /* Brand mark on mobile home */
+              <h2
+                style={{
+                  fontFamily: cormorant,
+                  fontSize: 17,
+                  fontWeight: 500,
+                  color: pal.brandColor,
+                  letterSpacing: "0.12em",
+                }}
               >
-                <ChevronRight className="h-5 w-5 rotate-180" />
-              </button>
+                MirrorAI
+              </h2>
+            ) : (
+              <>
+                {!showSidebar && location.pathname !== "/dashboard" && location.pathname !== "/home" && (
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="flex items-center justify-center transition-colors min-w-[32px] min-h-[32px]"
+                    style={{ color: pal.textMuted }}
+                  >
+                    <ChevronRight className="h-5 w-5 rotate-180" />
+                  </button>
+                )}
+                <h2
+                  className="truncate"
+                  style={{
+                    fontFamily: cormorant,
+                    fontSize: showBottomNav ? 15 : 16,
+                    fontWeight: 400,
+                    color: pal.textSubtle,
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  {pageTitle}
+                </h2>
+              </>
             )}
-            <h2
-              className="truncate"
-              style={{
-                fontFamily: cormorant,
-                fontSize: 16,
-                fontWeight: 400,
-                color: pal.textSubtle,
-                letterSpacing: "0.08em",
-              }}
-            >
-              {pageTitle}
-            </h2>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
