@@ -296,21 +296,21 @@ export default function LandingGate() {
         <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 80px" : "32px 0 100px" }}>
           {loading ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading your feed...</div>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted }}>Loading your feed...</div>
             </div>
           ) : feed.length === 0 ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.display, fontSize: 24, color: "#000000", fontStyle: "italic" }}>
+              <div style={{ fontFamily: fonts.display, fontSize: 24, color: c.text, fontStyle: "italic" }}>
                 Your feed is empty
               </div>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999", marginTop: 12, lineHeight: 1.7 }}>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted, marginTop: 12, lineHeight: 1.7 }}>
                 Create events or write posts — they'll appear here automatically.
               </div>
               <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24 }}>
                 <button onClick={() => navigate("/dashboard/events")} style={{
                   fontFamily: fonts.body, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
-                  textTransform: "uppercase" as const, color: "#000000",
-                  border: "1px solid #E0E0E0", background: "transparent",
+                  textTransform: "uppercase" as const, color: c.text,
+                  border: `1px solid ${c.btnBorder}`, background: "transparent",
                   padding: "10px 24px", cursor: "pointer",
                 }}>Create Event</button>
                 <button onClick={() => setCreateOpen(true)} style={{
