@@ -443,14 +443,13 @@
 }
 
 /* ── Smooth scrolling per-platform ── */
-.platform-ios * {
+html {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
 }
 
-.platform-android * {
-  overscroll-behavior: contain;
-  scroll-behavior: smooth;
+html.platform-android {
+  overscroll-behavior-y: contain;
 }
 
 /* ── Keyboard shortcut hint visibility ── */
