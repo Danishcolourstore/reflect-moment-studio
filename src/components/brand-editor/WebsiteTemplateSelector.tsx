@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import { type WebsiteTemplateValue } from '@/lib/website-templates';
 import { useWebsiteTemplates } from '@/hooks/use-website-templates';
+import { templatePreviews } from '@/assets/templates';
 
 interface WebsiteTemplateSelectorProps {
   value: WebsiteTemplateValue;
@@ -29,41 +30,27 @@ export function WebsiteTemplateSelector({ value, onChange }: WebsiteTemplateSele
                   : 'border-border/50 hover:border-border'
               }`}
             >
-              {/* Template preview swatch */}
+              {/* Template preview image */}
               <div
-                className="relative h-32 overflow-hidden"
+                className="relative h-36 overflow-hidden"
                 style={{ backgroundColor: tmpl.bg }}
               >
-                {/* Simulated hero */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
-                  <p
-                    className="text-[8px] uppercase tracking-[0.3em] mb-1.5"
-                    style={{ color: tmpl.textSecondary, opacity: 0.5 }}
-                  >
-                    Photography Studio
-                  </p>
-                  <p
-                    className="text-lg font-light tracking-wide"
-                    style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}
-                  >
-                    Your Studio
-                  </p>
-                  <div
-                    className="mt-2 w-6 h-[1px]"
-                    style={{ backgroundColor: tmpl.textSecondary, opacity: 0.3 }}
+                {templatePreviews[tmpl.value] ? (
+                  <img
+                    src={templatePreviews[tmpl.value]}
+                    alt={`${tmpl.label} template preview`}
+                    loading="lazy"
+                    width={800}
+                    height={600}
+                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   />
-                </div>
-
-                {/* Simulated grid */}
-                <div className="absolute bottom-2 left-3 right-3 flex gap-1">
-                  {[1, 2, 3, 4].map(i => (
-                    <div
-                      key={i}
-                      className="flex-1 aspect-square rounded-sm"
-                      style={{ backgroundColor: tmpl.cardBg, opacity: 0.6 }}
-                    />
-                  ))}
-                </div>
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+                    <p className="text-lg font-light tracking-wide" style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}>
+                      {tmpl.label}
+                    </p>
+                  </div>
+                )}
 
                 {/* Selected checkmark */}
                 {isSelected && (
