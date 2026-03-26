@@ -244,18 +244,40 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const sidebarWidth = 200;
 
   const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
+  const isLt = useIsLightTheme(theme);
+
+  // Adaptive palette
+  const pal = {
+    bg: isLt ? "#FFFFFF" : "#080808",
+    sidebarBg: isLt ? "#FFFFFF" : "#080808",
+    sidebarBorder: isLt ? "rgba(0,0,0,0.08)" : "rgba(240,237,232,0.06)",
+    brandColor: isLt ? "#D4AF37" : "#E8C97A",
+    textPrimary: isLt ? "#1A1A1A" : "#F0EDE8",
+    textMuted: isLt ? "rgba(0,0,0,0.45)" : "rgba(240,237,232,0.3)",
+    textFaint: isLt ? "rgba(0,0,0,0.25)" : "rgba(240,237,232,0.2)",
+    textSubtle: isLt ? "rgba(0,0,0,0.55)" : "rgba(240,237,232,0.5)",
+    navActive: isLt ? "#D4AF37" : "#E8C97A",
+    navActiveBg: isLt ? "rgba(212,175,55,0.08)" : "rgba(232,201,122,0.04)",
+    headerBg: isLt ? "rgba(255,255,255,0.92)" : "rgba(8,8,8,0.9)",
+    headerBorder: isLt ? "rgba(0,0,0,0.06)" : "rgba(240,237,232,0.05)",
+    storageBg: isLt ? "rgba(0,0,0,0.04)" : "rgba(240,237,232,0.06)",
+    accentDotBg: isLt ? "rgba(0,0,0,0.04)" : "rgba(240,237,232,0.04)",
+    accentDotBorder: isLt ? "rgba(0,0,0,0.08)" : "rgba(240,237,232,0.06)",
+    avatarBg: isLt ? "rgba(0,0,0,0.06)" : "rgba(240,237,232,0.06)",
+    avatarText: isLt ? "rgba(0,0,0,0.5)" : "rgba(240,237,232,0.5)",
+  };
 
   return (
     <EntiranProvider>
-      <div className="min-h-screen" style={{ background: "#080808", overflowY: "auto", overflowX: "hidden" }}>
+      <div className="min-h-screen" style={{ background: pal.bg, overflowY: "auto", overflowX: "hidden" }}>
         {/* ── Desktop Sidebar ── */}
         {showSidebar && (
           <aside
             className="fixed left-0 top-0 z-30 h-screen flex flex-col"
             style={{
               width: sidebarWidth,
-              background: "#080808",
-              borderRight: "1px solid rgba(240,237,232,0.06)",
+              background: pal.sidebarBg,
+              borderRight: `1px solid ${pal.sidebarBorder}`,
             }}
           >
             {/* Brand */}
