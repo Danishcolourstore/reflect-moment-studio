@@ -6,7 +6,9 @@ import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import CreateFeedPostModal from "@/components/CreateFeedPostModal";
 import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { toast } from "sonner";
-import { LayoutGrid, Diamond, Sun, Moon } from "lucide-react";
+import { LayoutGrid, Sun, Moon } from "lucide-react";
+import { BusinessDashboard } from "@/components/business/BusinessDashboard";
+import { useBusinessSuite } from "@/hooks/use-business-suite";
 import { colors, fonts } from "@/styles/design-tokens";
 
 /** Read current theme and return adaptive colors */
@@ -76,9 +78,8 @@ export default function LandingGate() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [editPost, setEditPost] = useState<FeedItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"feed" | "artgallery">("feed");
-  const [artPhotos, setArtPhotos] = useState<{ id: string; url: string; event_name?: string }[]>([]);
-  const [artLoading, setArtLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"feed" | "dashboard">("feed");
+  const { insights, leads, bookings } = useBusinessSuite();
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -157,25 +158,6 @@ export default function LandingGate() {
 
   useEffect(() => { loadFeed(); }, [loadFeed]);
 
-  // Load art gallery photos
-  useEffect(() => {
-    if (activeTab !== "artgallery" || !user) return;
-    setArtLoading(true);
-    (async () => {
-      const { data } = await (supabase.from("photos").select("id, url, event_id") as any).eq("is_art_gallery", true).order("created_at", { ascending: false }).limit(50);
-      if (data) {
-        // Get event names
-        const eventIds = [...new Set(data.map((p: any) => p.event_id).filter(Boolean))] as string[];
-        let eventMap: Record<string, string> = {};
-        if (eventIds.length > 0) {
-          const { data: events } = await supabase.from("events").select("id, name").in("id", eventIds);
-          if (events) events.forEach((e: any) => { eventMap[e.id] = e.name; });
-        }
-        setArtPhotos(data.map((p: any) => ({ id: p.id, url: p.url, event_name: eventMap[p.event_id] || "" })));
-      }
-      setArtLoading(false);
-    })();
-  }, [activeTab, user]);
 
   const fmt = (d: string) => {
     try { return new Date(d).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }); }
@@ -270,7 +252,7 @@ export default function LandingGate() {
         padding: "0 20px", borderBottom: `1px solid ${c.border}`,
       }}>
         <div style={{ display: "flex", gap: 24 }}>
-          {(["feed", "artgallery"] as const).map(tab => (
+          {(["feed", "dashboard"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
               fontFamily: fonts.body, fontSize: 12, fontWeight: 500, letterSpacing: "0.15em",
               textTransform: "uppercase" as const, background: "none", border: "none",
@@ -278,7 +260,7 @@ export default function LandingGate() {
               color: activeTab === tab ? c.tabActive : c.tabInactive,
               transition: "color 0.2s",
             }}>
-              {tab === "feed" ? "Feed" : "Art Gallery"}
+              {tab === "feed" ? "Feed" : "Dashboard"}
               {activeTab === tab && (
                 <span style={{
                   position: "absolute" as const, bottom: 0, left: 0, right: 0, height: 2,
@@ -450,54 +432,15 @@ export default function LandingGate() {
         </div>
       )}
 
-      {/* ── Art Gallery Content ── */}
-      {activeTab === "artgallery" && (
-        <div style={{ padding: mob ? "12px 0 80px" : "20px 0 100px" }}>
-          {artLoading ? (
-            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted }}>Loading art gallery...</div>
-            </div>
-          ) : artPhotos.length === 0 ? (
-            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <Diamond style={{ color: colors.gold, margin: "0 auto 16px", width: 28, height: 28 }} />
-              <div style={{ fontFamily: fonts.display, fontSize: 22, color: c.text, fontStyle: "italic" }}>
-                No art gallery photos yet
-              </div>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted, marginTop: 10, lineHeight: 1.7 }}>
-                Open any event gallery and tap the diamond icon on photos to feature them here.
-              </div>
-            </div>
-          ) : (
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: mob ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
-              gap: 3,
-            }}>
-              {artPhotos.map((photo, i) => (
-                <div key={photo.id} style={{
-                  position: "relative" as const,
-                  aspectRatio: i % 5 === 0 ? "1 / 1.2" : i % 3 === 0 ? "1.2 / 1" : "1 / 1",
-                  overflow: "hidden",
-                }}>
-                  <img src={photo.url} alt="" loading="lazy" style={{
-                    width: "100%", height: "100%", objectFit: "cover" as const, display: "block",
-                  }} />
-                  {photo.event_name && (
-                    <div style={{
-                      position: "absolute" as const, bottom: 0, left: 0, right: 0,
-                      padding: "20px 10px 8px",
-                      background: "linear-gradient(transparent, rgba(0,0,0,0.5))",
-                    }}>
-                      <span style={{
-                        fontFamily: fonts.body, fontSize: 9, color: "rgba(255,255,255,0.8)",
-                        letterSpacing: "0.15em", textTransform: "uppercase" as const,
-                      }}>{photo.event_name}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+      {/* ── Dashboard Content ── */}
+      {activeTab === "dashboard" && (
+        <div style={{ padding: mob ? "12px 16px 80px" : "20px 24px 100px" }}>
+          <BusinessDashboard
+            insights={insights}
+            leads={leads}
+            bookings={bookings}
+            onTabChange={() => navigate("/dashboard/business")}
+          />
         </div>
       )}
 
