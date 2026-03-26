@@ -159,6 +159,7 @@ function useIsLightTheme(theme: ThemeMode) {
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const device = useDeviceDetect();
+  const { isLandscape, toggleViewMode } = useViewMode();
   const showDomainNudge = useDomainNudge(user?.id);
   const navigate = useNavigate();
   const location = useLocation();
