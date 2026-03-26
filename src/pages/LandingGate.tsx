@@ -299,7 +299,7 @@ export default function LandingGate() {
 
       {/* ── Feed Content ── */}
       {activeTab === "feed" && (
-        <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 80px" : "32px 0 100px" }}>
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 120px" : "32px 0 100px" }}>
           {loading ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
               <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted }}>Loading your feed...</div>
@@ -437,7 +437,7 @@ export default function LandingGate() {
 
       {/* ── Dashboard Content ── */}
       {activeTab === "dashboard" && (
-        <div style={{ padding: mob ? "12px 16px 80px" : "20px 24px 100px" }}>
+        <div style={{ padding: mob ? "12px 16px 120px" : "20px 24px 100px" }}>
           <HomeDashboardHub insights={insights} leads={leads} bookings={bookings} />
         </div>
       )}
