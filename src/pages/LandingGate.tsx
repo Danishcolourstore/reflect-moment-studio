@@ -10,6 +10,7 @@ import { LayoutGrid, Sun, Moon } from "lucide-react";
 import { HomeDashboardHub } from "@/components/HomeDashboardHub";
 import { useBusinessSuite } from "@/hooks/use-business-suite";
 import { colors, fonts } from "@/styles/design-tokens";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 /** Read current theme and return adaptive colors */
 function useAdaptiveColors() {
@@ -455,6 +456,8 @@ export default function LandingGate() {
       {menuOpenId && (
         <div onClick={() => setMenuOpenId(null)} style={{ position: "fixed" as const, inset: 0, zIndex: 5 }} />
       )}
+
+      <MobileBottomNav />
     </div>
   );
 }
