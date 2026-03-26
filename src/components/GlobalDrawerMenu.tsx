@@ -9,9 +9,8 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 const NAV_ITEMS = [
   { label: "Home", path: "/home" },
-  { label: "Workspace", path: "/dashboard" },
   { label: "Events", path: "/dashboard/events" },
-  { label: "Studio Feed", path: "/dashboard/website-editor" },
+  { label: "Portfolio", path: "/dashboard/website-editor" },
   { label: "Albums", path: "/dashboard/album-designer" },
 ];
 
