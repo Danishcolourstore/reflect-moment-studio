@@ -9,6 +9,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StorybookGate } from "@/components/StorybookGate";
 import { GalleryShell } from "./components/GalleryShell";
 import { useEffect, useState, lazy, Suspense, createContext, useContext } from "react";
+import { ViewModeProvider } from "@/lib/ViewModeContext";
 import { PageTransition } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
@@ -733,9 +734,11 @@ const App = () => (
           <Toaster />
           <BrowserRouter>
             <AuthProvider>
-              <ErrorBoundary>
-                <AppRoutes />
-              </ErrorBoundary>
+              <ViewModeProvider>
+                <ErrorBoundary>
+                  <AppRoutes />
+                </ErrorBoundary>
+              </ViewModeProvider>
               {/* BetaFeedbackButton hidden in production */}
             </AuthProvider>
           </BrowserRouter>

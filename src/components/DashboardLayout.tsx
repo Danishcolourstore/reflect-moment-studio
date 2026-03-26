@@ -4,6 +4,7 @@ import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
+import { useViewMode } from "@/lib/ViewModeContext";
 import {
   LayoutGrid,
   Camera,
@@ -21,6 +22,8 @@ import {
   Compass,
   Bot,
   Home,
+  Smartphone,
+  Monitor,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { EntiranProvider, useEntiranOpen } from "@/components/entiran/EntiranProvider";
@@ -156,6 +159,7 @@ function useIsLightTheme(theme: ThemeMode) {
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const device = useDeviceDetect();
+  const { isLandscape, toggleViewMode } = useViewMode();
   const showDomainNudge = useDomainNudge(user?.id);
   const navigate = useNavigate();
   const location = useLocation();
@@ -243,9 +247,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const storageLimit = storage.data?.limit ?? PLAN_LIMITS.free;
   const storagePct = Math.min((storageUsed / storageLimit) * 100, 100);
 
-  const showSidebar = device.isDesktop || device.isTablet;
-  const showBottomNav = device.isPhone;
-  const sidebarWidth = 200;
+  const showSidebar = device.isDesktop || device.isTablet || (device.isPhone && isLandscape);
+  const showBottomNav = device.isPhone && !isLandscape;
+  const sidebarWidth = isLandscape && device.isPhone ? 180 : 200;
 
   const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
   const isLt = useIsLightTheme(theme);
@@ -428,6 +432,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* View mode toggle - portrait/landscape */}
+            <button
+              onClick={toggleViewMode}
+              className="flex items-center justify-center transition-colors rounded-full"
+              style={{
+                minWidth: 32, minHeight: 32,
+                background: pal.accentDotBg,
+                border: `1px solid ${pal.accentDotBorder}`,
+              }}
+              title={isLandscape ? "Switch to Portrait" : "Switch to Landscape"}
+            >
+              {isLandscape
+                ? <Smartphone className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
+                : <Monitor className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
+              }
+            </button>
             {/* Accent toggle */}
             <button
               onClick={() => switchAccent(accent === "gold" ? "red" : "gold")}
