@@ -274,7 +274,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   };
 
   // View mode icon & label
-  const viewModeIcon = viewMode === 'desktop' ? Monitor : viewMode === 'mobile' ? Smartphone : RotateCw;
+  const ViewModeIcon = viewMode === 'desktop' ? Monitor : viewMode === 'mobile' ? Smartphone : RotateCw;
   const viewModeLabel = viewMode === 'desktop' ? 'Desktop' : viewMode === 'mobile' ? 'Mobile' : 'Auto';
 
   return (
