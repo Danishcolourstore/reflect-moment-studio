@@ -537,6 +537,26 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </main>
 
         {showBottomNav && <MobileBottomNav />}
+
+        {/* Floating exit landscape button */}
+        {isScaledLandscape && (
+          <button
+            onClick={toggleViewMode}
+            className="fixed z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg transition-all"
+            style={{
+              bottom: 16 / scaleFactor,
+              right: 16 / scaleFactor,
+              background: pal.brandColor,
+              color: pal.bg,
+              fontFamily: dm,
+              fontSize: 11,
+              fontWeight: 600,
+            }}
+          >
+            <Smartphone className="h-3.5 w-3.5" />
+            Exit PC View
+          </button>
+        )}
       </div>
     </EntiranProvider>
   );
