@@ -433,11 +433,7 @@ const AppRoutes = () => {
 
             <Route
               path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
+              element={<Navigate to="/home" replace />}
             />
             <Route
               path="/dashboard/events"
