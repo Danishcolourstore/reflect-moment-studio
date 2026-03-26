@@ -402,9 +402,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <button
                 onClick={() => navigate(-1)}
                 className="flex items-center justify-center transition-colors"
-                style={{ color: "rgba(240,237,232,0.3)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.3)")}
+                style={{ color: pal.textMuted }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = pal.textPrimary)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = pal.textMuted)}
               >
                 <ChevronRight className="h-5 w-5 rotate-180" />
               </button>
@@ -415,7 +415,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 fontFamily: cormorant,
                 fontSize: 16,
                 fontWeight: 400,
-                color: "rgba(240,237,232,0.7)",
+                color: pal.textSubtle,
                 letterSpacing: "0.08em",
               }}
             >
@@ -429,16 +429,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               onClick={() => switchAccent(accent === "gold" ? "red" : "gold")}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all"
               style={{
-                background: "rgba(240,237,232,0.04)",
-                border: "1px solid rgba(240,237,232,0.06)",
+                background: pal.accentDotBg,
+                border: `1px solid ${pal.accentDotBorder}`,
               }}
               title={`Accent: ${accent}`}
             >
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{
-                  background: accent === "gold" ? "#E8C97A" : "#C0392B",
-                  boxShadow: accent === "gold" ? "0 0 6px rgba(232,201,122,0.5)" : "0 0 6px rgba(192,57,43,0.5)",
+                  background: accent === "gold" ? pal.brandColor : "#C0392B",
+                  boxShadow: accent === "gold" ? `0 0 6px ${pal.brandColor}80` : "0 0 6px rgba(192,57,43,0.5)",
                 }}
               />
             </button>
@@ -465,10 +465,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback
                       style={{
-                        background: "rgba(240,237,232,0.06)",
+                        background: pal.avatarBg,
                         fontFamily: dm,
                         fontSize: 10,
-                        color: "rgba(240,237,232,0.5)",
+                        color: pal.avatarText,
                       }}
                     >
                       {initials}
