@@ -70,6 +70,214 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
   const isMagazine = template === 'magazine-editorial';
   const isWarmOrganic = template === 'warm-organic';
 
+  // ── Clean Minimal Hero ──
+  if (isCleanMinimal) {
+    const navItems = ['Home', 'Portfolio', 'About', 'Journal', 'Contact'];
+    return (
+      <section id={id} style={{ backgroundColor: '#FFFFFF' }}>
+        <MobileNavOverlay items={navItems} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} color="#1A1A1A" />
+
+        <nav className="flex items-center justify-between px-4 sm:px-6 md:px-16 py-5 sm:py-6" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          {branding.studio_logo_url ? (
+            <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-7 sm:h-9 object-contain" loading="eager" />
+          ) : (
+            <span className="text-base sm:text-lg tracking-[0.04em] font-normal" style={{ color: '#1A1A1A', fontFamily: '"Playfair Display", Georgia, serif' }}>
+              {studioName}
+            </span>
+          )}
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-[11px] uppercase tracking-[0.15em] font-medium transition-opacity hover:opacity-60" style={{ color: '#6B6B6B', fontFamily: '"Inter", sans-serif' }}>
+                {item}
+              </a>
+            ))}
+          </div>
+          <button className="md:hidden p-2 -mr-2" onClick={() => setMobileMenuOpen(true)} aria-label="Menu">
+            <Menu className="h-5 w-5" style={{ color: '#1A1A1A' }} />
+          </button>
+        </nav>
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-16 py-12 sm:py-16 md:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+            <div className="order-2 lg:order-1 text-center lg:text-left space-y-5">
+              {tagline && (
+                <p className="text-[11px] uppercase tracking-[0.25em] font-medium" style={{ color: '#999', fontFamily: '"Inter", sans-serif' }}>
+                  {tagline}
+                </p>
+              )}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light leading-[1.08] tracking-tight" style={{ fontFamily: '"Playfair Display", Georgia, serif', color: '#1A1A1A' }}>
+                {studioName}
+              </h1>
+              {(branding as any).bio && (
+                <p className="text-sm leading-[1.8] max-w-md mx-auto lg:mx-0" style={{ color: '#6B6B6B', fontFamily: '"Inter", sans-serif' }}>
+                  {(branding as any).bio}
+                </p>
+              )}
+              {btnLabel && (
+                <a href={btnUrl || '#portfolio'} className="inline-block">
+                  <button className="h-11 px-8 text-[11px] uppercase tracking-[0.18em] font-medium border transition-all duration-300 hover:bg-black hover:text-white" style={{ color: '#1A1A1A', borderColor: '#1A1A1A' }}>
+                    {btnLabel}
+                  </button>
+                </a>
+              )}
+            </div>
+            <div className="order-1 lg:order-2">
+              {coverUrl ? (
+                <img src={coverUrl} alt={heroAlt(studioName, 'minimal portfolio photography')} className="w-full aspect-[4/5] object-cover" loading="eager" />
+              ) : (
+                <div className="w-full aspect-[4/5] flex items-center justify-center" style={{ backgroundColor: '#F5F5F5' }}>
+                  <span className="text-sm" style={{ color: '#CCC' }}>Upload hero image</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ── Magazine Editorial Hero ──
+  if (isMagazine) {
+    const navItems = ['Work', 'About', 'Journal', 'Inquire'];
+    return (
+      <section id={id} className="relative min-h-screen" style={{ minHeight: '100dvh', backgroundColor: '#0F0F0F' }}>
+        {coverUrl ? (
+          <>
+            <div className="absolute inset-0 overflow-hidden">
+              <img src={coverUrl} alt={heroAlt(studioName, 'editorial fashion photography')} className="absolute inset-0 h-full w-full object-cover" loading="eager" style={{ filter: 'contrast(1.1) brightness(0.85)' }} />
+            </div>
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(15,15,15,0.4) 0%, rgba(15,15,15,0.1) 30%, rgba(15,15,15,0.5) 70%, rgba(15,15,15,0.85) 100%)' }} />
+          </>
+        ) : (
+          <div className="absolute inset-0" style={{ backgroundColor: '#0F0F0F' }} />
+        )}
+
+        <MobileNavOverlay items={navItems} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} color="#EDEDED" />
+
+        <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-8 md:px-16 py-6 sm:py-8">
+          {branding.studio_logo_url ? (
+            <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-8 sm:h-10 object-contain" loading="eager" />
+          ) : (
+            <span className="text-sm sm:text-base uppercase tracking-[0.3em] font-normal" style={{ color: '#EDEDED', fontFamily: '"Bodoni Moda", "Didot", serif' }}>
+              {studioName}
+            </span>
+          )}
+          <div className="hidden md:flex items-center gap-10">
+            {navItems.map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-[10px] uppercase tracking-[0.25em] font-medium transition-opacity hover:opacity-100" style={{ color: '#EDEDED', opacity: 0.6, fontFamily: '"Syne", sans-serif' }}>
+                {item}
+              </a>
+            ))}
+          </div>
+          <button className="md:hidden p-2 -mr-2" onClick={() => setMobileMenuOpen(true)} aria-label="Menu">
+            <Menu className="h-5 w-5" style={{ color: '#EDEDED' }} />
+          </button>
+        </nav>
+
+        <div className="relative z-10 flex flex-col items-center justify-end min-h-screen px-4 sm:px-8 pb-20 sm:pb-28 text-center" style={{ minHeight: '100dvh' }}>
+          {tagline && (
+            <p className="text-[10px] sm:text-xs tracking-[0.35em] uppercase font-medium mb-4 sm:mb-6" style={{ color: 'rgba(237,237,237,0.5)', fontFamily: '"Syne", sans-serif' }}>
+              {tagline}
+            </p>
+          )}
+          <h1 className="text-[clamp(2.5rem,10vw,9rem)] font-normal uppercase tracking-[0.06em] leading-[0.9]" style={{ fontFamily: '"Bodoni Moda", "Didot", serif', color: '#EDEDED' }}>
+            {studioName}
+          </h1>
+          {btnLabel && (
+            <a href={btnUrl || '#work'} className="mt-10 sm:mt-14 inline-block">
+              <button className="h-12 px-10 text-[10px] uppercase tracking-[0.3em] font-semibold bg-white text-black transition-all duration-300 hover:bg-white/90" style={{ fontFamily: '"Syne", sans-serif' }}>
+                {btnLabel}
+              </button>
+            </a>
+          )}
+        </div>
+
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 opacity-25 animate-bounce">
+          <ChevronDown className="h-5 w-5" style={{ color: '#EDEDED' }} />
+        </div>
+      </section>
+    );
+  }
+
+  // ── Warm & Organic Hero ──
+  if (isWarmOrganic) {
+    const navItems = ['Home', 'Portfolio', 'About', 'Stories', 'Contact'];
+    const textColor = coverUrl ? '#FAF6F1' : '#3D3228';
+    return (
+      <section id={id} className="relative" style={{ backgroundColor: '#FAF6F1' }}>
+        <MobileNavOverlay items={navItems} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} color={textColor} />
+
+        <nav className="flex items-center justify-between px-4 sm:px-6 md:px-12 py-4 sm:py-5" style={{ borderBottom: '1px solid rgba(61,50,40,0.08)', backgroundColor: 'rgba(250,246,241,0.95)' }}>
+          {branding.studio_logo_url ? (
+            <img src={branding.studio_logo_url} alt={logoAlt(studioName)} className="h-7 sm:h-9 object-contain" loading="eager" />
+          ) : (
+            <span className="text-base sm:text-lg tracking-[0.02em] font-normal" style={{ color: '#3D3228', fontFamily: '"Lora", Georgia, serif' }}>
+              {studioName}
+            </span>
+          )}
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-[11px] uppercase tracking-[0.15em] font-medium transition-opacity hover:opacity-100" style={{ color: '#8B7D6B', opacity: 0.8, fontFamily: '"Nunito Sans", sans-serif' }}>
+                {item}
+              </a>
+            ))}
+          </div>
+          <button className="md:hidden p-2 -mr-2" onClick={() => setMobileMenuOpen(true)} aria-label="Menu">
+            <Menu className="h-5 w-5" style={{ color: '#3D3228' }} />
+          </button>
+        </nav>
+
+        <div className="relative" style={{ minHeight: '70vh' }}>
+          {coverUrl ? (
+            <div className="w-full px-4 sm:px-6 md:px-12 pt-6 sm:pt-8 md:pt-10">
+              <div className="relative overflow-hidden rounded-lg" style={{ height: 'clamp(320px, 65vh, calc(80vh - 80px))' }}>
+                <img src={coverUrl} alt={heroAlt(studioName, 'warm organic wedding')} className="h-full w-full object-cover" loading="eager" />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 40%, rgba(61,50,40,0.4) 100%)' }} />
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 md:p-14 text-center">
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.02em] leading-[1.1]" style={{ fontFamily: '"Lora", Georgia, serif', color: '#FAF6F1' }}>
+                    {studioName}
+                  </h1>
+                  {tagline && (
+                    <p className="text-xs sm:text-sm tracking-[0.15em] mt-3 font-light" style={{ color: 'rgba(250,246,241,0.8)', fontFamily: '"Nunito Sans", sans-serif' }}>
+                      {tagline}
+                    </p>
+                  )}
+                  {btnLabel && (
+                    <a href={btnUrl || '#portfolio'} className="mt-6 sm:mt-8 inline-block">
+                      <button className="h-11 px-8 text-[11px] uppercase tracking-[0.15em] font-medium rounded-full border transition-all duration-300 hover:bg-white/20" style={{ color: '#FAF6F1', borderColor: 'rgba(250,246,241,0.4)', fontFamily: '"Nunito Sans", sans-serif' }}>
+                        {btnLabel}
+                      </button>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 sm:py-32 px-6 text-center">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-light tracking-[0.02em]" style={{ fontFamily: '"Lora", Georgia, serif', color: '#3D3228' }}>
+                {studioName}
+              </h1>
+              {tagline && (
+                <p className="text-sm tracking-[0.12em] mt-4" style={{ color: '#8B7D6B', fontFamily: '"Nunito Sans", sans-serif' }}>{tagline}</p>
+              )}
+              {btnLabel && (
+                <a href={btnUrl || '#portfolio'} className="mt-8 inline-block">
+                  <button className="h-11 px-8 text-[11px] uppercase tracking-[0.15em] font-medium rounded-full border transition-all duration-300 hover:bg-[#3D3228] hover:text-[#FAF6F1]" style={{ color: '#3D3228', borderColor: '#3D3228', fontFamily: '"Nunito Sans", sans-serif' }}>
+                    {btnLabel}
+                  </button>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-center py-4 opacity-25 animate-bounce">
+          <ChevronDown className="h-5 w-5" style={{ color: '#8B7D6B' }} />
+        </div>
+      </section>
+    );
+  }
+
   // ── Cinematic Wedding Story Hero ──
   if (isCinematic) {
     const navItems = ['Home', 'About', 'Portfolio', 'Journal', 'Contact'];
