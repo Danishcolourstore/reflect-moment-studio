@@ -62,7 +62,7 @@ export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHub
         {/* Stats row */}
         <div className="grid grid-cols-4 gap-4 mb-10">
           {[
-            { label: "Gallery Views", value: insights.galleryViews?.toString() || "0" },
+            { label: "Gallery Views", value: (insights.totalBookings + insights.totalLeads).toString() },
             { label: "Active Leads", value: leads.length.toString() },
             { label: "Bookings", value: bookings.length.toString() },
             { label: "Conversion", value: `${insights.conversionRate || 0}%` },
@@ -158,7 +158,7 @@ export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHub
       {/* Stats - horizontal scroll */}
       <div className="flex gap-3 mb-6 overflow-x-auto pb-1 -mx-4 px-4" style={{ scrollbarWidth: "none" }}>
         {[
-          { label: "Views", value: insights.galleryViews?.toString() || "0" },
+          { label: "Activity", value: (insights.totalBookings + insights.totalLeads).toString() },
           { label: "Leads", value: leads.length.toString() },
           { label: "Bookings", value: bookings.length.toString() },
           { label: "Conv.", value: `${insights.conversionRate || 0}%` },
