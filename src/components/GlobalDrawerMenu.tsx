@@ -19,9 +19,8 @@ const MORE_ITEMS = [
   { label: "Retouch", path: "/colour-store" },
   { label: "Clients", path: "/dashboard/clients" },
   { label: "Analytics", path: "/dashboard/analytics" },
-  { label: "Settings", path: "/dashboard/settings" },
+  { label: "Settings", path: "/dashboard/profile" },
   { label: "Billing", path: "/dashboard/billing" },
-  { label: "Profile", path: "/dashboard/profile" },
 ];
 
 export function useDrawerMenu() {

@@ -26,6 +26,7 @@ const Profile = () => {
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [pwSaving, setPwSaving] = useState(false);
+  const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('mirrorai-theme') || 'dark');
 
   useEffect(() => {
     if (!user) return;
@@ -160,8 +161,7 @@ const Profile = () => {
               { key: 'dark', label: 'Dark', emoji: '🌙', desc: 'Cinematic dark' },
               { key: 'classic', label: 'Classic', emoji: '✦', desc: 'Clean white' },
             ] as const).map(({ key, label, emoji, desc }) => {
-              const currentTheme = localStorage.getItem('mirrorai-theme') || 'dark';
-              const isActive = currentTheme === key;
+              const isActive = activeTheme === key;
               return (
                 <button
                   key={key}
@@ -170,6 +170,7 @@ const Profile = () => {
                     document.documentElement.classList.add(key);
                     localStorage.setItem('mirrorai-theme', key);
                     localStorage.setItem('theme', key);
+                    setActiveTheme(key);
                     if (user) {
                       (supabase.from('profiles').update({ theme_preference: key } as any) as any).eq('user_id', user.id);
                     }

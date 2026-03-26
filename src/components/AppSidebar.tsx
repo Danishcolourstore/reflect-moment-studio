@@ -11,7 +11,7 @@ const navItems = [
   { title: "Retouch", url: "/colour-store", icon: Palette },
   { title: "Clients", url: "/dashboard/clients", icon: Users },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-  { title: "Settings", url: "/dashboard/settings", icon: Settings },
+  { title: "Settings", url: "/dashboard/profile", icon: Settings },
   { title: "Billing", url: "/dashboard/billing", icon: CreditCard },
 ];
 
