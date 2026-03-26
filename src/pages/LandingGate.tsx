@@ -66,6 +66,7 @@ export default function LandingGate() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const drawer = useDrawerMenu();
+  const c = useAdaptiveColors();
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState("My Studio");
