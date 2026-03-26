@@ -275,9 +275,28 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     avatarText: isLt ? "rgba(0,0,0,0.5)" : "rgba(240,237,232,0.5)",
   };
 
+  // Landscape mode on phone: render at desktop width, scale down to fit
+  const isScaledLandscape = device.isPhone && isLandscape;
+  const VIRTUAL_WIDTH = 1280;
+  const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 404;
+  const scaleFactor = isScaledLandscape ? screenWidth / VIRTUAL_WIDTH : 1;
+
   return (
     <EntiranProvider>
-      <div className="min-h-screen" style={{ background: pal.bg, overflowY: "auto", overflowX: "hidden" }}>
+      <div
+        className="min-h-screen"
+        style={{
+          background: pal.bg,
+          overflowY: "auto",
+          overflowX: isScaledLandscape ? "hidden" : "hidden",
+          ...(isScaledLandscape ? {
+            width: VIRTUAL_WIDTH,
+            minHeight: `${100 / scaleFactor}vh`,
+            transform: `scale(${scaleFactor})`,
+            transformOrigin: "top left",
+          } : {}),
+        }}
+      >
         {/* ── Desktop Sidebar ── */}
         {showSidebar && (
           <aside
