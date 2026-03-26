@@ -116,31 +116,24 @@ const Branding = () => {
                   : 'border-border/40 hover:border-border hover:shadow-lg'
               }`}
             >
-              {/* Template preview */}
-              <div className="relative h-44 overflow-hidden" style={{ backgroundColor: tmpl.bg }}>
-                {/* Simulated hero */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-                  <p className="text-[8px] uppercase tracking-[0.3em] mb-2" style={{ color: tmpl.textSecondary, opacity: 0.5 }}>
-                    Photography Studio
-                  </p>
-                  <p className="text-xl font-light tracking-wide" style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}>
-                    Your Studio
-                  </p>
-                  <div className="mt-3 w-8 h-[1px]" style={{ backgroundColor: tmpl.textSecondary, opacity: 0.3 }} />
-                  <p className="mt-3 text-[9px] tracking-wide" style={{ color: tmpl.textSecondary, opacity: 0.4 }}>
-                    Reflections of Your Moments
-                  </p>
-                </div>
-
-                {/* Simulated grid */}
-                <div className="absolute bottom-3 left-4 right-4 flex gap-1.5">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="flex-1 aspect-square rounded" style={{ backgroundColor: tmpl.cardBg, opacity: 0.5 }} />
-                  ))}
-                </div>
-
-                {/* Simulated footer */}
-                <div className="absolute bottom-0 left-0 right-0 h-6" style={{ backgroundColor: tmpl.footerBg, opacity: 0.5 }} />
+              {/* Template preview image */}
+              <div className="relative h-48 overflow-hidden" style={{ backgroundColor: tmpl.bg }}>
+                {templatePreviews[tmpl.value] ? (
+                  <img
+                    src={templatePreviews[tmpl.value]}
+                    alt={`${tmpl.label} template preview`}
+                    loading="lazy"
+                    width={800}
+                    height={600}
+                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+                    <p className="text-xl font-light tracking-wide" style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}>
+                      {tmpl.label}
+                    </p>
+                  </div>
+                )}
 
                 {/* Active checkmark */}
                 {isActive && (
