@@ -432,6 +432,22 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* View mode toggle - portrait/landscape */}
+            <button
+              onClick={toggleViewMode}
+              className="flex items-center justify-center transition-colors rounded-full"
+              style={{
+                minWidth: 32, minHeight: 32,
+                background: pal.accentDotBg,
+                border: `1px solid ${pal.accentDotBorder}`,
+              }}
+              title={isLandscape ? "Switch to Portrait" : "Switch to Landscape"}
+            >
+              {isLandscape
+                ? <Smartphone className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
+                : <Monitor className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
+              }
+            </button>
             {/* Accent toggle */}
             <button
               onClick={() => switchAccent(accent === "gold" ? "red" : "gold")}
