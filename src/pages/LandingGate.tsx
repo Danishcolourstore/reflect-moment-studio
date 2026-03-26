@@ -158,10 +158,6 @@ export default function LandingGate() {
 
   useEffect(() => { loadFeed(); }, [loadFeed]);
 
-  // Dashboard tab placeholder - data loaded via useBusinessSuite hook
-      setArtLoading(false);
-    })();
-  }, [activeTab, user]);
 
   const fmt = (d: string) => {
     try { return new Date(d).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" }); }
