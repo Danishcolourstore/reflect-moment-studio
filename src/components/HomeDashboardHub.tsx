@@ -6,7 +6,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { BusinessInsights, Lead, Booking } from "@/hooks/use-business-suite";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { useDeviceDetect } from "@/hooks/use-device-detect";
+
 import { colors, fonts, fragments } from "@/styles/design-tokens";
 
 interface HomeDashboardHubProps {
@@ -33,9 +33,8 @@ const SECONDARY = [
 
 export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHubProps) {
   const navigate = useNavigate();
-  const device = useDeviceDetect();
-  const { isLandscape } = useViewMode();
-  const isDesktopView = device.isDesktop || device.isTablet || isLandscape;
+  
+  const { isDesktop: isDesktopView } = useViewMode();
 
   // ── Desktop / Landscape layout ──
   if (isDesktopView) {

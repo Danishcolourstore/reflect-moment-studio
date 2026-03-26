@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Calendar, Plus, Sparkles, User, Camera, Upload, BookOpen, Zap, Palette } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useDeviceDetect } from "@/hooks/use-device-detect";
+import { useViewMode } from "@/lib/ViewModeContext";
 import { colors, fonts } from "@/styles/design-tokens";
 
 const TABS = [
@@ -26,7 +26,7 @@ const TOOL_ACTIONS = [
 ];
 
 export function MobileBottomNav() {
-  const device = useDeviceDetect();
+  const { isMobile } = useViewMode();
   const navigate = useNavigate();
   const location = useLocation();
   const [createOpen, setCreateOpen] = useState(false);
@@ -48,7 +48,7 @@ export function MobileBottomNav() {
     return () => obs.disconnect();
   }, []);
 
-  if (!device.isPhone) return null;
+  if (!isMobile) return null;
 
   const isActive = (url: string) => {
     if (!url) return false;
