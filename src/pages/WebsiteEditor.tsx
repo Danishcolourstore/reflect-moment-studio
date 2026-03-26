@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save, AlertTriangle, SplitSquareHorizontal, RotateCcw, Maximize2 } from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileSectionDrawer } from '@/components/website-editor/MobileSectionDrawer';
@@ -106,6 +106,8 @@ const WebsiteEditor = () => {
   // ── Mobile editor state ──
   const [mobileSectionsOpen, setMobileSectionsOpen] = useState(false);
   const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
+  const [mobileMode, setMobileMode] = useState<'preview' | 'edit' | 'landscape'>('preview');
+
 
   // ── Branding data (from profiles + studio_profiles) ──
   const [studioName, setStudioName] = useState('');
@@ -671,7 +673,7 @@ const WebsiteEditor = () => {
   // ═══════════════════════════════════════════
   // MOBILE LAYOUT
   // ═══════════════════════════════════════════
-  if (isMobile) {
+  if (isMobile && mobileMode !== 'landscape') {
     return (
       <div className="h-screen flex flex-col bg-background overflow-hidden">
         {/* ── Mobile Top Toolbar ── */}
@@ -680,84 +682,163 @@ const WebsiteEditor = () => {
             <ArrowLeft className="h-4 w-4" />
           </Button>
 
+          {/* Mode Toggle */}
+          <div className="flex items-center gap-0.5 bg-muted rounded-full p-0.5">
+            <button
+              onClick={() => setMobileMode('preview')}
+              className={`px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors ${
+                mobileMode === 'preview' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+              }`}
+            >
+              Preview
+            </button>
+            <button
+              onClick={() => setMobileMode('edit')}
+              className={`px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors flex items-center gap-1 ${
+                mobileMode === 'edit' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+              }`}
+            >
+              <SplitSquareHorizontal className="h-3 w-3" />
+              Edit
+            </button>
+            <button
+              onClick={() => setMobileMode('landscape')}
+              className={`px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors flex items-center gap-1 text-muted-foreground`}
+              title="Switch to wide-screen desktop editor"
+            >
+              <Maximize2 className="h-3 w-3" />
+              Wide
+            </button>
+          </div>
+
           <div className="flex items-center gap-1">
-            {username && (
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => window.open(`/studio/${username}`, '_blank')}>
-                <Eye className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            <Button variant="outline" size="sm" className="text-[10px] h-8 px-2.5" onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3 mr-1" />}
-              Save
+            <Button variant="outline" size="sm" className="text-[10px] h-7 px-2" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
             </Button>
-            <Button size="sm" className="text-[10px] h-8 px-2.5 bg-primary text-primary-foreground" onClick={handlePublish} disabled={publishing}>
-              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3 mr-1" />}
-              Publish
+            <Button size="sm" className="text-[10px] h-7 px-2 bg-primary text-primary-foreground" onClick={handlePublish} disabled={publishing}>
+              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3" />}
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="max-w-[90vw] rounded-xl">
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="flex items-center gap-2 text-base">
-                    <AlertTriangle className="h-5 w-5 text-destructive" /> Delete Portfolio Website
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="text-sm">
-                    Are you sure you want to delete your portfolio website? This will remove the layout and content and unpublish it. Your galleries, events, and photos will not be affected.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteWebsite}
-                    disabled={deleting}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    {deleting ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
-                    Delete Website
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
           </div>
         </header>
 
-        {/* ── Full-Screen Preview ── */}
-        <main className="flex-1 overflow-y-auto">
-          <div
-            style={{ backgroundColor: tmpl.bg, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}
-          >
-            {visibleSections.map(sectionId => (
-              <div
-                key={sectionId}
-                className={`relative group transition-all ${
-                  activeSection === sectionId ? 'ring-2 ring-primary ring-inset' : ''
-                }`}
-                onClick={() => openMobileSectionEditor(sectionId)}
-              >
-                {/* Tap-to-edit hint on hover */}
-                <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-md text-[9px] font-medium uppercase tracking-wider bg-black/60 text-white opacity-0 active:opacity-100 transition-opacity pointer-events-none">
-                  <Pencil className="h-2.5 w-2.5 inline mr-1" />
-                  {ALL_SECTIONS.find(s => s.id === sectionId)?.label}
+        {/* ═══ SPLIT EDIT MODE ═══ */}
+        {mobileMode === 'edit' ? (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Edit Panel - scrollable section list / section editor */}
+            <div className="flex-1 overflow-y-auto bg-card border-b border-border">
+              <div className="p-4 space-y-4">
+                {/* Template selector */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">TEMPLATE</p>
+                  <Select value={websiteTemplate} onValueChange={v => setWebsiteTemplate(v as WebsiteTemplateValue)}>
+                    <SelectTrigger className="h-9 text-xs bg-background"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {dbTemplates.map(t => (
+                        <SelectItem key={t.value} value={t.value}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: t.bg }} />
+                            <span>{t.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                {renderSection(sectionId)}
-              </div>
-            ))}
-            <WebsiteFooter template={websiteTemplate} branding={branding} />
-          </div>
-        </main>
 
-        {/* ── Floating Edit Button ── */}
-        <button
-          onClick={() => setMobileSectionsOpen(true)}
-          className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
-          style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
-        >
-          <LayoutGrid className="h-5 w-5" />
-        </button>
+                {/* Username */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">PORTFOLIO URL</p>
+                  <Input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="h-8 text-xs bg-background" />
+                  {username && (
+                    <p className="text-[9px] text-muted-foreground/40 mt-1 truncate">{getStudioDisplayUrl(username)}</p>
+                  )}
+                </div>
+
+                {/* Section editor or section list */}
+                {activeSection ? (
+                  renderSectionEditor()
+                ) : (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">SECTIONS</p>
+                    <p className="text-[9px] text-muted-foreground/30 mb-3">Tap to edit · Toggle visibility</p>
+                    <div className="space-y-1">
+                      {sectionOrder.map((sectionId, idx) => {
+                        const sec = ALL_SECTIONS.find(s => s.id === sectionId);
+                        if (!sec) return null;
+                        const isOn = sectionVisibility[sectionId] !== false;
+
+                        return (
+                          <div
+                            key={sectionId}
+                            className={`flex items-center gap-2 p-2.5 rounded-lg border transition-all ${
+                              !isOn ? 'opacity-40 border-transparent' : 'border-border/50 hover:border-border'
+                            }`}
+                          >
+                            <span className="text-sm shrink-0">{sec.icon}</span>
+                            <button
+                              onClick={() => setActiveSection(sectionId)}
+                              className="flex-1 text-left text-xs text-foreground hover:text-primary transition-colors truncate"
+                            >
+                              {sec.label}
+                            </button>
+                            <button
+                              onClick={e => { e.stopPropagation(); toggleSection(sectionId); }}
+                              className="shrink-0 p-1 rounded hover:bg-muted transition-colors"
+                            >
+                              {isOn ? <Eye className="h-3.5 w-3.5 text-muted-foreground/50" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground/30" />}
+                            </button>
+                            <ChevronRight className="h-3 w-3 text-muted-foreground/20 shrink-0" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer */}
+                {!activeSection && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">FOOTER</p>
+                    <Input value={footerText} onChange={e => setFooterText(e.target.value)} className="h-8 text-xs bg-background" placeholder="Footer tagline" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* ═══ PREVIEW MODE (default) ═══ */
+          <>
+            <main className="flex-1 overflow-y-auto">
+              <div style={{ backgroundColor: tmpl.bg, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}>
+                {visibleSections.map(sectionId => (
+                  <div
+                    key={sectionId}
+                    className={`relative group transition-all ${
+                      activeSection === sectionId ? 'ring-2 ring-primary ring-inset' : ''
+                    }`}
+                    onClick={() => openMobileSectionEditor(sectionId)}
+                  >
+                    <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-md text-[9px] font-medium uppercase tracking-wider bg-black/60 text-white opacity-0 active:opacity-100 transition-opacity pointer-events-none">
+                      <Pencil className="h-2.5 w-2.5 inline mr-1" />
+                      {ALL_SECTIONS.find(s => s.id === sectionId)?.label}
+                    </div>
+                    {renderSection(sectionId)}
+                  </div>
+                ))}
+                <WebsiteFooter template={websiteTemplate} branding={branding} />
+              </div>
+            </main>
+
+            {/* Floating Edit Button */}
+            <button
+              onClick={() => setMobileSectionsOpen(true)}
+              className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+              style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </button>
+          </>
+        )}
 
         {/* ── Sections Manager Drawer ── */}
         <MobileSectionDrawer
@@ -788,6 +869,11 @@ const WebsiteEditor = () => {
   }
 
   // ═══════════════════════════════════════════
+  // LANDSCAPE / WIDE MODE (forced desktop layout on mobile)
+  // ═══════════════════════════════════════════
+  // Falls through to the desktop layout below, but with a back-to-mobile button
+
+  // ═══════════════════════════════════════════
   // DESKTOP LAYOUT (unchanged)
   // ═══════════════════════════════════════════
   return (
@@ -795,12 +881,31 @@ const WebsiteEditor = () => {
       {/* ── Top Bar ── */}
       <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0 z-50">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/dashboard/branding')}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+            if (isMobile && mobileMode === 'landscape') {
+              setMobileMode('preview');
+            } else {
+              navigate('/dashboard/branding');
+            }
+          }}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <p className="text-xs font-semibold text-foreground">Studio Feed</p>
-            <p className="text-[10px] text-muted-foreground/50">{studioName || 'Your Studio'}</p>
+          <div className="flex items-center gap-2">
+            <div>
+              <p className="text-xs font-semibold text-foreground">Studio Feed</p>
+              <p className="text-[10px] text-muted-foreground/50">{studioName || 'Your Studio'}</p>
+            </div>
+            {isMobile && mobileMode === 'landscape' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-[9px] h-6 px-2 gap-1 ml-2"
+                onClick={() => setMobileMode('preview')}
+              >
+                <RotateCcw className="h-3 w-3" />
+                Exit Wide
+              </Button>
+            )}
           </div>
         </div>
 
