@@ -69,6 +69,10 @@ export function WebsiteHero({ branding, id, template }: WebsiteHeroProps) {
   const isCleanMinimal = template === 'clean-minimal';
   const isMagazine = template === 'magazine-editorial';
   const isWarmOrganic = template === 'warm-organic';
+  const isBoldPortfolio = template === 'bold-portfolio';
+  const isElegantFolio = template === 'elegant-folio';
+  const isStarterOne = template === 'starter-one';
+  const isNoirStarter = template === 'noir-starter';
 
   // ── Clean Minimal Hero ──
   if (isCleanMinimal) {
