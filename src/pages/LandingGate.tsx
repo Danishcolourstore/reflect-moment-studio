@@ -10,6 +10,7 @@ import { LayoutGrid, Sun, Moon } from "lucide-react";
 import { HomeDashboardHub } from "@/components/HomeDashboardHub";
 import { useBusinessSuite } from "@/hooks/use-business-suite";
 import { colors, fonts } from "@/styles/design-tokens";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 /** Read current theme and return adaptive colors */
 function useAdaptiveColors() {
@@ -217,9 +218,11 @@ export default function LandingGate() {
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <button
             onClick={() => {
-              const cur = localStorage.getItem("theme") || "dark";
+            const cur = localStorage.getItem("theme") || "dark";
               const next = cur === "dark" ? "light" : "dark";
-              document.documentElement.className = next;
+              // Remove only theme classes, preserve platform/device/input classes
+              document.documentElement.classList.remove("dark", "light", "editorial", "classic", "versace", "darkroom");
+              if (next !== "dark") document.documentElement.classList.add(next);
               localStorage.setItem("theme", next);
               localStorage.setItem("andhakaar-mode", next === "dark" ? "on" : "off");
             }}
@@ -296,7 +299,7 @@ export default function LandingGate() {
 
       {/* ── Feed Content ── */}
       {activeTab === "feed" && (
-        <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 80px" : "32px 0 100px" }}>
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 120px" : "32px 0 100px" }}>
           {loading ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
               <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted }}>Loading your feed...</div>
@@ -434,7 +437,7 @@ export default function LandingGate() {
 
       {/* ── Dashboard Content ── */}
       {activeTab === "dashboard" && (
-        <div style={{ padding: mob ? "12px 16px 80px" : "20px 24px 100px" }}>
+        <div style={{ padding: mob ? "12px 16px 120px" : "20px 24px 100px" }}>
           <HomeDashboardHub insights={insights} leads={leads} bookings={bookings} />
         </div>
       )}
@@ -453,6 +456,8 @@ export default function LandingGate() {
       {menuOpenId && (
         <div onClick={() => setMenuOpenId(null)} style={{ position: "fixed" as const, inset: 0, zIndex: 5 }} />
       )}
+
+      <MobileBottomNav />
     </div>
   );
 }
