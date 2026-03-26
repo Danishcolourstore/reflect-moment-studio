@@ -387,40 +387,40 @@ export default function LandingGate() {
                   ) : (
                     <div style={{
                       width: "100%", height: mob ? "65vw" : 420,
-                      background: idx % 2 === 0 ? "linear-gradient(135deg, #f5f0ea, #e8e0d4)" : "linear-gradient(135deg, #eae4dc, #d4ccc0)",
+                      background: idx % 2 === 0 ? `linear-gradient(135deg, ${c.emptyGradA}, ${c.emptyGradB})` : `linear-gradient(135deg, ${c.emptyGradB}, ${c.emptyGradA})`,
                     }} />
                   )}
 
                   <div style={{ padding: mob ? "14px 16px 0" : "16px 24px 0" }}>
                     <div style={{
                       fontFamily: fonts.body, fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase" as const,
-                      color: item.type === "event" ? colors.gold : "#CCCCCC", marginBottom: 8, fontWeight: 600,
+                      color: item.type === "event" ? colors.gold : c.textMuted, marginBottom: 8, fontWeight: 600,
                     }}>
                       {item.type === "event" ? "EVENT" : "POST"}
                     </div>
 
                     <h2 style={{
                       fontFamily: fonts.display, fontSize: mob ? 18 : 22, fontWeight: 500,
-                      color: "#000000", letterSpacing: "0.02em",
+                      color: c.text, letterSpacing: "0.02em",
                     }}>{item.title}</h2>
 
-                    <div style={{ fontFamily: fonts.body, fontSize: 12, color: "#999999", marginTop: 6 }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 12, color: c.textMuted, marginTop: 6 }}>
                       {fmt(item.date)}{item.location ? ` · ${item.location}` : ""}
                     </div>
 
                     {item.caption && (
-                      <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#666666", lineHeight: 1.7, marginTop: 12 }}>
+                      <p style={{ fontFamily: fonts.body, fontSize: 13, color: c.textSubtle, lineHeight: 1.7, marginTop: 12 }}>
                         {item.caption}
                       </p>
                     )}
 
                     {item.type === "event" && item.photoCount !== undefined && item.photoCount > 0 && (
-                      <div style={{ fontFamily: fonts.body, fontSize: 11, color: "#BBBBBB", marginTop: 10 }}>
+                      <div style={{ fontFamily: fonts.body, fontSize: 11, color: c.textMuted, marginTop: 10 }}>
                         {item.photoCount} photos
                       </div>
                     )}
 
-                    <div style={{ height: 1, background: "#F2F2F2", marginTop: 20 }} />
+                    <div style={{ height: 1, background: c.border, marginTop: 20 }} />
                   </div>
                 </div>
               </div>
