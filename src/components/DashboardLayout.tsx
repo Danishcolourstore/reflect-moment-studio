@@ -319,7 +319,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     color: pal.textFaint, letterSpacing: "0.18em",
                     textTransform: "uppercase",
                   }}>{section.label}</p>
-                  }}>{section.label}</p>
                   {section.items.map((item) => (
                     <NavLink
                       key={item.url}
@@ -327,15 +326,15 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                       end={item.end}
                       className="flex items-center gap-2.5 px-3 py-2 transition-colors"
                       style={{ fontFamily: dm, fontSize: 13, borderLeft: "2px solid transparent" }}
-                      activeClassName={`!border-l-[${pal.navActive}] bg-[${pal.navActiveBg}]`}
+                      activeClassName="nav-active-highlight"
                     >
                       {({ isActive }: { isActive: boolean }) => (
                         <>
                           <item.icon
                             className="h-[15px] w-[15px]"
-                            style={{ color: isActive ? "#E8C97A" : "rgba(240,237,232,0.3)" }}
+                            style={{ color: isActive ? pal.navActive : pal.textMuted }}
                           />
-                          <span style={{ color: isActive ? "#E8C97A" : "rgba(240,237,232,0.3)" }}>{item.title}</span>
+                          <span style={{ color: isActive ? pal.navActive : pal.textMuted }}>{item.title}</span>
                         </>
                       )}
                     </NavLink>
