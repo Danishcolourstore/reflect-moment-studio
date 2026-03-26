@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { useDeviceDetect } from "@/hooks/use-device-detect";
 import { useViewMode } from "@/lib/ViewModeContext";
 import {
   LayoutGrid,
@@ -24,6 +23,7 @@ import {
   Home,
   Smartphone,
   Monitor,
+  RotateCw,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { EntiranProvider, useEntiranOpen } from "@/components/entiran/EntiranProvider";
@@ -158,9 +158,7 @@ function useIsLightTheme(theme: ThemeMode) {
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
-  const device = useDeviceDetect();
-  const { isLandscape, toggleViewMode } = useViewMode();
-  const showDomainNudge = useDomainNudge(user?.id);
+  const { viewMode, isDesktop, isMobile, setViewMode, cycleViewMode } = useViewMode();
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
