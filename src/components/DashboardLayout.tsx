@@ -145,6 +145,10 @@ function BotNavTab() {
 const cormorant = '"Cormorant Garamond", serif';
 const dm = '"DM Sans", sans-serif';
 
+function useIsLightTheme(theme: ThemeMode) {
+  return theme === "light" || theme === "classic";
+}
+
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const device = useDeviceDetect();
