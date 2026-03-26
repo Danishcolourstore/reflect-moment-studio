@@ -252,7 +252,7 @@ export default function LandingGate() {
         padding: "0 20px", borderBottom: `1px solid ${c.border}`,
       }}>
         <div style={{ display: "flex", gap: 24 }}>
-          {(["feed", "artgallery"] as const).map(tab => (
+          {(["feed", "dashboard"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
               fontFamily: fonts.body, fontSize: 12, fontWeight: 500, letterSpacing: "0.15em",
               textTransform: "uppercase" as const, background: "none", border: "none",
@@ -260,7 +260,7 @@ export default function LandingGate() {
               color: activeTab === tab ? c.tabActive : c.tabInactive,
               transition: "color 0.2s",
             }}>
-              {tab === "feed" ? "Feed" : "Art Gallery"}
+              {tab === "feed" ? "Feed" : "Dashboard"}
               {activeTab === tab && (
                 <span style={{
                   position: "absolute" as const, bottom: 0, left: 0, right: 0, height: 2,
@@ -432,54 +432,15 @@ export default function LandingGate() {
         </div>
       )}
 
-      {/* ── Art Gallery Content ── */}
-      {activeTab === "artgallery" && (
-        <div style={{ padding: mob ? "12px 0 80px" : "20px 0 100px" }}>
-          {artLoading ? (
-            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted }}>Loading art gallery...</div>
-            </div>
-          ) : artPhotos.length === 0 ? (
-            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <Diamond style={{ color: colors.gold, margin: "0 auto 16px", width: 28, height: 28 }} />
-              <div style={{ fontFamily: fonts.display, fontSize: 22, color: c.text, fontStyle: "italic" }}>
-                No art gallery photos yet
-              </div>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted, marginTop: 10, lineHeight: 1.7 }}>
-                Open any event gallery and tap the diamond icon on photos to feature them here.
-              </div>
-            </div>
-          ) : (
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: mob ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
-              gap: 3,
-            }}>
-              {artPhotos.map((photo, i) => (
-                <div key={photo.id} style={{
-                  position: "relative" as const,
-                  aspectRatio: i % 5 === 0 ? "1 / 1.2" : i % 3 === 0 ? "1.2 / 1" : "1 / 1",
-                  overflow: "hidden",
-                }}>
-                  <img src={photo.url} alt="" loading="lazy" style={{
-                    width: "100%", height: "100%", objectFit: "cover" as const, display: "block",
-                  }} />
-                  {photo.event_name && (
-                    <div style={{
-                      position: "absolute" as const, bottom: 0, left: 0, right: 0,
-                      padding: "20px 10px 8px",
-                      background: "linear-gradient(transparent, rgba(0,0,0,0.5))",
-                    }}>
-                      <span style={{
-                        fontFamily: fonts.body, fontSize: 9, color: "rgba(255,255,255,0.8)",
-                        letterSpacing: "0.15em", textTransform: "uppercase" as const,
-                      }}>{photo.event_name}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+      {/* ── Dashboard Content ── */}
+      {activeTab === "dashboard" && (
+        <div style={{ padding: mob ? "12px 16px 80px" : "20px 24px 100px" }}>
+          <BusinessDashboard
+            insights={insights}
+            leads={leads}
+            bookings={bookings}
+            onTabChange={() => navigate("/dashboard/business")}
+          />
         </div>
       )}
 
