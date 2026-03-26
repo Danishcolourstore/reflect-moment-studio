@@ -329,16 +329,16 @@ export default function LandingGate() {
                   style={{
                     position: "absolute" as const, top: 12, right: mob ? 12 : 16, zIndex: 10,
                     width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center",
-                    justifyContent: "center", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)",
-                    border: "1px solid #F0F0F0", cursor: "pointer",
+                    justifyContent: "center", background: c.dotsBg, backdropFilter: "blur(8px)",
+                    border: `1px solid ${c.dotsBorder}`, cursor: "pointer",
                   }}
                 ><DotsIcon /></button>
 
                 {menuOpenId === item.id && (
                   <div onClick={(e) => e.stopPropagation()} style={{
                     position: "absolute" as const, top: 48, right: mob ? 12 : 16, zIndex: 20,
-                    background: "#FFFFFF", border: "1px solid #F0F0F0",
-                    minWidth: 170, boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                    background: c.menuBg, border: `1px solid ${c.menuBorder}`,
+                    minWidth: 170, boxShadow: c.menuShadow,
                   }}>
                     {item.type === "post" && (
                       <>
