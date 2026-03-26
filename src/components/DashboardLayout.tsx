@@ -107,14 +107,14 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/onboarding": "Welcome",
 };
 
-type ThemeMode = "dark" | "versace" | "classic" | "darkroom";
+type ThemeMode = "dark" | "light" | "versace" | "classic" | "darkroom";
 type AccentMode = "gold" | "red";
 
-const THEME_ORDER: ThemeMode[] = ["dark", "versace", "classic", "darkroom"];
-const THEME_ICONS: Record<ThemeMode, string> = { dark: "🌙", versace: "👑", classic: "☀️", darkroom: "🎞️" };
+const THEME_ORDER: ThemeMode[] = ["dark", "light", "versace", "classic", "darkroom"];
+const THEME_ICONS: Record<ThemeMode, string> = { dark: "🌙", light: "☀️", versace: "👑", classic: "🏛️", darkroom: "🎞️" };
 
 function applyThemeClass(t: ThemeMode) {
-  document.documentElement.classList.remove("dark", "editorial", "classic", "versace", "darkroom");
+  document.documentElement.classList.remove("dark", "editorial", "classic", "versace", "darkroom", "light");
   if (t !== "dark") document.documentElement.classList.add(t);
   localStorage.setItem("theme", t);
 }
@@ -144,6 +144,10 @@ function BotNavTab() {
 
 const cormorant = '"Cormorant Garamond", serif';
 const dm = '"DM Sans", sans-serif';
+
+function useIsLightTheme(theme: ThemeMode) {
+  return theme === "light" || theme === "classic";
+}
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
@@ -240,18 +244,40 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const sidebarWidth = 200;
 
   const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
+  const isLt = useIsLightTheme(theme);
+
+  // Adaptive palette
+  const pal = {
+    bg: isLt ? "#FFFFFF" : "#080808",
+    sidebarBg: isLt ? "#FFFFFF" : "#080808",
+    sidebarBorder: isLt ? "rgba(0,0,0,0.08)" : "rgba(240,237,232,0.06)",
+    brandColor: isLt ? "#D4AF37" : "#E8C97A",
+    textPrimary: isLt ? "#1A1A1A" : "#F0EDE8",
+    textMuted: isLt ? "rgba(0,0,0,0.45)" : "rgba(240,237,232,0.3)",
+    textFaint: isLt ? "rgba(0,0,0,0.25)" : "rgba(240,237,232,0.2)",
+    textSubtle: isLt ? "rgba(0,0,0,0.55)" : "rgba(240,237,232,0.5)",
+    navActive: isLt ? "#D4AF37" : "#E8C97A",
+    navActiveBg: isLt ? "rgba(212,175,55,0.08)" : "rgba(232,201,122,0.04)",
+    headerBg: isLt ? "rgba(255,255,255,0.92)" : "rgba(8,8,8,0.9)",
+    headerBorder: isLt ? "rgba(0,0,0,0.06)" : "rgba(240,237,232,0.05)",
+    storageBg: isLt ? "rgba(0,0,0,0.04)" : "rgba(240,237,232,0.06)",
+    accentDotBg: isLt ? "rgba(0,0,0,0.04)" : "rgba(240,237,232,0.04)",
+    accentDotBorder: isLt ? "rgba(0,0,0,0.08)" : "rgba(240,237,232,0.06)",
+    avatarBg: isLt ? "rgba(0,0,0,0.06)" : "rgba(240,237,232,0.06)",
+    avatarText: isLt ? "rgba(0,0,0,0.5)" : "rgba(240,237,232,0.5)",
+  };
 
   return (
     <EntiranProvider>
-      <div className="min-h-screen" style={{ background: "#080808", overflowY: "auto", overflowX: "hidden" }}>
+      <div className="min-h-screen" style={{ background: pal.bg, overflowY: "auto", overflowX: "hidden" }}>
         {/* ── Desktop Sidebar ── */}
         {showSidebar && (
           <aside
             className="fixed left-0 top-0 z-30 h-screen flex flex-col"
             style={{
               width: sidebarWidth,
-              background: "#080808",
-              borderRight: "1px solid rgba(240,237,232,0.06)",
+              background: pal.sidebarBg,
+              borderRight: `1px solid ${pal.sidebarBorder}`,
             }}
           >
             {/* Brand */}
@@ -261,7 +287,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   fontFamily: cormorant,
                   fontSize: 18,
                   fontWeight: 500,
-                  color: "#E8C97A",
+                  color: pal.brandColor,
                   letterSpacing: "0.15em",
                 }}
               >
@@ -273,7 +299,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   style={{
                     fontFamily: dm,
                     fontSize: 9,
-                    color: "rgba(240,237,232,0.25)",
+                    color: pal.textFaint,
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
                   }}
@@ -283,14 +309,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               )}
             </div>
 
-            <div className="mx-5 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
+            <div className="mx-5 h-px" style={{ background: pal.sidebarBorder }} />
 
             <nav className="flex-1 px-3 pt-5 space-y-4 overflow-y-auto">
               {NAV_SECTIONS.map((section) => (
                 <div key={section.label}>
                   <p className="px-3 mb-1.5" style={{
                     fontFamily: dm, fontSize: 9, fontWeight: 600,
-                    color: "rgba(240,237,232,0.2)", letterSpacing: "0.18em",
+                    color: pal.textFaint, letterSpacing: "0.18em",
                     textTransform: "uppercase",
                   }}>{section.label}</p>
                   {section.items.map((item) => (
@@ -300,15 +326,15 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                       end={item.end}
                       className="flex items-center gap-2.5 px-3 py-2 transition-colors"
                       style={{ fontFamily: dm, fontSize: 13, borderLeft: "2px solid transparent" }}
-                      activeClassName="text-[#E8C97A] !border-l-[#E8C97A] bg-[rgba(232,201,122,0.04)]"
+                      activeClassName="nav-active-highlight"
                     >
                       {({ isActive }: { isActive: boolean }) => (
                         <>
                           <item.icon
                             className="h-[15px] w-[15px]"
-                            style={{ color: isActive ? "#E8C97A" : "rgba(240,237,232,0.3)" }}
+                            style={{ color: isActive ? pal.navActive : pal.textMuted }}
                           />
-                          <span style={{ color: isActive ? "#E8C97A" : "rgba(240,237,232,0.3)" }}>{item.title}</span>
+                          <span style={{ color: isActive ? pal.navActive : pal.textMuted }}>{item.title}</span>
                         </>
                       )}
                     </NavLink>
@@ -317,7 +343,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               ))}
             </nav>
 
-            <div className="mx-5 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
+            <div className="mx-5 h-px" style={{ background: pal.sidebarBorder }} />
 
             {/* Storage */}
             <div className="px-6 py-4">
@@ -325,7 +351,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 style={{
                   fontFamily: dm,
                   fontSize: 9,
-                  color: "rgba(240,237,232,0.2)",
+                  color: pal.textFaint,
                   letterSpacing: "0.15em",
                   textTransform: "uppercase",
                   marginBottom: 6,
@@ -333,12 +359,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               >
                 Storage
               </p>
-              <p style={{ fontFamily: dm, fontSize: 10, color: "rgba(240,237,232,0.35)" }}>
+              <p style={{ fontFamily: dm, fontSize: 10, color: pal.textMuted }}>
                 {formatBytes(storageUsed)}{" "}
-                <span style={{ color: "rgba(240,237,232,0.15)" }}>/ {formatBytes(storageLimit)}</span>
+                <span style={{ color: pal.textFaint }}>/ {formatBytes(storageLimit)}</span>
               </p>
-              <div className="mt-2 h-px w-full overflow-hidden" style={{ background: "rgba(240,237,232,0.06)" }}>
-                <div className="h-full transition-all" style={{ width: `${storagePct}%`, background: "#E8C97A" }} />
+              <div className="mt-2 h-px w-full overflow-hidden" style={{ background: pal.storageBg }}>
+                <div className="h-full transition-all" style={{ width: `${storagePct}%`, background: pal.brandColor }} />
               </div>
             </div>
 
@@ -347,9 +373,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <button
                 onClick={handleSignOut}
                 className="flex w-full items-center gap-2.5 px-3 py-2 rounded-sm transition-colors"
-                style={{ fontFamily: dm, fontSize: 13, color: "rgba(240,237,232,0.2)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.2)")}
+                style={{ fontFamily: dm, fontSize: 13, color: pal.textFaint }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = pal.textPrimary)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = pal.textFaint)}
               >
                 <LogOut className="h-[15px] w-[15px]" />
                 <span>Sign out</span>
@@ -365,10 +391,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             left: showSidebar ? sidebarWidth : 0,
             height: 48,
             padding: "0 20px",
-            background: "rgba(8,8,8,0.9)",
+            background: pal.headerBg,
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            borderBottom: "1px solid rgba(240,237,232,0.05)",
+            borderBottom: `1px solid ${pal.headerBorder}`,
           }}
         >
           <div className="flex items-center gap-3 min-w-0">
@@ -376,9 +402,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <button
                 onClick={() => navigate(-1)}
                 className="flex items-center justify-center transition-colors"
-                style={{ color: "rgba(240,237,232,0.3)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#F0EDE8")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(240,237,232,0.3)")}
+                style={{ color: pal.textMuted }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = pal.textPrimary)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = pal.textMuted)}
               >
                 <ChevronRight className="h-5 w-5 rotate-180" />
               </button>
@@ -389,7 +415,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 fontFamily: cormorant,
                 fontSize: 16,
                 fontWeight: 400,
-                color: "rgba(240,237,232,0.7)",
+                color: pal.textSubtle,
                 letterSpacing: "0.08em",
               }}
             >
@@ -403,16 +429,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               onClick={() => switchAccent(accent === "gold" ? "red" : "gold")}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all"
               style={{
-                background: "rgba(240,237,232,0.04)",
-                border: "1px solid rgba(240,237,232,0.06)",
+                background: pal.accentDotBg,
+                border: `1px solid ${pal.accentDotBorder}`,
               }}
               title={`Accent: ${accent}`}
             >
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{
-                  background: accent === "gold" ? "#E8C97A" : "#C0392B",
-                  boxShadow: accent === "gold" ? "0 0 6px rgba(232,201,122,0.5)" : "0 0 6px rgba(192,57,43,0.5)",
+                  background: accent === "gold" ? pal.brandColor : "#C0392B",
+                  boxShadow: accent === "gold" ? `0 0 6px ${pal.brandColor}80` : "0 0 6px rgba(192,57,43,0.5)",
                 }}
               />
             </button>
@@ -439,10 +465,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                     <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback
                       style={{
-                        background: "rgba(240,237,232,0.06)",
+                        background: pal.avatarBg,
                         fontFamily: dm,
                         fontSize: 10,
-                        color: "rgba(240,237,232,0.5)",
+                        color: pal.avatarText,
                       }}
                     >
                       {initials}

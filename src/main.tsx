@@ -6,6 +6,14 @@ import "./index.css";
 const savedTheme = localStorage.getItem('mirrorai-theme') || localStorage.getItem('theme');
 if (savedTheme === 'editorial') {
   document.documentElement.classList.add('editorial');
+} else if (savedTheme === 'light') {
+  document.documentElement.classList.add('light');
+} else if (savedTheme === 'classic') {
+  document.documentElement.classList.add('classic');
+} else if (savedTheme === 'versace') {
+  document.documentElement.classList.add('versace');
+} else if (savedTheme === 'darkroom') {
+  document.documentElement.classList.add('darkroom');
 } else {
   document.documentElement.classList.add('dark');
 }

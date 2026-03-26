@@ -9,6 +9,48 @@ import { toast } from "sonner";
 import { LayoutGrid, Diamond } from "lucide-react";
 import { colors, fonts } from "@/styles/design-tokens";
 
+/** Read current theme and return adaptive colors */
+function useAdaptiveColors() {
+  const [isLight, setIsLight] = useState(() => {
+    const t = localStorage.getItem("theme") || "dark";
+    return t === "light" || t === "classic";
+  });
+
+  useEffect(() => {
+    const check = () => {
+      const el = document.documentElement;
+      setIsLight(el.classList.contains("light") || el.classList.contains("classic"));
+    };
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  return {
+    isLight,
+    bg: isLight ? "#FFFFFF" : "#0A0A0B",
+    bgBar: isLight ? "rgba(255,255,255,0.96)" : "rgba(10,10,11,0.96)",
+    text: isLight ? "#000000" : "#F0EDE8",
+    textMuted: isLight ? "#999999" : "rgba(240,237,232,0.4)",
+    textSubtle: isLight ? "#666666" : "rgba(240,237,232,0.55)",
+    border: isLight ? "#F2F2F2" : "rgba(240,237,232,0.08)",
+    cardBg: isLight ? "#FFFFFF" : "rgba(255,255,255,0.04)",
+    menuBg: isLight ? "#FFFFFF" : "#1A1A1A",
+    menuBorder: isLight ? "#F0F0F0" : "rgba(240,237,232,0.08)",
+    menuShadow: isLight ? "0 8px 24px rgba(0,0,0,0.08)" : "0 8px 24px rgba(0,0,0,0.4)",
+    dotsBg: isLight ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.6)",
+    dotsBorder: isLight ? "#F0F0F0" : "rgba(240,237,232,0.1)",
+    dotsColor: isLight ? "#999999" : "rgba(240,237,232,0.5)",
+    emptyGradA: isLight ? "#f5f0ea" : "#1a1816",
+    emptyGradB: isLight ? "#e8e0d4" : "#141210",
+    hoverBg: isLight ? "#FAFAFA" : "rgba(255,255,255,0.06)",
+    tabActive: isLight ? "#000000" : "#F0EDE8",
+    tabInactive: isLight ? "rgba(0,0,0,0.4)" : "rgba(240,237,232,0.35)",
+    btnBorder: isLight ? "#E0E0E0" : "rgba(240,237,232,0.15)",
+  };
+}
+
 interface FeedItem {
   id: string;
   type: "event" | "post";
@@ -24,6 +66,7 @@ export default function LandingGate() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const drawer = useDrawerMenu();
+  const c = useAdaptiveColors();
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState("My Studio");
@@ -161,40 +204,40 @@ export default function LandingGate() {
   };
 
   const DotsIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill={colors.textMuted}>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill={c.dotsColor}>
       <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
     </svg>
   );
 
   const menuBtn: React.CSSProperties = {
     width: "100%", padding: "10px 16px", fontFamily: fonts.body, fontSize: 12,
-    color: "#000000", background: "transparent", border: "none",
+    color: c.text, background: "transparent", border: "none",
     textAlign: "left" as const, cursor: "pointer",
   };
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF", overflowY: "auto" as const }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: c.bg, overflowY: "auto" as const }}>
       {/* ── Top Bar ── */}
       <div style={{
         position: "sticky" as const, top: 0, zIndex: 100, height: mob ? 52 : 56,
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 20px", background: "rgba(255,255,255,0.96)",
-        backdropFilter: "blur(20px)", borderBottom: "1px solid #F2F2F2",
+        padding: "0 20px", background: c.bgBar,
+        backdropFilter: "blur(20px)", borderBottom: `1px solid ${c.border}`,
       }}>
         <button onClick={drawer.toggle} style={{
           background: "none", border: "none", fontFamily: fonts.body, fontSize: 10,
-          fontWeight: 600, color: "#999999", letterSpacing: "0.2em",
+          fontWeight: 600, color: c.textMuted, letterSpacing: "0.2em",
           cursor: "pointer", textTransform: "uppercase" as const,
         }}>MENU</button>
-        <span style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 500, color: "#000000", letterSpacing: "0.08em" }}>
+        <span style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 500, color: c.text, letterSpacing: "0.08em" }}>
           MirrorAI
         </span>
-        <button onClick={() => navigate("/dashboard")} style={{
+        <button onClick={() => navigate("/dashboard/events")} style={{
           background: "none", border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
           width: 36, height: 36,
         }}>
-          <LayoutGrid className="h-[18px] w-[18px]" style={{ color: "#999999" }} strokeWidth={1.5} />
+          <LayoutGrid className="h-[18px] w-[18px]" style={{ color: c.textMuted }} strokeWidth={1.5} />
         </button>
       </div>
 
@@ -203,7 +246,7 @@ export default function LandingGate() {
       {/* ── Tabs ── */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 20px", borderBottom: "1px solid #F2F2F2",
+        padding: "0 20px", borderBottom: `1px solid ${c.border}`,
       }}>
         <div style={{ display: "flex", gap: 24 }}>
           {(["feed", "artgallery"] as const).map(tab => (
@@ -211,7 +254,7 @@ export default function LandingGate() {
               fontFamily: fonts.body, fontSize: 12, fontWeight: 500, letterSpacing: "0.15em",
               textTransform: "uppercase" as const, background: "none", border: "none",
               padding: "14px 0", cursor: "pointer", position: "relative" as const,
-              color: activeTab === tab ? "#000000" : "rgba(0,0,0,0.4)",
+              color: activeTab === tab ? c.tabActive : c.tabInactive,
               transition: "color 0.2s",
             }}>
               {tab === "feed" ? "Feed" : "Art Gallery"}
@@ -232,8 +275,8 @@ export default function LandingGate() {
               toast.success("Public feed link copied!");
             }} style={{
               fontFamily: fonts.body, fontSize: 9, fontWeight: 600, letterSpacing: "0.12em",
-              textTransform: "uppercase" as const, color: "#000000",
-              background: "transparent", border: "1px solid #E0E0E0",
+              textTransform: "uppercase" as const, color: c.text,
+              background: "transparent", border: `1px solid ${c.btnBorder}`,
               padding: "8px 14px", cursor: "pointer",
             }}>Share Feed</button>
           )}
@@ -253,21 +296,21 @@ export default function LandingGate() {
         <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 80px" : "32px 0 100px" }}>
           {loading ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading your feed...</div>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted }}>Loading your feed...</div>
             </div>
           ) : feed.length === 0 ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.display, fontSize: 24, color: "#000000", fontStyle: "italic" }}>
+              <div style={{ fontFamily: fonts.display, fontSize: 24, color: c.text, fontStyle: "italic" }}>
                 Your feed is empty
               </div>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999", marginTop: 12, lineHeight: 1.7 }}>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted, marginTop: 12, lineHeight: 1.7 }}>
                 Create events or write posts — they'll appear here automatically.
               </div>
               <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24 }}>
                 <button onClick={() => navigate("/dashboard/events")} style={{
                   fontFamily: fonts.body, fontSize: 11, fontWeight: 600, letterSpacing: "0.12em",
-                  textTransform: "uppercase" as const, color: "#000000",
-                  border: "1px solid #E0E0E0", background: "transparent",
+                  textTransform: "uppercase" as const, color: c.text,
+                  border: `1px solid ${c.btnBorder}`, background: "transparent",
                   padding: "10px 24px", cursor: "pointer",
                 }}>Create Event</button>
                 <button onClick={() => setCreateOpen(true)} style={{
@@ -286,25 +329,25 @@ export default function LandingGate() {
                   style={{
                     position: "absolute" as const, top: 12, right: mob ? 12 : 16, zIndex: 10,
                     width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center",
-                    justifyContent: "center", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)",
-                    border: "1px solid #F0F0F0", cursor: "pointer",
+                    justifyContent: "center", background: c.dotsBg, backdropFilter: "blur(8px)",
+                    border: `1px solid ${c.dotsBorder}`, cursor: "pointer",
                   }}
                 ><DotsIcon /></button>
 
                 {menuOpenId === item.id && (
                   <div onClick={(e) => e.stopPropagation()} style={{
                     position: "absolute" as const, top: 48, right: mob ? 12 : 16, zIndex: 20,
-                    background: "#FFFFFF", border: "1px solid #F0F0F0",
-                    minWidth: 170, boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                    background: c.menuBg, border: `1px solid ${c.menuBorder}`,
+                    minWidth: 170, boxShadow: c.menuShadow,
                   }}>
                     {item.type === "post" && (
                       <>
-                        <button onClick={() => handleEditPost(item)}
-                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                         <button onClick={() => handleEditPost(item)}
+                          onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                           style={menuBtn}>✏️ Edit Post</button>
                         <button onClick={() => handleDeletePost(item.id)}
-                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                           style={{ ...menuBtn, color: "#CC3333" }}>🗑 Delete Post</button>
                       </>
@@ -312,11 +355,11 @@ export default function LandingGate() {
                     {item.type === "event" && (
                       <>
                         <button onClick={() => { navigate(`/dashboard/events/${item.id}`); setMenuOpenId(null); }}
-                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                           style={menuBtn}>📂 Open Event</button>
                         <button onClick={() => handleHideEvent(item.id)}
-                          onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                          onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                           style={menuBtn}>👁 Hide from Feed</button>
                       </>
@@ -326,7 +369,7 @@ export default function LandingGate() {
                         navigator.clipboard.writeText(`${window.location.origin}/feed/${shareSlug}`);
                         toast.success("Link copied!"); setMenuOpenId(null);
                       }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "#FAFAFA")}
+                        onMouseEnter={e => (e.currentTarget.style.background = c.hoverBg)}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                         style={menuBtn}>🔗 Copy Share Link</button>
                     )}
@@ -344,40 +387,40 @@ export default function LandingGate() {
                   ) : (
                     <div style={{
                       width: "100%", height: mob ? "65vw" : 420,
-                      background: idx % 2 === 0 ? "linear-gradient(135deg, #f5f0ea, #e8e0d4)" : "linear-gradient(135deg, #eae4dc, #d4ccc0)",
+                      background: idx % 2 === 0 ? `linear-gradient(135deg, ${c.emptyGradA}, ${c.emptyGradB})` : `linear-gradient(135deg, ${c.emptyGradB}, ${c.emptyGradA})`,
                     }} />
                   )}
 
                   <div style={{ padding: mob ? "14px 16px 0" : "16px 24px 0" }}>
                     <div style={{
                       fontFamily: fonts.body, fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase" as const,
-                      color: item.type === "event" ? colors.gold : "#CCCCCC", marginBottom: 8, fontWeight: 600,
+                      color: item.type === "event" ? colors.gold : c.textMuted, marginBottom: 8, fontWeight: 600,
                     }}>
                       {item.type === "event" ? "EVENT" : "POST"}
                     </div>
 
                     <h2 style={{
                       fontFamily: fonts.display, fontSize: mob ? 18 : 22, fontWeight: 500,
-                      color: "#000000", letterSpacing: "0.02em",
+                      color: c.text, letterSpacing: "0.02em",
                     }}>{item.title}</h2>
 
-                    <div style={{ fontFamily: fonts.body, fontSize: 12, color: "#999999", marginTop: 6 }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 12, color: c.textMuted, marginTop: 6 }}>
                       {fmt(item.date)}{item.location ? ` · ${item.location}` : ""}
                     </div>
 
                     {item.caption && (
-                      <p style={{ fontFamily: fonts.body, fontSize: 13, color: "#666666", lineHeight: 1.7, marginTop: 12 }}>
+                      <p style={{ fontFamily: fonts.body, fontSize: 13, color: c.textSubtle, lineHeight: 1.7, marginTop: 12 }}>
                         {item.caption}
                       </p>
                     )}
 
                     {item.type === "event" && item.photoCount !== undefined && item.photoCount > 0 && (
-                      <div style={{ fontFamily: fonts.body, fontSize: 11, color: "#BBBBBB", marginTop: 10 }}>
+                      <div style={{ fontFamily: fonts.body, fontSize: 11, color: c.textMuted, marginTop: 10 }}>
                         {item.photoCount} photos
                       </div>
                     )}
 
-                    <div style={{ height: 1, background: "#F2F2F2", marginTop: 20 }} />
+                    <div style={{ height: 1, background: c.border, marginTop: 20 }} />
                   </div>
                 </div>
               </div>
@@ -391,15 +434,15 @@ export default function LandingGate() {
         <div style={{ padding: mob ? "12px 0 80px" : "20px 0 100px" }}>
           {artLoading ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading art gallery...</div>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted }}>Loading art gallery...</div>
             </div>
           ) : artPhotos.length === 0 ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
               <Diamond style={{ color: colors.gold, margin: "0 auto 16px", width: 28, height: 28 }} />
-              <div style={{ fontFamily: fonts.display, fontSize: 22, color: "#000000", fontStyle: "italic" }}>
+              <div style={{ fontFamily: fonts.display, fontSize: 22, color: c.text, fontStyle: "italic" }}>
                 No art gallery photos yet
               </div>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999", marginTop: 10, lineHeight: 1.7 }}>
+              <div style={{ fontFamily: fonts.body, fontSize: 13, color: c.textMuted, marginTop: 10, lineHeight: 1.7 }}>
                 Open any event gallery and tap the diamond icon on photos to feature them here.
               </div>
             </div>
@@ -438,8 +481,8 @@ export default function LandingGate() {
       )}
 
       {/* ── Footer ── */}
-      <div style={{ padding: "24px 20px 40px", textAlign: "center" as const, borderTop: "1px solid #F2F2F2" }}>
-        <div style={{ fontFamily: fonts.body, fontSize: 10, color: "#CCCCCC", letterSpacing: "0.1em" }}>
+      <div style={{ padding: "24px 20px 40px", textAlign: "center" as const, borderTop: `1px solid ${c.border}` }}>
+        <div style={{ fontFamily: fonts.body, fontSize: 10, color: c.textMuted, letterSpacing: "0.1em" }}>
           © MirrorAI · Real Intelligence
         </div>
         <div style={{ width: 4, height: 4, borderRadius: "50%", background: colors.gold, margin: "12px auto 0" }} />
