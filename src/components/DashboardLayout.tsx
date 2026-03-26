@@ -245,8 +245,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const storageLimit = storage.data?.limit ?? PLAN_LIMITS.free;
   const storagePct = Math.min((storageUsed / storageLimit) * 100, 100);
 
-  const showSidebar = device.isDesktop || device.isTablet || (device.isPhone && isLandscape);
-  const showBottomNav = device.isPhone && !isLandscape;
+  const showSidebar = isDesktop;
+  const showBottomNav = isMobile;
   const sidebarWidth = 200;
 
   const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
@@ -273,11 +273,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     avatarText: isLt ? "rgba(0,0,0,0.5)" : "rgba(240,237,232,0.5)",
   };
 
-  // Landscape mode on phone: render at desktop width, scale down to fit
-  const isScaledLandscape = device.isPhone && isLandscape;
-  const VIRTUAL_WIDTH = 1280;
-  const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 404;
-  const scaleFactor = isScaledLandscape ? screenWidth / VIRTUAL_WIDTH : 1;
+  // View mode icon & label
+  const viewModeIcon = viewMode === 'desktop' ? Monitor : viewMode === 'mobile' ? Smartphone : RotateCw;
+  const viewModeLabel = viewMode === 'desktop' ? 'Desktop' : viewMode === 'mobile' ? 'Mobile' : 'Auto';
 
   return (
     <EntiranProvider>
