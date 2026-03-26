@@ -4,6 +4,7 @@ import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
+import { useViewMode } from "@/lib/ViewModeContext";
 import {
   LayoutGrid,
   Camera,
