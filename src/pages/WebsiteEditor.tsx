@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save, AlertTriangle, SplitSquareHorizontal, RotateCcw, Maximize2 } from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileSectionDrawer } from '@/components/website-editor/MobileSectionDrawer';
@@ -106,6 +106,8 @@ const WebsiteEditor = () => {
   // ── Mobile editor state ──
   const [mobileSectionsOpen, setMobileSectionsOpen] = useState(false);
   const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
+  const [mobileMode, setMobileMode] = useState<'preview' | 'edit' | 'landscape'>('preview');
+
 
   // ── Branding data (from profiles + studio_profiles) ──
   const [studioName, setStudioName] = useState('');
