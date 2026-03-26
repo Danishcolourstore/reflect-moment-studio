@@ -11,16 +11,16 @@ const NAV_ITEMS = [
   { label: "Home", path: "/home" },
   { label: "Events", path: "/dashboard/events" },
   { label: "Portfolio", path: "/dashboard/website-editor" },
-  { label: "Albums", path: "/dashboard/album-designer" },
+  { label: "Storybook", path: "/dashboard/storybook" },
 ];
 
 const MORE_ITEMS = [
-  { label: "MirrorAI Retouch", path: "/colour-store" },
-  { label: "Storybook", path: "/dashboard/storybook" },
-  { label: "Analytics", path: "/dashboard/analytics" },
+  { label: "Cheetah", path: "/dashboard/cheetah-live" },
+  { label: "Retouch", path: "/colour-store" },
   { label: "Clients", path: "/dashboard/clients" },
-  { label: "Billing", path: "/dashboard/billing" },
+  { label: "Analytics", path: "/dashboard/analytics" },
   { label: "Settings", path: "/dashboard/settings" },
+  { label: "Billing", path: "/dashboard/billing" },
   { label: "Profile", path: "/dashboard/profile" },
 ];
 

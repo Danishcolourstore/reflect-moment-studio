@@ -50,6 +50,7 @@ const NAV_SECTIONS = [
     items: [
       { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
       { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
+      { title: "Retouch", url: "/colour-store", icon: Palette },
     ],
   },
   {
@@ -60,11 +61,11 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: "SETTINGS",
+    label: "ACCOUNT",
     items: [
-      { title: "Domains", url: "/dashboard/domains", icon: Globe },
+      { title: "Settings", url: "/dashboard/settings", icon: Compass },
       { title: "Profile", url: "/dashboard/profile", icon: User },
-      { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
+      { title: "Billing", url: "/dashboard/billing", icon: BarChart2 },
     ],
   },
 ];
@@ -95,16 +96,19 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Home",
   "/dashboard/events": "Events",
   "/dashboard/website-editor": "Portfolio",
-  "/dashboard/domains": "Domains",
   "/dashboard/storybook": "Storybook",
-  "/dashboard/album-designer": "Albums",
+  "/dashboard/album-designer": "Storybook · Albums",
   "/dashboard/cheetah-live": "Cheetah",
   "/dashboard/clients": "Clients",
   "/dashboard/analytics": "Analytics",
-  "/dashboard/notifications": "Notifications",
+  "/dashboard/settings": "Settings",
+  "/dashboard/domains": "Settings · Domains",
   "/dashboard/branding": "Branding",
   "/dashboard/profile": "Profile",
+  "/dashboard/billing": "Billing",
+  "/dashboard/notifications": "Notifications",
   "/dashboard/onboarding": "Welcome",
+  "/colour-store": "Retouch",
 };
 
 type ThemeMode = "dark" | "light" | "versace" | "classic" | "darkroom";

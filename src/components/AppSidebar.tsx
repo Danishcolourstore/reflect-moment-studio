@@ -1,15 +1,18 @@
-import { CalendarDays, BookOpen, BarChart3, Settings, CreditCard, LogOut, Home, Rss } from "lucide-react";
+import { CalendarDays, BookOpen, BarChart3, Settings, CreditCard, LogOut, Home, Globe, Zap, Users, Palette } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 
 const navItems = [
   { title: "Home", url: "/home", icon: Home },
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Portfolio", url: "/dashboard/website-editor", icon: Rss },
+  { title: "Portfolio", url: "/dashboard/website-editor", icon: Globe },
   { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
+  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
+  { title: "Retouch", url: "/colour-store", icon: Palette },
+  { title: "Clients", url: "/dashboard/clients", icon: Users },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-  { title: "Studio Settings", url: "/dashboard/settings", icon: Settings },
-  { title: "Plan & Billing", url: "/dashboard/billing", icon: CreditCard },
+  { title: "Settings", url: "/dashboard/settings", icon: Settings },
+  { title: "Billing", url: "/dashboard/billing", icon: CreditCard },
 ];
 
 export function AppSidebar() {

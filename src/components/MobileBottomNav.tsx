@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Calendar, Plus, Sparkles, User, Camera, Upload, BookOpen, Zap, Palette, Layers } from "lucide-react";
+import { Home, Calendar, Plus, Sparkles, User, Camera, Upload, BookOpen, Zap, Palette } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
 import { colors, fonts } from "@/styles/design-tokens";
@@ -20,10 +20,9 @@ const CREATE_ACTIONS = [
 ];
 
 const TOOL_ACTIONS = [
-  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
-  { title: "Refyn", url: "/colour-store", icon: Palette },
   { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
-  { title: "Album Designer", url: "/dashboard/album-designer", icon: Layers },
+  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
+  { title: "Retouch", url: "/colour-store", icon: Palette },
 ];
 
 export function MobileBottomNav() {
