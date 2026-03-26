@@ -280,17 +280,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <EntiranProvider>
       <div
-        className="min-h-screen"
+        className="min-h-screen transition-all duration-300"
         style={{
           background: pal.bg,
           overflowY: "auto",
-          overflowX: isScaledLandscape ? "hidden" : "hidden",
-          ...(isScaledLandscape ? {
-            width: VIRTUAL_WIDTH,
-            minHeight: `${100 / scaleFactor}vh`,
-            transform: `scale(${scaleFactor})`,
-            transformOrigin: "top left",
-          } : {}),
+          overflowX: "hidden",
         }}
       >
         {/* ── Desktop Sidebar ── */}
@@ -462,21 +456,23 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* View mode toggle - portrait/landscape */}
+            {/* View mode toggle - auto/desktop/mobile */}
             <button
-              onClick={toggleViewMode}
-              className="flex items-center justify-center transition-colors rounded-full"
+              onClick={cycleViewMode}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all"
               style={{
-                minWidth: 32, minHeight: 32,
+                minHeight: 32,
                 background: pal.accentDotBg,
                 border: `1px solid ${pal.accentDotBorder}`,
+                fontFamily: dm,
+                fontSize: 10,
+                color: pal.textMuted,
+                fontWeight: 500,
               }}
-              title={isLandscape ? "Switch to Portrait" : "Switch to Landscape"}
+              title={`View: ${viewModeLabel}`}
             >
-              {isLandscape
-                ? <Smartphone className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
-                : <Monitor className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
-              }
+              <viewModeIcon className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
+              <span className="hidden sm:inline">{viewModeLabel}</span>
             </button>
             {/* Accent toggle */}
             <button
@@ -549,25 +545,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         {showBottomNav && <MobileBottomNav />}
 
-        {/* Floating exit landscape button */}
-        {isScaledLandscape && (
-          <button
-            onClick={toggleViewMode}
-            className="fixed z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg transition-all"
-            style={{
-              bottom: 16 / scaleFactor,
-              right: 16 / scaleFactor,
-              background: pal.brandColor,
-              color: pal.bg,
-              fontFamily: dm,
-              fontSize: 11,
-              fontWeight: 600,
-            }}
-          >
-            <Smartphone className="h-3.5 w-3.5" />
-            Exit PC View
-          </button>
-        )}
       </div>
     </EntiranProvider>
   );
