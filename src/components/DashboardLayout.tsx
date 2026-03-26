@@ -287,7 +287,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   fontFamily: cormorant,
                   fontSize: 18,
                   fontWeight: 500,
-                  color: "#E8C97A",
+                  color: pal.brandColor,
                   letterSpacing: "0.15em",
                 }}
               >
@@ -299,7 +299,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   style={{
                     fontFamily: dm,
                     fontSize: 9,
-                    color: "rgba(240,237,232,0.25)",
+                    color: pal.textFaint,
                     letterSpacing: "0.12em",
                     textTransform: "uppercase",
                   }}
@@ -309,7 +309,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               )}
             </div>
 
-            <div className="mx-5 h-px" style={{ background: "rgba(240,237,232,0.06)" }} />
+            <div className="mx-5 h-px" style={{ background: pal.sidebarBorder }} />
 
             <nav className="flex-1 px-3 pt-5 space-y-4 overflow-y-auto">
               {NAV_SECTIONS.map((section) => (
