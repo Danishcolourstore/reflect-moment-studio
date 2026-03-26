@@ -9,6 +9,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StorybookGate } from "@/components/StorybookGate";
 import { GalleryShell } from "./components/GalleryShell";
 import { useEffect, useState, lazy, Suspense, createContext, useContext } from "react";
+import { ViewModeProvider } from "@/lib/ViewModeContext";
 import { PageTransition } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
@@ -725,29 +726,26 @@ const AppRoutes = () => {
   );
 };
 
-const App = () => {
-  const VMP = require("@/lib/ViewModeContext").ViewModeProvider;
-  return (
-    <ErrorBoundary>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <Toaster />
-            <BrowserRouter>
-              <AuthProvider>
-                <VMP>
-                  <ErrorBoundary>
-                    <AppRoutes />
-                  </ErrorBoundary>
-                </VMP>
-                {/* BetaFeedbackButton hidden in production */}
-              </AuthProvider>
-            </BrowserRouter>
-          </TooltipProvider>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </ErrorBoundary>
-  );
-};
+const App = () => (
+  <ErrorBoundary>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <BrowserRouter>
+            <AuthProvider>
+              <ViewModeProvider>
+                <ErrorBoundary>
+                  <AppRoutes />
+                </ErrorBoundary>
+              </ViewModeProvider>
+              {/* BetaFeedbackButton hidden in production */}
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </ErrorBoundary>
+);
 
 export default App;
