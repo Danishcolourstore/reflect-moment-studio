@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Calendar, Plus, Sparkles, User, Camera, Upload, BookOpen, Zap, Palette } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -37,15 +37,16 @@ export function MobileBottomNav() {
     const t = localStorage.getItem("theme") || "dark";
     return t === "light" || t === "classic";
   });
-  useState(() => {
+  useEffect(() => {
     const check = () => {
       const el = document.documentElement;
       setIsLt(el.classList.contains("light") || el.classList.contains("classic"));
     };
+    check();
     const obs = new MutationObserver(check);
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => obs.disconnect();
-  });
+  }, []);
 
   if (!device.isPhone) return null;
 
