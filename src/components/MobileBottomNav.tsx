@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Calendar, Plus, Sparkles, User, Camera, Upload, BookOpen, Zap, Palette, Layers } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
+import { colors, fonts } from "@/styles/design-tokens";
 
 const TABS = [
   { title: "Home", url: "/home", icon: Home },
@@ -41,60 +42,56 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-30"
-      style={{
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        background: "rgba(13,13,13,0.95)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        boxShadow: "0 -8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
-      }}
-    >
-      <div className="flex items-stretch" style={{ height: 60 }}>
+    <>
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch"
+        style={{
+          height: 56,
+          background: colors.bg,
+          borderTop: `1px solid ${colors.border}`,
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
+      >
         {TABS.map((tab) => {
           if (tab.title === "Create") {
             return (
               <Sheet key="create" open={createOpen} onOpenChange={setCreateOpen}>
                 <SheetTrigger asChild>
-                  <button className="flex-1 flex items-center justify-center min-h-[44px]">
+                  <button
+                    className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
+                    style={{ color: "rgba(255,255,255,0.45)" }}
+                  >
                     <div
-                      className="flex items-center justify-center rounded-2xl"
-                      style={{
-                        width: 44,
-                        height: 36,
-                        background: "hsl(var(--primary))",
-                        boxShadow: "0 4px 14px hsla(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.2)",
-                      }}
+                      className="flex items-center justify-center rounded-full"
+                      style={{ width: 28, height: 28, background: colors.gold }}
                     >
-                      <Plus className="h-5 w-5" style={{ color: "#000" }} strokeWidth={2.5} />
+                      <Plus className="h-[16px] w-[16px]" style={{ color: colors.bg }} strokeWidth={2.5} />
                     </div>
                   </button>
                 </SheetTrigger>
                 <SheetContent
                   side="bottom"
-                  className="rounded-t-[24px] border-0"
+                  className="rounded-t-[20px]"
                   style={{
-                    background: "#161616",
-                    boxShadow: "0 -12px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
+                    background: colors.surface,
+                    border: "none",
                     paddingBottom: "env(safe-area-inset-bottom, 16px)",
                   }}
                 >
-                  <div className="pt-5 pb-4 space-y-1 px-2">
-                    <p className="px-4 mb-3 text-[9px] font-semibold uppercase tracking-[0.2em]"
-                       style={{ color: "rgba(255,255,255,0.2)", fontFamily: "'DM Sans', sans-serif" }}>
-                      Create
-                    </p>
+                  <div className="pt-4 pb-4 space-y-1">
+                    <p style={{
+                      fontFamily: fonts.body, fontSize: 9, fontWeight: 600,
+                      color: colors.textMuted, letterSpacing: "0.2em",
+                      textTransform: "uppercase", padding: "0 16px", marginBottom: 12,
+                    }}>Create</p>
                     {CREATE_ACTIONS.map((action) => (
                       <button
                         key={action.url}
                         onClick={() => { navigate(action.url); setCreateOpen(false); }}
-                        className="neu-card-sm flex items-center gap-3 w-full px-4 py-3.5 mb-2 min-h-[48px]"
-                        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "rgba(255,255,255,0.8)" }}
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors min-h-[48px]"
+                        style={{ color: colors.text, fontFamily: fonts.body, fontSize: 14 }}
                       >
-                        <div className="neu-icon-circle" style={{ width: 36, height: 36, borderRadius: 10 }}>
-                          <action.icon className="h-4 w-4" style={{ color: "hsl(var(--primary))" }} strokeWidth={1.5} />
-                        </div>
+                        <action.icon className="h-5 w-5" style={{ color: colors.gold }} strokeWidth={1.5} />
                         {action.title}
                       </button>
                     ))}
@@ -110,38 +107,35 @@ export function MobileBottomNav() {
                 <SheetTrigger asChild>
                   <button
                     className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
-                    style={{ color: "rgba(255,255,255,0.35)" }}
+                    style={{ color: "rgba(255,255,255,0.45)" }}
                   >
-                    <tab.icon className="h-[20px] w-[20px]" strokeWidth={1.5} />
-                    <span className="text-[9px] font-medium tracking-wider" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                      {tab.title}
-                    </span>
+                    <tab.icon className="h-[22px] w-[22px]" strokeWidth={1.6} />
+                    <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 500 }}>{tab.title}</span>
                   </button>
                 </SheetTrigger>
                 <SheetContent
                   side="bottom"
-                  className="rounded-t-[24px] border-0"
+                  className="rounded-t-[20px]"
                   style={{
-                    background: "#161616",
-                    boxShadow: "0 -12px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
+                    background: colors.surface,
+                    border: "none",
                     paddingBottom: "env(safe-area-inset-bottom, 16px)",
                   }}
                 >
-                  <div className="pt-5 pb-4 space-y-1 px-2">
-                    <p className="px-4 mb-3 text-[9px] font-semibold uppercase tracking-[0.2em]"
-                       style={{ color: "rgba(255,255,255,0.2)", fontFamily: "'DM Sans', sans-serif" }}>
-                      Tools
-                    </p>
+                  <div className="pt-4 pb-4 space-y-1">
+                    <p style={{
+                      fontFamily: fonts.body, fontSize: 9, fontWeight: 600,
+                      color: colors.textMuted, letterSpacing: "0.2em",
+                      textTransform: "uppercase", padding: "0 16px", marginBottom: 12,
+                    }}>Tools</p>
                     {TOOL_ACTIONS.map((action) => (
                       <button
                         key={action.url}
                         onClick={() => { navigate(action.url); setToolsOpen(false); }}
-                        className="neu-card-sm flex items-center gap-3 w-full px-4 py-3.5 mb-2 min-h-[48px]"
-                        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "rgba(255,255,255,0.8)" }}
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors min-h-[48px]"
+                        style={{ color: colors.text, fontFamily: fonts.body, fontSize: 14 }}
                       >
-                        <div className="neu-icon-circle" style={{ width: 36, height: 36, borderRadius: 10 }}>
-                          <action.icon className="h-4 w-4" style={{ color: "hsl(var(--primary))" }} strokeWidth={1.5} />
-                        </div>
+                        <action.icon className="h-5 w-5" style={{ color: colors.gold }} strokeWidth={1.5} />
                         {action.title}
                       </button>
                     ))}
@@ -156,23 +150,15 @@ export function MobileBottomNav() {
             <button
               key={tab.url}
               onClick={() => navigate(tab.url)}
-              className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-all duration-200"
-              style={{ color: active ? "hsl(var(--primary))" : "rgba(255,255,255,0.3)" }}
+              className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors"
+              style={{ color: active ? colors.gold : "rgba(255,255,255,0.4)" }}
             >
-              <tab.icon className="h-[20px] w-[20px]" strokeWidth={1.5} />
-              <span className="text-[9px] font-medium tracking-wider" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                {tab.title}
-              </span>
-              {active && (
-                <div
-                  className="absolute bottom-1 w-1 h-1 rounded-full"
-                  style={{ background: "hsl(var(--primary))", boxShadow: "0 0 6px hsla(var(--primary) / 0.5)" }}
-                />
-              )}
+              <tab.icon className="h-[22px] w-[22px]" strokeWidth={1.6} />
+              <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 500 }}>{tab.title}</span>
             </button>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 }
