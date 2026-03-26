@@ -217,9 +217,11 @@ export default function LandingGate() {
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <button
             onClick={() => {
-              const cur = localStorage.getItem("theme") || "dark";
+            const cur = localStorage.getItem("theme") || "dark";
               const next = cur === "dark" ? "light" : "dark";
-              document.documentElement.className = next;
+              // Remove only theme classes, preserve platform/device/input classes
+              document.documentElement.classList.remove("dark", "light", "editorial", "classic", "versace", "darkroom");
+              if (next !== "dark") document.documentElement.classList.add(next);
               localStorage.setItem("theme", next);
               localStorage.setItem("andhakaar-mode", next === "dark" ? "on" : "off");
             }}

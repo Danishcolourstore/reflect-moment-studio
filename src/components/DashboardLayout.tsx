@@ -493,7 +493,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* ── Main Content ── */}
-        <main className="pt-12 pb-24 lg:pb-8" style={{ marginLeft: showSidebar ? sidebarWidth : 0 }}>
+        <main className="pt-[52px] pb-24 lg:pb-8" style={{ marginLeft: showSidebar ? sidebarWidth : 0 }}>
           <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</div>
         </main>
 
