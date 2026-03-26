@@ -62,8 +62,8 @@ export function MobileBottomNav() {
         className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch"
         style={{
           height: 56,
-          background: colors.bg,
-          borderTop: `1px solid ${colors.border}`,
+          background: isLt ? "#FFFFFF" : colors.bg,
+          borderTop: `1px solid ${isLt ? "rgba(0,0,0,0.08)" : colors.border}`,
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >
@@ -74,7 +74,7 @@ export function MobileBottomNav() {
                 <SheetTrigger asChild>
                   <button
                     className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
-                    style={{ color: "rgba(255,255,255,0.45)" }}
+                    style={{ color: isLt ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.45)" }}
                   >
                     <div
                       className="flex items-center justify-center rounded-full"
@@ -122,7 +122,7 @@ export function MobileBottomNav() {
                 <SheetTrigger asChild>
                   <button
                     className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px]"
-                    style={{ color: "rgba(255,255,255,0.45)" }}
+                    style={{ color: isLt ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.45)" }}
                   >
                     <tab.icon className="h-[22px] w-[22px]" strokeWidth={1.6} />
                     <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 500 }}>{tab.title}</span>
@@ -166,7 +166,7 @@ export function MobileBottomNav() {
               key={tab.url}
               onClick={() => navigate(tab.url)}
               className="flex-1 flex flex-col items-center justify-center gap-1 min-h-[44px] transition-colors"
-              style={{ color: active ? colors.gold : "rgba(255,255,255,0.4)" }}
+              style={{ color: active ? colors.gold : (isLt ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.4)") }}
             >
               <tab.icon className="h-[22px] w-[22px]" strokeWidth={1.6} />
               <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 500 }}>{tab.title}</span>
