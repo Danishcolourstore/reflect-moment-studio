@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: mirror-ai-redis
+    ports:
+      - '6379:6379'
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    image: node:22-alpine
+    container_name: mirror-ai-backend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - '8080:8080'
+      - '2121:2121'
+      - '2100-2110:2100-2110'
+    environment:
+      REDIS_ENABLED: 'true'
+      REDIS_URL: redis://redis:6379
+      FTP_HOST: 0.0.0.0
+      FTP_PORT: 2121
+      FTP_PASV_URL: 127.0.0.1
+      FTP_PASV_MIN: 2100
+      FTP_PASV_MAX: 2110
+    volumes:
+      - ./backend:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  frontend:
+    image: node:22-alpine
+    container_name: mirror-ai-frontend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+
+volumes:
+  redis_data:
