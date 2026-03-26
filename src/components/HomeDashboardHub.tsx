@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import {
   Camera, Image, Palette, BookOpen, Zap, PenTool,
-  Users, BarChart3, Globe, Settings, User, CreditCard,
-  ChevronRight,
+  Users, BarChart3, Settings, User, CreditCard, Plus,
 } from "lucide-react";
-import { BusinessDashboard } from "@/components/business/BusinessDashboard";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
 import { BusinessInsights, Lead, Booking } from "@/hooks/use-business-suite";
 
 interface HomeDashboardHubProps {
@@ -13,37 +13,86 @@ interface HomeDashboardHubProps {
   bookings: Booking[];
 }
 
-const SECTIONS = [
+const FEATURES = [
   {
-    label: "Studio",
-    items: [
-      { title: "Events", icon: Camera, url: "/dashboard/events", desc: "Manage galleries" },
-      { title: "Portfolio", icon: Image, url: "/dashboard/portfolio", desc: "Public website" },
-      { title: "Branding", icon: Palette, url: "/dashboard/branding", desc: "Brand studio" },
-    ],
+    title: "Events",
+    icon: Camera,
+    url: "/dashboard/events",
+    desc: "Manage galleries",
+    meta: "Photo delivery",
+    gradient: "from-amber-900/40 to-stone-900/60",
   },
   {
-    label: "Tools",
-    items: [
-      { title: "Storybook", icon: BookOpen, url: "/dashboard/storybook", desc: "Albums & stories" },
-      { title: "Cheetah", icon: Zap, url: "/dashboard/cheetah-live", desc: "AI culling" },
-      { title: "Retouch", icon: PenTool, url: "/colour-store", desc: "Photo editing" },
-    ],
+    title: "Portfolio",
+    icon: Image,
+    url: "/dashboard/website-editor",
+    desc: "Public website",
+    meta: "Brand presence",
+    gradient: "from-stone-800/50 to-neutral-900/60",
   },
   {
-    label: "Business",
-    items: [
-      { title: "Clients", icon: Users, url: "/dashboard/clients", desc: "CRM & leads" },
-      { title: "Analytics", icon: BarChart3, url: "/dashboard/analytics", desc: "Performance" },
-    ],
+    title: "Branding",
+    icon: Palette,
+    url: "/dashboard/branding",
+    desc: "Brand studio",
+    meta: "Visual identity",
+    gradient: "from-rose-900/30 to-stone-900/60",
   },
   {
-    label: "Account",
-    items: [
-      { title: "Settings", icon: Settings, url: "/dashboard/studio-settings", desc: "Preferences" },
-      { title: "Profile", icon: User, url: "/dashboard/profile", desc: "Your profile" },
-      { title: "Billing", icon: CreditCard, url: "/dashboard/billing", desc: "Plans & usage" },
-    ],
+    title: "Storybook",
+    icon: BookOpen,
+    url: "/dashboard/storybook",
+    desc: "Albums & stories",
+    meta: "Print design",
+    gradient: "from-indigo-900/30 to-stone-900/60",
+  },
+  {
+    title: "Cheetah",
+    icon: Zap,
+    url: "/dashboard/cheetah-live",
+    desc: "AI culling",
+    meta: "Smart selection",
+    gradient: "from-emerald-900/30 to-stone-900/60",
+  },
+  {
+    title: "Retouch",
+    icon: PenTool,
+    url: "/colour-store",
+    desc: "Photo editing",
+    meta: "Color grading",
+    gradient: "from-violet-900/30 to-stone-900/60",
+  },
+  {
+    title: "Clients",
+    icon: Users,
+    url: "/dashboard/clients",
+    desc: "CRM & leads",
+    meta: "Relationships",
+    gradient: "from-sky-900/30 to-stone-900/60",
+  },
+  {
+    title: "Analytics",
+    icon: BarChart3,
+    url: "/dashboard/analytics",
+    desc: "Performance",
+    meta: "Business insights",
+    gradient: "from-orange-900/30 to-stone-900/60",
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    url: "/dashboard/settings",
+    desc: "Preferences",
+    meta: "Configuration",
+    gradient: "from-zinc-800/40 to-stone-900/60",
+  },
+  {
+    title: "Profile",
+    icon: User,
+    url: "/dashboard/profile",
+    desc: "Your profile",
+    meta: "Account",
+    gradient: "from-teal-900/30 to-stone-900/60",
   },
 ];
 
@@ -52,40 +101,57 @@ export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHub
 
   return (
     <div className="space-y-6">
-      {/* Business Metrics */}
-      <BusinessDashboard
-        insights={insights}
-        leads={leads}
-        bookings={bookings}
-        onTabChange={() => navigate("/dashboard/business")}
-      />
+      {/* Header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-1" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+            Dashboard
+          </p>
+          <h1 className="text-2xl sm:text-[32px] font-light tracking-wide text-foreground" style={{ fontFamily: '"Cormorant Garamond", serif' }}>
+            Your Studio
+          </h1>
+        </div>
+        <Button
+          size="sm"
+          onClick={() => navigate("/dashboard/events")}
+          className="h-10 px-4 gap-1.5 rounded-lg"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="text-xs font-medium">New Event</span>
+        </Button>
+      </div>
 
-      {/* Feature Hub */}
-      <div className="space-y-5">
-        {SECTIONS.map((section) => (
-          <div key={section.label}>
-            <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground mb-2.5 px-1">
-              {section.label}
-            </p>
-            <div className="grid grid-cols-1 gap-1.5">
-              {section.items.map((item) => (
-                <button
-                  key={item.url}
-                  onClick={() => navigate(item.url)}
-                  className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3.5 text-left transition-colors hover:bg-secondary/50 active:bg-secondary group"
-                >
-                  <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-primary/10 shrink-0">
-                    <item.icon className="h-[18px] w-[18px] text-primary" strokeWidth={1.6} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{item.title}</p>
-                    <p className="text-[11px] text-muted-foreground">{item.desc}</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
-                </button>
-              ))}
+      {/* 2-Column Card Grid */}
+      <div className="grid grid-cols-2 gap-4 sm:gap-5">
+        {FEATURES.map((item) => (
+          <button
+            key={item.url}
+            onClick={() => navigate(item.url)}
+            className="group text-left rounded-xl border border-border bg-card overflow-hidden transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98]"
+          >
+            {/* Square image area */}
+            <AspectRatio ratio={1}>
+              <div className={`h-full w-full bg-gradient-to-br ${item.gradient} flex items-center justify-center transition-all group-hover:opacity-90`}>
+                <item.icon
+                  className="h-8 w-8 sm:h-10 sm:w-10 text-foreground/50 group-hover:text-primary/80 transition-colors"
+                  strokeWidth={1.2}
+                />
+              </div>
+            </AspectRatio>
+
+            {/* Text content */}
+            <div className="p-3 sm:p-4 space-y-0.5">
+              <h3 className="text-sm sm:text-base font-semibold text-foreground leading-tight" style={{ fontFamily: '"Cormorant Garamond", serif' }}>
+                {item.title}
+              </h3>
+              <p className="text-[11px] sm:text-xs text-muted-foreground leading-snug">
+                {item.desc}
+              </p>
+              <p className="text-[10px] text-muted-foreground/50 pt-0.5" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+                {item.meta}
+              </p>
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>
