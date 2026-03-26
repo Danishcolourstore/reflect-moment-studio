@@ -212,9 +212,7 @@ export default function TemplatePreview() {
         );
 
       case 'contact':
-        return (
-          <WebsiteCinematicInquiry key="contact" id="contact" branding={previewBranding} />
-        );
+        return <WebsiteContact key="contact" id="contact" template={tmpl.value} branding={previewBranding} />;
 
       case 'footer':
         return <WebsiteFooter key="footer" template={tmpl.value} branding={previewBranding} />;
