@@ -26,6 +26,7 @@ const Profile = () => {
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [pwSaving, setPwSaving] = useState(false);
+  const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('mirrorai-theme') || 'dark');
 
   useEffect(() => {
     if (!user) return;
