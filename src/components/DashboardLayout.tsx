@@ -316,8 +316,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 <div key={section.label}>
                   <p className="px-3 mb-1.5" style={{
                     fontFamily: dm, fontSize: 9, fontWeight: 600,
-                    color: "rgba(240,237,232,0.2)", letterSpacing: "0.18em",
+                    color: pal.textFaint, letterSpacing: "0.18em",
                     textTransform: "uppercase",
+                  }}>{section.label}</p>
                   }}>{section.label}</p>
                   {section.items.map((item) => (
                     <NavLink
@@ -326,7 +327,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                       end={item.end}
                       className="flex items-center gap-2.5 px-3 py-2 transition-colors"
                       style={{ fontFamily: dm, fontSize: 13, borderLeft: "2px solid transparent" }}
-                      activeClassName="text-[#E8C97A] !border-l-[#E8C97A] bg-[rgba(232,201,122,0.04)]"
+                      activeClassName={`!border-l-[${pal.navActive}] bg-[${pal.navActiveBg}]`}
                     >
                       {({ isActive }: { isActive: boolean }) => (
                         <>
