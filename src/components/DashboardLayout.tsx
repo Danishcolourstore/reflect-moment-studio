@@ -249,7 +249,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const showSidebar = device.isDesktop || device.isTablet || (device.isPhone && isLandscape);
   const showBottomNav = device.isPhone && !isLandscape;
-  const sidebarWidth = isLandscape && device.isPhone ? 180 : 200;
+  const sidebarWidth = 200;
 
   const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
   const isLt = useIsLightTheme(theme);
@@ -275,9 +275,28 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     avatarText: isLt ? "rgba(0,0,0,0.5)" : "rgba(240,237,232,0.5)",
   };
 
+  // Landscape mode on phone: render at desktop width, scale down to fit
+  const isScaledLandscape = device.isPhone && isLandscape;
+  const VIRTUAL_WIDTH = 1280;
+  const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 404;
+  const scaleFactor = isScaledLandscape ? screenWidth / VIRTUAL_WIDTH : 1;
+
   return (
     <EntiranProvider>
-      <div className="min-h-screen" style={{ background: pal.bg, overflowY: "auto", overflowX: "hidden" }}>
+      <div
+        className="min-h-screen"
+        style={{
+          background: pal.bg,
+          overflowY: "auto",
+          overflowX: isScaledLandscape ? "hidden" : "hidden",
+          ...(isScaledLandscape ? {
+            width: VIRTUAL_WIDTH,
+            minHeight: `${100 / scaleFactor}vh`,
+            transform: `scale(${scaleFactor})`,
+            transformOrigin: "top left",
+          } : {}),
+        }}
+      >
         {/* ── Desktop Sidebar ── */}
         {showSidebar && (
           <aside
@@ -518,6 +537,26 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </main>
 
         {showBottomNav && <MobileBottomNav />}
+
+        {/* Floating exit landscape button */}
+        {isScaledLandscape && (
+          <button
+            onClick={toggleViewMode}
+            className="fixed z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg transition-all"
+            style={{
+              bottom: 16 / scaleFactor,
+              right: 16 / scaleFactor,
+              background: pal.brandColor,
+              color: pal.bg,
+              fontFamily: dm,
+              fontSize: 11,
+              fontWeight: 600,
+            }}
+          >
+            <Smartphone className="h-3.5 w-3.5" />
+            Exit PC View
+          </button>
+        )}
       </div>
     </EntiranProvider>
   );
