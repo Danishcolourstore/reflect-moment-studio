@@ -9,6 +9,48 @@ import { toast } from "sonner";
 import { LayoutGrid, Diamond } from "lucide-react";
 import { colors, fonts } from "@/styles/design-tokens";
 
+/** Read current theme and return adaptive colors */
+function useAdaptiveColors() {
+  const [isLight, setIsLight] = useState(() => {
+    const t = localStorage.getItem("theme") || "dark";
+    return t === "light" || t === "classic";
+  });
+
+  useEffect(() => {
+    const check = () => {
+      const el = document.documentElement;
+      setIsLight(el.classList.contains("light") || el.classList.contains("classic"));
+    };
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  return {
+    isLight,
+    bg: isLight ? "#FFFFFF" : "#0A0A0B",
+    bgBar: isLight ? "rgba(255,255,255,0.96)" : "rgba(10,10,11,0.96)",
+    text: isLight ? "#000000" : "#F0EDE8",
+    textMuted: isLight ? "#999999" : "rgba(240,237,232,0.4)",
+    textSubtle: isLight ? "#666666" : "rgba(240,237,232,0.55)",
+    border: isLight ? "#F2F2F2" : "rgba(240,237,232,0.08)",
+    cardBg: isLight ? "#FFFFFF" : "rgba(255,255,255,0.04)",
+    menuBg: isLight ? "#FFFFFF" : "#1A1A1A",
+    menuBorder: isLight ? "#F0F0F0" : "rgba(240,237,232,0.08)",
+    menuShadow: isLight ? "0 8px 24px rgba(0,0,0,0.08)" : "0 8px 24px rgba(0,0,0,0.4)",
+    dotsBg: isLight ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.6)",
+    dotsBorder: isLight ? "#F0F0F0" : "rgba(240,237,232,0.1)",
+    dotsColor: isLight ? "#999999" : "rgba(240,237,232,0.5)",
+    emptyGradA: isLight ? "#f5f0ea" : "#1a1816",
+    emptyGradB: isLight ? "#e8e0d4" : "#141210",
+    hoverBg: isLight ? "#FAFAFA" : "rgba(255,255,255,0.06)",
+    tabActive: isLight ? "#000000" : "#F0EDE8",
+    tabInactive: isLight ? "rgba(0,0,0,0.4)" : "rgba(240,237,232,0.35)",
+    btnBorder: isLight ? "#E0E0E0" : "rgba(240,237,232,0.15)",
+  };
+}
+
 interface FeedItem {
   id: string;
   type: "event" | "post";
