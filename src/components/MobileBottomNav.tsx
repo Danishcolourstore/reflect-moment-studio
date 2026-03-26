@@ -33,6 +33,21 @@ export function MobileBottomNav() {
   const [createOpen, setCreateOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
 
+  // Detect light theme
+  const [isLt, setIsLt] = useState(() => {
+    const t = localStorage.getItem("theme") || "dark";
+    return t === "light" || t === "classic";
+  });
+  useState(() => {
+    const check = () => {
+      const el = document.documentElement;
+      setIsLt(el.classList.contains("light") || el.classList.contains("classic"));
+    };
+    const obs = new MutationObserver(check);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  });
+
   if (!device.isPhone) return null;
 
   const isActive = (url: string) => {
