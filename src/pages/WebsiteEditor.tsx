@@ -881,12 +881,31 @@ const WebsiteEditor = () => {
       {/* ── Top Bar ── */}
       <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0 z-50">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/dashboard/branding')}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+            if (isMobile && mobileMode === 'landscape') {
+              setMobileMode('preview');
+            } else {
+              navigate('/dashboard/branding');
+            }
+          }}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <p className="text-xs font-semibold text-foreground">Studio Feed</p>
-            <p className="text-[10px] text-muted-foreground/50">{studioName || 'Your Studio'}</p>
+          <div className="flex items-center gap-2">
+            <div>
+              <p className="text-xs font-semibold text-foreground">Studio Feed</p>
+              <p className="text-[10px] text-muted-foreground/50">{studioName || 'Your Studio'}</p>
+            </div>
+            {isMobile && mobileMode === 'landscape' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-[9px] h-6 px-2 gap-1 ml-2"
+                onClick={() => setMobileMode('preview')}
+              >
+                <RotateCcw className="h-3 w-3" />
+                Exit Wide
+              </Button>
+            )}
           </div>
         </div>
 
