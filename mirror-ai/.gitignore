@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+.env
+npm-debug.log*
+storage/incoming/*
+storage/originals/*
+storage/processed/full/*
+storage/processed/preview/*
+storage/metadata/*.json
+!storage/metadata/.gitkeep

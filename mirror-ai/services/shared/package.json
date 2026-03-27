@@ -1,0 +1,16 @@
+{
+  "name": "@mirror-ai/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./paths": "./src/paths.js",
+    "./store": "./src/store.js",
+    "./contracts": "./src/contracts.js",
+    "./presets": "./src/presets.js"
+  },
+  "scripts": {
+    "build": "echo \"shared package is runtime-only\""
+  }
+}

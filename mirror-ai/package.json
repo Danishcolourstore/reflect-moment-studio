@@ -1,0 +1,23 @@
+{
+  "name": "mirror-ai",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @mirror-ai/api\" \"npm run dev -w @mirror-ai/worker\" \"npm run dev -w @mirror-ai/web\"",
+    "dev:api": "npm run dev -w @mirror-ai/api",
+    "dev:worker": "npm run dev -w @mirror-ai/worker",
+    "dev:web": "npm run dev -w @mirror-ai/web",
+    "build": "npm run build -w @mirror-ai/shared && npm run build -w @mirror-ai/api && npm run build -w @mirror-ai/worker && npm run build -w @mirror-ai/web",
+    "start": "concurrently \"npm run start -w @mirror-ai/api\" \"npm run start -w @mirror-ai/worker\" \"npm run preview -w @mirror-ai/web\"",
+    "redis:up": "docker compose up -d redis",
+    "redis:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
