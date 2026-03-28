@@ -1,751 +1,537 @@
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { HelmetProvider } from "react-helmet-async";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/lib/auth";
-// BetaFeedbackButton removed from production render
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { StorybookGate } from "@/components/StorybookGate";
-import { GalleryShell } from "./components/GalleryShell";
-import { useEffect, useState, lazy, Suspense, createContext, useContext } from "react";
-import { ViewModeProvider } from "@/lib/ViewModeContext";
-import { PageTransition } from "@/components/PageTransition";
-import { supabase } from "@/integrations/supabase/client";
-import { useRealtimeSync } from "@/hooks/use-realtime-sync";
-import { SUPER_ADMIN_ROUTES } from "@/config/super-admin-routes";
-// Dashboard.tsx is no longer routed — /dashboard redirects to /home
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Camera,
+  CheckCircle2,
+  CircleDot,
+  Image as ImageIcon,
+  Layers,
+  Loader2,
+  RefreshCw,
+  SlidersHorizontal,
+  Sparkles,
+  UploadCloud,
+  Wand2,
+  XCircle,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 
-// ─── Lazy-loaded pages ───
-const Auth = lazy(() => import("./pages/Auth").then((m) => ({ default: m.default })));
-const Events = lazy(() => import("./pages/Events"));
-const EventGallery = lazy(() => import("./pages/EventGallery"));
-const UploadPage = lazy(() => import("./pages/UploadPage"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-const StudioSettings = lazy(() => import("./pages/StudioSettings"));
-const Billing = lazy(() => import("./pages/Billing"));
-const Clients = lazy(() => import("./pages/Clients"));
-const Cheetah = lazy(() => import("./pages/Cheetah"));
-const CheetahLive = lazy(() => import("./pages/CheetahLive"));
-const Branding = lazy(() => import("./pages/Branding"));
-const MorePage = lazy(() => import("./pages/MorePage"));
-const BrandEditor = lazy(() => import("./pages/BrandEditor"));
-const WebsiteEditor = lazy(() => import("./pages/WebsiteEditor"));
-const TemplatePreview = lazy(() => import("./pages/TemplatePreview"));
-const Profile = lazy(() => import("./pages/Profile"));
-const Notifications = lazy(() => import("./pages/Notifications"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
-const PublicGallery = lazy(() => import("./pages/PublicGallery"));
-const ClientDashboard = lazy(() => import("./pages/client/ClientDashboard"));
-const ClientEvents = lazy(() => import("./pages/client/ClientEvents"));
-const ClientEventView = lazy(() => import("./pages/client/ClientEventView"));
-const ClientFavorites = lazy(() => import("./pages/client/ClientFavorites"));
-const ClientDownloads = lazy(() => import("./pages/client/ClientDownloads"));
-const ClientProfile = lazy(() => import("./pages/client/ClientProfile"));
-const WidgetPage = lazy(() => import("./pages/WidgetPage"));
-const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
-const GalleryCover = lazy(() => import("./pages/GalleryCover"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const BuilderTest = lazy(() => import("./pages/BuilderTest"));
-const GuestFinder = lazy(() => import("./pages/GuestFinder"));
-const PhotographerFeed = lazy(() => import("./pages/PhotographerFeed"));
-const PublicFeed = lazy(() => import("./pages/PublicFeed"));
-const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
-const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
-const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
-const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
-const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
-const Refyn = lazy(() => import("./pages/Refyn"));
-const ColourStore = lazy(() => import("./pages/ColourStore"));
-const StyleStealer = lazy(() => import("./pages/refyn/StyleStealer"));
-const StyleLibrary = lazy(() => import("./pages/refyn/StyleLibrary"));
-const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
-const LandingGate = lazy(() => import("./pages/LandingGate"));
-const RetouchLogin = lazy(() => import("./pages/RetouchLogin"));
-const ClientPreview = lazy(() => import("./pages/ClientPreview"));
-const DomainSettings = lazy(() => import("./pages/DomainSettings"));
-const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
-const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
-const Reflections = lazy(() => import("./pages/Reflections"));
-const EntiranBusiness = lazy(() => import("./pages/EntiranBusiness"));
-const PublicGalleryView = lazy(() => import("./pages/public/PublicGalleryView"));
-const VerifyAccess = lazy(() => import("./pages/VerifyAccess"));
-const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
-const AdminGate = lazy(() => import("./pages/admin/AdminGate"));
-const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
-const SuperAdminGate = lazy(() => import("./pages/SuperAdminGate"));
-const SuperAdminLayout = lazy(() => import("./pages/super-admin/SuperAdminLayout"));
-const SuperAdminOverview = lazy(() => import("./pages/super-admin/SuperAdminOverview"));
-const SuperAdminAnalytics = lazy(() => import("./pages/super-admin/SuperAdminAnalytics"));
-const SuperAdminUsers = lazy(() => import("./pages/super-admin/SuperAdminUsers"));
-const SuperAdminTemplates = lazy(() => import("./pages/super-admin/SuperAdminTemplates"));
-const SuperAdminMirrorAI = lazy(() => import("./pages/super-admin/SuperAdminMirrorAI"));
-const SuperAdminStorybooks = lazy(() => import("./pages/super-admin/SuperAdminStorybooks"));
-const SuperAdminSettings = lazy(() => import("./pages/super-admin/SuperAdminSettings"));
-const TemplateBuilder = lazy(() => import("./pages/super-admin/TemplateBuilder"));
-const SuperAdminGridManager = lazy(() => import("./pages/super-admin/SuperAdminGridManager"));
-const SuperAdminGalleries = lazy(() => import("./pages/super-admin/SuperAdminGalleries"));
-const SuperAdminDashboardEditor = lazy(() => import("./pages/super-admin/SuperAdminDashboardEditor"));
-const SuperAdminPlatformBuilder = lazy(() => import("./pages/super-admin/SuperAdminPlatformBuilder"));
-const SuperAdminAIDeveloper = lazy(() => import("./pages/super-admin/SuperAdminAIDeveloper"));
-const SuperAdminReflections = lazy(() => import("./pages/super-admin/SuperAdminReflections"));
-const SuperAdminArtGallery = lazy(() => import("./pages/super-admin/SuperAdminArtGallery"));
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const AdminPhotographers = lazy(() => import("./pages/admin/AdminPhotographers"));
-const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
-const AdminStorage = lazy(() => import("./pages/admin/AdminStorage"));
-const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
-const AdminEmails = lazy(() => import("./pages/admin/AdminEmails"));
-const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
-const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const API_BASE = import.meta.env.VITE_MIRROR_API_BASE || "http://localhost:8787";
+const WS_BASE = import.meta.env.VITE_MIRROR_WS_URL || "ws://localhost:8787/ws";
 
-const SUPER_ADMIN_ROUTE_MAP: Record<string, React.LazyExoticComponent<any>> = {
-  overview: SuperAdminOverview,
-  users: SuperAdminUsers,
-  events: AdminEvents,
-  storage: AdminStorage,
-  revenue: AdminRevenue,
-  analytics: SuperAdminAnalytics,
-  templates: SuperAdminTemplates,
-  emails: AdminEmails,
-  activity: AdminActivity,
-  mirrorai: SuperAdminMirrorAI,
-  storybooks: SuperAdminStorybooks,
-  settings: SuperAdminSettings,
-  "studio-templates": TemplateBuilder,
-  "grid-manager": SuperAdminGridManager,
-  galleries: SuperAdminGalleries,
-  "dashboard-editor": SuperAdminDashboardEditor,
-  "platform-builder": SuperAdminPlatformBuilder,
-  "ai-developer": SuperAdminAIDeveloper,
-  reflections: SuperAdminReflections,
-  "art-gallery": SuperAdminArtGallery,
+type ImageStatus = "queued" | "processing" | "done" | "failed";
+
+type ControlState = {
+  activePresetId: string;
+  retouchIntensity: number;
+  activeCategory: string;
 };
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      gcTime: 5 * 60_000,
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
+type Preset = {
+  id: string;
+  name: string;
+  description: string;
+  config: Record<string, number>;
+};
 
-function PageLoader() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <p className="text-muted-foreground font-serif text-lg animate-pulse">Loading…</p>
-    </div>
-  );
+type MirrorImage = {
+  id: string;
+  originalFilename: string;
+  category: string;
+  status: ImageStatus;
+  presetId: string;
+  retouchIntensity: number;
+  exposureScore: number;
+  skinToneScore: number;
+  lightingScore: number;
+  notes: string;
+  width: number;
+  height: number;
+  previewUrl: string | null;
+  processedUrl: string | null;
+  sourceUrl: string;
+  createdAt: string;
+  processedAt?: string | null;
+};
+
+type SnapshotPayload = {
+  images: MirrorImage[];
+  control: ControlState;
+  presets: Preset[];
+  queue: QueueState;
+};
+
+type QueueState = {
+  running: number;
+  waiting: number;
+  concurrency: number;
+};
+
+const STATUS_STYLE: Record<ImageStatus, string> = {
+  queued: "bg-blue-500/15 text-blue-300 border-blue-400/20",
+  processing: "bg-amber-500/15 text-amber-300 border-amber-400/20",
+  done: "bg-emerald-500/15 text-emerald-300 border-emerald-400/20",
+  failed: "bg-rose-500/15 text-rose-300 border-rose-400/20",
+};
+
+const CATEGORIES = ["portrait", "fashion", "wedding", "commercial", "lifestyle", "event", "general"];
+
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { "Content-Type": "application/json" },
+    ...init,
+  });
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+  return response.json();
 }
 
-const SuspendedContext = createContext<boolean | null>(null);
+function statusIcon(status: ImageStatus) {
+  if (status === "queued") return <CircleDot className="h-3.5 w-3.5" />;
+  if (status === "processing") return <Loader2 className="h-3.5 w-3.5 animate-spin" />;
+  if (status === "done") return <CheckCircle2 className="h-3.5 w-3.5" />;
+  return <XCircle className="h-3.5 w-3.5" />;
+}
 
-function SuspendedProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const [suspended, setSuspended] = useState<boolean | null>(null);
+function formatScore(value: number) {
+  return `${Math.round(value * 100)}%`;
+}
+
+function buildImageUrl(relative: string | null | undefined) {
+  if (!relative) return null;
+  if (relative.startsWith("http://") || relative.startsWith("https://")) {
+    return relative;
+  }
+  return `${API_BASE}${relative}`;
+}
+
+function App() {
+  const [images, setImages] = useState<MirrorImage[]>([]);
+  const [presets, setPresets] = useState<Preset[]>([]);
+  const [control, setControl] = useState<ControlState>({
+    activePresetId: "",
+    retouchIntensity: 0.22,
+    activeCategory: "general",
+  });
+  const [selectedImageId, setSelectedImageId] = useState<string>("");
+  const [compareMode, setCompareMode] = useState<"after" | "before">("after");
+  const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
+  const [queue, setQueue] = useState<QueueState>({ running: 0, waiting: 0, concurrency: 2 });
+  const [uploading, setUploading] = useState(false);
+  const [syncingControl, setSyncingControl] = useState(false);
+  const [appError, setAppError] = useState<string>("");
+  const queueRef = useRef(queue);
 
   useEffect(() => {
-    if (!user) {
-      setSuspended(null);
-      return;
-    }
-    let mounted = true;
+    queueRef.current = queue;
+  }, [queue]);
 
-    (async () => {
-      const { data } = await (supabase.from("profiles").select("suspended") as any)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (!mounted) return;
-      setSuspended(data?.suspended ?? false);
-    })();
+  const selectedImage = useMemo(() => {
+    if (!selectedImageId) return images[0] ?? null;
+    return images.find((image) => image.id === selectedImageId) ?? images[0] ?? null;
+  }, [images, selectedImageId]);
 
-    const channel = supabase
-      .channel(`profile-live-${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "profiles", filter: `user_id=eq.${user.id}` },
-        (payload: any) => {
-          const v = payload?.new?.suspended;
-          if (typeof v === "boolean") setSuspended(v);
-        },
-      )
-      .subscribe();
+  const liveFeed = useMemo(() => images.slice(0, 30), [images]);
+  const selectedBatchCount = selectedBatchIds.length;
 
-    return () => {
-      mounted = false;
-      supabase.removeChannel(channel);
+  const upsertImage = (incoming: MirrorImage) => {
+    setImages((prev) => {
+      const idx = prev.findIndex((item) => item.id === incoming.id);
+      if (idx === -1) return [incoming, ...prev];
+      const copy = [...prev];
+      copy[idx] = incoming;
+      copy.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+      return copy;
+    });
+  };
+
+  const mergeSnapshot = (payload: SnapshotPayload) => {
+    setImages(payload.images ?? []);
+    setPresets(payload.presets ?? []);
+    setQueue(payload.queue ?? { running: 0, waiting: 0, concurrency: 2 });
+    setControl(payload.control ?? { activePresetId: "", retouchIntensity: 0.22, activeCategory: "general" });
+    if (!selectedImageId && payload.images.length > 0) setSelectedImageId(payload.images[0].id);
+  };
+
+  const loadInitial = async () => {
+    const [imagesRes, presetsRes, controlRes] = await Promise.all([
+      apiFetch<{ items: MirrorImage[]; queue: QueueState }>("/api/images?limit=120&offset=0"),
+      apiFetch<{ items: Preset[] }>("/api/presets"),
+      apiFetch<ControlState>("/api/control"),
+    ]);
+    setImages(imagesRes.items);
+    setQueue(imagesRes.queue);
+    setPresets(presetsRes.items);
+    setControl(controlRes);
+    if (imagesRes.items.length > 0) setSelectedImageId(imagesRes.items[0].id);
+  };
+
+  useEffect(() => {
+    loadInitial().catch((error) => setAppError(error.message));
+
+    const ws = new WebSocket(WS_BASE);
+    ws.onmessage = (event) => {
+      const packet = JSON.parse(event.data);
+      if (packet.type === "snapshot") {
+        mergeSnapshot(packet.payload);
+        return;
+      }
+      if (packet.type === "image:ingested" || packet.type === "image:updated" || packet.type === "image:done") {
+        upsertImage(packet.payload);
+        return;
+      }
+      if (packet.type === "image:status") {
+        setImages((prev) =>
+          prev.map((item) =>
+            item.id === packet.payload.id ? { ...item, status: packet.payload.status as ImageStatus } : item,
+          ),
+        );
+        return;
+      }
+      if (packet.type === "image:queued") {
+        setQueue(packet.payload.queue ?? queueRef.current);
+        return;
+      }
+      if (packet.type === "control:updated") {
+        setControl(packet.payload);
+      }
     };
-  }, [user]);
+    ws.onerror = () => setAppError("Realtime connection failed.");
+    return () => ws.close();
+  }, []);
 
-  return <SuspendedContext.Provider value={suspended}>{children}</SuspendedContext.Provider>;
-}
-
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const location = useLocation();
-  const suspended = useContext(SuspendedContext);
-
-  if (loading)
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground font-serif text-lg">Loading...</p>
-      </div>
-    );
-
-  if (!user) {
-    sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
-    return <Navigate to="/login" replace />;
-  }
-
-  if (suspended === null)
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading...</p>
-      </div>
-    );
-
-  if (suspended) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center max-w-sm">
-          <h1 className="text-xl font-bold text-foreground mb-2">Account Suspended</h1>
-          <p className="text-sm text-muted-foreground mb-4">
-            Your account has been suspended. Please contact support for assistance.
-          </p>
-          <button
-            onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/login"))}
-            className="text-sm underline text-muted-foreground hover:text-foreground"
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
-}
-
-function AuthRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const [checked, setChecked] = useState(false);
-  const [redirectTo, setRedirectTo] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (loading || !user) return;
-
-    // Always clear any stale redirect
-    sessionStorage.removeItem("redirectAfterLogin");
-
-    const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
-    const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
-
-    Promise.race([rolePromise, timeout])
-      .then((result: any) => {
-        const roles = (result?.data || []).map((r: any) => r.role);
-        if (roles.includes("super_admin")) {
-          setRedirectTo("/super-admin");
-        } else if (roles.includes("client")) {
-          setRedirectTo("/client");
-        } else {
-          setRedirectTo("/home");
-        }
-        setChecked(true);
-      })
-      .catch(() => {
-        setRedirectTo("/home");
-        setChecked(true);
+  const syncControl = async (next: Partial<ControlState>) => {
+    const optimistic = { ...control, ...next };
+    setControl(optimistic);
+    setSyncingControl(true);
+    try {
+      const updated = await apiFetch<ControlState>("/api/control", {
+        method: "PATCH",
+        body: JSON.stringify(next),
       });
-  }, [user, loading]);
+      setControl(updated);
+    } catch (error) {
+      setAppError((error as Error).message);
+    } finally {
+      setSyncingControl(false);
+    }
+  };
 
-  if (loading) return <PageLoader />;
-  if (!user) return <>{children}</>;
-  if (!checked) return <PageLoader />;
-  if (redirectTo) return <Navigate to={redirectTo} replace />;
-  return <>{children}</>;
+  const triggerSingleReprocess = async (id: string) => {
+    try {
+      await apiFetch(`/api/images/${id}/requeue`, {
+        method: "POST",
+        body: JSON.stringify({
+          presetId: control.activePresetId,
+          retouchIntensity: control.retouchIntensity,
+        }),
+      });
+    } catch (error) {
+      setAppError((error as Error).message);
+    }
+  };
+
+  const applyBatch = async () => {
+    if (selectedBatchIds.length === 0) return;
+    try {
+      await apiFetch("/api/images/batch/apply", {
+        method: "POST",
+        body: JSON.stringify({
+          ids: selectedBatchIds,
+          presetId: control.activePresetId,
+          retouchIntensity: control.retouchIntensity,
+          category: control.activeCategory,
+        }),
+      });
+      setSelectedBatchIds([]);
+    } catch (error) {
+      setAppError((error as Error).message);
+    }
+  };
+
+  const onUploadFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    setUploading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) throw new Error(await response.text());
+    } catch (error) {
+      setAppError((error as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const previewUrl =
+    compareMode === "before" ? buildImageUrl(selectedImage?.sourceUrl) : buildImageUrl(selectedImage?.processedUrl || selectedImage?.previewUrl);
+
+  return (
+    <main className="min-h-screen bg-[#07090f] text-zinc-100">
+      <div className="mx-auto max-w-[1540px] space-y-6 p-4 md:p-8">
+        <header className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-gradient-to-b from-zinc-950 to-zinc-900 p-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">Mirror AI</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">Real-time photography assistant</h1>
+            <p className="mt-2 text-sm text-zinc-400">
+              FTP ingest {"->"} AI pipeline {"->"} instant delivery. Premium capture flow for studio teams.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-xs md:text-sm">
+            <Card className="border-white/10 bg-zinc-950/80">
+              <CardContent className="p-3">
+                <p className="text-zinc-400">Queue</p>
+                <p className="mt-1 font-semibold text-zinc-100">{queue.waiting}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-white/10 bg-zinc-950/80">
+              <CardContent className="p-3">
+                <p className="text-zinc-400">Processing</p>
+                <p className="mt-1 font-semibold text-zinc-100">{queue.running}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-white/10 bg-zinc-950/80">
+              <CardContent className="p-3">
+                <p className="text-zinc-400">Concurrency</p>
+                <p className="mt-1 font-semibold text-zinc-100">{queue.concurrency}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </header>
+
+        {appError ? (
+          <div className="rounded-lg border border-rose-500/40 bg-rose-900/20 px-4 py-2 text-sm text-rose-200">
+            {appError}
+          </div>
+        ) : null}
+
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_2.1fr_1.2fr]">
+          <Card className="border-white/10 bg-zinc-950/70">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Camera className="h-4 w-4 text-indigo-300" />
+                Live Feed
+              </CardTitle>
+              <CardDescription>Incoming images from FTP and uploads</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-700 bg-zinc-900/70 px-4 py-3 text-sm text-zinc-200 hover:bg-zinc-900">
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+                Upload test image
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) onUploadFile(file);
+                  }}
+                />
+              </label>
+
+              <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
+                {liveFeed.map((item) => (
+                  <button
+                    key={item.id}
+                    className={cn(
+                      "w-full rounded-xl border px-3 py-3 text-left transition",
+                      selectedImage?.id === item.id
+                        ? "border-indigo-400/60 bg-indigo-500/10"
+                        : "border-zinc-800 bg-zinc-900/70 hover:border-zinc-700",
+                    )}
+                    onClick={() => setSelectedImageId(item.id)}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-medium">{item.originalFilename}</p>
+                      <Badge className={cn("border text-[11px] capitalize", STATUS_STYLE[item.status])}>
+                        <span className="mr-1">{statusIcon(item.status)}</span>
+                        {item.status}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-zinc-400">
+                      {item.category} · {new Date(item.createdAt).toLocaleTimeString()}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedBatchIds.includes(item.id)}
+                        onChange={(event) => {
+                          const checked = event.target.checked;
+                          setSelectedBatchIds((prev) =>
+                            checked ? [...new Set([...prev, item.id])] : prev.filter((id) => id !== item.id),
+                          );
+                        }}
+                      />
+                      <span className="text-xs text-zinc-400">Batch select</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-white/10 bg-zinc-950/70">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ImageIcon className="h-4 w-4 text-emerald-300" />
+                Before / After
+              </CardTitle>
+              <CardDescription>Instant output with no refresh</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <ToggleGroup
+                  type="single"
+                  value={compareMode}
+                  onValueChange={(value) => {
+                    if (value === "before" || value === "after") setCompareMode(value);
+                  }}
+                >
+                  <ToggleGroupItem value="before">Before</ToggleGroupItem>
+                  <ToggleGroupItem value="after">After</ToggleGroupItem>
+                </ToggleGroup>
+                {selectedImage ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-zinc-700 bg-zinc-900"
+                    onClick={() => triggerSingleReprocess(selectedImage.id)}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Reprocess
+                  </Button>
+                ) : null}
+              </div>
+
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+                {selectedImage && previewUrl ? (
+                  <img src={previewUrl} alt={selectedImage.originalFilename} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm text-zinc-500">No image selected</div>
+                )}
+              </div>
+
+              {selectedImage ? (
+                <div className="grid grid-cols-3 gap-3 text-xs md:text-sm">
+                  <MetricTile label="Exposure" value={formatScore(selectedImage.exposureScore)} />
+                  <MetricTile label="Skin tones" value={formatScore(selectedImage.skinToneScore)} />
+                  <MetricTile label="Lighting" value={formatScore(selectedImage.lightingScore)} />
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Card className="border-white/10 bg-zinc-950/70">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <SlidersHorizontal className="h-4 w-4 text-purple-300" />
+                Control System
+                {syncingControl ? <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-400" /> : null}
+              </CardTitle>
+              <CardDescription>Live preset, retouch, category and batch apply</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-zinc-400">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Preset selector
+                </p>
+                <Select
+                  value={control.activePresetId}
+                  onValueChange={(value) => syncControl({ activePresetId: value })}
+                >
+                  <SelectTrigger className="border-zinc-700 bg-zinc-900">
+                    <SelectValue placeholder="Choose preset" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {presets.map((preset) => (
+                      <SelectItem key={preset.id} value={preset.id}>
+                        {preset.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <p className="flex items-center justify-between text-xs uppercase tracking-wide text-zinc-400">
+                  <span className="flex items-center gap-2">
+                    <Wand2 className="h-3.5 w-3.5" />
+                    Retouch intensity
+                  </span>
+                  <span>{Math.round(control.retouchIntensity * 100)}%</span>
+                </p>
+                <Slider
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={[control.retouchIntensity]}
+                  onValueCommit={(value) => syncControl({ retouchIntensity: value[0] })}
+                  onValueChange={(value) =>
+                    setControl((prev) => ({
+                      ...prev,
+                      retouchIntensity: value[0],
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-zinc-400">
+                  <Layers className="h-3.5 w-3.5" />
+                  Shoot category
+                </p>
+                <Select
+                  value={control.activeCategory}
+                  onValueChange={(value) => syncControl({ activeCategory: value })}
+                >
+                  <SelectTrigger className="border-zinc-700 bg-zinc-900">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4">
+                <p className="text-sm font-medium text-zinc-200">Batch apply edits</p>
+                <p className="text-xs text-zinc-400">{selectedBatchCount} image(s) selected</p>
+                <Button className="w-full" disabled={selectedBatchCount === 0} onClick={applyBatch}>
+                  Apply preset + retouch + category
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      </div>
+    </main>
+  );
 }
 
-const LegacyEventRedirect = () => {
-  const { id } = useParams<{ id: string }>();
-  return <Navigate to={id ? `/dashboard/events/${id}` : "/dashboard/events"} replace />;
-};
-
-const RealtimeSyncWrapper = ({ enabled }: { enabled: boolean }) => {
-  useRealtimeSync(enabled);
-  return null;
-};
-
-const ScrollToTop = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [location.pathname]);
-
-  return null;
-};
-
-const AppRoutes = () => {
-  const { user } = useAuth();
+function MetricTile({ label, value }: { label: string; value: string }) {
   return (
-    <SuspendedProvider>
-      <ScrollToTop />
-      <RealtimeSyncWrapper enabled={!!user} />
-      <Suspense fallback={<PageLoader />}>
-        <PageTransition>
-          <Routes>
-            <Route
-              path="/login"
-              element={
-                <AuthRoute>
-                  <Auth key="login" initialView="login" />
-                </AuthRoute>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <AuthRoute>
-                  <Auth key="signup" initialView="signup" />
-                </AuthRoute>
-              }
-            />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/verify-access" element={<VerifyAccess />} />
-            <Route path="/verify-otp" element={<VerifyOTP />} />
-            <Route path="/builder-test" element={<BuilderTest />} />
-            <Route
-              path="/refyn"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <Refyn />
-                </Suspense>
-              }
-            />
-            <Route path="/colour-store" element={<ColourStore />} />
-            <Route path="/refyn/steal" element={<Suspense fallback={<PageLoader />}><StyleStealer /></Suspense>} />
-            <Route path="/refyn/styles" element={<Suspense fallback={<PageLoader />}><StyleLibrary /></Suspense>} />
-            <Route path="/retouch-login" element={<RetouchLogin />} />
-            <Route path="/preview/:previewId" element={<ClientPreview />} />
-            <Route
-              path="/home"
-              element={
-                <ProtectedRoute>
-                  <LandingGate />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/art-gallery"
-              element={
-                <ProtectedRoute>
-                  <IntelligenceHome />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/super-admin"
-              element={
-                <SuperAdminGate>
-                  <SuperAdminLayout />
-                </SuperAdminGate>
-              }
-            >
-              {SUPER_ADMIN_ROUTES.map((route) => {
-                const Component = SUPER_ADMIN_ROUTE_MAP[route.key];
-                if (!Component) return null;
-                if (route.path === "") return <Route key={route.key} index element={<Component />} />;
-                return <Route key={route.key} path={route.path} element={<Component />} />;
-              })}
-            </Route>
-
-            <Route
-              path="/admin"
-              element={
-                <AdminGate>
-                  <AdminLayout />
-                </AdminGate>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="photographers" element={<AdminPhotographers />} />
-              <Route path="events" element={<AdminEvents />} />
-              <Route path="storage" element={<AdminStorage />} />
-              <Route path="revenue" element={<AdminRevenue />} />
-              <Route path="emails" element={<AdminEmails />} />
-              <Route path="activity" element={<AdminActivity />} />
-              <Route path="settings" element={<AdminSettings />} />
-            </Route>
-
-            <Route
-              path="/client"
-              element={
-                <ProtectedRoute>
-                  <ClientDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/client/events"
-              element={
-                <ProtectedRoute>
-                  <ClientEvents />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/client/events/:id"
-              element={
-                <ProtectedRoute>
-                  <ClientEventView />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/client/favorites"
-              element={
-                <ProtectedRoute>
-                  <ClientFavorites />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/client/downloads"
-              element={
-                <ProtectedRoute>
-                  <ClientDownloads />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/client/profile"
-              element={
-                <ProtectedRoute>
-                  <ClientProfile />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/dashboard"
-              element={<Navigate to="/home" replace />}
-            />
-            <Route
-              path="/dashboard/events"
-              element={
-                <ProtectedRoute>
-                  <Events />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/events/:id"
-              element={
-                <ProtectedRoute>
-                  <EventGallery />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/events/:id/photos"
-              element={
-                <ProtectedRoute>
-                  <EventGallery />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/upload"
-              element={
-                <ProtectedRoute>
-                  <UploadPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/storybook"
-              element={
-                <ProtectedRoute>
-                  <StorybookCreator />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/album-designer"
-              element={
-                <ProtectedRoute>
-                  <AlbumDesigner />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/album-designer/:albumId/editor"
-              element={
-                <ProtectedRoute>
-                  <AlbumEditorPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/ai-album"
-              element={
-                <ProtectedRoute>
-                  <AIAlbumBuilder />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/clients"
-              element={
-                <ProtectedRoute>
-                  <Clients />
-                </ProtectedRoute>
-              }
-            />
-             <Route
-              path="/dashboard/cheetah"
-              element={
-                <ProtectedRoute>
-                  <CheetahLive />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/cheetah-monitor"
-              element={
-                <ProtectedRoute>
-                  <Cheetah />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/cheetah-live"
-              element={
-                <ProtectedRoute>
-                  <CheetahLive />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/analytics"
-              element={
-                <ProtectedRoute>
-                  <Analytics />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/more"
-              element={
-                <ProtectedRoute>
-                  <MorePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/settings"
-              element={
-                <ProtectedRoute>
-                  <StudioSettings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/branding"
-              element={
-                <ProtectedRoute>
-                  <Branding />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/branding/editor"
-              element={
-                <ProtectedRoute>
-                  <BrandEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/website-editor"
-              element={
-                <ProtectedRoute>
-                  <WebsiteEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/domains"
-              element={
-                <ProtectedRoute>
-                  <DomainSettings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/template-preview"
-              element={
-                <ProtectedRoute>
-                  <TemplatePreview />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/notifications"
-              element={
-                <ProtectedRoute>
-                  <Notifications />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/onboarding"
-              element={
-                <ProtectedRoute>
-                  <Onboarding />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/billing"
-              element={
-                <ProtectedRoute>
-                  <Billing />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/business"
-              element={
-                <ProtectedRoute>
-                  <BusinessSuite />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/reflections"
-              element={
-                <ProtectedRoute>
-                  <Reflections />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/entiran-business"
-              element={
-                <ProtectedRoute>
-                  <EntiranBusiness />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/website-builder"
-              element={
-                <ProtectedRoute>
-                  <WebsiteBuilder />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/event/:slug"
-              element={
-                <GalleryShell>
-                  <GalleryCover />
-                </GalleryShell>
-              }
-            />
-            <Route
-              path="/event/:slug/gallery"
-              element={
-                <GalleryShell>
-                  <PublicGallery />
-                </GalleryShell>
-              }
-            />
-            <Route path="/widget/:slug" element={<WidgetPage />} />
-            <Route
-              path="/gallery/:slug"
-              element={
-                <GalleryShell>
-                  <GalleryCover />
-                </GalleryShell>
-              }
-            />
-            <Route
-              path="/gallery/:slug/view"
-              element={
-                <GalleryShell>
-                  <PublicGallery />
-                </GalleryShell>
-              }
-            />
-            <Route path="/gallery-view/:id" element={<PublicGalleryView />} />
-            <Route path="/find/:token" element={<GuestFinder />} />
-            <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
-            <Route path="/studio/:username" element={<PhotographerFeed />} />
-            <Route path="/p/:username" element={<PhotographerFeed />} />
-            <Route path="/feed/:username" element={<PublicFeed />} />
-
-            <Route
-              path="/storybook"
-              element={
-                <StorybookGate>
-                  <StorybookCreator standalone />
-                </StorybookGate>
-              }
-            />
-
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
-            <Route path="/events/:id" element={<LegacyEventRedirect />} />
-            <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
-            <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
-            <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
-            <Route path="/upload" element={<Navigate to="/dashboard/upload" replace />} />
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </PageTransition>
-      </Suspense>
-    </SuspendedProvider>
+    <Card className="border-zinc-800 bg-zinc-900/75">
+      <CardContent className="p-3">
+        <p className="text-xs text-zinc-400">{label}</p>
+        <p className="mt-1 text-base font-semibold text-zinc-100">{value}</p>
+      </CardContent>
+    </Card>
   );
-};
-
-const App = () => (
-  <ErrorBoundary>
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <BrowserRouter>
-            <AuthProvider>
-              <ViewModeProvider>
-                <ErrorBoundary>
-                  <AppRoutes />
-                </ErrorBoundary>
-              </ViewModeProvider>
-              {/* BetaFeedbackButton hidden in production */}
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
-  </ErrorBoundary>
-);
+}
 
 export default App;

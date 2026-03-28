@@ -1,73 +1,169 @@
-# Welcome to your Lovable project
+# Mirror AI
 
-## Project info
+Mirror AI is a real-time photography assistant:
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**Camera -> FTP -> Server -> AI Processing -> Instant app display**
 
-## How can I edit this code?
+This build includes:
 
-There are several ways of editing your application.
+- FTP ingestion server
+- Auto image detection and instant queueing
+- AI-style processing pipeline (exposure, skin tone, lighting analysis + natural retouch)
+- Fast preview + full-resolution outputs
+- Real-time WebSocket push to frontend (no refresh)
+- Premium React + Tailwind UI (dark luxury style)
+- Live control system (preset/category/retouch + batch apply)
+- Persistent storage for originals, processed images, and metadata
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend:** React + Vite + TypeScript + Tailwind + shadcn UI
+- **Backend:** Node.js + Express + WebSocket + ftp-srv
+- **Processing:** sharp
+- **Storage/Metadata:** filesystem + SQLite (better-sqlite3)
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Folder Structure
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```txt
+src/                      # Mirror AI frontend
+server/
+  config.js               # env + paths + runtime config
+  database.js             # SQLite schema + CRUD + control state
+  ingest.js               # file watcher + ingest pipeline trigger
+  processor.js            # image analysis + preset + retouch engine
+  queue.js                # async in-process queue
+  realtime.js             # websocket hub
+  server.js               # API + WS + FTP server orchestration
+  storage.js              # storage directories and URL helpers
+  presets.js              # built-in presets + shoot categories
+  index.js                # backend entrypoint
+mirror-data/              # generated at runtime (ignored)
+  ftp-incoming/
+  ftp-archive/
+  originals/
+  previews/
+  processed/
+  metadata/
+  mirror.db
+```
 
-Follow these steps:
+---
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Environment
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Copy `.env.example` to `.env` and update values if needed.
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+cp .env.example .env
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Required / Important variables
+
+- `MIRROR_STORAGE_ROOT`
+- `MIRROR_API_PORT`
+- `MIRROR_FTP_PORT`
+- `MIRROR_FTP_USERNAME`
+- `MIRROR_FTP_PASSWORD`
+- `VITE_MIRROR_API_BASE`
+- `VITE_MIRROR_WS_URL`
+
+---
+
+## Install
+
+```bash
+npm install
+```
+
+---
+
+## Run (Development)
+
+Runs frontend and backend together:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+- Frontend: `http://localhost:8080`
+- Backend API: `http://localhost:8787`
+- WebSocket: `ws://localhost:8787/ws`
+- FTP: `ftp://localhost:2121` (credentials from `.env`)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## Run (Backend only)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run start
+```
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## Build Frontend
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+npm run build
+```
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Test
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+npm run test
+```
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## API Summary
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- `GET /health`
+- `GET /api/images?limit=120&offset=0`
+- `GET /api/images/:id`
+- `GET /api/presets`
+- `GET /api/control`
+- `PATCH /api/control`
+- `POST /api/images/:id/requeue`
+- `POST /api/images/batch/apply`
+- `POST /api/upload` (multipart form-data: `file`)
+
+---
+
+## WebSocket Events
+
+- `hello`
+- `snapshot`
+- `image:ingested`
+- `image:queued`
+- `image:status`
+- `image:updated`
+- `image:done`
+- `control:updated`
+
+---
+
+## FTP Ingestion
+
+Configure camera/tethering software to upload to:
+
+- Host: `MIRROR_FTP_HOST` (typically `localhost`/server IP)
+- Port: `MIRROR_FTP_PORT`
+- Username: `MIRROR_FTP_USERNAME`
+- Password: `MIRROR_FTP_PASSWORD`
+
+Incoming files land in `mirror-data/ftp-incoming/`, get archived to `ftp-archive/`, copied into `originals/`, then processed and published in real time.
+
+---
+
+## Quality and Error Handling
+
+- Non-image uploads are ignored safely
+- File stability checks before ingest
+- Queue isolation so one failure does not stop other jobs
+- Processing failures are marked `failed` with status broadcast
+- Graceful shutdown for HTTP/WS/FTP/watcher/queue
