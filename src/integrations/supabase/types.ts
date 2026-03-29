@@ -862,6 +862,30 @@ export type Database = {
           },
         ]
       }
+      cheetah_activities: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          event_name: string
+          id: string
+          image_url: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          event_name: string
+          id?: string
+          image_url?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          event_name?: string
+          id?: string
+          image_url?: string | null
+        }
+        Relationships: []
+      }
       cheetah_photos: {
         Row: {
           ai_recommendation: string | null
