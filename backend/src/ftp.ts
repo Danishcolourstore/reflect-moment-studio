@@ -23,11 +23,19 @@ const inferCategory = (fileName: string): ShootCategory => {
 };
 
 export class MirrorFtpIngestion {
-  private readonly ftpServer: FtpSrv;
-  private watcher: chokidar.FSWatcher | null = null;
+  private readonly ftpServer: {
+    on: (event: string, handler: (...args: unknown[]) => void) => void;
+    listen: () => Promise<unknown>;
+    close: () => Promise<unknown>;
+  };
+  private watcher: import("chokidar").FSWatcher | null = null;
 
   constructor(private readonly queue: QueueDriver) {
-    this.ftpServer = new FtpSrv({
+    this.ftpServer = new (FtpSrv as unknown as new (options: Record<string, unknown>) => {
+      on: (event: string, handler: (...args: unknown[]) => void) => void;
+      listen: () => Promise<unknown>;
+      close: () => Promise<unknown>;
+    })({
       url: `ftp://${env.FTP_HOST}:${env.FTP_PORT}`,
       anonymous: false,
       greeting: "Mirror AI FTP Ingestion Ready",
@@ -36,7 +44,16 @@ export class MirrorFtpIngestion {
   }
 
   async start(): Promise<void> {
-    this.ftpServer.on("login", ({ username, password }, resolve, reject) => {
+    this.ftpServer.on("login", (...args: unknown[]) => {
+      const credentials = (args[0] ?? {}) as { username?: string; password?: string };
+      const resolve = args[1] as ((value: { root: string }) => void) | undefined;
+      const reject = args[2] as ((error: Error) => void) | undefined;
+
+      if (!resolve || !reject) {
+        return;
+      }
+
+      const { username, password } = credentials;
       if (username === env.FTP_USER && password === env.FTP_PASSWORD) {
         resolve({ root: storagePaths.uploads });
       } else {
@@ -52,7 +69,7 @@ export class MirrorFtpIngestion {
       depth: 5,
     });
 
-    this.watcher.on("add", async (filePath) => {
+    this.watcher.on("add", async (filePath: string) => {
       if (!isImageFile(filePath)) return;
 
       try {
