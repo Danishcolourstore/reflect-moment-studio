@@ -1,0 +1,10 @@
+node_modules
+dist
+storage/originals/*
+storage/previews/*
+storage/processed/*
+storage/tmp/*
+!storage/originals/.gitkeep
+!storage/previews/.gitkeep
+!storage/processed/.gitkeep
+!storage/tmp/.gitkeep

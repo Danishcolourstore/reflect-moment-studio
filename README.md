@@ -1,73 +1,141 @@
-# Welcome to your Lovable project
+# Mirror AI
 
-## Project info
+Mirror AI is a real-time photography assistant:
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+`Camera -> FTP -> Backend ingest -> AI processing -> Instant live UI updates`
 
-## How can I edit this code?
+This repository now includes:
 
-There are several ways of editing your application.
+- **Frontend**: React + Tailwind premium dark dashboard (`src/mirror/*`)
+- **Backend**: Node/TypeScript service with FTP ingest, queue, processing, API, and WebSocket (`backend/`)
+- **Storage**: originals, previews, processed files, metadata JSON database (`backend/storage/`)
+- **Queue**: Redis (BullMQ) with automatic in-memory fallback
 
-**Use Lovable**
+## Features implemented
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- FTP server receives image uploads and auto-detects new files.
+- Uploads are moved to originals storage and queued instantly.
+- Processing engine analyzes image brightness/contrast/warmth/skin heuristics.
+- Lightroom-style preset logic + natural retouch intensity applied via Sharp.
+- Outputs:
+  - fast preview image
+  - full-resolution processed image
+- WebSocket pushes live updates to frontend (no page refresh).
+- API for snapshot, settings, single reprocess, and batch reprocess.
+- Premium UI:
+  - Live feed
+  - Before/after toggle
+  - Preset selector
+  - Shoot categories
+  - Status badges (queued / processing / done / error)
+  - Batch apply controls
 
-Changes made via Lovable will be committed automatically to this repo.
+## Folder structure
 
-**Use your preferred IDE**
+```txt
+.
+├── backend
+│   ├── src
+│   │   ├── api.ts
+│   │   ├── config.ts
+│   │   ├── database.ts
+│   │   ├── events.ts
+│   │   ├── ftp.ts
+│   │   ├── helpers.ts
+│   │   ├── index.ts
+│   │   ├── presets.ts
+│   │   ├── processor.ts
+│   │   ├── storage.ts
+│   │   ├── types.ts
+│   │   ├── ws.ts
+│   │   └── queue
+│   │       ├── index.ts
+│   │       ├── memoryQueue.ts
+│   │       ├── redisQueue.ts
+│   │       └── types.ts
+│   └── storage
+│       ├── ftp-incoming/
+│       ├── originals/
+│       ├── previews/
+│       ├── processed/
+│       └── metadata/
+├── src
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── mirror
+│       ├── MirrorApp.tsx
+│       ├── api.ts
+│       ├── types.ts
+│       ├── useMirrorRealtime.ts
+│       └── utils.ts
+├── .env.example
+└── docker-compose.yml
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Environment setup
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Copy and edit:
 
-Follow these steps:
+```bash
+cp .env.example .env
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Key values:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- `VITE_MIRROR_API_URL` - frontend target API URL
+- `API_PORT` - backend API and WebSocket port
+- `FTP_PORT`, `FTP_USER`, `FTP_PASSWORD` - FTP ingest server config
+- `QUEUE_DRIVER` - `auto`, `redis`, or `memory`
+- `REDIS_URL` - Redis connection string
+- `STORAGE_ROOT` - backend storage path (relative to `backend/` working directory)
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Run commands
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Install all dependencies:
+
+```bash
+npm install
+npm run backend:install
+```
+
+Start Redis (optional but recommended):
+
+```bash
+docker compose up -d redis
+```
+
+Run backend:
+
+```bash
+npm run backend:dev
+```
+
+Run frontend:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Build frontend:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run build
+```
 
-**Use GitHub Codespaces**
+Build backend:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run backend:build
+```
 
-## What technologies are used for this project?
+## FTP ingest flow
 
-This project is built with:
+Use any FTP client with credentials from `.env`:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- host: `127.0.0.1`
+- port: `FTP_PORT`
+- user: `FTP_USER`
+- pass: `FTP_PASSWORD`
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Upload image files (`.jpg`, `.jpeg`, `.png`, `.webp`, `.tif`, `.tiff`) to FTP root.
+Mirror AI will queue and process them immediately, then stream updates live to the UI.
