@@ -313,8 +313,12 @@ export default function MirrorAILive() {
                     const value = Number(event.target.value);
                     setControl((prev) => (prev ? { ...prev, retouchIntensity: value } : prev));
                   }}
-                  onMouseUp={(event) => void updateControl({ retouchIntensity: Number((event.target as HTMLInputElement).value })}
-                  onTouchEnd={(event) => void updateControl({ retouchIntensity: Number((event.target as HTMLInputElement).value })}
+                  onMouseUp={(event) =>
+                    void updateControl({ retouchIntensity: Number((event.target as HTMLInputElement).value) })
+                  }
+                  onTouchEnd={(event) =>
+                    void updateControl({ retouchIntensity: Number((event.target as HTMLInputElement).value) })
+                  }
                   className="mt-2 w-full"
                 />
               </label>
