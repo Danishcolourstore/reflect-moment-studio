@@ -60,6 +60,96 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Mirror AI (Realtime Photography Assistant)
+
+This repository now includes a full Mirror AI product build:
+
+- **Frontend**: premium realtime UI at `/dashboard/mirror-ai-live` (React + Tailwind)
+- **Backend API + WebSocket + FTP**: `services/mirror-ai`
+- **Async processing worker**: `services/mirror-ai/src/worker.ts`
+- **Queue**: BullMQ + Redis
+- **Storage**:
+  - originals
+  - preview outputs
+  - processed full-resolution outputs
+  - metadata JSON database
+
+### Mirror AI folder structure
+
+```txt
+services/mirror-ai
+├── src
+│   ├── ftp/server.ts
+│   ├── ingest/register-image.ts
+│   ├── pipeline/analyzer.ts
+│   ├── pipeline/processor.ts
+│   ├── http.ts
+│   ├── index.ts
+│   ├── worker.ts
+│   └── ...
+├── .env.example
+└── README.md
+```
+
+### Setup and run (Mirror AI)
+
+1. **Backend setup**
+
+```bash
+cd services/mirror-ai
+npm install
+cp .env.example .env
+```
+
+2. **Start Redis**
+
+```bash
+docker run --name mirror-redis -p 6379:6379 -d redis:latest
+```
+
+3. **Run backend API + FTP server**
+
+```bash
+cd services/mirror-ai
+npm run dev:api
+```
+
+4. **Run worker**
+
+```bash
+cd services/mirror-ai
+npm run dev:worker
+```
+
+5. **Frontend env + run**
+
+Create/update root `.env` with:
+
+```bash
+VITE_MIRROR_API_URL=http://localhost:8787
+```
+
+Then run frontend:
+
+```bash
+npm install
+npm run dev
+```
+
+6. **Open Mirror AI app**
+
+- Route: `http://localhost:8080/dashboard/mirror-ai-live`
+
+### FTP ingestion target
+
+- Host: `localhost`
+- Port: `2121`
+- Username: `mirror`
+- Password: `mirror`
+- Upload directory: `/`
+
+Incoming images are auto-detected and instantly processed.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
