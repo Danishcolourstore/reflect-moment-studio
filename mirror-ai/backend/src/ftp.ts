@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import FtpSrv from "ftp-srv";
+import { FtpSrv } from "ftp-srv";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
 

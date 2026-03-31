@@ -1,5 +1,5 @@
 import { Queue, Worker } from "bullmq";
-import IORedis from "ioredis";
+import { Redis } from "ioredis";
 import type { PipelineOptions } from "./types.js";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
@@ -60,12 +60,12 @@ class InMemoryQueue implements QueueAdapter {
 
 class RedisQueueAdapter implements QueueAdapter {
   private readonly queueName = "mirror-ai-processing";
-  private readonly connection: IORedis;
+  private readonly connection: Redis;
   private readonly queue: Queue<ProcessingJobData>;
   private worker: Worker<ProcessingJobData> | null = null;
 
   constructor(redisUrl: string) {
-    this.connection = new IORedis(redisUrl, {
+    this.connection = new Redis(redisUrl, {
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
     });

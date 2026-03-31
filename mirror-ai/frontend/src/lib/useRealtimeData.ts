@@ -7,6 +7,24 @@ type EventMessage =
   | { type: "settings:updated"; payload: Settings }
   | { type: string; payload?: unknown };
 
+function isSettingsEvent(message: EventMessage): message is { type: "settings:updated"; payload: Settings } {
+  return message.type === "settings:updated";
+}
+
+function isImageEvent(
+  message: EventMessage,
+): message is {
+  type: "image:uploaded" | "image:processing" | "image:done" | "image:failed";
+  payload: ImageRecord;
+} {
+  return (
+    message.type === "image:uploaded" ||
+    message.type === "image:processing" ||
+    message.type === "image:done" ||
+    message.type === "image:failed"
+  );
+}
+
 export function useRealtimeData() {
   const [images, setImages] = useState<ImageRecord[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -36,17 +54,12 @@ export function useRealtimeData() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data) as EventMessage;
-        if (data.type === "settings:updated") {
+        if (isSettingsEvent(data)) {
           setSettings(data.payload);
           return;
         }
 
-        if (
-          data.type === "image:uploaded" ||
-          data.type === "image:processing" ||
-          data.type === "image:done" ||
-          data.type === "image:failed"
-        ) {
+        if (isImageEvent(data)) {
           setImages((prev) => {
             const idx = prev.findIndex((x) => x.id === data.payload.id);
             if (idx === -1) {
