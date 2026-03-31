@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+backend/storage/originals/*
+backend/storage/preview/*
+backend/storage/processed/*
+backend/storage/metadata/*.json
+!backend/storage/.gitkeep
+!backend/storage/originals/.gitkeep
+!backend/storage/preview/.gitkeep
+!backend/storage/processed/.gitkeep
+!backend/storage/metadata/.gitkeep
