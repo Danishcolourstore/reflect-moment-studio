@@ -69,6 +69,7 @@ const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
 const Reflections = lazy(() => import("./pages/Reflections"));
 const EntiranBusiness = lazy(() => import("./pages/EntiranBusiness"));
+const MirrorAI = lazy(() => import("./pages/MirrorAI"));
 const PublicGalleryView = lazy(() => import("./pages/public/PublicGalleryView"));
 const VerifyAccess = lazy(() => import("./pages/VerifyAccess"));
 const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
@@ -633,6 +634,14 @@ const AppRoutes = () => {
               element={
                 <ProtectedRoute>
                   <BusinessSuite />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mirror-ai"
+              element={
+                <ProtectedRoute>
+                  <MirrorAI />
                 </ProtectedRoute>
               }
             />

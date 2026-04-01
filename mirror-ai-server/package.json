@@ -1,0 +1,21 @@
+{
+  "name": "mirror-ai-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "bullmq": "^5.58.0",
+    "chokidar": "^4.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "ftp-srv": "^4.6.3",
+    "ioredis": "^5.7.0",
+    "sharp": "^0.34.3",
+    "ws": "^8.18.3"
+  }
+}
