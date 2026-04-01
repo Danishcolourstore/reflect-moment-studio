@@ -46,6 +46,7 @@ const boot = async () => {
       presets: state.getPresets(),
       settings: state.getSettings(),
       queue: queue ? queue.getStats() : null,
+      categories: state.getCategories(),
     }),
   });
 

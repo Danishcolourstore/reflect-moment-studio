@@ -25,6 +25,7 @@ export const createApiRouter = ({ state, queue, wsHub }) => {
     res.json({
       presets: state.getPresets(),
       settings: state.getSettings(),
+      categories: state.getCategories(),
     });
   });
 
