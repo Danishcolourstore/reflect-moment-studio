@@ -1,1 +1,0 @@
-{"root":["./src/App.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/api/client.ts","./src/components/BatchPanel.tsx","./src/components/ControlPanel.tsx","./src/components/ImageCard.tsx","./src/components/StatusBadge.tsx","./src/hooks/useMirrorSocket.ts","./src/lib/env.ts","./src/types/domain.ts","./vite.config.ts"],"version":"5.9.3"}
