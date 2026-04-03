@@ -97,4 +97,5 @@ export function ControlPanel({
         </button>
       </div>
     </section>
+  );
 }
