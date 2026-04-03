@@ -1,7 +1,7 @@
 import { Worker } from "bullmq";
 import { queueClient } from "./queueClient";
 import { IMAGE_PROCESSING_QUEUE } from "./queueNames";
-import { imagePipeline } from "../processing/imagePipeline";
+import { processJob } from "../processing/imagePipeline";
 import { imageRepository } from "../storage/imageRepository";
 import { realtimeHub } from "../realtime/realtimeHub";
 import { logger } from "../utils/logger";
@@ -14,7 +14,7 @@ export function startProcessingWorker(): Worker | null {
   }
 
   queueClient.registerProcessor(async (payload) => {
-    await imagePipeline.processJob(payload);
+    await processJob(payload);
     const stats = await queueClient.stats();
     imageRepository.setQueueStats(stats);
     realtimeHub.broadcastQueueStats(stats);
@@ -28,7 +28,7 @@ export function startProcessingWorker(): Worker | null {
   worker = new Worker(
     IMAGE_PROCESSING_QUEUE,
     async (job) => {
-      await imagePipeline.processJob(job.data);
+      await processJob(job.data);
       const stats = await queueClient.stats();
       imageRepository.setQueueStats(stats);
       realtimeHub.broadcastQueueStats(stats);

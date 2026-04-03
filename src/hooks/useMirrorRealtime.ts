@@ -22,6 +22,8 @@ export function useMirrorRealtime(options: Options): { connectionState: Connecti
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
   const wsUrl = useMemo(() => toWsUrl(api.baseUrl), []);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   useEffect(() => {
     let stopped = false;
@@ -47,13 +49,13 @@ export function useMirrorRealtime(options: Options): { connectionState: Connecti
         try {
           const parsed = JSON.parse(event.data) as WsEvent;
           if (parsed.type === "image:created") {
-            options.onImageCreated(parsed.payload);
+            optionsRef.current.onImageCreated(parsed.payload);
           } else if (parsed.type === "image:updated") {
-            options.onImageUpdated(parsed.payload);
+            optionsRef.current.onImageUpdated(parsed.payload);
           } else if (parsed.type === "control:updated") {
-            options.onControlUpdated(parsed.payload);
+            optionsRef.current.onControlUpdated(parsed.payload);
           } else if (parsed.type === "queue:stats") {
-            options.onQueueStats(parsed.payload);
+            optionsRef.current.onQueueStats(parsed.payload);
           }
         } catch {
           // Ignore malformed websocket messages.
@@ -82,7 +84,7 @@ export function useMirrorRealtime(options: Options): { connectionState: Connecti
       }
       socketRef.current?.close();
     };
-  }, [options, wsUrl]);
+  }, [wsUrl]);
 
   return { connectionState };
 }

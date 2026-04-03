@@ -75,16 +75,6 @@ export function createApiRouter() {
     res.json({ items: imageRepository.listPresets(), settings: settingsService.get() });
   });
 
-  router.get("/metadata", async (_req, res) => {
-    res.json({
-      settings: settingsService.get(),
-      queue: await queueClient.stats(),
-      totals: {
-        images: imageRepository.listImages(100000).length,
-      },
-    });
-  });
-
   router.patch("/control", async (req, res) => {
     const parsed = controlSchema.safeParse(req.body);
     if (!parsed.success) {

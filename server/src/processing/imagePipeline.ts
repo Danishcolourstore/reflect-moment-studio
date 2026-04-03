@@ -2,7 +2,9 @@ import path from "node:path";
 import sharp from "sharp";
 import { promises as fs } from "node:fs";
 import { env } from "../config/env";
-import type { ImageRecord, ProcessingPreset } from "../types";
+import type { ImageRecord, ProcessingPreset, QueuePayload } from "../types";
+import { imageRepository } from "../storage/imageRepository";
+import { toStorageUrl } from "../storage/fileStore";
 
 const clamp = (value: number, min: number, max: number): number => Math.max(min, Math.min(max, value));
 
@@ -117,3 +119,53 @@ export async function processImage(
 
   return { fullPath, previewPath, analysis };
 }
+
+export const imagePipeline = {
+  async processJob(payload: QueuePayload): Promise<ImageRecord> {
+    const current = imageRepository.getImageById(payload.imageId);
+    if (!current) {
+      throw new Error(`Image not found: ${payload.imageId}`);
+    }
+
+    const preset = imageRepository.getPresetById(current.presetId);
+    if (!preset) {
+      throw new Error(`Preset not found: ${current.presetId}`);
+    }
+
+    imageRepository.updateImage(current.id, {
+      status: "processing",
+      statusMessage: "AI pipeline processing",
+    });
+
+    try {
+      const { fullPath, previewPath, analysis } = await processImage(
+        current,
+        preset,
+        current.retouchIntensity,
+      );
+
+      const updated = imageRepository.updateImage(current.id, {
+        status: "done",
+        statusMessage: "Processed",
+        fullPath,
+        previewPath,
+        fullUrl: toStorageUrl(fullPath),
+        previewUrl: toStorageUrl(previewPath),
+        processedAt: new Date().toISOString(),
+        analysis,
+      });
+
+      if (!updated) {
+        throw new Error(`Unable to finalize image: ${current.id}`);
+      }
+      return updated;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Processing failed";
+      imageRepository.updateImage(current.id, {
+        status: "failed",
+        statusMessage: message,
+      });
+      throw error;
+    }
+  },
+};
