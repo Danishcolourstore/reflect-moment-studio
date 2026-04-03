@@ -458,18 +458,13 @@ const Dashboard = () => {
                   }}
                 >
                   {evt.cover_url ? (
-                    <img
+                    <LazyImage
                       src={evt.cover_url}
                       alt={evt.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        transition: "transform 0.6s ease",
-                        borderRadius: 20,
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                      aspectRatio="4/5"
+                      borderRadius={20}
+                      objectFit="cover"
+                      imgClassName="transition-transform duration-500 hover:scale-[1.03]"
                     />
                   ) : (
                     <div
@@ -482,6 +477,7 @@ const Dashboard = () => {
                         fontFamily: fonts.display,
                         fontSize: 24,
                         color: "#CCCCCC",
+                        aspectRatio: "4/5",
                       }}
                     >
                       {evt.name.charAt(0)}
