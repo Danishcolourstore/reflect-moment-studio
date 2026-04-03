@@ -6,7 +6,6 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface EventItem {
   id: string;
@@ -17,6 +16,9 @@ interface EventItem {
   cover_url: string | null;
   photo_count: number;
 }
+
+const cormorant = '"Cormorant Garamond", serif';
+const dm = '"DM Sans", sans-serif';
 
 function FadeCard({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -73,43 +75,99 @@ export default function Events() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-serif text-2xl font-semibold text-foreground">Events</h1>
-            <p className="text-sm text-muted-foreground mt-1">Manage your photography events</p>
+            <h1 style={{ fontFamily: cormorant, fontSize: 28, fontWeight: 300, color: "#1A1A1A", letterSpacing: "0.04em" }}>
+              Events
+            </h1>
+            <p style={{ fontFamily: dm, fontSize: 13, color: "#999999", marginTop: 4, letterSpacing: "0.02em" }}>
+              Manage your photography events
+            </p>
           </div>
-          <Button onClick={() => setCreateOpen(true)} size="sm" className="gap-1.5">
+          <button
+            onClick={() => setCreateOpen(true)}
+            style={{
+              fontFamily: dm,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              background: "#C9A96E",
+              color: "#FFFFFF",
+              borderRadius: 10,
+              padding: "10px 22px",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              transition: "opacity 0.2s",
+            }}
+          >
             <Plus className="h-4 w-4" />
             Create Event
-          </Button>
+          </button>
         </div>
 
         {/* Event Cards */}
         {loading ? (
-          <div className="text-center py-16">
-            <p className="text-sm text-muted-foreground animate-pulse">Loading events...</p>
+          <div style={{ textAlign: "center", padding: "64px 0" }}>
+            <p style={{ fontFamily: dm, fontSize: 13, color: "#999999" }} className="animate-pulse">Loading events...</p>
           </div>
         ) : events.length === 0 ? (
-          <div className="text-center py-16 space-y-3">
-            <p className="font-serif text-xl text-foreground">No events yet</p>
-            <p className="text-sm text-muted-foreground">Create your first event to get started.</p>
-            <Button onClick={() => setCreateOpen(true)} size="sm" className="mt-2 gap-1.5">
+          <div style={{ textAlign: "center", padding: "64px 0" }}>
+            <p style={{ fontFamily: cormorant, fontSize: 24, fontWeight: 300, color: "#1A1A1A" }}>No events yet</p>
+            <p style={{ fontFamily: dm, fontSize: 13, color: "#999999", marginTop: 8 }}>Create your first event to get started.</p>
+            <button
+              onClick={() => setCreateOpen(true)}
+              style={{
+                marginTop: 20,
+                fontFamily: dm,
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                background: "#C9A96E",
+                color: "#FFFFFF",
+                borderRadius: 10,
+                padding: "10px 22px",
+                border: "none",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
               <Plus className="h-4 w-4" />
               Create Event
-            </Button>
+            </button>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((evt) => (
               <FadeCard key={evt.id}>
                 <div
-                  className="group cursor-pointer rounded-lg border border-border bg-card overflow-hidden transition-shadow hover:shadow-md"
+                  className="group cursor-pointer overflow-hidden transition-all"
+                  style={{
+                    borderRadius: 20,
+                    border: "1px solid #EEEEEE",
+                    background: "#FFFFFF",
+                    boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
+                  }}
                   onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,0,0,0.08)";
+                    e.currentTarget.style.borderColor = "rgba(201,169,110,0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = "0 2px 16px rgba(0,0,0,0.04)";
+                    e.currentTarget.style.borderColor = "#EEEEEE";
+                  }}
                 >
                   {evt.cover_url ? (
-                    <div className="aspect-[16/10] overflow-hidden">
+                    <div style={{ aspectRatio: "16/10", overflow: "hidden" }}>
                       <img
                         src={evt.cover_url}
                         alt={evt.name}
@@ -117,20 +175,30 @@ export default function Events() {
                       />
                     </div>
                   ) : (
-                    <div className="aspect-[16/10] bg-muted flex items-center justify-center">
-                      <span className="text-xs text-muted-foreground">No cover photo</span>
+                    <div
+                      style={{
+                        aspectRatio: "16/10",
+                        background: "#F8F8F8",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <span style={{ fontFamily: cormorant, fontSize: 28, color: "#CCCCCC", fontWeight: 300 }}>
+                        {evt.name.charAt(0)}
+                      </span>
                     </div>
                   )}
 
-                  <div className="p-4 space-y-1.5">
-                    <h3 className="font-serif text-base font-medium text-foreground leading-tight truncate">
+                  <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 4 }}>
+                    <h3 style={{ fontFamily: cormorant, fontSize: 17, fontWeight: 500, color: "#1A1A1A", lineHeight: 1.3 }}>
                       {evt.name}
                     </h3>
-                    <p className="text-xs text-muted-foreground">
+                    <p style={{ fontFamily: dm, fontSize: 11, color: "#999999", letterSpacing: "0.03em" }}>
                       {evt.event_date ? format(new Date(evt.event_date), "MMMM d, yyyy") : "No date set"}
                       {evt.location ? ` · ${evt.location}` : ""}
                     </p>
-                    <p className="text-xs text-muted-foreground/60">
+                    <p style={{ fontFamily: dm, fontSize: 10, color: "#C9A96E", letterSpacing: "0.08em" }}>
                       {evt.photo_count || 0} photos
                     </p>
                   </div>
