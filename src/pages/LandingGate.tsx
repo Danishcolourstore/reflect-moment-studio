@@ -70,13 +70,13 @@ export default function LandingGate() {
     if (evtIds.length > 0) {
       const { data: photoData } = await supabase
         .from("photos")
-        .select("thumbnail_url, url")
+        .select("url")
         .in("event_id", evtIds)
         .order("created_at", { ascending: false })
         .limit(100);
 
       for (const p of photoData || []) {
-        const url = p.thumbnail_url || p.url;
+        const url = p.url;
         if (url && !allUrls.includes(url)) allUrls.push(url);
       }
     }
