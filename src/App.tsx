@@ -91,6 +91,7 @@ const SuperAdminPlatformBuilder = lazy(() => import("./pages/super-admin/SuperAd
 const SuperAdminAIDeveloper = lazy(() => import("./pages/super-admin/SuperAdminAIDeveloper"));
 const SuperAdminReflections = lazy(() => import("./pages/super-admin/SuperAdminReflections"));
 const SuperAdminArtGallery = lazy(() => import("./pages/super-admin/SuperAdminArtGallery"));
+const FeedEditor = lazy(() => import("./pages/FeedEditor"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminPhotographers = lazy(() => import("./pages/admin/AdminPhotographers"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
@@ -337,6 +338,14 @@ const AppRoutes = () => {
               element={
                 <ProtectedRoute>
                   <LandingGate />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/feed-editor"
+              element={
+                <ProtectedRoute>
+                  <FeedEditor />
                 </ProtectedRoute>
               }
             />

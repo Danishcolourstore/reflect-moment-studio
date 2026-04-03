@@ -359,8 +359,11 @@ export default function LandingGate() {
                       <span style={{ fontSize: 16, width: 24 }}>👁</span><span>Preview Public Feed</span>
                     </button>
                     <div style={{ height: 1, background: "#F0F0F0" }} />
+                    <button onClick={() => { setShowFeedMenu(false); navigate("/dashboard/feed-editor"); }} style={menuItemStyle}>
+                      <span style={{ fontSize: 16, width: 24 }}>✏️</span><span>Edit Feed</span>
+                    </button>
                     <button onClick={() => { setShowFeedMenu(false); navigate("/dashboard/website-editor"); }} style={menuItemStyle}>
-                      <span style={{ fontSize: 16, width: 24 }}>✏️</span><span>Edit Feed & Portfolio</span>
+                      <span style={{ fontSize: 16, width: 24 }}>🌐</span><span>Edit Portfolio Website</span>
                     </button>
                     <button onClick={() => { setShowFeedMenu(false); navigate("/dashboard/branding"); }} style={menuItemStyle}>
                       <span style={{ fontSize: 16, width: 24 }}>🎨</span><span>Brand & Style</span>
