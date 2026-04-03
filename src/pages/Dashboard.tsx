@@ -7,6 +7,8 @@ import { format } from "date-fns";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { CreateEventModal } from "@/components/CreateEventModal";
 import { colors, fonts, spacing } from "@/styles/design-tokens";
+import { LazyImage } from "@/components/LazyImage";
+import { HeroSkeleton, StatsSkeleton, GalleryGridSkeleton, MosaicSkeleton } from "@/components/Skeletons";
 
 interface RecentEvent {
   id: string;
