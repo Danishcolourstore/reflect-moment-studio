@@ -238,8 +238,8 @@ export default function LandingGate() {
       {activeTab === "feed" && (
         <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 120px" : "32px 0 100px" }}>
           {loading ? (
-            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading your feed...</div>
+            <div style={{ padding: "20px 20px" }}>
+              {[1, 2, 3].map((i) => <FeedItemSkeleton key={i} />)}
             </div>
           ) : feed.length === 0 ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
