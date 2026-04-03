@@ -120,52 +120,54 @@ export async function processImage(
   return { fullPath, previewPath, analysis };
 }
 
-export const imagePipeline = {
-  async processJob(payload: QueuePayload): Promise<ImageRecord> {
-    const current = imageRepository.getImageById(payload.imageId);
-    if (!current) {
-      throw new Error(`Image not found: ${payload.imageId}`);
-    }
+export async function processJob(payload: QueuePayload): Promise<ImageRecord> {
+  const current = imageRepository.getImageById(payload.imageId);
+  if (!current) {
+    throw new Error(`Image not found: ${payload.imageId}`);
+  }
 
-    const preset = imageRepository.getPresetById(current.presetId);
-    if (!preset) {
-      throw new Error(`Preset not found: ${current.presetId}`);
-    }
+  const preset = imageRepository.getPresetById(current.presetId);
+  if (!preset) {
+    throw new Error(`Preset not found: ${current.presetId}`);
+  }
 
-    imageRepository.updateImage(current.id, {
-      status: "processing",
-      statusMessage: "AI pipeline processing",
+  imageRepository.updateImage(current.id, {
+    status: "processing",
+    statusMessage: "AI pipeline processing",
+  });
+
+  try {
+    const { fullPath, previewPath, analysis } = await processImage(
+      current,
+      preset,
+      current.retouchIntensity,
+    );
+
+    const updated = imageRepository.updateImage(current.id, {
+      status: "done",
+      statusMessage: "Processed",
+      fullPath,
+      previewPath,
+      fullUrl: toStorageUrl(fullPath),
+      previewUrl: toStorageUrl(previewPath),
+      processedAt: new Date().toISOString(),
+      analysis,
     });
 
-    try {
-      const { fullPath, previewPath, analysis } = await processImage(
-        current,
-        preset,
-        current.retouchIntensity,
-      );
-
-      const updated = imageRepository.updateImage(current.id, {
-        status: "done",
-        statusMessage: "Processed",
-        fullPath,
-        previewPath,
-        fullUrl: toStorageUrl(fullPath),
-        previewUrl: toStorageUrl(previewPath),
-        processedAt: new Date().toISOString(),
-        analysis,
-      });
-
-      if (!updated) {
-        throw new Error(`Unable to finalize image: ${current.id}`);
-      }
-      return updated;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Processing failed";
-      imageRepository.updateImage(current.id, {
-        status: "failed",
-        statusMessage: message,
-      });
-      throw error;
+    if (!updated) {
+      throw new Error(`Unable to finalize image: ${current.id}`);
     }
-  },
+    return updated;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Processing failed";
+    imageRepository.updateImage(current.id, {
+      status: "failed",
+      statusMessage: message,
+    });
+    throw error;
+  }
+}
+
+export const imagePipeline = {
+  processJob,
 };

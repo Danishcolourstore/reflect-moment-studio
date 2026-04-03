@@ -97,16 +97,6 @@ export function createApiRouter() {
     }
   });
 
-  router.get("/metadata", async (_req, res) => {
-    res.json({
-      settings: settingsService.get(),
-      queue: await queueClient.stats(),
-      totals: {
-        images: imageRepository.listImages(100000).length,
-      },
-    });
-  });
-
   router.post("/images/upload", upload.array("images", 64), async (req, res) => {
     const files = (req.files as Express.Multer.File[]) || [];
     if (!files.length) {
