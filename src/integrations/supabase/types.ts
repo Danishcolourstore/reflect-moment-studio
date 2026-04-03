@@ -2249,8 +2249,11 @@ export type Database = {
       feed_posts: {
         Row: {
           caption: string | null
+          content: string | null
+          content_type: string
           created_at: string
           event_id: string | null
+          gallery_images: string[] | null
           id: string
           image_url: string | null
           is_published: boolean
@@ -2265,8 +2268,11 @@ export type Database = {
         }
         Insert: {
           caption?: string | null
+          content?: string | null
+          content_type?: string
           created_at?: string
           event_id?: string | null
+          gallery_images?: string[] | null
           id?: string
           image_url?: string | null
           is_published?: boolean
@@ -2281,8 +2287,11 @@ export type Database = {
         }
         Update: {
           caption?: string | null
+          content?: string | null
+          content_type?: string
           created_at?: string
           event_id?: string | null
+          gallery_images?: string[] | null
           id?: string
           image_url?: string | null
           is_published?: boolean
