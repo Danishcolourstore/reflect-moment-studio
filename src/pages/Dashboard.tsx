@@ -121,17 +121,17 @@ const Dashboard = () => {
   if (error) return <PageError message="Failed to load" onRetry={() => window.location.reload()} />;
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: colors.bg, overflowY: "auto", overflowX: "hidden" }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF", overflowY: "auto", overflowX: "hidden" }}>
       {/* ── Minimal Nav ── */}
       <nav
         style={{
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: "rgba(10,10,11,0.92)",
+          background: "rgba(255,255,255,0.96)",
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
-          borderBottom: `1px solid ${colors.border}`,
+          borderBottom: "1px solid #EEEEEE",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -151,8 +151,8 @@ const Dashboard = () => {
             padding: 8,
           }}
         >
-          <span style={{ width: 18, height: 1.5, background: colors.cream, display: "block" }} />
-          <span style={{ width: 14, height: 1.5, background: colors.cream, display: "block" }} />
+          <span style={{ width: 18, height: 1.5, background: "#1A1A1A", display: "block" }} />
+          <span style={{ width: 14, height: 1.5, background: "#1A1A1A", display: "block" }} />
         </button>
 
         <span
@@ -181,12 +181,12 @@ const Dashboard = () => {
                   fontWeight: 400,
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
-                  color: colors.textMuted,
+                  color: "#999999",
                   cursor: "pointer",
                   transition: "color 0.3s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = colors.cream)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = colors.textMuted)}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1A1A")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#999999")}
               >
                 {l.label}
               </button>
@@ -233,7 +233,7 @@ const Dashboard = () => {
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%)",
+                background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)",
               }}
             />
           </>
@@ -242,7 +242,7 @@ const Dashboard = () => {
             style={{
               width: "100%",
               height: "100%",
-              background: `linear-gradient(135deg, ${colors.bg} 0%, ${colors.surface2} 100%)`,
+              background: "linear-gradient(135deg, #F8F8F8 0%, #EEEEEE 100%)",
             }}
           />
         )}
@@ -259,7 +259,7 @@ const Dashboard = () => {
               fontFamily: fonts.display,
               fontSize: mob ? 32 : 56,
               fontWeight: 300,
-              color: colors.white,
+              color: "#FFFFFF",
               lineHeight: 1.1,
               letterSpacing: "0.04em",
               textShadow: "0 2px 20px rgba(0,0,0,0.3)",
@@ -288,19 +288,20 @@ const Dashboard = () => {
               fontWeight: 500,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              background: "rgba(200,169,126,0.15)",
+              background: "rgba(255,255,255,0.2)",
               backdropFilter: "blur(10px)",
-              border: `1px solid ${colors.borderActive}`,
-              color: colors.gold,
+              border: "1px solid rgba(255,255,255,0.3)",
+              color: "#FFFFFF",
               padding: "12px 32px",
+              borderRadius: 8,
               cursor: "pointer",
               transition: "all 0.3s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(200,169,126,0.25)";
+              e.currentTarget.style.background = "rgba(255,255,255,0.3)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(200,169,126,0.15)";
+              e.currentTarget.style.background = "rgba(255,255,255,0.2)";
             }}
           >
             + Create Event
@@ -342,7 +343,7 @@ const Dashboard = () => {
           justifyContent: "center",
           gap: mob ? 32 : 64,
           padding: mob ? "28px 16px" : "40px 24px",
-          borderBottom: `1px solid ${colors.border}`,
+          borderBottom: "1px solid #EEEEEE",
         }}
       >
         {[
@@ -438,8 +439,10 @@ const Dashboard = () => {
                     width: "100%",
                     aspectRatio: "4/5",
                     overflow: "hidden",
-                    background: colors.surface,
+                    background: "#F8F8F8",
+                    borderRadius: 20,
                     position: "relative",
+                    boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
                   }}
                 >
                   {evt.cover_url ? (
@@ -451,6 +454,7 @@ const Dashboard = () => {
                         height: "100%",
                         objectFit: "cover",
                         transition: "transform 0.6s ease",
+                        borderRadius: 20,
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
                       onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
@@ -465,7 +469,7 @@ const Dashboard = () => {
                         justifyContent: "center",
                         fontFamily: fonts.display,
                         fontSize: 24,
-                        color: colors.textMuted,
+                        color: "#CCCCCC",
                       }}
                     >
                       {evt.name.charAt(0)}
@@ -488,7 +492,7 @@ const Dashboard = () => {
                     style={{
                       fontFamily: fonts.body,
                       fontSize: 11,
-                      color: colors.textMuted,
+                      color: "#999999",
                       marginTop: 4,
                       letterSpacing: "0.03em",
                     }}
@@ -540,7 +544,7 @@ const Dashboard = () => {
             }}
           >
             {allPhotos.slice(0, mob ? 12 : 24).map((url, i) => (
-              <div key={i} style={{ aspectRatio: "1", overflow: "hidden" }}>
+              <div key={i} style={{ aspectRatio: "1", overflow: "hidden", borderRadius: 4 }}>
                 <img
                   src={url}
                   alt=""
@@ -566,7 +570,7 @@ const Dashboard = () => {
           padding: mob ? `32px ${spacing.pageMobile}` : `48px ${spacing.pageDesktop}`,
           maxWidth: 1200,
           margin: "0 auto",
-          borderTop: `1px solid ${colors.border}`,
+          borderTop: "1px solid #EEEEEE",
         }}
       >
         <h2
@@ -599,15 +603,16 @@ const Dashboard = () => {
               style={{
                 textAlign: "left",
                 padding: mob ? 20 : 28,
-                background: item.accent ? colors.goldDim : colors.surface,
-                border: `1px solid ${item.accent ? colors.borderActive : colors.border}`,
+                background: item.accent ? "rgba(201,169,110,0.06)" : "#FFFFFF",
+                border: `1px solid ${item.accent ? "rgba(201,169,110,0.3)" : "#EEEEEE"}`,
                 cursor: "pointer",
                 transition: "all 0.3s",
-                borderRadius: 0,
+                borderRadius: 16,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.03)",
               }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = colors.gold)}
               onMouseLeave={(e) =>
-                (e.currentTarget.style.borderColor = item.accent ? String(colors.borderActive) : colors.border)
+                (e.currentTarget.style.borderColor = item.accent ? "rgba(201,169,110,0.3)" : "#EEEEEE")
               }
             >
               <div
@@ -617,7 +622,7 @@ const Dashboard = () => {
                   fontWeight: 500,
                   letterSpacing: "0.25em",
                   textTransform: "uppercase",
-                  color: item.accent ? colors.gold : colors.textMuted,
+                  color: item.accent ? colors.gold : "#999999",
                 }}
               >
                 {item.label}
@@ -638,7 +643,7 @@ const Dashboard = () => {
                 style={{
                   fontFamily: fonts.body,
                   fontSize: 10,
-                  color: item.accent ? colors.gold : colors.textMuted,
+                  color: item.accent ? colors.gold : "#999999",
                   marginTop: 10,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
@@ -668,7 +673,7 @@ const Dashboard = () => {
             style={{
               fontFamily: fonts.body,
               fontSize: 13,
-              color: colors.textMuted,
+              color: "#999999",
               marginTop: 12,
               maxWidth: 400,
               marginLeft: "auto",
@@ -687,9 +692,10 @@ const Dashboard = () => {
               letterSpacing: "0.15em",
               textTransform: "uppercase",
               background: colors.gold,
-              color: colors.bg,
+              color: "#FFFFFF",
               border: "none",
               padding: "14px 40px",
+              borderRadius: 8,
               cursor: "pointer",
               transition: "opacity 0.3s",
             }}
@@ -706,14 +712,14 @@ const Dashboard = () => {
         style={{
           padding: mob ? `${spacing.sectionMobile} ${spacing.pageMobile}` : `${spacing.sectionDesktop} ${spacing.pageDesktop}`,
           textAlign: "center",
-          borderTop: `1px solid ${colors.border}`,
+          borderTop: "1px solid #EEEEEE",
         }}
       >
         <div
           style={{
             fontFamily: fonts.display,
             fontSize: mob ? 14 : 16,
-            color: colors.textMuted,
+            color: "#999999",
             fontStyle: "italic",
           }}
         >
@@ -723,7 +729,7 @@ const Dashboard = () => {
           style={{
             fontFamily: fonts.body,
             fontSize: 9,
-            color: colors.textMuted,
+            color: "#CCCCCC",
             marginTop: 8,
             letterSpacing: "0.15em",
             textTransform: "uppercase",

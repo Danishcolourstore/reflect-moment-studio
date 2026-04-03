@@ -1,32 +1,32 @@
 /**
- * MirrorAI Unified Design System
+ * MirrorAI Unified Design System — White Editorial
  * Single source of truth for all visual tokens.
  * Import from here — never hardcode colors, fonts, or spacing in components.
  */
 
 export const colors = {
-  /** Primary background — deep cinematic black */
-  bg: "#0A0A0B",
+  /** Primary background — pure white */
+  bg: "#FFFFFF",
   /** Card / panel backgrounds */
-  surface: "#141416",
+  surface: "#FAFAFA",
   /** Elevated surfaces (modals, popovers) */
-  surface2: "#1C1C20",
+  surface2: "#F5F5F5",
   /** Default border */
-  border: "#2A2830",
+  border: "#EEEEEE",
   /** Active / focused border */
-  borderActive: "rgba(200,169,110,0.4)",
-  /** Primary accent — gold */
-  gold: "#C8A97E",
+  borderActive: "rgba(201,169,110,0.4)",
+  /** Primary accent — warm gold */
+  gold: "#C9A96E",
   /** Gold at low opacity for backgrounds */
-  goldDim: "rgba(200,169,110,0.12)",
-  /** Warm cream for light text on dark */
-  cream: "#F5F0EA",
+  goldDim: "rgba(201,169,110,0.08)",
+  /** Warm cream for light text on dark overlays */
+  cream: "#1A1A1A",
   /** Primary text */
-  text: "#EDEBE6",
+  text: "#1A1A1A",
   /** Secondary / dimmed text */
-  textDim: "#8A8680",
+  textDim: "#666666",
   /** Muted / tertiary text */
-  textMuted: "#5E5A52",
+  textMuted: "#999999",
   /** Pure white */
   white: "#FFFFFF",
   /** Pure black */
@@ -49,13 +49,13 @@ export const fonts = {
 export const spacing = {
   /** Horizontal page padding */
   pageMobile: "20px",
-  pageDesktop: "40px",
+  pageDesktop: "48px",
   /** Vertical section spacing */
-  sectionMobile: "40px",
-  sectionDesktop: "60px",
+  sectionMobile: "48px",
+  sectionDesktop: "72px",
   /** Card internal padding */
-  cardMobile: "16px",
-  cardDesktop: "24px",
+  cardMobile: "20px",
+  cardDesktop: "28px",
 } as const;
 
 export const radius = {
@@ -64,9 +64,9 @@ export const radius = {
   /** Small UI elements */
   sm: "8px",
   /** Cards, modals */
-  md: "12px",
+  md: "16px",
   /** Large panels */
-  lg: "16px",
+  lg: "20px",
 } as const;
 
 /** Common style fragments for quick composition */
@@ -97,12 +97,11 @@ export const fragments = {
     color: colors.textDim,
     lineHeight: 1.6,
   } as const,
-  /** Glass card background */
+  /** Soft card background */
   glass: {
-    background: "rgba(20,20,22,0.8)",
-    backdropFilter: "blur(24px)",
-    WebkitBackdropFilter: "blur(24px)",
+    background: "#FFFFFF",
+    boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
     border: `1px solid ${colors.border}`,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
   } as const,
 } as const;

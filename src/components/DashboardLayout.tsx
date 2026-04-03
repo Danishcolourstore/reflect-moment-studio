@@ -114,34 +114,13 @@ const PAGE_TITLES: Record<string, string> = {
   "/colour-store": "Retouch",
 };
 
-type ThemeMode = "dark" | "light" | "versace" | "classic" | "darkroom";
-type AccentMode = "gold" | "red";
-
-const THEME_ORDER: ThemeMode[] = ["dark", "light", "versace", "classic", "darkroom"];
-const THEME_ICONS: Record<ThemeMode, string> = { dark: "🌙", light: "☀️", versace: "👑", classic: "🏛️", darkroom: "🎞️" };
-
-function applyThemeClass(t: ThemeMode) {
-  document.documentElement.classList.remove("dark", "editorial", "classic", "versace", "darkroom", "light");
-  if (t !== "dark") document.documentElement.classList.add(t);
-  localStorage.setItem("theme", t);
-}
-
-function applyAccentClass(a: AccentMode) {
-  if (a === "red") {
-    document.documentElement.classList.add("accent-red");
-  } else {
-    document.documentElement.classList.remove("accent-red");
-  }
-  localStorage.setItem("accent", a);
-}
-
 function BotNavTab() {
   const { openBot } = useEntiranOpen();
   return (
     <button
       onClick={openBot}
       className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors min-h-[44px]"
-      style={{ color: "rgba(255,255,255,0.45)" }}
+      style={{ color: "#AAAAAA" }}
     >
       <Bot className="h-[22px] w-[22px]" strokeWidth={1.6} />
       <span className="text-[10px] font-medium tracking-wide">Bot</span>
@@ -152,28 +131,12 @@ function BotNavTab() {
 const cormorant = '"Cormorant Garamond", serif';
 const dm = '"DM Sans", sans-serif';
 
-function useIsLightTheme(theme: ThemeMode) {
-  return theme === "light" || theme === "classic";
-}
-
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const { viewMode, isDesktop, isMobile, setViewMode, cycleViewMode } = useViewMode();
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [theme, setTheme] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem("theme") || "dark";
-    const t: ThemeMode = THEME_ORDER.includes(saved as ThemeMode) ? (saved as ThemeMode) : "dark";
-    applyThemeClass(t);
-    return t;
-  });
-  const [accent, setAccent] = useState<AccentMode>(() => {
-    const saved = localStorage.getItem("accent") || "gold";
-    const a: AccentMode = saved === "red" ? "red" : "gold";
-    applyAccentClass(a);
-    return a;
-  });
   const [moreOpen, setMoreOpen] = useState(false);
   const storage = useStorageUsage();
 
@@ -183,7 +146,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       supabase
         .from("profiles")
         .select(
-          "studio_name, avatar_url, plan, email, onboarding_completed, theme_preference, accent_preference",
+          "studio_name, avatar_url, plan, email, onboarding_completed",
         ) as any
     )
       .eq("user_id", user.id)
@@ -191,48 +154,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       .then(({ data }: any) => {
         if (data) {
           setProfile(data);
-          const dbTheme: ThemeMode = THEME_ORDER.includes(data.theme_preference as ThemeMode)
-            ? (data.theme_preference as ThemeMode)
-            : "dark";
-          applyThemeClass(dbTheme);
-          setTheme(dbTheme);
-          const dbAccent: AccentMode = data.accent_preference === "red" ? "red" : "gold";
-          applyAccentClass(dbAccent);
-          setAccent(dbAccent);
           if (!data.onboarding_completed && !location.pathname.includes("/onboarding")) {
             navigate("/dashboard/onboarding", { replace: true });
           }
         }
       });
   }, [user, location.pathname, navigate]);
-
-  const switchTheme = useCallback(
-    (next: ThemeMode) => {
-      if (next === theme) return;
-      applyThemeClass(next);
-      setTheme(next);
-      if (user) {
-        (supabase.from("profiles").update({ theme_preference: next } as any) as any)
-          .eq("user_id", user.id)
-          .then(() => {});
-      }
-    },
-    [theme, user],
-  );
-
-  const switchAccent = useCallback(
-    (next: AccentMode) => {
-      if (next === accent) return;
-      applyAccentClass(next);
-      setAccent(next);
-      if (user) {
-        (supabase.from("profiles").update({ accent_preference: next } as any) as any)
-          .eq("user_id", user.id)
-          .then(() => {});
-      }
-    },
-    [accent, user],
-  );
 
   const initials = profile?.studio_name?.slice(0, 2).toUpperCase() || "MA";
 
@@ -250,30 +177,28 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const sidebarWidth = 200;
 
   const pageTitle = PAGE_TITLES[location.pathname] || "MirrorAI";
-  const isLt = useIsLightTheme(theme);
 
-  // Adaptive palette
+  // White editorial palette
   const pal = {
-    bg: isLt ? "#FFFFFF" : "#080808",
-    sidebarBg: isLt ? "#FFFFFF" : "#080808",
-    sidebarBorder: isLt ? "rgba(0,0,0,0.08)" : "rgba(240,237,232,0.06)",
-    brandColor: isLt ? "#D4AF37" : "#E8C97A",
-    textPrimary: isLt ? "#1A1A1A" : "#F0EDE8",
-    textMuted: isLt ? "rgba(0,0,0,0.45)" : "rgba(240,237,232,0.3)",
-    textFaint: isLt ? "rgba(0,0,0,0.25)" : "rgba(240,237,232,0.2)",
-    textSubtle: isLt ? "rgba(0,0,0,0.55)" : "rgba(240,237,232,0.5)",
-    navActive: isLt ? "#D4AF37" : "#E8C97A",
-    navActiveBg: isLt ? "rgba(212,175,55,0.08)" : "rgba(232,201,122,0.04)",
-    headerBg: isLt ? "rgba(255,255,255,0.92)" : "rgba(8,8,8,0.9)",
-    headerBorder: isLt ? "rgba(0,0,0,0.06)" : "rgba(240,237,232,0.05)",
-    storageBg: isLt ? "rgba(0,0,0,0.04)" : "rgba(240,237,232,0.06)",
-    accentDotBg: isLt ? "rgba(0,0,0,0.04)" : "rgba(240,237,232,0.04)",
-    accentDotBorder: isLt ? "rgba(0,0,0,0.08)" : "rgba(240,237,232,0.06)",
-    avatarBg: isLt ? "rgba(0,0,0,0.06)" : "rgba(240,237,232,0.06)",
-    avatarText: isLt ? "rgba(0,0,0,0.5)" : "rgba(240,237,232,0.5)",
+    bg: "#FFFFFF",
+    sidebarBg: "#FFFFFF",
+    sidebarBorder: "rgba(0,0,0,0.06)",
+    brandColor: "#C9A96E",
+    textPrimary: "#1A1A1A",
+    textMuted: "rgba(0,0,0,0.4)",
+    textFaint: "rgba(0,0,0,0.2)",
+    textSubtle: "rgba(0,0,0,0.55)",
+    navActive: "#C9A96E",
+    navActiveBg: "rgba(201,169,110,0.08)",
+    headerBg: "rgba(255,255,255,0.96)",
+    headerBorder: "rgba(0,0,0,0.06)",
+    storageBg: "rgba(0,0,0,0.04)",
+    accentDotBg: "rgba(0,0,0,0.03)",
+    accentDotBorder: "rgba(0,0,0,0.06)",
+    avatarBg: "rgba(0,0,0,0.05)",
+    avatarText: "rgba(0,0,0,0.4)",
   };
 
-  // View mode icon & label
   const ViewModeIcon = viewMode === 'desktop' ? Monitor : viewMode === 'mobile' ? Smartphone : RotateCw;
   const viewModeLabel = viewMode === 'desktop' ? 'Desktop' : viewMode === 'mobile' ? 'Mobile' : 'Auto';
 
@@ -297,7 +222,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               borderRight: `1px solid ${pal.sidebarBorder}`,
             }}
           >
-            {/* Brand */}
             <div className="px-6 pt-8 pb-6">
               <h1
                 style={{
@@ -362,7 +286,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
             <div className="mx-5 h-px" style={{ background: pal.sidebarBorder }} />
 
-            {/* Storage */}
             <div className="px-6 py-4">
               <p
                 style={{
@@ -385,7 +308,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
 
-            {/* Sign out */}
             <div className="px-3 pb-6">
               <button
                 onClick={handleSignOut}
@@ -416,7 +338,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         >
           <div className="flex items-center gap-2.5 min-w-0">
             {showBottomNav && location.pathname === "/home" ? (
-              /* Brand mark on mobile home */
               <h2
                 style={{
                   fontFamily: cormorant,
@@ -456,7 +377,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* View mode toggle - auto/desktop/mobile */}
+            {/* View mode toggle */}
             <button
               onClick={cycleViewMode}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all"
@@ -473,37 +394,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             >
               <ViewModeIcon className="h-3.5 w-3.5" style={{ color: pal.textMuted }} />
               <span className="hidden sm:inline">{viewModeLabel}</span>
-            </button>
-            {/* Accent toggle */}
-            <button
-              onClick={() => switchAccent(accent === "gold" ? "red" : "gold")}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all"
-              style={{
-                background: pal.accentDotBg,
-                border: `1px solid ${pal.accentDotBorder}`,
-              }}
-              title={`Accent: ${accent}`}
-            >
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{
-                  background: accent === "gold" ? pal.brandColor : "#C0392B",
-                  boxShadow: accent === "gold" ? `0 0 6px ${pal.brandColor}80` : "0 0 6px rgba(192,57,43,0.5)",
-                }}
-              />
-            </button>
-
-            {/* Theme toggle */}
-            <button
-              onClick={() => {
-                const idx = THEME_ORDER.indexOf(theme);
-                switchTheme(THEME_ORDER[(idx + 1) % THEME_ORDER.length]);
-              }}
-              className="flex items-center justify-center transition-colors"
-              style={{ fontSize: 14, minWidth: 32, minHeight: 32 }}
-              title={`Theme: ${theme}`}
-            >
-              {THEME_ICONS[theme]}
             </button>
 
             <NotificationBell />
