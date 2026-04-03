@@ -115,8 +115,10 @@ export default function Events() {
 
         {/* Event Cards */}
         {loading ? (
-          <div style={{ textAlign: "center", padding: "64px 0" }}>
-            <p style={{ fontFamily: dm, fontSize: 13, color: "#999999" }} className="animate-pulse">Loading events...</p>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <EventCardSkeleton key={i} />
+            ))}
           </div>
         ) : events.length === 0 ? (
           <div style={{ textAlign: "center", padding: "64px 0" }}>
