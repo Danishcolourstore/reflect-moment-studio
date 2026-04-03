@@ -371,7 +371,7 @@ export default function LandingGate() {
             id: editPost.id,
             title: editPost.title,
             caption: editPost.caption || "",
-            image_url: editPost.imageUrl || "",
+            imageUrl: editPost.imageUrl || "",
             location: editPost.location || "",
           }}
           onUpdated={() => loadPhotos()}
