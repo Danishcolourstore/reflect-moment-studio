@@ -203,41 +203,11 @@ export default function LandingGate() {
             <div
               style={{
                 columnCount: mob ? 2 : window.innerWidth >= 1024 ? 4 : 3,
-                columnGap: mob ? 8 : window.innerWidth >= 1024 ? 16 : 12,
+                columnGap: mob ? 6 : window.innerWidth >= 1024 ? 12 : 8,
               }}
             >
               {photos.map((url, i) => (
-                <div
-                  key={i}
-                  style={{
-                    breakInside: "avoid",
-                    marginBottom: mob ? 8 : window.innerWidth >= 1024 ? 16 : 12,
-                  }}
-                >
-                  <div
-                    onClick={() => openLightbox(i)}
-                    style={{
-                      borderRadius: 12,
-                      overflow: "hidden",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                      cursor: "pointer",
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    }}
-                  >
-                    <img
-                      src={url}
-                      alt=""
-                      loading={i < 6 ? "eager" : "lazy"}
-                      decoding="async"
-                      style={{
-                        width: "100%",
-                        height: "auto",
-                        display: "block",
-                        objectFit: "cover",
-                      }}
-                    />
-                  </div>
-                </div>
+                <MasonryPhoto key={i} url={url} index={i} mob={mob} onOpen={openLightbox} />
               ))}
             </div>
           )}
