@@ -171,13 +171,13 @@ export default function Events() {
                   }}
                 >
                   {evt.cover_url ? (
-                    <div style={{ aspectRatio: "16/10", overflow: "hidden" }}>
-                      <img
-                        src={evt.cover_url}
-                        alt={evt.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
+                    <LazyImage
+                      src={evt.cover_url}
+                      alt={evt.name}
+                      aspectRatio="16/10"
+                      objectFit="cover"
+                      imgClassName="transition-transform duration-500 group-hover:scale-105"
+                    />
                   ) : (
                     <div
                       style={{
