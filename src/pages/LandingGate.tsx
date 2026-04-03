@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,49 @@ import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { colors, fonts } from "@/styles/design-tokens";
+
+/* ── Individual masonry photo with fade-in on load ── */
+function MasonryPhoto({ url, index, mob, onOpen }: { url: string; index: number; mob: boolean; onOpen: (i: number) => void }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div style={{ breakInside: "avoid", marginBottom: mob ? 6 : 8 }}>
+      <div
+        onClick={() => onOpen(index)}
+        style={{
+          overflow: "hidden",
+          cursor: "pointer",
+          background: "#F5F5F5",
+          minHeight: 120,
+          position: "relative",
+        }}
+      >
+        {!loaded && (
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(110deg, #F5F5F5 30%, #ECECEC 50%, #F5F5F5 70%)",
+            backgroundSize: "200% 100%",
+            animation: "shimmer 1.5s ease-in-out infinite",
+          }} />
+        )}
+        <img
+          src={url}
+          alt=""
+          loading={index < 4 ? "eager" : "lazy"}
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          style={{
+            width: "100%",
+            height: "auto",
+            display: "block",
+            objectFit: "cover",
+            opacity: loaded ? 1 : 0,
+            transition: "opacity 0.4s ease",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 interface FeedItem {
   id: string;
