@@ -1,251 +1,50 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cinzel:wght@400;500;600;700&family=Jost:wght@300;400;500;600&family=Special+Elite&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Cinzel:wght@400;500;600;700&family=Jost:wght@300;400;500;600&family=Special+Elite&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /* ── Dark (default) ── pure black + gold ── */
+  /* ── White Editorial (Only Theme) ── */
   :root {
-    --background: 0 0% 0%;              /* #000000 */
-    --foreground: 45 6% 90%;            /* #E8E4DF */
+    --background: 0 0% 100%;            /* #FFFFFF */
+    --foreground: 0 0% 10%;             /* #1A1A1A */
 
-    --card: 0 0% 4%;                    /* #0B0B0B */
-    --card-foreground: 45 6% 90%;
-
-    --popover: 0 0% 4%;
-    --popover-foreground: 45 6% 90%;
-
-    --primary: 43 76% 53%;              /* #D4AF37 gold */
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 10%;              /* #1A1A1A */
-    --secondary-foreground: 45 6% 90%;
-
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 45%;       /* #737373 */
-
-    --accent: 43 76% 53%;               /* gold */
-    --accent-foreground: 0 0% 0%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 10%;                 /* #1A1A1A */
-    --input: 0 0% 10%;
-    --ring: 43 76% 53%;                 /* gold */
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 0%;
-    --sidebar-foreground: 45 6% 90%;
-    --sidebar-primary: 43 76% 53%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 45 6% 90%;
-    --sidebar-border: 0 0% 10%;
-    --sidebar-ring: 43 76% 53%;
-  }
-
-  /* ── Light ── clean white + gold ── */
-  .light {
-    --background: 0 0% 100%;             /* #FFFFFF */
-    --foreground: 0 0% 10%;              /* #1A1A1A */
-
-    --card: 0 0% 98%;                    /* #FAFAFA */
+    --card: 0 0% 100%;                  /* #FFFFFF */
     --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
 
-    --primary: 43 76% 53%;               /* #D4AF37 gold */
+    --primary: 38 47% 49%;              /* #C9A96E warm gold */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 95%;               /* #F2F2F2 */
+    --secondary: 0 0% 97%;              /* #F8F8F8 */
     --secondary-foreground: 0 0% 10%;
 
-    --muted: 0 0% 95%;
-    --muted-foreground: 0 0% 45%;        /* #737373 */
+    --muted: 0 0% 97%;
+    --muted-foreground: 0 0% 45%;       /* #737373 */
 
-    --accent: 43 76% 53%;               /* gold */
+    --accent: 38 47% 49%;               /* warm gold */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;                  /* #E6E6E6 */
-    --input: 0 0% 90%;
-    --ring: 43 76% 53%;
+    --border: 0 0% 93%;                 /* #EEEEEE */
+    --input: 0 0% 93%;
+    --ring: 38 47% 49%;                 /* warm gold */
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 43 76% 53%;
+    --sidebar-primary: 38 47% 49%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent: 0 0% 97%;
     --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 43 76% 53%;
-  }
-
-  /* ── Versace / Luxe ── black + gold Medusa opulence ── */
-  .versace {
-    --background: 0 0% 2%;              /* #050505 */
-    --foreground: 44 30% 88%;           /* #E8DFC8 warm ivory */
-
-    --card: 0 0% 5%;                    /* #0D0D0D */
-    --card-foreground: 44 30% 88%;
-
-    --popover: 0 0% 5%;
-    --popover-foreground: 44 30% 88%;
-
-    --primary: 46 100% 50%;             /* #FFD700 pure gold */
-    --primary-foreground: 0 0% 2%;
-
-    --secondary: 0 0% 8%;              /* #141414 */
-    --secondary-foreground: 44 30% 88%;
-
-    --muted: 0 0% 8%;
-    --muted-foreground: 44 10% 50%;    /* muted gold-gray */
-
-    --accent: 46 100% 50%;             /* gold */
-    --accent-foreground: 0 0% 2%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 46 50% 18%;              /* dark gold border */
-    --input: 0 0% 8%;
-    --ring: 46 100% 50%;
-
-    --sidebar-background: 0 0% 2%;
-    --sidebar-foreground: 44 30% 88%;
-    --sidebar-primary: 46 100% 50%;
-    --sidebar-primary-foreground: 0 0% 2%;
-    --sidebar-accent: 0 0% 8%;
-    --sidebar-accent-foreground: 44 30% 88%;
-    --sidebar-border: 46 50% 18%;
-    --sidebar-ring: 46 100% 50%;
-  }
-
-  /* ── Classic / Editorial ── warm neutral Pixieset ── */
-  .classic {
-    --background: 34 23% 93%;           /* #F3EFE9 */
-    --foreground: 30 4% 16%;            /* #2B2A28 */
-
-    --card: 0 0% 100%;                  /* #FFFFFF */
-    --card-foreground: 30 4% 16%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 30 4% 16%;
-
-    --primary: 30 4% 16%;               /* #2B2A28 */
-    --primary-foreground: 34 23% 93%;
-
-    --secondary: 34 18% 88%;            /* #E6E0D8 */
-    --secondary-foreground: 30 4% 16%;
-
-    --muted: 34 18% 88%;
-    --muted-foreground: 30 17% 44%;     /* #846F5B */
-
-    --accent: 32 19% 65%;               /* #B7AA98 */
-    --accent-foreground: 30 4% 16%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 34 14% 83%;               /* #D9D3CB */
-    --input: 34 14% 83%;
-    --ring: 30 4% 16%;
-
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 30 4% 16%;
-    --sidebar-primary: 30 4% 16%;
-    --sidebar-primary-foreground: 34 23% 93%;
-    --sidebar-accent: 34 18% 88%;
-    --sidebar-accent-foreground: 30 4% 16%;
-    --sidebar-border: 34 14% 83%;
-    --sidebar-ring: 30 4% 16%;
-  }
-
-  /* ── Darkroom / Analog ── 35mm film darkroom aesthetic ── */
-  .darkroom {
-    --background: 0 0% 5%;              /* #0D0D0D matte black */
-    --foreground: 38 24% 92%;           /* #F4F1EA warm paper white */
-
-    --card: 0 0% 8%;                    /* #141414 */
-    --card-foreground: 38 24% 92%;
-
-    --popover: 0 0% 8%;
-    --popover-foreground: 38 24% 92%;
-
-    --primary: 0 61% 30%;               /* #7A1C1C darkroom red */
-    --primary-foreground: 38 24% 92%;
-
-    --secondary: 0 0% 12%;              /* #1F1F1F */
-    --secondary-foreground: 0 0% 71%;   /* #B5B5B5 film silver */
-
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 50%;       /* #808080 */
-
-    --accent: 0 61% 30%;                /* darkroom red */
-    --accent-foreground: 38 24% 92%;
-
-    --destructive: 0 72% 45%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 15%;                 /* #262626 */
-    --input: 0 0% 12%;
-    --ring: 0 61% 30%;
-
-    --sidebar-background: 0 0% 4%;      /* #0A0A0A */
-    --sidebar-foreground: 0 0% 71%;     /* #B5B5B5 */
-    --sidebar-primary: 0 61% 30%;
-    --sidebar-primary-foreground: 38 24% 92%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 71%;
-    --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 0 61% 30%;
-  }
-
-
-  /* ── Accent: Red ── deep cinematic red override for dark themes ── */
-  .accent-red:root,
-  :root.accent-red,
-  .accent-red {
-    --primary: 0 65% 42%;                /* #B22222 deep red */
-    --primary-foreground: 0 0% 100%;
-    --accent: 0 65% 42%;
-    --accent-foreground: 0 0% 100%;
-    --ring: 0 65% 42%;
-    --sidebar-primary: 0 65% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-ring: 0 65% 42%;
-  }
-
-  /* Red accent for Versace theme */
-  .versace.accent-red {
-    --primary: 0 70% 38%;                /* deeper red for versace contrast */
-    --primary-foreground: 0 0% 100%;
-    --accent: 0 70% 38%;
-    --accent-foreground: 0 0% 100%;
-    --ring: 0 70% 38%;
-    --border: 0 30% 18%;                 /* dark red border */
-    --sidebar-primary: 0 70% 38%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-border: 0 30% 18%;
-    --sidebar-ring: 0 70% 38%;
-  }
-
-  /* Red accent for Darkroom — keep its own red but brighten slightly */
-  .darkroom.accent-red {
-    --primary: 0 65% 42%;
-    --primary-foreground: 0 0% 100%;
-    --accent: 0 65% 42%;
-    --accent-foreground: 0 0% 100%;
-    --ring: 0 65% 42%;
-    --sidebar-primary: 0 65% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-ring: 0 65% 42%;
+    --sidebar-border: 0 0% 93%;
+    --sidebar-ring: 38 47% 49%;
   }
 }
 
@@ -290,8 +89,9 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
-    font-weight: 600;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    color: #1A1A1A;
   }
 
   h1 { font-size: 28px; }
@@ -342,10 +142,8 @@
 
 /* ═══════════════════════════════════════════════════════
    Platform-Adaptive Styles
-   Classes applied by useDeviceDetect hook
    ═══════════════════════════════════════════════════════ */
 
-/* ── iOS: Smooth transitions, safe areas, native feel ── */
 .platform-ios {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -369,7 +167,6 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* ── Android: Material-style ripple feel ── */
 .platform-android {
   -webkit-tap-highlight-color: transparent;
 }
@@ -389,7 +186,6 @@
   background-color: hsl(var(--secondary) / 0.8);
 }
 
-/* ── Touch devices: Larger tap targets ── */
 .input-touch button,
 .input-touch a,
 .input-touch [role="button"],
@@ -403,14 +199,12 @@
   min-height: 48px;
 }
 
-/* ── Mouse/desktop: Hover states, finer spacing ── */
 .input-mouse button:hover,
 .input-mouse a:hover,
 .input-mouse [role="button"]:hover {
   transition: all 0.15s ease;
 }
 
-/* ── Tablet layout helpers ── */
 .device-tablet .tablet-sidebar {
   display: flex;
   width: 280px;
@@ -427,14 +221,11 @@
   flex-shrink: 0;
 }
 
-/* ── Desktop layout enhancements ── */
 .device-desktop .desktop-wide {
   max-width: 1400px;
 }
 
-/* ── Standalone PWA mode ── */
 .is-standalone {
-  /* Remove browser chrome space */
   --header-offset: 0px;
 }
 
@@ -442,7 +233,6 @@
   --header-offset: env(safe-area-inset-top, 0px);
 }
 
-/* ── Smooth scrolling per-platform ── */
 html {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
@@ -452,7 +242,6 @@ html.platform-android {
   overscroll-behavior-y: contain;
 }
 
-/* ── Keyboard shortcut hint visibility ── */
 .input-touch .kbd-hint {
   display: none;
 }
@@ -466,86 +255,6 @@ html.platform-android {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Darkroom theme utilities ── */
-
-/* Film grain overlay – CSS-only, GPU-composited */
-.darkroom .grain-overlay,
-.darkroom .min-h-screen {
-  position: relative;
-}
-
-.darkroom .min-h-screen::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  pointer-events: none;
-  opacity: 0.035;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
-  animation: grain-drift 8s steps(10) infinite;
-}
-
-@keyframes grain-drift {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-2%, -3%); }
-  20% { transform: translate(3%, 1%); }
-  30% { transform: translate(-1%, 2%); }
-  40% { transform: translate(2%, -2%); }
-  50% { transform: translate(-3%, 3%); }
-  60% { transform: translate(1%, -1%); }
-  70% { transform: translate(-2%, 2%); }
-  80% { transform: translate(3%, -3%); }
-  90% { transform: translate(-1%, 1%); }
-}
-
-/* Vignette on panels */
-.darkroom .rounded-xl,
-.darkroom .rounded-lg {
-  box-shadow: inset 0 0 30px 5px rgba(0, 0, 0, 0.25);
-}
-
-/* Contact-sheet image borders */
-.darkroom img {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Darkroom red glow hover on buttons */
-.darkroom button:hover,
-.darkroom a:hover {
-  text-shadow: 0 0 8px hsla(0, 61%, 30%, 0.3);
-}
-
-/* Film lightbox image hover – enlarger glow */
-.darkroom img:hover {
-  box-shadow: 0 0 20px 2px hsla(0, 61%, 30%, 0.15);
-  transition: box-shadow 0.4s ease;
-}
-
-/* Typewriter caption utility */
 .font-typewriter {
   font-family: 'Special Elite', 'Courier New', monospace;
-}
-
-/* Film-developing fade-in for images */
-.darkroom img {
-  animation: film-develop 0.6s ease-out both;
-}
-
-@keyframes film-develop {
-  from { opacity: 0; filter: brightness(1.4) contrast(0.7); }
-  to { opacity: 1; filter: brightness(1) contrast(1); }
-}
-
-/* Darkroom-specific heading/body fonts */
-.darkroom h1, .darkroom h2, .darkroom h3,
-.darkroom h4, .darkroom h5, .darkroom h6 {
-  font-family: 'Playfair Display', 'Cormorant Garamond', serif;
-  letter-spacing: 0.02em;
-}
-
-.darkroom body, .darkroom p, .darkroom span, .darkroom label,
-.darkroom input, .darkroom button, .darkroom select, .darkroom textarea {
-  font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
 }

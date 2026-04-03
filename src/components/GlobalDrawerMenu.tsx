@@ -41,9 +41,8 @@ export function HamburgerButton({ onClick }: { onClick: () => void }) {
         fontFamily: fonts.body,
         fontSize: 11,
         fontWeight: 700,
-        color: colors.cream,
+        color: "#1A1A1A",
         letterSpacing: "0.2em",
-        textShadow: "0 1px 8px rgba(0,0,0,0.8)",
       }}
       aria-label="Menu"
     >
@@ -98,7 +97,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
         <>
           <motion.div
             className="fixed inset-0 z-[190]"
-            style={{ background: "rgba(0,0,0,0.5)" }}
+            style={{ background: "rgba(0,0,0,0.15)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -108,7 +107,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
 
           <motion.aside
             className="fixed top-0 right-0 z-[200] h-[100dvh] w-[82%] max-w-[360px] overflow-y-auto"
-            style={{ background: colors.bg }}
+            style={{ background: "#FFFFFF", boxShadow: "-8px 0 32px rgba(0,0,0,0.08)" }}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -133,7 +132,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                     fontFamily: fonts.body,
                     fontSize: 11,
                     fontWeight: 600,
-                    color: colors.textMuted,
+                    color: "#999999",
                     letterSpacing: "0.2em",
                     background: "none",
                     border: "none",
@@ -170,15 +169,15 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                                 fontFamily: fonts.display,
                                 fontSize: 42,
                                 fontWeight: isActive ? 600 : 300,
-                                color: isActive ? colors.cream : colors.textMuted,
+                                color: isActive ? colors.gold : "#999999",
                                 letterSpacing: "-0.01em",
                                 lineHeight: 1.15,
                                 display: "block",
                                 transition: "color 0.2s ease",
                               }}
-                              onMouseEnter={(e) => (e.currentTarget.style.color = colors.cream)}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1A1A")}
                               onMouseLeave={(e) =>
-                                (e.currentTarget.style.color = isActive ? colors.cream : colors.textMuted)
+                                (e.currentTarget.style.color = isActive ? colors.gold : "#999999")
                               }
                             >
                               {item.label}
@@ -199,7 +198,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                             fontFamily: fonts.display,
                             fontSize: 42,
                             fontWeight: 300,
-                            color: colors.border,
+                            color: "#CCCCCC",
                             letterSpacing: "-0.01em",
                             lineHeight: 1.15,
                             display: "block",
@@ -223,7 +222,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                         style={{
                           fontFamily: fonts.body,
                           fontSize: 10,
-                          color: colors.textMuted,
+                          color: "#999999",
                           letterSpacing: "0.2em",
                           background: "none",
                           border: "none",
@@ -247,14 +246,14 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                               fontFamily: fonts.display,
                               fontSize: 36,
                               fontWeight: 300,
-                              color: colors.textDim,
+                              color: "#666666",
                               letterSpacing: "-0.01em",
                               lineHeight: 1.2,
                               display: "block",
                               transition: "color 0.2s ease",
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = colors.cream)}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = colors.textDim)}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1A1A")}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = "#666666")}
                           >
                             {item.label}
                           </span>
@@ -265,14 +264,14 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                 </AnimatePresence>
               </nav>
 
-              <div className="mt-auto pt-8 border-t" style={{ borderColor: colors.border }}>
+              <div className="mt-auto pt-8 border-t" style={{ borderColor: "#EEEEEE" }}>
                 {studioName && (
                   <p
                     className="mb-3"
                     style={{
                       fontFamily: fonts.display,
                       fontSize: 14,
-                      color: colors.textMuted,
+                      color: "#999999",
                       letterSpacing: "0.05em",
                     }}
                   >
@@ -284,14 +283,14 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                   style={{
                     fontFamily: fonts.body,
                     fontSize: 10,
-                    color: colors.textMuted,
+                    color: "#999999",
                     letterSpacing: "0.2em",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = colors.cream)}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = colors.textMuted)}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1A1A")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#999999")}
                 >
                   SIGN OUT
                 </button>
