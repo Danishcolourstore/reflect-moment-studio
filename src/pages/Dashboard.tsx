@@ -213,13 +213,19 @@ const Dashboard = () => {
 
       {/* ── Hero Section ── */}
       <section style={{ position: "relative", width: "100%", height: mob ? "55vh" : "80vh", overflow: "hidden" }}>
-        {heroImages.length > 0 ? (
+        {loading ? (
+          <HeroSkeleton mobile={mob} />
+        ) : heroImages.length > 0 ? (
           <>
             {heroImages.map((evt, i) => (
               <img
                 key={evt.id}
                 src={evt.cover_url!}
                 alt={evt.name}
+                width={1200}
+                height={800}
+                loading={i === 0 ? "eager" : "lazy"}
+                decoding="async"
                 style={{
                   position: "absolute",
                   inset: 0,
