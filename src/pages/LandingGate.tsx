@@ -491,7 +491,7 @@ export default function LandingGate() {
                       POSTS
                     </p>
                   )}
-                  {filter !== "photos" && normalPosts.map((post) => (
+                  {normalPosts.map((post) => (
                     <div
                       key={post.id}
                       style={{
