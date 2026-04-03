@@ -342,6 +342,13 @@ const AppRoutes = () => {
               }
             />
             <Route
+              path="/dashboard/feed-editor"
+              element={
+                <ProtectedRoute>
+                  <FeedEditor />
+                </ProtectedRoute>
+              }
+            <Route
               path="/art-gallery"
               element={
                 <ProtectedRoute>
