@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save, AlertTriangle, SplitSquareHorizontal, RotateCcw, Maximize2 } from 'lucide-react';
+import { ArrowLeft, Monitor, Tablet, Smartphone, Globe, Loader2, Eye, GripVertical, ChevronDown, ChevronRight, EyeOff, Plus, Trash2, Upload, X, ExternalLink, Pencil, LayoutGrid, Save, AlertTriangle, SplitSquareHorizontal, RotateCcw, Maximize2, Sparkles, Copy, MoveUp, MoveDown } from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileSectionDrawer } from '@/components/website-editor/MobileSectionDrawer';
@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { getTemplate, type WebsiteTemplateValue, type WebsiteTemplateConfig } from '@/lib/website-templates';
 import { useWebsiteTemplates } from '@/hooks/use-website-templates';
 import { getStudioUrl, getStudioDisplayUrl } from '@/lib/studio-url';
+import { fonts, colors } from '@/styles/design-tokens';
 
 // Website image data structure (independent of events/galleries)
 interface WebsiteImages {
@@ -31,7 +32,6 @@ interface WebsiteImages {
   newsletter_description?: string;
   newsletter_button_text?: string;
   latest_works_title?: string;
-  // Cinematic Wedding Story sections
   featured_galleries?: { title: string; location: string; imageUrl: string }[];
   storytelling_headline?: string;
   storytelling_paragraph?: string;
@@ -67,31 +67,31 @@ import { WebsiteInquiryForm } from '@/components/website/WebsiteInquiryForm';
 
 // ── Section metadata ──
 const ALL_SECTIONS = [
-  { id: 'hero', label: 'Hero', icon: '🖼️' },
-  { id: 'social', label: 'Social Bar', icon: '🔗' },
-  { id: 'featured_galleries', label: 'Featured Galleries', icon: '🏛️' },
-  { id: 'storytelling', label: 'Storytelling', icon: '✨' },
-  { id: 'portfolio', label: 'Portfolio', icon: '📷' },
-  { id: 'latest_works', label: 'Latest Works', icon: '🎯' },
-  { id: 'albums', label: 'Albums', icon: '📁' },
-  { id: 'about', label: 'About', icon: '👤' },
-  { id: 'featured', label: 'Featured Work', icon: '⭐' },
-  { id: 'process', label: 'Style & Process', icon: '🎨' },
-  { id: 'services', label: 'Services', icon: '💼' },
-  { id: 'testimonials', label: 'Testimonials', icon: '💬' },
-  { id: 'journal', label: 'Journal', icon: '📖' },
-  { id: 'newsletter', label: 'Newsletter', icon: '📬' },
-  { id: 'image_strip', label: 'Image Strip', icon: '🎞️' },
-  { id: 'inquiry', label: 'Inquiry Form', icon: '💌' },
-  { id: 'contact', label: 'Contact', icon: '✉️' },
+  { id: 'hero', label: 'Hero Banner', icon: '🖼️', desc: 'Full-width cover with text overlay' },
+  { id: 'social', label: 'Social Bar', icon: '🔗', desc: 'Instagram, WhatsApp, email links' },
+  { id: 'featured_galleries', label: 'Featured Galleries', icon: '🏛️', desc: 'Showcase your best gallery collections' },
+  { id: 'storytelling', label: 'Storytelling', icon: '✨', desc: 'Narrative block with background image' },
+  { id: 'portfolio', label: 'Portfolio Grid', icon: '📷', desc: 'Masonry or grid gallery layout' },
+  { id: 'latest_works', label: 'Latest Works', icon: '🎯', desc: 'Recent photo gallery showcase' },
+  { id: 'albums', label: 'Albums', icon: '📁', desc: 'Portfolio album collection' },
+  { id: 'about', label: 'About / Bio', icon: '👤', desc: 'Your story with portrait image' },
+  { id: 'featured', label: 'Featured Work', icon: '⭐', desc: 'Highlighted galleries and photos' },
+  { id: 'process', label: 'Style & Process', icon: '🎨', desc: 'How you work — step by step' },
+  { id: 'services', label: 'Services & Pricing', icon: '💼', desc: 'Packages and pricing cards' },
+  { id: 'testimonials', label: 'Testimonials', icon: '💬', desc: 'Client reviews and quotes' },
+  { id: 'journal', label: 'Journal / Blog', icon: '📖', desc: 'Recent blog entries' },
+  { id: 'newsletter', label: 'Newsletter', icon: '📬', desc: 'Email subscription form' },
+  { id: 'image_strip', label: 'Image Strip', icon: '🎞️', desc: 'Horizontal scrolling photo row' },
+  { id: 'inquiry', label: 'Inquiry Form', icon: '💌', desc: 'Contact and booking inquiries' },
+  { id: 'contact', label: 'Contact Info', icon: '✉️', desc: 'Email, phone, social links' },
 ] as const;
 
 type ViewMode = 'desktop' | 'tablet' | 'mobile';
+type EditorTab = 'editor' | 'preview';
 
 const WebsiteEditor = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-
   const isMobile = useIsMobile();
 
   // ── Loading state ──
@@ -102,14 +102,14 @@ const WebsiteEditor = () => {
   // ── View state ──
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [editorTab, setEditorTab] = useState<EditorTab>('editor');
 
   // ── Mobile editor state ──
   const [mobileSectionsOpen, setMobileSectionsOpen] = useState(false);
   const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
   const [mobileMode, setMobileMode] = useState<'preview' | 'edit' | 'landscape'>('preview');
 
-
-  // ── Branding data (from profiles + studio_profiles) ──
+  // ── Branding data ──
   const [studioName, setStudioName] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
@@ -134,7 +134,7 @@ const WebsiteEditor = () => {
   const [testimonialsData, setTestimonialsData] = useState<Testimonial[]>([]);
   const [featuredGalleryIds, setFeaturedGalleryIds] = useState<string[]>([]);
 
-  // ── Website images (independent of events/galleries) ──
+  // ── Website images ──
   const [websiteImages, setWebsiteImages] = useState<WebsiteImages>({});
 
   // ── Live data from DB ──
@@ -150,6 +150,8 @@ const WebsiteEditor = () => {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
+  // ── Add section panel ──
+  const [showAddSection, setShowAddSection] = useState(false);
 
   // ── Load template fonts ──
   useEffect(() => {
@@ -204,7 +206,6 @@ const WebsiteEditor = () => {
         setWebsiteImages((s.website_images as WebsiteImages) || {});
       }
 
-      // Load events
       const [evRes, albumRes, allEvRes] = await Promise.all([
         (supabase.from('events').select('id, name, slug, event_date, location, cover_url, photo_count, event_type') as any)
           .eq('user_id', user.id).eq('is_published', true).eq('feed_visible', true)
@@ -219,7 +220,6 @@ const WebsiteEditor = () => {
       setAlbums((albumRes.data || []) as unknown as PortfolioAlbum[]);
       setAllEvents((allEvRes.data || []) as { id: string; name: string }[]);
 
-      // Load portfolio photos
       const portfolioIds = (s?.portfolio_photo_ids as string[]) || [];
       if (portfolioIds.length > 0) {
         const { data: pPhotos } = await (supabase.from('photos').select('id, url') as any).in('id', portfolioIds);
@@ -229,14 +229,12 @@ const WebsiteEditor = () => {
         }
       }
 
-      // Featured events
       const featIds = (s?.featured_gallery_ids as string[]) || [];
       if (featIds.length > 0) {
         const { data: fData } = await (supabase.from('events').select('id, name, slug, event_date, location, cover_url, photo_count, event_type') as any).in('id', featIds).eq('is_published', true);
         if (!cancelled) setFeaturedEvents(fData || []);
       }
 
-      // Fallback covers
       const typedEvents = (evRes.data || []) as any[];
       const noCover = typedEvents.filter((e: any) => !e.cover_url);
       if (noCover.length > 0) {
@@ -298,29 +296,18 @@ const WebsiteEditor = () => {
     toast.success('Website published!', { description: getStudioDisplayUrl(username) });
   }, [username, handleSave]);
 
-
   // ── Delete / Reset Website ──
   const [deleting, setDeleting] = useState(false);
   const handleDeleteWebsite = useCallback(async () => {
     if (!user) return;
     setDeleting(true);
     try {
-      // Reset studio_profiles website config (keep non-website fields intact)
       await (supabase.from('studio_profiles').update({
-        website_template: null,
-        section_order: null,
-        section_visibility: null,
-        services_data: null,
-        testimonials_data: null,
-        featured_gallery_ids: null,
-        portfolio_layout: null,
-        hero_button_label: null,
-        hero_button_url: null,
-        website_images: null,
-        username: null,
-        footer_text: null,
+        website_template: null, section_order: null, section_visibility: null,
+        services_data: null, testimonials_data: null, featured_gallery_ids: null,
+        portfolio_layout: null, hero_button_label: null, hero_button_url: null,
+        website_images: null, username: null, footer_text: null,
       } as any) as any).eq('user_id', user.id);
-
       toast.success('Portfolio website deleted');
       navigate('/dashboard/branding');
     } catch (err) {
@@ -329,7 +316,6 @@ const WebsiteEditor = () => {
     }
     setDeleting(false);
   }, [user, navigate]);
-
 
   const toggleSection = (id: string) => {
     setSectionVisibility(prev => ({ ...prev, [id]: !prev[id] }));
@@ -365,6 +351,36 @@ const WebsiteEditor = () => {
   // ── Featured gallery helpers ──
   const toggleFeaturedGallery = (eventId: string) => {
     setFeaturedGalleryIds(prev => prev.includes(eventId) ? prev.filter(id => id !== eventId) : [...prev, eventId]);
+  };
+
+  // ── Move section helpers ──
+  const moveSection = (idx: number, dir: 'up' | 'down') => {
+    const newOrder = [...sectionOrder];
+    const targetIdx = dir === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= newOrder.length) return;
+    [newOrder[idx], newOrder[targetIdx]] = [newOrder[targetIdx], newOrder[idx]];
+    setSectionOrder(newOrder);
+  };
+
+  // ── Add section ──
+  const addSection = (id: string) => {
+    if (!sectionOrder.includes(id)) {
+      setSectionOrder(prev => [...prev, id]);
+    }
+    setSectionVisibility(prev => ({ ...prev, [id]: true }));
+    setShowAddSection(false);
+    toast.success(`${ALL_SECTIONS.find(s => s.id === id)?.label} added`);
+  };
+
+  // ── Remove section ──
+  const removeSection = (id: string) => {
+    setSectionVisibility(prev => ({ ...prev, [id]: false }));
+  };
+
+  // ── Duplicate section (just toggles visibility if hidden) ──
+  const duplicateSection = (id: string) => {
+    setSectionVisibility(prev => ({ ...prev, [id]: true }));
+    toast.success('Section enabled');
   };
 
   const tmpl = getTemplate(websiteTemplate);
@@ -410,238 +426,184 @@ const WebsiteEditor = () => {
     if (!sec) return null;
 
     return (
-      <div className="space-y-4">
-        <button onClick={() => setActiveSection(null)} className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground/60 hover:text-foreground transition-colors">
-          <ArrowLeft className="h-3 w-3" /> Back to Sections
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <button
+          onClick={() => setActiveSection(null)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: fonts.body, fontSize: 11, fontWeight: 600,
+            letterSpacing: '0.08em', textTransform: 'uppercase' as const,
+            color: colors.textMuted, background: 'none', border: 'none',
+            cursor: 'pointer', padding: 0,
+          }}
+        >
+          ← Back to Sections
         </button>
-        <h3 className="text-sm font-semibold text-foreground">{sec.icon} {sec.label}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 18 }}>{sec.icon}</span>
+          <h3 style={{ fontFamily: fonts.display, fontSize: 20, fontWeight: 400, color: colors.text }}>
+            {sec.label}
+          </h3>
+        </div>
 
         {activeSection === 'hero' && user && (
-          <div className="space-y-3">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Studio Name</label>
-              <Input value={studioName} onChange={e => setStudioName(e.target.value)} className="mt-1 h-9 text-sm bg-card" />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Tagline</label>
-              <Input value={tagline} onChange={e => setTagline(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="Reflections of Your Moments" />
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <EditorField label="Studio Name">
+              <Input value={studioName} onChange={e => setStudioName(e.target.value)} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}`, fontFamily: fonts.body }} />
+            </EditorField>
+            <EditorField label="Tagline">
+              <Input value={tagline} onChange={e => setTagline(e.target.value)} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}`, fontFamily: fonts.body }} placeholder="Reflections of Your Moments" />
+            </EditorField>
             <WebsiteImageUploader
               value={websiteImages.hero_cover || coverUrl}
-              onChange={(url) => {
-                setWebsiteImages(prev => ({ ...prev, hero_cover: url }));
-                if (url) setCoverUrl(url);
-              }}
-              userId={user.id}
-              folder="hero"
-              label="Cover Image"
-              aspectClass="aspect-video"
+              onChange={(url) => { setWebsiteImages(prev => ({ ...prev, hero_cover: url })); if (url) setCoverUrl(url); }}
+              userId={user.id} folder="hero" label="Cover Image" aspectClass="aspect-video"
             />
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Button Label</label>
-              <Input value={heroButtonLabel} onChange={e => setHeroButtonLabel(e.target.value)} className="mt-1 h-9 text-sm bg-card" />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Button Link</label>
-              <Input value={heroButtonUrl} onChange={e => setHeroButtonUrl(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="#portfolio" />
-            </div>
+            <EditorField label="Button Label">
+              <Input value={heroButtonLabel} onChange={e => setHeroButtonLabel(e.target.value)} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}`, fontFamily: fonts.body }} />
+            </EditorField>
+            <EditorField label="Button Link">
+              <Input value={heroButtonUrl} onChange={e => setHeroButtonUrl(e.target.value)} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}`, fontFamily: fonts.body }} placeholder="#portfolio" />
+            </EditorField>
           </div>
         )}
 
         {activeSection === 'portfolio' && user && (
-          <div className="space-y-3">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Layout Style</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <EditorField label="Layout Style">
               <Select value={portfolioLayout} onValueChange={v => setPortfolioLayout(v as any)}>
-                <SelectTrigger className="mt-1 h-9 text-sm bg-card"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="grid">Grid</SelectItem>
                   <SelectItem value="masonry">Masonry</SelectItem>
                   <SelectItem value="large">Full Width</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </EditorField>
             <WebsiteImageGridUploader
               values={websiteImages.portfolio_photos || []}
               onChange={(urls) => setWebsiteImages(prev => ({ ...prev, portfolio_photos: urls }))}
-              userId={user.id}
-              folder="portfolio"
-              label="Portfolio Photos"
-              maxImages={20}
+              userId={user.id} folder="portfolio" label="Portfolio Photos" maxImages={20}
             />
-            <p className="text-[8px] text-muted-foreground/30">Upload your best portfolio images directly from your device.</p>
           </div>
         )}
 
         {activeSection === 'about' && user && (
-          <div className="space-y-3">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">About / Bio</label>
-              <Textarea value={bio} onChange={e => setBio(e.target.value)} className="mt-1 text-sm bg-card min-h-[120px]" placeholder="Tell your story..." />
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <EditorField label="About / Bio">
+              <Textarea value={bio} onChange={e => setBio(e.target.value)} className="text-sm min-h-[120px]" style={{ background: colors.surface, border: `1px solid ${colors.border}`, fontFamily: fonts.body }} placeholder="Tell your story..." />
+            </EditorField>
             <WebsiteImageUploader
               value={websiteImages.about_photo || null}
               onChange={(url) => setWebsiteImages(prev => ({ ...prev, about_photo: url }))}
-              userId={user.id}
-              folder="about"
-              label="Photographer Portrait"
-              aspectClass="aspect-[3/4]"
+              userId={user.id} folder="about" label="Photographer Portrait" aspectClass="aspect-[3/4]"
             />
           </div>
         )}
 
         {activeSection === 'featured' && user && (
-          <div className="space-y-3">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Featured Work Photos</p>
-            <p className="text-[8px] text-muted-foreground/30 mb-2">Upload your best featured work images. These are independent of your event galleries.</p>
-            <WebsiteImageGridUploader
-              values={websiteImages.featured_photos || []}
-              onChange={(urls) => setWebsiteImages(prev => ({ ...prev, featured_photos: urls }))}
-              userId={user.id}
-              folder="featured"
-              label="Featured Images"
-              maxImages={12}
-            />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <EditorField label="Featured Work Photos">
+              <p style={{ fontFamily: fonts.body, fontSize: 11, color: colors.textMuted, marginBottom: 8 }}>Upload your best featured work images.</p>
+              <WebsiteImageGridUploader
+                values={websiteImages.featured_photos || []}
+                onChange={(urls) => setWebsiteImages(prev => ({ ...prev, featured_photos: urls }))}
+                userId={user.id} folder="featured" label="Featured Images" maxImages={12}
+              />
+            </EditorField>
           </div>
         )}
 
-
-
         {activeSection === 'services' && (
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {servicesData.map((svc, i) => (
-              <div key={i} className="p-3 bg-card rounded-lg border border-border space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Service {i + 1}</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeService(i)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+              <div key={i} style={{ padding: 14, background: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={{ ...labelStyle }}>Service {i + 1}</span>
+                  <button onClick={() => removeService(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.danger, fontSize: 12 }}>Remove</button>
                 </div>
-                <Input value={svc.title} onChange={e => updateService(i, 'title', e.target.value)} className="h-8 text-xs bg-background" placeholder="Service name" />
-                <Input value={svc.description} onChange={e => updateService(i, 'description', e.target.value)} className="h-8 text-xs bg-background" placeholder="Description" />
-                <Input value={svc.price || ''} onChange={e => updateService(i, 'price', e.target.value)} className="h-8 text-xs bg-background" placeholder="Price (optional)" />
-                <Select value={svc.icon || 'camera'} onValueChange={v => updateService(i, 'icon', v)}>
-                  <SelectTrigger className="h-8 text-xs bg-background"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="camera">📷 Camera</SelectItem>
-                    <SelectItem value="heart">❤️ Heart</SelectItem>
-                    <SelectItem value="location">📍 Location</SelectItem>
-                    <SelectItem value="people">👥 People</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input value={svc.title} onChange={e => updateService(i, 'title', e.target.value)} className="h-9 text-xs mb-2" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Service name" />
+                <Input value={svc.description} onChange={e => updateService(i, 'description', e.target.value)} className="h-9 text-xs mb-2" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Description" />
+                <Input value={svc.price || ''} onChange={e => updateService(i, 'price', e.target.value)} className="h-9 text-xs" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Price (optional)" />
               </div>
             ))}
-            <Button variant="outline" size="sm" className="w-full text-[10px] h-8" onClick={addService}>
-              <Plus className="h-3 w-3 mr-1" /> Add Service
-            </Button>
+            <button onClick={addService} style={addBtnStyle}>+ Add Service</button>
           </div>
         )}
 
         {activeSection === 'testimonials' && (
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {testimonialsData.map((t, i) => (
-              <div key={i} className="p-3 bg-card rounded-lg border border-border space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Testimonial {i + 1}</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeTestimonial(i)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+              <div key={i} style={{ padding: 14, background: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={labelStyle}>Testimonial {i + 1}</span>
+                  <button onClick={() => removeTestimonial(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.danger, fontSize: 12 }}>Remove</button>
                 </div>
-                <Input value={t.clientName} onChange={e => updateTestimonial(i, 'clientName', e.target.value)} className="h-8 text-xs bg-background" placeholder="Client name" />
-                <Textarea value={t.review} onChange={e => updateTestimonial(i, 'review', e.target.value)} className="text-xs bg-background min-h-[60px]" placeholder="Testimonial text" />
+                <Input value={t.clientName} onChange={e => updateTestimonial(i, 'clientName', e.target.value)} className="h-9 text-xs mb-2" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Client name" />
+                <Textarea value={t.review} onChange={e => updateTestimonial(i, 'review', e.target.value)} className="text-xs min-h-[60px]" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Testimonial text" />
               </div>
             ))}
-            <Button variant="outline" size="sm" className="w-full text-[10px] h-8" onClick={addTestimonial}>
-              <Plus className="h-3 w-3 mr-1" /> Add Testimonial
-            </Button>
+            <button onClick={addTestimonial} style={addBtnStyle}>+ Add Testimonial</button>
           </div>
         )}
 
         {activeSection === 'contact' && (
-          <div className="space-y-3">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Email</label>
-              <Input value={email} onChange={e => setEmail(e.target.value)} className="mt-1 h-9 text-sm bg-card" />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">WhatsApp</label>
-              <Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="+1234567890" />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Instagram</label>
-              <Input value={instagram} onChange={e => setInstagram(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="@yourstudio" />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Website</label>
-              <Input value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} className="mt-1 h-9 text-sm bg-card" placeholder="www.studio.com" />
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <EditorField label="Email"><Input value={email} onChange={e => setEmail(e.target.value)} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} /></EditorField>
+            <EditorField label="WhatsApp"><Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} placeholder="+1234567890" /></EditorField>
+            <EditorField label="Instagram"><Input value={instagram} onChange={e => setInstagram(e.target.value)} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} placeholder="@yourstudio" /></EditorField>
+            <EditorField label="Website"><Input value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} placeholder="www.studio.com" /></EditorField>
           </div>
         )}
 
         {activeSection === 'social' && (
-          <div className="space-y-3">
-            <p className="text-[10px] text-muted-foreground/40">Social links are pulled from the Contact section. Edit them there.</p>
-          </div>
+          <p style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textMuted }}>Social links are pulled from the Contact section. Edit them there.</p>
         )}
 
         {activeSection === 'albums' && (
-          <div className="space-y-3">
-            <p className="text-[10px] text-muted-foreground/40">Albums are managed from the Album Designer. Visible albums appear automatically.</p>
-          </div>
+          <p style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textMuted }}>Albums are managed from the Album Designer. Visible albums appear automatically.</p>
         )}
 
         {activeSection === 'latest_works' && user && (
-          <div className="space-y-3">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Section Title</label>
-              <Input value={websiteImages.latest_works_title || 'My Latest Works'} onChange={e => setWebsiteImages(prev => ({ ...prev, latest_works_title: e.target.value }))} className="mt-1 h-9 text-sm bg-card" />
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <EditorField label="Section Title">
+              <Input value={websiteImages.latest_works_title || 'My Latest Works'} onChange={e => setWebsiteImages(prev => ({ ...prev, latest_works_title: e.target.value }))} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} />
+            </EditorField>
             <WebsiteImageGridUploader
               values={websiteImages.latest_works_photos || []}
               onChange={(urls) => setWebsiteImages(prev => ({ ...prev, latest_works_photos: urls }))}
-              userId={user.id}
-              folder="latest-works"
-              label="Gallery Images"
-              maxImages={30}
+              userId={user.id} folder="latest-works" label="Gallery Images" maxImages={30}
             />
-            <p className="text-[8px] text-muted-foreground/30">Upload up to 30 images. Visitors can click to view full-screen.</p>
           </div>
         )}
 
         {activeSection === 'newsletter' && (
-          <div className="space-y-3">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Title</label>
-              <Input value={websiteImages.newsletter_title || 'Follow Our Updates'} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_title: e.target.value }))} className="mt-1 h-9 text-sm bg-card" />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Description</label>
-              <Textarea value={websiteImages.newsletter_description || ''} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_description: e.target.value }))} className="mt-1 text-sm bg-card min-h-[80px]" placeholder="Subscribe to stay updated..." />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Button Text</label>
-              <Input value={websiteImages.newsletter_button_text || 'Subscribe'} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_button_text: e.target.value }))} className="mt-1 h-9 text-sm bg-card" />
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <EditorField label="Title"><Input value={websiteImages.newsletter_title || 'Follow Our Updates'} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_title: e.target.value }))} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} /></EditorField>
+            <EditorField label="Description"><Textarea value={websiteImages.newsletter_description || ''} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_description: e.target.value }))} className="text-sm min-h-[80px]" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} placeholder="Subscribe to stay updated..." /></EditorField>
+            <EditorField label="Button Text"><Input value={websiteImages.newsletter_button_text || 'Subscribe'} onChange={e => setWebsiteImages(prev => ({ ...prev, newsletter_button_text: e.target.value }))} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} /></EditorField>
           </div>
         )}
 
         {activeSection === 'image_strip' && user && (
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <WebsiteImageGridUploader
               values={websiteImages.image_strip_photos || []}
               onChange={(urls) => setWebsiteImages(prev => ({ ...prev, image_strip_photos: urls }))}
-              userId={user.id}
-              folder="image-strip"
-              label="Strip Images (up to 6)"
-              maxImages={6}
+              userId={user.id} folder="image-strip" label="Strip Images (up to 6)" maxImages={6}
             />
-            <p className="text-[8px] text-muted-foreground/30">These appear as a horizontal row. Works like an Instagram preview.</p>
+            <p style={{ fontFamily: fonts.body, fontSize: 11, color: colors.textMuted }}>These appear as a horizontal scrolling row.</p>
           </div>
         )}
 
         {(activeSection === 'hero' || activeSection === 'contact') && (
-          <div className="pt-3 border-t border-border">
-            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Brand Accent Color</label>
-            <div className="flex items-center gap-2 mt-1">
-              <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} className="h-8 w-8 rounded border border-border cursor-pointer" />
-              <Input value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-24 h-8 text-xs bg-card" />
-            </div>
+          <div style={{ paddingTop: 14, borderTop: `1px solid ${colors.border}` }}>
+            <EditorField label="Brand Accent Color">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} style={{ height: 36, width: 36, borderRadius: 8, border: `1px solid ${colors.border}`, cursor: 'pointer' }} />
+                <Input value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-28 h-9 text-xs" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} />
+              </div>
+            </EditorField>
           </div>
         )}
       </div>
@@ -653,7 +615,6 @@ const WebsiteEditor = () => {
     setActiveSection(id);
     setMobileEditorOpen(true);
   };
-
   const closeMobileSectionEditor = () => {
     setMobileEditorOpen(false);
     setActiveSection(null);
@@ -661,167 +622,124 @@ const WebsiteEditor = () => {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: colors.bg }}>
+        <div style={{ textAlign: 'center' }}>
+          <Loader2 className="h-6 w-6 animate-spin" style={{ color: colors.gold, margin: '0 auto 12px' }} />
+          <p style={{ fontFamily: fonts.body, fontSize: 13, color: colors.textMuted }}>Loading Website Builder…</p>
+        </div>
       </div>
     );
   }
 
   const visibleSections = sectionOrder.filter(id => sectionVisibility[id]);
   const activeSecMeta = ALL_SECTIONS.find(s => s.id === activeSection);
+  const hiddenSections = ALL_SECTIONS.filter(s => !sectionOrder.includes(s.id) || !sectionVisibility[s.id]);
 
   // ═══════════════════════════════════════════
   // MOBILE LAYOUT
   // ═══════════════════════════════════════════
   if (isMobile && mobileMode !== 'landscape') {
     return (
-      <div className="h-screen flex flex-col bg-background overflow-hidden">
-        {/* ── Mobile Top Toolbar ── */}
-        <header className="h-12 border-b border-border flex items-center justify-between px-3 bg-card shrink-0 z-50">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('/dashboard/branding')}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+      <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', background: colors.bg, overflow: 'hidden' }}>
+        {/* ── Mobile Top Bar ── */}
+        <header style={{
+          height: 52, borderBottom: `1px solid ${colors.border}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 12px', background: colors.bg, flexShrink: 0, zIndex: 50,
+        }}>
+          <button onClick={() => navigate('/dashboard/branding')} style={iconBtnStyle}>
+            <ArrowLeft className="h-4 w-4" style={{ color: colors.text }} />
+          </button>
 
-          {/* Mode Toggle */}
-          <div className="flex items-center gap-0.5 bg-muted rounded-full p-0.5">
-            <button
-              onClick={() => setMobileMode('preview')}
-              className={`px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors ${
-                mobileMode === 'preview' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
-              }`}
-            >
-              Preview
-            </button>
-            <button
-              onClick={() => setMobileMode('edit')}
-              className={`px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors flex items-center gap-1 ${
-                mobileMode === 'edit' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
-              }`}
-            >
-              <SplitSquareHorizontal className="h-3 w-3" />
-              Edit
-            </button>
-            <button
-              onClick={() => setMobileMode('landscape')}
-              className={`px-2.5 py-1 rounded-full text-[9px] font-medium transition-colors flex items-center gap-1 text-muted-foreground`}
-              title="Switch to wide-screen desktop editor"
-            >
-              <Maximize2 className="h-3 w-3" />
-              Wide
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: colors.surface, borderRadius: 20, padding: 2 }}>
+            {(['preview', 'edit'] as const).map(m => (
+              <button key={m} onClick={() => setMobileMode(m)} style={{
+                padding: '6px 14px', borderRadius: 18,
+                fontFamily: fonts.body, fontSize: 11, fontWeight: 600,
+                letterSpacing: '0.04em', textTransform: 'uppercase' as const,
+                background: mobileMode === m ? colors.bg : 'transparent',
+                color: mobileMode === m ? colors.text : colors.textMuted,
+                border: 'none', cursor: 'pointer',
+                boxShadow: mobileMode === m ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+              }}>
+                {m === 'preview' ? '👁 Preview' : '✏️ Edit'}
+              </button>
+            ))}
+            <button onClick={() => setMobileMode('landscape')} style={{
+              padding: '6px 10px', borderRadius: 18, background: 'transparent',
+              border: 'none', cursor: 'pointer',
+            }}>
+              <Maximize2 className="h-3.5 w-3.5" style={{ color: colors.textMuted }} />
             </button>
           </div>
 
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" className="text-[10px] h-7 px-2" onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-            </Button>
-            <Button size="sm" className="text-[10px] h-7 px-2 bg-primary text-primary-foreground" onClick={handlePublish} disabled={publishing}>
-              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3" />}
-            </Button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button onClick={handleSave} disabled={saving} style={{ ...goldBtnStyle, padding: '6px 12px', fontSize: 10 }}>
+              {saving ? '…' : 'SAVE'}
+            </button>
           </div>
         </header>
 
-        {/* ═══ SPLIT EDIT MODE ═══ */}
         {mobileMode === 'edit' ? (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Edit Panel - scrollable section list / section editor */}
-            <div className="flex-1 overflow-y-auto bg-card border-b border-border">
-              <div className="p-4 space-y-4">
-                {/* Template selector */}
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">TEMPLATE</p>
-                  <Select value={websiteTemplate} onValueChange={v => setWebsiteTemplate(v as WebsiteTemplateValue)}>
-                    <SelectTrigger className="h-9 text-xs bg-background"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {dbTemplates.map(t => (
-                        <SelectItem key={t.value} value={t.value}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: t.bg }} />
-                            <span>{t.label}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          <div style={{ flex: 1, overflowY: 'auto', background: colors.bg }}>
+            <div style={{ padding: 16 }}>
+              {/* Template */}
+              <EditorField label="Template">
+                <Select value={websiteTemplate} onValueChange={v => setWebsiteTemplate(v as WebsiteTemplateValue)}>
+                  <SelectTrigger className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {dbTemplates.map(t => (
+                      <SelectItem key={t.value} value={t.value}>
+                        <div className="flex items-center gap-2">
+                          <div style={{ width: 12, height: 12, borderRadius: '50%', border: `1px solid ${colors.border}`, backgroundColor: t.bg }} />
+                          <span>{t.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </EditorField>
 
-                {/* Username */}
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">PORTFOLIO URL</p>
-                  <Input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="h-8 text-xs bg-background" />
-                  {username && (
-                    <p className="text-[9px] text-muted-foreground/40 mt-1 truncate">{getStudioDisplayUrl(username)}</p>
-                  )}
-                </div>
+              <div style={{ height: 16 }} />
 
-                {/* Section editor or section list */}
-                {activeSection ? (
-                  renderSectionEditor()
-                ) : (
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">SECTIONS</p>
-                    <p className="text-[9px] text-muted-foreground/30 mb-3">Tap to edit · Toggle visibility</p>
-                    <div className="space-y-1">
-                      {sectionOrder.map((sectionId, idx) => {
-                        const sec = ALL_SECTIONS.find(s => s.id === sectionId);
-                        if (!sec) return null;
-                        const isOn = sectionVisibility[sectionId] !== false;
+              <EditorField label="Portfolio URL">
+                <Input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} />
+                {username && <p style={{ fontFamily: fonts.body, fontSize: 10, color: colors.textMuted, marginTop: 4 }}>{getStudioDisplayUrl(username)}</p>}
+              </EditorField>
 
-                        return (
-                          <div
-                            key={sectionId}
-                            className={`flex items-center gap-2 p-2.5 rounded-lg border transition-all ${
-                              !isOn ? 'opacity-40 border-transparent' : 'border-border/50 hover:border-border'
-                            }`}
-                          >
-                            <span className="text-sm shrink-0">{sec.icon}</span>
-                            <button
-                              onClick={() => setActiveSection(sectionId)}
-                              className="flex-1 text-left text-xs text-foreground hover:text-primary transition-colors truncate"
-                            >
-                              {sec.label}
-                            </button>
-                            <button
-                              onClick={e => { e.stopPropagation(); toggleSection(sectionId); }}
-                              className="shrink-0 p-1 rounded hover:bg-muted transition-colors"
-                            >
-                              {isOn ? <Eye className="h-3.5 w-3.5 text-muted-foreground/50" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground/30" />}
-                            </button>
-                            <ChevronRight className="h-3 w-3 text-muted-foreground/20 shrink-0" />
-                          </div>
-                        );
-                      })}
-                    </div>
+              <div style={{ height: 20 }} />
+
+              {activeSection ? renderSectionEditor() : (
+                <>
+                  <p style={labelStyle}>SECTIONS</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
+                    {sectionOrder.map((sectionId, idx) => {
+                      const sec = ALL_SECTIONS.find(s => s.id === sectionId);
+                      if (!sec) return null;
+                      const isOn = sectionVisibility[sectionId] !== false;
+                      return (
+                        <SectionRow key={sectionId} sec={sec} isOn={isOn}
+                          onEdit={() => setActiveSection(sectionId)}
+                          onToggle={() => toggleSection(sectionId)}
+                        />
+                      );
+                    })}
                   </div>
-                )}
 
-                {/* Footer */}
-                {!activeSection && (
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">FOOTER</p>
-                    <Input value={footerText} onChange={e => setFooterText(e.target.value)} className="h-8 text-xs bg-background" placeholder="Footer tagline" />
-                  </div>
-                )}
-              </div>
+                  <div style={{ height: 16 }} />
+                  <EditorField label="Footer">
+                    <Input value={footerText} onChange={e => setFooterText(e.target.value)} className="h-9 text-xs" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} placeholder="Footer tagline" />
+                  </EditorField>
+                </>
+              )}
             </div>
           </div>
         ) : (
-          /* ═══ PREVIEW MODE (default) ═══ */
           <>
-            <main className="flex-1 overflow-y-auto">
+            <main style={{ flex: 1, overflowY: 'auto' }}>
               <div style={{ backgroundColor: tmpl.bg, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}>
                 {visibleSections.map(sectionId => (
-                  <div
-                    key={sectionId}
-                    className={`relative group transition-all ${
-                      activeSection === sectionId ? 'ring-2 ring-primary ring-inset' : ''
-                    }`}
-                    onClick={() => openMobileSectionEditor(sectionId)}
-                  >
-                    <div className="absolute top-2 left-2 z-20 px-2 py-1 rounded-md text-[9px] font-medium uppercase tracking-wider bg-black/60 text-white opacity-0 active:opacity-100 transition-opacity pointer-events-none">
-                      <Pencil className="h-2.5 w-2.5 inline mr-1" />
-                      {ALL_SECTIONS.find(s => s.id === sectionId)?.label}
-                    </div>
+                  <div key={sectionId} onClick={() => openMobileSectionEditor(sectionId)} style={{ position: 'relative', cursor: 'pointer' }}>
                     {renderSection(sectionId)}
                   </div>
                 ))}
@@ -829,36 +747,32 @@ const WebsiteEditor = () => {
               </div>
             </main>
 
-            {/* Floating Edit Button */}
-            <button
-              onClick={() => setMobileSectionsOpen(true)}
-              className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
-              style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
-            >
+            <button onClick={() => setMobileSectionsOpen(true)} style={{
+              position: 'fixed', bottom: 20, right: 16, zIndex: 40,
+              height: 52, width: 52, borderRadius: '50%',
+              background: colors.gold, color: '#fff',
+              border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 20px rgba(201,169,110,0.4)',
+            }}>
               <LayoutGrid className="h-5 w-5" />
             </button>
           </>
         )}
 
-        {/* ── Sections Manager Drawer ── */}
         <MobileSectionDrawer
-          open={mobileSectionsOpen}
-          onOpenChange={setMobileSectionsOpen}
+          open={mobileSectionsOpen} onOpenChange={setMobileSectionsOpen}
           sections={ALL_SECTIONS as unknown as { id: string; label: string; icon: string }[]}
-          sectionOrder={sectionOrder}
-          sectionVisibility={sectionVisibility}
-          onReorder={setSectionOrder}
-          onToggleVisibility={toggleSection}
+          sectionOrder={sectionOrder} sectionVisibility={sectionVisibility}
+          onReorder={setSectionOrder} onToggleVisibility={toggleSection}
           onEditSection={openMobileSectionEditor}
         />
 
-        {/* ── Section Editor Drawer ── */}
         {activeSection && activeSecMeta && (
           <MobileEditorPanel
             open={mobileEditorOpen}
             onOpenChange={(open) => { if (!open) closeMobileSectionEditor(); }}
-            sectionLabel={activeSecMeta.label}
-            sectionIcon={activeSecMeta.icon}
+            sectionLabel={activeSecMeta.label} sectionIcon={activeSecMeta.icon}
             onBack={closeMobileSectionEditor}
           >
             {renderSectionEditor()}
@@ -869,79 +783,106 @@ const WebsiteEditor = () => {
   }
 
   // ═══════════════════════════════════════════
-  // LANDSCAPE / WIDE MODE (forced desktop layout on mobile)
-  // ═══════════════════════════════════════════
-  // Falls through to the desktop layout below, but with a back-to-mobile button
-
-  // ═══════════════════════════════════════════
-  // DESKTOP LAYOUT (unchanged)
+  // DESKTOP LAYOUT — Premium White Editorial
   // ═══════════════════════════════════════════
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: colors.bg, overflow: 'hidden' }}>
       {/* ── Top Bar ── */}
-      <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0 z-50">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
-            if (isMobile && mobileMode === 'landscape') {
-              setMobileMode('preview');
-            } else {
-              navigate('/dashboard/branding');
-            }
-          }}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <div>
-              <p className="text-xs font-semibold text-foreground">Studio Feed</p>
-              <p className="text-[10px] text-muted-foreground/50">{studioName || 'Your Studio'}</p>
-            </div>
-            {isMobile && mobileMode === 'landscape' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-[9px] h-6 px-2 gap-1 ml-2"
-                onClick={() => setMobileMode('preview')}
-              >
-                <RotateCcw className="h-3 w-3" />
-                Exit Wide
-              </Button>
-            )}
+      <header style={{
+        height: 56, borderBottom: `1px solid ${colors.border}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 20px', background: colors.bg, flexShrink: 0, zIndex: 50,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button onClick={() => {
+            if (isMobile && mobileMode === 'landscape') { setMobileMode('preview'); }
+            else { navigate('/dashboard/branding'); }
+          }} style={iconBtnStyle}>
+            <ArrowLeft className="h-4 w-4" style={{ color: colors.text }} />
+          </button>
+          <div>
+            <h1 style={{ fontFamily: fonts.display, fontSize: 18, fontWeight: 400, color: colors.text, lineHeight: 1.2 }}>
+              Website Builder
+            </h1>
+            <p style={{ fontFamily: fonts.body, fontSize: 10, color: colors.textMuted, letterSpacing: '0.06em' }}>
+              {studioName || 'Your Studio'}
+            </p>
           </div>
+          {isMobile && mobileMode === 'landscape' && (
+            <button onClick={() => setMobileMode('preview')} style={{
+              ...addBtnStyle, fontSize: 10, padding: '4px 10px', marginLeft: 8,
+            }}>
+              <RotateCcw className="h-3 w-3" style={{ marginRight: 4 }} /> Exit Wide
+            </button>
+          )}
         </div>
 
-        {/* Device preview toggles */}
-        <div className="flex items-center gap-1 bg-muted rounded-full p-0.5">
-          {([['desktop', Monitor], ['tablet', Tablet], ['mobile', Smartphone]] as [ViewMode, any][]).map(([mode, Icon]) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`p-1.5 rounded-full transition-colors ${viewMode === mode ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              <Icon className="h-3.5 w-3.5" />
+        {/* ── Editor / Preview Tabs ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: colors.surface, borderRadius: 20, padding: 2 }}>
+          {(['editor', 'preview'] as EditorTab[]).map(tab => (
+            <button key={tab} onClick={() => setEditorTab(tab)} style={{
+              padding: '7px 18px', borderRadius: 18,
+              fontFamily: fonts.body, fontSize: 11, fontWeight: 600,
+              letterSpacing: '0.06em', textTransform: 'uppercase' as const,
+              background: editorTab === tab ? colors.bg : 'transparent',
+              color: editorTab === tab ? colors.text : colors.textMuted,
+              border: 'none', cursor: 'pointer',
+              boxShadow: editorTab === tab ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all 0.2s ease',
+            }}>
+              {tab === 'editor' ? '✏️ Editor' : '👁 Preview'}
             </button>
           ))}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {username && (
-            <Button variant="ghost" size="sm" className="text-[10px] h-8 gap-1" onClick={() => window.open(`/studio/${username}`, '_blank')}>
-              <Eye className="h-3 w-3" /> Preview
-            </Button>
+        {/* ── Actions ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Device toggles (only in preview tab) */}
+          {editorTab === 'preview' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: colors.surface, borderRadius: 20, padding: 2, marginRight: 8 }}>
+              {([['desktop', Monitor], ['tablet', Tablet], ['mobile', Smartphone]] as [ViewMode, any][]).map(([mode, Icon]) => (
+                <button key={mode} onClick={() => setViewMode(mode)} style={{
+                  padding: 6, borderRadius: '50%',
+                  background: viewMode === mode ? colors.bg : 'transparent',
+                  border: 'none', cursor: 'pointer',
+                  boxShadow: viewMode === mode ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'all 0.2s ease',
+                }}>
+                  <Icon className="h-3.5 w-3.5" style={{ color: viewMode === mode ? colors.text : colors.textMuted }} />
+                </button>
+              ))}
+            </div>
           )}
-          <Button variant="outline" size="sm" className="text-[10px] h-8" onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
+
+          {username && (
+            <button onClick={() => window.open(`/studio/${username}`, '_blank')} style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '6px 12px', background: 'none',
+              border: `1px solid ${colors.border}`, borderRadius: 8,
+              cursor: 'pointer', fontFamily: fonts.body, fontSize: 11,
+              color: colors.textDim,
+            }}>
+              <ExternalLink className="h-3 w-3" /> Live Site
+            </button>
+          )}
+
+          <button onClick={handleSave} disabled={saving} style={{
+            ...outlineBtnStyle, opacity: saving ? 0.6 : 1,
+          }}>
+            {saving ? <Loader2 className="h-3 w-3 animate-spin" style={{ marginRight: 4 }} /> : null}
             Save
-          </Button>
-          <Button size="sm" className="text-[10px] h-8 bg-primary text-primary-foreground" onClick={handlePublish} disabled={publishing}>
-            {publishing ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Globe className="h-3 w-3 mr-1" />}
+          </button>
+
+          <button onClick={handlePublish} disabled={publishing} style={goldBtnStyle}>
+            {publishing ? <Loader2 className="h-3 w-3 animate-spin" style={{ marginRight: 4 }} /> : <Globe className="h-3 w-3" style={{ marginRight: 4 }} />}
             Publish
-          </Button>
+          </button>
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+              <button style={{ ...iconBtnStyle, color: colors.danger }}>
                 <Trash2 className="h-4 w-4" />
-              </Button>
+              </button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
@@ -949,16 +890,12 @@ const WebsiteEditor = () => {
                   <AlertTriangle className="h-5 w-5 text-destructive" /> Delete Portfolio Website
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete your portfolio website? This will remove the layout and content and unpublish it. Your galleries, events, and photos will not be affected.
+                  Are you sure? This removes the layout and content. Your galleries and photos will not be affected.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDeleteWebsite}
-                  disabled={deleting}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
+                <AlertDialogAction onClick={handleDeleteWebsite} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                   {deleting ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
                   Delete Website
                 </AlertDialogAction>
@@ -969,196 +906,422 @@ const WebsiteEditor = () => {
       </header>
 
       {/* ── Main Layout ── */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* ── Left Sidebar ── */}
-        <aside className="w-72 border-r border-border bg-card overflow-y-auto shrink-0">
-          <div className="p-4 space-y-5">
-            {/* Template selector */}
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">TEMPLATE</p>
-              <Select value={websiteTemplate} onValueChange={v => setWebsiteTemplate(v as WebsiteTemplateValue)}>
-                <SelectTrigger className="h-9 text-xs bg-background"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {dbTemplates.map(t => (
-                    <SelectItem key={t.value} value={t.value}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: t.bg }} />
-                        <span>{t.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {editorTab === 'editor' ? (
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {/* ── Left Sidebar ── */}
+          <aside style={{
+            width: 300, borderRight: `1px solid ${colors.border}`,
+            background: colors.bg, overflowY: 'auto', flexShrink: 0,
+          }}>
+            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Template */}
+              <div>
+                <p style={labelStyle}>TEMPLATE</p>
+                <Select value={websiteTemplate} onValueChange={v => setWebsiteTemplate(v as WebsiteTemplateValue)}>
+                  <SelectTrigger className="h-10 text-sm mt-2" style={{ background: colors.surface, border: `1px solid ${colors.border}` }}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {dbTemplates.map(t => (
+                      <SelectItem key={t.value} value={t.value}>
+                        <div className="flex items-center gap-2">
+                          <div style={{ width: 12, height: 12, borderRadius: '50%', border: `1px solid ${colors.border}`, backgroundColor: t.bg }} />
+                          <span>{t.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <button onClick={() => navigate('/dashboard/website-builder')} style={{
+                  fontFamily: fonts.body, fontSize: 10, color: colors.gold,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  marginTop: 6, padding: 0, letterSpacing: '0.04em',
+                }}>
+                  Browse all templates →
+                </button>
+              </div>
 
-            {/* Username */}
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">PORTFOLIO URL</p>
-              <Input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="h-8 text-xs bg-background" />
-              {username && (
-                <p className="text-[9px] text-muted-foreground/40 mt-1 truncate">{getStudioDisplayUrl(username)}</p>
+              {/* Portfolio URL */}
+              <div>
+                <p style={labelStyle}>PORTFOLIO URL</p>
+                <Input value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))} placeholder="yourstudio" className="h-9 text-xs mt-2" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} />
+                {username && <p style={{ fontFamily: fonts.body, fontSize: 9, color: colors.textMuted, marginTop: 4 }}>{getStudioDisplayUrl(username)}</p>}
+              </div>
+
+              {/* Sections or Section Editor */}
+              {activeSection ? renderSectionEditor() : (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <p style={labelStyle}>SECTIONS</p>
+                    <button onClick={() => setShowAddSection(true)} style={{
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      fontFamily: fonts.body, fontSize: 10, fontWeight: 600,
+                      color: colors.gold, background: 'none', border: 'none',
+                      cursor: 'pointer', letterSpacing: '0.04em',
+                    }}>
+                      <Plus className="h-3 w-3" /> ADD
+                    </button>
+                  </div>
+                  <p style={{ fontFamily: fonts.body, fontSize: 9, color: colors.textMuted, marginBottom: 10 }}>
+                    Drag to reorder · Click to edit · Toggle visibility
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {sectionOrder.map((sectionId, idx) => {
+                      const sec = ALL_SECTIONS.find(s => s.id === sectionId);
+                      if (!sec) return null;
+                      const isOn = sectionVisibility[sectionId] !== false;
+                      const isDragOver = dragOverIdx === idx;
+
+                      return (
+                        <div
+                          key={sectionId}
+                          draggable
+                          onDragStart={() => handleDragStart(idx)}
+                          onDragOver={e => handleDragOver(e, idx)}
+                          onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+                          onDrop={() => handleDrop(idx)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            padding: '8px 10px', borderRadius: 10,
+                            border: isDragOver ? `2px solid ${colors.gold}` : `1px solid transparent`,
+                            background: isDragOver ? 'rgba(201,169,110,0.04)' : 'transparent',
+                            opacity: isOn ? 1 : 0.35,
+                            cursor: 'grab', transition: 'all 0.2s ease',
+                          }}
+                          onMouseEnter={e => (e.currentTarget.style.background = colors.surface)}
+                          onMouseLeave={e => (e.currentTarget.style.background = isDragOver ? 'rgba(201,169,110,0.04)' : 'transparent')}
+                        >
+                          <GripVertical className="h-3 w-3" style={{ color: colors.textMuted, flexShrink: 0, opacity: 0.4 }} />
+                          <span style={{ fontSize: 14, flexShrink: 0 }}>{sec.icon}</span>
+                          <button
+                            onClick={() => setActiveSection(sectionId)}
+                            style={{
+                              flex: 1, textAlign: 'left',
+                              fontFamily: fonts.body, fontSize: 12, color: colors.text,
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {sec.label}
+                          </button>
+                          <button
+                            onClick={e => { e.stopPropagation(); toggleSection(sectionId); }}
+                            style={{ ...iconBtnStyle, padding: 4 }}
+                            title={isOn ? 'Hide' : 'Show'}
+                          >
+                            {isOn ? <Eye className="h-3 w-3" style={{ color: colors.textMuted, opacity: 0.5 }} /> : <EyeOff className="h-3 w-3" style={{ color: colors.textMuted, opacity: 0.3 }} />}
+                          </button>
+                          <ChevronRight className="h-3 w-3" style={{ color: colors.textMuted, opacity: 0.2, flexShrink: 0 }} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Footer */}
+              {!activeSection && (
+                <div>
+                  <p style={labelStyle}>FOOTER</p>
+                  <Input value={footerText} onChange={e => setFooterText(e.target.value)} className="h-9 text-xs mt-2" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} placeholder="Footer tagline" />
+                </div>
+              )}
+
+              {/* Delete */}
+              {!activeSection && (
+                <div style={{ paddingTop: 16, borderTop: `1px solid ${colors.border}` }}>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button style={{
+                        width: '100%', padding: '8px',
+                        fontFamily: fonts.body, fontSize: 11, fontWeight: 600,
+                        color: colors.danger, background: 'none',
+                        border: `1px solid rgba(232,93,93,0.2)`, borderRadius: 8,
+                        cursor: 'pointer', letterSpacing: '0.04em',
+                      }}>
+                        Delete Website
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-destructive" /> Delete Portfolio Website
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This removes the layout and content. Your galleries and photos will not be affected.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteWebsite} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          {deleting ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
+                          Delete Website
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               )}
             </div>
+          </aside>
 
-            {/* Section editor or section list */}
-            {activeSection ? (
-              renderSectionEditor()
-            ) : (
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">SECTIONS</p>
-                <p className="text-[9px] text-muted-foreground/30 mb-3">Drag to reorder · Click to edit · Toggle visibility</p>
-                <div className="space-y-1">
-                  {sectionOrder.map((sectionId, idx) => {
-                    const sec = ALL_SECTIONS.find(s => s.id === sectionId);
-                    if (!sec) return null;
-                    const isOn = sectionVisibility[sectionId] !== false;
-                    const isDragOver = dragOverIdx === idx;
+          {/* ── Live Preview ── */}
+          <main style={{ flex: 1, background: colors.surface, overflowY: 'auto', display: 'flex', justifyContent: 'center', padding: '24px 16px' }}>
+            <div style={{
+              width: '100%',
+              maxWidth: viewMode === 'mobile' ? 375 : viewMode === 'tablet' ? 768 : 1280,
+              transition: 'max-width 0.3s ease',
+            }}>
+              <div style={{
+                borderRadius: 16, overflow: 'hidden',
+                border: `1px solid ${colors.border}`,
+                boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
+                backgroundColor: tmpl.bg,
+              }}>
+                {/* Browser chrome */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 12px', borderBottom: `1px solid ${tmpl.navBorder}`,
+                  backgroundColor: tmpl.navBg,
+                }}>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(248,113,113,0.5)' }} />
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(250,204,21,0.5)' }} />
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(74,222,128,0.5)' }} />
+                  </div>
+                  <div style={{
+                    flex: 1, textAlign: 'center',
+                    fontFamily: 'monospace', fontSize: 9,
+                    color: tmpl.textSecondary, padding: '2px 8px',
+                    background: `${tmpl.text}08`, borderRadius: 6,
+                  }}>
+                    {username ? getStudioDisplayUrl(username) : 'mirroraigallery.com/studio/yourstudio'}
+                  </div>
+                </div>
 
-                    return (
-                      <div
-                        key={sectionId}
-                        draggable
-                        onDragStart={() => handleDragStart(idx)}
-                        onDragOver={e => handleDragOver(e, idx)}
-                        onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
-                        onDrop={() => handleDrop(idx)}
-                        className={`flex items-center gap-2 p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing group ${
-                          isDragOver ? 'border-primary bg-primary/5' : 'border-transparent hover:border-border hover:bg-muted/30'
-                        } ${!isOn ? 'opacity-40' : ''}`}
-                      >
-                        <GripVertical className="h-3 w-3 text-muted-foreground/30 shrink-0" />
-                        <span className="text-sm shrink-0">{sec.icon}</span>
-                        <button
-                          onClick={() => setActiveSection(sectionId)}
-                          className="flex-1 text-left text-xs text-foreground hover:text-primary transition-colors truncate"
-                        >
-                          {sec.label}
-                        </button>
-                        <button
-                          onClick={e => { e.stopPropagation(); toggleSection(sectionId); }}
-                          className="shrink-0 p-1 rounded hover:bg-muted transition-colors"
-                          title={isOn ? 'Hide section' : 'Show section'}
-                        >
-                          {isOn ? <Eye className="h-3 w-3 text-muted-foreground/50" /> : <EyeOff className="h-3 w-3 text-muted-foreground/30" />}
-                        </button>
-                        <ChevronRight className="h-3 w-3 text-muted-foreground/20 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                {/* Website content */}
+                <div style={{ backgroundColor: tmpl.bg, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}>
+                  {visibleSections.map(sectionId => (
+                    <div
+                      key={sectionId}
+                      onClick={() => setActiveSection(sectionId)}
+                      style={{
+                        position: 'relative', cursor: 'pointer',
+                        outline: activeSection === sectionId ? `2px solid ${colors.gold}` : 'none',
+                        outlineOffset: -2,
+                        transition: 'outline 0.2s ease',
+                      }}
+                      onMouseEnter={e => {
+                        if (activeSection !== sectionId) {
+                          e.currentTarget.style.outline = `1px solid rgba(201,169,110,0.3)`;
+                          e.currentTarget.style.outlineOffset = '-1px';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (activeSection !== sectionId) {
+                          e.currentTarget.style.outline = 'none';
+                        }
+                      }}
+                    >
+                      {/* Section label */}
+                      <div style={{
+                        position: 'absolute', top: 8, left: 8, zIndex: 20,
+                        padding: '3px 8px', borderRadius: 6,
+                        fontFamily: fonts.body, fontSize: 9, fontWeight: 700,
+                        letterSpacing: '0.1em', textTransform: 'uppercase',
+                        background: activeSection === sectionId ? colors.gold : 'rgba(0,0,0,0.6)',
+                        color: '#fff',
+                        opacity: activeSection === sectionId ? 1 : 0,
+                        transition: 'opacity 0.2s ease',
+                        pointerEvents: 'none',
+                      }} className="group-label">
+                        {ALL_SECTIONS.find(s => s.id === sectionId)?.label}
                       </div>
-                    );
-                  })}
+                      {renderSection(sectionId)}
+                    </div>
+                  ))}
+                  <WebsiteFooter template={websiteTemplate} branding={branding} />
                 </div>
               </div>
-            )}
-
-            {/* Footer editor shortcut */}
-            {!activeSection && (
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium mb-2">FOOTER</p>
-                <div className="space-y-2">
-                  <Input value={footerText} onChange={e => setFooterText(e.target.value)} className="h-8 text-xs bg-background" placeholder="Footer tagline" />
-                </div>
-              </div>
-            )}
-
-            {/* Delete Website */}
-            {!activeSection && (
-              <div className="pt-4 border-t border-border">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="w-full text-[10px] h-8 text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5">
-                      <Trash2 className="h-3 w-3" /> Delete Website
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-destructive" /> Delete Portfolio Website
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete your current portfolio website? This will remove the website layout, content, and unpublish it. Your galleries, events, and photos will not be affected.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDeleteWebsite}
-                        disabled={deleting}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        {deleting ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
-                        Delete Website
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            )}
-          </div>
-        </aside>
-
-        {/* ── Preview Area ── */}
-        <main className="flex-1 bg-muted/30 overflow-y-auto flex justify-center py-6 px-4">
-          <div
-            className={`transition-all duration-300 w-full ${
-              viewMode === 'mobile' ? 'max-w-[375px]' : viewMode === 'tablet' ? 'max-w-[768px]' : 'max-w-[1280px]'
-            }`}
-          >
-            <div
-              className="rounded-2xl overflow-hidden border-2 shadow-2xl border-foreground/10"
-              style={{ backgroundColor: tmpl.bg }}
-            >
+            </div>
+          </main>
+        </div>
+      ) : (
+        /* ── Full Preview Tab ── */
+        <main style={{ flex: 1, background: colors.surface, overflowY: 'auto', display: 'flex', justifyContent: 'center', padding: '24px 16px' }}>
+          <div style={{
+            width: '100%',
+            maxWidth: viewMode === 'mobile' ? 375 : viewMode === 'tablet' ? 768 : 1280,
+            transition: 'max-width 0.3s ease',
+          }}>
+            <div style={{
+              borderRadius: 16, overflow: 'hidden',
+              border: `1px solid ${colors.border}`,
+              boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
+              backgroundColor: tmpl.bg,
+            }}>
               {/* Browser chrome */}
-              <div
-                className="flex items-center gap-1.5 px-3 py-2 border-b"
-                style={{ backgroundColor: tmpl.navBg, borderColor: tmpl.navBorder }}
-              >
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'rgb(248 113 113 / 0.6)' }} />
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'rgb(250 204 21 / 0.6)' }} />
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'rgb(74 222 128 / 0.6)' }} />
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 12px', borderBottom: `1px solid ${tmpl.navBorder}`,
+                backgroundColor: tmpl.navBg,
+              }}>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(248,113,113,0.5)' }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(250,204,21,0.5)' }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(74,222,128,0.5)' }} />
                 </div>
-                <div
-                  className="flex-1 text-center text-[9px] font-mono truncate px-2 py-0.5 rounded-md"
-                  style={{ backgroundColor: `${tmpl.text}08`, color: tmpl.textSecondary }}
-                >
+                <div style={{
+                  flex: 1, textAlign: 'center',
+                  fontFamily: 'monospace', fontSize: 9,
+                  color: tmpl.textSecondary, padding: '2px 8px',
+                  background: `${tmpl.text}08`, borderRadius: 6,
+                }}>
                   {username ? getStudioDisplayUrl(username) : 'mirroraigallery.com/studio/yourstudio'}
                 </div>
               </div>
 
-              {/* Website content */}
-              <div
-                style={{
-                  backgroundColor: tmpl.bg,
-                  color: tmpl.text,
-                  fontFamily: tmpl.uiFontFamily,
-                }}
-              >
+              <div style={{ backgroundColor: tmpl.bg, color: tmpl.text, fontFamily: tmpl.uiFontFamily }}>
                 {visibleSections.map(sectionId => (
-                  <div
-                    key={sectionId}
-                    className={`relative group cursor-pointer transition-all ${
-                      activeSection === sectionId ? 'ring-2 ring-primary ring-inset' : 'hover:ring-1 hover:ring-primary/30 hover:ring-inset'
-                    }`}
-                    onClick={() => setActiveSection(sectionId)}
-                  >
-                    {/* Section label overlay */}
-                    <div className={`absolute top-2 left-2 z-20 px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider transition-opacity ${
-                      activeSection === sectionId ? 'opacity-100 bg-primary text-primary-foreground' : 'opacity-0 group-hover:opacity-100 bg-foreground/70 text-background'
-                    }`}>
-                      {ALL_SECTIONS.find(s => s.id === sectionId)?.label}
-                    </div>
-                    {renderSection(sectionId)}
-                  </div>
+                  <div key={sectionId}>{renderSection(sectionId)}</div>
                 ))}
                 <WebsiteFooter template={websiteTemplate} branding={branding} />
               </div>
             </div>
           </div>
         </main>
-      </div>
+      )}
 
-      
+      {/* ── Add Section Modal ── */}
+      {showAddSection && (
+        <>
+          <div onClick={() => setShowAddSection(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 100 }} />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            zIndex: 101, background: colors.bg, borderRadius: 20,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+            width: 480, maxHeight: '70vh', overflow: 'hidden',
+            display: 'flex', flexDirection: 'column',
+          }}>
+            <div style={{ padding: '20px 24px 12px', borderBottom: `1px solid ${colors.border}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontFamily: fonts.display, fontSize: 22, fontWeight: 400, color: colors.text }}>Add Section</h3>
+                <button onClick={() => setShowAddSection(false)} style={iconBtnStyle}><X className="h-4 w-4" style={{ color: colors.textMuted }} /></button>
+              </div>
+              <p style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 4 }}>Click to add a section to your website</p>
+            </div>
+            <div style={{ overflowY: 'auto', padding: '12px 24px 24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {ALL_SECTIONS.map(sec => {
+                  const isActive = sectionOrder.includes(sec.id) && sectionVisibility[sec.id];
+                  return (
+                    <button
+                      key={sec.id}
+                      onClick={() => addSection(sec.id)}
+                      disabled={isActive}
+                      style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                        padding: 14, borderRadius: 12,
+                        border: `1px solid ${isActive ? colors.gold : colors.border}`,
+                        background: isActive ? 'rgba(201,169,110,0.04)' : colors.bg,
+                        cursor: isActive ? 'default' : 'pointer',
+                        opacity: isActive ? 0.5 : 1,
+                        textAlign: 'left',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: 20, marginBottom: 6 }}>{sec.icon}</span>
+                      <span style={{ fontFamily: fonts.body, fontSize: 12, fontWeight: 600, color: colors.text }}>{sec.label}</span>
+                      <span style={{ fontFamily: fonts.body, fontSize: 10, color: colors.textMuted, marginTop: 2 }}>{sec.desc}</span>
+                      {isActive && <span style={{ fontFamily: fonts.body, fontSize: 9, color: colors.gold, marginTop: 4, fontWeight: 600 }}>✓ Active</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
 export default WebsiteEditor;
+
+/* ── Shared Sub-components & Styles ── */
+
+function EditorField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <div style={{ marginTop: 6 }}>{children}</div>
+    </div>
+  );
+}
+
+function SectionRow({ sec, isOn, onEdit, onToggle }: {
+  sec: { id: string; label: string; icon: string; desc?: string };
+  isOn: boolean; onEdit: () => void; onToggle: () => void;
+}) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '10px 12px', borderRadius: 10,
+      border: `1px solid ${colors.border}`,
+      background: colors.bg,
+      opacity: isOn ? 1 : 0.35,
+      transition: 'all 0.2s ease',
+    }}>
+      <span style={{ fontSize: 16, flexShrink: 0 }}>{sec.icon}</span>
+      <button onClick={onEdit} style={{
+        flex: 1, textAlign: 'left',
+        fontFamily: fonts.body, fontSize: 13, fontWeight: 500, color: colors.text,
+        background: 'none', border: 'none', cursor: 'pointer',
+      }}>
+        {sec.label}
+      </button>
+      <button onClick={onToggle} style={{ ...iconBtnStyle, padding: 4 }}>
+        {isOn ? <Eye className="h-3.5 w-3.5" style={{ color: colors.textMuted, opacity: 0.5 }} /> : <EyeOff className="h-3.5 w-3.5" style={{ color: colors.textMuted, opacity: 0.3 }} />}
+      </button>
+      <ChevronRight className="h-3.5 w-3.5" style={{ color: colors.textMuted, opacity: 0.2, flexShrink: 0 }} />
+    </div>
+  );
+}
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: fonts.body, fontSize: 10, fontWeight: 600,
+  letterSpacing: '0.15em', textTransform: 'uppercase',
+  color: colors.textMuted,
+};
+
+const iconBtnStyle: React.CSSProperties = {
+  background: 'none', border: 'none', cursor: 'pointer',
+  padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+};
+
+const goldBtnStyle: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center',
+  padding: '8px 18px', borderRadius: 8,
+  fontFamily: fonts.body, fontSize: 11, fontWeight: 700,
+  letterSpacing: '0.08em', textTransform: 'uppercase',
+  background: colors.gold, color: '#fff',
+  border: 'none', cursor: 'pointer',
+  transition: 'opacity 0.2s ease',
+};
+
+const outlineBtnStyle: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center',
+  padding: '8px 16px', borderRadius: 8,
+  fontFamily: fonts.body, fontSize: 11, fontWeight: 600,
+  letterSpacing: '0.06em',
+  background: 'none', color: colors.text,
+  border: `1px solid ${colors.border}`,
+  cursor: 'pointer', transition: 'all 0.2s ease',
+};
+
+const addBtnStyle: React.CSSProperties = {
+  width: '100%', padding: '10px',
+  fontFamily: fonts.body, fontSize: 12, fontWeight: 600,
+  color: colors.gold, background: 'rgba(201,169,110,0.06)',
+  border: `1px dashed rgba(201,169,110,0.3)`, borderRadius: 10,
+  cursor: 'pointer', letterSpacing: '0.04em',
+  transition: 'all 0.2s ease',
+};
