@@ -11,6 +11,8 @@ import { HomeDashboardHub } from "@/components/HomeDashboardHub";
 import { useBusinessSuite } from "@/hooks/use-business-suite";
 import { colors, fonts } from "@/styles/design-tokens";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { LazyImage } from "@/components/LazyImage";
+import { FeedItemSkeleton } from "@/components/Skeletons";
 
 interface FeedItem {
   id: string;
