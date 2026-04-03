@@ -252,9 +252,9 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[440px] max-h-[90vh] overflow-y-auto" style={{ background: "#FFFFFF", border: "1px solid #EEEEEE", borderRadius: 20, padding: 28, boxShadow: "0 12px 48px rgba(0,0,0,0.1)" }}>
         <DialogHeader>
-          <DialogTitle className="font-serif text-xl font-semibold">Create New Event</DialogTitle>
+          <DialogTitle style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 22, fontWeight: 400, color: "#1A1A1A", letterSpacing: "0.03em" }}>Create New Event</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3.5 mt-1">
           <div className="space-y-1.5">

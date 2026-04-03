@@ -103,6 +103,19 @@
     color: hsl(var(--primary-foreground));
   }
 
+  /* Nav active highlight for sidebar */
+  .nav-active-highlight {
+    background: rgba(201,169,110,0.06);
+    border-left-color: #C9A96E !important;
+    color: #C9A96E;
+  }
+
+  /* Premium dialog/modal overrides */
+  [data-radix-popper-content-wrapper] [role="dialog"],
+  [role="dialog"] {
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
