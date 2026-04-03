@@ -11,6 +11,8 @@ import { HomeDashboardHub } from "@/components/HomeDashboardHub";
 import { useBusinessSuite } from "@/hooks/use-business-suite";
 import { colors, fonts } from "@/styles/design-tokens";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { LazyImage } from "@/components/LazyImage";
+import { FeedItemSkeleton } from "@/components/Skeletons";
 
 interface FeedItem {
   id: string;
@@ -236,8 +238,8 @@ export default function LandingGate() {
       {activeTab === "feed" && (
         <div style={{ maxWidth: 700, margin: "0 auto", padding: mob ? "20px 0 120px" : "32px 0 100px" }}>
           {loading ? (
-            <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
-              <div style={{ fontFamily: fonts.body, fontSize: 13, color: "#999999" }}>Loading your feed...</div>
+            <div style={{ padding: "20px 20px" }}>
+              {[1, 2, 3].map((i) => <FeedItemSkeleton key={i} />)}
             </div>
           ) : feed.length === 0 ? (
             <div style={{ padding: "60px 20px", textAlign: "center" as const }}>
@@ -322,9 +324,12 @@ export default function LandingGate() {
                   onClick={() => item.type === "event" && navigate(`/dashboard/events/${item.id}`)}
                 >
                   {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.title}
-                      style={{ width: "100%", height: "auto", objectFit: "cover" as const, display: "block", borderRadius: 0 }}
-                      loading="lazy" />
+                    <LazyImage
+                      src={item.imageUrl}
+                      alt={item.title}
+                      aspectRatio="4/3"
+                      objectFit="cover"
+                    />
                   ) : (
                     <div style={{
                       width: "100%", height: mob ? "65vw" : 420,

@@ -7,6 +7,8 @@ import { format } from "date-fns";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { CreateEventModal } from "@/components/CreateEventModal";
 import { colors, fonts, spacing } from "@/styles/design-tokens";
+import { LazyImage } from "@/components/LazyImage";
+import { HeroSkeleton, StatsSkeleton, GalleryGridSkeleton, MosaicSkeleton } from "@/components/Skeletons";
 
 interface RecentEvent {
   id: string;
@@ -211,13 +213,19 @@ const Dashboard = () => {
 
       {/* ── Hero Section ── */}
       <section style={{ position: "relative", width: "100%", height: mob ? "55vh" : "80vh", overflow: "hidden" }}>
-        {heroImages.length > 0 ? (
+        {loading ? (
+          <HeroSkeleton mobile={mob} />
+        ) : heroImages.length > 0 ? (
           <>
             {heroImages.map((evt, i) => (
               <img
                 key={evt.id}
                 src={evt.cover_url!}
                 alt={evt.name}
+                width={1200}
+                height={800}
+                loading={i === 0 ? "eager" : "lazy"}
+                decoding="async"
                 style={{
                   position: "absolute",
                   inset: 0,
@@ -346,38 +354,42 @@ const Dashboard = () => {
           borderBottom: "1px solid #EEEEEE",
         }}
       >
-        {[
-          { n: loading ? "—" : totalEvents, l: "Events" },
-          { n: loading ? "—" : totalPhotos, l: "Photos" },
-          { n: loading ? "—" : totalAlbums, l: "Albums" },
-        ].map((s) => (
-          <div key={s.l} style={{ textAlign: "center" }}>
-            <div
-              style={{
-                fontFamily: fonts.display,
-                fontSize: mob ? 28 : 40,
-                fontWeight: 300,
-                color: colors.text,
-                lineHeight: 1,
-              }}
-            >
-              {s.n}
+        {loading ? (
+          <StatsSkeleton mobile={mob} />
+        ) : (
+          [
+            { n: totalEvents, l: "Events" },
+            { n: totalPhotos, l: "Photos" },
+            { n: totalAlbums, l: "Albums" },
+          ].map((s) => (
+            <div key={s.l} style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  fontFamily: fonts.display,
+                  fontSize: mob ? 28 : 40,
+                  fontWeight: 300,
+                  color: colors.text,
+                  lineHeight: 1,
+                }}
+              >
+                {s.n}
+              </div>
+              <div
+                style={{
+                  fontFamily: fonts.body,
+                  fontSize: 9,
+                  fontWeight: 500,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: colors.gold,
+                  marginTop: 6,
+                }}
+              >
+                {s.l}
+              </div>
             </div>
-            <div
-              style={{
-                fontFamily: fonts.body,
-                fontSize: 9,
-                fontWeight: 500,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: colors.gold,
-                marginTop: 6,
-              }}
-            >
-              {s.l}
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </section>
 
       {/* ── Recent Galleries ── */}
@@ -446,18 +458,13 @@ const Dashboard = () => {
                   }}
                 >
                   {evt.cover_url ? (
-                    <img
+                    <LazyImage
                       src={evt.cover_url}
                       alt={evt.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        transition: "transform 0.6s ease",
-                        borderRadius: 20,
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                      aspectRatio="4/5"
+                      borderRadius={20}
+                      objectFit="cover"
+                      imgClassName="transition-transform duration-500 hover:scale-[1.03]"
                     />
                   ) : (
                     <div
@@ -470,6 +477,7 @@ const Dashboard = () => {
                         fontFamily: fonts.display,
                         fontSize: 24,
                         color: "#CCCCCC",
+                        aspectRatio: "4/5",
                       }}
                     >
                       {evt.name.charAt(0)}
@@ -544,21 +552,15 @@ const Dashboard = () => {
             }}
           >
             {allPhotos.slice(0, mob ? 12 : 24).map((url, i) => (
-              <div key={i} style={{ aspectRatio: "1", overflow: "hidden", borderRadius: 4 }}>
-                <img
-                  src={url}
-                  alt=""
-                  loading="lazy"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    transition: "transform 0.4s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                />
-              </div>
+              <LazyImage
+                key={i}
+                src={url}
+                alt=""
+                aspectRatio="1"
+                borderRadius={4}
+                objectFit="cover"
+                imgClassName="transition-transform duration-400 hover:scale-105"
+              />
             ))}
           </div>
         </section>

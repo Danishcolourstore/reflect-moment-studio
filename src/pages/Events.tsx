@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
+import { LazyImage } from "@/components/LazyImage";
+import { EventCardSkeleton } from "@/components/Skeletons";
 
 interface EventItem {
   id: string;
@@ -113,8 +115,10 @@ export default function Events() {
 
         {/* Event Cards */}
         {loading ? (
-          <div style={{ textAlign: "center", padding: "64px 0" }}>
-            <p style={{ fontFamily: dm, fontSize: 13, color: "#999999" }} className="animate-pulse">Loading events...</p>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <EventCardSkeleton key={i} />
+            ))}
           </div>
         ) : events.length === 0 ? (
           <div style={{ textAlign: "center", padding: "64px 0" }}>
@@ -167,13 +171,13 @@ export default function Events() {
                   }}
                 >
                   {evt.cover_url ? (
-                    <div style={{ aspectRatio: "16/10", overflow: "hidden" }}>
-                      <img
-                        src={evt.cover_url}
-                        alt={evt.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
+                    <LazyImage
+                      src={evt.cover_url}
+                      alt={evt.name}
+                      aspectRatio="16/10"
+                      objectFit="cover"
+                      imgClassName="transition-transform duration-500 group-hover:scale-105"
+                    />
                   ) : (
                     <div
                       style={{
