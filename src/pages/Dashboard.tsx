@@ -354,38 +354,42 @@ const Dashboard = () => {
           borderBottom: "1px solid #EEEEEE",
         }}
       >
-        {[
-          { n: loading ? "—" : totalEvents, l: "Events" },
-          { n: loading ? "—" : totalPhotos, l: "Photos" },
-          { n: loading ? "—" : totalAlbums, l: "Albums" },
-        ].map((s) => (
-          <div key={s.l} style={{ textAlign: "center" }}>
-            <div
-              style={{
-                fontFamily: fonts.display,
-                fontSize: mob ? 28 : 40,
-                fontWeight: 300,
-                color: colors.text,
-                lineHeight: 1,
-              }}
-            >
-              {s.n}
+        {loading ? (
+          <StatsSkeleton mobile={mob} />
+        ) : (
+          [
+            { n: totalEvents, l: "Events" },
+            { n: totalPhotos, l: "Photos" },
+            { n: totalAlbums, l: "Albums" },
+          ].map((s) => (
+            <div key={s.l} style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  fontFamily: fonts.display,
+                  fontSize: mob ? 28 : 40,
+                  fontWeight: 300,
+                  color: colors.text,
+                  lineHeight: 1,
+                }}
+              >
+                {s.n}
+              </div>
+              <div
+                style={{
+                  fontFamily: fonts.body,
+                  fontSize: 9,
+                  fontWeight: 500,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: colors.gold,
+                  marginTop: 6,
+                }}
+              >
+                {s.l}
+              </div>
             </div>
-            <div
-              style={{
-                fontFamily: fonts.body,
-                fontSize: 9,
-                fontWeight: 500,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: colors.gold,
-                marginTop: 6,
-              }}
-            >
-              {s.l}
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </section>
 
       {/* ── Recent Galleries ── */}
