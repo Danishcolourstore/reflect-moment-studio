@@ -348,6 +348,7 @@ const AppRoutes = () => {
                   <FeedEditor />
                 </ProtectedRoute>
               }
+            />
             <Route
               path="/art-gallery"
               element={
