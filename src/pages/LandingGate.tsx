@@ -374,7 +374,7 @@ export default function LandingGate() {
             imageUrl: editPost.imageUrl || "",
             location: editPost.location || "",
           }}
-          onUpdated={() => loadPhotos()}
+          onSaved={() => loadPhotos()}
         />
       )}
     </div>
