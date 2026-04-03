@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
+import { LazyImage } from "@/components/LazyImage";
+import { EventCardSkeleton } from "@/components/Skeletons";
 
 interface EventItem {
   id: string;
