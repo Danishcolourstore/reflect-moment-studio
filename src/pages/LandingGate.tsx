@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,6 +74,8 @@ export default function LandingGate() {
   const [editPost, setEditPost] = useState<FeedItem | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+  const [feedSlug, setFeedSlug] = useState<string | null>(null);
+  const [showFeedMenu, setShowFeedMenu] = useState(false);
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -89,9 +91,18 @@ export default function LandingGate() {
     if (!user) { setLoading(false); return; }
     setLoading(true);
 
-    const { data: prof } = await (supabase.from("profiles").select("studio_name") as any)
+    const { data: prof } = await (supabase.from("profiles").select("studio_name, username") as any)
       .eq("user_id", user.id).maybeSingle();
     if (prof?.studio_name) setProfileName(prof.studio_name);
+
+    // Resolve feed slug: username → subdomain fallback
+    let slug = prof?.username || null;
+    if (!slug) {
+      const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
+        .eq("user_id", user.id).maybeSingle();
+      slug = dom?.subdomain || null;
+    }
+    setFeedSlug(slug);
 
     // Get all events
     const { data: events } = await supabase
@@ -104,12 +115,10 @@ export default function LandingGate() {
     const evtIds = (events || []).map((e: any) => e.id);
     const allUrls: string[] = [];
 
-    // Add cover URLs
     for (const evt of events || []) {
       if (evt.cover_url) allUrls.push(evt.cover_url);
     }
 
-    // Get photos from events
     if (evtIds.length > 0) {
       const { data: photoData } = await supabase
         .from("photos")
@@ -136,11 +145,9 @@ export default function LandingGate() {
   };
 
   const closeLightbox = () => setLightboxOpen(false);
-
   const nextPhoto = () => setLightboxIdx((i) => (i + 1) % photos.length);
   const prevPhoto = () => setLightboxIdx((i) => (i - 1 + photos.length) % photos.length);
 
-  // Keyboard nav for lightbox
   useEffect(() => {
     if (!lightboxOpen) return;
     const handler = (e: KeyboardEvent) => {
@@ -152,6 +159,37 @@ export default function LandingGate() {
     return () => window.removeEventListener("keydown", handler);
   }, [lightboxOpen, photos.length]);
 
+  /* ── Share feed link ── */
+  const handleShare = async () => {
+    const baseUrl = window.location.origin;
+    const feedUrl = feedSlug ? `${baseUrl}/feed/${feedSlug}` : baseUrl;
+    const shareData = {
+      title: profileName,
+      text: `Check out ${profileName}'s photography portfolio`,
+      url: feedUrl,
+    };
+
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch { /* user cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(feedUrl);
+        toast.success("Feed link copied to clipboard");
+      } catch {
+        toast.error("Could not copy link");
+      }
+    }
+  };
+
+  /* ── Preview public feed ── */
+  const handlePreviewFeed = () => {
+    if (feedSlug) {
+      window.open(`/feed/${feedSlug}`, "_blank");
+    } else {
+      toast("Set up your username in Settings → Profile to get your public feed link");
+    }
+  };
+
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: "#FFFFFF" }}>
       {/* ── Header ── */}
@@ -162,7 +200,7 @@ export default function LandingGate() {
           zIndex: 40,
           background: "white",
           borderBottom: "1px solid #f0f0f0",
-          padding: mob ? "16px 16px" : "20px 24px",
+          padding: mob ? "14px 16px" : "18px 24px",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -182,7 +220,7 @@ export default function LandingGate() {
           <h1
             style={{
               fontFamily: fonts.display,
-              fontSize: mob ? 20 : 24,
+              fontSize: mob ? 18 : 24,
               fontWeight: 300,
               letterSpacing: "0.1em",
               color: "#1A1A1A",
@@ -190,27 +228,181 @@ export default function LandingGate() {
           >
             {profileName.toUpperCase()}
           </h1>
-          <div style={{ width: 32 }} />
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            {/* Share button */}
+            <button
+              onClick={handleShare}
+              title="Share your feed"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 6,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+            </button>
+            {/* More / Feed menu */}
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setShowFeedMenu(!showFeedMenu)}
+                title="Feed options"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#1A1A1A">
+                  <circle cx="12" cy="5" r="1.5"/>
+                  <circle cx="12" cy="12" r="1.5"/>
+                  <circle cx="12" cy="19" r="1.5"/>
+                </svg>
+              </button>
+              {showFeedMenu && (
+                <>
+                  <div
+                    style={{ position: "fixed", inset: 0, zIndex: 50 }}
+                    onClick={() => setShowFeedMenu(false)}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: 36,
+                      zIndex: 60,
+                      background: "white",
+                      borderRadius: 12,
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+                      border: "1px solid #EEEEEE",
+                      minWidth: 200,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <button
+                      onClick={() => { setShowFeedMenu(false); handleShare(); }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24 }}>🔗</span>
+                      <span>Copy Feed Link</span>
+                    </button>
+                    <button
+                      onClick={() => { setShowFeedMenu(false); handlePreviewFeed(); }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24 }}>👁</span>
+                      <span>Preview Public Feed</span>
+                    </button>
+                    <div style={{ height: 1, background: "#F0F0F0" }} />
+                    <button
+                      onClick={() => { setShowFeedMenu(false); navigate("/dashboard/website-editor"); }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24 }}>✏️</span>
+                      <span>Edit Feed & Portfolio</span>
+                    </button>
+                    <button
+                      onClick={() => { setShowFeedMenu(false); navigate("/dashboard/branding"); }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24 }}>🎨</span>
+                      <span>Brand & Style</span>
+                    </button>
+                    <div style={{ height: 1, background: "#F0F0F0" }} />
+                    <button
+                      onClick={() => { setShowFeedMenu(false); navigate("/dashboard/events"); }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24 }}>📸</span>
+                      <span>Manage Events</span>
+                    </button>
+                    <button
+                      onClick={() => { setShowFeedMenu(false); navigate("/dashboard/profile"); }}
+                      style={menuItemStyle}
+                    >
+                      <span style={{ fontSize: 16, width: 24 }}>⚙️</span>
+                      <span>Feed Settings</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── Gallery Content ── */}
-      <div style={{ flex: 1, overflowY: "auto", paddingBottom: 80 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: mob ? "24px 12px" : "32px 24px" }}>
-          <h2
-            style={{
+      {/* ── Feed info bar ── */}
+      {!loading && photos.length > 0 && (
+        <div
+          style={{
+            padding: mob ? "12px 16px" : "14px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: "1px solid #F5F5F5",
+          }}
+        >
+          <div>
+            <p style={{
               fontFamily: fonts.display,
-              fontSize: mob ? 24 : 30,
+              fontSize: mob ? 20 : 26,
               fontWeight: 300,
-              marginBottom: 4,
               color: "#1A1A1A",
+              lineHeight: 1.2,
+            }}>
+              Your Feed
+            </p>
+            <p style={{
+              fontFamily: fonts.body,
+              fontSize: 12,
+              color: "#999999",
+              marginTop: 2,
+            }}>
+              {photos.length} photos • {feedSlug ? "Public" : "Set username to go public"}
+            </p>
+          </div>
+          <button
+            onClick={handleShare}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 16px",
+              background: "#1A1A1A",
+              color: "white",
+              border: "none",
+              borderRadius: 20,
+              cursor: "pointer",
+              fontFamily: fonts.body,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: "0.05em",
             }}
           >
-            Welcome
-          </h2>
-          <p style={{ fontFamily: fonts.body, fontSize: mob ? 14 : 16, color: "#666666", marginBottom: mob ? 24 : 32 }}>
-            Your wedding gallery
-          </p>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+              <polyline points="16 6 12 2 8 6"/>
+              <line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+            SHARE
+          </button>
+        </div>
+      )}
+
+      {/* ── Gallery Content ── */}
+      <div style={{ flex: 1, overflowY: "auto", paddingBottom: 80 }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: mob ? "16px 8px" : "24px 24px" }}>
 
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center", padding: 60 }}>
@@ -393,3 +585,20 @@ export default function LandingGate() {
     </div>
   );
 }
+
+/* ── Shared menu item style ── */
+const menuItemStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  width: "100%",
+  padding: "12px 16px",
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  fontFamily: "'DM Sans', sans-serif",
+  fontSize: 13,
+  color: "#1A1A1A",
+  textAlign: "left" as const,
+  transition: "background 0.15s ease",
+};
