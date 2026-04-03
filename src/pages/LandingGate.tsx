@@ -324,9 +324,12 @@ export default function LandingGate() {
                   onClick={() => item.type === "event" && navigate(`/dashboard/events/${item.id}`)}
                 >
                   {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.title}
-                      style={{ width: "100%", height: "auto", objectFit: "cover" as const, display: "block", borderRadius: 0 }}
-                      loading="lazy" />
+                    <LazyImage
+                      src={item.imageUrl}
+                      alt={item.title}
+                      aspectRatio="4/3"
+                      objectFit="cover"
+                    />
                   ) : (
                     <div style={{
                       width: "100%", height: mob ? "65vw" : 420,
