@@ -552,21 +552,15 @@ const Dashboard = () => {
             }}
           >
             {allPhotos.slice(0, mob ? 12 : 24).map((url, i) => (
-              <div key={i} style={{ aspectRatio: "1", overflow: "hidden", borderRadius: 4 }}>
-                <img
-                  src={url}
-                  alt=""
-                  loading="lazy"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    transition: "transform 0.4s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                />
-              </div>
+              <LazyImage
+                key={i}
+                src={url}
+                alt=""
+                aspectRatio="1"
+                borderRadius={4}
+                objectFit="cover"
+                imgClassName="transition-transform duration-400 hover:scale-105"
+              />
             ))}
           </div>
         </section>
