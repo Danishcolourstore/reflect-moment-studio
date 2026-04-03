@@ -8,6 +8,7 @@
     "dev:web": "vite",
     "dev:server": "tsx watch server/src/index.ts",
     "start:server": "tsx server/src/index.ts",
+    "start": "npm run start:server",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",

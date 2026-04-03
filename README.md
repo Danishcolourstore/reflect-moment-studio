@@ -1,73 +1,185 @@
-# Welcome to your Lovable project
+# Mirror AI
 
-## Project info
+Mirror AI is a real-time photography assistant:
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**Camera/Upload -> FTP/API ingest -> Queue -> AI processing -> Instant live dashboard updates**
 
-## How can I edit this code?
+This repository contains:
 
-There are several ways of editing your application.
+- `server/` backend (FTP ingest, API, queue worker, image processing, WebSocket)
+- `src/` premium React + Tailwind frontend
+- local filesystem storage for originals, processed images, and metadata
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Product Features
 
-Changes made via Lovable will be committed automatically to this repo.
+- FTP server ingest with instant queueing
+- API multi-upload ingest endpoint
+- AI processing pipeline:
+  - exposure / lighting / skin-tone analysis
+  - preset-based enhancement (Lightroom-style behavior)
+  - natural retouch (texture-preserving, no plastic skin)
+  - preview + full-resolution output
+- Real-time WebSocket push (no page refresh)
+- Premium live UI:
+  - live feed
+  - before/after toggle
+  - preset selector
+  - shoot categories
+  - status badges
+  - control panel + batch apply
+- Queue system:
+  - Redis-backed BullMQ when `REDIS_URL` is set
+  - in-memory queue fallback when Redis is unavailable
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Folder Structure
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```text
+.
+├── server
+│   └── src
+│       ├── api
+│       │   └── routes.ts
+│       ├── config
+│       │   └── env.ts
+│       ├── ingest
+│       │   └── ftpIngest.ts
+│       ├── processing
+│       │   └── imagePipeline.ts
+│       ├── queue
+│       │   ├── processorWorker.ts
+│       │   ├── queueClient.ts
+│       │   └── queueNames.ts
+│       ├── realtime
+│       │   └── realtimeHub.ts
+│       ├── services
+│       │   └── settingsService.ts
+│       ├── storage
+│       │   ├── fileStore.ts
+│       │   └── imageRepository.ts
+│       ├── types.ts
+│       ├── utils
+│       │   └── logger.ts
+│       └── index.ts
+├── src
+│   ├── components/mirror
+│   ├── hooks/useMirrorRealtime.ts
+│   ├── lib/mirror-api.ts
+│   ├── pages/MirrorApp.tsx
+│   └── types/mirror.ts
+└── storage
+    ├── incoming
+    ├── metadata
+    ├── originals
+    └── processed
+        ├── full
+        └── preview
+```
 
-Follow these steps:
+---
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Environment
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Copy and edit:
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+cp .env.example .env
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+`.env.example`:
+
+```bash
+NODE_ENV=development
+PORT=8787
+BASE_URL=http://localhost:8787
+CORS_ORIGIN=*
+
+# Optional: enables Redis/BullMQ
+REDIS_URL=redis://127.0.0.1:6379
+
+FTP_HOST=0.0.0.0
+FTP_PORT=2121
+FTP_USER=mirrorai
+FTP_PASSWORD=mirrorai123
+
+STORAGE_ROOT=./storage
+PREVIEW_WIDTH=1600
+RETOUCH_DEFAULT_INTENSITY=0.18
+
+VITE_API_BASE_URL=http://localhost:8787
+```
+
+---
+
+## Setup
+
+```bash
+npm install
+```
+
+---
+
+## Run Commands
+
+### 1) Full local development (frontend + backend)
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+- Frontend: `http://localhost:8080`
+- Backend API: `http://localhost:8787/api`
+- WebSocket: `ws://localhost:8787/ws`
+- FTP ingest: `ftp://localhost:2121`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 2) Backend only
 
-**Use GitHub Codespaces**
+```bash
+npm run start:server
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 3) Production build (frontend)
 
-## What technologies are used for this project?
+```bash
+npm run build
+```
 
-This project is built with:
+### 4) Preview frontend build
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+npm run preview
+```
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Core API
 
-## Can I connect a custom domain to my Lovable project?
+- `GET /api/health`
+- `GET /api/dashboard`
+- `GET /api/images`
+- `GET /api/images/:id`
+- `GET /api/presets`
+- `PATCH /api/control`
+- `POST /api/images/upload` (`multipart/form-data`, field: `images`)
+- `POST /api/batch/apply`
+- `GET /api/metadata`
 
-Yes, you can!
+Static files:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- `GET /storage/...` for originals/processed images
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Realtime:
+
+- `ws://<host>/ws`
+
+Event types:
+
+- `system:connected`
+- `image:created`
+- `image:updated`
+- `control:updated`
+- `queue:stats`
+- `batch:started`
