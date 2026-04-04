@@ -703,6 +703,7 @@ const WebsiteEditor = () => {
         )}
 
         {(activeSection === 'hero' || activeSection === 'contact') && (
+          <div style={{ paddingTop: 14, borderTop: `1px solid ${colors.border}` }}>
             <EditorField label="Brand Accent Color">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} style={{ height: 36, width: 36, borderRadius: 8, border: `1px solid ${colors.border}`, cursor: 'pointer' }} />
