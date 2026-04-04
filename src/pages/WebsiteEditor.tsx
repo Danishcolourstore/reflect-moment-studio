@@ -414,6 +414,39 @@ const WebsiteEditor = () => {
       case 'latest_works': return <WebsiteLatestWorks key="latest_works" id="latest-works" template={websiteTemplate} images={websiteImages.latest_works_photos || []} accent={accentColor} title={websiteImages.latest_works_title || 'My Latest Works'} maxImages={30} />;
       case 'newsletter': return <WebsiteNewsletter key="newsletter" id="newsletter" template={websiteTemplate} title={websiteImages.newsletter_title} description={websiteImages.newsletter_description} buttonText={websiteImages.newsletter_button_text} />;
       case 'image_strip': return <WebsiteImageStrip key="image_strip" id="image-strip" template={websiteTemplate} images={websiteImages.image_strip_photos || []} />;
+      case 'featured_galleries': return (
+        <WebsiteFeaturedGalleries key="featured_galleries" id="featured-galleries" template={websiteTemplate}
+          galleries={websiteImages.featured_galleries || []} accent={accentColor}
+        />
+      );
+      case 'storytelling': return (
+        <WebsiteStorytelling key="storytelling" id="storytelling" template={websiteTemplate}
+          headline={websiteImages.storytelling_headline || 'Every Love Story Is Beautiful'}
+          paragraph={websiteImages.storytelling_paragraph || ''}
+          bgImage={websiteImages.storytelling_bg_image || null}
+        />
+      );
+      case 'process': return (
+        <WebsiteProcessSection key="process" id="process" template={websiteTemplate}
+          title={websiteImages.process_title || 'My Style & Process'}
+          blocks={websiteImages.process_blocks || []}
+          accent={accentColor}
+        />
+      );
+      case 'journal': return (
+        <WebsiteJournal key="journal" id="journal" template={websiteTemplate}
+          entries={websiteImages.journal_entries || []}
+          accent={accentColor}
+        />
+      );
+      case 'inquiry': return (
+        <WebsiteInquiryForm key="inquiry" id="inquiry" template={websiteTemplate}
+          heading={websiteImages.inquiry_heading || 'Let\'s Create Together'}
+          subheading={websiteImages.inquiry_subheading || 'Tell me about your vision'}
+          bgImage={websiteImages.inquiry_bg_image || null}
+          photographerId={user?.id}
+        />
+      );
       case 'contact': return <WebsiteContact key="contact" id="contact" template={websiteTemplate} branding={branding} photographerId={user?.id} />;
       default: return null;
     }
