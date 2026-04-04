@@ -700,7 +700,9 @@ const WebsiteEditor = () => {
               The inquiry form automatically uses your contact details (email, WhatsApp, Instagram) from the Contact section. Submissions are saved to your backend.
             </p>
           </div>
-          <div style={{ paddingTop: 14, borderTop: `1px solid ${colors.border}` }}>
+        )}
+
+        {(activeSection === 'hero' || activeSection === 'contact') && (
             <EditorField label="Brand Accent Color">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} style={{ height: 36, width: 36, borderRadius: 8, border: `1px solid ${colors.border}`, cursor: 'pointer' }} />
