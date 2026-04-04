@@ -414,6 +414,39 @@ const WebsiteEditor = () => {
       case 'latest_works': return <WebsiteLatestWorks key="latest_works" id="latest-works" template={websiteTemplate} images={websiteImages.latest_works_photos || []} accent={accentColor} title={websiteImages.latest_works_title || 'My Latest Works'} maxImages={30} />;
       case 'newsletter': return <WebsiteNewsletter key="newsletter" id="newsletter" template={websiteTemplate} title={websiteImages.newsletter_title} description={websiteImages.newsletter_description} buttonText={websiteImages.newsletter_button_text} />;
       case 'image_strip': return <WebsiteImageStrip key="image_strip" id="image-strip" template={websiteTemplate} images={websiteImages.image_strip_photos || []} />;
+      case 'featured_galleries': return (
+        <WebsiteFeaturedGalleries key="featured_galleries" id="featured-galleries" template={websiteTemplate}
+          galleries={websiteImages.featured_galleries || []}
+        />
+      );
+      case 'storytelling': return (
+        <WebsiteStorytelling key="storytelling" id="storytelling" template={websiteTemplate}
+          headline={websiteImages.storytelling_headline || 'Every Love Story Is Beautiful'}
+          paragraph={websiteImages.storytelling_paragraph || ''}
+          backgroundImage={websiteImages.storytelling_bg_image || null}
+        />
+      );
+      case 'process': return (
+        <WebsiteProcessSection key="process" id="process" template={websiteTemplate}
+          title={websiteImages.process_title || 'My Style & Process'}
+          blocks={websiteImages.process_blocks || []}
+        />
+      );
+      case 'journal': return (
+        <WebsiteJournal key="journal" id="journal" template={websiteTemplate}
+          entries={websiteImages.journal_entries || []}
+        />
+      );
+      case 'inquiry': return (
+        <WebsiteInquiryForm key="inquiry" id="inquiry" template={websiteTemplate}
+          branding={{
+            studio_name: studioName || 'Studio',
+            studio_accent_color: accentColor,
+            email, whatsapp, instagram,
+          }}
+          accent={accentColor}
+        />
+      );
       case 'contact': return <WebsiteContact key="contact" id="contact" template={websiteTemplate} branding={branding} photographerId={user?.id} />;
       default: return null;
     }
@@ -593,6 +626,79 @@ const WebsiteEditor = () => {
               userId={user.id} folder="image-strip" label="Strip Images (up to 6)" maxImages={6}
             />
             <p style={{ fontFamily: fonts.body, fontSize: 11, color: colors.textMuted }}>These appear as a horizontal scrolling row.</p>
+          </div>
+        )}
+
+        {activeSection === 'featured_galleries' && user && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {(websiteImages.featured_galleries || []).map((g, i) => (
+              <div key={i} style={{ padding: 14, background: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={labelStyle}>Gallery {i + 1}</span>
+                  <button onClick={() => setWebsiteImages(prev => ({ ...prev, featured_galleries: (prev.featured_galleries || []).filter((_, idx) => idx !== i) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.danger, fontSize: 12 }}>Remove</button>
+                </div>
+                <Input value={g.title} onChange={e => { const arr = [...(websiteImages.featured_galleries || [])]; arr[i] = { ...arr[i], title: e.target.value }; setWebsiteImages(prev => ({ ...prev, featured_galleries: arr })); }} className="h-9 text-xs mb-2" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Gallery title" />
+                <Input value={g.location} onChange={e => { const arr = [...(websiteImages.featured_galleries || [])]; arr[i] = { ...arr[i], location: e.target.value }; setWebsiteImages(prev => ({ ...prev, featured_galleries: arr })); }} className="h-9 text-xs mb-2" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Location" />
+                <WebsiteImageUploader value={g.imageUrl || null} onChange={(url) => { const arr = [...(websiteImages.featured_galleries || [])]; arr[i] = { ...arr[i], imageUrl: url || '' }; setWebsiteImages(prev => ({ ...prev, featured_galleries: arr })); }} userId={user.id} folder="featured-galleries" label="Cover Image" aspectClass="aspect-video" />
+              </div>
+            ))}
+            <button onClick={() => setWebsiteImages(prev => ({ ...prev, featured_galleries: [...(prev.featured_galleries || []), { title: 'New Gallery', location: '', imageUrl: '' }] }))} style={addBtnStyle}>+ Add Gallery</button>
+          </div>
+        )}
+
+        {activeSection === 'storytelling' && user && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <EditorField label="Headline">
+              <Input value={websiteImages.storytelling_headline || ''} onChange={e => setWebsiteImages(prev => ({ ...prev, storytelling_headline: e.target.value }))} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} placeholder="Every Love Story Is Beautiful" />
+            </EditorField>
+            <EditorField label="Paragraph">
+              <Textarea value={websiteImages.storytelling_paragraph || ''} onChange={e => setWebsiteImages(prev => ({ ...prev, storytelling_paragraph: e.target.value }))} className="text-sm min-h-[100px]" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} placeholder="Tell your story..." />
+            </EditorField>
+            <WebsiteImageUploader value={websiteImages.storytelling_bg_image || null} onChange={(url) => setWebsiteImages(prev => ({ ...prev, storytelling_bg_image: url }))} userId={user.id} folder="storytelling" label="Background Image" aspectClass="aspect-video" />
+          </div>
+        )}
+
+        {activeSection === 'process' && user && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <EditorField label="Section Title">
+              <Input value={websiteImages.process_title || 'My Style & Process'} onChange={e => setWebsiteImages(prev => ({ ...prev, process_title: e.target.value }))} className="h-10 text-sm" style={{ background: colors.surface, border: `1px solid ${colors.border}` }} />
+            </EditorField>
+            {(websiteImages.process_blocks || []).map((b, i) => (
+              <div key={i} style={{ padding: 14, background: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={labelStyle}>Step {i + 1}</span>
+                  <button onClick={() => setWebsiteImages(prev => ({ ...prev, process_blocks: (prev.process_blocks || []).filter((_, idx) => idx !== i) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.danger, fontSize: 12 }}>Remove</button>
+                </div>
+                <Input value={b.title} onChange={e => { const arr = [...(websiteImages.process_blocks || [])]; arr[i] = { ...arr[i], title: e.target.value }; setWebsiteImages(prev => ({ ...prev, process_blocks: arr })); }} className="h-9 text-xs mb-2" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Step title" />
+                <Textarea value={b.description} onChange={e => { const arr = [...(websiteImages.process_blocks || [])]; arr[i] = { ...arr[i], description: e.target.value }; setWebsiteImages(prev => ({ ...prev, process_blocks: arr })); }} className="text-xs min-h-[60px]" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Description" />
+              </div>
+            ))}
+            <button onClick={() => setWebsiteImages(prev => ({ ...prev, process_blocks: [...(prev.process_blocks || []), { title: 'New Step', description: '' }] }))} style={addBtnStyle}>+ Add Step</button>
+          </div>
+        )}
+
+        {activeSection === 'journal' && user && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {(websiteImages.journal_entries || []).map((entry, i) => (
+              <div key={i} style={{ padding: 14, background: colors.surface, borderRadius: 12, border: `1px solid ${colors.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={labelStyle}>Entry {i + 1}</span>
+                  <button onClick={() => setWebsiteImages(prev => ({ ...prev, journal_entries: (prev.journal_entries || []).filter((_, idx) => idx !== i) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.danger, fontSize: 12 }}>Remove</button>
+                </div>
+                <Input value={entry.title} onChange={e => { const arr = [...(websiteImages.journal_entries || [])]; arr[i] = { ...arr[i], title: e.target.value }; setWebsiteImages(prev => ({ ...prev, journal_entries: arr })); }} className="h-9 text-xs mb-2" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Entry title" />
+                <Input value={entry.date || ''} onChange={e => { const arr = [...(websiteImages.journal_entries || [])]; arr[i] = { ...arr[i], date: e.target.value }; setWebsiteImages(prev => ({ ...prev, journal_entries: arr })); }} className="h-9 text-xs mb-2" style={{ background: '#fff', border: `1px solid ${colors.border}` }} placeholder="Date" type="date" />
+                <WebsiteImageUploader value={entry.imageUrl || null} onChange={(url) => { const arr = [...(websiteImages.journal_entries || [])]; arr[i] = { ...arr[i], imageUrl: url || undefined }; setWebsiteImages(prev => ({ ...prev, journal_entries: arr })); }} userId={user.id} folder="journal" label="Cover" aspectClass="aspect-video" />
+              </div>
+            ))}
+            <button onClick={() => setWebsiteImages(prev => ({ ...prev, journal_entries: [...(prev.journal_entries || []), { title: 'New Entry' }] }))} style={addBtnStyle}>+ Add Entry</button>
+          </div>
+        )}
+
+        {activeSection === 'inquiry' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ fontFamily: fonts.body, fontSize: 12, color: colors.textMuted }}>
+              The inquiry form automatically uses your contact details (email, WhatsApp, Instagram) from the Contact section. Submissions are saved to your backend.
+            </p>
           </div>
         )}
 
