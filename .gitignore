@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+mirror-ai/server/storage
+mirror-ai/server/data/metadata.json
 
 # Editor directories and files
 .vscode/*

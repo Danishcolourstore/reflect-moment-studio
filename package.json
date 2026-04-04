@@ -10,7 +10,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "mirror:redis": "docker compose -f docker-compose.mirror-ai.yml up -d",
+    "mirror:redis:down": "docker compose -f docker-compose.mirror-ai.yml down",
+    "mirror:server:dev": "npm --prefix ./mirror-ai/server run dev",
+    "mirror:worker:dev": "npm --prefix ./mirror-ai/server run worker"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
