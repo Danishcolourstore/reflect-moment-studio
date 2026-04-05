@@ -1,73 +1,98 @@
-# Welcome to your Lovable project
+# Mirror AI
 
-## Project info
+Mirror AI is a real-time photography assistant:
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Camera -> FTP -> Server -> AI Processing -> Live app display.
 
-## How can I edit this code?
+This repository now includes:
 
-There are several ways of editing your application.
+- A full Mirror AI backend (`mirror-ai/server`) with FTP ingestion, queue processing,
+  AI-style image enhancement, storage, metadata, and WebSocket events.
+- A premium React route at `/mirror-ai` with live feed, before/after compare,
+  preset/category controls, retouch intensity, and batch apply actions.
 
-**Use Lovable**
+## Folder structure
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+```txt
+mirror-ai/
+  .env.example
+  README.md
+  server/
+    src/
+      api.js
+      analysis.js
+      config.js
+      ftp.js
+      image-processor.js
+      ingestion.js
+      logger.js
+      metadata-store.js
+      presets.js
+      queue.js
+      server.js
+      storage.js
+      utils.js
+      websocket-hub.js
+    storage/
+      incoming/
+      originals/
+      previews/
+      processed/
+      metadata/images.json
+src/
+  pages/
+    MirrorAI.tsx
+```
 
-Changes made via Lovable will be committed automatically to this repo.
+## Setup
 
-**Use your preferred IDE**
+1) Install dependencies:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```bash
+npm install
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2) Copy Mirror AI env:
 
-Follow these steps:
+```bash
+cp mirror-ai/.env.example .env
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3) Update `.env` values as needed (FTP credentials, host, Redis URL).
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Run commands
 
-# Step 3: Install the necessary dependencies.
-npm i
+Frontend:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Mirror AI backend:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run mirrorai:server
+```
 
-**Use GitHub Codespaces**
+Production frontend build:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run build
+```
 
-## What technologies are used for this project?
+## Mirror AI endpoints
 
-This project is built with:
+- Health: `GET /healthz`
+- Presets: `GET /api/presets`
+- Images: `GET /api/images`
+- Image reprocess: `POST /api/controls/reprocess`
+- Global controls: `POST /api/controls/global`
+- Batch apply: `POST /api/controls/batch-apply`
+- Realtime WebSocket: `ws://<host>:<port>/ws`
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Notes
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Queue uses Redis/BullMQ when `MIRRORAI_REDIS_URL` is set.
+- If Redis is not set, it automatically falls back to an in-memory queue.
+- FTP uploads should target the configured FTP host/port and upload image files
+  into the FTP root (mapped to `mirror-ai/server/storage/incoming`).

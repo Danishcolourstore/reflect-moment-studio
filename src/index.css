@@ -276,3 +276,16 @@ html.platform-android {
 .font-typewriter {
   font-family: 'Special Elite', 'Courier New', monospace;
 }
+
+/* Mirror AI premium dark surface */
+.mirror-ai-dark {
+  --mirror-bg: #0a0d12;
+  --mirror-card: #111620;
+  --mirror-card-muted: #141a25;
+  --mirror-border: #21293a;
+  --mirror-text: #f3f6ff;
+  --mirror-muted: #93a1bb;
+  --mirror-accent: #6d8dff;
+  --mirror-success: #2fd08b;
+  --mirror-warning: #ffbc42;
+}

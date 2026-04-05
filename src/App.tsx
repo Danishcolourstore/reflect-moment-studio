@@ -63,6 +63,7 @@ const StyleLibrary = lazy(() => import("./pages/refyn/StyleLibrary"));
 const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
 const LandingGate = lazy(() => import("./pages/LandingGate"));
 const RetouchLogin = lazy(() => import("./pages/RetouchLogin"));
+const MirrorAI = lazy(() => import("./pages/MirrorAI"));
 const ClientPreview = lazy(() => import("./pages/ClientPreview"));
 const DomainSettings = lazy(() => import("./pages/DomainSettings"));
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
@@ -332,6 +333,7 @@ const AppRoutes = () => {
             <Route path="/refyn/steal" element={<Suspense fallback={<PageLoader />}><StyleStealer /></Suspense>} />
             <Route path="/refyn/styles" element={<Suspense fallback={<PageLoader />}><StyleLibrary /></Suspense>} />
             <Route path="/retouch-login" element={<RetouchLogin />} />
+            <Route path="/mirror-ai" element={<MirrorAI />} />
             <Route path="/preview/:previewId" element={<ClientPreview />} />
             <Route
               path="/home"
