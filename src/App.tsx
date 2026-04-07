@@ -133,7 +133,9 @@ const queryClient = new QueryClient({
 function PageLoader() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <p className="text-muted-foreground font-serif text-lg animate-pulse">Loading…</p>
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+      </div>
     </div>
   );
 }
