@@ -35,12 +35,12 @@ export function GalleryPasswordGate({ eventId, eventTitle, studioLogoUrl, onUnlo
         localStorage.setItem(`mirrorai_gallery_pw_verified_${eventId}`, "true");
         onUnlock();
       } else {
-        toast.error("Incorrect password. Please try again.");
+        toast.error("That didn't match. Try again.");
         setShake(true);
         setTimeout(() => setShake(false), 500);
       }
     } catch {
-      toast.error("Verification failed. Please try again.");
+      toast.error("Something went wrong. Try again.");
     } finally {
       setChecking(false);
     }
@@ -55,8 +55,8 @@ export function GalleryPasswordGate({ eventId, eventTitle, studioLogoUrl, onUnlo
           <h2 className="font-serif italic text-xl text-foreground">MirrorAI</h2>
         )}
         <h1 className="font-serif text-2xl font-semibold text-foreground">{eventTitle}</h1>
-        <p className="font-serif text-lg text-muted-foreground">This gallery is private</p>
-        <p className="text-sm text-muted-foreground">Enter the password to view this gallery</p>
+        <p className="font-serif text-lg text-muted-foreground">Private gallery</p>
+        <p className="text-sm text-muted-foreground">Enter the password to view</p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className={`relative ${shake ? "animate-pulse" : ""}`}>
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
@@ -77,7 +77,7 @@ export function GalleryPasswordGate({ eventId, eventTitle, studioLogoUrl, onUnlo
             </button>
           </div>
           <Button type="submit" className="w-full bg-primary text-primary-foreground" disabled={checking}>
-            {checking ? "Verifying…" : "Enter Gallery"}
+            {checking ? "Verifying…" : "View Gallery"}
           </Button>
         </form>
       </div>

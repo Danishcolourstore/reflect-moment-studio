@@ -31,7 +31,7 @@ export function ShareModal({ open, onOpenChange, eventSlug, eventName, pin }: Sh
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-    toast({ title: 'Copied to clipboard' });
+    toast({ title: 'Link copied' });
   }, [toast]);
 
   const downloadQR = useCallback(() => {
@@ -68,7 +68,7 @@ export function ShareModal({ open, onOpenChange, eventSlug, eventName, pin }: Sh
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px] bg-card border-border p-6">
         <DialogHeader>
-          <DialogTitle className="font-serif text-xl font-semibold">Share Gallery</DialogTitle>
+          <DialogTitle className="font-serif text-xl font-semibold">Share</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-1">
           {/* QR Code */}
