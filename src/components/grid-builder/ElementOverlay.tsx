@@ -143,4 +143,6 @@ const ElementOverlay = memo(function ElementOverlay({ element, selected, contain
       )}
     </div>
   );
-}
+});
+
+export default ElementOverlay;
