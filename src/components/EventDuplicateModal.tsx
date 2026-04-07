@@ -78,7 +78,7 @@ export function EventDuplicateModal({ open, onOpenChange, event }: Props) {
         }
       }
 
-      toast.success('Event duplicated successfully');
+      toast.success('Event duplicated');
       onOpenChange(false);
       navigate(`/dashboard/events/${newId}`);
     } catch (e: any) {

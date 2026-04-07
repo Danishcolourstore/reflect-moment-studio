@@ -58,7 +58,7 @@ export function SendFavoritesDialog({
       onOpenChange(false);
       setName(''); setEmail(''); setMessage('');
     } catch (err) {
-      toast.error('Failed to send favorites');
+      toast.error('Could not send — try again');
     }
     setSending(false);
   };
