@@ -28,6 +28,25 @@ import DownloadGridButton from './DownloadGridButton';
 import CarouselExporter from './CarouselExporter';
 import CarouselSliceExporter from './CarouselSliceExporter';
 import { cn } from '@/lib/utils';
+import { memo } from 'react';
+
+/** Stable-callback wrapper so GridCell memo isn't defeated by inline closures */
+const MemoGridCellWrapper = memo(function MemoGridCellWrapper({
+  cell, index, area, onImageAdd, onImageRemove, onOffsetChange,
+}: {
+  cell: GridCellData;
+  index: number;
+  area: [number, number, number, number];
+  onImageAdd: (i: number, f: File) => void;
+  onImageRemove: (i: number) => void;
+  onOffsetChange: (i: number, x: number, y: number, scale?: number) => void;
+}) {
+  const addCb = useCallback((f: File) => onImageAdd(index, f), [index, onImageAdd]);
+  const removeCb = useCallback(() => onImageRemove(index), [index, onImageRemove]);
+  const offsetCb = useCallback((x: number, y: number, scale?: number) => onOffsetChange(index, x, y, scale), [index, onOffsetChange]);
+  const gridArea = `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`;
+  return <GridCell cell={cell} gridArea={gridArea} onImageAdd={addCb} onImageRemove={removeCb} onOffsetChange={offsetCb} />;
+});
 
 interface Props {
   layout: GridLayout;
