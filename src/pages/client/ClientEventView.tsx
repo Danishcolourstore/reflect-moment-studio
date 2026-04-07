@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Download, Camera } from 'lucide-react';
+import { ArrowLeft, Heart, Download, Camera, Share2 } from 'lucide-react';
 import { ClientDashboardLayout } from '@/components/ClientDashboardLayout';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+
+const SECTIONS = ['All', 'Highlights', 'Ceremony', 'Reception', 'Candids'] as const;
 
 const ClientEventView = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ const ClientEventView = () => {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [activeSection, setActiveSection] = useState<string>('All');
 
   useEffect(() => {
     if (!user || !id) return;
@@ -28,22 +30,18 @@ const ClientEventView = () => {
       if (!client) { setLoading(false); return; }
       setClientId(client.id);
 
-      // Verify access
       const { data: access } = await (supabase.from('client_events').select('id') as any)
         .eq('client_id', client.id).eq('event_id', id).maybeSingle();
       if (!access) { navigate('/client/events'); return; }
 
-      // Load event
       const { data: evt } = await (supabase.from('events').select('*') as any).eq('id', id).maybeSingle();
       if (!evt) return;
       setEvent(evt);
 
-      // Load photos
-      const { data: ph } = await (supabase.from('photos').select('id, url, file_name, file_size') as any)
+      const { data: ph } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
         .eq('event_id', id).order('sort_order', { ascending: true });
       if (ph) setPhotos(ph);
 
-      // Load favorites
       const { data: favs } = await (supabase.from('client_favorites').select('photo_id') as any).eq('client_id', client.id);
       if (favs) setFavoriteIds(new Set(favs.map((f: any) => f.photo_id)));
 
@@ -66,24 +64,44 @@ const ClientEventView = () => {
 
   const downloadPhoto = async (photo: any) => {
     if (!clientId) return;
-    // Log download
     await supabase.from('client_downloads').insert({ client_id: clientId, photo_id: photo.id } as any);
-    // Trigger download
-    const a = document.createElement('a');
-    a.href = photo.url;
-    a.download = photo.file_name || 'photo.jpg';
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    toast.success('Download started');
+    try {
+      const res = await fetch(photo.url);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = photo.file_name || 'photo.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Download started');
+    } catch {
+      toast.error('Download failed');
+    }
   };
+
+  const filteredPhotos = useMemo(() => {
+    if (activeSection === 'All') return photos;
+    return photos.filter(p => p.section === activeSection);
+  }, [photos, activeSection]);
 
   if (loading) {
     return (
       <ClientDashboardLayout>
-        <Skeleton className="h-8 w-48 mb-4" />
-        <Skeleton className="h-96" />
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 pt-10">
+          <div className="text-center mb-10 space-y-3">
+            <Skeleton className="h-10 w-56 mx-auto" style={{ background: '#F5F3F0' }} />
+            <Skeleton className="h-4 w-40 mx-auto" style={{ background: '#F5F3F0' }} />
+          </div>
+          <Skeleton className="w-full aspect-[21/9] mb-3" style={{ background: '#F5F3F0' }} />
+          <div className="columns-2 md:columns-3 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="mb-3" style={{ background: '#F5F3F0', height: `${180 + (i % 3) * 60}px` }} />
+            ))}
+          </div>
+        </div>
       </ClientDashboardLayout>
     );
   }
@@ -91,93 +109,189 @@ const ClientEventView = () => {
   if (!event) {
     return (
       <ClientDashboardLayout>
-        <p className="text-muted-foreground">Event not found.</p>
+        <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: '#CCCCCC', fontStyle: 'italic' }}>
+            Event not found
+          </p>
+        </div>
       </ClientDashboardLayout>
     );
   }
 
+  const coupleName = event.hero_couple_name || event.name;
+  const heroPhoto = filteredPhotos[0];
+
   return (
     <ClientDashboardLayout>
-      <button onClick={() => navigate('/client/events')} className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors mb-4">
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to Events
-      </button>
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
+        {/* Back */}
+        <button
+          onClick={() => navigate('/client/events')}
+          className="flex items-center gap-1.5 mt-6 mb-2 transition-colors"
+          style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#BBBBBB', letterSpacing: '0.08em' }}
+          onMouseEnter={e => (e.currentTarget.style.color = '#1A1A1A')}
+          onMouseLeave={e => (e.currentTarget.style.color = '#BBBBBB')}
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back
+        </button>
 
-      <div className="mb-6">
-        <h1 className="font-serif text-2xl font-semibold text-foreground">{event.name}</h1>
-        <p className="text-[12px] text-muted-foreground mt-1">
-          {format(new Date(event.event_date), 'MMMM d, yyyy')}{event.location ? ` · ${event.location}` : ''}
-        </p>
-      </div>
-
-      {photos.length === 0 ? (
-        <div className="border border-dashed border-border/60 py-20 text-center rounded-xl">
-          <Camera className="mx-auto h-10 w-10 text-muted-foreground/15" />
-          <p className="mt-4 font-serif text-sm text-muted-foreground/60">No photos yet</p>
+        {/* Event header */}
+        <div className="text-center pt-6 pb-8">
+          <h1
+            className="text-3xl sm:text-4xl mb-2"
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontWeight: 400,
+              fontStyle: 'italic',
+              color: '#1A1A1A',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {coupleName}
+          </h1>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#AAAAAA', letterSpacing: '0.1em' }}>
+            {format(new Date(event.event_date), 'MMMM d, yyyy')}{event.location ? ` · ${event.location}` : ''}
+          </p>
+          <p className="mt-1.5" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#CCCCCC' }}>
+            {photos.length} photos
+          </p>
         </div>
-      ) : (
-        <>
-          <p className="text-[11px] text-muted-foreground mb-4">{photos.length} photos · {favoriteIds.size} favorited</p>
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-3 space-y-3">
-            {photos.map((photo, idx) => (
-              <div key={photo.id} className="relative group break-inside-avoid">
+
+        {/* Section tabs */}
+        <div className="flex justify-center gap-4 sm:gap-6 mb-8" style={{ borderBottom: '1px solid #F0EDE8' }}>
+          {SECTIONS.map(section => (
+            <button
+              key={section}
+              onClick={() => setActiveSection(section)}
+              className="pb-3 transition-all duration-200 whitespace-nowrap"
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 11,
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                color: activeSection === section ? '#1A1A1A' : '#BBBBBB',
+                borderBottom: activeSection === section ? '2px solid #C8A97E' : '2px solid transparent',
+                fontWeight: activeSection === section ? 500 : 400,
+              }}
+            >
+              {section}
+            </button>
+          ))}
+        </div>
+
+        {/* Gallery */}
+        {filteredPhotos.length === 0 ? (
+          <div className="py-20 text-center">
+            <Camera className="h-10 w-10 mx-auto mb-4" style={{ color: '#E8E4DD' }} />
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: '#CCCCCC', fontStyle: 'italic' }}>
+              No photos in this section
+            </p>
+          </div>
+        ) : (
+          <div>
+            {/* Hero */}
+            {activeSection === 'All' && heroPhoto && (
+              <div className="relative mb-3 overflow-hidden group cursor-pointer" onClick={() => setLightboxIdx(0)}>
                 <img
-                  src={photo.url}
-                  alt={photo.file_name || ''}
-                  className="w-full rounded-lg cursor-pointer"
-                  loading="lazy"
-                  onClick={() => setLightboxIdx(idx)}
+                  src={heroPhoto.url}
+                  alt=""
+                  className="w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                  style={{ maxHeight: '60vh' }}
+                  loading="eager"
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-lg flex items-end justify-end p-2 opacity-0 group-hover:opacity-100">
-                  <div className="flex gap-1.5">
-                    <Button size="icon" variant="ghost" className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-card"
-                      onClick={(e) => { e.stopPropagation(); toggleFavorite(photo.id); }}>
-                      <Heart className={`h-4 w-4 ${favoriteIds.has(photo.id) ? 'fill-destructive text-destructive' : 'text-foreground'}`} />
-                    </Button>
+                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <button
+                    onClick={e => { e.stopPropagation(); toggleFavorite(heroPhoto.id); }}
+                    className="p-2.5 rounded-full"
+                    style={{ background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)' }}
+                  >
+                    <Heart className="h-5 w-5" style={favoriteIds.has(heroPhoto.id) ? { color: '#C8A97E', fill: '#C8A97E' } : { color: 'white' }} />
+                  </button>
+                  {event.downloads_enabled && (
+                    <button
+                      onClick={e => { e.stopPropagation(); downloadPhoto(heroPhoto); }}
+                      className="p-2.5 rounded-full"
+                      style={{ background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)' }}
+                    >
+                      <Download className="h-5 w-5" style={{ color: 'white' }} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Masonry */}
+            <div style={{ columns: 'var(--gallery-cols)', columnGap: 12 }}>
+              <style>{`
+                :root { --gallery-cols: 2; }
+                @media (min-width: 768px) { :root { --gallery-cols: 3; } }
+              `}</style>
+              {(activeSection === 'All' ? filteredPhotos.slice(1) : filteredPhotos).map((photo, idx) => {
+                const realIdx = activeSection === 'All' ? idx + 1 : idx;
+                const isFav = favoriteIds.has(photo.id);
+                return (
+                  <div
+                    key={photo.id}
+                    className="relative break-inside-avoid mb-3 group cursor-pointer overflow-hidden"
+                    onClick={() => setLightboxIdx(realIdx)}
+                  >
+                    <img src={photo.url} alt="" className="w-full block transition-transform duration-500 group-hover:scale-[1.02]" loading="lazy" />
+                    {/* Heart */}
+                    <button
+                      onClick={e => { e.stopPropagation(); toggleFavorite(photo.id); }}
+                      className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-300 ${isFav ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                      style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)' }}
+                    >
+                      <Heart className="h-4 w-4" style={isFav ? { color: '#C8A97E', fill: '#C8A97E' } : { color: 'rgba(255,255,255,0.9)' }} />
+                    </button>
+                    {/* Download on hover */}
                     {event.downloads_enabled && (
-                      <Button size="icon" variant="ghost" className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-card"
-                        onClick={(e) => { e.stopPropagation(); downloadPhoto(photo); }}>
-                        <Download className="h-4 w-4 text-foreground" />
-                      </Button>
+                      <button
+                        onClick={e => { e.stopPropagation(); downloadPhoto(photo); }}
+                        className="absolute bottom-3 right-3 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300"
+                        style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)' }}
+                      >
+                        <Download className="h-3.5 w-3.5" style={{ color: 'rgba(255,255,255,0.9)' }} />
+                      </button>
                     )}
                   </div>
-                </div>
-                {favoriteIds.has(photo.id) && (
-                  <div className="absolute top-2 right-2">
-                    <Heart className="h-4 w-4 fill-destructive text-destructive" />
-                  </div>
-                )}
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
-        </>
-      )}
+        )}
+      </div>
 
-      {/* Simple lightbox */}
-      {lightboxIdx !== null && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center" onClick={() => setLightboxIdx(null)}>
-          <img src={photos[lightboxIdx].url} alt="" className="max-h-[90vh] max-w-[90vw] object-contain" />
+      {/* Lightbox */}
+      {lightboxIdx !== null && filteredPhotos[lightboxIdx] && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.95)' }} onClick={() => setLightboxIdx(null)}>
+          <img src={filteredPhotos[lightboxIdx].url} alt="" className="max-h-[90vh] max-w-[90vw] object-contain" />
+          {lightboxIdx > 0 && (
+            <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white text-4xl transition-colors" onClick={e => { e.stopPropagation(); setLightboxIdx(lightboxIdx - 1); }}>‹</button>
+          )}
+          {lightboxIdx < filteredPhotos.length - 1 && (
+            <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white text-4xl transition-colors" onClick={e => { e.stopPropagation(); setLightboxIdx(lightboxIdx + 1); }}>›</button>
+          )}
+          <button className="absolute top-5 right-5 text-white/40 hover:text-white text-xl transition-colors" onClick={() => setLightboxIdx(null)}>×</button>
           <div className="absolute bottom-6 flex gap-3">
-            <Button size="sm" variant="ghost" className="bg-card/20 text-white hover:bg-card/40"
-              onClick={(e) => { e.stopPropagation(); toggleFavorite(photos[lightboxIdx!].id); }}>
-              <Heart className={`h-4 w-4 mr-1 ${favoriteIds.has(photos[lightboxIdx!].id) ? 'fill-destructive text-destructive' : ''}`} />
-              {favoriteIds.has(photos[lightboxIdx!].id) ? 'Unfavorite' : 'Favorite'}
-            </Button>
-            {event.downloads_enabled && (
-              <Button size="sm" variant="ghost" className="bg-card/20 text-white hover:bg-card/40"
-                onClick={(e) => { e.stopPropagation(); downloadPhoto(photos[lightboxIdx!]); }}>
-                <Download className="h-4 w-4 mr-1" /> Download
-              </Button>
+            <button
+              onClick={e => { e.stopPropagation(); toggleFavorite(filteredPhotos[lightboxIdx!].id); }}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm"
+              style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', color: favoriteIds.has(filteredPhotos[lightboxIdx!].id) ? '#C8A97E' : 'rgba(255,255,255,0.7)', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}
+            >
+              <Heart className="h-4 w-4" style={favoriteIds.has(filteredPhotos[lightboxIdx!].id) ? { fill: '#C8A97E', color: '#C8A97E' } : {}} />
+              {favoriteIds.has(filteredPhotos[lightboxIdx!].id) ? 'Saved' : 'Save'}
+            </button>
+            {event?.downloads_enabled && (
+              <button
+                onClick={e => { e.stopPropagation(); downloadPhoto(filteredPhotos[lightboxIdx!]); }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-sm"
+                style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', color: 'rgba(255,255,255,0.7)', fontFamily: "'DM Sans', sans-serif", fontSize: 12 }}
+              >
+                <Download className="h-4 w-4" /> Download
+              </button>
             )}
           </div>
-          <button className="absolute top-4 right-4 text-white/60 hover:text-white text-2xl" onClick={() => setLightboxIdx(null)}>×</button>
-          {lightboxIdx > 0 && (
-            <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-3xl"
-              onClick={(e) => { e.stopPropagation(); setLightboxIdx(lightboxIdx - 1); }}>‹</button>
-          )}
-          {lightboxIdx < photos.length - 1 && (
-            <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-3xl"
-              onClick={(e) => { e.stopPropagation(); setLightboxIdx(lightboxIdx + 1); }}>›</button>
-          )}
         </div>
       )}
     </ClientDashboardLayout>
