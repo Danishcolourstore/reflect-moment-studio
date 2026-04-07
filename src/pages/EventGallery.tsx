@@ -421,7 +421,10 @@ const EventGallery = () => {
   const upload = usePhotoUpload(id, user?.id);
   const zipUpload = useZipUpload(id, user?.id);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
-  const { isPortfolioPhoto, togglePortfolioPhoto, count: portfolioCount, max: portfolioMax } = usePortfolioPhotos(user?.id);
+  const isPortfolioPhoto = (_id: string) => false;
+  const togglePortfolioPhoto = async (_id: string) => {};
+  const portfolioCount = 0;
+  const portfolioMax = 20;
   const [artGalleryIds, setArtGalleryIds] = useState<Set<string>>(new Set());
 
   const isArtGalleryPhoto = useCallback((id: string) => artGalleryIds.has(id), [artGalleryIds]);
