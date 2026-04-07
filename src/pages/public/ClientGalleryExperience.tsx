@@ -157,11 +157,7 @@ function PasswordGate({
         <form onSubmit={handleSubmit} style={{ marginTop: 40 }}>
           <div
             style={{
-              transform: shake ? "translateX(4px)" : "none",
-              transition: "transform 0.3s ease",
-              animation: shake
-                ? "galleryShake 0.3s ease"
-                : "none",
+              animation: shake ? "galleryShake 0.3s ease" : "none",
             }}
           >
             <input
