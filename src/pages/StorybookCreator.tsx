@@ -102,7 +102,7 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
       title: 'Untitled Story',
       slides_data: [makeSlide()],
     } as any).select().single() as any);
-    if (error) { toast.error('Failed to create storybook'); return; }
+    if (error) { toast.error('Could not create storybook'); return; }
     setStorybooks(prev => [data, ...prev]);
     setActiveId(data.id);
     setTitle(data.title);

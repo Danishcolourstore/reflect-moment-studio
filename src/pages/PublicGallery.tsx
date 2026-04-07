@@ -134,7 +134,7 @@ function PinGate({ event, studioProfile, onUnlock }: {
         sonnerToast.error('Wrong PIN. Please try again.');
       }
     } catch {
-      sonnerToast.error('Verification failed. Please try again.');
+      sonnerToast.error('Something went wrong. Try again.');
     } finally {
       setChecking(false);
     }

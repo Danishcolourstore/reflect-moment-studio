@@ -54,7 +54,7 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
       toast.success(`Exported at ${exportW}×${exportH} — lossless PNG`);
     } catch (err) {
       console.error('Export failed', err);
-      toast.error('Export failed — try again');
+      toast.error('Could not export — try again');
     } finally {
       setTimeout(() => { setExporting(false); setProgress(0); }, 500);
     }
@@ -79,7 +79,7 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
       toast.success(`Exported at ${activeFormat.exportWidth}×${activeFormat.exportHeight} — lossless PNG`);
     } catch (err) {
       console.error('Export failed', err);
-      toast.error('Export failed — try again');
+      toast.error('Could not export — try again');
     } finally {
       setTimeout(() => { setExporting(false); setProgress(0); }, 500);
     }

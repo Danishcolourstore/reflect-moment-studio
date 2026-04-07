@@ -44,12 +44,12 @@ export function InviteClientModal({ open, onOpenChange, onInvited }: Props) {
 
       if (error) throw error;
 
-      toast.success(`Client ${name} invited successfully`);
+      toast.success(`${name} has been invited`);
       onOpenChange(false);
       setName(''); setEmail(''); setPhone(''); setEventId('');
       onInvited?.();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to invite client');
+      toast.error(err.message || 'Could not send invitation');
     } finally {
       setSubmitting(false);
     }
@@ -59,15 +59,15 @@ export function InviteClientModal({ open, onOpenChange, onInvited }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-serif text-xl">Invite Client</DialogTitle>
+          <DialogTitle className="font-serif text-xl">Invite</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-2">
           <div>
-            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Client Name *</label>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Name</label>
             <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 bg-background" placeholder="Jane & John" />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Email *</label>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Email</label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 bg-background" placeholder="client@email.com" />
           </div>
           <div>
@@ -75,7 +75,7 @@ export function InviteClientModal({ open, onOpenChange, onInvited }: Props) {
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 bg-background" placeholder="+1 (555) 123-4567" />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Assign Event</label>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Event</label>
             <Select value={eventId} onValueChange={setEventId}>
               <SelectTrigger className="mt-1 bg-background">
                 <SelectValue placeholder="Select an event (optional)" />
@@ -88,7 +88,7 @@ export function InviteClientModal({ open, onOpenChange, onInvited }: Props) {
             </Select>
           </div>
           <Button onClick={handleInvite} disabled={submitting || !name || !email} className="w-full bg-primary text-primary-foreground text-[11px] uppercase tracking-wider">
-            {submitting ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Inviting...</> : 'Send Invitation'}
+            {submitting ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Sending…</> : 'Send Invitation'}
           </Button>
         </div>
       </DialogContent>

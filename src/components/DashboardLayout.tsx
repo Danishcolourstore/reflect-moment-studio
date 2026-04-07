@@ -12,7 +12,7 @@ import { EntiranProvider } from "@/components/entiran/EntiranProvider";
 
 const STUDIO_ITEMS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Galleries", url: "/home", icon: Image, end: true },
+  { title: "Gallery", url: "/home", icon: Image, end: true },
   { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
 ];
 

@@ -50,10 +50,10 @@ export function ClientCRMDetail({ client, onClose, onRemove, onRefresh }: Props)
     setAssigning(true);
     const { error } = await supabase.from("client_events").insert({ client_id: client.id, event_id: assignEventId } as any);
     if (error) {
-      if (error.code === "23505") toast.info("Access already granted");
-      else toast.error("Failed to grant access");
+      if (error.code === "23505") toast.info("Already granted");
+      else toast.error("Could not grant access");
     } else {
-      toast.success("Gallery access granted");
+      toast.success("Access granted");
       onRefresh();
     }
     setAssigning(false);

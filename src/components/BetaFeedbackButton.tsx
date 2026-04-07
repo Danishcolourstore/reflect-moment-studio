@@ -23,7 +23,7 @@ export const BetaFeedbackButton = forwardRef<HTMLButtonElement, Record<string, n
 
     const handleSubmit = async () => {
       if (!message.trim()) {
-        toast.error('Please describe what happened');
+        toast.error('Share what you noticed');
         return;
       }
       setSubmitting(true);
@@ -46,9 +46,9 @@ export const BetaFeedbackButton = forwardRef<HTMLButtonElement, Record<string, n
       } as any);
 
       if (error) {
-        toast.error('Failed to submit feedback');
+        toast.error('Could not send — try again');
       } else {
-        toast.success('Feedback submitted — thank you!');
+        toast.success('Thank you for your feedback');
         setOpen(false);
         setMessage('');
         setScreenshot(null);

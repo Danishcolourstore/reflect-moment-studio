@@ -69,7 +69,7 @@ export default function CarouselSliceExporter({ cells, format }: Props) {
       toast.success(`${filledCells.length} slides exported as ZIP — lossless PNG`);
     } catch (err) {
       console.error('Carousel slice export failed', err);
-      toast.error('Export failed — try again');
+      toast.error('Could not export — try again');
     } finally {
       setExporting(false);
     }

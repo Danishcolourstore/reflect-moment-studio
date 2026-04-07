@@ -38,10 +38,10 @@ function FileRow({ info, onRetry }: { info: FileUploadInfo; onRetry: (id: string
           </div>
         )}
         {info.status === 'finalizing' && (
-          <p className="text-[9px] text-primary/60 mt-0.5">Finalizing upload, please wait…</p>
+          <p className="text-[9px] text-primary/60 mt-0.5">Almost there…</p>
         )}
         {info.status === 'compressing' && (
-          <p className="text-[9px] text-muted-foreground/50 mt-0.5">Compressing…</p>
+          <p className="text-[9px] text-muted-foreground/50 mt-0.5">Preparing…</p>
         )}
         {info.status === 'duplicate' && (
           <p className="text-[9px] text-amber-500/80 mt-0.5">Duplicate — skipped</p>
@@ -53,7 +53,7 @@ function FileRow({ info, onRetry }: { info: FileUploadInfo; onRetry: (id: string
           <p className="text-[9px] text-destructive/80 mt-0.5">{info.error}</p>
         )}
         {info.status === 'success' && (
-          <p className="text-[9px] text-primary/60 mt-0.5">Uploaded</p>
+          <p className="text-[9px] text-primary/60 mt-0.5">Done</p>
         )}
       </div>
       <div className="shrink-0">
@@ -108,7 +108,7 @@ export function UploadProgressPanel({
             {isUploading ? (
               <div>
                 <p className="text-[12px] text-foreground font-medium">
-                  Uploading {completedFiles} of {totalFiles} photos…
+                  Adding {completedFiles} of {totalFiles}…
                 </p>
                 {estimatedTimeRemaining !== null && (
                   <p className="text-[10px] text-muted-foreground/50 mt-0.5">
@@ -120,7 +120,7 @@ export function UploadProgressPanel({
               <div className="flex items-center gap-2 text-primary">
                 <CheckCircle2 className="h-4 w-4" />
                 <p className="text-[12px] font-medium">
-                  Upload Complete — {successCount} Photos Added
+                  {successCount} photos ready
                   {duplicateCount > 0 && <span className="text-muted-foreground ml-1">({duplicateCount} duplicates skipped)</span>}
                 </p>
               </div>
@@ -158,7 +158,7 @@ export function UploadProgressPanel({
           {showSlowWarning && (
             <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2">
               <Wifi className="h-3.5 w-3.5 text-muted-foreground/60" />
-              <p className="text-[10px] text-muted-foreground/70">Slow connection — photos uploading one at a time for reliability</p>
+              <p className="text-[10px] text-muted-foreground/70">Slow connection — delivering one at a time for reliability</p>
             </div>
           )}
 
@@ -183,7 +183,7 @@ export function UploadProgressPanel({
             {isUploading ? (
               <div>
                 <p className="text-[11px] text-foreground font-medium">
-                  Uploading {completedFiles}/{totalFiles}
+                  Adding {completedFiles}/{totalFiles}
                 </p>
                 {estimatedTimeRemaining !== null && (
                   <p className="text-[9px] text-muted-foreground/40 mt-0.5">{formatEta(estimatedTimeRemaining)}</p>
@@ -192,7 +192,7 @@ export function UploadProgressPanel({
             ) : isDone && !hasFailed ? (
               <div className="flex items-center gap-1.5 text-primary">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                <p className="text-[11px] font-medium">{successCount} photos added</p>
+                <p className="text-[11px] font-medium">{successCount} photos ready</p>
               </div>
             ) : isDone && hasFailed ? (
               <div className="flex items-center gap-1.5 text-destructive">

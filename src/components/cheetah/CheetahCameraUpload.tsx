@@ -51,9 +51,9 @@ export default function CheetahCameraUpload() {
         uploadToken: token,
         httpEndpoint: `https://${projectId}.supabase.co/functions/v1/cheetah-camera-upload`,
       });
-      toast.success('Camera session created');
+      toast.success('Session ready');
     } catch {
-      toast.error('Failed to create session');
+      toast.error('Could not create session');
     }
     setIsCreating(false);
   }, [user]);

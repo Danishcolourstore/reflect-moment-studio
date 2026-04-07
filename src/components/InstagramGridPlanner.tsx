@@ -455,9 +455,9 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
 
       const blob = await zip.generateAsync({ type: 'blob' });
       saveAs(blob, `instagram-grid-${preset.type}.zip`);
-      toast.success('Grid exported successfully');
+      toast.success('Grid exported');
     } catch {
-      toast.error('Export failed');
+      toast.error('Could not export');
     } finally {
       setExporting(false);
     }
