@@ -1299,7 +1299,6 @@ const PublicGallery = () => {
         canDownload={canDownload}
         onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
         onShare={(p) => setSharePhoto(p as Photo)}
-        eventTitle={event.name}
       />
 
       {/* Send Favorites Dialog */}
