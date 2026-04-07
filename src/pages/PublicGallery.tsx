@@ -28,7 +28,7 @@ import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
-import { PhotoLightbox } from '@/components/PhotoLightbox';
+import { CinematicLightbox } from '@/components/lightbox';
 import { PhotoSlideshow } from '@/components/PhotoSlideshow';
 import { OtpInput } from '@/components/OtpInput';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -1288,7 +1288,7 @@ const PublicGallery = () => {
       )}
 
       {/* ── Lightbox ── */}
-      <PhotoLightbox
+      <CinematicLightbox
         photos={displayPhotos}
         currentIndex={lightboxIndex}
         open={lightboxOpen}
@@ -1299,7 +1299,6 @@ const PublicGallery = () => {
         canDownload={canDownload}
         onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
         onShare={(p) => setSharePhoto(p as Photo)}
-        eventTitle={event.name}
       />
 
       {/* Send Favorites Dialog */}

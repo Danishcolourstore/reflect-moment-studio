@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useSiteContext } from "@/lib/SiteContext";
 import { useSiteProfile } from "@/lib/SiteProfileContext";
 import { SiteHead } from "@/components/SiteHead";
-import { PublicPhotoLightbox } from "@/components/PublicPhotoLightbox";
+import { CinematicLightbox } from "@/components/lightbox";
 import { EditorialRhythmGrid } from "@/components/EditorialRhythmGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, X, Download, Send, Loader2 } from "lucide-react";
@@ -370,14 +370,15 @@ export default function PublicGalleryView() {
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
-        <PublicPhotoLightbox
+        <CinematicLightbox
           photos={photos}
           currentIndex={lightboxIndex}
+          open={lightboxIndex !== null}
           onClose={() => setLightboxIndex(null)}
-          onNavigate={setLightboxIndex}
-          showDownload={gallery.downloads_enabled}
-          favorites={favs}
-          onToggleFavorite={toggle}
+          onIndexChange={setLightboxIndex}
+          canDownload={gallery.downloads_enabled}
+          isFavorite={(id) => favs.has(id)}
+          toggleFavorite={toggle}
         />
       )}
     </div>
