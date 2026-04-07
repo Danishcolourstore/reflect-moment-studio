@@ -1,4 +1,5 @@
 import { type TemplateConfig } from '@/lib/website-templates';
+import { getPortfolioImages } from '@/lib/website-demo-images';
 
 interface PortfolioSectionProps {
   template: TemplateConfig;
