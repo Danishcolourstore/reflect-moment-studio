@@ -612,7 +612,14 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
-            {/* WebsiteBuilder route removed */}
+            <Route
+              path="/dashboard/website-builder"
+              element={
+                <ProtectedRoute>
+                  <WebsiteBuilder />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/event/:slug"
