@@ -272,12 +272,12 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     setLogoSelected(false);
   }, []);
 
-  const toggleTool = (tool: ActiveTool) => setActiveTool((prev) => (prev === tool ? null : tool));
+  const toggleTool = useCallback((tool: ActiveTool) => setActiveTool((prev) => (prev === tool ? null : tool)), []);
 
-  const filledCount = cells.filter((c) => c.imageUrl).length;
+  const filledCount = useMemo(() => cells.filter((c) => c.imageUrl).length, [cells]);
   const hasFrame = !!layout.frame;
   const canvasRatio = layout.canvasRatio || format.ratio;
-  const canvasBg = hasFrame ? layout.frame!.background : bgToCss(background);
+  const canvasBg = useMemo(() => hasFrame ? layout.frame!.background : bgToCss(background), [hasFrame, layout.frame, background]);
 
   const toolButtons: { tool: ActiveTool; Icon: any; label: string }[] = [
     { tool: 'text', Icon: Type, label: 'Text' },
@@ -287,21 +287,21 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     { tool: 'caption', Icon: MessageSquare, label: 'Caption' },
   ];
 
-  // Panel drag handlers
-  const handlePanelDragStart = (e: React.TouchEvent) => {
+  // Panel drag handlers — use refs to avoid re-render during drag
+  const handlePanelDragStart = useCallback((e: React.TouchEvent) => {
     panelDragStart.current = e.touches[0].clientY;
     setPanelDragY(0);
-  };
-  const handlePanelDragMove = (e: React.TouchEvent) => {
+  }, []);
+  const handlePanelDragMove = useCallback((e: React.TouchEvent) => {
     if (panelDragStart.current === null) return;
     const dy = e.touches[0].clientY - panelDragStart.current;
     if (dy > 0) setPanelDragY(dy);
-  };
-  const handlePanelDragEnd = () => {
+  }, []);
+  const handlePanelDragEnd = useCallback(() => {
     if (panelDragY > 80) setActiveTool(null);
     setPanelDragY(0);
     panelDragStart.current = null;
-  };
+  }, [panelDragY]);
 
   // Format dimensions label
   const formatDimLabel = (f: CanvasFormat) => {
