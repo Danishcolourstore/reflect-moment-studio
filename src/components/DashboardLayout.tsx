@@ -48,11 +48,11 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
   const isImmersiveMobile = isMobile && immersive;
 
   useEffect(() => {
-    if (!isImmersiveMobile) return;
+    if (!isMobile) return;
     const onScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isImmersiveMobile]);
+  }, [isMobile]);
 
   useEffect(() => {
     if (!user) return;
