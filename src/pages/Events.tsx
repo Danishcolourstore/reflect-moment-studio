@@ -2,13 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { CreateEventModal } from "@/components/CreateEventModal";
-import { EmptyState } from "@/components/PageStates";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { Plus } from "lucide-react";
 import { LazyImage } from "@/components/LazyImage";
-import { Button } from "@/components/ui/button";
 
 interface EventItem {
   id: string;
@@ -18,32 +15,6 @@ interface EventItem {
   location: string | null;
   cover_url: string | null;
   photo_count: number;
-}
-
-function FadeCard({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    if (!ref.current) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true); },
-      { threshold: 0.1 }
-    );
-    obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
-  return (
-    <div
-      ref={ref}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(12px)",
-        transition: "opacity 0.5s ease, transform 0.5s ease",
-      }}
-    >
-      {children}
-    </div>
-  );
 }
 
 export default function Events() {
@@ -57,10 +28,10 @@ export default function Events() {
     if (!user) return;
     setLoading(true);
     const { data } = await (supabase
-      .from('events')
-      .select('id, name, event_date, location, cover_url, photo_count, slug') as any)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .from("events")
+      .select("id, name, event_date, location, cover_url, photo_count, slug") as any)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
     setEvents(data || []);
     setLoading(false);
   };
@@ -69,72 +40,119 @@ export default function Events() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
         {/* Header */}
-        <div className="flex items-end justify-between">
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 32 }}>
           <div>
-            <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-muted-foreground mb-2">COLLECTIONS</p>
-            <h1 className="font-serif text-3xl text-foreground tracking-wide" style={{ fontWeight: 300 }}>
+            <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 400, color: "#1C1C1E", margin: 0 }}>
               Events
             </h1>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#999999", marginTop: 4 }}>
+              Your photography timeline
+            </p>
           </div>
-          <Button onClick={() => setCreateOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Create Event
-          </Button>
+          <button
+            onClick={() => setCreateOpen(true)}
+            style={{
+              background: "none",
+              border: "1px solid #C8A97E",
+              borderRadius: 8,
+              padding: "8px 18px",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 13,
+              color: "#C8A97E",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "#C8A97E"; e.currentTarget.style.color = "#FFFFFF"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#C8A97E"; }}
+          >
+            New Event
+          </button>
         </div>
 
-        {/* Grid */}
+        {/* Content */}
         {loading ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="skeleton-shimmer rounded-xl" style={{ aspectRatio: "4/5" }} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ borderBottom: "1px solid #F0EDE8" }}>
+                <div style={{ padding: "24px 0", display: "flex", gap: 16 }}>
+                  <div style={{ width: "100%", height: 200, background: "#F5F3F0", animation: "pulse 1.5s ease-in-out infinite" }} />
+                </div>
+              </div>
             ))}
           </div>
         ) : events.length === 0 ? (
-          <EmptyState
-            heading="No events yet"
-            subtext="Create your first event to start building your gallery."
-            ctaLabel="Create Event"
-            onAction={() => setCreateOpen(true)}
-          />
+          <div style={{ textAlign: "center", padding: "80px 0" }}>
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontStyle: "italic", color: "#CCCCCC", fontWeight: 400 }}>
+              No events yet
+            </p>
+            <div style={{ width: 40, height: 1, background: "#F0EDE8", margin: "16px auto" }} />
+            <button
+              onClick={() => setCreateOpen(true)}
+              style={{
+                background: "none",
+                border: "none",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 12,
+                color: "#C8A97E",
+                cursor: "pointer",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Create your first event →
+            </button>
+          </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {events.map((evt) => (
-              <FadeCard key={evt.id}>
-                <button
-                  className="group w-full text-left overflow-hidden rounded-xl bg-card border border-border transition-all duration-300 hover:border-primary/30 hover:shadow-[0_8px_32px_rgba(212,175,55,0.06)]"
-                  onClick={() => navigate(`/dashboard/events/${evt.id}`)}
-                >
-                  {evt.cover_url ? (
-                    <div className="overflow-hidden">
-                      <LazyImage
-                        src={evt.cover_url}
-                        alt={evt.name}
-                        aspectRatio="4/5"
-                        objectFit="cover"
-                        imgClassName="transition-transform duration-700 group-hover:scale-[1.03]"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center bg-secondary" style={{ aspectRatio: "4/5" }}>
-                      <span className="font-serif text-3xl text-muted-foreground" style={{ fontWeight: 300 }}>
-                        {evt.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="p-4 space-y-1">
-                    <h3 className="font-serif text-[15px] text-foreground leading-tight">{evt.name}</h3>
-                    <p className="text-[11px] text-muted-foreground tracking-wide">
-                      {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date"}
-                      {evt.location ? ` · ${evt.location}` : ""}
-                    </p>
-                    <p className="text-[10px] text-primary tracking-wider">
-                      {evt.photo_count || 0} photos
-                    </p>
+          <div>
+            {events.map((evt, i) => (
+              <button
+                key={evt.id}
+                onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  padding: 0,
+                  borderBottom: i < events.length - 1 ? "1px solid #F0EDE8" : "none",
+                }}
+              >
+                {/* Cover image */}
+                {evt.cover_url ? (
+                  <div style={{ width: "100%", aspectRatio: "16/9", overflow: "hidden", position: "relative" }}>
+                    <LazyImage
+                      src={evt.cover_url}
+                      alt={evt.name}
+                      aspectRatio="16/9"
+                      objectFit="cover"
+                      imgClassName="transition-transform duration-500 hover:scale-[1.02]"
+                    />
                   </div>
-                </button>
-              </FadeCard>
+                ) : (
+                  <div style={{ width: "100%", aspectRatio: "16/9", background: "#F8F6F3", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, color: "#E0DCD5", fontStyle: "italic" }}>
+                      {evt.name.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                {/* Info */}
+                <div style={{ padding: "16px 0 24px" }}>
+                  <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1C1C1E", margin: 0 }}>
+                    {evt.name}
+                  </h3>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#999999", marginTop: 4 }}>
+                    {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date"}
+                    {evt.location ? ` · ${evt.location}` : ""}
+                  </p>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#C8A97E", marginTop: 4 }}>
+                    {evt.photo_count || 0} photos
+                  </p>
+                </div>
+              </button>
             ))}
           </div>
         )}
