@@ -58,7 +58,7 @@ const LandingGate = lazy(() => import("./pages/LandingGate"));
 const ClientPreview = lazy(() => import("./pages/ClientPreview"));
 // DomainSettings removed
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
-// WebsiteBuilder removed
+const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
 const Reflections = lazy(() => import("./pages/Reflections"));
 const EntiranBusiness = lazy(() => import("./pages/EntiranBusiness"));
 const PublicGalleryView = lazy(() => import("./pages/public/PublicGalleryView"));
@@ -612,7 +612,14 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
-            {/* WebsiteBuilder route removed */}
+            <Route
+              path="/dashboard/website-builder"
+              element={
+                <ProtectedRoute>
+                  <WebsiteBuilder />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/event/:slug"
