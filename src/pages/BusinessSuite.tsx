@@ -94,7 +94,7 @@ const BusinessSuite = () => {
           </TabsContent>
 
           <TabsContent value="portfolio">
-            <PortfolioManager />
+            <div className="text-center py-12 text-muted-foreground">Portfolio manager removed</div>
           </TabsContent>
 
           <TabsContent value="pricing">

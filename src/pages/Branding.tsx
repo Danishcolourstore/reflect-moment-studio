@@ -7,8 +7,8 @@ import { Check, Globe, ExternalLink, Sparkles, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { templatePreviews } from '@/assets/templates';
-import { type WebsiteTemplateValue } from '@/lib/website-templates';
-import { useWebsiteTemplates } from '@/hooks/use-website-templates';
+type WebsiteTemplateValue = string;
+const useWebsiteTemplates = () => ({ data: [] as any[] });
 import { getStudioDisplayUrl } from '@/lib/studio-url';
 
 const Branding = () => {
