@@ -315,18 +315,6 @@ const AppRoutes = () => {
             <Route path="/verify-access" element={<VerifyAccess />} />
             <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/builder-test" element={<BuilderTest />} />
-            <Route
-              path="/refyn"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <Refyn />
-                </Suspense>
-              }
-            />
-            <Route path="/colour-store" element={<ColourStore />} />
-            <Route path="/refyn/steal" element={<Suspense fallback={<PageLoader />}><StyleStealer /></Suspense>} />
-            <Route path="/refyn/styles" element={<Suspense fallback={<PageLoader />}><StyleLibrary /></Suspense>} />
-            <Route path="/retouch-login" element={<RetouchLogin />} />
             <Route path="/preview/:previewId" element={<ClientPreview />} />
             <Route
               path="/home"

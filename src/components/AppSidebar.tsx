@@ -8,7 +8,6 @@ const navItems = [
   { title: "Portfolio", url: "/dashboard/website-editor", icon: Globe },
   { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
   { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
-  { title: "Retouch", url: "/colour-store", icon: Palette },
   { title: "Clients", url: "/dashboard/clients", icon: Users },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/dashboard/profile", icon: Settings },
