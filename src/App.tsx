@@ -29,9 +29,7 @@ const Cheetah = lazy(() => import("./pages/Cheetah"));
 const CheetahLive = lazy(() => import("./pages/CheetahLive"));
 const Branding = lazy(() => import("./pages/Branding"));
 const MorePage = lazy(() => import("./pages/MorePage"));
-const BrandEditor = lazy(() => import("./pages/BrandEditor"));
-const WebsiteEditor = lazy(() => import("./pages/WebsiteEditor"));
-const TemplatePreview = lazy(() => import("./pages/TemplatePreview"));
+// BrandEditor, WebsiteEditor, TemplatePreview removed
 const Profile = lazy(() => import("./pages/Profile"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
