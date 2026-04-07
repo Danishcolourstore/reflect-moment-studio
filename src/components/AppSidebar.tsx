@@ -6,7 +6,6 @@ const navItems = [
   { title: "Home", url: "/home", icon: Home },
   { title: "Events", url: "/dashboard/events", icon: Camera },
   { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
-  { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
   { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
   { title: "Clients", url: "/dashboard/clients", icon: Users },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
