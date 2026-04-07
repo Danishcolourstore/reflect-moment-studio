@@ -1,4 +1,5 @@
 import { type TemplateConfig } from '@/lib/website-templates';
+import { getPortfolioImages } from '@/lib/website-demo-images';
 
 interface PortfolioSectionProps {
   template: TemplateConfig;
@@ -6,21 +7,9 @@ interface PortfolioSectionProps {
   id?: string;
 }
 
-const DEMO_IMAGES = [
-  'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80',
-  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80',
-  'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80',
-  'https://images.unsplash.com/photo-1529636798458-92182e662485?w=800&q=80',
-  'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=800&q=80',
-  'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800&q=80',
-  'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=800&q=80',
-  'https://images.unsplash.com/photo-1544078751-58fee2d8a03b?w=800&q=80',
-  'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&q=80',
-];
-
 export function PortfolioSection({ template, images, id }: PortfolioSectionProps) {
   const t = template;
-  const imgs = images && images.length > 0 ? images : DEMO_IMAGES;
+  const imgs = images && images.length > 0 ? images : getPortfolioImages(t.id);
   const variant = t.sections.portfolio;
   const gap = t.extras.portfolioGap ?? 6;
 
