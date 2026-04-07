@@ -2,7 +2,7 @@
  * Draggable, rotatable design element overlay for Grid Builder.
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, memo } from 'react';
 import { RotateCw, Trash2 } from 'lucide-react';
 import type { DesignElement } from './element-types';
 
@@ -15,7 +15,7 @@ interface Props {
   onDelete: () => void;
 }
 
-export default function ElementOverlay({ element, selected, containerRef, onUpdate, onSelect, onDelete }: Props) {
+const ElementOverlay = memo(function ElementOverlay({ element, selected, containerRef, onUpdate, onSelect, onDelete }: Props) {
   const [dragState, setDragState] = useState<{
     type: 'move' | 'rotate' | 'resize';
     startX: number; startY: number;

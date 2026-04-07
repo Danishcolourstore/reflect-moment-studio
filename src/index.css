@@ -151,3 +151,9 @@
   background: #F0EFEB;
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
+
+/* Grid Builder panel slide-up */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0.5; }
+  to { transform: translateY(0); opacity: 1; }
+}
