@@ -141,7 +141,7 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
               left: 0,
               right: 0,
               zIndex: 50,
-              height: 52,
+              height: 60,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -168,15 +168,15 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
               aria-label="Menu"
             >
               <Menu style={{
-                width: 20, height: 20,
-                color: isImmersiveMobile ? "rgba(255,255,255,0.8)" : "hsl(48, 7%, 10%)",
-              }} strokeWidth={1.5} />
+                width: 24, height: 24,
+                color: "hsl(48, 7%, 10%)",
+              }} strokeWidth={2} />
             </button>
 
             <span style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "0.95rem", fontWeight: 400,
-              letterSpacing: "0.28em",
+              fontSize: "1.15rem", fontWeight: 600,
+              letterSpacing: "0.22em",
               textTransform: "uppercase",
               color: "hsl(48, 7%, 10%)",
             }}>

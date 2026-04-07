@@ -164,11 +164,11 @@ export default function LandingGate() {
           }
         `}</style>
 
-        {/* Transparent overlay header */}
+        {/* Bold overlay header */}
         <nav style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          height: 48, padding: "0 16px",
+          height: 60, padding: "0 20px",
           paddingTop: "env(safe-area-inset-top)",
           background: scrolled ? "rgba(10,10,11,0.85)" : "transparent",
           backdropFilter: scrolled ? "blur(12px)" : "none",
@@ -176,16 +176,16 @@ export default function LandingGate() {
           transition: "background 0.3s ease, backdrop-filter 0.3s ease",
         }}>
           <button onClick={drawer.toggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
-            <Menu style={{ width: 18, height: 18, color: "rgba(255,255,255,0.7)" }} strokeWidth={1.5} />
+            <Menu style={{ width: 24, height: 24, color: "rgba(255,255,255,0.9)" }} strokeWidth={2} />
           </button>
           <span style={{
-            fontFamily: "'Cormorant Garamond', serif", fontSize: 14, fontWeight: 400,
-            color: "rgba(255,255,255,0.85)", letterSpacing: "0.04em",
+            fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 600,
+            color: "#fff", letterSpacing: "0.18em", textTransform: "uppercase",
           }}>
             {profileName}
           </span>
           <button onClick={handleShare} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
-            <Share style={{ width: 16, height: 16, color: "rgba(255,255,255,0.5)" }} strokeWidth={1.5} />
+            <Share style={{ width: 20, height: 20, color: "rgba(255,255,255,0.7)" }} strokeWidth={2} />
           </button>
         </nav>
 
@@ -246,18 +246,26 @@ export default function LandingGate() {
                   background: "linear-gradient(to top, #0a0a0b, transparent)",
                   pointerEvents: "none",
                 }} />
-                {/* Studio name overlay */}
+                {/* Studio name overlay — big and bold */}
                 <div style={{
-                  position: "absolute", bottom: 20, left: 0, right: 0,
+                  position: "absolute", bottom: 28, left: 0, right: 0,
                   textAlign: "center", pointerEvents: "none",
                 }}>
-                  <span style={{
+                  <h1 style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 18, fontWeight: 300, letterSpacing: "0.06em",
-                    color: "rgba(255,255,255,0.6)",
+                    fontSize: 32, fontWeight: 600, letterSpacing: "0.15em",
+                    color: "#fff", textTransform: "uppercase", margin: 0,
                   }}>
                     {profileName}
-                  </span>
+                  </h1>
+                  <p style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: 11, fontWeight: 500, letterSpacing: "0.25em",
+                    color: "rgba(255,255,255,0.5)", textTransform: "uppercase",
+                    marginTop: 8,
+                  }}>
+                    Wedding Photography
+                  </p>
                 </div>
               </div>
             )}
