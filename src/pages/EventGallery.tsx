@@ -386,9 +386,6 @@ function EmptyFavorites() {
         <Heart className="h-7 w-7 text-muted-foreground/20" />
       </div>
       <p className="font-serif text-base text-muted-foreground/50">No favorites yet</p>
-      <p className="mt-1.5 text-[11px] text-muted-foreground/35 max-w-[240px] mx-auto">
-        Tap the heart icon on any photo to save it to your favorites collection
-      </p>
     </div>
   );
 }
