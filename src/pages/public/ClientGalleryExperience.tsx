@@ -284,7 +284,7 @@ function HeroSection({
         className="absolute bottom-0 left-0 right-0"
         style={{
           background:
-            "linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 100%)",
+            "linear-gradient(to top, rgba(0,0,0,0.25) 0%, transparent 100%)",
           padding: "80px 24px 24px",
         }}
       >
@@ -294,7 +294,6 @@ function HeroSection({
             fontSize: "clamp(28px, 4vw, 40px)",
             fontWeight: 300,
             color: "#FFFFFF",
-            textShadow: "0 1px 3px rgba(0,0,0,0.5)",
           }}
         >
           {eventName}
@@ -307,7 +306,7 @@ function HeroSection({
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               color: "#FFFFFF",
-              opacity: 0.8,
+              opacity: 0.6,
               marginTop: 6,
             }}
           >
@@ -320,14 +319,14 @@ function HeroSection({
       <button
         onClick={onScrollDown}
         className="absolute left-1/2 -translate-x-1/2"
-        style={{ bottom: 32 }}
+        style={{ bottom: 24 }}
         aria-label="Scroll down"
       >
         <ChevronDown
           size={20}
           color="#FFFFFF"
           style={{
-            opacity: 0.4,
+            opacity: 0.3,
             animation: "galleryBounce 2s infinite ease-in-out",
           }}
         />
@@ -339,7 +338,7 @@ function HeroSection({
 /* ─── Chapter Marker ─── */
 function ChapterMarker({ name }: { name: string }) {
   return (
-    <div className="flex flex-col items-center" style={{ padding: "64px 0 40px" }}>
+    <div className="flex flex-col items-center" style={{ padding: "48px 0 32px" }}>
       <div
         style={{
           width: 4,
@@ -352,23 +351,14 @@ function ChapterMarker({ name }: { name: string }) {
         className="text-center"
         style={{
           fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 20,
+          fontSize: 18,
           fontWeight: 300,
-          color: "#1A1917",
+          color: "#94918B",
           marginTop: 16,
         }}
       >
         {name}
       </h2>
-      <div
-        style={{
-          width: 4,
-          height: 4,
-          borderRadius: "50%",
-          background: "#E8E6E1",
-          marginTop: 16,
-        }}
-      />
     </div>
   );
 }
@@ -463,10 +453,10 @@ function GalleryImage({
         <div
           className="absolute"
           style={{
-            bottom: 8,
-            right: 8,
-            width: 8,
-            height: 8,
+            bottom: 6,
+            right: 6,
+            width: 6,
+            height: 6,
             borderRadius: "50%",
             background: "#B8953F",
           }}
@@ -522,7 +512,7 @@ function EditorialGrid({
         // Row 1: single full width
         const p = photos[i];
         groups.push(
-          <div key={`row-${startIdx}-${rowKey}`} style={{ marginBottom: 40, minHeight: 200 }}>
+          <div key={`row-${startIdx}-${rowKey}`} style={{ marginBottom: 24, minHeight: 200 }}>
             <GalleryImage
               src={p.url}
               alt={`Photo from gallery`}
@@ -541,7 +531,7 @@ function EditorialGrid({
           <div
             key={`row-${startIdx}-${rowKey}`}
             className="grid grid-cols-2"
-            style={{ gap: 6, marginBottom: 6 }}
+            style={{ gap: 4, marginBottom: 4 }}
           >
             {photos.slice(i, i + 2).map((p) => (
               <div key={p.id} className="aspect-[3/2] overflow-hidden">
@@ -565,7 +555,7 @@ function EditorialGrid({
           <div
             key={`row-${startIdx}-${rowKey}`}
             className="grid grid-cols-2"
-            style={{ gap: 6, marginBottom: 40 }}
+            style={{ gap: 4, marginBottom: 20 }}
           >
             {photos.slice(i, i + 2).map((p) => (
               <div key={p.id} className="aspect-[3/2] overflow-hidden">
@@ -589,7 +579,7 @@ function EditorialGrid({
           <div
             key={`row-${startIdx}-${rowKey}`}
             className="grid grid-cols-3"
-            style={{ gap: 6, marginBottom: 6 }}
+            style={{ gap: 4, marginBottom: 4 }}
           >
             {photos.slice(i, i + 3).map((p) => (
               <div key={p.id} className="aspect-[3/2] overflow-hidden">
@@ -613,7 +603,7 @@ function EditorialGrid({
           <div
             key={`row-${startIdx}-${rowKey}`}
             className="grid grid-cols-2"
-            style={{ gap: 6, marginBottom: 40 }}
+            style={{ gap: 4, marginBottom: 20 }}
           >
             {photos.slice(i, i + 2).map((p) => (
               <div key={p.id} className="aspect-[3/2] overflow-hidden">
@@ -635,7 +625,7 @@ function EditorialGrid({
         // Remaining: show individually
         const p = photos[i];
         groups.push(
-          <div key={`row-${startIdx}-${rowKey}`} style={{ marginBottom: 40 }}>
+          <div key={`row-${startIdx}-${rowKey}`} style={{ marginBottom: 24 }}>
             <GalleryImage
               src={p.url}
               alt="Photo from gallery"
@@ -699,7 +689,7 @@ function ChapterNav({
     <div
       className="fixed z-50 flex flex-col items-end gap-3 hidden min-[375px]:flex"
       style={{
-        right: 12,
+        right: 8,
         top: "50%",
         transform: "translateY(-50%)",
         opacity: visible ? 1 : 0,
@@ -718,10 +708,10 @@ function ChapterNav({
           <span
             style={{
               fontFamily: "'DM Sans', sans-serif",
-              fontSize: 9,
+              fontSize: 8,
               textTransform: "uppercase",
               letterSpacing: "0.1em",
-              color: i === activeIndex ? "#1A1917" : "#C4C1BB",
+              color: i === activeIndex ? "#1A1917" : "#D4D1CB",
               transition: "color 0.2s ease",
             }}
           >
@@ -729,8 +719,8 @@ function ChapterNav({
           </span>
           <div
             style={{
-              width: 6,
-              height: 6,
+              width: 5,
+              height: 5,
               borderRadius: "50%",
               background: i === activeIndex ? "#B8953F" : "#E8E6E1",
               transition: "background 0.2s ease",
@@ -918,12 +908,12 @@ function ImageViewer({
             className="flex items-center justify-center"
             aria-label="Close viewer"
           >
-            <X size={24} color="#F5F5F5" />
+            <X size={20} color="#F5F5F5" />
           </button>
           <span
             style={{
               fontFamily: "'DM Sans', sans-serif",
-              fontSize: 12,
+              fontSize: 11,
               color: "#94918B",
             }}
           >
@@ -933,7 +923,7 @@ function ImageViewer({
 
         {/* Bottom bar */}
         <div
-          className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-14 pointer-events-auto"
+          className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-12 pointer-events-auto"
           style={{ paddingBottom: 32 }}
         >
           <button
@@ -943,7 +933,7 @@ function ImageViewer({
             aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
           >
             <Heart
-              size={24}
+              size={20}
               color={isFav ? "#B8953F" : "#F5F5F5"}
               fill={isFav ? "#B8953F" : "none"}
             />
@@ -955,7 +945,7 @@ function ImageViewer({
               className="flex items-center justify-center"
               aria-label="Download photo"
             >
-              <Download size={24} color="#F5F5F5" />
+              <Download size={20} color="#F5F5F5" />
             </button>
           )}
         </div>
@@ -965,24 +955,24 @@ function ImageViewer({
           <button
             className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center pointer-events-auto"
             onClick={() => onNavigate(currentIndex - 1)}
-            style={{ minWidth: 44, minHeight: 44, opacity: 0.4 }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.4")}
+            style={{ minWidth: 44, minHeight: 44, opacity: 0.3 }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.3")}
             aria-label="Previous photo"
           >
-            <ChevronLeft size={32} color="#F5F5F5" />
+            <ChevronLeft size={28} color="#F5F5F5" />
           </button>
         )}
         {currentIndex < photos.length - 1 && (
           <button
             className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center pointer-events-auto"
             onClick={() => onNavigate(currentIndex + 1)}
-            style={{ minWidth: 44, minHeight: 44, opacity: 0.4 }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.4")}
+            style={{ minWidth: 44, minHeight: 44, opacity: 0.3 }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.3")}
             aria-label="Next photo"
           >
-            <ChevronRight size={32} color="#F5F5F5" />
+            <ChevronRight size={28} color="#F5F5F5" />
           </button>
         )}
       </div>
@@ -1080,12 +1070,12 @@ function FavoritesDrawer({
           <h2
             style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: 300,
               color: "#1A1917",
             }}
           >
-            Your Selections
+            Selections
           </h2>
           <p
             style={{
@@ -1101,7 +1091,7 @@ function FavoritesDrawer({
           {/* Thumbnail grid */}
           <div
             className="grid grid-cols-4"
-            style={{ gap: 4, marginTop: 24 }}
+            style={{ gap: 3, marginTop: 24 }}
           >
             {favPhotos.map((p) => {
               const globalIdx = allPhotos.findIndex((ap) => ap.id === p.id);
@@ -1212,7 +1202,6 @@ function FavoritesPill({
       }}
       aria-label={`${count} favorites`}
     >
-      <Heart size={14} fill="#B8953F" color="#B8953F" />
       <span
         style={{
           fontFamily: "'Cormorant Garamond', serif",
@@ -1237,12 +1226,12 @@ function GalleryFooter({
   return (
     <div
       className="flex flex-col items-center"
-      style={{ padding: "80px 24px 40px", background: "#FFFFFF" }}
+      style={{ padding: "64px 24px 40px", background: "#FFFFFF" }}
     >
       <h3
         style={{
           fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 24,
+          fontSize: 20,
           fontWeight: 300,
           color: "#1A1917",
         }}
@@ -1261,21 +1250,9 @@ function GalleryFooter({
           {studioName}
         </p>
       )}
-      {studioLogoUrl && (
-        <img
-          src={studioLogoUrl}
-          alt=""
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: "50%",
-            objectFit: "cover",
-            marginTop: 16,
-          }}
-        />
-      )}
+      {/* Logo removed for minimal feel */}
 
-      <div style={{ marginTop: 80 }}>
+      <div style={{ marginTop: 48 }}>
         <a
           href="https://mirrorai.com"
           target="_blank"
@@ -1285,7 +1262,7 @@ function GalleryFooter({
             fontSize: 9,
             textTransform: "uppercase",
             letterSpacing: "0.15em",
-            color: "#C4C1BB",
+            color: "#D4D1CB",
             textDecoration: "none",
           }}
         >
@@ -1511,7 +1488,6 @@ export default function ClientGalleryExperience() {
             overflow: "hidden",
           }}
         >
-          <div style={{ width: "100%", height: "100%", background: "#B8953F" }} />
         </div>
       </div>
     );
