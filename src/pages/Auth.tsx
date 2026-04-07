@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { colors, fonts } from "@/styles/design-tokens";
 
 interface AuthProps {
@@ -35,7 +36,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
     setLoading(true); setError(""); setMessage("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setError(error.message);
-    else navigate("/verify-access");
+    else navigate("/home");
     setLoading(false);
   };
 
@@ -43,7 +44,22 @@ const Auth = function Auth({ initialView }: AuthProps) {
     setLoading(true); setError(""); setMessage("");
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) setError(error.message);
-    else navigate("/verify-otp");
+    else setMessage("Check your email to confirm your account, then sign in.");
+    setLoading(false);
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true); setError("");
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setError(result.error instanceof Error ? result.error.message : "Google sign-in failed");
+      setLoading(false);
+      return;
+    }
+    if (result.redirected) return;
+    navigate("/home");
     setLoading(false);
   };
 
