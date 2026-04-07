@@ -53,7 +53,6 @@ const NAV_SECTIONS = [
     items: [
       { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
       { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
-      { title: "Retouch", url: "/colour-store", icon: Palette },
     ],
   },
   {
