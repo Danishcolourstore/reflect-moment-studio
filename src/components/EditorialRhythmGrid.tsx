@@ -1,14 +1,14 @@
 /**
  * Editorial Rhythm Grid
- * Lays out photos in a repeating visual story pattern:
- *   1. Full-width hero
- *   2. Two-up pair
- *   3. Three-up row
- *   4. Full-width hero
+ * Immersive, edge-to-edge photo layout with editorial rhythm:
+ *   1. Full-width hero (3/2)
+ *   2. Two-up pair (1/1)
+ *   3. Two-up pair (1/1)
+ *   4. Three-up row (4/5)
  *   ... repeat
  *
- * Between each "section" there's breathing space (40px).
- * Inside rows the gap is tight (6px).
+ * Mobile: 8px internal gaps, 32px between sections, edge-to-edge.
+ * Desktop: 6px internal gaps, 40px between sections.
  */
 
 import { useRef, useState, useEffect, ReactNode } from "react";
@@ -26,14 +26,12 @@ interface EditorialRhythmGridProps {
 
 function RevealImage({
   src,
-  alt,
   eager,
   aspectHint,
   onClick,
   overlay,
 }: {
   src: string;
-  alt?: string;
   eager?: boolean;
   aspectHint?: string;
   onClick: () => void;
@@ -52,7 +50,7 @@ function RevealImage({
           obs.disconnect();
         }
       },
-      { rootMargin: "120px", threshold: 0.05 }
+      { rootMargin: "200px", threshold: 0.01 }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -73,7 +71,7 @@ function RevealImage({
     >
       <img
         src={src}
-        alt={alt || ""}
+        alt=""
         loading={eager ? "eager" : "lazy"}
         decoding="async"
         style={{
@@ -82,8 +80,8 @@ function RevealImage({
           objectFit: "cover",
           display: "block",
           opacity: visible ? 1 : 0,
-          transform: visible ? "scale(1)" : "scale(1.02)",
-          transition: "opacity 0.6s cubic-bezier(0.4,0,0.2,1), transform 0.8s cubic-bezier(0.4,0,0.2,1)",
+          transform: visible ? "scale(1)" : "scale(1.01)",
+          transition: "opacity 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.6s cubic-bezier(0.4,0,0.2,1)",
         }}
       />
       {overlay}
@@ -92,13 +90,11 @@ function RevealImage({
 }
 
 /**
- * The pattern repeats every 6 photos:
- *   [0]       → full-width hero (3/2 aspect)
- *   [1, 2]    → two-up pair    (1/1 aspect)
- *   [3, 4, 5] → three-up row   (4/5 aspect)
- *
- * If there aren't enough photos to fill a section,
- * it gracefully degrades.
+ * Pattern repeats every 8 photos:
+ *   [0]       → full-width hero  (3/2)
+ *   [1, 2]    → two-up pair      (1/1)
+ *   [3, 4]    → two-up pair      (1/1)
+ *   [5, 6, 7] → three-up row     (4/5)
  */
 export function EditorialRhythmGrid({ photos, onPhotoClick, renderOverlay }: EditorialRhythmGridProps) {
   if (photos.length === 0) return null;
@@ -108,7 +104,7 @@ export function EditorialRhythmGrid({ photos, onPhotoClick, renderOverlay }: Edi
   let sectionIndex = 0;
 
   while (cursor < photos.length) {
-    const patternStep = sectionIndex % 3;
+    const patternStep = sectionIndex % 4;
 
     if (patternStep === 0) {
       // Full-width hero
@@ -126,11 +122,11 @@ export function EditorialRhythmGrid({ photos, onPhotoClick, renderOverlay }: Edi
         </div>
       );
       cursor += 1;
-    } else if (patternStep === 1) {
+    } else if (patternStep === 1 || patternStep === 2) {
       // Two-up pair
       const pair = photos.slice(cursor, cursor + 2);
       sections.push(
-        <div key={`pair-${cursor}`} style={{ display: "grid", gridTemplateColumns: `repeat(${pair.length}, 1fr)`, gap: 6 }}>
+        <div key={`pair-${cursor}`} className="grid gap-[8px] md:gap-[6px]" style={{ gridTemplateColumns: `repeat(${pair.length}, 1fr)` }}>
           {pair.map((photo, j) => {
             const idx = cursor + j;
             return (
@@ -150,7 +146,7 @@ export function EditorialRhythmGrid({ photos, onPhotoClick, renderOverlay }: Edi
       // Three-up row
       const trio = photos.slice(cursor, cursor + 3);
       sections.push(
-        <div key={`trio-${cursor}`} style={{ display: "grid", gridTemplateColumns: `repeat(${trio.length}, 1fr)`, gap: 6 }}>
+        <div key={`trio-${cursor}`} className="grid gap-[8px] md:gap-[6px]" style={{ gridTemplateColumns: `repeat(${trio.length}, 1fr)` }}>
           {trio.map((photo, j) => {
             const idx = cursor + j;
             return (
@@ -172,7 +168,7 @@ export function EditorialRhythmGrid({ photos, onPhotoClick, renderOverlay }: Edi
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+    <div className="flex flex-col gap-[32px] md:gap-[40px]">
       {sections}
     </div>
   );

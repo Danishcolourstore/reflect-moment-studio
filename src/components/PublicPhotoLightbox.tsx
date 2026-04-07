@@ -30,7 +30,6 @@ export function PublicPhotoLightbox({
   const touchDeltaY = useRef(0);
   const lastTap = useRef(0);
 
-  // Auto-hide UI
   const resetUiTimer = useCallback(() => {
     setUiVisible(true);
     clearTimeout(hideTimer.current);
@@ -71,7 +70,7 @@ export function PublicPhotoLightbox({
     return () => window.removeEventListener("keydown", handler);
   }, [onClose, onNavigate, currentIndex, total]);
 
-  // Touch handlers — swipe left/right to navigate, swipe down to close
+  // Touch — swipe left/right to navigate, down to close
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -86,7 +85,7 @@ export function PublicPhotoLightbox({
     const dx = touchDeltaX.current;
     const dy = touchDeltaY.current;
     if (dy > 80 && Math.abs(dy) > Math.abs(dx)) {
-      onClose(); // swipe down to close
+      onClose();
     } else if (dx > 60 && currentIndex > 0) {
       onNavigate(currentIndex - 1);
     } else if (dx < -60 && currentIndex < total - 1) {
@@ -100,7 +99,7 @@ export function PublicPhotoLightbox({
     if (now - lastTap.current < 300 && current) {
       onToggleFavorite(current.id);
       setFavAnim(true);
-      setTimeout(() => setFavAnim(false), 600);
+      setTimeout(() => setFavAnim(false), 550);
     } else {
       resetUiTimer();
     }
@@ -113,63 +112,61 @@ export function PublicPhotoLightbox({
     <AnimatePresence>
       <motion.div
         className="fixed inset-0 z-[200] flex items-center justify-center"
-        style={{ background: "#050505" }}
+        style={{ background: "#0A0A0A" }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.4, ease }}
+        transition={{ duration: 0.3, ease }}
         onClick={handleTap}
       >
-        {/* UI overlay — auto-hides */}
+        {/* UI overlay — auto-hides after 2.5s */}
         <motion.div
           className="absolute inset-0 z-10 pointer-events-none"
           animate={{ opacity: uiVisible ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.25 }}
         >
-          {/* Top bar */}
+          {/* Top bar — counter + close */}
           <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pointer-events-auto" style={{ height: 56 }}>
-            {/* Counter */}
             <span style={{
               fontFamily: "'DM Sans', sans-serif",
-              fontSize: 11,
-              letterSpacing: "0.1em",
-              color: "rgba(255,255,255,0.3)",
+              fontSize: 11, letterSpacing: "0.1em",
+              color: "rgba(255,255,255,0.25)",
             }}>
               {currentIndex + 1} / {total}
             </span>
+            <button
+              onClick={(e) => { e.stopPropagation(); onClose(); }}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 10 }}
+            >
+              <X style={{ width: 18, height: 18, color: "rgba(255,255,255,0.25)" }} />
+            </button>
+          </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-1">
-              {current && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onToggleFavorite(current.id); resetUiTimer(); }}
-                  style={{ background: "none", border: "none", cursor: "pointer", padding: 10 }}
-                >
-                  <Heart style={{
-                    width: 18, height: 18,
-                    color: isFav ? "hsl(0, 70%, 55%)" : "rgba(255,255,255,0.3)",
-                    fill: isFav ? "hsl(0, 70%, 55%)" : "none",
-                    transition: "all 0.2s",
-                  }} />
-                </button>
-              )}
-              {showDownload && current && (
-                <a
-                  href={current.url}
-                  download
-                  onClick={(e) => { e.stopPropagation(); resetUiTimer(); }}
-                  style={{ background: "none", border: "none", cursor: "pointer", padding: 10, display: "flex" }}
-                >
-                  <Download style={{ width: 18, height: 18, color: "rgba(255,255,255,0.3)" }} />
-                </a>
-              )}
+          {/* Bottom bar — favorite + download */}
+          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-6 pointer-events-auto" style={{ height: 64, paddingBottom: 8 }}>
+            {current && (
               <button
-                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite(current.id); resetUiTimer(); }}
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 10 }}
               >
-                <X style={{ width: 18, height: 18, color: "rgba(255,255,255,0.3)" }} />
+                <Heart style={{
+                  width: 20, height: 20,
+                  color: isFav ? "#B8953F" : "rgba(255,255,255,0.25)",
+                  fill: isFav ? "#B8953F" : "none",
+                  transition: "all 0.2s",
+                }} />
               </button>
-            </div>
+            )}
+            {showDownload && current && (
+              <a
+                href={current.url}
+                download
+                onClick={(e) => { e.stopPropagation(); resetUiTimer(); }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 10, display: "flex" }}
+              >
+                <Download style={{ width: 20, height: 20, color: "rgba(255,255,255,0.25)" }} />
+              </a>
+            )}
           </div>
         </motion.div>
 
@@ -180,10 +177,10 @@ export function PublicPhotoLightbox({
               className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.3 }}
-              transition={{ duration: 0.4, ease }}
+              exit={{ opacity: 0, scale: 1.2 }}
+              transition={{ duration: 0.35, ease }}
             >
-              <Heart style={{ width: 64, height: 64, color: "hsl(0, 70%, 55%)", fill: "hsl(0, 70%, 55%)" }} />
+              <Heart style={{ width: 56, height: 56, color: "#B8953F", fill: "#B8953F" }} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -201,14 +198,14 @@ export function PublicPhotoLightbox({
             onClick={(e) => e.stopPropagation()}
             className="select-none"
             style={{
-              maxWidth: "96vw",
-              maxHeight: "96vh",
+              maxWidth: "100vw",
+              maxHeight: "100vh",
               objectFit: "contain",
             }}
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.35, ease }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease }}
           />
         )}
       </motion.div>
