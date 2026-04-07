@@ -29,8 +29,8 @@ export function MobileBottomNav() {
         right: 0,
         bottom: 0,
         zIndex: 40,
-        background: "#FFFFFF",
-        borderTop: "1px solid #E8E6E1",
+        background: "hsl(0, 0%, 100%)",
+        borderTop: "1px solid hsl(37, 10%, 90%)",
         height: 64,
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         display: "flex",
@@ -63,7 +63,7 @@ export function MobileBottomNav() {
             <Icon
               size={20}
               strokeWidth={1.5}
-              style={{ color: active ? "#1A1917" : "#94918B" }}
+              style={{ color: active ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 56%)" }}
             />
             <span
               style={{
@@ -71,7 +71,7 @@ export function MobileBottomNav() {
                 fontSize: 10,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: active ? "#1A1917" : "#94918B",
+                color: active ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 56%)",
                 fontWeight: 400,
               }}
             >

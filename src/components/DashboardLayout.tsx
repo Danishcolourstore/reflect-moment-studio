@@ -67,9 +67,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         fontWeight: 400,
         letterSpacing: "0.15em",
         textTransform: "uppercase",
-        color: "#C4C1BB",
+        color: "hsl(35, 4%, 56%)",
         padding: "0 24px",
-        marginTop: 32,
+        marginTop: 40,
         marginBottom: 8,
       }}
     >
@@ -82,8 +82,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       key={item.url}
       to={item.url}
       end={item.end}
-      className="flex items-center gap-3 transition-colors duration-200 text-[#94918B] hover:text-[#1A1917]"
-      activeClassName="!text-[#1A1917] !border-l-2 !border-l-[#B8953F]"
+      className="flex items-center gap-3 transition-colors duration-200"
+      activeClassName="!border-l-2"
       style={{
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 13,
@@ -95,6 +95,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         gap: 12,
         textDecoration: "none",
         borderLeft: "2px solid transparent",
+        color: "hsl(35, 4%, 56%)",
       }}
     >
       <item.icon size={18} strokeWidth={1.5} />
@@ -104,7 +105,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <EntiranProvider>
-      <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
+      <div className="min-h-screen" style={{ background: "hsl(45, 14%, 97%)" }}>
         {/* ── Sidebar (Desktop) ── */}
         {showSidebar && (
           <aside
@@ -115,8 +116,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               zIndex: 30,
               height: "100vh",
               width: 240,
-              background: "#FFFFFF",
-              borderRight: "1px solid #E8E6E1",
+              background: "hsl(0, 0%, 100%)",
+              borderRight: "1px solid hsl(37, 10%, 90%)",
               display: "flex",
               flexDirection: "column",
             }}
@@ -129,7 +130,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   fontSize: 20,
                   fontWeight: 400,
                   letterSpacing: "0.05em",
-                  color: "#1A1917",
+                  color: "hsl(48, 7%, 10%)",
                 }}
               >
                 MirrorAI
@@ -160,12 +161,12 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   fontSize: 12,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
-                  color: "#94918B",
+                  color: "hsl(35, 4%, 56%)",
                   padding: "8px 0",
                   transition: "color 0.2s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1917")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#94918B")}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(48, 7%, 10%)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(35, 4%, 56%)")}
               >
                 <LogOut size={16} strokeWidth={1.5} />
                 Sign Out

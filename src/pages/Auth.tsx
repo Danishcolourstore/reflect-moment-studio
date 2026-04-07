@@ -152,9 +152,8 @@ const Auth = function Auth({ initialView }: AuthProps) {
             background: "rgba(10,10,11,0.7)",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
-            borderRadius: 16,
             border: `1px solid ${colors.border}`,
-            padding: "28px 20px",
+            padding: "32px 24px",
             opacity: phase >= 4 ? 1 : 0,
             transform: phase >= 4 ? "translateY(0)" : "translateY(6px)",
             transition: "opacity 1s ease-out, transform 1s ease-out",
@@ -185,7 +184,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
 
           <form
             onSubmit={(e) => { e.preventDefault(); submit(); }}
-            style={{ display: "flex", flexDirection: "column", gap: 18 }}
+            style={{ display: "flex", flexDirection: "column", gap: 16 }}
           >
             <input
               type="email" value={email}
@@ -211,7 +210,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
                 style={{
                   background: "none", border: "none", cursor: "pointer",
                   color: colors.textMuted, fontSize: 12, fontFamily: fonts.body,
-                  textAlign: "right", padding: 0, marginTop: -6,
+                  textAlign: "right", padding: 0,
                 }}
               >
                 Forgot password?
@@ -221,17 +220,16 @@ const Auth = function Auth({ initialView }: AuthProps) {
             <button
               type="submit" disabled={loading}
               style={{
-                width: "100%", height: 48, borderRadius: 10,
+                width: "100%", height: 48,
                 border: "none", background: colors.gold, color: colors.bg,
-                fontFamily: fonts.body, fontSize: 15, fontWeight: 600,
-                letterSpacing: "0.03em",
+                fontFamily: fonts.body, fontSize: 14, fontWeight: 500,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase" as const,
                 cursor: loading ? "wait" : "pointer",
                 opacity: loading ? 0.6 : 1,
-                transition: "opacity 0.15s, box-shadow 0.2s",
-                marginTop: 4,
+                transition: "opacity 0.2s",
+                marginTop: 8,
               }}
-              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.boxShadow = "0 0 24px rgba(200,169,126,0.3)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}
             >
               {loading ? "..." : isSignup ? "Create Account" : "Enter"}
             </button>
@@ -239,7 +237,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
 
           <p
             style={{
-              textAlign: "center", marginTop: 18,
+              textAlign: "center", marginTop: 16,
               fontSize: 14, color: colors.textMuted, fontFamily: fonts.body,
             }}
           >
