@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import {
   ArrowLeft, RotateCcw, Type, Shapes, Palette, Stamp, Instagram,
@@ -28,6 +28,25 @@ import DownloadGridButton from './DownloadGridButton';
 import CarouselExporter from './CarouselExporter';
 import CarouselSliceExporter from './CarouselSliceExporter';
 import { cn } from '@/lib/utils';
+import { memo } from 'react';
+
+/** Stable-callback wrapper so GridCell memo isn't defeated by inline closures */
+const MemoGridCellWrapper = memo(function MemoGridCellWrapper({
+  cell, index, area, onImageAdd, onImageRemove, onOffsetChange,
+}: {
+  cell: GridCellData;
+  index: number;
+  area: [number, number, number, number];
+  onImageAdd: (i: number, f: File) => void;
+  onImageRemove: (i: number) => void;
+  onOffsetChange: (i: number, x: number, y: number, scale?: number) => void;
+}) {
+  const addCb = useCallback((f: File) => onImageAdd(index, f), [index, onImageAdd]);
+  const removeCb = useCallback(() => onImageRemove(index), [index, onImageRemove]);
+  const offsetCb = useCallback((x: number, y: number, scale?: number) => onOffsetChange(index, x, y, scale), [index, onOffsetChange]);
+  const gridArea = `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`;
+  return <GridCell cell={cell} gridArea={gridArea} onImageAdd={addCb} onImageRemove={removeCb} onOffsetChange={offsetCb} />;
+});
 
 interface Props {
   layout: GridLayout;
@@ -272,12 +291,12 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     setLogoSelected(false);
   }, []);
 
-  const toggleTool = (tool: ActiveTool) => setActiveTool((prev) => (prev === tool ? null : tool));
+  const toggleTool = useCallback((tool: ActiveTool) => setActiveTool((prev) => (prev === tool ? null : tool)), []);
 
-  const filledCount = cells.filter((c) => c.imageUrl).length;
+  const filledCount = useMemo(() => cells.filter((c) => c.imageUrl).length, [cells]);
   const hasFrame = !!layout.frame;
   const canvasRatio = layout.canvasRatio || format.ratio;
-  const canvasBg = hasFrame ? layout.frame!.background : bgToCss(background);
+  const canvasBg = useMemo(() => hasFrame ? layout.frame!.background : bgToCss(background), [hasFrame, layout.frame, background]);
 
   const toolButtons: { tool: ActiveTool; Icon: any; label: string }[] = [
     { tool: 'text', Icon: Type, label: 'Text' },
@@ -287,21 +306,21 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     { tool: 'caption', Icon: MessageSquare, label: 'Caption' },
   ];
 
-  // Panel drag handlers
-  const handlePanelDragStart = (e: React.TouchEvent) => {
+  // Panel drag handlers — use refs to avoid re-render during drag
+  const handlePanelDragStart = useCallback((e: React.TouchEvent) => {
     panelDragStart.current = e.touches[0].clientY;
     setPanelDragY(0);
-  };
-  const handlePanelDragMove = (e: React.TouchEvent) => {
+  }, []);
+  const handlePanelDragMove = useCallback((e: React.TouchEvent) => {
     if (panelDragStart.current === null) return;
     const dy = e.touches[0].clientY - panelDragStart.current;
     if (dy > 0) setPanelDragY(dy);
-  };
-  const handlePanelDragEnd = () => {
+  }, []);
+  const handlePanelDragEnd = useCallback(() => {
     if (panelDragY > 80) setActiveTool(null);
     setPanelDragY(0);
     panelDragStart.current = null;
-  };
+  }, [panelDragY]);
 
   // Format dimensions label
   const formatDimLabel = (f: CanvasFormat) => {
@@ -394,16 +413,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </button>
-            <button
-              onClick={handleReset}
-              className={cn(
-                'rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200',
-                isMobile ? 'h-10 w-10' : 'h-8 w-8'
-              )}
-              title="Reset"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-            </button>
             <SmartFillUploader totalCells={cells.length} onFiles={handleSmartFill} />
           </div>
         </div>
@@ -416,11 +425,13 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       >
         <div
           ref={gridRef}
-          className="w-full max-w-[420px] rounded-xl overflow-hidden relative transition-all duration-300"
+          className="w-full max-w-[420px] rounded-xl overflow-hidden relative"
           style={{
             aspectRatio: canvasRatio,
             background: canvasBg,
             boxShadow: '0 12px 48px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06)',
+            willChange: 'auto',
+            containIntrinsicSize: 'auto',
           }}
         >
           {/* Grain overlay */}
@@ -452,13 +463,14 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               }}
             >
               {layout.cells.map((area, i) => (
-                <GridCell
+                <MemoGridCellWrapper
                   key={cells[i].id}
                   cell={cells[i]}
-                  gridArea={`${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`}
-                  onImageAdd={(f) => handleImageAdd(i, f)}
-                  onImageRemove={() => handleImageRemove(i)}
-                  onOffsetChange={(x, y, scale) => handleOffsetChange(i, x, y, scale)}
+                  index={i}
+                  area={area}
+                  onImageAdd={handleImageAdd}
+                  onImageRemove={handleImageRemove}
+                  onOffsetChange={handleOffsetChange}
                 />
               ))}
             </div>
@@ -511,8 +523,12 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       <div className="fixed bottom-[52px] left-0 right-0 z-30">
         {activeTool && (
           <div
-            className="animate-fade-in transition-transform duration-150"
-            style={{ transform: panelDragY > 0 ? `translateY(${panelDragY}px)` : undefined, opacity: panelDragY > 60 ? 0.5 : 1 }}
+            style={{
+              transform: panelDragY > 0 ? `translateY(${panelDragY}px)` : 'translateY(0)',
+              opacity: panelDragY > 60 ? 0.5 : 1,
+              transition: panelDragY > 0 ? 'none' : 'transform 200ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease',
+              animation: 'slideUp 200ms cubic-bezier(0.4,0,0.2,1)',
+            }}
           >
             {/* Drag handle pill */}
             <div
