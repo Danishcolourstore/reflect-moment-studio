@@ -189,7 +189,7 @@ function StandardGridRenderer({
               <button
                 onClick={() => {
                   toggleFavorite(photo.id);
-                  if (!fav) toast({ title: 'Added to Favorites' });
+                  if (!fav) toast({ title: 'Saved to favorites' });
                 }}
                 className="absolute top-2 right-2 z-10 rounded-full bg-black/40 backdrop-blur-md p-1.5 transition-all duration-200 hover:bg-black/60 active:scale-110"
               >
@@ -434,7 +434,7 @@ const EventGallery = () => {
     if (isNow) next.delete(photoId); else next.add(photoId);
     setArtGalleryIds(next);
     await (supabase.from('photos').update({ is_art_gallery: !isNow } as any).eq('id', photoId) as any);
-    toast({ title: isNow ? 'Removed from Art Gallery' : 'Added to Art Gallery' });
+    toast({ title: isNow ? 'Removed from collection' : 'Added to collection' });
   }, [artGalleryIds, toast]);
 
   // Load art gallery flags
@@ -520,7 +520,7 @@ const EventGallery = () => {
       if (id) invalidatePhotoCache(id);
       fetchPhotos(); fetchEvent();
       if (upload.successCount > 0 && upload.failedFiles.length === 0) {
-        toast({ title: 'Upload Complete', description: `${upload.successCount} photo${upload.successCount > 1 ? 's' : ''} added.` });
+        toast({ title: 'Your photos are ready', description: `${upload.successCount} photo${upload.successCount > 1 ? 's' : ''} added.` });
       }
     }
   }, [upload.isDone, upload.successCount, upload.failedFiles.length, fetchPhotos, fetchEvent, toast, id]);
@@ -531,7 +531,7 @@ const EventGallery = () => {
       fetchPhotos(); fetchEvent();
       if (zipUpload.successCount > 0) {
         toast({
-          title: zipUpload.failedCount > 0 ? 'ZIP Upload Finished' : 'ZIP Upload Complete',
+          title: zipUpload.failedCount > 0 ? 'Some photos could not be added' : 'Your photos are ready',
           description: zipUpload.failedCount > 0
             ? `${zipUpload.successCount} uploaded, ${zipUpload.failedCount} failed.`
             : `Successfully uploaded ${zipUpload.successCount} photos!`,
@@ -541,7 +541,7 @@ const EventGallery = () => {
   }, [zipUpload.isDone, zipUpload.successCount, zipUpload.failedCount, fetchPhotos, fetchEvent, toast, id]);
 
   useEffect(() => {
-    if (zipUpload.error) toast({ title: 'ZIP Upload Error', description: zipUpload.error, variant: 'destructive' });
+    if (zipUpload.error) toast({ title: 'Something went wrong', description: zipUpload.error, variant: 'destructive' });
   }, [zipUpload.error, toast]);
 
   /* ── Handlers ── */
@@ -561,7 +561,7 @@ const EventGallery = () => {
     // Delete from database
     const { error: dbError } = await supabase.from('photos').delete().eq('id', photo.id);
     if (dbError) {
-      toast({ title: 'Failed to delete photo', variant: 'destructive' });
+      toast({ title: 'Could not remove photo', variant: 'destructive' });
       return;
     }
 
@@ -611,7 +611,7 @@ const EventGallery = () => {
       toast({ title: `${targetPhotos.length} photos downloaded` });
     } catch (err) {
       console.error('Operation failed:', err);
-      toast({ title: 'Download failed', description: 'Please try again.' });
+      toast({ title: 'Download interrupted', description: 'Please try again.' });
     } finally {
       setDownloading(false); setDownloadProgress('');
     }
@@ -629,7 +629,7 @@ const EventGallery = () => {
       <DashboardLayout>
         <div className="py-24 text-center space-y-4">
           <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary/40" />
-          <p className="text-[11px] text-muted-foreground/40 uppercase tracking-[0.15em]">Loading gallery…</p>
+          <p className="text-[11px] text-muted-foreground/40 uppercase tracking-[0.15em]">Preparing your gallery…</p>
         </div>
       </DashboardLayout>
     );
