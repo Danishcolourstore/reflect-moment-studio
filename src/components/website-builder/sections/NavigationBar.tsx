@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { type TemplateConfig } from '@/lib/website-templates';
+import { Menu, X } from 'lucide-react';
 
 interface NavigationBarProps {
   template: TemplateConfig;
@@ -9,6 +11,7 @@ interface NavigationBarProps {
 export function NavigationBar({ template, studioName, links = [] }: NavigationBarProps) {
   const t = template;
   const variant = t.sections.nav;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const defaultLinks = links.length > 0 ? links : [
     { label: 'Portfolio', href: '#portfolio' },
     { label: 'About', href: '#about' },
@@ -17,10 +20,7 @@ export function NavigationBar({ template, studioName, links = [] }: NavigationBa
 
   if (variant === 'masthead') {
     return (
-      <nav
-        className="w-full py-6 px-6"
-        style={{ backgroundColor: t.colors.navBg }}
-      >
+      <nav className="w-full py-6 px-6" style={{ backgroundColor: t.colors.navBg }}>
         <div className="text-center">
           <div
             className="mb-3"
@@ -34,7 +34,8 @@ export function NavigationBar({ template, studioName, links = [] }: NavigationBa
           >
             {studioName}
           </div>
-          <div className="flex items-center justify-center gap-6">
+          {/* Desktop links */}
+          <div className="hidden sm:flex items-center justify-center gap-6">
             {defaultLinks.map((link) => (
               <a
                 key={link.label}
@@ -53,6 +54,38 @@ export function NavigationBar({ template, studioName, links = [] }: NavigationBa
               </a>
             ))}
           </div>
+          {/* Mobile hamburger */}
+          <div className="sm:hidden flex justify-center">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex items-center justify-center"
+              style={{ minWidth: 44, minHeight: 44, background: 'none', border: 'none', color: t.colors.navText }}
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+          {/* Mobile menu dropdown */}
+          {mobileMenuOpen && (
+            <div className="sm:hidden flex flex-col items-center gap-4 mt-4 pb-2">
+              {defaultLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{
+                    fontFamily: t.fonts.ui,
+                    fontSize: 12,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase' as const,
+                    color: t.colors.navText,
+                    textDecoration: 'none',
+                  }}
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </nav>
     );
@@ -62,8 +95,9 @@ export function NavigationBar({ template, studioName, links = [] }: NavigationBa
 
   return (
     <nav
-      className="w-full flex items-center justify-between px-6 sm:px-10 h-16"
+      className="w-full flex items-center justify-between px-4 sm:px-10"
       style={{
+        minHeight: 56,
         backgroundColor: isTransparent ? 'transparent' : t.colors.navBg,
         borderBottom: isTransparent ? 'none' : `1px solid ${t.colors.border}`,
         position: isTransparent ? 'absolute' : 'relative',
@@ -77,7 +111,7 @@ export function NavigationBar({ template, studioName, links = [] }: NavigationBa
       <div
         style={{
           fontFamily: t.id === 'linen' ? t.fonts.ui : t.fonts.display,
-          fontSize: t.id === 'alabaster' ? 20 : 18,
+          fontSize: t.id === 'alabaster' ? 20 : 'clamp(16px, 3vw, 18px)',
           fontWeight: t.fonts.displayWeight,
           fontStyle: t.fonts.displayStyle,
           letterSpacing: t.id === 'linen' ? '0.08em' : '0.02em',
@@ -88,7 +122,7 @@ export function NavigationBar({ template, studioName, links = [] }: NavigationBa
         {t.id === 'alabaster' ? studioName.split(' ').map(w => w[0]).join('') : studioName}
       </div>
 
-      {/* Links */}
+      {/* Desktop Links */}
       <div className="hidden sm:flex items-center gap-6">
         {defaultLinks.map((link) => (
           <a
@@ -110,7 +144,22 @@ export function NavigationBar({ template, studioName, links = [] }: NavigationBa
         ))}
       </div>
 
-      {/* Book Now (Linen) or separator (Alabaster) */}
+      {/* Mobile hamburger */}
+      <button
+        className="sm:hidden flex items-center justify-center"
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        style={{
+          minWidth: 44,
+          minHeight: 44,
+          background: 'none',
+          border: 'none',
+          color: isTransparent ? t.colors.heroText : t.colors.navText,
+        }}
+      >
+        {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
+      {/* Book Now (Linen) — desktop only */}
       {t.id === 'linen' && (
         <a
           href="#contact"
@@ -147,6 +196,72 @@ export function NavigationBar({ template, studioName, links = [] }: NavigationBa
           >
             Book
           </a>
+        </div>
+      )}
+
+      {/* Mobile menu overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="sm:hidden fixed inset-0 z-[100] flex flex-col items-center justify-center gap-8"
+          style={{
+            backgroundColor: isTransparent ? 'rgba(0,0,0,0.85)' : t.colors.navBg,
+            animation: 'fadeIn 0.2s ease',
+          }}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          {/* Close button */}
+          <button
+            className="absolute top-4 right-4 flex items-center justify-center"
+            style={{
+              minWidth: 44,
+              minHeight: 44,
+              background: 'none',
+              border: 'none',
+              color: isTransparent ? 'white' : t.colors.navText,
+            }}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {defaultLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              onClick={() => setMobileMenuOpen(false)}
+              className="transition-opacity hover:opacity-60"
+              style={{
+                fontFamily: t.fonts.display,
+                fontSize: 28,
+                fontWeight: t.fonts.displayWeight,
+                fontStyle: t.fonts.displayStyle,
+                color: isTransparent ? 'white' : t.colors.navText,
+                textDecoration: 'none',
+              }}
+            >
+              {link.label}
+            </a>
+          ))}
+
+          {(t.id === 'linen' || t.id === 'alabaster') && (
+            <a
+              href="#contact"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                fontFamily: t.fonts.ui,
+                fontSize: 12,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase' as const,
+                color: isTransparent ? 'white' : t.colors.text,
+                border: `1px solid ${isTransparent ? 'rgba(255,255,255,0.3)' : t.colors.border}`,
+                padding: '12px 28px',
+                textDecoration: 'none',
+                marginTop: 8,
+              }}
+            >
+              Book Now
+            </a>
+          )}
         </div>
       )}
     </nav>
