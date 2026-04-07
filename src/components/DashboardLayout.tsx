@@ -134,7 +134,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* ── Main Content (No Top Bar) ── */}
         <main
-          className="min-h-screen pb-24 lg:pb-8"
+          className="min-h-screen pb-[100px] lg:pb-8"
           style={{ marginLeft: showSidebar ? 88 : 0 }}
         >
           <div className="mx-auto max-w-[1300px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
