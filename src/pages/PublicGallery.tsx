@@ -43,7 +43,8 @@ const WebsiteHeader = (_props: any) => null;
 const WebsiteFooter = (_props: any) => null;
 const WebsiteAbout = (_props: any) => null;
 const WebsiteContact = (_props: any) => null;
-const getTemplate = (_t: string) => ({ bg: '#FDFCFB', text: '#1C1C1E', textSecondary: '#999', fontFamily: "'Cormorant Garamond', serif", cardBg: '#F5F4F2', footerBg: '#FDFCFB', headerBg: '#FDFCFB' });
+const getTemplate = (_t: string) => ({ bg: '#FDFCFB', text: '#1C1C1E', textSecondary: '#999', fontFamily: "'Cormorant Garamond', serif", cardBg: '#F5F4F2', footerBg: '#FDFCFB', headerBg: '#FDFCFB', uiFontFamily: "'DM Sans', sans-serif", navBg: '#FDFCFB', navBorder: '#F0EDE8' });
+const MinimalPortfolioLayout = (_props: any) => null;
 
 /* ── Interfaces ── */
 interface Photo {
