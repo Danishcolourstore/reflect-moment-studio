@@ -228,8 +228,8 @@ export default function LandingGate() {
             {/* Masonry grid */}
             <div style={{
               columns: 3,
-              columnGap: 2,
-              padding: "0 2px",
+              columnGap: 0,
+              padding: 0,
             }}>
               {gridPhotos.map((photo, i) => (
                 <div
@@ -237,7 +237,7 @@ export default function LandingGate() {
                   onClick={() => openLightbox(i + 1)}
                   style={{
                     breakInside: "avoid",
-                    marginBottom: 2,
+                    marginBottom: 0,
                     overflow: "hidden",
                     cursor: "pointer",
                   }}
