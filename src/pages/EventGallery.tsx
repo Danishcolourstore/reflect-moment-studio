@@ -144,7 +144,7 @@ function PremiumGridRenderer({
     case 'cinematic':
       return <CinematicMasonryGrid {...common} />;
     case 'minimal-portfolio':
-      return <MinimalPortfolioLayout {...common} eventName={event.name} />;
+      return <HighlightMosaicGrid {...common} eventName={event.name} />;
     case 'storybook':
       return <StoryBookLayout {...common} eventName={event.name} eventDate={event.event_date} />;
     default:
