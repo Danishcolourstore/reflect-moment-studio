@@ -5,41 +5,20 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewMode } from "@/lib/ViewModeContext";
 import {
-  Home, Camera, Globe, BookOpen, Zap,
-  Users, BarChart2, Settings, LogOut,
+  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { EntiranProvider } from "@/components/entiran/EntiranProvider";
 
-const NAV_SECTIONS = [
-  {
-    label: "STUDIO",
-    items: [
-      { title: "Home", url: "/home", icon: Home, end: true },
-      { title: "Events", url: "/dashboard/events", icon: Camera },
-      { title: "Website", url: "/dashboard/website-builder", icon: Globe },
-    ],
-  },
-  {
-    label: "TOOLS",
-    items: [
-      { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
-      { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
-    ],
-  },
-  {
-    label: "BUSINESS",
-    items: [
-      { title: "Clients", url: "/dashboard/clients", icon: Users },
-      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart2 },
-    ],
-  },
-  {
-    label: "ACCOUNT",
-    items: [
-      { title: "Settings", url: "/dashboard/profile", icon: Settings },
-    ],
-  },
+const STUDIO_ITEMS = [
+  { title: "Events", url: "/dashboard/events", icon: CalendarDays },
+  { title: "Galleries", url: "/home", icon: Image, end: true },
+  { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
+];
+
+const ACCOUNT_ITEMS = [
+  { title: "Settings", url: "/dashboard/profile", icon: Settings },
+  { title: "Billing", url: "/dashboard/billing", icon: CreditCard },
 ];
 
 interface Profile {
@@ -80,64 +59,136 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const showSidebar = isDesktop;
   const showBottomNav = isMobile;
 
+  const sectionLabel = (text: string) => (
+    <div
+      style={{
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: 10,
+        fontWeight: 400,
+        letterSpacing: "0.15em",
+        textTransform: "uppercase",
+        color: "#C4C1BB",
+        padding: "0 24px",
+        marginTop: 32,
+        marginBottom: 8,
+      }}
+    >
+      {text}
+    </div>
+  );
+
+  const navItem = (item: typeof STUDIO_ITEMS[0]) => (
+    <NavLink
+      key={item.url}
+      to={item.url}
+      end={item.end}
+      className="flex items-center gap-3 transition-colors duration-200 text-[#94918B] hover:text-[#1A1917]"
+      activeClassName="!text-[#1A1917] !border-l-2 !border-l-[#B8953F]"
+      style={{
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: 13,
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        padding: "12px 24px",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        textDecoration: "none",
+        borderLeft: "2px solid transparent",
+      }}
+    >
+      <item.icon size={18} strokeWidth={1.5} />
+      <span>{item.title}</span>
+    </NavLink>
+  );
+
   return (
     <EntiranProvider>
-      <div className="min-h-screen" style={{ background: "#FDFCFB" }}>
-        {/* ── Fixed Left Sidebar (Desktop Only) ── */}
+      <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
+        {/* ── Sidebar (Desktop) ── */}
         {showSidebar && (
-          <aside className="fixed left-0 top-0 z-30 h-screen w-[88px] flex flex-col items-center bg-sidebar border-r border-sidebar-border">
-            {/* Logo */}
-            <div className="pt-8 pb-6">
+          <aside
+            style={{
+              position: "fixed",
+              left: 0,
+              top: 0,
+              zIndex: 30,
+              height: "100vh",
+              width: 240,
+              background: "#FFFFFF",
+              borderRight: "1px solid #E8E6E1",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {/* Wordmark */}
+            <div style={{ padding: "32px 24px 24px" }}>
               <span
-                className="text-primary font-serif text-sm tracking-[0.15em]"
-                style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 500 }}
+                style={{
+                  fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  fontSize: 20,
+                  fontWeight: 400,
+                  letterSpacing: "0.05em",
+                  color: "#1A1917",
+                }}
               >
-                M
+                MirrorAI
               </span>
             </div>
 
-            <div className="w-8 h-px bg-sidebar-border" />
+            {/* Nav */}
+            <nav style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              {sectionLabel("STUDIO")}
+              {STUDIO_ITEMS.map(navItem)}
 
-            {/* Nav Icons */}
-            <nav className="flex-1 flex flex-col items-center pt-6 gap-1 overflow-y-auto">
-              {NAV_SECTIONS.map((section) =>
-                section.items.map((item) => (
-                  <NavLink
-                    key={item.url}
-                    to={item.url}
-                    end={item.end}
-                    className="group relative flex flex-col items-center justify-center w-14 h-14 rounded-lg transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-secondary"
-                    activeClassName="!text-primary !bg-primary/10"
-                  >
-                    <item.icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
-                    <span className="text-[9px] mt-1 tracking-wider uppercase opacity-60 group-hover:opacity-100 transition-opacity">
-                      {item.title}
-                    </span>
-                  </NavLink>
-                ))
-              )}
+              {sectionLabel("ACCOUNT")}
+              {ACCOUNT_ITEMS.map(navItem)}
             </nav>
 
-            <div className="w-8 h-px bg-sidebar-border" />
-
             {/* Sign Out */}
-            <div className="pb-8 pt-4">
+            <div style={{ padding: "16px 24px 24px" }}>
               <button
                 onClick={handleSignOut}
-                className="flex flex-col items-center justify-center w-14 h-14 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 12,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "#94918B",
+                  padding: "8px 0",
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1917")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#94918B")}
               >
-                <LogOut className="h-[16px] w-[16px]" strokeWidth={1.5} />
+                <LogOut size={16} strokeWidth={1.5} />
+                Sign Out
               </button>
             </div>
           </aside>
         )}
 
-        {/* ── Main Content (No Top Bar) ── */}
+        {/* ── Main Content ── */}
         <main
-          className="min-h-screen pb-[100px] lg:pb-8"
-          style={{ marginLeft: showSidebar ? 88 : 0 }}
+          className="min-h-screen"
+          style={{
+            marginLeft: showSidebar ? 240 : 0,
+            paddingBottom: showBottomNav ? 88 : 0,
+          }}
         >
-          <div className="mx-auto max-w-[1300px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
+          <div
+            style={{
+              maxWidth: 1200,
+              margin: "0 auto",
+              padding: isMobile ? "32px 24px" : "40px 48px",
+            }}
+          >
             {children}
           </div>
         </main>

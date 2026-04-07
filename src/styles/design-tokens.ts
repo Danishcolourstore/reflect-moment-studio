@@ -8,6 +8,8 @@ export const colors = {
   surface: "#FFFFFF",
   border: "#E8E6E1",
   borderHover: "#D4D1CB",
+  borderActive: "#B8953F",
+  goldDim: "rgba(184,149,63,0.08)",
   hover: "#F4F3F0",
   gold: "#B8953F",
   text: "#1A1917",
