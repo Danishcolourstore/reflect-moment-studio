@@ -7,11 +7,10 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Check } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 
 /* Wireframe SVG previews for each layout */
 function LayoutWireframe({ type }: { type: string }) {
-  const s = { stroke: 'currentColor', strokeWidth: 1.2, fill: 'none', rx: 1 };
   const f = { fill: 'currentColor', opacity: 0.15, rx: 1 };
   return (
     <svg viewBox="0 0 40 40" className="w-full h-full">
@@ -161,6 +160,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const [galleryLayout, setGalleryLayout] = useState('classic');
   const [downloadsEnabled, setDownloadsEnabled] = useState(true);
   const [optimizedUpload, setOptimizedUpload] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
   const mutexRef = useRef(false);
   const lastSubmitRef = useRef(0);
@@ -185,12 +185,10 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
     e.preventDefault();
     if (!user) return;
 
-    // Debounce: ignore if submitted within 1000ms
     const now = Date.now();
     if (now - lastSubmitRef.current < 1000) return;
     lastSubmitRef.current = now;
 
-    // Mutex: prevent concurrent calls
     if (mutexRef.current) return;
     mutexRef.current = true;
     setLoading(true);
@@ -199,7 +197,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       const baseSlug = slug || generateSlug(title);
       const rand = Math.random().toString(36).substring(2, 6);
       const finalSlug = `${baseSlug}-${rand}`;
-      // 1. Check if event with this slug already exists (retry-safe)
+
       const { data: existing } = await (supabase.from('events').select('id').eq('slug', finalSlug).eq('user_id', user.id).maybeSingle() as any);
       if (existing) {
         toast({ title: 'Event already exists' });
@@ -208,7 +206,6 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
         return;
       }
 
-      // 2. Upload cover image sequentially
       let coverUrl: string | null = null;
       if (coverFile) {
         const ext = coverFile.name.split('.').pop();
@@ -220,12 +217,11 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
         }
       }
 
-      // 3. Create event record
       const { data: inserted, error } = await (supabase.from('events').insert({
         user_id: user.id,
         name: title,
         slug: finalSlug,
-        event_date: date,
+        event_date: date || new Date().toISOString().split('T')[0],
         location: location || null,
         cover_url: coverUrl,
         gallery_pin: password || null,
@@ -236,9 +232,9 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       if (error) {
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       } else {
-        toast({ title: 'Your event is ready' });
+        toast({ title: 'Your gallery is ready' });
         setTitle(''); setDate(''); setLocation(''); setSlug(''); setSlugManuallyEdited(false); setPassword(''); setCoverFile(null);
-        setGalleryLayout('classic'); setDownloadsEnabled(true);
+        setGalleryLayout('classic'); setDownloadsEnabled(true); setShowAdvanced(false);
         onOpenChange(false);
         onCreated(inserted.id);
       }
@@ -257,89 +253,105 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
           <DialogTitle style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 22, fontWeight: 400, color: "#1A1A1A", letterSpacing: "0.03em" }}>New Event</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3.5 mt-1">
+          {/* Essential fields only */}
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Title</Label>
-            <Input value={title} onChange={(e) => handleTitleChange(e.target.value)} required placeholder="Aisha & Rahul Wedding" className="bg-background h-9 text-[13px]" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Slug</Label>
-            <Input value={slug} onChange={(e) => handleSlugChange(e.target.value)} placeholder="aisha-rahul-wedding" className="bg-background h-9 text-[13px]" />
+            <Input value={title} onChange={(e) => handleTitleChange(e.target.value)} required placeholder="Aisha & Rahul Wedding" className="bg-background h-10 text-[13px]" autoFocus />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Date</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-background h-9 text-[13px]" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Location</Label>
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Mumbai, India" className="bg-background h-9 text-[13px]" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Cover</Label>
-            <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Privacy PIN</Label>
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-background h-10 text-[13px]" />
           </div>
 
-          {/* Gallery layout preset */}
-          <div className="space-y-2">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Layout</Label>
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-              {LAYOUT_OPTIONS.map(({ value, label }) => {
-                const selected = galleryLayout === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setGalleryLayout(value)}
-                    className={`relative flex flex-col items-center gap-1.5 p-2 border rounded-lg transition-all min-h-[80px] ${
-                      selected
-                        ? 'border-accent bg-accent/10 text-accent'
-                        : 'border-border text-muted-foreground/60 hover:border-muted-foreground/30'
-                    }`}
-                  >
-                    {selected && (
-                      <div className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent flex items-center justify-center">
-                        <Check className="h-2.5 w-2.5 text-accent-foreground" />
-                      </div>
-                    )}
-                    <div className={`w-10 h-10 ${selected ? 'text-accent' : 'text-muted-foreground/40'}`}>
-                      <LayoutWireframe type={value} />
-                    </div>
-                    <span className={`text-[8px] uppercase tracking-wider leading-none font-medium ${selected ? 'text-accent' : ''}`}>{label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {/* Advanced options — collapsed by default */}
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors pt-1"
+          >
+            <ChevronDown className={`h-3 w-3 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+            {showAdvanced ? 'Hide options' : 'More options'}
+          </button>
 
-          {/* Download permissions */}
-          <div className="pt-2 border-t border-border space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Downloads</p>
-            <div className="flex items-center justify-between">
-              <Label className="text-[12px] text-foreground/80 font-normal">Allow guests to download</Label>
-              <Switch checked={downloadsEnabled} onCheckedChange={setDownloadsEnabled} />
-            </div>
-          </div>
-
-          {/* Upload Settings */}
-          <div className="pt-2 border-t border-border space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Delivery</p>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-[12px] text-foreground/80 font-normal">Smart Compression</Label>
-                <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                  {optimizedUpload
-                    ? 'Faster delivery, no visible quality loss'
-                    : 'Original files preserved for print'}
-                </p>
+          {showAdvanced && (
+            <div className="space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Location</Label>
+                <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Mumbai, India" className="bg-background h-9 text-[13px]" />
               </div>
-              <Switch checked={optimizedUpload} onCheckedChange={setOptimizedUpload} />
-            </div>
-          </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Slug</Label>
+                <Input value={slug} onChange={(e) => handleSlugChange(e.target.value)} placeholder="aisha-rahul-wedding" className="bg-background h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Cover</Label>
+                <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Privacy PIN</Label>
+                <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
+              </div>
 
-          <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-9 text-[12px] tracking-wide uppercase font-medium mt-1" disabled={loading}>
+              {/* Gallery layout preset */}
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Layout</Label>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                  {LAYOUT_OPTIONS.map(({ value, label }) => {
+                    const selected = galleryLayout === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setGalleryLayout(value)}
+                        className={`relative flex flex-col items-center gap-1.5 p-2 border rounded-lg transition-all min-h-[80px] ${
+                          selected
+                            ? 'border-accent bg-accent/10 text-accent'
+                            : 'border-border text-muted-foreground/60 hover:border-muted-foreground/30'
+                        }`}
+                      >
+                        {selected && (
+                          <div className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-accent flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5 text-accent-foreground" />
+                          </div>
+                        )}
+                        <div className={`w-10 h-10 ${selected ? 'text-accent' : 'text-muted-foreground/40'}`}>
+                          <LayoutWireframe type={value} />
+                        </div>
+                        <span className={`text-[8px] uppercase tracking-wider leading-none font-medium ${selected ? 'text-accent' : ''}`}>{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Download permissions */}
+              <div className="pt-2 border-t border-border space-y-3">
+                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Downloads</p>
+                <div className="flex items-center justify-between">
+                  <Label className="text-[12px] text-foreground/80 font-normal">Allow guests to download</Label>
+                  <Switch checked={downloadsEnabled} onCheckedChange={setDownloadsEnabled} />
+                </div>
+              </div>
+
+              {/* Upload Settings */}
+              <div className="pt-2 border-t border-border space-y-3">
+                <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Delivery</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-[12px] text-foreground/80 font-normal">Smart Compression</Label>
+                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                      {optimizedUpload
+                        ? 'Faster delivery, no visible quality loss'
+                        : 'Original files preserved for print'}
+                    </p>
+                  </div>
+                  <Switch checked={optimizedUpload} onCheckedChange={setOptimizedUpload} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-10 text-[12px] tracking-wide uppercase font-medium mt-1" disabled={loading}>
             {loading ? 'Creating…' : 'Create Event'}
           </Button>
         </form>
