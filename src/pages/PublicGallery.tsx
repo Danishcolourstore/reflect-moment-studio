@@ -1288,7 +1288,7 @@ const PublicGallery = () => {
       )}
 
       {/* ── Lightbox ── */}
-      <PhotoLightbox
+      <CinematicLightbox
         photos={displayPhotos}
         currentIndex={lightboxIndex}
         open={lightboxOpen}
