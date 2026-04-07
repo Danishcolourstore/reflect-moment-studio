@@ -236,7 +236,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       if (error) {
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       } else {
-        toast({ title: 'Event created' });
+        toast({ title: 'Your event is ready' });
         setTitle(''); setDate(''); setLocation(''); setSlug(''); setSlugManuallyEdited(false); setPassword(''); setCoverFile(null);
         setGalleryLayout('classic'); setDownloadsEnabled(true);
         onOpenChange(false);
@@ -254,11 +254,11 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[440px] max-h-[90vh] overflow-y-auto" style={{ background: "#FFFFFF", border: "1px solid #EEEEEE", borderRadius: 20, padding: 28, boxShadow: "0 12px 48px rgba(0,0,0,0.1)" }}>
         <DialogHeader>
-          <DialogTitle style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 22, fontWeight: 400, color: "#1A1A1A", letterSpacing: "0.03em" }}>Create New Event</DialogTitle>
+          <DialogTitle style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 22, fontWeight: 400, color: "#1A1A1A", letterSpacing: "0.03em" }}>New Event</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3.5 mt-1">
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Title</Label>
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Title</Label>
             <Input value={title} onChange={(e) => handleTitleChange(e.target.value)} required placeholder="Aisha & Rahul Wedding" className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
@@ -266,7 +266,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
             <Input value={slug} onChange={(e) => handleSlugChange(e.target.value)} placeholder="aisha-rahul-wedding" className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Event Date</Label>
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Date</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
@@ -274,11 +274,11 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
             <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Mumbai, India" className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Cover Photo</Label>
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Cover</Label>
             <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Gallery Password (Optional)</Label>
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Privacy PIN</Label>
             <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
           </div>
 
@@ -316,23 +316,23 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
 
           {/* Download permissions */}
           <div className="pt-2 border-t border-border space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Guest Download Permissions</p>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Downloads</p>
             <div className="flex items-center justify-between">
-              <Label className="text-[12px] text-foreground/80 font-normal">Allow downloads</Label>
+              <Label className="text-[12px] text-foreground/80 font-normal">Allow guests to download</Label>
               <Switch checked={downloadsEnabled} onCheckedChange={setDownloadsEnabled} />
             </div>
           </div>
 
           {/* Upload Settings */}
           <div className="pt-2 border-t border-border space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Upload Settings</p>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70 font-medium">Delivery</p>
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-[12px] text-foreground/80 font-normal">Optimized Upload</Label>
+                <Label className="text-[12px] text-foreground/80 font-normal">Smart Compression</Label>
                 <p className="text-[10px] text-muted-foreground/60 mt-0.5">
                   {optimizedUpload
-                    ? 'Faster uploads with optimized size. No visible quality loss.'
-                    : 'Upload original files. Best for print and archive.'}
+                    ? 'Faster delivery, no visible quality loss'
+                    : 'Original files preserved for print'}
                 </p>
               </div>
               <Switch checked={optimizedUpload} onCheckedChange={setOptimizedUpload} />
@@ -340,7 +340,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
           </div>
 
           <Button type="submit" className="w-full bg-primary hover:bg-gold-hover text-primary-foreground h-9 text-[12px] tracking-wide uppercase font-medium mt-1" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Event'}
+            {loading ? 'Creating…' : 'Create Event'}
           </Button>
         </form>
       </DialogContent>
