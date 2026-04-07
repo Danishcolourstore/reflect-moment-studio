@@ -1,26 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { colors, fonts } from "@/styles/design-tokens";
 
-const ease = [0.16, 1, 0.3, 1] as const;
+const CUBIC = "cubic-bezier(0.25, 0.46, 0.45, 0.94)";
 
 const NAV_ITEMS = [
   { label: "Home", path: "/home" },
   { label: "Events", path: "/dashboard/events" },
+  { divider: true },
   { label: "Portfolio", path: "/dashboard/website-editor" },
   { label: "Storybook", path: "/dashboard/storybook" },
-];
-
-const MORE_ITEMS = [
-  { label: "Cheetah", path: "/dashboard/cheetah-live" },
-  { label: "Clients", path: "/dashboard/clients" },
-  { label: "Analytics", path: "/dashboard/analytics" },
-  { label: "Settings", path: "/dashboard/profile" },
-  { label: "Billing", path: "/dashboard/billing" },
-];
+  { label: "More", path: "/more" },
+] as const;
 
 export function useDrawerMenu() {
   const [open, setOpen] = useState(false);
@@ -37,9 +28,9 @@ export function HamburgerButton({ onClick }: { onClick: () => void }) {
       style={{
         background: "none",
         border: "none",
-        fontFamily: fonts.body,
+        fontFamily: "'DM Sans', sans-serif",
         fontSize: 11,
-        fontWeight: 700,
+        fontWeight: 500,
         color: "#1A1A1A",
         letterSpacing: "0.2em",
       }}
@@ -53,30 +44,40 @@ export function HamburgerButton({ onClick }: { onClick: () => void }) {
 export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut, user } = useAuth();
-  const [studioName, setStudioName] = useState("");
-  const [showMore, setShowMore] = useState(false);
+  const { signOut } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  const [animating, setAnimating] = useState(false);
 
+  // Mount/unmount with animation
   useEffect(() => {
-    if (!user) return;
-    (supabase.from("profiles").select("studio_name") as any)
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }: any) => {
-        if (data?.studio_name) setStudioName(data.studio_name);
-      });
-  }, [user]);
+    if (open) {
+      setMounted(true);
+      requestAnimationFrame(() => setAnimating(true));
+    } else if (mounted) {
+      setAnimating(false);
+      const timer = setTimeout(() => setMounted(false), 280);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
+  // Escape key
   useEffect(() => {
+    if (!open) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    if (open) window.addEventListener("keydown", handler);
+    window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
+  // Lock body scroll
   useEffect(() => {
-    if (!open) setShowMore(false);
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
   }, [open]);
 
   const handleNav = (path: string) => {
@@ -90,214 +91,196 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
     navigate("/login");
   };
 
+  const isActive = (path: string) => location.pathname === path;
+
+  if (!mounted) return null;
+
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            className="fixed inset-0 z-[190]"
-            style={{ background: "rgba(0,0,0,0.15)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={onClose}
-          />
+    <>
+      {/* Backdrop — white 40% opacity with blur */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 190,
+          background: "rgba(255, 255, 255, 0.4)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          opacity: animating ? 1 : 0,
+          transition: `opacity 280ms ${CUBIC}`,
+        }}
+      />
 
-          <motion.aside
-            className="fixed top-0 right-0 z-[200] h-[100dvh] w-[82%] max-w-[360px] overflow-y-auto"
-            style={{ background: "#FFFFFF", boxShadow: "-8px 0 32px rgba(0,0,0,0.08)" }}
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.45, ease }}
+      {/* Panel — slides from left */}
+      <aside
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          zIndex: 200,
+          height: "100dvh",
+          width: "80vw",
+          maxWidth: 360,
+          background: "#FDFCFB",
+          borderRight: "1px solid #F0EDE8",
+          boxShadow: "none",
+          display: "flex",
+          flexDirection: "column",
+          transform: animating ? "translateX(0)" : "translateX(-100%)",
+          transition: `transform 280ms ${CUBIC}`,
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "18px 22px",
+            borderBottom: "1px solid #F0EDE8",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 12,
+              letterSpacing: "0.18em",
+              color: "#AAAAAA",
+              fontWeight: 400,
+            }}
           >
-            <div className="flex flex-col min-h-full px-8 pt-6 pb-10">
-              <div className="flex items-center justify-between mb-10">
-                <span
+            MirrorAI
+          </span>
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 16,
+              color: "#AAAAAA",
+              lineHeight: 1,
+              padding: 0,
+            }}
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav
+          style={{
+            flex: 1,
+            paddingLeft: 28,
+            paddingRight: 28,
+            paddingTop: 24,
+          }}
+        >
+          {NAV_ITEMS.map((item, i) => {
+            if ("divider" in item) {
+              return (
+                <div
+                  key={`div-${i}`}
                   style={{
-                    fontFamily: fonts.display,
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: colors.gold,
-                    letterSpacing: "0.2em",
+                    height: 1,
+                    background: "#F0EDE8",
+                    marginTop: 14,
+                    marginBottom: 14,
                   }}
-                >
-                  MirrorAI
-                </span>
-                <button
-                  onClick={onClose}
-                  style={{
-                    fontFamily: fonts.body,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "#999999",
-                    letterSpacing: "0.2em",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  CLOSE
-                </button>
-              </div>
+                />
+              );
+            }
 
-              <nav className="flex-1">
-                <AnimatePresence mode="wait">
-                  {!showMore ? (
-                    <motion.div
-                      key="main"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3, ease }}
-                    >
-                      {NAV_ITEMS.map((item, i) => {
-                        const isActive = location.pathname === item.path;
-                        return (
-                          <motion.button
-                            key={item.path}
-                            className="block w-full text-left py-2"
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.06, duration: 0.4, ease }}
-                            onClick={() => handleNav(item.path)}
-                          >
-                            <span
-                              style={{
-                                fontFamily: fonts.display,
-                                fontSize: 42,
-                                fontWeight: isActive ? 600 : 300,
-                                color: isActive ? colors.gold : "#999999",
-                                letterSpacing: "-0.01em",
-                                lineHeight: 1.15,
-                                display: "block",
-                                transition: "color 0.2s ease",
-                              }}
-                              onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1A1A")}
-                              onMouseLeave={(e) =>
-                                (e.currentTarget.style.color = isActive ? colors.gold : "#999999")
-                              }
-                            >
-                              {item.label}
-                            </span>
-                          </motion.button>
-                        );
-                      })}
+            const active = isActive(item.path);
 
-                      <motion.button
-                        className="block w-full text-left py-2 mt-2"
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: NAV_ITEMS.length * 0.06, duration: 0.4, ease }}
-                        onClick={() => setShowMore(true)}
-                      >
-                        <span
-                          style={{
-                            fontFamily: fonts.display,
-                            fontSize: 42,
-                            fontWeight: 300,
-                            color: "#CCCCCC",
-                            letterSpacing: "-0.01em",
-                            lineHeight: 1.15,
-                            display: "block",
-                          }}
-                        >
-                          More
-                        </span>
-                      </motion.button>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="more"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3, ease }}
-                    >
-                      <button
-                        onClick={() => setShowMore(false)}
-                        className="flex items-center gap-2 mb-8"
-                        style={{
-                          fontFamily: fonts.body,
-                          fontSize: 10,
-                          color: "#999999",
-                          letterSpacing: "0.2em",
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                        }}
-                      >
-                        ← BACK
-                      </button>
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleNav(item.path)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  textAlign: "left",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: 28,
+                  lineHeight: 1.55,
+                  fontWeight: 400,
+                  fontStyle: active ? "italic" : "normal",
+                  color: active ? "#C8A97E" : "#1C1C1E",
+                  padding: 0,
+                  transition: `color 180ms ease, font-style 180ms ease`,
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.color = "#C8A97E";
+                    e.currentTarget.style.fontStyle = "italic";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) {
+                    e.currentTarget.style.color = "#1C1C1E";
+                    e.currentTarget.style.fontStyle = "normal";
+                  }
+                }}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
 
-                      {MORE_ITEMS.map((item, i) => (
-                        <motion.button
-                          key={item.path}
-                          className="block w-full text-left py-2"
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.05, duration: 0.3, ease }}
-                          onClick={() => handleNav(item.path)}
-                        >
-                          <span
-                            style={{
-                              fontFamily: fonts.display,
-                              fontSize: 36,
-                              fontWeight: 300,
-                              color: "#666666",
-                              letterSpacing: "-0.01em",
-                              lineHeight: 1.2,
-                              display: "block",
-                              transition: "color 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1A1A")}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = "#666666")}
-                          >
-                            {item.label}
-                          </span>
-                        </motion.button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </nav>
-
-              <div className="mt-auto pt-8 border-t" style={{ borderColor: "#EEEEEE" }}>
-                {studioName && (
-                  <p
-                    className="mb-3"
-                    style={{
-                      fontFamily: fonts.display,
-                      fontSize: 14,
-                      color: "#999999",
-                      letterSpacing: "0.05em",
-                    }}
-                  >
-                    {studioName}
-                  </p>
-                )}
-                <button
-                  onClick={handleSignOut}
-                  style={{
-                    fontFamily: fonts.body,
-                    fontSize: 10,
-                    color: "#999999",
-                    letterSpacing: "0.2em",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1A1A")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "#999999")}
-                >
-                  SIGN OUT
-                </button>
-              </div>
-            </div>
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
+        {/* Bottom section */}
+        <div
+          style={{
+            borderTop: "1px solid #F0EDE8",
+            paddingTop: 20,
+            paddingBottom: 32,
+            paddingLeft: 28,
+            paddingRight: 28,
+          }}
+        >
+          <button
+            onClick={() => handleNav("/dashboard/website-editor")}
+            style={{
+              display: "block",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 11,
+              letterSpacing: "0.14em",
+              color: "#C8A97E",
+              textTransform: "uppercase",
+              fontWeight: 400,
+              padding: 0,
+              marginBottom: 8,
+            }}
+          >
+            Colour Store
+          </button>
+          <button
+            onClick={handleSignOut}
+            style={{
+              display: "block",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 11,
+              color: "#C0C0C0",
+              fontWeight: 400,
+              padding: 0,
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
