@@ -97,18 +97,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         borderLeft: "2px solid transparent",
         color: "hsl(35, 4%, 56%)",
       }}
-      style={{
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: 13,
-        letterSpacing: "0.1em",
-        textTransform: "uppercase",
-        padding: "12px 24px",
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        textDecoration: "none",
-        borderLeft: "2px solid transparent",
-      }}
     >
       <item.icon size={18} strokeWidth={1.5} />
       <span>{item.title}</span>
