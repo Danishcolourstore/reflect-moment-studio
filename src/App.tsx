@@ -63,6 +63,7 @@ const WebsiteSectionEditor = lazy(() => import("./pages/WebsiteSectionEditor"));
 const Reflections = lazy(() => import("./pages/Reflections"));
 const EntiranBusiness = lazy(() => import("./pages/EntiranBusiness"));
 const PublicGalleryView = lazy(() => import("./pages/public/PublicGalleryView"));
+const ClientGalleryExperience = lazy(() => import("./pages/public/ClientGalleryExperience"));
 const VerifyAccess = lazy(() => import("./pages/VerifyAccess"));
 const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
 const AdminGate = lazy(() => import("./pages/admin/AdminGate"));
@@ -647,11 +648,7 @@ const AppRoutes = () => {
             <Route path="/widget/:slug" element={<WidgetPage />} />
             <Route
               path="/gallery/:slug"
-              element={
-                <GalleryShell>
-                  <GalleryCover />
-                </GalleryShell>
-              }
+              element={<ClientGalleryExperience />}
             />
             <Route
               path="/gallery/:slug/view"
