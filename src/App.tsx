@@ -56,7 +56,7 @@ const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
 const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
 const LandingGate = lazy(() => import("./pages/LandingGate"));
 const ClientPreview = lazy(() => import("./pages/ClientPreview"));
-const DomainSettings = lazy(() => import("./pages/DomainSettings"));
+// DomainSettings removed
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
 const Reflections = lazy(() => import("./pages/Reflections"));
