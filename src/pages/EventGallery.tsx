@@ -24,7 +24,7 @@ import { useZipUpload } from '@/hooks/use-zip-upload';
 import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
 import { ProgressiveImage } from '@/components/ProgressiveImage';
 import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
-import { MinimalPortfolioLayout } from '@/components/MinimalPortfolioLayout';
+// MinimalPortfolioLayout removed
 import { StoryBookLayout } from '@/components/StoryBookLayout';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
