@@ -54,39 +54,63 @@ const Dashboard = () => {
 
   if (error) return <PageError message="Something went wrong" onRetry={() => window.location.reload()} />;
 
-  /* ── Mobile: Fullscreen native gallery ── */
+  /* ── Mobile: Light editorial gallery app ── */
   if (isMobile) {
-    const heroUrl = allPhotos[0];
-    const gridPhotos = allPhotos.slice(1);
-
     return (
-      <DashboardLayout immersive>
+      <DashboardLayout>
         <style>{`
           @keyframes galleryFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
           }
         `}</style>
 
+        {/* Header title area — generous breathing room */}
+        <div style={{ textAlign: "center", padding: "12px 0 24px" }}>
+          <h1 style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: "1.4rem",
+            fontWeight: 300,
+            letterSpacing: "0.25em",
+            textTransform: "uppercase",
+            color: "hsl(48, 7%, 10%)",
+            margin: 0,
+          }}>
+            {studioName}
+          </h1>
+          <p style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: "0.65rem",
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "hsl(35, 4%, 56%)",
+            marginTop: 6,
+          }}>
+            Wedding Photography
+          </p>
+        </div>
+
         {loading ? (
-          <div style={{ minHeight: "100dvh", background: "#0a0a0b" }}>
-            <div style={{ width: "100%", height: "100svh", background: "#141414" }} />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 2 }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} style={{ aspectRatio: "3/4", background: "#141414" }} />
-              ))}
-            </div>
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(2, 1fr)",
+            gap: 8, padding: "0 16px",
+          }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} style={{
+                aspectRatio: "3/4", background: "hsl(40, 5%, 93%)",
+                borderRadius: 12,
+              }} />
+            ))}
           </div>
         ) : allPhotos.length === 0 ? (
           <div style={{
-            minHeight: "100dvh", background: "#0a0a0b",
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            padding: "0 24px",
+            display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", padding: "80px 24px",
           }}>
             <p style={{
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: 22, fontStyle: "italic", fontWeight: 300,
-              color: "rgba(255,255,255,0.3)",
+              color: "hsl(35, 4%, 56%)",
               textAlign: "center",
             }}>
               Your first gallery awaits
@@ -98,151 +122,46 @@ const Dashboard = () => {
                 background: "#C8A97E", border: "none",
                 fontFamily: "'DM Sans', sans-serif", fontSize: 12,
                 letterSpacing: "0.08em", textTransform: "uppercase",
-                color: "#0a0a0b", cursor: "pointer",
+                color: "#fff", cursor: "pointer", borderRadius: 8,
               }}
             >
               Create Event
             </button>
           </div>
         ) : (
-          <div style={{ background: "#0a0a0b", paddingBottom: "calc(56px + env(safe-area-inset-bottom, 0px))" }}>
-            {/* Hero — fullscreen, flush to pixel 0,0 */}
-            {heroUrl && (
-              <div style={{ position: "relative", width: "100vw", height: "100svh", overflow: "hidden" }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: 8,
+            padding: "0 16px",
+            paddingBottom: 24,
+          }}>
+            {allPhotos.map((url, i) => (
+              <div
+                key={i}
+                style={{
+                  aspectRatio: "3/4",
+                  overflow: "hidden",
+                  borderRadius: 12,
+                  background: "hsl(40, 5%, 93%)",
+                }}
+              >
                 <img
-                  src={heroUrl}
+                  src={url}
                   alt=""
-                  loading="eager"
-                  onLoad={() => setHeroLoaded(true)}
+                  loading={i < 6 ? "eager" : "lazy"}
+                  decoding="async"
                   style={{
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    objectPosition: "center 20%",
                     display: "block",
-                    opacity: heroLoaded ? 1 : 0,
-                    transition: "opacity 0.4s ease",
+                    animation: "galleryFadeIn 0.5s ease both",
+                    animationDelay: `${Math.min(i * 0.04, 0.3)}s`,
                   }}
                 />
-                {/* Top gradient — protects header text */}
-                <div style={{
-                  position: "absolute", top: 0, left: 0, right: 0,
-                  height: "35%",
-                  background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%)",
-                  pointerEvents: "none",
-                }} />
-                {/* Bottom gradient — bleeds hero into grid */}
-                <div style={{
-                  position: "absolute", bottom: 0, left: 0, right: 0,
-                  height: "45%",
-                  background: "linear-gradient(to top, rgba(10,10,11,1) 0%, rgba(10,10,11,0.6) 40%, transparent 100%)",
-                  pointerEvents: "none",
-                }} />
-                {/* Couple name + date */}
-                <div style={{
-                  position: "absolute", bottom: "22%", left: 0, right: 0,
-                  textAlign: "center", pointerEvents: "none",
-                }}>
-                  <h1 style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "2rem", fontWeight: 300,
-                    letterSpacing: "0.15em",
-                    color: "#fff",
-                    margin: 0,
-                  }}>
-                    {studioName}
-                  </h1>
-                  <p style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: "0.7rem",
-                    letterSpacing: "0.35em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.5)",
-                    marginTop: 8,
-                  }}>
-                    Wedding Photography
-                  </p>
-                </div>
-                {/* Chapter tabs — embedded at hero bottom */}
-                <div style={{
-                  position: "absolute", bottom: 0, left: 0, right: 0,
-                  zIndex: 20,
-                  padding: "0 16px 20px",
-                  display: "flex",
-                  gap: 8,
-                  overflowX: "auto",
-                  scrollbarWidth: "none",
-                  WebkitOverflowScrolling: "touch",
-                }}>
-                  {CHAPTERS.map((ch, i) => (
-                    <button
-                      key={ch}
-                      onClick={() => setActiveChapter(i)}
-                      style={{
-                        flexShrink: 0,
-                        padding: "6px 14px",
-                        borderRadius: 20,
-                        border: i === activeChapter ? "none" : "1px solid rgba(200,169,126,0.25)",
-                        background: i === activeChapter ? "#C8A97E" : "rgba(255,255,255,0.08)",
-                        color: i === activeChapter ? "#0a0a0b" : "rgba(255,255,255,0.55)",
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: "0.7rem",
-                        fontWeight: i === activeChapter ? 600 : 400,
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
-                        cursor: "pointer",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {ch}
-                    </button>
-                  ))}
-                </div>
               </div>
-            )}
-
-            {/* Grid — edge-to-edge, 2px gap, editorial rhythm */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: 2,
-              background: "#0a0a0b",
-              width: "100vw",
-              margin: 0,
-              padding: 0,
-            }}>
-              {gridPhotos.map((url, i) => {
-                // Every 7th cell spans full width for editorial rhythm
-                const isFullWidth = i > 0 && i % 7 === 0;
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      aspectRatio: isFullWidth ? "16/9" : "3/4",
-                      overflow: "hidden",
-                      position: "relative",
-                      background: "#141414",
-                      gridColumn: isFullWidth ? "1 / -1" : undefined,
-                    }}
-                  >
-                    <img
-                      src={url}
-                      alt=""
-                      loading={i < 6 ? "eager" : "lazy"}
-                      decoding="async"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                        animation: "galleryFadeIn 0.5s ease both",
-                        animationDelay: `${Math.min(i * 0.05, 0.3)}s`,
-                      }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
+            ))}
           </div>
         )}
 
