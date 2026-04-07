@@ -47,7 +47,7 @@ const UploadPage = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">Add Your Work</h1>
+      <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: "hsl(48, 7%, 10%)", marginBottom: 40, letterSpacing: "0.02em" }}>Add Your Work</h1>
 
       <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
         {/* Event selector */}
@@ -69,10 +69,10 @@ const UploadPage = () => {
           onDragLeave={() => setIsDragging(false)}
           onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files) handleUpload(Array.from(e.dataTransfer.files)); }}
           onClick={() => canUpload && inputRef.current?.click()}
-          className={`flex cursor-pointer flex-col items-center justify-center border-2 border-dashed rounded-xl transition-colors ${
+          className={`flex cursor-pointer flex-col items-center justify-center border border-dashed transition-colors ${
             isMobile ? 'py-10' : 'py-16'
           } ${
-            isDragging ? 'border-primary bg-primary/5' : canUpload ? 'border-border hover:border-primary/40 hover:bg-secondary/30 active:bg-secondary/40' : 'border-border opacity-50 cursor-not-allowed'
+            isDragging ? 'border-primary bg-primary/5' : canUpload ? 'border-border hover:border-primary/40' : 'border-border opacity-50 cursor-not-allowed'
           }`}
         >
           <Upload className={`text-muted-foreground/25 mb-3 ${isMobile ? 'h-8 w-8' : 'h-10 w-10'}`} />
@@ -88,7 +88,7 @@ const UploadPage = () => {
           <button
             onClick={() => canUpload && cameraRef.current?.click()}
             disabled={!canUpload}
-            className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-primary/10 text-primary font-medium text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-40"
+            className="w-full flex items-center justify-center gap-2 h-12 bg-primary/10 text-primary font-medium text-sm tracking-wide active:scale-[0.97] transition-all disabled:opacity-40"
           >
             <Camera className="h-5 w-5" />
             Capture
@@ -97,7 +97,7 @@ const UploadPage = () => {
         )}
 
         {/* Optimized upload toggle */}
-        <div className="flex items-center justify-between bg-card border border-border/60 rounded-xl px-4 py-3">
+        <div className="flex items-center justify-between bg-card border border-border px-4 py-3">
           <div className="flex-1 min-w-0">
             <Label className="text-[12px] text-foreground/80 font-medium">Smart Compression</Label>
             <p className="text-[10px] text-muted-foreground/60 mt-0.5">
