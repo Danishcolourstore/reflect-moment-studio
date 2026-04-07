@@ -17,7 +17,7 @@ const NAV_SECTIONS = [
     items: [
       { title: "Home", url: "/home", icon: Home, end: true },
       { title: "Events", url: "/dashboard/events", icon: Camera },
-      { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
+      { title: "Website", url: "/dashboard/website-builder", icon: Globe },
     ],
   },
   {
