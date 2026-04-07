@@ -444,13 +444,14 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               }}
             >
               {layout.cells.map((area, i) => (
-                <GridCell
+                <MemoGridCellWrapper
                   key={cells[i].id}
                   cell={cells[i]}
-                  gridArea={`${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`}
-                  onImageAdd={(f) => handleImageAdd(i, f)}
-                  onImageRemove={() => handleImageRemove(i)}
-                  onOffsetChange={(x, y, scale) => handleOffsetChange(i, x, y, scale)}
+                  index={i}
+                  area={area}
+                  onImageAdd={handleImageAdd}
+                  onImageRemove={handleImageRemove}
+                  onOffsetChange={handleOffsetChange}
                 />
               ))}
             </div>
