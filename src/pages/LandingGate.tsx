@@ -225,32 +225,33 @@ export default function LandingGate() {
         ) : (
           <div style={{ paddingBottom: 72, paddingTop: 72 }}>
 
-            {/* Grid — edge-to-edge, 2-col, 2px gap, no padding */}
+            {/* Grid — 3-col, rounded thumbnails, tap to expand */}
             <div style={{
               display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: 2, margin: 0, padding: 0,
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 4, margin: 0, padding: "0 4px",
             }}>
               {gridPhotos.map((photo, i) => (
                 <div
                   key={photo.id}
                   onClick={() => openLightbox(i + 1)}
                   style={{
-                    aspectRatio: "3/4", overflow: "hidden",
+                    aspectRatio: "1/1", overflow: "hidden",
                     position: "relative", background: "#141414",
                     cursor: "pointer",
+                    borderRadius: 8,
                   }}
                 >
                   <img
                     src={photo.url}
                     alt=""
-                    loading={i < 6 ? "eager" : "lazy"}
+                    loading={i < 9 ? "eager" : "lazy"}
                     decoding="async"
                     style={{
                       width: "100%", height: "100%",
                       objectFit: "cover", display: "block",
                       animation: "lgFadeIn 0.4s ease both",
-                      animationDelay: `${Math.min(i * 0.05, 0.3)}s`,
+                      animationDelay: `${Math.min(i * 0.04, 0.3)}s`,
                     }}
                   />
                 </div>
