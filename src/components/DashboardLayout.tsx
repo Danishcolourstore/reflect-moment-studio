@@ -136,30 +136,26 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
         {isMobile && (
           <header
             style={{
-              position: isImmersiveMobile ? "absolute" : "fixed",
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
-              zIndex: 40,
+              zIndex: 50,
               height: 52,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "0 16px",
+              padding: "0 20px",
               paddingTop: "env(safe-area-inset-top)",
               background: isImmersiveMobile
-                ? (scrolled ? "rgba(10,10,11,0.85)" : "transparent")
-                : "hsla(45, 14%, 97%, 0.9)",
-              backdropFilter: isImmersiveMobile
-                ? (scrolled ? "blur(12px)" : "none")
-                : "blur(16px)",
-              WebkitBackdropFilter: isImmersiveMobile
-                ? (scrolled ? "blur(12px)" : "none")
-                : "blur(16px)",
+                ? (scrolled ? "rgba(10,10,11,0.88)" : "transparent")
+                : (scrolled ? "hsla(45, 14%, 97%, 0.92)" : "hsla(45, 14%, 97%, 0.9)"),
+              backdropFilter: scrolled ? "blur(16px)" : "none",
+              WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
               borderBottom: isImmersiveMobile
                 ? "none"
-                : "1px solid hsl(37, 10%, 92%)",
-              transition: "background 0.3s ease, backdrop-filter 0.3s ease",
+                : (scrolled ? "1px solid hsl(37, 10%, 92%)" : "none"),
+              transition: "background 0.4s ease, backdrop-filter 0.4s ease",
             }}
           >
             <button
@@ -173,14 +169,15 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
             >
               <Menu style={{
                 width: 20, height: 20,
-                color: isImmersiveMobile ? "rgba(255,255,255,0.7)" : "hsl(48, 7%, 10%)",
+                color: isImmersiveMobile ? "rgba(255,255,255,0.8)" : "hsl(48, 7%, 10%)",
               }} strokeWidth={1.5} />
             </button>
 
             <span style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 16, fontWeight: 400, letterSpacing: "0.04em",
-              color: isImmersiveMobile ? "rgba(255,255,255,0.85)" : "hsl(48, 7%, 10%)",
+              fontSize: "1.1rem", fontWeight: 400, fontStyle: "italic",
+              letterSpacing: "0.04em",
+              color: isImmersiveMobile ? "#C8A97E" : "hsl(48, 7%, 10%)",
             }}>
               MirrorAI
             </span>

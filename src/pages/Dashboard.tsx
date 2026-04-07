@@ -8,6 +8,8 @@ import { Plus } from "lucide-react";
 import { useViewMode } from "@/lib/ViewModeContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 
+const CHAPTERS = ["All", "Baraat", "Mehndi", "Pheras", "Vidaai", "Reception"];
+
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ const Dashboard = () => {
   const [error, setError] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [heroLoaded, setHeroLoaded] = useState(false);
+  const [activeChapter, setActiveChapter] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -67,9 +70,7 @@ const Dashboard = () => {
 
         {loading ? (
           <div style={{ minHeight: "100dvh", background: "#0a0a0b" }}>
-            {/* Hero skeleton */}
             <div style={{ width: "100%", height: "100svh", background: "#141414" }} />
-            {/* Grid skeleton */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 2 }}>
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} style={{ aspectRatio: "3/4", background: "#141414" }} />
@@ -104,8 +105,8 @@ const Dashboard = () => {
             </button>
           </div>
         ) : (
-          <div style={{ background: "#0a0a0b", paddingBottom: 72 }}>
-            {/* Hero — fullscreen, flush to top */}
+          <div style={{ background: "#0a0a0b", paddingBottom: "calc(56px + env(safe-area-inset-bottom, 0px))" }}>
+            {/* Hero — fullscreen, flush to pixel 0,0 */}
             {heroUrl && (
               <div style={{ position: "relative", width: "100vw", height: "100svh", overflow: "hidden" }}>
                 <img
@@ -117,68 +118,130 @@ const Dashboard = () => {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
+                    objectPosition: "center 20%",
                     display: "block",
                     opacity: heroLoaded ? 1 : 0,
                     transition: "opacity 0.4s ease",
                   }}
                 />
-                {/* Gradient overlay at bottom for chapter tabs or title */}
+                {/* Top gradient — protects header text */}
                 <div style={{
-                  position: "absolute", bottom: 0, left: 0, right: 0,
-                  height: 120,
-                  background: "linear-gradient(to top, rgba(10,10,11,0.8), transparent)",
+                  position: "absolute", top: 0, left: 0, right: 0,
+                  height: "35%",
+                  background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%)",
                   pointerEvents: "none",
                 }} />
-                {/* Studio name at bottom of hero */}
+                {/* Bottom gradient — bleeds hero into grid */}
                 <div style={{
-                  position: "absolute", bottom: 24, left: 0, right: 0,
+                  position: "absolute", bottom: 0, left: 0, right: 0,
+                  height: "45%",
+                  background: "linear-gradient(to top, rgba(10,10,11,1) 0%, rgba(10,10,11,0.6) 40%, transparent 100%)",
+                  pointerEvents: "none",
+                }} />
+                {/* Couple name + date */}
+                <div style={{
+                  position: "absolute", bottom: "22%", left: 0, right: 0,
                   textAlign: "center", pointerEvents: "none",
                 }}>
-                  <span style={{
+                  <h1 style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 20, fontWeight: 300, letterSpacing: "0.06em",
-                    color: "rgba(255,255,255,0.7)",
+                    fontSize: "2rem", fontWeight: 300,
+                    letterSpacing: "0.15em",
+                    color: "#fff",
+                    margin: 0,
                   }}>
                     {studioName}
-                  </span>
+                  </h1>
+                  <p style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: "0.7rem",
+                    letterSpacing: "0.35em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.5)",
+                    marginTop: 8,
+                  }}>
+                    Wedding Photography
+                  </p>
+                </div>
+                {/* Chapter tabs — embedded at hero bottom */}
+                <div style={{
+                  position: "absolute", bottom: 0, left: 0, right: 0,
+                  zIndex: 20,
+                  padding: "0 16px 20px",
+                  display: "flex",
+                  gap: 8,
+                  overflowX: "auto",
+                  scrollbarWidth: "none",
+                  WebkitOverflowScrolling: "touch",
+                }}>
+                  {CHAPTERS.map((ch, i) => (
+                    <button
+                      key={ch}
+                      onClick={() => setActiveChapter(i)}
+                      style={{
+                        flexShrink: 0,
+                        padding: "6px 14px",
+                        borderRadius: 20,
+                        border: i === activeChapter ? "none" : "1px solid rgba(200,169,126,0.25)",
+                        background: i === activeChapter ? "#C8A97E" : "rgba(255,255,255,0.08)",
+                        color: i === activeChapter ? "#0a0a0b" : "rgba(255,255,255,0.55)",
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: "0.7rem",
+                        fontWeight: i === activeChapter ? 600 : 400,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {ch}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Grid — edge-to-edge, 2-col, 2px gap */}
+            {/* Grid — edge-to-edge, 2px gap, editorial rhythm */}
             <div style={{
               display: "grid",
               gridTemplateColumns: "repeat(2, 1fr)",
               gap: 2,
+              background: "#0a0a0b",
+              width: "100vw",
               margin: 0,
               padding: 0,
             }}>
-              {gridPhotos.map((url, i) => (
-                <div
-                  key={i}
-                  style={{
-                    aspectRatio: "3/4",
-                    overflow: "hidden",
-                    position: "relative",
-                    background: "#141414",
-                  }}
-                >
-                  <img
-                    src={url}
-                    alt=""
-                    loading={i < 6 ? "eager" : "lazy"}
-                    decoding="async"
+              {gridPhotos.map((url, i) => {
+                // Every 7th cell spans full width for editorial rhythm
+                const isFullWidth = i > 0 && i % 7 === 0;
+                return (
+                  <div
+                    key={i}
                     style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                      animation: "galleryFadeIn 0.4s ease both",
-                      animationDelay: `${Math.min(i * 0.05, 0.3)}s`,
+                      aspectRatio: isFullWidth ? "16/9" : "3/4",
+                      overflow: "hidden",
+                      position: "relative",
+                      background: "#141414",
+                      gridColumn: isFullWidth ? "1 / -1" : undefined,
                     }}
-                  />
-                </div>
-              ))}
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      loading={i < 6 ? "eager" : "lazy"}
+                      decoding="async"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                        animation: "galleryFadeIn 0.5s ease both",
+                        animationDelay: `${Math.min(i * 0.05, 0.3)}s`,
+                      }}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -191,7 +254,6 @@ const Dashboard = () => {
   /* ── Desktop: Standard layout ── */
   return (
     <DashboardLayout>
-      {/* Studio greeting */}
       <div style={{ marginBottom: 40 }}>
         <h1 style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -203,7 +265,6 @@ const Dashboard = () => {
         </h1>
       </div>
 
-      {/* Photo grid */}
       <div style={{ margin: "0 -40px" }}>
         {loading ? (
           <div style={{ columns: 3, columnGap: 6, padding: "0 40px" }}>
@@ -232,7 +293,6 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* FAB — desktop only */}
       <button
         onClick={() => setCreateOpen(true)}
         style={{
