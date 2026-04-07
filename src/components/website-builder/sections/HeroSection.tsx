@@ -8,11 +8,9 @@ interface HeroSectionProps {
   coverImage?: string;
 }
 
-const PLACEHOLDER = 'https://images.unsplash.com/photo-1519741497674-611481863552?w=1600&q=80';
-
 export function HeroSection({ template, studioName, tagline = 'Wedding Photography', coverImage }: HeroSectionProps) {
   const t = template;
-  const img = coverImage || PLACEHOLDER;
+  const img = coverImage || getHeroImage(t.id);
   const variant = t.sections.hero;
 
   /* ── Centered (Reverie, Heirloom) ── */

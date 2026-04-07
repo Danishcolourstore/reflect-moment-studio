@@ -9,11 +9,9 @@ interface AboutSectionProps {
   id?: string;
 }
 
-const PORTRAIT = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&q=80';
-
 export function AboutSection({ template, heading = 'About', body, portraitImage, id }: AboutSectionProps) {
   const t = template;
-  const img = portraitImage || PORTRAIT;
+  const img = portraitImage || getAboutImage(t.id);
   const variant = t.sections.about;
   const defaultBody = body || "We believe in capturing the real moments - the stolen glances, the quiet laughter, the tears of joy. Our approach is documentary at heart but editorial in execution. Every wedding tells a story, and we are here to tell yours beautifully.";
 
