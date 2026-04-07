@@ -5,7 +5,6 @@ import { useSiteProfile } from "@/lib/SiteProfileContext";
 import { SiteHead } from "@/components/SiteHead";
 import { PublicPhotoLightbox } from "@/components/PublicPhotoLightbox";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Heart } from "lucide-react";
 
 interface Photo {
@@ -64,15 +63,11 @@ export default function PublicGalleryView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFBF7] px-4 py-16">
-        <div className="max-w-6xl mx-auto space-y-4">
-          <Skeleton className="h-10 w-64 mx-auto" />
-          <Skeleton className="h-5 w-40 mx-auto" />
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 mt-8">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <Skeleton key={i} className="mb-4 rounded-lg" style={{ height: `${200 + (i % 3) * 80}px` }} />
-            ))}
-          </div>
+      <div style={{ minHeight: "100vh", background: "hsl(45, 14%, 97%)" }}>
+        <div style={{ columns: 2, columnGap: 6, paddingTop: 48 }}>
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} style={{ breakInside: "avoid", marginBottom: 6, height: `${200 + (i % 3) * 80}px`, background: "hsl(40, 5%, 93%)" }} />
+          ))}
         </div>
       </div>
     );
@@ -80,101 +75,122 @@ export default function PublicGalleryView() {
 
   if (!gallery) {
     return (
-      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
-        <p className="text-[#1A1A1A]/50" style={{ fontFamily: "Inter, sans-serif" }}>Gallery not found</p>
+      <div style={{ minHeight: "100vh", background: "hsl(45, 14%, 97%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontStyle: "italic", color: "hsl(35, 4%, 56%)" }}>Gallery not found</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] px-4 sm:px-6 py-12 sm:py-16">
+    <div style={{ minHeight: "100vh", background: "hsl(45, 14%, 97%)" }}>
       <SiteHead
         title={`${gallery.name} | ${profile?.studio_name || "Photography"}`}
         ogTitle={`${gallery.name} — ${profile?.studio_name || "Photography"}`}
         ogImage={gallery.cover_url}
       />
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl text-[#1A1A1A]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-            {gallery.name}
-          </h1>
-          <p className="text-sm text-[#1A1A1A]/50 mt-2" style={{ fontFamily: "Inter, sans-serif" }}>
-            {gallery.event_date && new Date(gallery.event_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-            {" · "}
-            {photos.length} photos
-          </p>
-        </div>
 
-        {/* Favorites filter */}
-        <div className="flex items-center justify-center gap-3 mb-8">
+      {/* Minimal gallery name — centered, quiet */}
+      <div style={{ textAlign: "center", padding: "40px 16px 16px" }}>
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, color: "hsl(48, 7%, 10%)", letterSpacing: "0.02em" }}>
+          {gallery.name}
+        </h1>
+      </div>
+
+      {/* Favorites toggle — only if there are favorites */}
+      {favCount > 0 && (
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, paddingBottom: 16 }}>
           <button
             onClick={() => setShowFavsOnly(false)}
-            className={`px-4 py-2 rounded-full text-sm transition-all duration-300 ease-out ${
-              !showFavsOnly
-                ? "bg-[#1A1A1A] text-white"
-                : "bg-[#E8E0D4]/50 text-[#1A1A1A]/60 hover:bg-[#E8E0D4]"
-            }`}
-            style={{ fontFamily: "Inter, sans-serif" }}
+            style={{
+              padding: "6px 16px",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              background: !showFavsOnly ? "hsl(48, 7%, 10%)" : "transparent",
+              color: !showFavsOnly ? "hsl(45, 14%, 97%)" : "hsl(35, 4%, 56%)",
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
           >
-            All
+            ALL
           </button>
           <button
             onClick={() => setShowFavsOnly(true)}
-            className={`px-4 py-2 rounded-full text-sm transition-all duration-300 ease-out flex items-center gap-1.5 ${
-              showFavsOnly
-                ? "bg-[#1A1A1A] text-white"
-                : "bg-[#E8E0D4]/50 text-[#1A1A1A]/60 hover:bg-[#E8E0D4]"
-            }`}
-            style={{ fontFamily: "Inter, sans-serif" }}
+            style={{
+              padding: "6px 16px",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: showFavsOnly ? "hsl(48, 7%, 10%)" : "transparent",
+              color: showFavsOnly ? "hsl(45, 14%, 97%)" : "hsl(35, 4%, 56%)",
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
           >
-            <Heart className="w-3.5 h-3.5" />
-            Favorites
-            {favCount > 0 && (
-              <span className="ml-1 inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-[#C9A96E] text-white text-[10px] font-medium px-1.5">
-                {favCount}
-              </span>
-            )}
+            <Heart style={{ width: 12, height: 12 }} />
+            {favCount}
           </button>
         </div>
+      )}
 
-        {/* Masonry Grid */}
-        {displayPhotos.length === 0 ? (
-          <p className="text-center text-[#1A1A1A]/40 py-12" style={{ fontFamily: "Inter, sans-serif" }}>
-            {showFavsOnly ? "No favorites yet — tap the heart on photos you love" : "No photos in this gallery"}
+      {/* Full-bleed masonry — edge-to-edge, tight gaps */}
+      {displayPhotos.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "80px 16px" }}>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontStyle: "italic", color: "hsl(37, 6%, 75%)", fontWeight: 300 }}>
+            {showFavsOnly ? "No favorites yet" : "No photos in this gallery"}
           </p>
-        ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
-            {displayPhotos.map((photo) => {
-              const realIndex = photos.findIndex(p => p.id === photo.id);
-              const isFav = favs.has(photo.id);
-              return (
-                <div
-                  key={photo.id}
-                  className="relative mb-4 break-inside-avoid group cursor-pointer rounded-lg overflow-hidden"
-                  onClick={() => setLightboxIndex(realIndex)}
+        </div>
+      ) : (
+        <div style={{ columns: 2, columnGap: 6 }}>
+          {displayPhotos.map((photo) => {
+            const realIndex = photos.findIndex(p => p.id === photo.id);
+            const isFav = favs.has(photo.id);
+            return (
+              <div
+                key={photo.id}
+                className="group"
+                style={{ breakInside: "avoid", marginBottom: 6, position: "relative", overflow: "hidden", cursor: "pointer" }}
+                onClick={() => setLightboxIndex(realIndex)}
+              >
+                <img
+                  src={photo.url}
+                  alt=""
+                  loading="lazy"
+                  style={{ width: "100%", display: "block", backgroundColor: "hsl(40, 5%, 93%)" }}
+                />
+                {/* Heart overlay on hover/touch */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggle(photo.id); }}
+                  className="opacity-0 group-hover:opacity-100"
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    width: 36,
+                    height: 36,
+                    background: "hsla(0, 0%, 0%, 0.2)",
+                    backdropFilter: "blur(8px)",
+                    border: "none",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    transition: "opacity 0.2s",
+                  }}
                 >
-                  <img
-                    src={photo.url}
-                    alt=""
-                    loading="lazy"
-                    className="w-full block transition-all duration-300 ease-out group-hover:scale-[1.02]"
-                    style={{ backgroundColor: "#E8E0D4" }}
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                  {/* Heart button */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggle(photo.id); }}
-                    className="absolute top-2 right-2 p-2 rounded-full bg-black/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out text-white/80 hover:text-white"
-                  >
-                    <Heart className={`w-4 h-4 ${isFav ? "fill-red-500 text-red-500" : ""}`} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                  <Heart style={{ width: 14, height: 14, color: isFav ? "hsl(0, 80%, 60%)" : "hsla(0, 0%, 100%, 0.85)", fill: isFav ? "hsl(0, 80%, 60%)" : "none" }} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
