@@ -621,6 +621,14 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/dashboard/website-editor"
+              element={
+                <ProtectedRoute>
+                  <WebsiteSectionEditor />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/event/:slug"
