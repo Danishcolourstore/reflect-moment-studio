@@ -956,7 +956,7 @@ function ImageViewer({
             className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center pointer-events-auto"
             onClick={() => onNavigate(currentIndex - 1)}
             style={{ minWidth: 44, minHeight: 44, opacity: 0.3 }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.3")}
             aria-label="Previous photo"
           >
