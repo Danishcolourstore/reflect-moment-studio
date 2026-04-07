@@ -60,9 +60,9 @@ export default function Events() {
   };
 
   const getStatusColor = (status: string) => {
-    if (status === "DELIVERED") return "#B8953F";
-    if (status === "DRAFT") return "#94918B";
-    return "#1A1917";
+    if (status === "LIVE") return "hsl(40, 52%, 48%)";
+    if (status === "DRAFT") return "hsl(35, 4%, 56%)";
+    return "hsl(48, 7%, 10%)";
   };
 
   return (
@@ -101,7 +101,7 @@ export default function Events() {
         )}
 
         {/* Filter tabs */}
-        <div style={{ display: "flex", gap: isMobile ? 16 : 24, borderBottom: "1px solid #E8E6E1", marginBottom: isMobile ? 24 : 32 }}>
+        <div style={{ display: "flex", gap: isMobile ? 16 : 24, borderBottom: "1px solid hsl(37, 10%, 90%)", marginBottom: isMobile ? 24 : 40 }}>
           {FILTERS.map((f) => (
             <button
               key={f.key}
@@ -114,10 +114,10 @@ export default function Events() {
                 fontSize: 12,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: filter === f.key ? "#1A1917" : "#94918B",
+                color: filter === f.key ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 56%)",
                 fontWeight: 400,
                 paddingBottom: 12,
-                borderBottom: filter === f.key ? "2px solid #B8953F" : "2px solid transparent",
+                borderBottom: filter === f.key ? "2px solid hsl(40, 52%, 48%)" : "2px solid transparent",
                 transition: "color 0.2s, border-color 0.2s",
               }}
             >
@@ -128,7 +128,7 @@ export default function Events() {
 
         {/* Content */}
         {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 20 : 32 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 16 : 40 }}>
             {[1, 2, 3, 4].map((i) => (
               <div key={i}>
                 <div className="skeleton-block" style={{ width: "100%", aspectRatio: "16/9" }} />
@@ -139,7 +139,7 @@ export default function Events() {
           </div>
         ) : events.length === 0 ? (
           <div style={{ textAlign: "center", padding: "80px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 300, color: "#1A1917", margin: 0 }}>
+            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 300, color: "hsl(48, 7%, 10%)", margin: 0 }}>
               Your first gallery awaits
             </h2>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(35, 4%, 56%)", marginTop: 8 }}>
@@ -149,8 +149,8 @@ export default function Events() {
               onClick={() => setCreateOpen(true)}
               style={{
                 marginTop: 24,
-                background: "#1A1917",
-                color: "#FAFAF8",
+                background: "hsl(48, 7%, 10%)",
+                color: "hsl(45, 14%, 97%)",
                 border: "none",
                 padding: "14px 32px",
                 fontFamily: "'DM Sans', sans-serif",
@@ -164,7 +164,7 @@ export default function Events() {
             </button>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 20 : 32 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 16 : 40 }}>
             {filteredEvents.map((evt) => {
               const status = getStatus(evt);
               return (
@@ -194,23 +194,23 @@ export default function Events() {
                       />
                     </div>
                   ) : (
-                    <div style={{ width: "100%", aspectRatio: "16/9", background: "#F4F3F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 36, color: "#E8E6E1", fontWeight: 300 }}>
+                    <div style={{ width: "100%", aspectRatio: "16/9", background: "hsl(40, 5%, 95%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 36, color: "hsl(37, 10%, 90%)", fontWeight: 300 }}>
                         {evt.name.charAt(0)}
                       </span>
                     </div>
                   )}
                   {/* Info */}
                   <div style={{ paddingTop: 12 }}>
-                    <h3 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: "#1A1917", margin: 0, letterSpacing: "0.02em" }}>
+                    <h3 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: "hsl(48, 7%, 10%)", margin: 0, letterSpacing: "0.02em" }}>
                       {evt.name}
                     </h3>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B", marginTop: 4 }}>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(35, 4%, 56%)", marginTop: 4 }}>
                       {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date"}
                       {evt.location ? ` · ${evt.location}` : ""}
                     </p>
                     <div style={{ display: "flex", gap: 12, marginTop: 6, alignItems: "center" }}>
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#94918B" }}>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "hsl(35, 4%, 56%)" }}>
                         {evt.photo_count || 0} photos
                       </span>
                       <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: getStatusColor(status) }}>
@@ -236,7 +236,7 @@ export default function Events() {
             width: 56,
             height: 56,
             borderRadius: "50%",
-            background: "#1A1917",
+            background: "hsl(48, 7%, 10%)",
             border: "none",
             cursor: "pointer",
             display: "flex",
@@ -248,7 +248,7 @@ export default function Events() {
           onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
         >
-          <Plus size={22} strokeWidth={2} style={{ color: "#FAFAF8" }} />
+          <Plus size={22} strokeWidth={2} style={{ color: "hsl(45, 14%, 97%)" }} />
         </button>
       )}
 
