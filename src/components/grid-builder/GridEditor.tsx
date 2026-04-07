@@ -394,16 +394,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </button>
-            <button
-              onClick={handleReset}
-              className={cn(
-                'rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200',
-                isMobile ? 'h-10 w-10' : 'h-8 w-8'
-              )}
-              title="Reset"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-            </button>
             <SmartFillUploader totalCells={cells.length} onFiles={handleSmartFill} />
           </div>
         </div>
