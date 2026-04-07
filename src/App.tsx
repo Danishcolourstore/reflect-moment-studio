@@ -555,38 +555,7 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/dashboard/branding/editor"
-              element={
-                <ProtectedRoute>
-                  <BrandEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/website-editor"
-              element={
-                <ProtectedRoute>
-                  <WebsiteEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/domains"
-              element={
-                <ProtectedRoute>
-                  <DomainSettings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/template-preview"
-              element={
-                <ProtectedRoute>
-                  <TemplatePreview />
-                </ProtectedRoute>
-              }
-            />
+            {/* BrandEditor, WebsiteEditor, DomainSettings, TemplatePreview routes removed */}
             <Route
               path="/dashboard/profile"
               element={
