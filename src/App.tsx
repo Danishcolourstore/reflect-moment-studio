@@ -372,6 +372,7 @@ const AppRoutes = () => {
               <Route path="revenue" element={<AdminRevenue />} />
               <Route path="emails" element={<AdminEmails />} />
               <Route path="activity" element={<AdminActivity />} />
+              <Route path="templates" element={<AdminTemplates />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
