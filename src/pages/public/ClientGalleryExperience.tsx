@@ -157,7 +157,7 @@ function PasswordGate({
         <form onSubmit={handleSubmit} style={{ marginTop: 40 }}>
           <div
             style={{
-              animation: shake ? "galleryShake 0.3s ease" : "none",
+              animation: shake ? "galleryShake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97)" : "none",
             }}
           >
             <input
@@ -179,7 +179,7 @@ function PasswordGate({
                 border: "none",
                 borderBottom: `1px solid ${error ? "#A3553A" : "#E8E6E1"}`,
                 padding: "12px 0",
-                transition: "border-color 0.15s ease",
+                transition: "border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
               onFocus={(e) => {
                 if (!error)
@@ -219,7 +219,7 @@ function PasswordGate({
               padding: "14px 0",
               border: "none",
               cursor: "pointer",
-              transition: "opacity 0.2s ease",
+              transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
@@ -409,7 +409,7 @@ function GalleryImage({
 
   const handleClick = () => {
     const now = Date.now();
-    if (now - lastTapRef.current < 300) {
+    if (now - lastTapRef.current < 280) {
       // Double tap
       onDoubleTap?.();
       setHeartAnim(true);
@@ -422,7 +422,7 @@ function GalleryImage({
           onClick?.();
           lastTapRef.current = 0;
         }
-      }, 300);
+      }, 250);
     }
   };
 
@@ -440,7 +440,7 @@ function GalleryImage({
           className="w-full h-full object-cover block"
           style={{
             opacity: loaded ? 1 : 0,
-            transition: "opacity 0.4s ease",
+            transition: "opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
           loading={eager ? "eager" : "lazy"}
           decoding="async"
@@ -471,7 +471,7 @@ function GalleryImage({
             fill="#B8953F"
             color="#B8953F"
             style={{
-              animation: "galleryHeartPop 0.6s ease forwards",
+              animation: "galleryHeartPop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards",
             }}
           />
         </div>
@@ -693,7 +693,7 @@ function ChapterNav({
         top: "50%",
         transform: "translateY(-50%)",
         opacity: visible ? 1 : 0,
-        transition: "opacity 0.2s ease",
+        transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         pointerEvents: visible ? "auto" : "none",
       }}
     >
@@ -712,7 +712,7 @@ function ChapterNav({
               textTransform: "uppercase",
               letterSpacing: "0.1em",
               color: i === activeIndex ? "#1A1917" : "#D4D1CB",
-              transition: "color 0.2s ease",
+              transition: "color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
             {ch.name}
@@ -723,7 +723,7 @@ function ChapterNav({
               height: 5,
               borderRadius: "50%",
               background: i === activeIndex ? "#B8953F" : "#E8E6E1",
-              transition: "background 0.2s ease",
+              transition: "background 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               flexShrink: 0,
             }}
           />
@@ -799,7 +799,7 @@ function ImageViewer({
 
   const handleTap = () => {
     const now = Date.now();
-    if (now - lastTapRef.current < 300) {
+    if (now - lastTapRef.current < 280) {
       // Double tap = favorite
       onToggleFav(current.id);
       setHeartAnim(true);
@@ -817,7 +817,7 @@ function ImageViewer({
           });
           lastTapRef.current = 0;
         }
-      }, 300);
+      }, 250);
     }
   };
 
@@ -863,7 +863,7 @@ function ImageViewer({
   return (
     <div
       className="fixed inset-0 z-[300] flex items-center justify-center"
-      style={{ background: "#0A0A0A" }}
+      style={{ background: "#0A0A0A", animation: "galleryFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1)" }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -887,7 +887,7 @@ function ImageViewer({
             size={48}
             fill="#B8953F"
             color="#B8953F"
-            style={{ animation: "galleryHeartPop 0.6s ease forwards" }}
+            style={{ animation: "galleryHeartPop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}
           />
         </div>
       )}
@@ -897,7 +897,7 @@ function ImageViewer({
         className="absolute inset-0 pointer-events-none z-[305]"
         style={{
           opacity: controlsVisible ? 1 : 0,
-          transition: "opacity 0.2s ease",
+          transition: "opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         {/* Top bar */}
@@ -1033,7 +1033,7 @@ function FavoritesDrawer({
   return (
     <div className="fixed inset-0 z-[250]" onClick={onClose}>
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30" />
+      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.2)", animation: "galleryFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1)" }} />
 
       {/* Drawer */}
       <div
@@ -1042,7 +1042,7 @@ function FavoritesDrawer({
           background: "#FFFFFF",
           maxHeight: "85vh",
           borderTop: "1px solid #E8E6E1",
-          animation: "galleryDrawerUp 0.2s ease forwards",
+          animation: "galleryDrawerUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
           overflowY: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
@@ -1198,7 +1198,7 @@ function FavoritesPill({
         borderRadius: 24,
         padding: "10px 20px",
         cursor: "pointer",
-        animation: "galleryPillUp 0.2s ease forwards",
+        animation: "galleryPillUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards",
       }}
       aria-label={`${count} favorites`}
     >
@@ -1277,31 +1277,39 @@ function GalleryFooter({
 const galleryStyles = `
 @keyframes galleryShake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(4px); }
-  75% { transform: translateX(-4px); }
+  20% { transform: translateX(3px); }
+  40% { transform: translateX(-3px); }
+  60% { transform: translateX(2px); }
+  80% { transform: translateX(-2px); }
 }
 @keyframes galleryBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(6px); }
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(5px); opacity: 0.15; }
 }
 @keyframes galleryHeartPop {
-  0% { transform: scale(0.5); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 1; }
-  70% { transform: scale(1); opacity: 1; }
+  0% { transform: scale(0.4); opacity: 0; }
+  15% { opacity: 1; }
+  40% { transform: scale(1.15); opacity: 1; }
+  60% { transform: scale(0.95); opacity: 1; }
+  80% { transform: scale(1); opacity: 0.8; }
   100% { transform: scale(1); opacity: 0; }
 }
 @keyframes galleryDrawerUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from { transform: translateY(100%); opacity: 0.8; }
+  to { transform: translateY(0); opacity: 1; }
 }
 @keyframes galleryPillUp {
-  from { transform: translate(-50%, 10px); opacity: 0; }
+  from { transform: translate(-50%, 8px); opacity: 0; }
   to { transform: translate(-50%, 0); opacity: 1; }
 }
 @keyframes galleryLoadBar {
   0% { transform: translateX(-100%); }
   50% { transform: translateX(0%); }
   100% { transform: translateX(100%); }
+}
+@keyframes galleryFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 `;
 
@@ -1484,7 +1492,7 @@ export default function ClientGalleryExperience() {
             right: 0,
             height: 2,
             background: "#B8953F",
-            animation: "galleryLoadBar 1.5s ease infinite",
+            animation: "galleryLoadBar 2s cubic-bezier(0.4, 0, 0.2, 1) infinite",
             overflow: "hidden",
           }}
         >
