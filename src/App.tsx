@@ -47,8 +47,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const BuilderTest = lazy(() => import("./pages/BuilderTest"));
 const GuestFinder = lazy(() => import("./pages/GuestFinder"));
-const PhotographerFeed = lazy(() => import("./pages/PhotographerFeed"));
-const PublicFeed = lazy(() => import("./pages/PublicFeed"));
+// PhotographerFeed, PublicFeed removed
 const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
 const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
