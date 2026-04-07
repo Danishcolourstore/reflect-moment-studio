@@ -9,9 +9,15 @@ import {
   updatePreset,
 } from "../storage/store.js";
 import { toPublicImage } from "./serializers.js";
-import { batchApplySchema, controlsUpdateSchema, presetUpdateSchema } from "./schemas.js";
+import {
+  batchApplySchema,
+  batchCategorySchema,
+  controlsUpdateSchema,
+  presetUpdateSchema,
+} from "./schemas.js";
 import { publishEvent, realtimeEvents } from "../realtime/hub.js";
 import { enqueueImageProcessing } from "../queue/manager.js";
+import { updateImageCategories } from "../services/categoryService.js";
 
 const mapImages = (images) => images.map((image) => toPublicImage(image));
 
@@ -111,6 +117,29 @@ export const createApiRouter = () => {
 
     publishEvent(realtimeEvents.batchQueued, { imageIds, presetId: presetId ?? null, retouchIntensity });
     res.status(202).json({ queued: imageIds.length });
+  });
+
+  router.post("/batch/category", async (req, res) => {
+    const parsed = batchCategorySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues });
+      return;
+    }
+
+    const { imageIds, categoryId } = parsed.data;
+    const normalizedCategory = await updateImageCategories(imageIds, categoryId);
+
+    const images = listImages().filter((image) => imageIds.includes(image.id));
+    const serializedImages = mapImages(images);
+    serializedImages.forEach((image) => {
+      publishEvent(realtimeEvents.imageProcessed, { image });
+    });
+    publishEvent(realtimeEvents.categoriesUpdated, { categories: listCategories() });
+    res.status(202).json({
+      updated: images.length,
+      categoryId: normalizedCategory,
+      categories: listCategories(),
+    });
   });
 
   return router;

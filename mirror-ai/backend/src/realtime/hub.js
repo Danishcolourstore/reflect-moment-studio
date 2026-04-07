@@ -11,6 +11,7 @@ export const realtimeEvents = {
   controlsUpdated: "controls:updated",
   presetUpdated: "preset:updated",
   batchQueued: "batch:queued",
+  categoriesUpdated: "categories:updated",
 };
 
 export const publishEvent = (eventName, payload) => {

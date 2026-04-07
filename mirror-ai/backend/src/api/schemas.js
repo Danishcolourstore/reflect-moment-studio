@@ -33,3 +33,8 @@ export const batchApplySchema = z.object({
   presetId: z.string().min(1).optional(),
   retouchIntensity: numericRange(0, 1).optional(),
 });
+
+export const batchCategorySchema = z.object({
+  imageIds: z.array(z.string().min(1)).min(1),
+  categoryId: z.string().min(1),
+});
