@@ -13,11 +13,11 @@ interface HomeDashboardHubProps {
 }
 
 const QUICK_ACTIONS = [
-  { title: "Events", icon: Camera, url: "/dashboard/events", desc: "Manage galleries" },
-  { title: "Website", icon: Globe, url: "/dashboard/website-builder", desc: "Your website" },
+  { title: "Events", icon: Camera, url: "/dashboard/events", desc: "Your galleries" },
+  { title: "Website", icon: Globe, url: "/dashboard/website-builder", desc: "Your presence" },
   { title: "Storybook", icon: BookOpen, url: "/dashboard/storybook", desc: "Album design" },
-  { title: "Cheetah", icon: Zap, url: "/dashboard/cheetah-live", desc: "AI culling" },
-  { title: "Clients", icon: Users, url: "/dashboard/clients", desc: "CRM" },
+  { title: "Cheetah", icon: Zap, url: "/dashboard/cheetah-live", desc: "Smart culling" },
+  { title: "Clients", icon: Users, url: "/dashboard/clients", desc: "Relationships" },
 ];
 
 export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHubProps) {
@@ -35,9 +35,9 @@ export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHub
       <div>
         <div className="flex items-end justify-between mb-12">
           <div>
-            <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-muted-foreground mb-2">DASHBOARD</p>
+            <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-muted-foreground mb-2">STUDIO</p>
             <h1 className="font-serif text-4xl text-foreground tracking-wide" style={{ fontWeight: 300 }}>
-              Your Studio
+              Welcome back
             </h1>
           </div>
           <Button onClick={() => navigate("/dashboard/events")} className="gap-2">
@@ -84,8 +84,8 @@ export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHub
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-[9px] font-medium tracking-[0.2em] uppercase text-muted-foreground mb-1">DASHBOARD</p>
-          <h1 className="font-serif text-2xl text-foreground" style={{ fontWeight: 300 }}>Your Studio</h1>
+          <p className="text-[9px] font-medium tracking-[0.2em] uppercase text-muted-foreground mb-1">STUDIO</p>
+          <h1 className="font-serif text-2xl text-foreground" style={{ fontWeight: 300 }}>Welcome back</h1>
         </div>
         <button
           onClick={() => navigate("/dashboard/events")}
