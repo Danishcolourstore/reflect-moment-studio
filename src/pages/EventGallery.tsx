@@ -37,7 +37,7 @@ import { CommentsViewer } from '@/components/CommentsViewer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MessageCircle, CheckSquare, Type } from 'lucide-react';
 import { TextBlockEditor, TextBlockManager, type TextBlock } from '@/components/GalleryTextBlock';
-import { usePortfolioPhotos } from '@/hooks/use-portfolio-photos';
+// usePortfolioPhotos removed
 
 interface Photo {
   id: string;
