@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { clearTemplateCache } from '@/lib/website-templates';
-import { useInvalidateTemplates } from '@/hooks/use-website-templates';
+const clearTemplateCache = () => {};
+const useInvalidateTemplates = () => () => {};
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, Loader2, Upload, Save, ArrowLeft,
   Image as ImageIcon, X, Camera, Mail, Instagram, Globe, ChevronDown,

@@ -24,7 +24,7 @@ import { useZipUpload } from '@/hooks/use-zip-upload';
 import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
 import { ProgressiveImage } from '@/components/ProgressiveImage';
 import { PixiesetEditorialGrid, CinematicMasonryGrid, HighlightMosaicGrid } from '@/components/PremiumGridLayouts';
-import { MinimalPortfolioLayout } from '@/components/MinimalPortfolioLayout';
+// MinimalPortfolioLayout removed
 import { StoryBookLayout } from '@/components/StoryBookLayout';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
@@ -37,7 +37,7 @@ import { CommentsViewer } from '@/components/CommentsViewer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MessageCircle, CheckSquare, Type } from 'lucide-react';
 import { TextBlockEditor, TextBlockManager, type TextBlock } from '@/components/GalleryTextBlock';
-import { usePortfolioPhotos } from '@/hooks/use-portfolio-photos';
+// usePortfolioPhotos removed
 
 interface Photo {
   id: string;
@@ -144,7 +144,7 @@ function PremiumGridRenderer({
     case 'cinematic':
       return <CinematicMasonryGrid {...common} />;
     case 'minimal-portfolio':
-      return <MinimalPortfolioLayout {...common} eventName={event.name} />;
+      return <HighlightMosaicGrid {...common} eventName={event.name} />;
     case 'storybook':
       return <StoryBookLayout {...common} eventName={event.name} eventDate={event.event_date} />;
     default:
@@ -421,7 +421,10 @@ const EventGallery = () => {
   const upload = usePhotoUpload(id, user?.id);
   const zipUpload = useZipUpload(id, user?.id);
   const [sharePhoto, setSharePhoto] = useState<Photo | null>(null);
-  const { isPortfolioPhoto, togglePortfolioPhoto, count: portfolioCount, max: portfolioMax } = usePortfolioPhotos(user?.id);
+  const isPortfolioPhoto = (_id: string) => false;
+  const togglePortfolioPhoto = async (_id: string) => {};
+  const portfolioCount = 0;
+  const portfolioMax = 20;
   const [artGalleryIds, setArtGalleryIds] = useState<Set<string>>(new Set());
 
   const isArtGalleryPhoto = useCallback((id: string) => artGalleryIds.has(id), [artGalleryIds]);

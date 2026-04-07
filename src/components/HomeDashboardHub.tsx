@@ -14,7 +14,7 @@ interface HomeDashboardHubProps {
 
 const QUICK_ACTIONS = [
   { title: "Events", icon: Camera, url: "/dashboard/events", desc: "Manage galleries" },
-  { title: "Portfolio", icon: Globe, url: "/dashboard/website-editor", desc: "Public website" },
+  { title: "Storybook", icon: BookOpen, url: "/dashboard/storybook", desc: "Album design" },
   { title: "Storybook", icon: BookOpen, url: "/dashboard/storybook", desc: "Album design" },
   { title: "Cheetah", icon: Zap, url: "/dashboard/cheetah-live", desc: "AI culling" },
   { title: "Clients", icon: Users, url: "/dashboard/clients", desc: "CRM" },

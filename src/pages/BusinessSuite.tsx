@@ -6,7 +6,7 @@ import { BusinessDashboard } from '@/components/business/BusinessDashboard';
 import { EnhancedLeadsPanel } from '@/components/business/EnhancedLeadsPanel';
 import { BookingsPanel } from '@/components/business/BookingsPanel';
 import { PackagesPanel } from '@/components/business/PackagesPanel';
-import { PortfolioManager } from '@/components/business/PortfolioManager';
+// PortfolioManager removed
 import { AvailabilityCalendar } from '@/components/business/AvailabilityCalendar';
 import { EnhancedInsightsPanel } from '@/components/business/EnhancedInsightsPanel';
 import { BoostPanel } from '@/components/business/BoostPanel';
@@ -94,7 +94,7 @@ const BusinessSuite = () => {
           </TabsContent>
 
           <TabsContent value="portfolio">
-            <PortfolioManager />
+            <div className="text-center py-12 text-muted-foreground">Portfolio manager removed</div>
           </TabsContent>
 
           <TabsContent value="pricing">

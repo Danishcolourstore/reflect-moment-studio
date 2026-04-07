@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
 import { useInfinitePhotos } from '@/hooks/use-infinite-photos';
 import { ProgressiveImage } from '@/components/ProgressiveImage';
-import { MinimalPortfolioLayout } from '@/components/MinimalPortfolioLayout';
+// MinimalPortfolioLayout removed
 import { StoryBookLayout } from '@/components/StoryBookLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
@@ -38,11 +38,13 @@ import { FindMyPhotosModal } from '@/components/FindMyPhotosModal';
 import { GalleryTextBlockRenderer, type TextBlock } from '@/components/GalleryTextBlock';
 import { TimelessWeddingHero } from '@/components/TimelessWeddingHero';
 import { AndhakarHero } from '@/components/AndhakarHero';
-import { WebsiteHeader } from '@/components/website/WebsiteHeader';
-import { WebsiteFooter } from '@/components/website/WebsiteFooter';
-import { WebsiteAbout } from '@/components/website/WebsiteAbout';
-import { WebsiteContact } from '@/components/website/WebsiteContact';
-import { getTemplate } from '@/lib/website-templates';
+// Website components removed
+const WebsiteHeader = (_props: any) => null;
+const WebsiteFooter = (_props: any) => null;
+const WebsiteAbout = (_props: any) => null;
+const WebsiteContact = (_props: any) => null;
+const getTemplate = (_t: string) => ({ bg: '#FDFCFB', text: '#1C1C1E', textSecondary: '#999', fontFamily: "'Cormorant Garamond', serif", cardBg: '#F5F4F2', footerBg: '#FDFCFB', headerBg: '#FDFCFB', uiFontFamily: "'DM Sans', sans-serif", navBg: '#FDFCFB', navBorder: '#F0EDE8' });
+const MinimalPortfolioLayout = (_props: any) => null;
 
 /* ── Interfaces ── */
 interface Photo {

@@ -9,8 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink, Image, BookOpen } from 'lucide-react';
 import { SmartQRAccess } from '@/components/events/SmartQRAccess';
 import { GALLERY_STYLES, DEFAULT_LAYOUT_FOR_STYLE, type GalleryStyleValue } from '@/lib/gallery-styles';
-import { type WebsiteTemplateValue } from '@/lib/website-templates';
-import { useWebsiteTemplates } from '@/hooks/use-website-templates';
+type WebsiteTemplateValue = string;
+const useWebsiteTemplates = () => ({ data: [] as any[] });
 
 const LAYOUT_OPTIONS = [
   { value: 'classic', label: 'Classic', icon: Grid2X2 },

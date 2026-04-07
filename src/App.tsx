@@ -29,9 +29,7 @@ const Cheetah = lazy(() => import("./pages/Cheetah"));
 const CheetahLive = lazy(() => import("./pages/CheetahLive"));
 const Branding = lazy(() => import("./pages/Branding"));
 const MorePage = lazy(() => import("./pages/MorePage"));
-const BrandEditor = lazy(() => import("./pages/BrandEditor"));
-const WebsiteEditor = lazy(() => import("./pages/WebsiteEditor"));
-const TemplatePreview = lazy(() => import("./pages/TemplatePreview"));
+// BrandEditor, WebsiteEditor, TemplatePreview removed
 const Profile = lazy(() => import("./pages/Profile"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -49,8 +47,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const BuilderTest = lazy(() => import("./pages/BuilderTest"));
 const GuestFinder = lazy(() => import("./pages/GuestFinder"));
-const PhotographerFeed = lazy(() => import("./pages/PhotographerFeed"));
-const PublicFeed = lazy(() => import("./pages/PublicFeed"));
+// PhotographerFeed, PublicFeed removed
 const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
 const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
@@ -59,9 +56,9 @@ const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
 const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
 const LandingGate = lazy(() => import("./pages/LandingGate"));
 const ClientPreview = lazy(() => import("./pages/ClientPreview"));
-const DomainSettings = lazy(() => import("./pages/DomainSettings"));
+// DomainSettings removed
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
-const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
+// WebsiteBuilder removed
 const Reflections = lazy(() => import("./pages/Reflections"));
 const EntiranBusiness = lazy(() => import("./pages/EntiranBusiness"));
 const PublicGalleryView = lazy(() => import("./pages/public/PublicGalleryView"));
@@ -558,38 +555,7 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/dashboard/branding/editor"
-              element={
-                <ProtectedRoute>
-                  <BrandEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/website-editor"
-              element={
-                <ProtectedRoute>
-                  <WebsiteEditor />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/domains"
-              element={
-                <ProtectedRoute>
-                  <DomainSettings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard/template-preview"
-              element={
-                <ProtectedRoute>
-                  <TemplatePreview />
-                </ProtectedRoute>
-              }
-            />
+            {/* BrandEditor, WebsiteEditor, DomainSettings, TemplatePreview routes removed */}
             <Route
               path="/dashboard/profile"
               element={
@@ -646,14 +612,7 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/dashboard/website-builder"
-              element={
-                <ProtectedRoute>
-                  <WebsiteBuilder />
-                </ProtectedRoute>
-              }
-            />
+            {/* WebsiteBuilder route removed */}
 
             <Route
               path="/event/:slug"
@@ -691,9 +650,7 @@ const AppRoutes = () => {
             <Route path="/gallery-view/:id" element={<PublicGalleryView />} />
             <Route path="/find/:token" element={<GuestFinder />} />
             <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
-            <Route path="/studio/:username" element={<PhotographerFeed />} />
-            <Route path="/p/:username" element={<PhotographerFeed />} />
-            <Route path="/feed/:username" element={<PublicFeed />} />
+            {/* PhotographerFeed and PublicFeed routes removed */}
 
             <Route
               path="/storybook"
