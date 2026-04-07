@@ -37,9 +37,9 @@ export default function AICaptionGenerator({ photoCount = 1, onClose }: Props) {
       setCaption(data.caption || '');
       setHashtags(data.hashtags || '');
     } catch (e: any) {
-      if (e?.status === 429) toast.error('Rate limit reached — try again in a moment');
-      else if (e?.status === 402) toast.error('AI credits needed — add funds in workspace settings');
-      else toast.error('Failed to generate caption');
+      if (e?.status === 429) toast.error('Too many requests — try again shortly');
+      else if (e?.status === 402) toast.error('AI credits needed');
+      else toast.error('Could not generate caption');
     } finally {
       setLoading(false);
     }
@@ -48,7 +48,7 @@ export default function AICaptionGenerator({ photoCount = 1, onClose }: Props) {
   const copyToClipboard = async (text: string, type: 'caption' | 'hashtags') => {
     await navigator.clipboard.writeText(text);
     setCopied(type);
-    toast.success(`${type === 'caption' ? 'Caption' : 'Hashtags'} copied!`);
+    toast.success('Copied');
     setTimeout(() => setCopied(null), 2000);
   };
 
