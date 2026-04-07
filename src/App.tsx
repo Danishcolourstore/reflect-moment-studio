@@ -202,7 +202,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (suspended === null)
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm">Loading...</p>
+        <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
       </div>
     );
 
