@@ -6,7 +6,7 @@ import { BusinessDashboard } from '@/components/business/BusinessDashboard';
 import { EnhancedLeadsPanel } from '@/components/business/EnhancedLeadsPanel';
 import { BookingsPanel } from '@/components/business/BookingsPanel';
 import { PackagesPanel } from '@/components/business/PackagesPanel';
-import { PortfolioManager } from '@/components/business/PortfolioManager';
+// PortfolioManager removed
 import { AvailabilityCalendar } from '@/components/business/AvailabilityCalendar';
 import { EnhancedInsightsPanel } from '@/components/business/EnhancedInsightsPanel';
 import { BoostPanel } from '@/components/business/BoostPanel';
