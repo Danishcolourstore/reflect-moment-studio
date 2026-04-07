@@ -1,4 +1,5 @@
 import { type TemplateConfig } from '@/lib/website-templates';
+import { getHeroImage } from '@/lib/website-demo-images';
 
 interface HeroSectionProps {
   template: TemplateConfig;
