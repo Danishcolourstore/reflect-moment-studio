@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { EditorialRhythmGrid } from "@/components/EditorialRhythmGrid";
 import CreateFeedPostModal from "@/components/CreateFeedPostModal";
 import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { Menu, Share, Plus } from "lucide-react";
+import { Menu, Share, Plus, X } from "lucide-react";
 
 interface FeedPost {
   id: string;
@@ -26,7 +27,7 @@ export default function LandingGate() {
   const { user } = useAuth();
   const drawer = useDrawerMenu();
 
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
   const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState("Studio");
@@ -82,18 +83,28 @@ export default function LandingGate() {
       .order("created_at", { ascending: false }).limit(30);
 
     const evtIds = (events || []).map((e: any) => e.id);
-    const allUrls: string[] = [];
-    for (const evt of events || []) { if (evt.cover_url) allUrls.push(evt.cover_url); }
+    const allPhotos: { id: string; url: string }[] = [];
+    const seenUrls = new Set<string>();
+
+    for (const evt of events || []) {
+      if (evt.cover_url && !seenUrls.has(evt.cover_url)) {
+        allPhotos.push({ id: `cover-${evt.id}`, url: evt.cover_url });
+        seenUrls.add(evt.cover_url);
+      }
+    }
     if (evtIds.length > 0) {
       const { data: photoData } = await supabase
-        .from("photos").select("url")
+        .from("photos").select("id, url")
         .in("event_id", evtIds)
         .order("created_at", { ascending: false }).limit(100);
       for (const p of photoData || []) {
-        if (p.url && !allUrls.includes(p.url)) allUrls.push(p.url);
+        if (p.url && !seenUrls.has(p.url)) {
+          allPhotos.push({ id: p.id, url: p.url });
+          seenUrls.add(p.url);
+        }
       }
     }
-    setPhotos(allUrls);
+    setPhotos(allPhotos);
     setLoading(false);
   }, [user]);
 
@@ -101,19 +112,17 @@ export default function LandingGate() {
 
   const openLightbox = (idx: number) => { setLightboxIdx(idx); setLightboxOpen(true); };
   const closeLightbox = () => setLightboxOpen(false);
-  const nextPhoto = () => setLightboxIdx((i) => (i + 1) % photos.length);
-  const prevPhoto = () => setLightboxIdx((i) => (i - 1 + photos.length) % photos.length);
 
   useEffect(() => {
     if (!lightboxOpen) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowRight") nextPhoto();
-      if (e.key === "ArrowLeft") prevPhoto();
+      if (e.key === "ArrowRight" && lightboxIdx < photos.length - 1) setLightboxIdx(i => i + 1);
+      if (e.key === "ArrowLeft" && lightboxIdx > 0) setLightboxIdx(i => i - 1);
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [lightboxOpen, photos.length]);
+  }, [lightboxOpen, lightboxIdx, photos.length]);
 
   const handleShare = async () => {
     const feedUrl = feedSlug ? `${window.location.origin}/feed/${feedSlug}` : window.location.origin;
@@ -153,13 +162,20 @@ export default function LandingGate() {
         </button>
       </nav>
 
-      {/* Full-bleed continuous scroll — no tabs, no labels */}
+      {/* Editorial rhythm grid */}
       <div style={{ paddingTop: 48, paddingBottom: 80 }}>
         {loading ? (
-          <div style={{ columns: mob ? 2 : 3, columnGap: 6 }}>
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} style={{ breakInside: "avoid", marginBottom: 6, height: 180 + (i % 3) * 60, background: "hsl(40, 5%, 93%)" }} />
-            ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+            <div style={{ width: "100%", aspectRatio: "3/2", background: "hsl(40, 5%, 93%)" }} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+              <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
+              <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+              <div style={{ aspectRatio: "4/5", background: "hsl(40, 5%, 93%)" }} />
+              <div style={{ aspectRatio: "4/5", background: "hsl(40, 5%, 93%)" }} />
+              <div style={{ aspectRatio: "4/5", background: "hsl(40, 5%, 93%)" }} />
+            </div>
           </div>
         ) : !hasContent ? (
           <div style={{ textAlign: "center", padding: "120px 24px" }}>
@@ -168,44 +184,27 @@ export default function LandingGate() {
             </p>
           </div>
         ) : (
-          <div style={{ columns: mob ? 2 : 3, columnGap: 6 }}>
-            {photos.map((url, i) => (
-              <div
-                key={i}
-                style={{ breakInside: "avoid", marginBottom: 6, overflow: "hidden", cursor: "pointer" }}
-                onClick={() => openLightbox(i)}
-              >
-                <img
-                  src={url}
-                  alt=""
-                  loading={i < 4 ? "eager" : "lazy"}
-                  decoding="async"
-                  style={{ width: "100%", display: "block" }}
-                />
-              </div>
-            ))}
-          </div>
+          <EditorialRhythmGrid
+            photos={photos}
+            onPhotoClick={openLightbox}
+          />
         )}
       </div>
 
       {/* Lightbox */}
-      {lightboxOpen && (
+      {lightboxOpen && photos[lightboxIdx] && (
         <div
           onClick={(e) => { if (e.target === e.currentTarget) closeLightbox(); }}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.98)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          style={{ position: "fixed", inset: 0, background: "#050505", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}
         >
           <button onClick={closeLightbox}
-            style={{ position: "fixed", top: 12, right: 16, zIndex: 310, width: 40, height: 40, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "50%", color: "white", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            ✕
+            style={{ position: "fixed", top: 16, right: 16, zIndex: 310, background: "none", border: "none", cursor: "pointer", padding: 10 }}>
+            <X style={{ width: 18, height: 18, color: "rgba(255,255,255,0.3)" }} />
           </button>
-          <img src={photos[lightboxIdx]} alt="" style={{ maxHeight: "85vh", maxWidth: "95vw", objectFit: "contain" }} />
-          <div style={{ position: "absolute", bottom: 32, left: 0, right: 0, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 24px", zIndex: 310 }}>
-            <button onClick={prevPhoto} style={lightboxBtnStyle}>‹</button>
-            <span style={{ color: "white", fontSize: 13, fontFamily: "'DM Sans', sans-serif", opacity: 0.5 }}>
-              {lightboxIdx + 1} / {photos.length}
-            </span>
-            <button onClick={nextPhoto} style={lightboxBtnStyle}>›</button>
-          </div>
+          <img src={photos[lightboxIdx].url} alt="" style={{ maxHeight: "96vh", maxWidth: "96vw", objectFit: "contain" }} />
+          <span style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.25)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.1em" }}>
+            {lightboxIdx + 1} / {photos.length}
+          </span>
         </div>
       )}
 
@@ -282,9 +281,3 @@ function BlogReader({ post, onClose }: { post: FeedPost; onClose: () => void }) 
     </div>
   );
 }
-
-const lightboxBtnStyle: React.CSSProperties = {
-  width: 40, height: 40, background: "rgba(255,255,255,0.15)", borderRadius: "50%",
-  display: "flex", alignItems: "center", justifyContent: "center",
-  color: "white", fontSize: 18, border: "none", cursor: "pointer",
-};

@@ -4,6 +4,7 @@ import { useSiteContext } from "@/lib/SiteContext";
 import { useSiteProfile } from "@/lib/SiteProfileContext";
 import { SiteHead } from "@/components/SiteHead";
 import { PublicPhotoLightbox } from "@/components/PublicPhotoLightbox";
+import { EditorialRhythmGrid } from "@/components/EditorialRhythmGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart } from "lucide-react";
 
@@ -64,10 +65,18 @@ export default function PublicGalleryView() {
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "hsl(45, 14%, 97%)" }}>
-        <div style={{ columns: 2, columnGap: 6, paddingTop: 48 }}>
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} style={{ breakInside: "avoid", marginBottom: 6, height: `${200 + (i % 3) * 80}px`, background: "hsl(40, 5%, 93%)" }} />
-          ))}
+        {/* Editorial skeleton */}
+        <div style={{ padding: "80px 0 0", display: "flex", flexDirection: "column", gap: 40 }}>
+          <div style={{ width: "100%", aspectRatio: "3/2", background: "hsl(40, 5%, 93%)" }} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
+            <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+            <div style={{ aspectRatio: "4/5", background: "hsl(40, 5%, 93%)" }} />
+            <div style={{ aspectRatio: "4/5", background: "hsl(40, 5%, 93%)" }} />
+            <div style={{ aspectRatio: "4/5", background: "hsl(40, 5%, 93%)" }} />
+          </div>
         </div>
       </div>
     );
@@ -89,28 +98,23 @@ export default function PublicGalleryView() {
         ogImage={gallery.cover_url}
       />
 
-      {/* Minimal gallery name — centered, quiet */}
+      {/* Gallery title */}
       <div style={{ textAlign: "center", padding: "40px 16px 16px" }}>
         <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, color: "hsl(48, 7%, 10%)", letterSpacing: "0.02em" }}>
           {gallery.name}
         </h1>
       </div>
 
-      {/* Favorites toggle — only if there are favorites */}
+      {/* Favorites toggle */}
       {favCount > 0 && (
         <div style={{ display: "flex", justifyContent: "center", gap: 8, paddingBottom: 16 }}>
           <button
             onClick={() => setShowFavsOnly(false)}
             style={{
-              padding: "6px 16px",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 11,
-              letterSpacing: "0.08em",
+              padding: "6px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 11,
+              letterSpacing: "0.08em", border: "none", cursor: "pointer", transition: "all 0.2s",
               background: !showFavsOnly ? "hsl(48, 7%, 10%)" : "transparent",
               color: !showFavsOnly ? "hsl(45, 14%, 97%)" : "hsl(35, 4%, 56%)",
-              border: "none",
-              cursor: "pointer",
-              transition: "all 0.2s",
             }}
           >
             ALL
@@ -118,18 +122,11 @@ export default function PublicGalleryView() {
           <button
             onClick={() => setShowFavsOnly(true)}
             style={{
-              padding: "6px 16px",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
+              padding: "6px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 11,
+              letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 6,
+              border: "none", cursor: "pointer", transition: "all 0.2s",
               background: showFavsOnly ? "hsl(48, 7%, 10%)" : "transparent",
               color: showFavsOnly ? "hsl(45, 14%, 97%)" : "hsl(35, 4%, 56%)",
-              border: "none",
-              cursor: "pointer",
-              transition: "all 0.2s",
             }}
           >
             <Heart style={{ width: 12, height: 12 }} />
@@ -138,7 +135,7 @@ export default function PublicGalleryView() {
         </div>
       )}
 
-      {/* Full-bleed masonry — edge-to-edge, tight gaps */}
+      {/* Editorial rhythm grid */}
       {displayPhotos.length === 0 ? (
         <div style={{ textAlign: "center", padding: "80px 16px" }}>
           <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontStyle: "italic", color: "hsl(37, 6%, 75%)", fontWeight: 300 }}>
@@ -146,49 +143,32 @@ export default function PublicGalleryView() {
           </p>
         </div>
       ) : (
-        <div style={{ columns: 2, columnGap: 6 }}>
-          {displayPhotos.map((photo) => {
-            const realIndex = photos.findIndex(p => p.id === photo.id);
-            const isFav = favs.has(photo.id);
-            return (
-              <div
-                key={photo.id}
-                className="group"
-                style={{ breakInside: "avoid", marginBottom: 6, position: "relative", overflow: "hidden", cursor: "pointer" }}
-                onClick={() => setLightboxIndex(realIndex)}
-              >
-                <img
-                  src={photo.url}
-                  alt=""
-                  loading="lazy"
-                  style={{ width: "100%", display: "block", backgroundColor: "hsl(40, 5%, 93%)" }}
-                />
-                {/* Heart overlay on hover/touch */}
+        <div style={{ paddingBottom: 40 }}>
+          <EditorialRhythmGrid
+            photos={displayPhotos}
+            onPhotoClick={(idx) => {
+              const realIdx = photos.findIndex(p => p.id === displayPhotos[idx].id);
+              setLightboxIndex(realIdx);
+            }}
+            renderOverlay={(photo) => {
+              const isFav = favs.has(photo.id);
+              return (
                 <button
                   onClick={(e) => { e.stopPropagation(); toggle(photo.id); }}
                   className="opacity-0 group-hover:opacity-100"
                   style={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    width: 36,
-                    height: 36,
-                    background: "hsla(0, 0%, 0%, 0.2)",
-                    backdropFilter: "blur(8px)",
-                    border: "none",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
+                    position: "absolute", top: 8, right: 8, width: 36, height: 36,
+                    background: "hsla(0, 0%, 0%, 0.2)", backdropFilter: "blur(8px)",
+                    border: "none", borderRadius: "50%", display: "flex",
+                    alignItems: "center", justifyContent: "center", cursor: "pointer",
                     transition: "opacity 0.2s",
                   }}
                 >
                   <Heart style={{ width: 14, height: 14, color: isFav ? "hsl(0, 80%, 60%)" : "hsla(0, 0%, 100%, 0.85)", fill: isFav ? "hsl(0, 80%, 60%)" : "none" }} />
                 </button>
-              </div>
-            );
-          })}
+              );
+            }}
+          />
         </div>
       )}
 
