@@ -56,13 +56,8 @@ const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
 const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
 const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
-const Refyn = lazy(() => import("./pages/Refyn"));
-const ColourStore = lazy(() => import("./pages/ColourStore"));
-const StyleStealer = lazy(() => import("./pages/refyn/StyleStealer"));
-const StyleLibrary = lazy(() => import("./pages/refyn/StyleLibrary"));
 const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
 const LandingGate = lazy(() => import("./pages/LandingGate"));
-const RetouchLogin = lazy(() => import("./pages/RetouchLogin"));
 const ClientPreview = lazy(() => import("./pages/ClientPreview"));
 const DomainSettings = lazy(() => import("./pages/DomainSettings"));
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
@@ -320,18 +315,6 @@ const AppRoutes = () => {
             <Route path="/verify-access" element={<VerifyAccess />} />
             <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/builder-test" element={<BuilderTest />} />
-            <Route
-              path="/refyn"
-              element={
-                <Suspense fallback={<PageLoader />}>
-                  <Refyn />
-                </Suspense>
-              }
-            />
-            <Route path="/colour-store" element={<ColourStore />} />
-            <Route path="/refyn/steal" element={<Suspense fallback={<PageLoader />}><StyleStealer /></Suspense>} />
-            <Route path="/refyn/styles" element={<Suspense fallback={<PageLoader />}><StyleLibrary /></Suspense>} />
-            <Route path="/retouch-login" element={<RetouchLogin />} />
             <Route path="/preview/:previewId" element={<ClientPreview />} />
             <Route
               path="/home"

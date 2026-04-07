@@ -11,7 +11,6 @@ const NAV_ITEMS = [
   { label: "EVENTS", path: "/dashboard/events" },
   { label: "STORYBOOK", path: "/dashboard/storybook" },
   { label: "CHEETAH", path: "/dashboard/cheetah" },
-  { label: "RYFINE", path: "/refyn" },
   { label: "ANALYTICS", path: "/dashboard/analytics" },
   { label: "STUDIO FEED", path: "/dashboard/website-editor" },
   { label: "MORE", path: "__drawer__" },

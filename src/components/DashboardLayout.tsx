@@ -53,7 +53,6 @@ const NAV_SECTIONS = [
     items: [
       { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
       { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
-      { title: "Retouch", url: "/colour-store", icon: Palette },
     ],
   },
   {
@@ -111,7 +110,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/billing": "Billing",
   "/dashboard/notifications": "Notifications",
   "/dashboard/onboarding": "Welcome",
-  "/colour-store": "Retouch",
 };
 
 function BotNavTab() {
