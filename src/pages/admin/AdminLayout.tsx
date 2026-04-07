@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard, Users, Camera, HardDrive, DollarSign,
-  Mail, Activity, Settings, LogOut, Menu, X,
+  Mail, Activity, Settings, LogOut, Menu, X, Layers,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ const navLinks = [
   { to: '/admin/storage', label: 'Storage', icon: HardDrive },
   { to: '/admin/revenue', label: 'Revenue', icon: DollarSign },
   { to: '/admin/emails', label: 'Bulk Email', icon: Mail },
+  { to: '/admin/templates', label: 'Templates', icon: Layers },
   { to: '/admin/activity', label: 'Activity Log', icon: Activity },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ];

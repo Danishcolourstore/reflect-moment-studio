@@ -89,6 +89,7 @@ const FeedEditor = lazy(() => import("./pages/FeedEditor"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminPhotographers = lazy(() => import("./pages/admin/AdminPhotographers"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
+const AdminTemplates = lazy(() => import("./pages/admin/AdminTemplates"));
 const AdminStorage = lazy(() => import("./pages/admin/AdminStorage"));
 const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
 const AdminEmails = lazy(() => import("./pages/admin/AdminEmails"));
@@ -371,6 +372,7 @@ const AppRoutes = () => {
               <Route path="revenue" element={<AdminRevenue />} />
               <Route path="emails" element={<AdminEmails />} />
               <Route path="activity" element={<AdminActivity />} />
+              <Route path="templates" element={<AdminTemplates />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
