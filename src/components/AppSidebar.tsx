@@ -1,55 +1,134 @@
-import { Home, Camera, Globe, BookOpen, Zap, Users, BarChart3, Settings, LogOut } from "lucide-react";
+import { CalendarDays, Image, Scissors, Settings, CreditCard, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 
-const navItems = [
-  { title: "Home", url: "/home", icon: Home },
-  { title: "Events", url: "/dashboard/events", icon: Camera },
-  { title: "Website", url: "/dashboard/website-builder", icon: Globe },
-  { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
-  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
-  { title: "Clients", url: "/dashboard/clients", icon: Users },
-  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
+const STUDIO_ITEMS = [
+  { title: "Events", url: "/dashboard/events", icon: CalendarDays },
+  { title: "Galleries", url: "/home", icon: Image, end: true },
+  { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
+];
+
+const ACCOUNT_ITEMS = [
   { title: "Settings", url: "/dashboard/profile", icon: Settings },
+  { title: "Billing", url: "/dashboard/billing", icon: CreditCard },
 ];
 
 export function AppSidebar() {
   const { signOut } = useAuth();
 
+  const sectionLabel = (text: string) => (
+    <div
+      style={{
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: 10,
+        fontWeight: 400,
+        letterSpacing: "0.15em",
+        textTransform: "uppercase",
+        color: "#C4C1BB",
+        padding: "0 24px",
+        marginTop: 32,
+        marginBottom: 8,
+      }}
+    >
+      {text}
+    </div>
+  );
+
   return (
-    <aside className="fixed left-0 top-0 z-30 hidden h-screen w-[88px] flex-col items-center bg-sidebar border-r border-sidebar-border lg:flex">
-      <div className="pt-8 pb-6">
-        <span className="text-primary font-serif text-sm tracking-[0.15em]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-          M
+    <aside
+      style={{
+        position: "fixed",
+        left: 0,
+        top: 0,
+        zIndex: 30,
+        height: "100vh",
+        width: 240,
+        background: "#FFFFFF",
+        borderRight: "1px solid #E8E6E1",
+        display: "none",
+        flexDirection: "column",
+      }}
+      className="lg:!flex"
+    >
+      <div style={{ padding: "32px 24px 24px" }}>
+        <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, letterSpacing: "0.05em", color: "#1A1917" }}>
+          MirrorAI
         </span>
       </div>
 
-      <div className="w-8 h-px bg-sidebar-border" />
-
-      <nav className="flex-1 flex flex-col items-center pt-6 gap-1">
-        {navItems.map((item) => (
+      <nav style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        {sectionLabel("STUDIO")}
+        {STUDIO_ITEMS.map((item) => (
           <NavLink
             key={item.url}
             to={item.url}
-            end
-            className="group flex flex-col items-center justify-center w-14 h-14 rounded-lg transition-all text-muted-foreground hover:text-foreground hover:bg-secondary"
-            activeClassName="!text-primary !bg-primary/10"
+            end={item.end}
+            className="flex items-center gap-3 transition-colors duration-200 text-[#94918B] hover:text-[#1A1917]"
+            activeClassName="!text-[#1A1917] !border-l-2 !border-l-[#B8953F]"
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 13,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              padding: "12px 24px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              textDecoration: "none",
+              borderLeft: "2px solid transparent",
+            }}
           >
-            <item.icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
-            <span className="text-[9px] mt-1 tracking-wider uppercase opacity-60">
-              {item.title}
-            </span>
+            <item.icon size={18} strokeWidth={1.5} />
+            <span>{item.title}</span>
+          </NavLink>
+        ))}
+
+        {sectionLabel("ACCOUNT")}
+        {ACCOUNT_ITEMS.map((item) => (
+          <NavLink
+            key={item.url}
+            to={item.url}
+            className="flex items-center gap-3 transition-colors duration-200 text-[#94918B] hover:text-[#1A1917]"
+            activeClassName="!text-[#1A1917] !border-l-2 !border-l-[#B8953F]"
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 13,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              padding: "12px 24px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              textDecoration: "none",
+              borderLeft: "2px solid transparent",
+            }}
+          >
+            <item.icon size={18} strokeWidth={1.5} />
+            <span>{item.title}</span>
           </NavLink>
         ))}
       </nav>
 
-      <div className="w-8 h-px bg-sidebar-border" />
-      <div className="pb-8 pt-4">
+      <div style={{ padding: "16px 24px 24px" }}>
         <button
           onClick={signOut}
-          className="flex flex-col items-center justify-center w-14 h-14 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 12,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "#94918B",
+            padding: "8px 0",
+          }}
         >
-          <LogOut className="h-[16px] w-[16px]" strokeWidth={1.5} />
+          <LogOut size={16} strokeWidth={1.5} />
+          Sign Out
         </button>
       </div>
     </aside>
