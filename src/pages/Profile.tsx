@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { Upload, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { useStorageUsage, formatBytes } from "@/hooks/use-storage-usage";
+import { Upload, Loader2 } from "lucide-react";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -74,9 +72,9 @@ const Profile = () => {
 
   const pwStrength = () => {
     if (newPw.length === 0) return null;
-    if (newPw.length < 6) return { label: "Weak", color: "#E85D5D" };
-    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: "Fair", color: "#C8A97E" };
-    return { label: "Strong", color: "#5CB85C" };
+    if (newPw.length < 6) return { label: "Weak", color: "#A3553A" };
+    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: "Fair", color: "#B8953F" };
+    return { label: "Strong", color: "#5C7C5A" };
   };
 
   const storage = useStorageUsage();
@@ -89,165 +87,198 @@ const Profile = () => {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ maxWidth: 520, margin: "0 auto" }}>
+        <div style={{ maxWidth: 560, margin: "0 auto" }}>
           {[1, 2, 3].map((i) => (
-            <div key={i} style={{ height: 120, background: "#F5F3F0", borderRadius: 12, marginBottom: 16, animation: "pulse 1.5s ease-in-out infinite" }} />
+            <div key={i} className="skeleton-block" style={{ height: 120, marginBottom: 64 }} />
           ))}
         </div>
       </DashboardLayout>
     );
   }
 
+  const sectionHeading = (text: string) => (
+    <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 400, color: "#1A1917", margin: 0, letterSpacing: "0.02em" }}>
+      {text}
+    </h2>
+  );
+
   const fieldLabel = (text: string) => (
-    <label style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: "#AAAAAA", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>
+    <label style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>
       {text}
     </label>
   );
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    background: "#F5F4F2",
+    background: "transparent",
     border: "none",
-    borderRadius: 10,
-    padding: "12px 14px",
+    borderBottom: "1px solid #E8E6E1",
+    padding: "12px 0",
     fontFamily: "'DM Sans', sans-serif",
     fontSize: 14,
-    color: "#1C1C1E",
+    color: "#1A1917",
     outline: "none",
+    transition: "border-color 0.2s",
   };
 
-  const ghostButton = (label: string, onClick: () => void, disabled?: boolean) => (
+  const primaryButton = (label: string, onClick: () => void, disabled?: boolean) => (
     <button
       onClick={onClick}
       disabled={disabled}
       style={{
-        width: "100%",
-        height: 44,
-        background: "none",
-        border: "1px solid #C8A97E",
-        borderRadius: 10,
+        background: "#1A1917",
+        color: "#FAFAF8",
+        border: "none",
+        padding: "14px 32px",
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 13,
-        color: "#C8A97E",
-        letterSpacing: "0.08em",
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.5 : 1,
-        transition: "all 0.2s",
+        transition: "opacity 0.2s",
+        width: "100%",
       }}
-      onMouseEnter={(e) => { if (!disabled) { e.currentTarget.style.background = "#C8A97E"; e.currentTarget.style.color = "#FFFFFF"; } }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#C8A97E"; }}
     >
       {label}
     </button>
   );
 
+  const divider = () => (
+    <div style={{ height: 1, background: "#E8E6E1", margin: "64px 0" }} />
+  );
+
   return (
     <DashboardLayout>
-      <div style={{ maxWidth: 520, margin: "0 auto" }}>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 400, color: "#1C1C1E", marginBottom: 32 }}>
-          Profile
+      <div style={{ maxWidth: 560, margin: "0 auto" }}>
+        <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, color: "#1A1917", marginBottom: 48, letterSpacing: "0.02em" }}>
+          Settings
         </h1>
 
-        {/* Avatar */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 32 }}>
-          <div
-            onClick={() => avatarRef.current?.click()}
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: "50%",
-              background: avatarUrl ? undefined : "#C8A97E",
-              backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              flexShrink: 0,
-            }}
-          >
-            {!avatarUrl && (
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: "#FFFFFF", fontWeight: 400 }}>
-                {initials}
-              </span>
-            )}
+        {/* Profile Section */}
+        {sectionHeading("Profile")}
+        <div style={{ marginTop: 24 }}>
+          {/* Avatar */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 32 }}>
+            <div
+              onClick={() => avatarRef.current?.click()}
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: "50%",
+                background: avatarUrl ? undefined : "#B8953F",
+                backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              {!avatarUrl && (
+                <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, color: "#FAFAF8", fontWeight: 400 }}>
+                  {initials}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => avatarRef.current?.click()}
+              disabled={avatarUploading}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 13,
+                color: "#94918B",
+                textDecoration: "underline",
+                textUnderlineOffset: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              {avatarUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} strokeWidth={1.5} />}
+              Change photo
+            </button>
+            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
           </div>
-          <button
-            onClick={() => avatarRef.current?.click()}
-            disabled={avatarUploading}
-            style={{
-              background: "none",
-              border: "1px solid #E8E4DE",
-              borderRadius: 8,
-              padding: "6px 14px",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 12,
-              color: "#999999",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            {avatarUploading ? <Loader2 style={{ width: 12, height: 12, animation: "spin 1s linear infinite" }} /> : <Upload style={{ width: 12, height: 12 }} />}
-            Change Avatar
-          </button>
-          <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
-        </div>
 
-        {/* Personal Info */}
-        <div style={{ background: "#FFFFFF", border: "1px solid #F0EDE8", borderRadius: 16, padding: 24, marginBottom: 16 }}>
-          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1C1C1E", marginBottom: 20 }}>
-            Personal Information
-          </h2>
-          <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 24 }}>
             {fieldLabel("Full Name")}
-            <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={inputStyle} />
+            <input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "#1A1917")}
+              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "#E8E6E1")}
+            />
           </div>
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 32 }}>
             {fieldLabel("Email")}
-            <input value={email} readOnly style={{ ...inputStyle, opacity: 0.6 }} />
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontStyle: "italic", color: "#BBBBBB", marginTop: 4 }}>
+            <input value={email} readOnly style={{ ...inputStyle, opacity: 0.5 }} />
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#C4C1BB", marginTop: 6, fontStyle: "italic" }}>
               Email cannot be changed
             </p>
           </div>
-          {ghostButton(saving ? "Saving..." : "Save Changes", saveProfile, saving)}
+          {primaryButton(saving ? "Saving..." : "Save Changes", saveProfile, saving)}
         </div>
+
+        {divider()}
 
         {/* Password */}
-        <div style={{ background: "#FFFFFF", border: "1px solid #F0EDE8", borderRadius: 16, padding: 24, marginBottom: 16 }}>
-          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1C1C1E", marginBottom: 20 }}>
-            Change Password
-          </h2>
-          <div style={{ marginBottom: 16 }}>
+        {sectionHeading("Change Password")}
+        <div style={{ marginTop: 24 }}>
+          <div style={{ marginBottom: 24 }}>
             {fieldLabel("Current Password")}
-            <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} style={inputStyle} />
+            <input
+              type="password" value={currentPw}
+              onChange={(e) => setCurrentPw(e.target.value)}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "#1A1917")}
+              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "#E8E6E1")}
+            />
           </div>
-          <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 24 }}>
             {fieldLabel("New Password")}
-            <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} style={inputStyle} />
-            {strength && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: strength.color, marginTop: 4 }}>{strength.label}</p>}
+            <input
+              type="password" value={newPw}
+              onChange={(e) => setNewPw(e.target.value)}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "#1A1917")}
+              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "#E8E6E1")}
+            />
+            {strength && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: strength.color, marginTop: 6 }}>{strength.label}</p>}
           </div>
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 32 }}>
             {fieldLabel("Confirm Password")}
-            <input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} style={inputStyle} />
-            {confirmPw && confirmPw !== newPw && <p style={{ fontSize: 10, color: "#E85D5D", marginTop: 4 }}>Passwords do not match</p>}
+            <input
+              type="password" value={confirmPw}
+              onChange={(e) => setConfirmPw(e.target.value)}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "#1A1917")}
+              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "#E8E6E1")}
+            />
+            {confirmPw && confirmPw !== newPw && <p style={{ fontSize: 11, color: "#A3553A", marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>Passwords do not match</p>}
           </div>
-          {ghostButton(pwSaving ? "Updating..." : "Save Password", savePassword, pwSaving || !newPw || newPw !== confirmPw)}
+          {primaryButton(pwSaving ? "Updating..." : "Save Password", savePassword, pwSaving || !newPw || newPw !== confirmPw)}
         </div>
 
+        {divider()}
+
         {/* Storage */}
-        <div style={{ background: "#FFFFFF", border: "1px solid #F0EDE8", borderRadius: 16, padding: 24, marginBottom: 32 }}>
-          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1C1C1E", marginBottom: 16 }}>
-            Storage
-          </h2>
-          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: "#1C1C1E", fontWeight: 400 }}>{formatBytes(storageUsed)}</p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#AAAAAA", marginTop: 2 }}>of {formatBytes(storageLimit)}</p>
-          <Progress value={storagePct} className="mt-3 h-1.5" />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#AAAAAA" }}>Events: <span style={{ color: "#1C1C1E" }}>{storage.data?.eventCount ?? 0}</span></p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#AAAAAA" }}>Photos: <span style={{ color: "#1C1C1E" }}>{storage.data?.photoCount ?? 0}</span></p>
+        {sectionHeading("Storage")}
+        <div style={{ marginTop: 24, marginBottom: 64 }}>
+          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, color: "#1A1917", fontWeight: 300 }}>{formatBytes(storageUsed)}</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B", marginTop: 2 }}>of {formatBytes(storageLimit)}</p>
+          <div style={{ width: "100%", height: 2, background: "#E8E6E1", marginTop: 16 }}>
+            <div style={{ height: "100%", background: "#B8953F", width: `${storagePct}%`, transition: "width 0.3s ease" }} />
+          </div>
+          <div style={{ display: "flex", gap: 24, marginTop: 12 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B" }}>Events: <span style={{ color: "#1A1917" }}>{storage.data?.eventCount ?? 0}</span></p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B" }}>Photos: <span style={{ color: "#1A1917" }}>{storage.data?.photoCount ?? 0}</span></p>
           </div>
         </div>
       </div>
