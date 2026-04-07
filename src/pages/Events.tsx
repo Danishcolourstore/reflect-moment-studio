@@ -54,9 +54,9 @@ export default function Events() {
   ];
 
   const getStatus = (evt: EventItem) => {
-    if (evt.is_published) return "DELIVERED";
+    if (evt.is_published) return "LIVE";
     if (evt.photo_count === 0) return "DRAFT";
-    return "ACTIVE";
+    return "IN PROGRESS";
   };
 
   const getStatusColor = (status: string) => {
@@ -143,10 +143,10 @@ export default function Events() {
         ) : events.length === 0 ? (
           <div style={{ textAlign: "center", padding: "80px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
             <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 300, color: "#1A1917", margin: 0 }}>
-              No events yet
+              Your first gallery awaits
             </h2>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#94918B", marginTop: 8, maxWidth: 300 }}>
-              Create your first event to begin delivering galleries
+              Create an event to begin sharing your work
             </p>
             <button
               onClick={() => setCreateOpen(true)}
