@@ -28,7 +28,7 @@ import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PhotoShareSheet } from '@/components/PhotoShareSheet';
-import { PhotoLightbox } from '@/components/PhotoLightbox';
+import { CinematicLightbox } from '@/components/lightbox';
 import { PhotoSlideshow } from '@/components/PhotoSlideshow';
 import { OtpInput } from '@/components/OtpInput';
 import { Checkbox } from '@/components/ui/checkbox';
