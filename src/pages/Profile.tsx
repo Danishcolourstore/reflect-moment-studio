@@ -47,7 +47,7 @@ const Profile = () => {
       const url = supabase.storage.from("event-covers").getPublicUrl(path).data.publicUrl;
       await (supabase.from("profiles").update({ avatar_url: url } as any) as any).eq("user_id", user.id);
       setAvatarUrl(url);
-      toast.success("Avatar updated");
+      toast.success("Saved");
     }
     setAvatarUploading(false);
   };
@@ -56,13 +56,13 @@ const Profile = () => {
     if (!user) return;
     setSaving(true);
     await supabase.auth.updateUser({ data: { full_name: fullName } });
-    toast.success("Profile updated");
+    toast.success("Saved");
     setSaving(false);
   };
 
   const savePassword = async () => {
-    if (newPw !== confirmPw) { toast.error("Passwords do not match"); return; }
-    if (newPw.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    if (newPw !== confirmPw) { toast.error("Passwords don't match"); return; }
+    if (newPw.length < 6) { toast.error("Use at least 6 characters"); return; }
     setPwSaving(true);
     const { error } = await supabase.auth.updateUser({ password: newPw });
     if (error) toast.error(error.message);
@@ -72,9 +72,9 @@ const Profile = () => {
 
   const pwStrength = () => {
     if (newPw.length === 0) return null;
-    if (newPw.length < 6) return { label: "Weak", color: "#A3553A" };
-    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: "Fair", color: "#B8953F" };
-    return { label: "Strong", color: "#5C7C5A" };
+    if (newPw.length < 6) return { label: "Weak", color: "hsl(16, 46%, 43%)" };
+    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: "Fair", color: "hsl(40, 52%, 48%)" };
+    return { label: "Strong", color: "hsl(117, 16%, 42%)" };
   };
 
   const storage = useStorageUsage();
@@ -96,14 +96,8 @@ const Profile = () => {
     );
   }
 
-  const sectionHeading = (text: string) => (
-    <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 400, color: "#1A1917", margin: 0, letterSpacing: "0.02em" }}>
-      {text}
-    </h2>
-  );
-
   const fieldLabel = (text: string) => (
-    <label style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>
+    <label style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "hsl(35, 4%, 56%)", letterSpacing: "0.12em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>
       {text}
     </label>
   );
@@ -112,11 +106,11 @@ const Profile = () => {
     width: "100%",
     background: "transparent",
     border: "none",
-    borderBottom: "1px solid #E8E6E1",
+    borderBottom: "1px solid hsl(37, 10%, 90%)",
     padding: "12px 0",
     fontFamily: "'DM Sans', sans-serif",
     fontSize: 14,
-    color: "#1A1917",
+    color: "hsl(48, 7%, 10%)",
     outline: "none",
     transition: "border-color 0.2s",
   };
@@ -126,12 +120,12 @@ const Profile = () => {
       onClick={onClick}
       disabled={disabled}
       style={{
-        background: "#1A1917",
-        color: "#FAFAF8",
+        background: "hsl(48, 7%, 10%)",
+        color: "hsl(45, 14%, 97%)",
         border: "none",
         padding: "14px 32px",
         fontFamily: "'DM Sans', sans-serif",
-        fontSize: 13,
+        fontSize: 12,
         letterSpacing: "0.1em",
         textTransform: "uppercase",
         cursor: disabled ? "not-allowed" : "pointer",
@@ -144,141 +138,122 @@ const Profile = () => {
     </button>
   );
 
-  const divider = () => (
-    <div style={{ height: 1, background: "#E8E6E1", margin: "64px 0" }} />
-  );
-
   return (
     <DashboardLayout>
       <div style={{ maxWidth: 560, margin: "0 auto" }}>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, color: "#1A1917", marginBottom: 48, letterSpacing: "0.02em" }}>
-          Settings
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: "hsl(48, 7%, 10%)", marginBottom: 40, letterSpacing: "0.02em" }}>
+          You
         </h1>
 
-        {/* Profile Section */}
-        {sectionHeading("Profile")}
-        <div style={{ marginTop: 24 }}>
-          {/* Avatar */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 32 }}>
-            <div
-              onClick={() => avatarRef.current?.click()}
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: "50%",
-                background: avatarUrl ? undefined : "#B8953F",
-                backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                flexShrink: 0,
-              }}
-            >
-              {!avatarUrl && (
-                <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, color: "#FAFAF8", fontWeight: 400 }}>
-                  {initials}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={() => avatarRef.current?.click()}
-              disabled={avatarUploading}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                color: "#94918B",
-                textDecoration: "underline",
-                textUnderlineOffset: 4,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              {avatarUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} strokeWidth={1.5} />}
-              Change photo
-            </button>
-            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
+        {/* Avatar */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 40 }}>
+          <div
+            onClick={() => avatarRef.current?.click()}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              background: avatarUrl ? undefined : "hsl(40, 52%, 48%)",
+              backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            {!avatarUrl && (
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "hsl(45, 14%, 97%)", fontWeight: 400 }}>
+                {initials}
+              </span>
+            )}
           </div>
-
-          <div style={{ marginBottom: 24 }}>
-            {fieldLabel("Full Name")}
-            <input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "#1A1917")}
-              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "#E8E6E1")}
-            />
-          </div>
-          <div style={{ marginBottom: 32 }}>
-            {fieldLabel("Email")}
-            <input value={email} readOnly style={{ ...inputStyle, opacity: 0.5 }} />
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#C4C1BB", marginTop: 6, fontStyle: "italic" }}>
-              Email cannot be changed
-            </p>
-          </div>
-          {primaryButton(saving ? "Saving..." : "Save Changes", saveProfile, saving)}
+          <button
+            onClick={() => avatarRef.current?.click()}
+            disabled={avatarUploading}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12,
+              color: "hsl(35, 4%, 56%)",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              minHeight: 44,
+            }}
+          >
+            {avatarUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} strokeWidth={1.5} />}
+            Change photo
+          </button>
+          <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
         </div>
 
-        {divider()}
+        {/* Name */}
+        <div style={{ marginBottom: 24 }}>
+          {fieldLabel("Name")}
+          <input
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            style={inputStyle}
+            onFocus={(e) => (e.currentTarget.style.borderBottomColor = "hsl(48, 7%, 10%)")}
+            onBlur={(e) => (e.currentTarget.style.borderBottomColor = "hsl(37, 10%, 90%)")}
+          />
+        </div>
+        <div style={{ marginBottom: 40 }}>
+          {fieldLabel("Email")}
+          <input value={email} readOnly style={{ ...inputStyle, opacity: 0.5 }} />
+        </div>
+        {primaryButton(saving ? "Saving…" : "Save", saveProfile, saving)}
+
+        {/* Divider */}
+        <div style={{ height: 1, background: "hsl(37, 10%, 90%)", margin: "64px 0" }} />
 
         {/* Password */}
-        {sectionHeading("Change Password")}
-        <div style={{ marginTop: 24 }}>
-          <div style={{ marginBottom: 24 }}>
-            {fieldLabel("Current Password")}
-            <input
-              type="password" value={currentPw}
-              onChange={(e) => setCurrentPw(e.target.value)}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "#1A1917")}
-              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "#E8E6E1")}
-            />
-          </div>
-          <div style={{ marginBottom: 24 }}>
-            {fieldLabel("New Password")}
-            <input
-              type="password" value={newPw}
-              onChange={(e) => setNewPw(e.target.value)}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "#1A1917")}
-              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "#E8E6E1")}
-            />
-            {strength && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: strength.color, marginTop: 6 }}>{strength.label}</p>}
-          </div>
-          <div style={{ marginBottom: 32 }}>
-            {fieldLabel("Confirm Password")}
-            <input
-              type="password" value={confirmPw}
-              onChange={(e) => setConfirmPw(e.target.value)}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderBottomColor = "#1A1917")}
-              onBlur={(e) => (e.currentTarget.style.borderBottomColor = "#E8E6E1")}
-            />
-            {confirmPw && confirmPw !== newPw && <p style={{ fontSize: 11, color: "#A3553A", marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>Passwords do not match</p>}
-          </div>
-          {primaryButton(pwSaving ? "Updating..." : "Save Password", savePassword, pwSaving || !newPw || newPw !== confirmPw)}
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, color: "hsl(48, 7%, 10%)", margin: "0 0 24px", letterSpacing: "0.02em" }}>
+          Password
+        </h2>
+        <div style={{ marginBottom: 24 }}>
+          {fieldLabel("Current")}
+          <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} style={inputStyle}
+            onFocus={(e) => (e.currentTarget.style.borderBottomColor = "hsl(48, 7%, 10%)")}
+            onBlur={(e) => (e.currentTarget.style.borderBottomColor = "hsl(37, 10%, 90%)")} />
         </div>
+        <div style={{ marginBottom: 24 }}>
+          {fieldLabel("New")}
+          <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} style={inputStyle}
+            onFocus={(e) => (e.currentTarget.style.borderBottomColor = "hsl(48, 7%, 10%)")}
+            onBlur={(e) => (e.currentTarget.style.borderBottomColor = "hsl(37, 10%, 90%)")} />
+          {strength && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: strength.color, marginTop: 6 }}>{strength.label}</p>}
+        </div>
+        <div style={{ marginBottom: 40 }}>
+          {fieldLabel("Confirm")}
+          <input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} style={inputStyle}
+            onFocus={(e) => (e.currentTarget.style.borderBottomColor = "hsl(48, 7%, 10%)")}
+            onBlur={(e) => (e.currentTarget.style.borderBottomColor = "hsl(37, 10%, 90%)")} />
+          {confirmPw && confirmPw !== newPw && <p style={{ fontSize: 11, color: "hsl(16, 46%, 43%)", marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>Passwords don't match</p>}
+        </div>
+        {primaryButton(pwSaving ? "Saving…" : "Update Password", savePassword, pwSaving || !newPw || newPw !== confirmPw)}
 
-        {divider()}
+        {/* Divider */}
+        <div style={{ height: 1, background: "hsl(37, 10%, 90%)", margin: "64px 0" }} />
 
         {/* Storage */}
-        {sectionHeading("Storage")}
-        <div style={{ marginTop: 24, marginBottom: 64 }}>
-          <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, color: "#1A1917", fontWeight: 300 }}>{formatBytes(storageUsed)}</p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B", marginTop: 2 }}>of {formatBytes(storageLimit)}</p>
-          <div style={{ width: "100%", height: 2, background: "#E8E6E1", marginTop: 16 }}>
-            <div style={{ height: "100%", background: "#B8953F", width: `${storagePct}%`, transition: "width 0.3s ease" }} />
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, color: "hsl(48, 7%, 10%)", margin: "0 0 24px", letterSpacing: "0.02em" }}>
+          Storage
+        </h2>
+        <div style={{ marginBottom: 64 }}>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: "hsl(48, 7%, 10%)", fontWeight: 300 }}>{formatBytes(storageUsed)}</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(35, 4%, 56%)", marginTop: 4 }}>of {formatBytes(storageLimit)}</p>
+          <div style={{ width: "100%", height: 2, background: "hsl(37, 10%, 90%)", marginTop: 16 }}>
+            <div style={{ height: "100%", background: "hsl(40, 52%, 48%)", width: `${storagePct}%`, transition: "width 0.3s ease" }} />
           </div>
-          <div style={{ display: "flex", gap: 24, marginTop: 12 }}>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B" }}>Events: <span style={{ color: "#1A1917" }}>{storage.data?.eventCount ?? 0}</span></p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B" }}>Photos: <span style={{ color: "#1A1917" }}>{storage.data?.photoCount ?? 0}</span></p>
+          <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(35, 4%, 56%)" }}>Events: <span style={{ color: "hsl(48, 7%, 10%)" }}>{storage.data?.eventCount ?? 0}</span></p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(35, 4%, 56%)" }}>Photos: <span style={{ color: "hsl(48, 7%, 10%)" }}>{storage.data?.photoCount ?? 0}</span></p>
           </div>
         </div>
       </div>

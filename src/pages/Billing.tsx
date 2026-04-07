@@ -4,11 +4,10 @@ import { CreditCard } from 'lucide-react';
 const Billing = () => {
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-2xl font-semibold text-foreground mb-8">Plan & Billing</h1>
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <CreditCard className="h-16 w-16 text-muted-foreground/15 mb-4" />
-        <p className="font-serif text-xl text-muted-foreground">Billing Coming Soon</p>
-        <p className="mt-2 text-sm text-muted-foreground/60">Manage your subscription and payment methods.</p>
+      <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: "hsl(48, 7%, 10%)", marginBottom: 40, letterSpacing: "0.02em" }}>Billing</h1>
+      <div style={{ textAlign: "center", padding: "80px 0" }}>
+        <CreditCard style={{ width: 40, height: 40, color: "hsl(37, 10%, 90%)", margin: "0 auto 16px" }} strokeWidth={1} />
+        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: "hsl(35, 4%, 56%)", fontWeight: 300 }}>Coming soon</p>
       </div>
     </DashboardLayout>
   );
