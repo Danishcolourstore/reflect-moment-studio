@@ -1,4 +1,5 @@
 import { type TemplateConfig } from '@/lib/website-templates';
+import { getAboutImage } from '@/lib/website-demo-images';
 
 interface AboutSectionProps {
   template: TemplateConfig;
