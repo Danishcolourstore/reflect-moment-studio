@@ -14,8 +14,8 @@ interface TestimonialsSectionProps {
 
 const DEMO: Testimonial[] = [
   { quote: 'They captured every emotion perfectly. Looking through our photos feels like reliving the most beautiful day of our lives.', name: 'Priya & Arjun' },
-  { quote: 'The attention to detail was extraordinary. Every candid moment, every stolen glance — they saw it all.', name: 'Aisha & Rahul' },
-  { quote: 'We didn't just get photos — we got a love letter in images. Absolutely breathtaking work.', name: 'Meera & Siddharth' },
+  { quote: 'The attention to detail was extraordinary. Every candid moment, every stolen glance - they saw it all.', name: 'Aisha & Rahul' },
+  { quote: 'We did not just get photos - we got a love letter in images. Absolutely breathtaking work.', name: 'Meera & Siddharth' },
 ];
 
 export function TestimonialsSection({ template, testimonials, id }: TestimonialsSectionProps) {

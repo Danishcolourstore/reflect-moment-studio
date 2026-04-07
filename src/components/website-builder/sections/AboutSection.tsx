@@ -14,7 +14,7 @@ export function AboutSection({ template, heading = 'About', body, portraitImage,
   const t = template;
   const img = portraitImage || PORTRAIT;
   const variant = t.sections.about;
-  const defaultBody = body || 'We believe in capturing the real moments — the stolen glances, the quiet laughter, the tears of joy. Our approach is documentary at heart but editorial in execution. Every wedding tells a story, and we're here to tell yours beautifully.';
+  const defaultBody = body || "We believe in capturing the real moments - the stolen glances, the quiet laughter, the tears of joy. Our approach is documentary at heart but editorial in execution. Every wedding tells a story, and we are here to tell yours beautifully.";
 
   /* ── Two Column (Reverie, Vesper) ── */
   if (variant === 'two-col') {
