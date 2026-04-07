@@ -284,14 +284,14 @@ function HeroSection({
         className="absolute bottom-0 left-0 right-0"
         style={{
           background:
-            "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)",
+            "linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 100%)",
           padding: "80px 24px 24px",
         }}
       >
         <h1
           style={{
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 28,
+            fontSize: "clamp(28px, 4vw, 40px)",
             fontWeight: 300,
             color: "#FFFFFF",
             textShadow: "0 1px 3px rgba(0,0,0,0.5)",
@@ -522,7 +522,7 @@ function EditorialGrid({
         // Row 1: single full width
         const p = photos[i];
         groups.push(
-          <div key={`row-${startIdx}-${rowKey}`} style={{ marginBottom: 40 }}>
+          <div key={`row-${startIdx}-${rowKey}`} style={{ marginBottom: 40, minHeight: 200 }}>
             <GalleryImage
               src={p.url}
               alt={`Photo from gallery`}
@@ -541,18 +541,20 @@ function EditorialGrid({
           <div
             key={`row-${startIdx}-${rowKey}`}
             className="grid grid-cols-2"
-            style={{ gap: 8, marginBottom: 8 }}
+            style={{ gap: 6, marginBottom: 6 }}
           >
             {photos.slice(i, i + 2).map((p) => (
-              <GalleryImage
-                key={p.id}
-                src={p.url}
-                alt="Photo from gallery"
-                eager={getGlobalIndex(p) < 6}
-                onClick={() => onOpenViewer(getGlobalIndex(p))}
-                onDoubleTap={() => onToggleFav(p.id)}
-                isFavorited={favs.has(p.id)}
-              />
+              <div key={p.id} className="aspect-[3/2] overflow-hidden">
+                <GalleryImage
+                  src={p.url}
+                  alt="Photo from gallery"
+                  className="w-full h-full"
+                  eager={getGlobalIndex(p) < 6}
+                  onClick={() => onOpenViewer(getGlobalIndex(p))}
+                  onDoubleTap={() => onToggleFav(p.id)}
+                  isFavorited={favs.has(p.id)}
+                />
+              </div>
             ))}
           </div>
         );
@@ -563,18 +565,20 @@ function EditorialGrid({
           <div
             key={`row-${startIdx}-${rowKey}`}
             className="grid grid-cols-2"
-            style={{ gap: 8, marginBottom: 40 }}
+            style={{ gap: 6, marginBottom: 40 }}
           >
             {photos.slice(i, i + 2).map((p) => (
-              <GalleryImage
-                key={p.id}
-                src={p.url}
-                alt="Photo from gallery"
-                eager={getGlobalIndex(p) < 6}
-                onClick={() => onOpenViewer(getGlobalIndex(p))}
-                onDoubleTap={() => onToggleFav(p.id)}
-                isFavorited={favs.has(p.id)}
-              />
+              <div key={p.id} className="aspect-[3/2] overflow-hidden">
+                <GalleryImage
+                  src={p.url}
+                  alt="Photo from gallery"
+                  className="w-full h-full"
+                  eager={getGlobalIndex(p) < 6}
+                  onClick={() => onOpenViewer(getGlobalIndex(p))}
+                  onDoubleTap={() => onToggleFav(p.id)}
+                  isFavorited={favs.has(p.id)}
+                />
+              </div>
             ))}
           </div>
         );
@@ -585,18 +589,20 @@ function EditorialGrid({
           <div
             key={`row-${startIdx}-${rowKey}`}
             className="grid grid-cols-3"
-            style={{ gap: 8, marginBottom: 8 }}
+            style={{ gap: 6, marginBottom: 6 }}
           >
             {photos.slice(i, i + 3).map((p) => (
-              <GalleryImage
-                key={p.id}
-                src={p.url}
-                alt="Photo from gallery"
-                eager={getGlobalIndex(p) < 6}
-                onClick={() => onOpenViewer(getGlobalIndex(p))}
-                onDoubleTap={() => onToggleFav(p.id)}
-                isFavorited={favs.has(p.id)}
-              />
+              <div key={p.id} className="aspect-[3/2] overflow-hidden">
+                <GalleryImage
+                  src={p.url}
+                  alt="Photo from gallery"
+                  className="w-full h-full"
+                  eager={getGlobalIndex(p) < 6}
+                  onClick={() => onOpenViewer(getGlobalIndex(p))}
+                  onDoubleTap={() => onToggleFav(p.id)}
+                  isFavorited={favs.has(p.id)}
+                />
+              </div>
             ))}
           </div>
         );
@@ -607,18 +613,20 @@ function EditorialGrid({
           <div
             key={`row-${startIdx}-${rowKey}`}
             className="grid grid-cols-2"
-            style={{ gap: 8, marginBottom: 40 }}
+            style={{ gap: 6, marginBottom: 40 }}
           >
             {photos.slice(i, i + 2).map((p) => (
-              <GalleryImage
-                key={p.id}
-                src={p.url}
-                alt="Photo from gallery"
-                eager={getGlobalIndex(p) < 6}
-                onClick={() => onOpenViewer(getGlobalIndex(p))}
-                onDoubleTap={() => onToggleFav(p.id)}
-                isFavorited={favs.has(p.id)}
-              />
+              <div key={p.id} className="aspect-[3/2] overflow-hidden">
+                <GalleryImage
+                  src={p.url}
+                  alt="Photo from gallery"
+                  className="w-full h-full"
+                  eager={getGlobalIndex(p) < 6}
+                  onClick={() => onOpenViewer(getGlobalIndex(p))}
+                  onDoubleTap={() => onToggleFav(p.id)}
+                  isFavorited={favs.has(p.id)}
+                />
+              </div>
             ))}
           </div>
         );
@@ -689,7 +697,7 @@ function ChapterNav({
 
   return (
     <div
-      className="fixed z-50 flex flex-col items-end gap-3"
+      className="fixed z-50 flex flex-col items-end gap-3 hidden min-[375px]:flex"
       style={{
         right: 12,
         top: "50%",
@@ -871,7 +879,7 @@ function ImageViewer({
     >
       {/* Photo */}
       <div
-        className="absolute inset-0 flex items-center justify-center p-4 md:p-12"
+        className="absolute inset-0 flex items-center justify-center p-4 md:p-12 lg:p-16"
         onClick={handleTap}
       >
         <img
@@ -1194,7 +1202,7 @@ function FavoritesPill({
       onClick={onClick}
       className="fixed z-[100] left-1/2 -translate-x-1/2 flex items-center gap-2"
       style={{
-        bottom: 16,
+        bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
         background: "#FFFFFF",
         border: "1px solid #E8E6E1",
         borderRadius: 24,
@@ -1312,6 +1320,11 @@ const galleryStyles = `
 @keyframes galleryPillUp {
   from { transform: translate(-50%, 10px); opacity: 0; }
   to { transform: translate(-50%, 0); opacity: 1; }
+}
+@keyframes galleryLoadBar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
 }
 `;
 
@@ -1487,7 +1500,6 @@ export default function ClientGalleryExperience() {
         style={{ background: "#FAFAF8" }}
       >
         <div
-          className="loading-bar"
           style={{
             position: "fixed",
             top: 0,
@@ -1496,8 +1508,11 @@ export default function ClientGalleryExperience() {
             height: 2,
             background: "#B8953F",
             animation: "galleryLoadBar 1.5s ease infinite",
+            overflow: "hidden",
           }}
-        />
+        >
+          <div style={{ width: "100%", height: "100%", background: "#B8953F" }} />
+        </div>
       </div>
     );
   }
