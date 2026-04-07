@@ -416,11 +416,13 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       >
         <div
           ref={gridRef}
-          className="w-full max-w-[420px] rounded-xl overflow-hidden relative transition-all duration-300"
+          className="w-full max-w-[420px] rounded-xl overflow-hidden relative"
           style={{
             aspectRatio: canvasRatio,
             background: canvasBg,
             boxShadow: '0 12px 48px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06)',
+            willChange: 'auto',
+            containIntrinsicSize: 'auto',
           }}
         >
           {/* Grain overlay */}
@@ -511,8 +513,12 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       <div className="fixed bottom-[52px] left-0 right-0 z-30">
         {activeTool && (
           <div
-            className="animate-fade-in transition-transform duration-150"
-            style={{ transform: panelDragY > 0 ? `translateY(${panelDragY}px)` : undefined, opacity: panelDragY > 60 ? 0.5 : 1 }}
+            style={{
+              transform: panelDragY > 0 ? `translateY(${panelDragY}px)` : 'translateY(0)',
+              opacity: panelDragY > 60 ? 0.5 : 1,
+              transition: panelDragY > 0 ? 'none' : 'transform 200ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease',
+              animation: 'slideUp 200ms cubic-bezier(0.4,0,0.2,1)',
+            }}
           >
             {/* Drag handle pill */}
             <div
