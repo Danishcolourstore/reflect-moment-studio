@@ -131,7 +131,7 @@ export function AIFindSimilarSheet({ open, onClose, photoCount, photos }: AIFind
                       transition={{ delay: i * 0.08, duration: 0.3 }}
                     >
                       <img
-                        src={getOptimizedUrl(p.url, 'thumb')}
+                        src={getOptimizedUrl(p.url, 'thumbnail')}
                         alt=""
                         className="w-full h-full object-cover"
                         loading="lazy"

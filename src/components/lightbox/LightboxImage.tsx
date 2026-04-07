@@ -12,10 +12,10 @@ interface LightboxImageProps {
   panY: number;
   isDragging: boolean;
   entryAnimation: {
-    initial: object;
-    animate: object;
-    exit: object;
-    transition: object;
+    initial: Record<string, number>;
+    animate: Record<string, number>;
+    exit: Record<string, number>;
+    transition: Record<string, unknown>;
   };
   onTouchStart: (e: React.TouchEvent) => void;
   onTouchMove: (e: React.TouchEvent) => void;
