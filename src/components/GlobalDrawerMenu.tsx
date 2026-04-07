@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { label: "Home", path: "/home" },
   { label: "Events", path: "/dashboard/events" },
   { divider: true },
-  { label: "Portfolio", path: "/dashboard/website-editor" },
+  { label: "Storybook", path: "/dashboard/storybook" },
   { label: "Storybook", path: "/dashboard/storybook" },
   { label: "More", path: "/more" },
 ] as const;

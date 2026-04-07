@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 const navItems = [
   { title: "Home", url: "/home", icon: Home },
   { title: "Events", url: "/dashboard/events", icon: Camera },
-  { title: "Portfolio", url: "/dashboard/website-editor", icon: Globe },
+  { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
   { title: "Storybook", url: "/dashboard/storybook", icon: BookOpen },
   { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
   { title: "Clients", url: "/dashboard/clients", icon: Users },
