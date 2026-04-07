@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
 import { useInfinitePhotos } from '@/hooks/use-infinite-photos';
 import { ProgressiveImage } from '@/components/ProgressiveImage';
-import { MinimalPortfolioLayout } from '@/components/MinimalPortfolioLayout';
+// MinimalPortfolioLayout removed
 import { StoryBookLayout } from '@/components/StoryBookLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
