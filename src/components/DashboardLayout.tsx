@@ -175,11 +175,12 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
 
             <span style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "1.1rem", fontWeight: 400, fontStyle: "italic",
-              letterSpacing: "0.04em",
-              color: isImmersiveMobile ? "#C8A97E" : "hsl(48, 7%, 10%)",
+              fontSize: "0.95rem", fontWeight: 400,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: "hsl(48, 7%, 10%)",
             }}>
-              MirrorAI
+              Mirror AI
             </span>
 
             <div style={{ width: 44, minHeight: 44 }} />
