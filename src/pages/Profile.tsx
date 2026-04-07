@@ -1,42 +1,39 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { DashboardLayout } from '@/components/DashboardLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
-import { Upload, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/lib/auth';
-import { toast } from 'sonner';
-import { useStorageUsage, formatBytes } from '@/hooks/use-storage-usage';
+import { useState, useEffect, useRef } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Upload, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
+import { useStorageUsage, formatBytes } from "@/hooks/use-storage-usage";
 
 const Profile = () => {
   const { user } = useAuth();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const avatarRef = useRef<HTMLInputElement>(null);
 
-  // Password
-  const [currentPw, setCurrentPw] = useState('');
-  const [newPw, setNewPw] = useState('');
-  const [confirmPw, setConfirmPw] = useState('');
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
-  const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('mirrorai-theme') || 'dark');
 
   useEffect(() => {
     if (!user) return;
-    setEmail(user.email || '');
-    setFullName(user.user_metadata?.full_name || '');
-    (supabase.from('profiles').select('avatar_url, studio_name') as any).eq('user_id', user.id).maybeSingle()
+    setEmail(user.email || "");
+    setFullName(user.user_metadata?.full_name || "");
+    (supabase.from("profiles").select("avatar_url, studio_name") as any)
+      .eq("user_id", user.id)
+      .maybeSingle()
       .then(({ data }: any) => {
         if (data) {
           setAvatarUrl(data.avatar_url);
-          if (!fullName) setFullName(data.studio_name || '');
+          if (!fullName) setFullName(data.studio_name || "");
         }
         setLoading(false);
       });
@@ -45,14 +42,14 @@ const Profile = () => {
   const handleAvatarUpload = async (file: File) => {
     if (!user) return;
     setAvatarUploading(true);
-    const ext = file.name.split('.').pop();
+    const ext = file.name.split(".").pop();
     const path = `avatars/${user.id}/avatar.${ext}`;
-    const { error } = await supabase.storage.from('event-covers').upload(path, file, { upsert: true });
+    const { error } = await supabase.storage.from("event-covers").upload(path, file, { upsert: true });
     if (!error) {
-      const url = supabase.storage.from('event-covers').getPublicUrl(path).data.publicUrl;
-      await (supabase.from('profiles').update({ avatar_url: url } as any) as any).eq('user_id', user.id);
+      const url = supabase.storage.from("event-covers").getPublicUrl(path).data.publicUrl;
+      await (supabase.from("profiles").update({ avatar_url: url } as any) as any).eq("user_id", user.id);
       setAvatarUrl(url);
-      toast.success('Avatar updated');
+      toast.success("Avatar updated");
     }
     setAvatarUploading(false);
   };
@@ -61,152 +58,197 @@ const Profile = () => {
     if (!user) return;
     setSaving(true);
     await supabase.auth.updateUser({ data: { full_name: fullName } });
-    toast.success('Profile updated');
+    toast.success("Profile updated");
     setSaving(false);
   };
 
   const savePassword = async () => {
-    if (newPw !== confirmPw) { toast.error('Passwords do not match'); return; }
-    if (newPw.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    if (newPw !== confirmPw) { toast.error("Passwords do not match"); return; }
+    if (newPw.length < 6) { toast.error("Password must be at least 6 characters"); return; }
     setPwSaving(true);
     const { error } = await supabase.auth.updateUser({ password: newPw });
     if (error) toast.error(error.message);
-    else { toast.success('Password updated'); setCurrentPw(''); setNewPw(''); setConfirmPw(''); }
+    else { toast.success("Password updated"); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }
     setPwSaving(false);
   };
 
   const pwStrength = () => {
     if (newPw.length === 0) return null;
-    if (newPw.length < 6) return { label: 'Weak', color: 'text-destructive' };
-    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: 'Fair', color: 'text-yellow-500' };
-    return { label: 'Strong', color: 'text-green-500' };
+    if (newPw.length < 6) return { label: "Weak", color: "#E85D5D" };
+    if (newPw.length < 10 || !/[A-Z]/.test(newPw) || !/\d/.test(newPw)) return { label: "Fair", color: "#C8A97E" };
+    return { label: "Strong", color: "#5CB85C" };
   };
 
   const storage = useStorageUsage();
-
-  if (loading) return <DashboardLayout><Skeleton className="h-96" /></DashboardLayout>;
-
-  const strength = pwStrength();
   const storageUsed = storage.data?.used ?? 0;
   const storageLimit = storage.data?.limit ?? 0;
   const storagePct = storageLimit > 0 ? Math.min((storageUsed / storageLimit) * 100, 100) : 0;
+  const strength = pwStrength();
+  const initials = fullName.slice(0, 2).toUpperCase() || "U";
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div style={{ maxWidth: 520, margin: "0 auto" }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={{ height: 120, background: "#F5F3F0", borderRadius: 12, marginBottom: 16, animation: "pulse 1.5s ease-in-out infinite" }} />
+          ))}
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const fieldLabel = (text: string) => (
+    <label style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: "#AAAAAA", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>
+      {text}
+    </label>
+  );
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    background: "#F5F4F2",
+    border: "none",
+    borderRadius: 10,
+    padding: "12px 14px",
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: 14,
+    color: "#1C1C1E",
+    outline: "none",
+  };
+
+  const ghostButton = (label: string, onClick: () => void, disabled?: boolean) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        width: "100%",
+        height: 44,
+        background: "none",
+        border: "1px solid #C8A97E",
+        borderRadius: 10,
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: 13,
+        color: "#C8A97E",
+        letterSpacing: "0.08em",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+        transition: "all 0.2s",
+      }}
+      onMouseEnter={(e) => { if (!disabled) { e.currentTarget.style.background = "#C8A97E"; e.currentTarget.style.color = "#FFFFFF"; } }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#C8A97E"; }}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <DashboardLayout>
-      <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground mb-6 sm:mb-8">Profile Settings</h1>
+      <div style={{ maxWidth: 520, margin: "0 auto" }}>
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 400, color: "#1C1C1E", marginBottom: 32 }}>
+          Profile
+        </h1>
 
-      <div className="max-w-lg space-y-6 sm:space-y-8">
+        {/* Avatar */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 32 }}>
+          <div
+            onClick={() => avatarRef.current?.click()}
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              background: avatarUrl ? undefined : "#C8A97E",
+              backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            {!avatarUrl && (
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: "#FFFFFF", fontWeight: 400 }}>
+                {initials}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => avatarRef.current?.click()}
+            disabled={avatarUploading}
+            style={{
+              background: "none",
+              border: "1px solid #E8E4DE",
+              borderRadius: 8,
+              padding: "6px 14px",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12,
+              color: "#999999",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            {avatarUploading ? <Loader2 style={{ width: 12, height: 12, animation: "spin 1s linear infinite" }} /> : <Upload style={{ width: 12, height: 12 }} />}
+            Change Avatar
+          </button>
+          <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
+        </div>
+
         {/* Personal Info */}
-        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
-          <h2 className="font-serif text-lg text-foreground mb-5">Personal Information</h2>
-          <div className="flex items-center gap-4 mb-5">
-            <Avatar className="h-16 w-16 cursor-pointer" onClick={() => avatarRef.current?.click()}>
-              <AvatarImage src={avatarUrl || undefined} />
-              <AvatarFallback className="bg-secondary text-lg font-serif">{fullName.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
-            </Avatar>
-            <div>
-              <Button variant="outline" size="sm" className="text-[10px] h-7" onClick={() => avatarRef.current?.click()} disabled={avatarUploading}>
-                {avatarUploading ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Upload className="mr-1 h-3 w-3" />} Change Avatar
-              </Button>
-            </div>
-            <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
+        <div style={{ background: "#FFFFFF", border: "1px solid #F0EDE8", borderRadius: 16, padding: 24, marginBottom: 16 }}>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1C1C1E", marginBottom: 20 }}>
+            Personal Information
+          </h2>
+          <div style={{ marginBottom: 16 }}>
+            {fieldLabel("Full Name")}
+            <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={inputStyle} />
           </div>
-          <div className="space-y-4">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Full Name</label>
-              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 bg-background text-base" />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Email</label>
-              <Input value={email} readOnly className="mt-1 bg-background opacity-60 text-base" />
-              <p className="text-[10px] text-muted-foreground/50 mt-1">Email cannot be changed</p>
-            </div>
+          <div style={{ marginBottom: 20 }}>
+            {fieldLabel("Email")}
+            <input value={email} readOnly style={{ ...inputStyle, opacity: 0.6 }} />
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontStyle: "italic", color: "#BBBBBB", marginTop: 4 }}>
+              Email cannot be changed
+            </p>
           </div>
-          <Button onClick={saveProfile} disabled={saving} className="mt-5 bg-primary text-primary-foreground text-[11px] uppercase tracking-wider">
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
+          {ghostButton(saving ? "Saving..." : "Save Changes", saveProfile, saving)}
         </div>
 
-        {/* Change Password */}
-        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
-          <h2 className="font-serif text-lg text-foreground mb-5">Change Password</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Current Password</label>
-              <Input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} className="mt-1 bg-background text-base" />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">New Password</label>
-              <Input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} className="mt-1 bg-background text-base" />
-              {strength && <p className={`text-[10px] mt-1 ${strength.color}`}>{strength.label}</p>}
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Confirm New Password</label>
-              <Input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} className="mt-1 bg-background text-base" />
-              {confirmPw && confirmPw !== newPw && <p className="text-[10px] text-destructive mt-1">Passwords do not match</p>}
-              {confirmPw && confirmPw === newPw && newPw.length >= 6 && <p className="text-[10px] text-green-500 mt-1">Passwords match</p>}
-            </div>
+        {/* Password */}
+        <div style={{ background: "#FFFFFF", border: "1px solid #F0EDE8", borderRadius: 16, padding: 24, marginBottom: 16 }}>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1C1C1E", marginBottom: 20 }}>
+            Change Password
+          </h2>
+          <div style={{ marginBottom: 16 }}>
+            {fieldLabel("Current Password")}
+            <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} style={inputStyle} />
           </div>
-          <Button onClick={savePassword} disabled={pwSaving || !newPw || newPw !== confirmPw} className="mt-5 bg-primary text-primary-foreground text-[11px] uppercase tracking-wider">
-            {pwSaving ? 'Updating...' : 'Save Password'}
-          </Button>
+          <div style={{ marginBottom: 16 }}>
+            {fieldLabel("New Password")}
+            <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} style={inputStyle} />
+            {strength && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: strength.color, marginTop: 4 }}>{strength.label}</p>}
+          </div>
+          <div style={{ marginBottom: 20 }}>
+            {fieldLabel("Confirm Password")}
+            <input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} style={inputStyle} />
+            {confirmPw && confirmPw !== newPw && <p style={{ fontSize: 10, color: "#E85D5D", marginTop: 4 }}>Passwords do not match</p>}
+          </div>
+          {ghostButton(pwSaving ? "Updating..." : "Save Password", savePassword, pwSaving || !newPw || newPw !== confirmPw)}
         </div>
 
-        {/* Appearance / Theme */}
-        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
-          <h2 className="font-serif text-lg text-foreground mb-5">Appearance</h2>
-          <p className="text-[11px] text-muted-foreground mb-4">Choose your dashboard theme</p>
-          <div className="grid grid-cols-2 gap-3">
-            {([
-              { key: 'dark', label: 'Dark', emoji: '🌙', desc: 'Cinematic dark' },
-              { key: 'classic', label: 'Classic', emoji: '✦', desc: 'Clean white' },
-            ] as const).map(({ key, label, emoji, desc }) => {
-              const isActive = activeTheme === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => {
-                    document.documentElement.classList.remove('dark', 'editorial', 'classic');
-                    document.documentElement.classList.add(key);
-                    localStorage.setItem('mirrorai-theme', key);
-                    localStorage.setItem('theme', key);
-                    setActiveTheme(key);
-                    if (user) {
-                      (supabase.from('profiles').update({ theme_preference: key } as any) as any).eq('user_id', user.id);
-                    }
-                    toast.success(`${label} theme activated`);
-                    window.dispatchEvent(new Event('storage'));
-                  }}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                    isActive ? 'border-accent bg-accent/10' : 'border-border hover:border-foreground/20'
-                  }`}
-                >
-                  <span className="text-2xl">{emoji}</span>
-                  <span className="text-[12px] font-medium text-foreground">{label}</span>
-                  <span className="text-[10px] text-muted-foreground">{desc}</span>
-                </button>
-              );
-            })}
+        {/* Storage */}
+        <div style={{ background: "#FFFFFF", border: "1px solid #F0EDE8", borderRadius: 16, padding: 24, marginBottom: 32 }}>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1C1C1E", marginBottom: 16 }}>
+            Storage
+          </h2>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, color: "#1C1C1E", fontWeight: 400 }}>{formatBytes(storageUsed)}</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#AAAAAA", marginTop: 2 }}>of {formatBytes(storageLimit)}</p>
+          <Progress value={storagePct} className="mt-3 h-1.5" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#AAAAAA" }}>Events: <span style={{ color: "#1C1C1E" }}>{storage.data?.eventCount ?? 0}</span></p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#AAAAAA" }}>Photos: <span style={{ color: "#1C1C1E" }}>{storage.data?.photoCount ?? 0}</span></p>
           </div>
-        </div>
-
-        {/* Storage Usage */}
-        <div className="bg-card border border-border rounded-xl p-4 sm:p-6">
-          <h2 className="font-serif text-lg text-foreground mb-5">Storage Usage</h2>
-          <p className="font-serif text-3xl font-bold text-foreground">{formatBytes(storageUsed)}</p>
-          <p className="text-sm text-muted-foreground mt-1">of {formatBytes(storageLimit)}</p>
-          <Progress value={storagePct} className="mt-3 h-2" />
-          <div className="grid grid-cols-2 gap-4 mt-4 text-[12px]">
-            <div><span className="text-muted-foreground/60">Events:</span> <span className="font-medium">{storage.data?.eventCount ?? 0}</span></div>
-            <div><span className="text-muted-foreground/60">Photos:</span> <span className="font-medium">{storage.data?.photoCount ?? 0}</span></div>
-          </div>
-          {storage.data?.plan !== 'pro' && (
-            <div className="mt-4 bg-secondary rounded-lg p-4">
-              <p className="font-serif text-sm font-semibold text-foreground">Upgrade to Pro</p>
-              <p className="text-[11px] text-muted-foreground mt-1">Get 100 GB storage, unlimited events, and priority support.</p>
-              <Button size="sm" className="mt-3 bg-primary text-primary-foreground text-[10px] uppercase tracking-wider">Upgrade Now</Button>
-            </div>
-          )}
         </div>
       </div>
     </DashboardLayout>

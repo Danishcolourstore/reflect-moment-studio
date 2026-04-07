@@ -1,13 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { Home, Camera, Users, Settings, Zap } from "lucide-react";
+import { Camera, CalendarDays, User, SlidersHorizontal, Home } from "lucide-react";
 
 const TABS = [
-  { title: "Home", url: "/home", icon: Home },
-  { title: "Events", url: "/dashboard/events", icon: Camera },
-  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
-  { title: "Clients", url: "/dashboard/clients", icon: Users },
-  { title: "Settings", url: "/dashboard/profile", icon: Settings },
+  { title: "Gallery", url: "/home", icon: Camera },
+  { title: "Events", url: "/dashboard/events", icon: CalendarDays },
+  { title: "Clients", url: "/dashboard/clients", icon: User },
+  { title: "Settings", url: "/dashboard/profile", icon: SlidersHorizontal },
 ];
 
 export function MobileBottomNav() {
@@ -23,8 +22,15 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border safe-area-pb">
-      <div className="flex justify-between items-center px-2 h-[56px]">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 safe-area-pb"
+      style={{
+        background: "#FFFFFF",
+        borderTop: "1px solid #F0EDE8",
+        height: 56,
+      }}
+    >
+      <div className="flex justify-around items-center h-full px-2">
         {TABS.map((tab) => {
           const active = isActive(tab.url);
           const Icon = tab.icon;
@@ -32,12 +38,21 @@ export function MobileBottomNav() {
             <button
               key={tab.url}
               onClick={() => navigate(tab.url)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[44px] transition-colors ${
-                active ? "text-primary" : "text-muted-foreground"
-              }`}
+              className="flex flex-col items-center justify-center gap-0.5 min-h-[44px] flex-1 transition-colors duration-200"
             >
-              <Icon className="h-[20px] w-[20px]" strokeWidth={active ? 2 : 1.5} />
-              <span className="text-[9px] tracking-wider uppercase font-medium">
+              <Icon
+                className="h-5 w-5"
+                strokeWidth={1.5}
+                style={{ color: active ? "#C8A97E" : "#AAAAAA" }}
+              />
+              <span
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 10,
+                  color: active ? "#C8A97E" : "#AAAAAA",
+                  fontWeight: 400,
+                }}
+              >
                 {tab.title}
               </span>
             </button>

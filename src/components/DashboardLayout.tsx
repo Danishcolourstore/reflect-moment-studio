@@ -82,7 +82,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <EntiranProvider>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen" style={{ background: "#FDFCFB" }}>
         {/* ── Fixed Left Sidebar (Desktop Only) ── */}
         {showSidebar && (
           <aside className="fixed left-0 top-0 z-30 h-screen w-[88px] flex flex-col items-center bg-sidebar border-r border-sidebar-border">
