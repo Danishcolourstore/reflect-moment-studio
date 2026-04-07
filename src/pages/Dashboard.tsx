@@ -6,7 +6,6 @@ import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { CreateEventModal } from "@/components/CreateEventModal";
-import { LazyImage } from "@/components/LazyImage";
 import { Heart, Plus } from "lucide-react";
 
 interface RecentEvent {
@@ -32,7 +31,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"all" | "events" | "highlights">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "events">("all");
   const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 
   useEffect(() => {
@@ -78,23 +77,23 @@ const Dashboard = () => {
     load();
   }, [user]);
 
-  if (error) return <PageError message="Failed to load" onRetry={() => window.location.reload()} />;
+  if (error) return <PageError message="Something went wrong" onRetry={() => window.location.reload()} />;
 
-  const TABS = ["All", "Events", "Highlights"] as const;
-  const tabMap = { All: "all", Events: "events", Highlights: "highlights" } as const;
+  const TABS = ["All", "Events"] as const;
+  const tabMap = { All: "all", Events: "events" } as const;
 
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "#FDFCFB", overflowX: "hidden", paddingBottom: mob ? 80 : 0 }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: "hsl(45, 14%, 97%)", overflowX: "hidden", paddingBottom: mob ? 80 : 0 }}>
       {/* Nav */}
       <nav
         style={{
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: "rgba(253,252,251,0.96)",
+          background: "hsla(45, 14%, 97%, 0.96)",
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
-          borderBottom: "1px solid #F0EDE8",
+          borderBottom: "1px solid hsl(37, 10%, 90%)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -102,54 +101,51 @@ const Dashboard = () => {
           padding: mob ? "0 20px" : "0 48px",
         }}
       >
-        {/* Hamburger */}
         <button
           onClick={drawer.toggle}
-          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", gap: 4, padding: 8 }}
+          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", gap: 4, padding: 8, minWidth: 44, minHeight: 44, justifyContent: "center" }}
         >
-          <span style={{ width: 18, height: 1, background: "#1A1A1A", display: "block" }} />
-          <span style={{ width: 13, height: 1, background: "#1A1A1A", display: "block" }} />
+          <span style={{ width: 18, height: 1, background: "hsl(48, 7%, 10%)", display: "block" }} />
+          <span style={{ width: 13, height: 1, background: "hsl(48, 7%, 10%)", display: "block" }} />
         </button>
 
-        {/* Studio name */}
-        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: mob ? 14 : 16, fontWeight: 400, fontStyle: "italic", color: "#999999", letterSpacing: "0.04em" }}>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: mob ? 14 : 16, fontWeight: 400, fontStyle: "italic", color: "hsl(35, 4%, 56%)", letterSpacing: "0.04em" }}>
           {studioName}
         </span>
 
-        {/* Desktop nav */}
         {!mob ? (
           <div style={{ display: "flex", gap: 28, alignItems: "center" }}>
-            {["Home", "Events", "Portfolio", "Clients"].map((l) => (
+            {["Studio", "Events", "Website", "Clients"].map((l) => (
               <button
                 key={l}
-                onClick={() => navigate(l === "Home" ? "/home" : l === "Events" ? "/dashboard/events" : l === "Portfolio" ? "/dashboard/website-editor" : "/dashboard/clients")}
-                style={{ background: "none", border: "none", fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999999", cursor: "pointer", transition: "color 0.2s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1A1A")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#999999")}
+                onClick={() => navigate(l === "Studio" ? "/home" : l === "Events" ? "/dashboard/events" : l === "Website" ? "/dashboard/website-editor" : "/dashboard/clients")}
+                style={{ background: "none", border: "none", fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "hsl(35, 4%, 56%)", cursor: "pointer", transition: "color 0.2s", minHeight: 44, display: "flex", alignItems: "center" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(48, 7%, 10%)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(35, 4%, 56%)")}
               >
                 {l}
               </button>
             ))}
           </div>
         ) : (
-          <div style={{ width: 36 }} /> /* spacer to center studio name */
+          <div style={{ width: 44 }} />
         )}
       </nav>
 
-      {/* Header section */}
-      <div style={{ textAlign: "center", padding: mob ? "28px 20px 0" : "40px 48px 0" }}>
-        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, fontStyle: "italic", color: "#999999", fontWeight: 400 }}>
+      {/* Header */}
+      <div style={{ textAlign: "center", padding: mob ? "40px 24px 0" : "40px 48px 0" }}>
+        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, fontStyle: "italic", color: "hsl(35, 4%, 56%)", fontWeight: 400 }}>
           {studioName}
         </p>
         {studioUsername && (
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#BBBBBB", marginTop: 4 }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "hsl(37, 6%, 75%)", marginTop: 4 }}>
             {studioUsername}.mirrorai.com
           </p>
         )}
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", justifyContent: "center", gap: mob ? 20 : 32, padding: "20px 0 0", borderBottom: "1px solid #F0EDE8", margin: mob ? "0 20px" : "0 48px" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: mob ? 24 : 40, padding: "16px 0 0", borderBottom: "1px solid hsl(37, 10%, 90%)", margin: mob ? "0 24px" : "0 48px" }}>
         {TABS.map((tab) => {
           const key = tabMap[tab];
           const active = activeTab === key;
@@ -162,14 +158,15 @@ const Dashboard = () => {
                 border: "none",
                 cursor: "pointer",
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12,
+                fontSize: 11,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                color: active ? "#1C1C1E" : "#BBBBBB",
-                fontWeight: active ? 500 : 400,
+                color: active ? "hsl(48, 7%, 10%)" : "hsl(37, 6%, 75%)",
+                fontWeight: 400,
                 paddingBottom: 12,
-                borderBottom: active ? "2px solid #C8A97E" : "2px solid transparent",
-                transition: "all 0.2s",
+                borderBottom: active ? "2px solid hsl(40, 52%, 48%)" : "2px solid transparent",
+                transition: "color 0.2s, border-color 0.2s",
+                minHeight: 44,
               }}
             >
               {tab}
@@ -179,57 +176,51 @@ const Dashboard = () => {
       </div>
 
       {/* Gallery grid */}
-      <div style={{ padding: mob ? "12px 0 0" : "20px 48px 0", maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ padding: mob ? "16px 0 0" : "16px 48px 0", maxWidth: 1200, margin: "0 auto" }}>
         {loading ? (
-          <div style={{ columns: mob ? 2 : 3, columnGap: 8, padding: mob ? "0 0" : undefined }}>
+          <div style={{ columns: mob ? 2 : 3, columnGap: 8, padding: mob ? "0" : undefined }}>
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} style={{ breakInside: "avoid", marginBottom: 8, height: 180 + (i % 3) * 60, background: "#F5F3F0", animation: "pulse 1.5s ease-in-out infinite" }} />
+              <div key={i} className="skeleton-block" style={{ breakInside: "avoid", marginBottom: 8, height: 180 + (i % 3) * 60 }} />
             ))}
           </div>
         ) : allPhotos.length === 0 && recentEvents.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "80px 20px" }}>
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontStyle: "italic", color: "#CCCCCC", fontWeight: 400 }}>
-              No stories yet
-            </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#BBBBBB", marginTop: 8 }}>
-              Create your first event to begin
+          <div style={{ textAlign: "center", padding: "80px 24px" }}>
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontStyle: "italic", color: "hsl(37, 6%, 75%)", fontWeight: 300 }}>
+              Your first gallery awaits
             </p>
           </div>
         ) : activeTab === "events" ? (
-          /* Events list */
-          <div style={{ padding: mob ? "0" : undefined }}>
+          <div>
             {recentEvents.map((evt, i) => (
               <button
                 key={evt.id}
                 onClick={() => navigate(`/dashboard/events/${evt.id}`)}
-                style={{ display: "block", width: "100%", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, borderBottom: i < recentEvents.length - 1 ? "1px solid #F0EDE8" : "none" }}
+                style={{ display: "block", width: "100%", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, borderBottom: i < recentEvents.length - 1 ? "1px solid hsl(37, 10%, 90%)" : "none" }}
               >
-                <div style={{ display: "flex", gap: 16, padding: mob ? "16px 20px" : "20px 0", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 16, padding: mob ? "16px 24px" : "16px 0", alignItems: "center" }}>
                   {evt.cover_url ? (
                     <img src={evt.cover_url} alt="" style={{ width: 80, height: 80, objectFit: "cover", flexShrink: 0 }} loading="lazy" />
                   ) : (
-                    <div style={{ width: 80, height: 80, background: "#F5F3F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: "#DDDDDD", flexShrink: 0 }}>
+                    <div style={{ width: 80, height: 80, background: "hsl(40, 5%, 95%)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: "hsl(37, 10%, 90%)", flexShrink: 0 }}>
                       {evt.name.charAt(0)}
                     </div>
                   )}
                   <div>
-                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "#1C1C1E", fontWeight: 400 }}>{evt.name}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#999999", marginTop: 2 }}>
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "hsl(48, 7%, 10%)", fontWeight: 400 }}>{evt.name}</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(35, 4%, 56%)", marginTop: 2 }}>
                       {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : ""}{evt.location ? ` · ${evt.location}` : ""}
                     </p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#C8A97E", marginTop: 2 }}>{evt.photo_count || 0} photos</p>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "hsl(40, 52%, 48%)", marginTop: 2 }}>{evt.photo_count || 0} photos</p>
                   </div>
                 </div>
               </button>
             ))}
           </div>
         ) : (
-          /* Masonry photo grid */
-          <div style={{ columns: mob ? 2 : 3, columnGap: 8, padding: mob ? "0" : undefined }}>
+          <div style={{ columns: mob ? 2 : 3, columnGap: 8 }}>
             {allPhotos.map((url, i) => (
               <div key={i} className="group" style={{ breakInside: "avoid", marginBottom: 8, position: "relative", overflow: "hidden" }}>
                 <img src={url} alt="" style={{ width: "100%", display: "block" }} loading="lazy" />
-                {/* Heart on hover */}
                 <button
                   className="opacity-0 group-hover:opacity-100"
                   style={{
@@ -240,8 +231,8 @@ const Dashboard = () => {
                     backdropFilter: "blur(6px)",
                     border: "none",
                     borderRadius: "50%",
-                    width: 32,
-                    height: 32,
+                    width: 40,
+                    height: 40,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -263,24 +254,22 @@ const Dashboard = () => {
         style={{
           position: "fixed",
           bottom: mob ? 76 : 32,
-          right: mob ? 20 : 32,
-          width: 52,
-          height: 52,
+          right: mob ? 24 : 32,
+          width: 56,
+          height: 56,
           borderRadius: "50%",
-          background: "#C8A97E",
+          background: "hsl(40, 52%, 48%)",
           border: "none",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: "0 4px 20px rgba(200,169,126,0.3)",
+          boxShadow: "0 4px 20px hsla(40, 52%, 48%, 0.3)",
           zIndex: 50,
-          transition: "transform 0.2s, box-shadow 0.2s",
+          transition: "transform 0.2s ease-out",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(200,169,126,0.4)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(200,169,126,0.3)"; }}
       >
-        <Plus style={{ width: 22, height: 22, color: "#FFFFFF" }} strokeWidth={2} />
+        <Plus style={{ width: 22, height: 22, color: "hsl(45, 14%, 97%)" }} strokeWidth={2} />
       </button>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />

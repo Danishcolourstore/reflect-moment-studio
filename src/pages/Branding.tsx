@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, Globe, ExternalLink, Sparkles, Eye } from 'lucide-react';
+import { Check, Globe, ExternalLink, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { templatePreviews } from '@/assets/templates';
@@ -37,8 +37,6 @@ const Branding = () => {
   const handleUseTemplate = async (tmplValue: WebsiteTemplateValue) => {
     if (!user) return;
     setSelectedTemplate(tmplValue);
-
-    // Save template choice then navigate to editor
     const { data: existing } = await (supabase.from('studio_profiles').select('id') as any)
       .eq('user_id', user.id).maybeSingle();
     if (existing) {
@@ -60,124 +58,85 @@ const Branding = () => {
 
   return (
     <DashboardLayout>
-      {/* Header - responsive */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-2">
-        <div>
-          <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground">Brand Studio</h1>
-          <p className="text-xs text-muted-foreground/50 mt-1">Choose a template and build your portfolio website</p>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 40 }}>
+          <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: "hsl(48, 7%, 10%)", margin: 0, letterSpacing: "0.02em" }}>
+            Website
+          </h1>
+          <div style={{ display: "flex", gap: 8 }}>
+            {username && (
+              <button
+                onClick={() => window.open(`/studio/${username}`, '_blank')}
+                style={{ background: "none", border: "1px solid hsl(37, 10%, 90%)", padding: "8px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "hsl(35, 4%, 56%)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, minHeight: 44, transition: "border-color 0.2s" }}
+              >
+                <ExternalLink style={{ width: 14, height: 14 }} /> View Live
+              </button>
+            )}
+            {hasStudio && (
+              <button
+                onClick={() => navigate('/dashboard/website-editor')}
+                style={{ background: "hsl(48, 7%, 10%)", border: "none", padding: "8px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "hsl(45, 14%, 97%)", cursor: "pointer", minHeight: 44, transition: "opacity 0.2s" }}
+              >
+                Edit
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {username && (
-            <Button variant="ghost" size="sm" className="text-[10px] h-9 sm:h-8 gap-1.5 flex-1 sm:flex-none min-h-[44px] sm:min-h-0" onClick={() => window.open(`/studio/${username}`, '_blank')}>
-              <ExternalLink className="h-3 w-3" /> View Live Site
-            </Button>
-          )}
-          {hasStudio && (
-            <Button size="sm" className="text-[10px] h-9 sm:h-8 gap-1.5 bg-primary text-primary-foreground flex-1 sm:flex-none min-h-[44px] sm:min-h-0" onClick={() => navigate('/dashboard/website-editor')}>
-              <Sparkles className="h-3 w-3" /> Open Editor
-            </Button>
-          )}
-        </div>
-      </div>
 
-      {/* Active site info - responsive */}
-      {username && (
-        <div className="mb-6 p-3 sm:p-4 rounded-lg border border-border bg-card/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Globe className="h-4 w-4 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-foreground">Your Studio Website</p>
-              <p className="text-[10px] text-muted-foreground/50 truncate">{getStudioDisplayUrl(username)}</p>
+        {username && (
+          <div style={{ marginBottom: 40, padding: 16, border: "1px solid hsl(37, 10%, 90%)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <Globe style={{ width: 16, height: 16, color: "hsl(40, 52%, 48%)" }} strokeWidth={1.5} />
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(35, 4%, 56%)" }}>{getStudioDisplayUrl(username)}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="text-[10px] h-9 sm:h-7 w-full sm:w-auto min-h-[44px] sm:min-h-0" onClick={() => navigate('/dashboard/website-editor')}>
-            Edit Website
-          </Button>
-        </div>
-      )}
+        )}
 
-      {/* Template Gallery - responsive */}
-      <div className="mb-4">
-        <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/50 font-medium">CHOOSE A TEMPLATE</p>
-        <p className="text-[11px] text-muted-foreground/30 mt-0.5">Select a template to start building. All your data auto-fills instantly.</p>
-      </div>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: "hsl(35, 4%, 56%)", marginBottom: 16 }}>Choose a Style</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-        {templates.map((tmpl) => {
-          const isActive = selectedTemplate === tmpl.value;
-          return (
-            <div
-              key={tmpl.value}
-              className={`group relative rounded-xl border-2 overflow-hidden transition-all duration-300 ${
-                isActive
-                  ? 'border-primary ring-2 ring-primary/20 scale-[1.01]'
-                  : 'border-border/40 hover:border-border hover:shadow-lg'
-              }`}
-            >
-              {/* Template preview image */}
-              <div className="relative h-48 overflow-hidden" style={{ backgroundColor: tmpl.bg }}>
-                {templatePreviews[tmpl.value] ? (
-                  <img
-                    src={templatePreviews[tmpl.value]}
-                    alt={`${tmpl.label} template preview`}
-                    loading="lazy"
-                    width={800}
-                    height={600}
-                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-                    <p className="text-xl font-light tracking-wide" style={{ fontFamily: tmpl.fontFamily, color: tmpl.text }}>
-                      {tmpl.label}
-                    </p>
-                  </div>
-                )}
-
-                {/* Active checkmark */}
-                {isActive && (
-                  <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-lg">
-                    <Check className="h-3.5 w-3.5 text-primary-foreground" />
-                  </div>
-                )}
-              </div>
-
-              {/* Info + action */}
-              <div className="p-4 bg-card border-t border-border/20">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{tmpl.label}</p>
-                    <p className="text-[10px] text-muted-foreground/50 mt-0.5">{tmpl.description}</p>
-                  </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {templates.map((tmpl) => {
+            const isActive = selectedTemplate === tmpl.value;
+            return (
+              <div
+                key={tmpl.value}
+                style={{ border: `1px solid ${isActive ? "hsl(40, 52%, 48%)" : "hsl(37, 10%, 90%)"}`, transition: "border-color 0.2s", overflow: "hidden" }}
+              >
+                <div style={{ height: 192, overflow: "hidden", backgroundColor: tmpl.bg, position: "relative" }}>
+                  {templatePreviews[tmpl.value] ? (
+                    <img src={templatePreviews[tmpl.value]} alt={tmpl.label} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", transition: "transform 0.4s ease" }} />
+                  ) : (
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <p style={{ fontFamily: tmpl.fontFamily, fontSize: 20, fontWeight: 300, color: tmpl.text }}>{tmpl.label}</p>
+                    </div>
+                  )}
                   {isActive && (
-                    <span className="text-[9px] uppercase tracking-wider font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                      Active
-                    </span>
+                    <div style={{ position: "absolute", top: 8, right: 8, width: 24, height: 24, borderRadius: "50%", background: "hsl(40, 52%, 48%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Check style={{ width: 14, height: 14, color: "hsl(45, 14%, 97%)" }} />
+                    </div>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => navigate(`/dashboard/template-preview?template=${tmpl.value}`)}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 text-[10px] uppercase tracking-wider h-9 gap-1.5"
-                  >
-                    <Eye className="h-3 w-3" /> Preview
-                  </Button>
-                  <Button
-                    onClick={() => handleUseTemplate(tmpl.value as WebsiteTemplateValue)}
-                    variant={isActive ? 'default' : 'outline'}
-                    size="sm"
-                    className="flex-1 text-[10px] uppercase tracking-wider h-9"
-                  >
-                    {isActive ? 'Edit Template' : 'Use Template'}
-                  </Button>
+                <div style={{ padding: 16, borderTop: "1px solid hsl(37, 10%, 90%)" }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(48, 7%, 10%)", marginBottom: 16 }}>{tmpl.label}</p>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      onClick={() => navigate(`/dashboard/template-preview?template=${tmpl.value}`)}
+                      style={{ flex: 1, background: "none", border: "1px solid hsl(37, 10%, 90%)", padding: "8px", fontFamily: "'DM Sans', sans-serif", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "hsl(35, 4%, 56%)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 40, transition: "border-color 0.2s" }}
+                    >
+                      <Eye style={{ width: 12, height: 12 }} /> Preview
+                    </button>
+                    <button
+                      onClick={() => handleUseTemplate(tmpl.value as WebsiteTemplateValue)}
+                      style={{ flex: 1, background: isActive ? "hsl(48, 7%, 10%)" : "none", border: isActive ? "none" : "1px solid hsl(37, 10%, 90%)", padding: "8px", fontFamily: "'DM Sans', sans-serif", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: isActive ? "hsl(45, 14%, 97%)" : "hsl(35, 4%, 56%)", cursor: "pointer", minHeight: 40, transition: "all 0.2s" }}
+                    >
+                      {isActive ? 'Edit' : 'Use'}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </DashboardLayout>
   );

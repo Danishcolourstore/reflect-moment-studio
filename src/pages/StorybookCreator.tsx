@@ -168,75 +168,69 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
   }
 
   const tools = [
-    { icon: Grid3X3, name: 'Grid Builder', desc: 'Design layouts for galleries', onClick: () => setShowGridBuilder(true) },
-    { icon: LayoutGrid, name: 'Feed Planner', desc: 'Plan your feed visually', onClick: () => setShowFeedPlanner(true) },
-    { icon: Layers, name: 'Album Designer', desc: 'Design wedding albums', onClick: () => navigate('/dashboard/album-designer') },
+    { icon: Grid3X3, name: 'Grid Builder', desc: 'Design gallery layouts', onClick: () => setShowGridBuilder(true) },
+    { icon: LayoutGrid, name: 'Feed Planner', desc: 'Plan your feed', onClick: () => setShowFeedPlanner(true) },
+    { icon: Layers, name: 'Album Designer', desc: 'Design albums', onClick: () => navigate('/dashboard/album-designer') },
   ];
 
   // ─── List View ───
   const listContent = (
     <>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 28, fontWeight: 400, color: '#F0EDE8', letterSpacing: '0.04em' }}>
+      <div style={{ marginBottom: 40 }}>
+        <h1 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 32, fontWeight: 300, color: 'hsl(48, 7%, 10%)', letterSpacing: '0.02em' }}>
           Storybook
         </h1>
-        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: 'rgba(240,237,232,0.35)', letterSpacing: '0.08em', marginTop: 6 }}>
-          Design and manage your creative content
-        </p>
       </div>
 
-      {/* Primary action */}
-      <div className="mb-10">
+      <div style={{ marginBottom: 40 }}>
         <button
           onClick={createStorybook}
-          className="flex items-center gap-2 transition-all"
+          className="flex items-center gap-2"
           style={{
-            fontFamily: '"DM Sans", sans-serif', fontSize: 11, fontWeight: 600,
-            letterSpacing: '0.15em', textTransform: 'uppercase' as const,
-            color: '#080808', background: '#E8C97A',
-            padding: '12px 28px', border: 'none', cursor: 'pointer',
+            fontFamily: '"DM Sans", sans-serif', fontSize: 12,
+            letterSpacing: '0.1em', textTransform: 'uppercase' as const,
+            color: 'hsl(45, 14%, 97%)', background: 'hsl(48, 7%, 10%)',
+            padding: '12px 24px', border: 'none', cursor: 'pointer',
+            transition: 'opacity 0.2s',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#d4b56a')}
-          onMouseLeave={e => (e.currentTarget.style.background = '#E8C97A')}
+          onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
         >
           <Plus className="h-4 w-4" /> New Storybook
         </button>
       </div>
 
-      {/* Tools section */}
-      <div className="mb-10">
-        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 9, color: 'rgba(240,237,232,0.3)', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: 16, fontWeight: 600 }}>Tools</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {/* Tools */}
+      <div style={{ marginBottom: 40 }}>
+        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 10, color: 'hsl(35, 4%, 56%)', letterSpacing: '0.15em', textTransform: 'uppercase' as const, marginBottom: 16 }}>Tools</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {tools.map((tool) => (
             <button
               key={tool.name}
               onClick={tool.onClick}
-              className="text-left transition-all group"
-              style={{ padding: 20, border: '1px solid rgba(240,237,232,0.06)', background: 'rgba(240,237,232,0.02)', cursor: 'pointer' }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(232,201,122,0.25)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(240,237,232,0.06)')}
+              className="text-left group"
+              style={{ padding: 16, border: '1px solid hsl(37, 10%, 90%)', background: 'hsl(0, 0%, 100%)', cursor: 'pointer', transition: 'border-color 0.2s' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'hsl(40, 52%, 48%)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'hsl(37, 10%, 90%)')}
             >
-              <tool.icon className="h-5 w-5 mb-3" style={{ color: '#E8C97A', opacity: 0.6 }} strokeWidth={1.5} />
-              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 13, fontWeight: 500, color: '#F0EDE8' }}>{tool.name}</p>
-              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 11, color: 'rgba(240,237,232,0.35)', marginTop: 4 }}>{tool.desc}</p>
+              <tool.icon className="h-5 w-5 mb-3" style={{ color: 'hsl(40, 52%, 48%)' }} strokeWidth={1.5} />
+              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 13, fontWeight: 500, color: 'hsl(48, 7%, 10%)' }}>{tool.name}</p>
+              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 11, color: 'hsl(35, 4%, 56%)', marginTop: 4 }}>{tool.desc}</p>
             </button>
           ))}
         </div>
       </div>
 
-      {/* My Storybooks section */}
+      {/* Storybooks */}
       <div>
-        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 9, color: 'rgba(240,237,232,0.3)', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: 16, fontWeight: 600 }}>My Storybooks</p>
+        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 10, color: 'hsl(35, 4%, 56%)', letterSpacing: '0.15em', textTransform: 'uppercase' as const, marginBottom: 16 }}>Your Storybooks</p>
         {loading ? (
           <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} style={{ height: 72, background: 'rgba(240,237,232,0.03)' }} className="animate-pulse" />)}
+            {[1,2,3].map(i => <div key={i} className="skeleton-block" style={{ height: 72 }} />)}
           </div>
         ) : storybooks.length === 0 ? (
-          <div style={{ border: '1px solid rgba(240,237,232,0.06)', padding: '48px 24px', textAlign: 'center' }}>
-            <BookOpen className="mx-auto h-10 w-10 mb-4" style={{ color: '#E8C97A', opacity: 0.5 }} strokeWidth={1.5} />
-            <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 20, color: '#F0EDE8', fontStyle: 'italic' }}>No storybooks yet</p>
-            <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: 'rgba(240,237,232,0.35)', marginTop: 8 }}>Create your first Instagram carousel</p>
+          <div style={{ border: '1px solid hsl(37, 10%, 90%)', padding: '64px 24px', textAlign: 'center' }}>
+            <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 20, color: 'hsl(35, 4%, 56%)', fontWeight: 300 }}>No storybooks yet</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -244,28 +238,25 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
               <button
                 key={sb.id}
                 onClick={() => setActiveId(sb.id)}
-                className="w-full text-left transition-all group"
-                style={{ padding: 20, border: '1px solid rgba(240,237,232,0.06)', background: 'transparent', cursor: 'pointer' }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(232,201,122,0.2)')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(240,237,232,0.06)')}
+                className="w-full text-left group"
+                style={{ padding: 16, border: '1px solid hsl(37, 10%, 90%)', background: 'transparent', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'hsl(40, 52%, 48%)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'hsl(37, 10%, 90%)')}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 18, color: '#F0EDE8' }}>{sb.title}</p>
-                    <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 11, color: 'rgba(240,237,232,0.3)', marginTop: 4 }}>
+                    <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 18, color: 'hsl(48, 7%, 10%)', fontWeight: 400 }}>{sb.title}</p>
+                    <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 11, color: 'hsl(35, 4%, 56%)', marginTop: 4 }}>
                       {sb.slides_data && Array.isArray(sb.slides_data) ? `${sb.slides_data.length} slides` : 'Empty'} · {new Date(sb.updated_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span style={{ fontSize: 9, textTransform: 'uppercase' as const, letterSpacing: '0.15em', color: 'rgba(232,201,122,0.5)', fontWeight: 600, border: '1px solid rgba(232,201,122,0.15)', padding: '4px 12px', fontFamily: '"DM Sans", sans-serif' }}>
-                      Draft
-                    </span>
                     <button
                       onClick={(e) => deleteStorybook(sb.id, e)}
-                      className="opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all"
-                      style={{ height: 32, width: 32, color: '#C0392B', background: 'none', border: 'none', cursor: 'pointer' }}
+                      className="opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                      style={{ height: 44, width: 44, color: 'hsl(16, 46%, 43%)', background: 'none', border: 'none', cursor: 'pointer', transition: 'opacity 0.2s' }}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>

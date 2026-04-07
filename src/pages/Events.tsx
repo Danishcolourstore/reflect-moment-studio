@@ -49,7 +49,7 @@ export default function Events() {
   const FILTERS: { key: EventFilter; label: string }[] = [
     { key: "all", label: "All" },
     { key: "upcoming", label: "Upcoming" },
-    { key: "delivered", label: "Delivered" },
+    { key: "delivered", label: "Live" },
     { key: "archived", label: "Archived" },
   ];
 
@@ -69,27 +69,24 @@ export default function Events() {
     <DashboardLayout>
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, color: "#1A1917", margin: 0, letterSpacing: "0.02em" }}>
+        <div style={{ marginBottom: 40 }}>
+          <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, color: "hsl(48, 7%, 10%)", margin: 0, letterSpacing: "0.02em" }}>
             Events
           </h1>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#94918B", marginTop: 4 }}>
-            {events.length} event{events.length !== 1 ? "s" : ""}
-          </p>
         </div>
 
         {/* Desktop: New Event button */}
         {!isMobile && (
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
             <button
               onClick={() => setCreateOpen(true)}
               style={{
-                background: "#1A1917",
-                color: "#FAFAF8",
+                background: "hsl(48, 7%, 10%)",
+                color: "hsl(45, 14%, 97%)",
                 border: "none",
-                padding: "14px 32px",
+                padding: "12px 24px",
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
+                fontSize: 12,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 cursor: "pointer",
@@ -145,8 +142,8 @@ export default function Events() {
             <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 300, color: "#1A1917", margin: 0 }}>
               Your first gallery awaits
             </h2>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#94918B", marginTop: 8, maxWidth: 300 }}>
-              Create an event to begin sharing your work
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(35, 4%, 56%)", marginTop: 8 }}>
+              Add your work to begin
             </p>
             <button
               onClick={() => setCreateOpen(true)}
