@@ -28,12 +28,12 @@ export function MobileBottomNav() {
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 40,
-        background: "hsla(0, 0%, 100%, 0.92)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderTop: "1px solid hsl(37, 10%, 92%)",
-        height: 60,
+        zIndex: 60,
+        background: "rgba(10,10,11,0.92)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderTop: "1px solid rgba(200,169,126,0.08)",
+        height: 56,
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         display: "flex",
         justifyContent: "space-around",
@@ -63,17 +63,17 @@ export function MobileBottomNav() {
             }}
           >
             <Icon
-              size={22}
+              size={21}
               strokeWidth={1.5}
-              style={{ color: active ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 65%)" }}
+              style={{ color: active ? "#C8A97E" : "rgba(255,255,255,0.35)" }}
             />
             <span
               style={{
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 10,
-                letterSpacing: "0.08em",
+                fontSize: "0.6rem",
+                letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: active ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 65%)",
+                color: active ? "#C8A97E" : "rgba(255,255,255,0.35)",
                 fontWeight: active ? 500 : 400,
               }}
             >
