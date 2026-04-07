@@ -150,8 +150,7 @@ export default function LandingGate() {
   }
 
   const hasContent = photos.length > 0 || feedPosts.length > 0;
-  const heroUrl = photos[0]?.url;
-  const gridPhotos = photos.slice(1);
+  const gridPhotos = photos;
 
   /* ── Mobile: Fullscreen native gallery ── */
   if (mob) {
@@ -224,51 +223,7 @@ export default function LandingGate() {
             </button>
           </div>
         ) : (
-          <div style={{ paddingBottom: 72 }}>
-            {/* Hero — fullscreen, flush to pixel 0,0 */}
-            {heroUrl && (
-              <div style={{ position: "relative", width: "100vw", height: "100svh", overflow: "hidden" }}>
-                <img
-                  src={heroUrl}
-                  alt=""
-                  loading="eager"
-                  onLoad={() => setHeroLoaded(true)}
-                  style={{
-                    width: "100%", height: "100%",
-                    objectFit: "cover", display: "block",
-                    opacity: heroLoaded ? 1 : 0,
-                    transition: "opacity 0.4s ease",
-                  }}
-                />
-                {/* Bottom gradient */}
-                <div style={{
-                  position: "absolute", bottom: 0, left: 0, right: 0, height: 100,
-                  background: "linear-gradient(to top, #0a0a0b, transparent)",
-                  pointerEvents: "none",
-                }} />
-                {/* Studio name overlay — big and bold */}
-                <div style={{
-                  position: "absolute", bottom: 28, left: 0, right: 0,
-                  textAlign: "center", pointerEvents: "none",
-                }}>
-                  <h1 style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 32, fontWeight: 600, letterSpacing: "0.15em",
-                    color: "#fff", textTransform: "uppercase", margin: 0,
-                  }}>
-                    {profileName}
-                  </h1>
-                  <p style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 11, fontWeight: 500, letterSpacing: "0.25em",
-                    color: "rgba(255,255,255,0.5)", textTransform: "uppercase",
-                    marginTop: 8,
-                  }}>
-                    Wedding Photography
-                  </p>
-                </div>
-              </div>
-            )}
+          <div style={{ paddingBottom: 72, paddingTop: 72 }}>
 
             {/* Grid — edge-to-edge, 2-col, 2px gap, no padding */}
             <div style={{
