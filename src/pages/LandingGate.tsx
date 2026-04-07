@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import { EditorialRhythmGrid } from "@/components/EditorialRhythmGrid";
 import CreateFeedPostModal from "@/components/CreateFeedPostModal";
 import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { toast } from "sonner";
@@ -42,11 +41,22 @@ export default function LandingGate() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState(0);
 
+  // Scroll-based header
+  const [scrolled, setScrolled] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
     window.addEventListener("resize", h);
     return () => window.removeEventListener("resize", h);
   }, []);
+
+  useEffect(() => {
+    if (!mob) return;
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [mob]);
 
   const loadData = useCallback(async () => {
     if (!user) { setLoading(false); return; }
@@ -140,10 +150,182 @@ export default function LandingGate() {
   }
 
   const hasContent = photos.length > 0 || feedPosts.length > 0;
+  const heroUrl = photos[0]?.url;
+  const gridPhotos = photos.slice(1);
 
+  /* ── Mobile: Fullscreen native gallery ── */
+  if (mob) {
+    return (
+      <div style={{ width: "100%", minHeight: "100dvh", background: "#0a0a0b", margin: 0, padding: 0, overflowX: "hidden" }}>
+        <style>{`
+          @keyframes lgFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `}</style>
+
+        {/* Transparent overlay header */}
+        <nav style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          height: 48, padding: "0 16px",
+          paddingTop: "env(safe-area-inset-top)",
+          background: scrolled ? "rgba(10,10,11,0.85)" : "transparent",
+          backdropFilter: scrolled ? "blur(12px)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
+          transition: "background 0.3s ease, backdrop-filter 0.3s ease",
+        }}>
+          <button onClick={drawer.toggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
+            <Menu style={{ width: 18, height: 18, color: "rgba(255,255,255,0.7)" }} strokeWidth={1.5} />
+          </button>
+          <span style={{
+            fontFamily: "'Cormorant Garamond', serif", fontSize: 14, fontWeight: 400,
+            color: "rgba(255,255,255,0.85)", letterSpacing: "0.04em",
+          }}>
+            {profileName}
+          </span>
+          <button onClick={handleShare} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
+            <Share style={{ width: 16, height: 16, color: "rgba(255,255,255,0.5)" }} strokeWidth={1.5} />
+          </button>
+        </nav>
+
+        {loading ? (
+          <>
+            <div style={{ width: "100%", height: "100svh", background: "#141414" }} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 2 }}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} style={{ aspectRatio: "3/4", background: "#141414" }} />
+              ))}
+            </div>
+          </>
+        ) : !hasContent ? (
+          <div style={{
+            minHeight: "100dvh", display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", padding: "0 24px",
+          }}>
+            <p style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 22, fontStyle: "italic", fontWeight: 300,
+              color: "rgba(255,255,255,0.3)", textAlign: "center",
+            }}>
+              Your first gallery awaits
+            </p>
+            <button
+              onClick={() => setCreateOpen(true)}
+              style={{
+                marginTop: 24, height: 44, padding: "0 28px",
+                background: "#C8A97E", border: "none",
+                fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                letterSpacing: "0.08em", textTransform: "uppercase",
+                color: "#0a0a0b", cursor: "pointer",
+              }}
+            >
+              Create Event
+            </button>
+          </div>
+        ) : (
+          <div style={{ paddingBottom: 72 }}>
+            {/* Hero — fullscreen, flush to pixel 0,0 */}
+            {heroUrl && (
+              <div style={{ position: "relative", width: "100vw", height: "100svh", overflow: "hidden" }}>
+                <img
+                  src={heroUrl}
+                  alt=""
+                  loading="eager"
+                  onLoad={() => setHeroLoaded(true)}
+                  style={{
+                    width: "100%", height: "100%",
+                    objectFit: "cover", display: "block",
+                    opacity: heroLoaded ? 1 : 0,
+                    transition: "opacity 0.4s ease",
+                  }}
+                />
+                {/* Bottom gradient */}
+                <div style={{
+                  position: "absolute", bottom: 0, left: 0, right: 0, height: 100,
+                  background: "linear-gradient(to top, #0a0a0b, transparent)",
+                  pointerEvents: "none",
+                }} />
+                {/* Studio name overlay */}
+                <div style={{
+                  position: "absolute", bottom: 20, left: 0, right: 0,
+                  textAlign: "center", pointerEvents: "none",
+                }}>
+                  <span style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: 18, fontWeight: 300, letterSpacing: "0.06em",
+                    color: "rgba(255,255,255,0.6)",
+                  }}>
+                    {profileName}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Grid — edge-to-edge, 2-col, 2px gap, no padding */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 1fr)",
+              gap: 2, margin: 0, padding: 0,
+            }}>
+              {gridPhotos.map((photo, i) => (
+                <div
+                  key={photo.id}
+                  onClick={() => openLightbox(i + 1)}
+                  style={{
+                    aspectRatio: "3/4", overflow: "hidden",
+                    position: "relative", background: "#141414",
+                    cursor: "pointer",
+                  }}
+                >
+                  <img
+                    src={photo.url}
+                    alt=""
+                    loading={i < 6 ? "eager" : "lazy"}
+                    decoding="async"
+                    style={{
+                      width: "100%", height: "100%",
+                      objectFit: "cover", display: "block",
+                      animation: "lgFadeIn 0.4s ease both",
+                      animationDelay: `${Math.min(i * 0.05, 0.3)}s`,
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Lightbox */}
+        {lightboxOpen && photos[lightboxIdx] && (
+          <div
+            onClick={(e) => { if (e.target === e.currentTarget) closeLightbox(); }}
+            style={{ position: "fixed", inset: 0, background: "#0A0A0A", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            <button onClick={closeLightbox}
+              style={{ position: "fixed", top: 16, right: 16, zIndex: 310, background: "none", border: "none", cursor: "pointer", padding: 10, minWidth: 44, minHeight: 44 }}>
+              <X style={{ width: 18, height: 18, color: "rgba(255,255,255,0.25)" }} />
+            </button>
+            <img src={photos[lightboxIdx].url} alt="" style={{ maxHeight: "100vh", maxWidth: "100vw", objectFit: "contain" }} />
+            <span style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.2)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.1em" }}>
+              {lightboxIdx + 1} / {photos.length}
+            </span>
+          </div>
+        )}
+
+        <DrawerMenu open={drawer.open} onClose={drawer.close} />
+        <MobileBottomNav />
+        <CreateFeedPostModal open={createOpen} onOpenChange={setCreateOpen} onCreated={() => loadData()} />
+        {editPost && (
+          <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
+        )}
+      </div>
+    );
+  }
+
+  /* ── Desktop: Standard editorial layout ── */
   return (
     <div style={{ width: "100%", minHeight: "100vh", background: "hsl(45, 14%, 97%)" }}>
-      {/* Minimal floating header */}
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -162,7 +344,6 @@ export default function LandingGate() {
         </button>
       </nav>
 
-      {/* Editorial rhythm grid */}
       <div style={{ paddingTop: 48, paddingBottom: 80 }}>
         {loading ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
@@ -170,11 +351,6 @@ export default function LandingGate() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
               <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
               <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
-              <div style={{ aspectRatio: "4/5", background: "hsl(40, 5%, 93%)" }} />
-              <div style={{ aspectRatio: "4/5", background: "hsl(40, 5%, 93%)" }} />
-              <div style={{ aspectRatio: "4/5", background: "hsl(40, 5%, 93%)" }} />
             </div>
           </div>
         ) : !hasContent ? (
@@ -184,10 +360,13 @@ export default function LandingGate() {
             </p>
           </div>
         ) : (
-          <EditorialRhythmGrid
-            photos={photos}
-            onPhotoClick={openLightbox}
-          />
+          <div style={{ columns: 3, columnGap: 6 }}>
+            {photos.map((photo, i) => (
+              <div key={photo.id} style={{ breakInside: "avoid", marginBottom: 6, overflow: "hidden", cursor: "pointer" }} onClick={() => openLightbox(i)}>
+                <img src={photo.url} alt="" style={{ width: "100%", display: "block" }} loading="lazy" />
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -208,18 +387,18 @@ export default function LandingGate() {
         </div>
       )}
 
-      {/* FAB */}
+      {/* FAB — desktop only */}
       <button
         onClick={() => setCreateOpen(true)}
         style={{
-          position: "fixed", bottom: mob ? 76 : 32, right: mob ? 20 : 32,
+          position: "fixed", bottom: 32, right: 32,
           width: 56, height: 56, borderRadius: "50%",
-          background: "hsl(40, 52%, 48%)", border: "none", cursor: "pointer",
+          background: "#C8A97E", border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 20px hsla(40, 52%, 48%, 0.3)", zIndex: 50,
+          boxShadow: "0 4px 20px rgba(200,169,126,0.3)", zIndex: 50,
         }}
       >
-        <Plus style={{ width: 22, height: 22, color: "hsl(45, 14%, 97%)" }} strokeWidth={2} />
+        <Plus style={{ width: 22, height: 22, color: "#0a0a0b" }} strokeWidth={2} />
       </button>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />

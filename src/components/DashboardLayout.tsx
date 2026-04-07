@@ -1,11 +1,11 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewMode } from "@/lib/ViewModeContext";
 import {
-  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu, Plus,
+  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
@@ -30,13 +30,29 @@ interface Profile {
   onboarding_completed: boolean;
 }
 
-export function DashboardLayout({ children }: { children: ReactNode }) {
+interface DashboardLayoutProps {
+  children: ReactNode;
+  /** When true on mobile, header becomes a transparent overlay and content goes edge-to-edge */
+  immersive?: boolean;
+}
+
+export function DashboardLayout({ children, immersive = false }: DashboardLayoutProps) {
   const { user, signOut, studioName: authStudioName } = useAuth();
   const { isDesktop, isMobile } = useViewMode();
   const navigate = useNavigate();
   const location = useLocation();
   const drawer = useDrawerMenu();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [scrolled, setScrolled] = useState(false);
+
+  const isImmersiveMobile = isMobile && immersive;
+
+  useEffect(() => {
+    if (!isImmersiveMobile) return;
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isImmersiveMobile]);
 
   useEffect(() => {
     if (!user) return;
@@ -60,7 +76,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   const showSidebar = isDesktop;
   const showBottomNav = isMobile;
-  const displayName = profile?.studio_name || authStudioName || "Studio";
 
   const sectionLabel = (text: string) => (
     <div
@@ -108,12 +123,20 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <EntiranProvider>
-      <div className="min-h-screen" style={{ background: "hsl(45, 14%, 97%)" }}>
+      <div
+        className="min-h-screen"
+        style={{
+          background: isImmersiveMobile ? "#0a0a0b" : "hsl(45, 14%, 97%)",
+          margin: 0,
+          padding: 0,
+          overflowX: "hidden",
+        }}
+      >
         {/* ── Mobile Top Bar ── */}
         {isMobile && (
           <header
             style={{
-              position: "fixed",
+              position: isImmersiveMobile ? "absolute" : "fixed",
               top: 0,
               left: 0,
               right: 0,
@@ -123,10 +146,20 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               alignItems: "center",
               justifyContent: "space-between",
               padding: "0 16px",
-              background: "hsla(45, 14%, 97%, 0.9)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              borderBottom: "1px solid hsl(37, 10%, 92%)",
+              paddingTop: "env(safe-area-inset-top)",
+              background: isImmersiveMobile
+                ? (scrolled ? "rgba(10,10,11,0.85)" : "transparent")
+                : "hsla(45, 14%, 97%, 0.9)",
+              backdropFilter: isImmersiveMobile
+                ? (scrolled ? "blur(12px)" : "none")
+                : "blur(16px)",
+              WebkitBackdropFilter: isImmersiveMobile
+                ? (scrolled ? "blur(12px)" : "none")
+                : "blur(16px)",
+              borderBottom: isImmersiveMobile
+                ? "none"
+                : "1px solid hsl(37, 10%, 92%)",
+              transition: "background 0.3s ease, backdrop-filter 0.3s ease",
             }}
           >
             <button
@@ -138,13 +171,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               }}
               aria-label="Menu"
             >
-              <Menu style={{ width: 20, height: 20, color: "hsl(48, 7%, 10%)" }} strokeWidth={1.5} />
+              <Menu style={{
+                width: 20, height: 20,
+                color: isImmersiveMobile ? "rgba(255,255,255,0.7)" : "hsl(48, 7%, 10%)",
+              }} strokeWidth={1.5} />
             </button>
 
             <span style={{
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: 16, fontWeight: 400, letterSpacing: "0.04em",
-              color: "hsl(48, 7%, 10%)",
+              color: isImmersiveMobile ? "rgba(255,255,255,0.85)" : "hsl(48, 7%, 10%)",
             }}>
               MirrorAI
             </span>
@@ -169,47 +205,32 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               flexDirection: "column",
             }}
           >
-            {/* Wordmark */}
             <div style={{ padding: "28px 20px 20px" }}>
               <span
                 style={{
                   fontFamily: "'Cormorant Garamond', Georgia, serif",
-                  fontSize: 18,
-                  fontWeight: 400,
-                  letterSpacing: "0.05em",
+                  fontSize: 18, fontWeight: 400, letterSpacing: "0.05em",
                   color: "hsl(48, 7%, 10%)",
                 }}
               >
                 MirrorAI
               </span>
             </div>
-
-            {/* Nav */}
             <nav style={{ flex: 1, display: "flex", flexDirection: "column" }}>
               {sectionLabel("STUDIO")}
               {STUDIO_ITEMS.map(navItem)}
-
               {sectionLabel("ACCOUNT")}
               {ACCOUNT_ITEMS.map(navItem)}
             </nav>
-
-            {/* Sign Out */}
             <div style={{ padding: "16px 20px 24px" }}>
               <button
                 onClick={handleSignOut}
                 style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 11,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "hsl(35, 4%, 56%)",
-                  padding: "8px 0",
+                  background: "none", border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 8,
+                  fontFamily: "'DM Sans', sans-serif", fontSize: 11,
+                  letterSpacing: "0.1em", textTransform: "uppercase",
+                  color: "hsl(35, 4%, 56%)", padding: "8px 0",
                   transition: "color 0.2s",
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(48, 7%, 10%)")}
@@ -224,22 +245,26 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* ── Main Content ── */}
         <main
-          className="min-h-screen"
           style={{
+            minHeight: isImmersiveMobile ? "100dvh" : "100vh",
             marginLeft: showSidebar ? 200 : 0,
-            paddingTop: isMobile ? 52 : 0,
-            paddingBottom: showBottomNav ? 80 : 0,
+            paddingTop: isImmersiveMobile ? 0 : (isMobile ? 52 : 0),
+            paddingBottom: showBottomNav ? (isImmersiveMobile ? 0 : 80) : 0,
           }}
         >
-          <div
-            style={{
-              maxWidth: 1200,
-              margin: "0 auto",
-              padding: isMobile ? "24px 16px" : "40px 40px",
-            }}
-          >
-            {children}
-          </div>
+          {isImmersiveMobile ? (
+            children
+          ) : (
+            <div
+              style={{
+                maxWidth: 1200,
+                margin: "0 auto",
+                padding: isMobile ? "24px 16px" : "40px 40px",
+              }}
+            >
+              {children}
+            </div>
+          )}
         </main>
 
         {showBottomNav && <MobileBottomNav />}
