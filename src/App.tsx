@@ -59,6 +59,7 @@ const ClientPreview = lazy(() => import("./pages/ClientPreview"));
 // DomainSettings removed
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
+const WebsiteSectionEditor = lazy(() => import("./pages/WebsiteSectionEditor"));
 const Reflections = lazy(() => import("./pages/Reflections"));
 const EntiranBusiness = lazy(() => import("./pages/EntiranBusiness"));
 const PublicGalleryView = lazy(() => import("./pages/public/PublicGalleryView"));
