@@ -1,4 +1,4 @@
-import { CalendarDays, BookOpen, BarChart3, Settings, CreditCard, LogOut, Home, Globe, Zap, Users, Palette } from "lucide-react";
+import { CalendarDays, BookOpen, BarChart3, Settings, CreditCard, LogOut, Home, Globe, Zap, Users } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 
