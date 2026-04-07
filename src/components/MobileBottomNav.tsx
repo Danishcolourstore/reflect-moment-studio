@@ -1,12 +1,13 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { fonts } from "@/styles/design-tokens";
+import { Home, Camera, Users, Settings, Zap } from "lucide-react";
 
 const TABS = [
-  { title: "GALLERY", url: "/home", emoji: "📸" },
-  { title: "EVENTS", url: "/dashboard/events", emoji: "📅" },
-  { title: "CLIENT", url: "/dashboard/clients", emoji: "🖼️" },
-  { title: "SET", url: "/dashboard/profile", emoji: "⚙️" },
+  { title: "Home", url: "/home", icon: Home },
+  { title: "Events", url: "/dashboard/events", icon: Camera },
+  { title: "Cheetah", url: "/dashboard/cheetah-live", icon: Zap },
+  { title: "Clients", url: "/dashboard/clients", icon: Users },
+  { title: "Settings", url: "/dashboard/profile", icon: Settings },
 ];
 
 export function MobileBottomNav() {
@@ -22,56 +23,27 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav
-      style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 40,
-        borderTop: "1px solid #f0f0f0",
-        background: "white",
-        paddingBottom: "env(safe-area-inset-bottom)",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "8px 12px",
-        gap: 4,
-      }}
-    >
-      {TABS.map((tab) => {
-        const active = isActive(tab.url);
-        return (
-          <button
-            key={tab.url}
-            onClick={() => navigate(tab.url)}
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 4,
-              padding: "8px 12px",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <span style={{ fontSize: 20 }}>{tab.emoji}</span>
-            <span
-              style={{
-                fontFamily: fonts.body,
-                fontSize: 11,
-                color: active ? "#d97706" : "#666666",
-                fontWeight: active ? 600 : 400,
-              }}
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border safe-area-pb">
+      <div className="flex justify-between items-center px-2 h-[56px]">
+        {TABS.map((tab) => {
+          const active = isActive(tab.url);
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.url}
+              onClick={() => navigate(tab.url)}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 min-h-[44px] transition-colors ${
+                active ? "text-primary" : "text-muted-foreground"
+              }`}
             >
-              {tab.title}
-            </span>
-          </button>
-        );
-      })}
+              <Icon className="h-[20px] w-[20px]" strokeWidth={active ? 2 : 1.5} />
+              <span className="text-[9px] tracking-wider uppercase font-medium">
+                {tab.title}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 }

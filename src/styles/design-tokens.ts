@@ -1,32 +1,29 @@
 /**
- * MirrorAI Unified Design System — White Editorial
+ * MirrorAI Unified Design System — Dark Cinematic
  * Single source of truth for all visual tokens.
- * Import from here — never hardcode colors, fonts, or spacing in components.
  */
 
 export const colors = {
-  /** Primary background — pure white */
-  bg: "#FFFFFF",
+  /** Primary background — near black */
+  bg: "#0A0A0A",
   /** Card / panel backgrounds */
-  surface: "#FAFAFA",
-  /** Elevated surfaces (modals, popovers) */
-  surface2: "#F5F5F5",
+  surface: "#121212",
+  /** Elevated surfaces */
+  surface2: "#1A1A1A",
   /** Default border */
-  border: "#EEEEEE",
+  border: "#242424",
   /** Active / focused border */
-  borderActive: "rgba(201,169,110,0.4)",
-  /** Primary accent — warm gold */
-  gold: "#C9A96E",
+  borderActive: "rgba(212,175,55,0.4)",
+  /** Primary accent — rich gold */
+  gold: "#D4AF37",
   /** Gold at low opacity for backgrounds */
-  goldDim: "rgba(201,169,110,0.08)",
-  /** Warm cream for light text on dark overlays */
-  cream: "#1A1A1A",
-  /** Primary text */
-  text: "#1A1A1A",
+  goldDim: "rgba(212,175,55,0.08)",
+  /** Primary text — warm off-white */
+  text: "#E8E5E0",
   /** Secondary / dimmed text */
-  textDim: "#666666",
+  textDim: "#8A8A8A",
   /** Muted / tertiary text */
-  textMuted: "#999999",
+  textMuted: "#555555",
   /** Pure white */
   white: "#FFFFFF",
   /** Pure black */
@@ -35,6 +32,17 @@ export const colors = {
   danger: "#E85D5D",
   /** Success */
   success: "#5CB85C",
+} as const;
+
+/** White editorial palette for public pages */
+export const editorialColors = {
+  bg: "#FFFFFF",
+  surface: "#FAFAFA",
+  border: "#EEEEEE",
+  text: "#1A1A1A",
+  textDim: "#666666",
+  textMuted: "#999999",
+  gold: "#D4AF37",
 } as const;
 
 export const fonts = {
@@ -47,40 +55,29 @@ export const fonts = {
 } as const;
 
 export const spacing = {
-  /** Horizontal page padding */
   pageMobile: "20px",
   pageDesktop: "48px",
-  /** Vertical section spacing */
   sectionMobile: "48px",
   sectionDesktop: "72px",
-  /** Card internal padding */
   cardMobile: "20px",
   cardDesktop: "28px",
 } as const;
 
 export const radius = {
-  /** Editorial / portfolio — sharp edges */
   none: "0px",
-  /** Small UI elements */
-  sm: "8px",
-  /** Cards, modals */
-  md: "16px",
-  /** Large panels */
-  lg: "20px",
+  sm: "6px",
+  md: "12px",
+  lg: "16px",
 } as const;
 
-/** Common style fragments for quick composition */
 export const fragments = {
-  /** Gold underline accent bar */
   goldBar: { width: 40, height: 2, background: colors.gold } as const,
-  /** Section heading style */
   sectionHeading: {
     fontFamily: fonts.display,
     fontWeight: 300 as const,
     letterSpacing: "0.06em",
     color: colors.text,
   } as const,
-  /** Label style (tiny uppercase) */
   label: {
     fontFamily: fonts.body,
     fontSize: 10,
@@ -89,7 +86,6 @@ export const fragments = {
     textTransform: "uppercase" as const,
     color: colors.textMuted,
   } as const,
-  /** Body text */
   bodyText: {
     fontFamily: fonts.body,
     fontSize: 14,
@@ -97,10 +93,9 @@ export const fragments = {
     color: colors.textDim,
     lineHeight: 1.6,
   } as const,
-  /** Soft card background */
   glass: {
-    background: "#FFFFFF",
-    boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
+    background: colors.surface,
+    boxShadow: "0 2px 16px rgba(0,0,0,0.2)",
     border: `1px solid ${colors.border}`,
     borderRadius: radius.lg,
   } as const,
