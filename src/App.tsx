@@ -650,9 +650,7 @@ const AppRoutes = () => {
             <Route path="/gallery-view/:id" element={<PublicGalleryView />} />
             <Route path="/find/:token" element={<GuestFinder />} />
             <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
-            <Route path="/studio/:username" element={<PhotographerFeed />} />
-            <Route path="/p/:username" element={<PhotographerFeed />} />
-            <Route path="/feed/:username" element={<PublicFeed />} />
+            {/* PhotographerFeed and PublicFeed routes removed */}
 
             <Route
               path="/storybook"
