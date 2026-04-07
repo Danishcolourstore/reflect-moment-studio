@@ -122,9 +122,10 @@ const UploadPage = () => {
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 text-primary">
               <CheckCircle2 className="h-5 w-5" />
-              <p className="text-sm font-medium">{upload.successCount} photos ready</p>
+              <p className="text-sm font-medium">Your gallery is ready</p>
             </div>
-            <Button variant="outline" className="min-h-[44px]" onClick={() => navigate(`/dashboard/events/${selectedEvent}`)}>View Gallery</Button>
+            <p className="text-xs text-muted-foreground">{upload.successCount} photos added</p>
+            <Button className="min-h-[44px] bg-primary text-primary-foreground" onClick={() => navigate(`/dashboard/events/${selectedEvent}`)}>View Gallery</Button>
           </div>
         )}
       </div>
