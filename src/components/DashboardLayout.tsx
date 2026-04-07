@@ -110,7 +110,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/billing": "Billing",
   "/dashboard/notifications": "Notifications",
   "/dashboard/onboarding": "Welcome",
-  "/colour-store": "Retouch",
 };
 
 function BotNavTab() {

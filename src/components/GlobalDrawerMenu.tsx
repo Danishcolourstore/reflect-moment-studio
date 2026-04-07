@@ -16,7 +16,6 @@ const NAV_ITEMS = [
 
 const MORE_ITEMS = [
   { label: "Cheetah", path: "/dashboard/cheetah-live" },
-  { label: "Retouch", path: "/colour-store" },
   { label: "Clients", path: "/dashboard/clients" },
   { label: "Analytics", path: "/dashboard/analytics" },
   { label: "Settings", path: "/dashboard/profile" },

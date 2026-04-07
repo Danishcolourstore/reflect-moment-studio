@@ -595,7 +595,6 @@ const Dashboard = () => {
         >
           {[
             { label: "Events", sub: `${totalEvents} total`, path: "/dashboard/events", accent: false },
-            { label: "Colour Store", sub: "RI Retouching", path: "/colour-store", accent: true },
             { label: "Albums", sub: `${totalAlbums} total`, path: "/dashboard/album-designer", accent: false },
             { label: "Grid Builder", sub: "Social media", path: "/dashboard/storybook", accent: false },
           ].map((item) => (

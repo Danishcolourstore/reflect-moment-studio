@@ -20,7 +20,6 @@ const QUICK_ACTIONS = [
   { title: "Portfolio", icon: Image, url: "/dashboard/website-editor", desc: "Public website & brand" },
   { title: "Storybook", icon: BookOpen, url: "/dashboard/storybook", desc: "Albums & print design" },
   { title: "Cheetah", icon: Zap, url: "/dashboard/cheetah-live", desc: "AI-powered culling" },
-  { title: "Retouch", icon: PenTool, url: "/colour-store", desc: "Color grading & editing" },
   { title: "Clients", icon: Users, url: "/dashboard/clients", desc: "CRM & relationships" },
 ];
 
