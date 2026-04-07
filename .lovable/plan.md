@@ -1,55 +1,69 @@
 
-# Refine the Client Gallery Experience
 
-## Current State
-The `ClientGalleryExperience` component at `/gallery/:slug` already implements all 5 screens (Password Gate, Hero Entry, Editorial Grid, Image Viewer, Favorites Drawer) with the correct design system (Cormorant Garamond + DM Sans, #FAFAF8/#1A1917 palette, sharp corners, editorial rhythm layout). All interactions are wired: double-tap favorites, swipe gestures, chapter nav, parallax hero, lazy loading.
+# Refine Client Gallery — Visual Noise Reduction Pass
 
-## What Needs Refinement
-The existing implementation is solid but has visual polish gaps compared to the spec:
+## What This Does
+A surgical polish pass on `ClientGalleryExperience.tsx` to strip visual noise, tighten spacing rhythm, and make images dominate more aggressively. No new features, no new components.
 
-### 1. Password Gate
-- The shake animation uses inline `transform` instead of the `galleryShake` keyframe properly — fix so it actually oscillates left/right
-- Add `galleryLoadBar` keyframe (referenced but never defined)
+## Changes (single file: `src/pages/public/ClientGalleryExperience.tsx`)
 
-### 2. Hero Section  
-- Hero gradient overlay is too heavy — refine to a subtler vignette
-- Event name font-size should scale up to 36px on desktop for more impact
-- Missing `will-change: transform` optimization note (already present ✓)
+### 1. Chapter Markers — Quieter
+- Remove the bottom dot entirely (top dot is enough as a breath mark)
+- Reduce chapter name font to 18px, use `#94918B` instead of `#1A1917` — chapter names should whisper, not announce
+- Reduce vertical padding: 48px above the dot, 32px below the name (currently 64px/40px — too much dead space between image groups)
 
-### 3. Gallery Grid
-- Full-width single images use `object-fit: contain` — correct per spec, but the container needs a min-height so short images don't look awkward
-- Multi-image rows lack aspect-ratio enforcement — images of different ratios cause ragged bottoms. Add `aspect-[3/2]` with `object-fit: cover` on 2-up and 3-up rows
-- Image gap could be tighter (6px instead of 8px) for a more editorial magazine feel
-- Desktop max-width padding should be 24px (currently 16px mobile via `px-4`, 24px desktop via `md:px-6` — correct ✓)
+### 2. Grid Spacing — Tighter Rhythm
+- Reduce gap in multi-image rows from 6px → 4px (tighter, more editorial, like a printed spread)
+- Reduce breathing space after full-width images from 40px → 24px
+- Reduce breathing space after paired/triple rows from 40px → 20px
+- The effect: images pack closer together like a magazine layout, breathing room comes from chapter markers not row gaps
 
-### 4. Image Viewer
-- Missing `galleryLoadBar` keyframe definition in the styles block
-- Desktop padding is `p-4 md:p-12` — should be `p-4 md:p-12 lg:p-16` for larger screens
-- Swipe-down close should have a visual hint (slight downward drag before releasing)
+### 3. Hero Overlay — Lighter Touch
+- Reduce gradient from `rgba(0,0,0,0.35)` → `rgba(0,0,0,0.25)` — let more of the photo through
+- Remove `textShadow` from event name (the gradient does the work)
+- Reduce date opacity from 0.8 → 0.6 — more recessive
+- Move scroll indicator from `bottom: 32` → `bottom: 24`, reduce chevron opacity from 0.4 → 0.3
 
-### 5. Favorites Drawer
-- Thumbnail remove button (`X`) has no border-radius specified — inherits 0 which is correct
-- The backdrop dismiss should prevent scroll-through
+### 4. Image Viewer — More Invisible
+- Reduce counter font from 12px → 11px
+- Reduce heart/download icons from 24px → 20px — controls should feel delicate
+- Increase icon gap from 56px → 48px (tighter, more considered)
+- Reduce desktop arrow size from 32px → 28px, default opacity from 0.4 → 0.3
 
-### 6. Missing CSS Keyframe
-- `galleryLoadBar` is referenced in loading state but never defined — add shimmer/slide animation
+### 5. Favorites Drawer — Lighter
+- Reduce title from 22px → 20px
+- Change "Your Selections" to just "Selections" (fewer words = more premium)
+- Reduce thumbnail grid gap from 4px → 3px
+- Remove the heart icon from the Favorites Pill — just show the count number in Cormorant Garamond (e.g. "24 favorites") without the icon. The dot indicators on images are enough.
 
-### 7. Responsive Polish
-- Chapter nav dots should hide on very small screens (< 375px width)
-- Favorites pill should sit higher on mobile to avoid bottom safe area overlap
+### 6. Footer — More Minimal
+- Reduce "Thank you" from 24px → 20px
+- Reduce top padding from 80px → 64px, bottom MirrorAI branding margin from 80px → 48px
+- Remove studio logo/avatar circle entirely — just text credit is enough
 
-## Files to Edit
+### 7. Loading State — Cleaner
+- Remove the wrapper div inside the load bar (redundant — the parent already has the background)
 
-**`src/pages/public/ClientGalleryExperience.tsx`** — Single file, visual-only refinements:
+### 8. Favorites Dot Indicator — Smaller
+- Reduce from 8px → 6px, move from `bottom: 8, right: 8` → `bottom: 6, right: 6`
 
-1. Add missing `galleryLoadBar` keyframe to the `galleryStyles` block
-2. Fix password gate shake to use the keyframe animation properly (remove inline transform, rely on animation property)
-3. Add `aspect-[3/2] overflow-hidden` to each image container in 2-up and 3-up grid rows so images align cleanly
-4. Increase hero event name to `clamp(28px, 4vw, 40px)` for responsive scaling
-5. Soften hero gradient from `rgba(0,0,0,0.5)` to `rgba(0,0,0,0.35)`
-6. Add `min-height: 200px` to full-width single image containers
-7. Tighten grid gap from 8px to 6px for tighter editorial feel
-8. Add responsive padding bump for viewer on large screens
-9. Ensure favorites pill respects `env(safe-area-inset-bottom)`
+### 9. Consistent Color Audit
+- Chapter marker dot color stays `#E8E6E1` ✓
+- Secondary text consistently `#94918B` everywhere ✓  
+- Remove any remaining `#C4C1BB` usage in chapter nav inactive state → use `#D4D1CB` (slightly warmer, less cold)
 
-No logic changes. No routing changes. No new dependencies. Pure visual polish pass on the existing 1612-line component.
+### 10. Chapter Nav — Subtler
+- Reduce dot size from 6px → 5px
+- Reduce text from 9px → 8px
+- Position from `right: 12` → `right: 8` (tighter to edge)
+
+## Files Modified
+- `src/pages/public/ClientGalleryExperience.tsx` — visual-only inline style and className adjustments
+
+## What Stays Untouched
+- All Supabase queries and data logic
+- All gesture handlers and interaction logic
+- All state management and routing
+- Animation keyframes (already refined)
+- Component structure and composition
+
