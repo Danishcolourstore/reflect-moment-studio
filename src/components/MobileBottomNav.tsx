@@ -4,9 +4,9 @@ import { CalendarDays, Image, Scissors, User } from "lucide-react";
 
 const TABS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Galleries", url: "/home", icon: Image },
+  { title: "Gallery", url: "/home", icon: Image },
   { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
-  { title: "Account", url: "/dashboard/profile", icon: User },
+  { title: "You", url: "/dashboard/profile", icon: User },
 ];
 
 export function MobileBottomNav() {
