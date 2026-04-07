@@ -54,11 +54,33 @@ const createLocalQueue = (processor) => {
 };
 
 const createBullMqQueue = async (processor) => {
+  const probe = new Redis(config.redis.url, {
+    lazyConnect: true,
+    maxRetriesPerRequest: 1,
+    retryStrategy: () => null,
+    connectTimeout: 1500,
+  });
+  // Prevent noisy unhandled events when Redis is unavailable.
+  probe.on("error", () => {});
+
+  try {
+    await withTimeout(probe.connect(), 2000);
+    await withTimeout(probe.ping(), 1000);
+  } finally {
+    probe.disconnect();
+  }
+
   const connection = new Redis(config.redis.url, {
     maxRetriesPerRequest: null,
     enableReadyCheck: true,
+    lazyConnect: true,
+    retryStrategy: () => null,
+    connectTimeout: 1500,
   });
-  await withTimeout(connection.ping(), 2000);
+  // Avoid unhandled error event warnings from ioredis.
+  connection.on("error", () => {});
+  await withTimeout(connection.connect(), 2000);
+  await withTimeout(connection.ping(), 1000);
 
   const queue = new Queue(config.queue.name, {
     connection,
