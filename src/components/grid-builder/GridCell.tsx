@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, memo } from "react";
 import { Plus, X, RefreshCw, Maximize, Expand, ZoomIn, ZoomOut, Move } from "lucide-react";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
 import type { GridCellData } from "./types";
@@ -11,7 +11,8 @@ interface Props {
   onOffsetChange: (x: number, y: number, scale?: number) => void;
 }
 
-export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, onOffsetChange }: Props) {
+// Memoised to prevent re-renders when sibling cells change
+const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRemove, onOffsetChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -25,6 +26,8 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
     origX: number; origY: number; origScale: number;
     startDist: number; startMidX: number; startMidY: number; isPinch: boolean;
   } | null>(null);
+  // RAF handle for throttled gesture updates
+  const rafRef = useRef<number | null>(null);
 
   const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,10 +52,12 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
   const handleTap = useCallback(() => {
     if (!isMobile || !cell.imageUrl) return;
     setShowControls(prev => !prev);
-    // Auto-hide after 4s
     if (tapTimeout.current) clearTimeout(tapTimeout.current);
     tapTimeout.current = setTimeout(() => setShowControls(false), 4000);
   }, [isMobile, cell.imageUrl]);
+
+  // Drag threshold for tap vs drag separation
+  const TAP_THRESHOLD = 8;
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (!cell.imageUrl) return;
@@ -68,33 +73,46 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
       gestureRef.current = { origX: cell.offsetX, origY: cell.offsetY, origScale: cell.scale, startDist: dist, startMidX: mid.x, startMidY: mid.y, isPinch: true };
     } else if (pts.length === 1) {
       gestureRef.current = { origX: cell.offsetX, origY: cell.offsetY, origScale: cell.scale, startDist: 0, startMidX: e.clientX, startMidY: e.clientY, isPinch: false };
-      setDragging(true);
+      // Don't set dragging immediately — wait for threshold
     }
-  }, [cell]);
+  }, [cell.offsetX, cell.offsetY, cell.scale, cell.imageUrl]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!gestureRef.current) return;
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const pts = Array.from(pointersRef.current.values());
-    if (pts.length >= 2 && gestureRef.current.isPinch) {
-      const dist = getDist(pts[0], pts[1]);
-      const scaleRatio = dist / gestureRef.current.startDist;
-      const newScale = Math.max(0.5, Math.min(5, gestureRef.current.origScale * scaleRatio));
-      const mid = getMid(pts[0], pts[1]);
-      const dx = mid.x - gestureRef.current.startMidX;
-      const dy = mid.y - gestureRef.current.startMidY;
-      onOffsetChange(gestureRef.current.origX + dx, gestureRef.current.origY + dy, newScale);
-    } else if (pts.length === 1 && !gestureRef.current.isPinch) {
-      const dx = e.clientX - gestureRef.current.startMidX;
-      const dy = e.clientY - gestureRef.current.startMidY;
-      onOffsetChange(gestureRef.current.origX + dx, gestureRef.current.origY + dy, cell.scale);
-    }
-  }, [onOffsetChange, cell.scale]);
+
+    // Cancel any pending rAF to coalesce moves
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    rafRef.current = requestAnimationFrame(() => {
+      if (!gestureRef.current) return;
+      const pts = Array.from(pointersRef.current.values());
+      if (pts.length >= 2 && gestureRef.current.isPinch) {
+        const dist = getDist(pts[0], pts[1]);
+        const scaleRatio = dist / gestureRef.current.startDist;
+        const newScale = Math.max(0.5, Math.min(5, gestureRef.current.origScale * scaleRatio));
+        const mid = getMid(pts[0], pts[1]);
+        const dx = mid.x - gestureRef.current.startMidX;
+        const dy = mid.y - gestureRef.current.startMidY;
+        onOffsetChange(gestureRef.current.origX + dx, gestureRef.current.origY + dy, newScale);
+      } else if (pts.length === 1 && !gestureRef.current.isPinch) {
+        const dx = e.clientX - gestureRef.current.startMidX;
+        const dy = e.clientY - gestureRef.current.startMidY;
+        // Set dragging only after exceeding tap threshold
+        if (!dragging && (Math.abs(dx) > TAP_THRESHOLD || Math.abs(dy) > TAP_THRESHOLD)) {
+          setDragging(true);
+        }
+        onOffsetChange(gestureRef.current.origX + dx, gestureRef.current.origY + dy, cell.scale);
+      }
+    });
+  }, [onOffsetChange, cell.scale, dragging]);
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+
     const wasStationary = gestureRef.current && !gestureRef.current.isPinch &&
-      Math.abs(e.clientX - gestureRef.current.startMidX) < 5 &&
-      Math.abs(e.clientY - gestureRef.current.startMidY) < 5;
+      Math.abs(e.clientX - gestureRef.current.startMidX) < TAP_THRESHOLD &&
+      Math.abs(e.clientY - gestureRef.current.startMidY) < TAP_THRESHOLD;
 
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2 && gestureRef.current?.isPinch) {
@@ -107,10 +125,9 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
     if (pointersRef.current.size === 0) {
       gestureRef.current = null;
       setDragging(false);
-      // Tap detection on mobile
       if (wasStationary && isMobile) handleTap();
     }
-  }, [cell, isMobile, handleTap]);
+  }, [cell.offsetX, cell.offsetY, cell.scale, isMobile, handleTap]);
 
   const onWheel = useCallback((e: React.WheelEvent) => {
     if (!cell.imageUrl) return;
@@ -119,17 +136,17 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
     let newScale = cell.scale - e.deltaY * zoomIntensity;
     newScale = Math.max(0.3, Math.min(5, newScale));
     onOffsetChange(cell.offsetX, cell.offsetY, newScale);
-  }, [cell, onOffsetChange]);
+  }, [cell.imageUrl, cell.scale, cell.offsetX, cell.offsetY, onOffsetChange]);
 
   const zoomIn = useCallback(() => {
     const newScale = Math.min(5, cell.scale + 0.15);
     onOffsetChange(cell.offsetX, cell.offsetY, newScale);
-  }, [cell, onOffsetChange]);
+  }, [cell.scale, cell.offsetX, cell.offsetY, onOffsetChange]);
 
   const zoomOut = useCallback(() => {
     const newScale = Math.max(0.3, cell.scale - 0.15);
     onOffsetChange(cell.offsetX, cell.offsetY, newScale);
-  }, [cell, onOffsetChange]);
+  }, [cell.scale, cell.offsetX, cell.offsetY, onOffsetChange]);
 
   const handleFit = useCallback(() => {
     setFitMode("fit");
@@ -147,12 +164,13 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden group transition-all duration-200 ${cell.imageUrl ? "" : "bg-muted/20"}`}
+      className={`relative overflow-hidden ${cell.imageUrl ? "" : "bg-muted/20"}`}
       style={{
         gridArea,
         minHeight: "44px",
         touchAction: "none",
         border: cell.imageUrl ? "none" : "1px dashed hsl(var(--muted-foreground) / 0.15)",
+        willChange: dragging ? "transform" : undefined,
       }}
       onMouseEnter={() => !isMobile && setShowControls(true)}
       onMouseLeave={() => !isMobile && setShowControls(false)}
@@ -168,8 +186,9 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             className="absolute inset-0 w-full h-full select-none"
             style={{
               objectFit: fitMode === "fit" ? "contain" : "cover",
-              transform: `translate(${cell.offsetX}px, ${cell.offsetY}px) scale(${cell.scale})`,
+              transform: `translate3d(${cell.offsetX}px, ${cell.offsetY}px, 0) scale(${cell.scale})`,
               cursor: dragging ? "grabbing" : "grab",
+              willChange: "transform",
             }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -180,20 +199,27 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
 
           {/* Subtle overlay when controls visible */}
           {!dragging && controlsVisible && (
-            <div className="absolute inset-0 bg-black/5 pointer-events-none transition-opacity duration-200 z-[1]" />
+            <div className="absolute inset-0 bg-black/5 pointer-events-none z-[1]" style={{ transition: "opacity 150ms ease" }} />
           )}
 
           {/* Top controls: Replace & Remove */}
           <div
             data-cell-controls
-            className={`absolute top-2 right-2 flex gap-1.5 z-10 transition-all duration-200 ${controlsVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"}`}
+            className="absolute top-2 right-2 flex gap-1.5 z-10"
+            style={{
+              opacity: controlsVisible ? 1 : 0,
+              transform: controlsVisible ? "translateY(0)" : "translateY(-4px)",
+              pointerEvents: controlsVisible ? "auto" : "none",
+              transition: "opacity 150ms ease, transform 150ms ease",
+            }}
           >
             <button
               type="button"
               onClick={triggerPicker}
-              className={`rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90 hover:text-white hover:bg-black/80 transition-all shadow-lg ${
+              className={`rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90 hover:text-white hover:bg-black/80 shadow-lg active:scale-90 ${
                 isMobile ? "h-9 w-9" : "h-7 w-7"
               }`}
+              style={{ transition: "transform 100ms ease, background 150ms ease" }}
               title="Replace photo"
             >
               <RefreshCw className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
@@ -201,9 +227,10 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             <button
               type="button"
               onClick={onImageRemove}
-              className={`rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90 hover:text-red-400 hover:bg-black/80 transition-all shadow-lg ${
+              className={`rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white/90 hover:text-red-400 hover:bg-black/80 shadow-lg active:scale-90 ${
                 isMobile ? "h-9 w-9" : "h-7 w-7"
               }`}
+              style={{ transition: "transform 100ms ease, background 150ms ease" }}
               title="Remove photo"
             >
               <X className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
@@ -213,14 +240,21 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
           {/* Bottom: Zoom controls + Fit/Fill */}
           <div
             data-cell-controls
-            className={`absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 rounded-full bg-black/70 backdrop-blur-md z-10 p-0.5 shadow-xl transition-all duration-200 ${controlsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"}`}
+            className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-0.5 rounded-full bg-black/70 backdrop-blur-md z-10 p-0.5 shadow-xl"
+            style={{
+              opacity: controlsVisible ? 1 : 0,
+              transform: `translateX(-50%) ${controlsVisible ? "translateY(0)" : "translateY(4px)"}`,
+              pointerEvents: controlsVisible ? "auto" : "none",
+              transition: "opacity 150ms ease, transform 150ms ease",
+            }}
           >
             <button
               type="button"
               onClick={zoomOut}
-              className={`rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors ${
+              className={`rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 ${
                 isMobile ? "h-9 w-9" : "h-7 w-7"
               }`}
+              style={{ transition: "transform 100ms ease" }}
               title="Zoom out"
             >
               <ZoomOut className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
@@ -235,9 +269,10 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             <button
               type="button"
               onClick={zoomIn}
-              className={`rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors ${
+              className={`rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 ${
                 isMobile ? "h-9 w-9" : "h-7 w-7"
               }`}
+              style={{ transition: "transform 100ms ease" }}
               title="Zoom in"
             >
               <ZoomIn className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
@@ -248,9 +283,10 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             <button
               type="button"
               onClick={handleFit}
-              className={`rounded-full flex items-center gap-1 font-medium tracking-wide uppercase transition-colors ${
+              className={`rounded-full flex items-center gap-1 font-medium tracking-wide uppercase active:scale-90 ${
                 isMobile ? "h-9 px-2.5 text-[10px]" : "h-7 px-2 text-[9px]"
               } ${fitMode === "fit" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
+              style={{ transition: "transform 100ms ease, background 150ms ease" }}
             >
               <Maximize className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
               Fit
@@ -258,9 +294,10 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             <button
               type="button"
               onClick={handleFill}
-              className={`rounded-full flex items-center gap-1 font-medium tracking-wide uppercase transition-colors ${
+              className={`rounded-full flex items-center gap-1 font-medium tracking-wide uppercase active:scale-90 ${
                 isMobile ? "h-9 px-2.5 text-[10px]" : "h-7 px-2 text-[9px]"
               } ${fitMode === "fill" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
+              style={{ transition: "transform 100ms ease, background 150ms ease" }}
             >
               <Expand className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
               Fill
@@ -286,13 +323,16 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
             if (target.closest("[data-text-overlay]") || target.closest("[data-text-edit]")) return;
             triggerPicker();
           }}
-          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground/30 cursor-pointer hover:text-muted-foreground/50 hover:bg-muted/10 transition-all duration-200 group/empty ${
+          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground/30 cursor-pointer hover:text-muted-foreground/50 hover:bg-muted/10 group/empty ${
             isMobile ? "active:bg-muted/20" : ""
           }`}
+          style={{ transition: "color 150ms ease, background 150ms ease" }}
         >
-          <div className={`rounded-full border-2 border-dashed border-current flex items-center justify-center group-hover/empty:scale-110 transition-transform ${
+          <div className={`rounded-full border-2 border-dashed border-current flex items-center justify-center group-hover/empty:scale-110 ${
             isMobile ? "h-12 w-12" : "h-10 w-10"
-          }`}>
+          }`}
+            style={{ transition: "transform 150ms ease" }}
+          >
             <Plus className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
           </div>
           <span className={`tracking-[0.15em] uppercase font-medium ${
@@ -302,4 +342,6 @@ export default function GridCell({ cell, gridArea, onImageAdd, onImageRemove, on
       )}
     </div>
   );
-}
+});
+
+export default GridCell;

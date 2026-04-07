@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import {
   ArrowLeft, RotateCcw, Type, Shapes, Palette, Stamp, Instagram,
