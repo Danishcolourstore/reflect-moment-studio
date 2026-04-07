@@ -5,7 +5,7 @@ import { CreateEventModal } from "@/components/CreateEventModal";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { Plus } from "lucide-react";
+import { Plus, Camera } from "lucide-react";
 import { useViewMode } from "@/lib/ViewModeContext";
 
 interface EventItem {
@@ -44,7 +44,7 @@ export default function Events() {
 
   useEffect(() => { fetchEvents(); }, [user]);
 
-  const filteredEvents = events; // TODO: filter logic based on status
+  const filteredEvents = events;
 
   const FILTERS: { key: EventFilter; label: string }[] = [
     { key: "all", label: "All" },
@@ -69,8 +69,15 @@ export default function Events() {
     <DashboardLayout>
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ marginBottom: 40 }}>
-          <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, color: "hsl(48, 7%, 10%)", margin: 0, letterSpacing: "0.02em" }}>
+        <div style={{ marginBottom: isMobile ? 24 : 40 }}>
+          <h1 style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: isMobile ? 28 : 32,
+            fontWeight: 300,
+            color: "hsl(48, 7%, 10%)",
+            margin: 0,
+            letterSpacing: "0.02em",
+          }}>
             Events
           </h1>
         </div>
@@ -101,7 +108,13 @@ export default function Events() {
         )}
 
         {/* Filter tabs */}
-        <div style={{ display: "flex", gap: isMobile ? 16 : 24, borderBottom: "1px solid hsl(37, 10%, 90%)", marginBottom: isMobile ? 24 : 40 }}>
+        <div style={{
+          display: "flex",
+          gap: isMobile ? 16 : 24,
+          borderBottom: "1px solid hsl(37, 10%, 90%)",
+          marginBottom: isMobile ? 24 : 40,
+          overflowX: isMobile ? "auto" : undefined,
+        }}>
           {FILTERS.map((f) => (
             <button
               key={f.key}
@@ -119,6 +132,8 @@ export default function Events() {
                 paddingBottom: 12,
                 borderBottom: filter === f.key ? "2px solid hsl(40, 52%, 48%)" : "2px solid transparent",
                 transition: "color 0.2s, border-color 0.2s",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
               {f.label}
@@ -128,21 +143,41 @@ export default function Events() {
 
         {/* Content */}
         {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 16 : 40 }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            gap: isMobile ? 16 : 40,
+          }}>
             {[1, 2, 3, 4].map((i) => (
               <div key={i}>
-                <div className="skeleton-block" style={{ width: "100%", aspectRatio: "16/9" }} />
+                <div className="skeleton-block" style={{ width: "100%", aspectRatio: isMobile ? "16/10" : "16/9" }} />
                 <div className="skeleton-block" style={{ height: 18, width: "60%", marginTop: 12 }} />
                 <div className="skeleton-block" style={{ height: 12, width: "40%", marginTop: 8 }} />
               </div>
             ))}
           </div>
         ) : events.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "80px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 300, color: "hsl(48, 7%, 10%)", margin: 0 }}>
+          <div style={{
+            textAlign: "center",
+            padding: isMobile ? "60px 0" : "80px 0",
+            display: "flex", flexDirection: "column", alignItems: "center",
+          }}>
+            <Camera style={{ width: 40, height: 40, color: "hsl(37, 10%, 85%)", marginBottom: 16 }} strokeWidth={1} />
+            <h2 style={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontSize: isMobile ? 24 : 28,
+              fontWeight: 300,
+              color: "hsl(48, 7%, 10%)",
+              margin: 0,
+            }}>
               Your first gallery awaits
             </h2>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(35, 4%, 56%)", marginTop: 8 }}>
+            <p style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 13,
+              color: "hsl(35, 4%, 56%)",
+              marginTop: 8,
+            }}>
               Add your work to begin
             </p>
             <button
@@ -158,13 +193,18 @@ export default function Events() {
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 cursor: "pointer",
+                minHeight: 44,
               }}
             >
               Create Event
             </button>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 16 : 40 }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            gap: isMobile ? 16 : 40,
+          }}>
             {filteredEvents.map((evt) => {
               const status = getStatus(evt);
               return (
@@ -179,41 +219,68 @@ export default function Events() {
                     cursor: "pointer",
                     textAlign: "left",
                     padding: 0,
+                    minHeight: 44,
                   }}
                 >
                   {/* Cover */}
                   {evt.cover_url ? (
-                    <div style={{ width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
+                    <div style={{ width: "100%", aspectRatio: isMobile ? "16/10" : "16/9", overflow: "hidden" }}>
                       <img
                         src={evt.cover_url}
                         alt={evt.name}
                         loading="lazy"
                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "opacity 0.3s ease" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.92")}
-                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                       />
                     </div>
                   ) : (
-                    <div style={{ width: "100%", aspectRatio: "16/9", background: "hsl(40, 5%, 95%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 36, color: "hsl(37, 10%, 90%)", fontWeight: 300 }}>
+                    <div style={{
+                      width: "100%", aspectRatio: isMobile ? "16/10" : "16/9",
+                      background: "hsl(40, 5%, 95%)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <span style={{
+                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                        fontSize: isMobile ? 32 : 36,
+                        color: "hsl(37, 10%, 90%)", fontWeight: 300,
+                      }}>
                         {evt.name.charAt(0)}
                       </span>
                     </div>
                   )}
                   {/* Info */}
                   <div style={{ paddingTop: 12 }}>
-                    <h3 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, color: "hsl(48, 7%, 10%)", margin: 0, letterSpacing: "0.02em" }}>
+                    <h3 style={{
+                      fontFamily: "'Cormorant Garamond', Georgia, serif",
+                      fontSize: isMobile ? 18 : 20,
+                      fontWeight: 400,
+                      color: "hsl(48, 7%, 10%)",
+                      margin: 0,
+                      letterSpacing: "0.02em",
+                    }}>
                       {evt.name}
                     </h3>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "hsl(35, 4%, 56%)", marginTop: 4 }}>
+                    <p style={{
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                      color: "hsl(35, 4%, 56%)",
+                      marginTop: 4,
+                    }}>
                       {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date"}
                       {evt.location ? ` · ${evt.location}` : ""}
                     </p>
                     <div style={{ display: "flex", gap: 12, marginTop: 6, alignItems: "center" }}>
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "hsl(35, 4%, 56%)" }}>
+                      <span style={{
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 11, letterSpacing: "0.08em",
+                        textTransform: "uppercase", color: "hsl(35, 4%, 56%)",
+                      }}>
                         {evt.photo_count || 0} photos
                       </span>
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: getStatusColor(status) }}>
+                      <span style={{
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 11, letterSpacing: "0.08em",
+                        textTransform: "uppercase", color: getStatusColor(status),
+                      }}>
                         {status}
                       </span>
                     </div>
@@ -231,8 +298,8 @@ export default function Events() {
           onClick={() => setCreateOpen(true)}
           style={{
             position: "fixed",
-            bottom: 88,
-            right: 24,
+            bottom: 80,
+            right: 20,
             width: 56,
             height: 56,
             borderRadius: "50%",
@@ -243,10 +310,9 @@ export default function Events() {
             alignItems: "center",
             justifyContent: "center",
             zIndex: 50,
-            transition: "opacity 0.2s",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            transition: "transform 0.2s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
         >
           <Plus size={22} strokeWidth={2} style={{ color: "hsl(45, 14%, 97%)" }} />
         </button>

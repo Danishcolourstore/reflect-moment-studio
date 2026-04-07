@@ -1,11 +1,11 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { CalendarDays, Image, Scissors, User } from "lucide-react";
+import { Home, CalendarDays, Image, User } from "lucide-react";
 
 const TABS = [
+  { title: "Home", url: "/home", icon: Home },
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Gallery", url: "/home", icon: Image },
-  { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
+  { title: "Gallery", url: "/dashboard/cheetah-live", icon: Image },
   { title: "You", url: "/dashboard/profile", icon: User },
 ];
 
@@ -29,9 +29,11 @@ export function MobileBottomNav() {
         right: 0,
         bottom: 0,
         zIndex: 40,
-        background: "hsl(0, 0%, 100%)",
-        borderTop: "1px solid hsl(37, 10%, 90%)",
-        height: 64,
+        background: "hsla(0, 0%, 100%, 0.92)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        borderTop: "1px solid hsl(37, 10%, 92%)",
+        height: 60,
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         display: "flex",
         justifyContent: "space-around",
@@ -53,7 +55,7 @@ export function MobileBottomNav() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 2,
+              gap: 3,
               flex: 1,
               minHeight: 44,
               minWidth: 44,
@@ -61,18 +63,18 @@ export function MobileBottomNav() {
             }}
           >
             <Icon
-              size={20}
+              size={22}
               strokeWidth={1.5}
-              style={{ color: active ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 56%)" }}
+              style={{ color: active ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 65%)" }}
             />
             <span
               style={{
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 10,
-                letterSpacing: "0.1em",
+                letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: active ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 56%)",
-                fontWeight: 400,
+                color: active ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 65%)",
+                fontWeight: active ? 500 : 400,
               }}
             >
               {tab.title}
