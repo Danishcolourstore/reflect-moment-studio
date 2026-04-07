@@ -225,21 +225,21 @@ export default function LandingGate() {
         ) : (
           <div style={{ paddingBottom: 72, paddingTop: 72 }}>
 
-            {/* Grid — 3-col, rounded thumbnails, tap to expand */}
+            {/* Masonry grid */}
             <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 4, margin: 0, padding: "0 4px",
+              columns: 3,
+              columnGap: 2,
+              padding: "0 2px",
             }}>
               {gridPhotos.map((photo, i) => (
                 <div
                   key={photo.id}
                   onClick={() => openLightbox(i + 1)}
                   style={{
-                    aspectRatio: "1/1", overflow: "hidden",
-                    position: "relative", background: "#141414",
+                    breakInside: "avoid",
+                    marginBottom: 2,
+                    overflow: "hidden",
                     cursor: "pointer",
-                    borderRadius: 8,
                   }}
                 >
                   <img
@@ -248,8 +248,8 @@ export default function LandingGate() {
                     loading={i < 9 ? "eager" : "lazy"}
                     decoding="async"
                     style={{
-                      width: "100%", height: "100%",
-                      objectFit: "cover", display: "block",
+                      width: "100%",
+                      display: "block",
                       animation: "lgFadeIn 0.4s ease both",
                       animationDelay: `${Math.min(i * 0.04, 0.3)}s`,
                     }}
