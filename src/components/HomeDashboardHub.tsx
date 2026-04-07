@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import {
-  Camera, Image, Palette, BookOpen, Zap, PenTool,
+  Camera, Image, Palette, BookOpen, Zap,
   Users, BarChart3, Settings, User, CreditCard, Plus, ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
