@@ -7,21 +7,34 @@ document.documentElement.classList.remove("dark", "light", "editorial", "classic
 localStorage.setItem('theme', 'light');
 localStorage.setItem('mirrorai-theme', 'light');
 
-// One-time cleanup of legacy service workers/caches
+// PWA service worker — only in production, never in iframe/preview
+const isInIframe = (() => {
+  try { return window.self !== window.top; } catch { return true; }
+})();
+const isPreviewHost =
+  window.location.hostname.includes('id-preview--') ||
+  window.location.hostname.includes('lovableproject.com');
+
 if ('serviceWorker' in navigator) {
-  const cleanupKey = 'mirrorai_sw_v3';
-  if (!localStorage.getItem(cleanupKey)) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => registration.unregister());
-    });
-    if ('caches' in window) {
-      caches.keys().then((keys) => {
-        keys.forEach((key) => caches.delete(key));
-      });
+  if (isPreviewHost || isInIframe) {
+    // Unregister SWs in preview/iframe to prevent stale cache issues
+    navigator.serviceWorker.getRegistrations().then(regs =>
+      regs.forEach(r => r.unregister())
+    );
+  } else {
+    // Production: one-time legacy cleanup then register
+    const cleanupKey = 'mirrorai_sw_v3';
+    if (!localStorage.getItem(cleanupKey)) {
+      navigator.serviceWorker.getRegistrations().then(regs =>
+        regs.forEach(r => r.unregister())
+      );
+      if ('caches' in window) {
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      }
+      localStorage.setItem(cleanupKey, '1');
     }
-    localStorage.setItem(cleanupKey, '1');
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
   }
-  navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
 }
 
 // Apply platform classes early
