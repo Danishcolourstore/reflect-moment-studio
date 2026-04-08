@@ -1,73 +1,138 @@
-# Welcome to your Lovable project
+# Mirror AI
 
-## Project info
+Mirror AI is a real-time photography assistant:
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Camera -> FTP -> Server -> AI Processing -> Instant display in app
 
-## How can I edit this code?
+This repository now contains a complete Mirror AI product build with:
 
-There are several ways of editing your application.
+- FTP ingestion service
+- Async image processing pipeline
+- WebSocket realtime updates
+- Premium React + Tailwind frontend
+- Control system (preset, retouch, batch apply)
+- Storage for originals/processed/metadata
 
-**Use Lovable**
+## Architecture
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- Frontend: `src/` (Vite + React + Tailwind)
+- Backend API/worker/FTP: `apps/backend/`
+- Storage output: `apps/backend/storage/`
 
-Changes made via Lovable will be committed automatically to this repo.
+### Backend subsystems
 
-**Use your preferred IDE**
+- FTP server (`ftp-srv`) receives images into `storage/inbox`
+- File watcher (`chokidar`) detects new uploads instantly
+- Queue (`p-queue`) processes images async with configurable concurrency
+- AI pipeline (`sharp`) computes:
+  - exposure analysis
+  - skin-tone score
+  - lighting contrast
+- Preset engine applies Lightroom-style behavior
+- Natural retouch via controlled blur/sharpen blend
+- API exposes images/presets/stats/controls endpoints
+- WebSocket pushes image/control updates in real-time
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Folder structure (new key parts)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```txt
+apps/
+  backend/
+    src/
+      config/env.ts
+      ftp/ftp-server.ts
+      ingest/inbox-watcher.ts
+      http/routes.ts
+      lib/
+        analyze.ts
+        event-bus.ts
+        image-processor.ts
+        presets.ts
+        public-url.ts
+        queue.ts
+        repository.ts
+        storage.ts
+      server.ts
+src/
+  hooks/use-mirror-realtime.ts
+  lib/mirror-api.ts
+  pages/MirrorAIPage.tsx
+  types/mirror-ai.ts
+.env.example
 ```
 
-**Edit a file directly in GitHub**
+## Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1) Install root dependencies
 
-**Use GitHub Codespaces**
+```sh
+npm i
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2) Install backend dependencies
 
-## What technologies are used for this project?
+```sh
+npm --prefix apps/backend i
+```
 
-This project is built with:
+3) Copy env file
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```sh
+cp .env.example .env
+```
 
-## How can I deploy this project?
+## Run commands
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Frontend (premium UI):
 
-## Can I connect a custom domain to my Lovable project?
+```sh
+npm run dev:frontend
+```
 
-Yes, you can!
+Backend (API + WebSocket + FTP + queue):
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```sh
+npm run dev:backend
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Backend checks/build:
+
+```sh
+npm run check:backend
+npm run build:backend
+```
+
+Frontend build:
+
+```sh
+npm run build
+```
+
+## API summary
+
+- `GET /api/health`
+- `GET /api/images?limit=100`
+- `GET /api/images/:id`
+- `PATCH /api/images/:id/control`
+- `POST /api/batch/apply`
+- `GET /api/presets`
+- `GET /api/controls`
+- `PATCH /api/controls`
+- `GET /api/stats`
+
+WebSocket:
+
+- `ws://<host>:<port>/ws`
+- Events: `ready`, `image.received`, `image.updated`, `control.updated`
+
+## FTP ingest
+
+Configure in `.env`:
+
+- `FTP_ENABLED=true`
+- `FTP_HOST=0.0.0.0`
+- `FTP_PORT=2121`
+- `FTP_USER=mirror`
+- `FTP_PASSWORD=mirror-pass`
+
+Send images to the FTP root and Mirror AI will ingest/process automatically.
