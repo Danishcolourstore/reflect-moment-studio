@@ -1,103 +1,72 @@
 import { useState } from "react";
+import { ArrowLeft, Grid3X3 } from "lucide-react";
+import type { GridLayout } from "./types";
+import GridLayoutSelector from "./GridLayoutSelector";
+import GridEditor from "./GridEditor";
 
 interface Props {
-  layout: any;
-  onBack: () => void;
-  initialTextLayers: any[];
+  onClose: () => void;
 }
 
-type TextLayer = {
-  content: string;
-  x: number;
-  y: number;
-  fontSize: number;
-  letterSpacing: number;
-  lineHeight: number;
-  color: string;
-};
+export default function GridBuilder({ onClose }: Props) {
+  const [selectedLayout, setSelectedLayout] = useState<GridLayout | null>(null);
 
-export default function GridEditor({ layout, onBack, initialTextLayers }: Props) {
-  const [images, setImages] = useState<string[]>([]);
-  const [texts, setTexts] = useState<TextLayer[]>(initialTextLayers || []);
-  const [gap, setGap] = useState(4);
+  // ✅ SINGLE SOURCE OF TRUTH
+  const [design, setDesign] = useState({
+    images: [] as string[],
+    texts: [] as any[],
+    gap: 4,
+  });
 
-  // Upload handler
-  const handleUpload = (e: any) => {
+  // ✅ UPLOAD HANDLER
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const urls = files.map((file: any) => URL.createObjectURL(file));
-    setImages(urls);
+    const urls = files.map((file) => URL.createObjectURL(file));
+
+    setDesign((prev) => ({
+      ...prev,
+      images: urls,
+    }));
   };
 
+  // 👉 OPEN EDITOR
+  if (selectedLayout) {
+    return (
+      <GridEditor
+        layout={selectedLayout}
+        design={design}
+        setDesign={setDesign}
+        onBack={() => setSelectedLayout(null)}
+      />
+    );
+  }
+
   return (
-    <div className="w-full h-full flex flex-col bg-black text-white">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between p-3 border-b border-white/10">
-        <button onClick={onBack}>Back</button>
-
-        <input type="file" multiple accept="image/*" onChange={handleUpload} />
-      </div>
-
-      {/* Grid */}
-      <div
-        className="flex-1 grid"
-        style={{
-          gridTemplateColumns: `repeat(${layout?.cols || 3}, 1fr)`,
-          gap: `${gap}px`,
-        }}
-      >
-        {Array.from({ length: layout?.cells || 9 }).map((_, i) => {
-          const img = images[i % images.length];
-
-          return (
-            <div key={i} className="relative bg-neutral-900 overflow-hidden">
-              {img && <img src={img} className="w-full h-full object-cover" />}
-
-              {/* Text layers */}
-              {texts.map((t, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    position: "absolute",
-                    top: `${t.y}%`,
-                    left: `${t.x}%`,
-                    transform: "translate(-50%, -50%)",
-                    fontSize: `${t.fontSize}px`,
-                    letterSpacing: `${t.letterSpacing}px`,
-                    lineHeight: t.lineHeight,
-                    color: t.color,
-                  }}
-                >
-                  {t.content}
-                </div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Controls */}
-      <div className="p-3 border-t border-white/10 flex gap-2">
-        <button onClick={() => setGap((g) => g + 2)}>+ Gap</button>
-        <button onClick={() => setGap((g) => Math.max(0, g - 2))}>- Gap</button>
-
-        <button
-          onClick={() =>
-            setTexts((prev) => [
-              ...prev,
-              {
-                content: "Your Text",
-                x: 50,
-                y: 50,
-                fontSize: 18,
-                letterSpacing: 1,
-                lineHeight: 1.2,
-                color: "#ffffff",
-              },
-            ])
-          }
-        >
-          Add Text
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-3 border-b">
+        <button onClick={onClose}>
+          <ArrowLeft />
         </button>
+        <Grid3X3 />
+        <span>Grid Builder</span>
+      </div>
+
+      <div className="p-4">
+        {/* Upload */}
+        <input type="file" multiple accept="image/*" onChange={handleUpload} />
+
+        {/* Preview */}
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          {design.images.map((img, i) => (
+            <img key={i} src={img} className="w-full h-24 object-cover" />
+          ))}
+        </div>
+
+        {/* Layout */}
+        <div className="mt-4">
+          <GridLayoutSelector onSelect={(layout) => setSelectedLayout(layout)} />
+        </div>
       </div>
     </div>
   );
