@@ -1,273 +1,505 @@
-import { ReactNode, useState, useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { NavLink } from "@/components/NavLink";
-import { useAuth } from "@/lib/auth";
+```tsx
+import { useEffect, useState } from "react";
+import { PageError } from "@/components/PageStates";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { CreateEventModal } from "@/components/CreateEventModal";
 import { useViewMode } from "@/lib/ViewModeContext";
-import {
-  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu,
-} from "lucide-react";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import { EntiranProvider } from "@/components/entiran/EntiranProvider";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
-const STUDIO_ITEMS = [
-  { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Gallery", url: "/home", icon: Image, end: true },
-  { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
-];
-
-const ACCOUNT_ITEMS = [
-  { title: "Settings", url: "/dashboard/profile", icon: Settings },
-  { title: "Billing", url: "/dashboard/billing", icon: CreditCard },
-];
-
-interface Profile {
-  studio_name: string;
-  avatar_url: string | null;
-  plan: string;
-  email: string | null;
-  onboarding_completed: boolean;
-}
-
-interface DashboardLayoutProps {
-  children: ReactNode;
-  /** When true on mobile, header becomes a transparent overlay and content goes edge-to-edge */
-  immersive?: boolean;
-}
-
-export function DashboardLayout({ children, immersive = false }: DashboardLayoutProps) {
-  const { user, signOut, studioName: authStudioName } = useAuth();
-  const { isDesktop, isMobile } = useViewMode();
+const Dashboard = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const drawer = useDrawerMenu();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [scrolled, setScrolled] = useState(false);
+  const { isMobile } = useViewMode();
 
-  const isImmersiveMobile = isMobile && immersive;
+  const [studioName, setStudioName] = useState("Studio");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [upcomingCount, setUpcomingCount] = useState(0);
+  const [liveCount, setLiveCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [totalPhotos, setTotalPhotos] = useState(0);
+  const [recentEvents, setRecentEvents] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (!isMobile) return;
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [isMobile]);
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
   useEffect(() => {
     if (!user) return;
-    (supabase.from("profiles").select("studio_name, avatar_url, plan, email, onboarding_completed") as any)
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }: any) => {
-        if (data) {
-          setProfile(data);
-          if (!data.onboarding_completed && !location.pathname.includes("/onboarding")) {
-            navigate("/dashboard/onboarding", { replace: true });
-          }
-        }
-      });
-  }, [user, location.pathname, navigate]);
+    const load = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const { data: profile } = await (
+          supabase.from("profiles").select("studio_name") as any
+        )
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (profile?.studio_name) setStudioName(profile.studio_name);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
+        const { data: events } = await (
+          supabase
+            .from("events")
+            .select("id, name, event_date, photo_count, status") as any
+        )
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        const evts = events || [];
+        const now = new Date();
+
+        setUpcomingCount(
+          evts.filter((e: any) => new Date(e.event_date) > now).length
+        );
+        setLiveCount(evts.filter((e: any) => e.status === "live").length);
+        setPendingCount(
+          evts.filter((e: any) => e.status === "pending").length
+        );
+        setTotalPhotos(
+          evts.reduce((sum: number, e: any) => sum + (e.photo_count || 0), 0)
+        );
+        setRecentEvents(evts.slice(0, 3));
+      } catch {
+        setError(true);
+      }
+      setLoading(false);
+    };
+    load();
+  }, [user]);
+
+  if (error)
+    return (
+      <PageError
+        message="Something went wrong"
+        onRetry={() => window.location.reload()}
+      />
+    );
+
+  const statCards = [
+    { label: "Upcoming Events", value: upcomingCount },
+    { label: "Live Events", value: liveCount },
+    { label: "Pending Delivery", value: pendingCount },
+    { label: "Total Photos", value: totalPhotos },
+  ];
+
+  const quickActions = [
+    { label: "New Event", action: () => setCreateOpen(true) },
+    { label: "Upload Photos", action: () => navigate("/dashboard/gallery") },
+    { label: "Cull with Cheetah", action: () => navigate("/dashboard/cull") },
+  ];
+
+  const statusColor = (status: string) => {
+    if (status === "live") return "#C8A97E";
+    if (status === "archived") return "#A8A29E";
+    return "#A8A29E";
   };
 
-  const showSidebar = isDesktop;
-  const showBottomNav = isMobile;
-
-  const sectionLabel = (text: string) => (
-    <div
-      style={{
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: 10,
-        fontWeight: 400,
-        letterSpacing: "0.15em",
-        textTransform: "uppercase",
-        color: "hsl(35, 4%, 56%)",
-        padding: "0 20px",
-        marginTop: 40,
-        marginBottom: 8,
-      }}
-    >
-      {text}
-    </div>
-  );
-
-  const navItem = (item: typeof STUDIO_ITEMS[0]) => (
-    <NavLink
-      key={item.url}
-      to={item.url}
-      end={item.end}
-      className="flex items-center gap-3 transition-colors duration-200"
-      activeClassName="!border-l-2"
-      style={{
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: 13,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        padding: "10px 20px",
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        textDecoration: "none",
-        borderLeft: "2px solid transparent",
-        color: "hsl(35, 4%, 56%)",
-      }}
-    >
-      <item.icon size={17} strokeWidth={1.5} />
-      <span>{item.title}</span>
-    </NavLink>
-  );
+  const statusBg = (status: string) => {
+    if (status === "live") return "rgba(200,169,126,0.10)";
+    return "rgba(168,162,158,0.10)";
+  };
 
   return (
-    <EntiranProvider>
+    <DashboardLayout>
       <div
-        className="min-h-screen"
         style={{
-          background: isImmersiveMobile ? "#0a0a0b" : "hsl(45, 14%, 97%)",
-          margin: 0,
-          padding: 0,
-          overflowX: "hidden",
+          background: "#FDFCFB",
+          minHeight: "100vh",
+          padding: isMobile ? "24px 20px 88px 20px" : "48px 48px 48px 48px",
+          fontFamily: "'DM Sans', sans-serif",
         }}
       >
-        {/* ── Mobile Top Bar ── */}
-        {isMobile && (
-          <header
+        {/* ── Header ── */}
+        <div style={{ marginBottom: 36 }}>
+          <h1
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 50,
-              height: 60,
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: isMobile ? 30 : 40,
+              fontWeight: 600,
+              color: "#1C1917",
+              margin: 0,
+              letterSpacing: "-0.01em",
+              lineHeight: 1.1,
+            }}
+          >
+            {greeting()}, {studioName}
+          </h1>
+          <p
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 13,
+              color: "#A8A29E",
+              marginTop: 8,
+              marginBottom: 0,
+            }}
+          >
+            {today}
+          </p>
+        </div>
+
+        {/* ── Stat Cards ── */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
+            gap: 16,
+            marginBottom: 32,
+          }}
+        >
+          {statCards.map((card) => (
+            <div
+              key={card.label}
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E7E5E4",
+                borderRadius: 4,
+                padding: isMobile ? "16px" : "20px 24px",
+                boxShadow:
+                  "0 1px 3px rgba(28,25,23,0.06), 0 1px 2px rgba(28,25,23,0.04)",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 10,
+                  fontWeight: 500,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "#A8A29E",
+                  margin: "0 0 10px 0",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {card.label}
+              </p>
+              <p
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: isMobile ? 36 : 44,
+                  fontWeight: 600,
+                  color: "#1C1917",
+                  margin: 0,
+                  lineHeight: 1,
+                }}
+              >
+                {loading ? "—" : card.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Quick Actions ── */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 12,
+            marginBottom: 48,
+          }}
+        >
+          {quickActions.map((btn, i) => (
+            <button
+              key={btn.label}
+              onClick={btn.action}
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 12,
+                fontWeight: 500,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: i === 0 ? "#FFFFFF" : "#C8A97E",
+                background: i === 0 ? "#C8A97E" : "transparent",
+                border: "1px solid #C8A97E",
+                borderRadius: 4,
+                padding: isMobile ? "12px 20px" : "12px 24px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                minHeight: 44,
+                flex: isMobile ? "1 1 auto" : "0 0 auto",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#B8976A";
+                e.currentTarget.style.borderColor = "#B8976A";
+                e.currentTarget.style.color = "#FFFFFF";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  i === 0 ? "#C8A97E" : "transparent";
+                e.currentTarget.style.borderColor = "#C8A97E";
+                e.currentTarget.style.color =
+                  i === 0 ? "#FFFFFF" : "#C8A97E";
+              }}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Recent Events ── */}
+        <div>
+          <div
+            style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "0 20px",
-              paddingTop: "env(safe-area-inset-top)",
-              background: isImmersiveMobile
-                ? (scrolled ? "rgba(10,10,11,0.88)" : "transparent")
-                : (scrolled ? "hsla(45, 14%, 97%, 0.92)" : "hsla(45, 14%, 97%, 0.9)"),
-              backdropFilter: scrolled ? "blur(16px)" : "none",
-              WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-              borderBottom: isImmersiveMobile
-                ? "none"
-                : (scrolled ? "1px solid hsl(37, 10%, 92%)" : "none"),
-              transition: "background 0.4s ease, backdrop-filter 0.4s ease",
+              marginBottom: 20,
             }}
           >
-            <button
-              onClick={drawer.toggle}
+            <h2
               style={{
-                background: "none", border: "none", cursor: "pointer",
-                padding: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                minWidth: 44, minHeight: 44,
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: isMobile ? 22 : 26,
+                fontWeight: 600,
+                color: "#1C1917",
+                margin: 0,
+                letterSpacing: "-0.01em",
               }}
-              aria-label="Menu"
             >
-              <Menu style={{
-                width: 24, height: 24,
-                color: "hsl(48, 7%, 10%)",
-              }} strokeWidth={2} />
+              Recent Events
+            </h2>
+            <button
+              onClick={() => navigate("/dashboard/events")}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "#C8A97E",
+                letterSpacing: "0.04em",
+                padding: 0,
+                transition: "color 0.2s ease",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "#B8976A")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "#C8A97E")
+              }
+            >
+              View all →
             </button>
+          </div>
 
-            <span style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "1.15rem", fontWeight: 600,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              color: "hsl(48, 7%, 10%)",
-            }}>
-              Mirror AI
-            </span>
-
-            <div style={{ width: 44, minHeight: 44 }} />
-          </header>
-        )}
-
-        {/* ── Sidebar (Desktop) ── */}
-        {showSidebar && (
-          <aside
-            style={{
-              position: "fixed",
-              left: 0,
-              top: 0,
-              zIndex: 30,
-              height: "100vh",
-              width: 200,
-              background: "hsl(0, 0%, 100%)",
-              borderRight: "1px solid hsl(37, 10%, 92%)",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <div style={{ padding: "28px 20px 20px" }}>
-              <span
-                style={{
-                  fontFamily: "'Cormorant Garamond', Georgia, serif",
-                  fontSize: 18, fontWeight: 400, letterSpacing: "0.05em",
-                  color: "hsl(48, 7%, 10%)",
-                }}
-              >
-                MirrorAI
-              </span>
-            </div>
-            <nav style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              {sectionLabel("STUDIO")}
-              {STUDIO_ITEMS.map(navItem)}
-              {sectionLabel("ACCOUNT")}
-              {ACCOUNT_ITEMS.map(navItem)}
-            </nav>
-            <div style={{ padding: "16px 20px 24px" }}>
-              <button
-                onClick={handleSignOut}
-                style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 8,
-                  fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                  letterSpacing: "0.1em", textTransform: "uppercase",
-                  color: "hsl(35, 4%, 56%)", padding: "8px 0",
-                  transition: "color 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(48, 7%, 10%)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(35, 4%, 56%)")}
-              >
-                <LogOut size={15} strokeWidth={1.5} />
-                Sign Out
-              </button>
-            </div>
-          </aside>
-        )}
-
-        {/* ── Main Content ── */}
-        <main
-          style={{
-            minHeight: isImmersiveMobile ? "100dvh" : "100vh",
-            marginLeft: showSidebar ? 200 : 0,
-            paddingTop: isImmersiveMobile ? 0 : (isMobile ? 52 : 0),
-            paddingBottom: showBottomNav ? (isImmersiveMobile ? 0 : 80) : 0,
-          }}
-        >
-          {isImmersiveMobile ? (
-            children
-          ) : (
+          {/* Loading skeletons */}
+          {loading && (
             <div
               style={{
-                maxWidth: 1200,
-                margin: "0 auto",
-                padding: isMobile ? "24px 16px" : "40px 40px",
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+                gap: 16,
               }}
             >
-              {children}
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: "#F5F4F2",
+                    borderRadius: 4,
+                    height: 120,
+                    animation: "pulse 1.8s ease-in-out infinite",
+                  }}
+                />
+              ))}
             </div>
           )}
-        </main>
 
-        {showBottomNav && <MobileBottomNav />}
-        <DrawerMenu open={drawer.open} onClose={drawer.close} />
+          {/* Empty state */}
+          {!loading && recentEvents.length === 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "64px 20px",
+                background: "#FFFFFF",
+                border: "1px solid #E7E5E4",
+                borderRadius: 4,
+              }}
+            >
+              <div style={{ fontSize: 40, marginBottom: 16 }}>📷</div>
+              <h3
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: isMobile ? 20 : 24,
+                  fontWeight: 600,
+                  color: "#1C1917",
+                  margin: "0 0 8px 0",
+                }}
+              >
+                No events yet
+              </h3>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#A8A29E",
+                  marginBottom: 24,
+                  margin: "0 0 24px 0",
+                }}
+              >
+                Create your first event to get started
+              </p>
+              <button
+                onClick={() => setCreateOpen(true)}
+                style={{
+                  background: "#C8A97E",
+                  color: "#FFFFFF",
+                  border: "none",
+                  padding: "12px 28px",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  fontFamily: "'DM Sans', sans-serif",
+                  transition: "background 0.2s ease",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "#B8976A")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "#C8A97E")
+                }
+              >
+                Create First Event
+              </button>
+            </div>
+          )}
+
+          {/* Event cards */}
+          {!loading && recentEvents.length > 0 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+                gap: 16,
+              }}
+            >
+              {recentEvents.map((evt: any) => (
+                <div
+                  key={evt.id}
+                  onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1px solid #E7E5E4",
+                    borderRadius: 4,
+                    padding: "20px 24px",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    boxShadow:
+                      "0 1px 3px rgba(28,25,23,0.06), 0 1px 2px rgba(28,25,23,0.04)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 12px rgba(28,25,23,0.10), 0 2px 4px rgba(28,25,23,0.06)";
+                    e.currentTarget.style.borderColor = "#C8A97E";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow =
+                      "0 1px 3px rgba(28,25,23,0.06), 0 1px 2px rgba(28,25,23,0.04)";
+                    e.currentTarget.style.borderColor = "#E7E5E4";
+                  }}
+                >
+                  <p
+                    style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: 20,
+                      fontWeight: 600,
+                      color: "#1C1917",
+                      margin: "0 0 6px 0",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {evt.name}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: "#A8A29E",
+                      margin: "0 0 14px 0",
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}
+                  >
+                    {evt.event_date
+                      ? new Date(evt.event_date).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "—"}
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "#A8A29E",
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}
+                    >
+                      {evt.photo_count || 0} photos
+                    </span>
+                    {evt.status && (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 500,
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase",
+                          color: statusColor(evt.status),
+                          background: statusBg(evt.status),
+                          padding: "3px 8px",
+                          borderRadius: 2,
+                          fontFamily: "'DM Sans', sans-serif",
+                        }}
+                      >
+                        {evt.status}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* pulse keyframe */}
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+          }
+        `}</style>
       </div>
-    </EntiranProvider>
+
+      <CreateEventModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={(id) => navigate(`/dashboard/events/${id}`)}
+      />
+    </DashboardLayout>
   );
-}
+};
+
+export default Dashboard;
+```
