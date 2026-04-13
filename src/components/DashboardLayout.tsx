@@ -190,7 +190,7 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
         </main>
 
         {/* MOBILE NAV WITH CREATE */}
-        {isMobile && <MobileBottomNav onCreate={() => setCreateOpen(true)} />}
+        {isMobile && <MobileBottomNav />}
 
         <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
