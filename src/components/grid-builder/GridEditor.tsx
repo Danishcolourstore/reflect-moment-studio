@@ -1,36 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
-type TextLayer = {
-  id: string;
-  content: string;
-  x: number;
-  y: number;
-  fontSize: number;
-  letterSpacing: number;
-  lineHeight: number;
-  color: string;
-};
+export default function GridEditor({ layout, design, setDesign, onBack }: any) {
+  const [activeTextId, setActiveTextId] = useState(null);
 
-interface Props {
-  layout: {
-    cols?: number;
-    cells?: number;
-  };
-  design: {
-    images: string[];
-    texts: TextLayer[];
-    gap: number;
-  };
-  setDesign: React.Dispatch<React.SetStateAction<any>>;
-  onBack: () => void;
-}
-
-export default function GridEditor({ layout, design, setDesign, onBack }: Props) {
-  const [activeTextId, setActiveTextId] = useState<string | null>(null);
-
-  // ✅ ADD TEXT
   const addText = () => {
-    const newText: TextLayer = {
+    const newText = {
       id: Date.now().toString(),
       content: "Text",
       x: 50,
@@ -47,16 +21,15 @@ export default function GridEditor({ layout, design, setDesign, onBack }: Props)
     }));
   };
 
-  // ✅ UPDATE TEXT POSITION (basic click positioning)
-  const updateTextPosition = (id: string, x: number, y: number) => {
+  const updateTextPosition = (id: any, x: number, y: number) => {
     setDesign((prev: any) => ({
       ...prev,
-      texts: prev.texts.map((t: TextLayer) => (t.id === id ? { ...t, x, y } : t)),
+      texts: prev.texts.map((t: any) => (t.id === id ? { ...t, x, y } : t)),
     }));
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-black text-white">
+    <div className="w-full h-screen flex flex-col bg-black text-white">
       {/* Top */}
       <div className="flex justify-between p-3 border-b border-white/10">
         <button onClick={onBack}>Back</button>
@@ -88,11 +61,9 @@ export default function GridEditor({ layout, design, setDesign, onBack }: Props)
                 updateTextPosition(activeTextId, x, y);
               }}
             >
-              {/* Image */}
               {img && <img src={img} className="w-full h-full object-cover" />}
 
-              {/* Text Layers */}
-              {design.texts.map((t) => (
+              {design.texts.map((t: any) => (
                 <div
                   key={t.id}
                   onClick={(e) => {
@@ -108,9 +79,9 @@ export default function GridEditor({ layout, design, setDesign, onBack }: Props)
                     letterSpacing: `${t.letterSpacing}px`,
                     lineHeight: t.lineHeight,
                     color: t.color,
-                    cursor: "pointer",
                     border: activeTextId === t.id ? "1px dashed white" : "none",
                     padding: "2px 4px",
+                    cursor: "pointer",
                   }}
                 >
                   {t.content}
