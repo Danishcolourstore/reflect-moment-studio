@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,11 +8,15 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { EntiranProvider } from "@/components/entiran/EntiranProvider";
 
-const STUDIO_ITEMS = [
+const SIDEBAR_WIDTH = 240;
+const HEADER_HEIGHT = 56;
+const BOTTOM_NAV_HEIGHT = 80;
+
+const NAV_ITEMS = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, end: true },
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Gallery", url: "/home", icon: Image, end: true },
-  { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
+  { title: "Gallery", url: "/dashboard/gallery", icon: Image },
+  { title: "Cheetah", url: "/dashboard/cull", icon: Scissors },
 ];
 
 const ACCOUNT_ITEMS = [
@@ -22,10 +26,6 @@ const ACCOUNT_ITEMS = [
 
 interface Profile {
   studio_name: string;
-  avatar_url: string | null;
-  plan: string;
-  email: string | null;
-  onboarding_completed: boolean;
 }
 
 interface DashboardLayoutProps {
@@ -39,101 +39,76 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
   const navigate = useNavigate();
   const location = useLocation();
   const drawer = useDrawerMenu();
+
   const [profile, setProfile] = useState<Profile | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
   const isImmersiveMobile = isMobile && immersive;
 
+  // SCROLL STATE (lightweight)
   useEffect(() => {
     if (!isMobile) return;
-    const onScroll = () => setScrolled(window.scrollY > 60);
+
+    const onScroll = () => {
+      if (window.scrollY > 40) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [isMobile]);
 
+  // PROFILE (fetch once)
   useEffect(() => {
     if (!user) return;
-    (supabase.from("profiles").select("studio_name, avatar_url, plan, email, onboarding_completed") as any)
+
+    (supabase.from("profiles").select("studio_name") as any)
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }: any) => {
-        if (data) {
-          setProfile(data);
-          if (!data.onboarding_completed && !location.pathname.includes("/onboarding")) {
-            navigate("/dashboard/onboarding", { replace: true });
-          }
-        }
+        if (data) setProfile(data);
       });
-  }, [user, location.pathname, navigate]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
-  };
+  }, [user]);
 
   const isActive = (url: string, end?: boolean) => {
     if (end) return location.pathname === url;
     return location.pathname.startsWith(url);
   };
 
-  const sectionLabel = (text: string) => (
-    <div
-      style={{
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: 10,
-        fontWeight: 500,
-        letterSpacing: "0.15em",
-        textTransform: "uppercase",
-        color: "#A8A29E",
-        padding: "0 20px",
-        marginTop: 32,
-        marginBottom: 4,
-      }}
-    >
-      {text}
-    </div>
-  );
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
 
-  const navItem = (item: (typeof STUDIO_ITEMS)[0]) => {
+  const renderNavItem = (item: (typeof NAV_ITEMS)[0]) => {
     const active = isActive(item.url, item.end);
+
     return (
       <button
         key={item.url}
         onClick={() => navigate(item.url)}
         style={{
-          background: active ? "rgba(200,169,126,0.08)" : "transparent",
-          border: "none",
-          borderLeft: active ? "3px solid #C8A97E" : "3px solid transparent",
-          cursor: "pointer",
           display: "flex",
           alignItems: "center",
           gap: 10,
           width: "100%",
-          padding: "11px 20px",
-          fontFamily: "'DM Sans', sans-serif",
+          padding: "12px 20px",
+          background: active ? "rgba(200,169,126,0.08)" : "transparent",
+          border: "none",
+          borderLeft: active ? "3px solid #C8A97E" : "3px solid transparent",
+          cursor: "pointer",
           fontSize: 12,
-          fontWeight: active ? 500 : 400,
           letterSpacing: "0.06em",
           textTransform: "uppercase",
           color: active ? "#C8A97E" : "#44403C",
-          transition: "all 0.2s ease",
           textAlign: "left",
         }}
-        onMouseEnter={(e) => {
-          if (!active) {
-            e.currentTarget.style.background = "rgba(200,169,126,0.06)";
-            e.currentTarget.style.color = "#1C1917";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!active) {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "#44403C";
-          }
-        }}
       >
-        <item.icon size={17} strokeWidth={1.5} style={{ color: active ? "#C8A97E" : "inherit", flexShrink: 0 }} />
-        <span>{item.title}</span>
+        <item.icon size={16} />
+        {item.title}
       </button>
     );
   };
@@ -144,11 +119,9 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
         style={{
           background: isImmersiveMobile ? "#0a0a0b" : "#FDFCFB",
           minHeight: "100vh",
-          margin: 0,
-          padding: 0,
-          overflowX: "hidden",
         }}
       >
+        {/* MOBILE HEADER */}
         {isMobile && (
           <header
             style={{
@@ -156,158 +129,65 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
               top: 0,
               left: 0,
               right: 0,
+              height: HEADER_HEIGHT,
               zIndex: 50,
-              height: 56,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "0 20px",
-              background: isImmersiveMobile
-                ? scrolled
-                  ? "rgba(10,10,11,0.88)"
-                  : "transparent"
-                : scrolled
-                  ? "rgba(253,252,251,0.95)"
-                  : "#FDFCFB",
-              backdropFilter: scrolled ? "blur(16px)" : "none",
-              WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-              borderBottom: isImmersiveMobile ? "none" : "1px solid #E7E5E4",
-              transition: "background 0.3s ease",
+              padding: "0 16px",
+              background: scrolled ? "#FDFCFB" : "transparent",
+              borderBottom: scrolled ? "1px solid #E7E5E4" : "none",
             }}
           >
-            <button
-              onClick={drawer.toggle}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: 8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minWidth: 44,
-                minHeight: 44,
-              }}
-              aria-label="Menu"
-            >
-              <Menu size={22} strokeWidth={1.5} style={{ color: isImmersiveMobile ? "#FDFCFB" : "#1C1917" }} />
+            <button onClick={drawer.toggle}>
+              <Menu size={22} />
             </button>
 
-            <span
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: 18,
-                fontWeight: 600,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: isImmersiveMobile ? "#FDFCFB" : "#1C1917",
-              }}
-            >
-              MirrorAI
-            </span>
+            <span style={{ fontSize: 16, fontWeight: 600 }}>MirrorAI</span>
 
-            <div style={{ width: 44, minHeight: 44 }} />
+            <div style={{ width: 32 }} />
           </header>
         )}
 
+        {/* DESKTOP SIDEBAR */}
         {isDesktop && (
           <aside
             style={{
               position: "fixed",
               left: 0,
               top: 0,
-              zIndex: 30,
+              width: SIDEBAR_WIDTH,
               height: "100vh",
-              width: 240,
-              background: "#FFFFFF",
+              background: "#fff",
               borderRight: "1px solid #E7E5E4",
               display: "flex",
               flexDirection: "column",
             }}
           >
-            <div
-              style={{
-                padding: "32px 20px 24px",
-                borderBottom: "1px solid #E7E5E4",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 20,
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "#1C1917",
-                }}
-              >
-                MirrorAI
-              </span>
-              {profile?.studio_name && (
-                <p
-                  style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 11,
-                    color: "#A8A29E",
-                    margin: "6px 0 0 0",
-                    letterSpacing: "0.04em",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {profile.studio_name}
-                </p>
-              )}
+            <div style={{ padding: "24px 20px" }}>
+              <div style={{ fontWeight: 600 }}>MirrorAI</div>
+              {profile?.studio_name && <div style={{ fontSize: 12, color: "#A8A29E" }}>{profile.studio_name}</div>}
             </div>
 
-            <nav style={{ flex: 1, paddingTop: 8, overflowY: "auto" }}>
-              {sectionLabel("Studio")}
-              {STUDIO_ITEMS.map(navItem)}
-              {sectionLabel("Account")}
-              {ACCOUNT_ITEMS.map(navItem)}
+            <nav style={{ flex: 1 }}>
+              {NAV_ITEMS.map(renderNavItem)}
+              {ACCOUNT_ITEMS.map(renderNavItem)}
             </nav>
 
-            <div
-              style={{
-                padding: "16px 20px 28px",
-                borderTop: "1px solid #E7E5E4",
-              }}
-            >
-              <button
-                onClick={handleSignOut}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 11,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "#A8A29E",
-                  padding: "8px 0",
-                  transition: "color 0.2s ease",
-                  width: "100%",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#1C1917")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#A8A29E")}
-              >
-                <LogOut size={15} strokeWidth={1.5} />
-                Sign Out
+            <div style={{ padding: 16 }}>
+              <button onClick={handleSignOut}>
+                <LogOut size={14} /> Sign Out
               </button>
             </div>
           </aside>
         )}
 
+        {/* MAIN */}
         <main
           style={{
-            minHeight: "100vh",
-            marginLeft: isDesktop ? 240 : 0,
-            paddingTop: isMobile && !isImmersiveMobile ? 56 : 0,
-            paddingBottom: isMobile ? 80 : 0,
+            marginLeft: isDesktop ? SIDEBAR_WIDTH : 0,
+            paddingTop: isMobile ? HEADER_HEIGHT : 0,
+            paddingBottom: isMobile ? BOTTOM_NAV_HEIGHT : 0,
           }}
         >
           {children}
