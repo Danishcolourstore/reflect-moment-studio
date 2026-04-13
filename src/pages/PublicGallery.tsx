@@ -1,13 +1,8 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ProgressiveImage } from "@/components/ProgressiveImage";
-import { useGuestFavorites } from "@/hooks/use-guest-favorites";
-import { useGuestSession } from "@/hooks/use-guest-session";
-import { useInfinitePhotos } from "@/hooks/use-infinite-photos";
-import { Heart } from "lucide-react";
 
-/* ───────────────── GRID RENDER (CORE FIX) ───────────────── */
+/* ───────────────── GRID RENDER ───────────────── */
 
 function GridRenderer({ grid }: any) {
   const images: string[] = grid?.images || [];
@@ -23,9 +18,9 @@ function GridRenderer({ grid }: any) {
           gridTemplateColumns: `repeat(${layout.cols || 3}, 1fr)`,
         }}
       >
-        {images.map((img, index) => (
-          <div key={index} className="w-full aspect-square overflow-hidden">
-            <img src={img} className="w-full h-full object-cover" loading="lazy" />
+        {images.map((img, i) => (
+          <div key={i} className="aspect-square overflow-hidden">
+            <img src={img} className="w-full h-full object-cover" />
           </div>
         ))}
       </div>
@@ -35,9 +30,8 @@ function GridRenderer({ grid }: any) {
 
 /* ───────────────── TYPES ───────────────── */
 
-interface Photo {
+interface EventData {
   id: string;
-  url: string;
 }
 
 /* ───────────────── MAIN ───────────────── */
@@ -45,37 +39,36 @@ interface Photo {
 export default function PublicGallery() {
   const { slug } = useParams();
 
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [photos, setPhotos] = useState<any[]>([]);
   const [gridData, setGridData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const { sessionId } = useGuestSession(null);
-  const { isFavorite, toggleFavorite } = useGuestFavorites(null, sessionId);
 
   /* ───────────────── FETCH ───────────────── */
 
   const fetchData = useCallback(async () => {
     if (!slug) return;
 
-    // 🔥 GET EVENT
-    const { data: event } = await supabase.from("events").select("*").eq("slug", slug).single();
+    // EVENT
+    const { data: ev } = await supabase.from("events").select("*").eq("slug", slug).single();
 
-    if (!event) return;
+    if (!ev) return;
 
-    // 🔥 GET GRID FIRST (PRIORITY)
-    const { data: grid } = await supabase.from("grids").select("*").eq("event_id", event.id).single();
+    setEvent(ev);
 
-    if (grid?.images?.length > 0) {
+    // 🔥 FIX: bypass TS type issue using any cast
+    const { data: grid } = await (supabase as any).from("grids").select("*").eq("event_id", ev.id).single();
+
+    if (grid && grid.images && grid.images.length > 0) {
       setGridData(grid);
       setLoading(false);
-      return; // ⛔ STOP → grid takes over
+      return;
     }
 
-    // 🔥 FALLBACK → PHOTOS
-    const { data: photosData } = await supabase.from("photos").select("id, url").eq("event_id", event.id);
+    // fallback photos
+    const { data: photosData } = await supabase.from("photos").select("*").eq("event_id", ev.id);
 
-    if (photosData) setPhotos(photosData);
-
+    setPhotos(photosData || []);
     setLoading(false);
   }, [slug]);
 
@@ -83,30 +76,22 @@ export default function PublicGallery() {
     fetchData();
   }, [fetchData]);
 
-  /* ───────────────── LOADING ───────────────── */
+  /* ───────────────── UI ───────────────── */
 
   if (loading) {
-    return <div className="h-screen flex items-center justify-center text-sm text-gray-400">Loading...</div>;
+    return <div className="h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  /* ───────────────── GRID OVERRIDE ───────────────── */
-
+  // 🔥 GRID PRIORITY
   if (gridData && gridData.images?.length > 0) {
     return <GridRenderer grid={gridData} />;
   }
 
-  /* ───────────────── NORMAL GALLERY ───────────────── */
-
+  // fallback gallery
   return (
-    <div className="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-      {photos.map((p) => (
-        <div key={p.id} className="relative group">
-          <ProgressiveImage src={p.url} className="w-full aspect-square object-cover" />
-
-          <button onClick={() => toggleFavorite(p.id)} className="absolute top-2 right-2 bg-black/40 p-2 rounded-full">
-            <Heart className="w-4 h-4" style={isFavorite(p.id) ? { fill: "red", color: "red" } : { color: "white" }} />
-          </button>
-        </div>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-2">
+      {photos.map((p, i) => (
+        <img key={i} src={p.url} className="w-full aspect-square object-cover" />
       ))}
     </div>
   );
