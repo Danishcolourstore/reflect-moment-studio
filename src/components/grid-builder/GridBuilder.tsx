@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ArrowLeft, Grid3X3 } from "lucide-react";
-import type { GridLayout } from "./types";
 import GridLayoutSelector from "./GridLayoutSelector";
 import GridEditor from "./GridEditor";
 
@@ -9,19 +8,17 @@ interface Props {
 }
 
 export default function GridBuilder({ onClose }: Props) {
-  const [selectedLayout, setSelectedLayout] = useState<GridLayout | null>(null);
+  const [selectedLayout, setSelectedLayout] = useState<any>(null);
 
-  // ✅ SINGLE SOURCE OF TRUTH
   const [design, setDesign] = useState({
     images: [] as string[],
     texts: [] as any[],
     gap: 4,
   });
 
-  // ✅ UPLOAD HANDLER
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (e: any) => {
     const files = Array.from(e.target.files || []);
-    const urls = files.map((file) => URL.createObjectURL(file));
+    const urls = files.map((f: any) => URL.createObjectURL(f));
 
     setDesign((prev) => ({
       ...prev,
@@ -29,7 +26,6 @@ export default function GridBuilder({ onClose }: Props) {
     }));
   };
 
-  // 👉 OPEN EDITOR
   if (selectedLayout) {
     return (
       <GridEditor
@@ -42,7 +38,7 @@ export default function GridBuilder({ onClose }: Props) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="flex items-center gap-3 p-3 border-b">
         <button onClick={onClose}>
@@ -63,9 +59,9 @@ export default function GridBuilder({ onClose }: Props) {
           ))}
         </div>
 
-        {/* Layout */}
+        {/* Layout select */}
         <div className="mt-4">
-          <GridLayoutSelector onSelect={(layout) => setSelectedLayout(layout)} />
+          <GridLayoutSelector onSelect={(layout: any) => setSelectedLayout(layout)} />
         </div>
       </div>
     </div>
