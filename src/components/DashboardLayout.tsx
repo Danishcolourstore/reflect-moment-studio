@@ -7,6 +7,7 @@ import { CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu, Layo
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { EntiranProvider } from "@/components/entiran/EntiranProvider";
+import { CreateEventModal } from "@/components/CreateEventModal";
 
 const SIDEBAR_WIDTH = 240;
 const HEADER_HEIGHT = 56;
@@ -43,25 +44,20 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
   const [profile, setProfile] = useState<Profile | null>(null);
   const [scrolled, setScrolled] = useState(false);
 
+  // GLOBAL CREATE MODAL STATE
+  const [createOpen, setCreateOpen] = useState(false);
+
   const isImmersiveMobile = isMobile && immersive;
 
-  // SCROLL STATE (lightweight)
   useEffect(() => {
     if (!isMobile) return;
 
-    const onScroll = () => {
-      if (window.scrollY > 40) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
+    const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll, { passive: true });
+
     return () => window.removeEventListener("scroll", onScroll);
   }, [isMobile]);
 
-  // PROFILE (fetch once)
   useEffect(() => {
     if (!user) return;
 
@@ -193,8 +189,17 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
           {children}
         </main>
 
-        {isMobile && <MobileBottomNav />}
+        {/* MOBILE NAV WITH CREATE */}
+        {isMobile && <MobileBottomNav onCreate={() => setCreateOpen(true)} />}
+
         <DrawerMenu open={drawer.open} onClose={drawer.close} />
+
+        {/* GLOBAL CREATE MODAL */}
+        <CreateEventModal
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          onCreated={(id) => navigate(`/dashboard/events/${id}`)}
+        />
       </div>
     </EntiranProvider>
   );
