@@ -1,4 +1,3 @@
-```typescript
 import { useEffect, useState } from "react";
 import { PageError } from "@/components/PageStates";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +16,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-
   const [upcomingCount, setUpcomingCount] = useState(0);
   const [liveCount, setLiveCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
@@ -177,14 +175,7 @@ const Dashboard = () => {
           ))}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 12,
-            marginBottom: 48,
-          }}
-        >
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 48 }}>
           {quickActions.map((btn) => (
             <button
               key={btn.label}
@@ -246,13 +237,7 @@ const Dashboard = () => {
               No events yet. Create your first event to get started.
             </p>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
-                gap: 16,
-              }}
-            >
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 16 }}>
               {recentEvents.map((evt: any) => (
                 <div
                   key={evt.id}
@@ -285,13 +270,7 @@ const Dashboard = () => {
                   >
                     {evt.name}
                   </p>
-                  <p
-                    style={{
-                      fontSize: 12,
-                      color: "#a8a29e",
-                      margin: "0 0 10px 0",
-                    }}
-                  >
+                  <p style={{ fontSize: 12, color: "#a8a29e", margin: "0 0 10px 0" }}>
                     {evt.event_date
                       ? new Date(evt.event_date).toLocaleDateString("en-US", {
                           month: "long",
@@ -329,6 +308,3 @@ const Dashboard = () => {
     </DashboardLayout>
   );
 };
-
-export default Dashboard;
-```
