@@ -84,14 +84,14 @@ export function MobileBottomNav() {
               </div>
               <span style={{
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 10,
-                letterSpacing: "0.12em",
+                fontSize: "0.55rem",
+                letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: active ? "#C8A97E" : "#94918B",
+                color: active ? "#C8A97E" : "hsl(35, 4%, 56%)",
                 fontWeight: active ? 500 : 400,
               }}>
-              {tab.title}
-            </span>
+                {tab.title}
+              </span>
             </button>
           );
         }
@@ -118,15 +118,15 @@ export function MobileBottomNav() {
             <Icon
               size={21}
               strokeWidth={1.5}
-              style={{ color: active ? "#C8A97E" : "#94918B" }}
+              style={{ color: active ? "#C8A97E" : "hsl(35, 4%, 56%)" }}
             />
             <span
               style={{
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 10,
-                letterSpacing: "0.12em",
+                fontSize: "0.55rem",
+                letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: active ? "#C8A97E" : "#94918B",
+                color: active ? "#C8A97E" : "hsl(35, 4%, 56%)",
                 fontWeight: active ? 500 : 400,
               }}
             >

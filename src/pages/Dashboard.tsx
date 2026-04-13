@@ -1,19 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { PageError } from "@/components/PageStates";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { CreateEventModal } from "@/components/CreateEventModal";
+import { Plus } from "lucide-react";
 import { useViewMode } from "@/lib/ViewModeContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 
-type Event = {
-  id: string;
-  name: string;
-  event_date: string;
-  photo_count: number;
-  status: string;
-};
+const CHAPTERS = ["All", "Baraat", "Mehndi", "Pheras", "Vidaai", "Reception"];
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -21,216 +16,216 @@ const Dashboard = () => {
   const { isMobile } = useViewMode();
 
   const [studioName, setStudioName] = useState("Studio");
+  const [allPhotos, setAllPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-
-  const [events, setEvents] = useState<Event[]>([]);
-
-  const greeting = useMemo(() => {
-    const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 17) return "Good afternoon";
-    return "Good evening";
-  }, []);
-
-  const today = useMemo(() => {
-    return new Date().toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  }, []);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+  const [activeChapter, setActiveChapter] = useState(0);
 
   useEffect(() => {
     if (!user) return;
-
     const load = async () => {
       setLoading(true);
       setError(false);
-
       try {
-        const [profileRes, eventsRes] = await Promise.all([
-          (supabase.from("profiles").select("studio_name") as any).eq("user_id", user.id).maybeSingle(),
+        const { data: profile } = await (supabase.from("profiles").select("studio_name") as any)
+          .eq("user_id", user.id).maybeSingle();
+        if (profile?.studio_name) setStudioName(profile.studio_name);
 
-          (supabase.from("events").select("id, name, event_date, photo_count, status") as any)
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false }),
-        ]);
+        const { data: events } = await (
+          supabase.from("events").select("id, name, slug, event_date, cover_url, photo_count, location") as any
+        ).eq("user_id", user.id).order("created_at", { ascending: false }).limit(20);
 
-        if (profileRes.data?.studio_name) {
-          setStudioName(profileRes.data.studio_name);
+        const evtIds = (events || []).map((e: any) => e.id);
+        if (evtIds.length > 0) {
+          const { data: photos } = await supabase
+            .from("photos").select("thumbnail_url, url").in("event_id", evtIds).limit(60);
+          const urls = (photos || []).map((p: any) => p.thumbnail_url || p.url).filter(Boolean);
+          setAllPhotos(urls);
         }
-
-        setEvents(eventsRes.data || []);
       } catch {
         setError(true);
       }
-
       setLoading(false);
     };
-
     load();
   }, [user]);
 
-  const stats = useMemo(() => {
-    const now = new Date();
+  if (error) return <PageError message="Something went wrong" onRetry={() => window.location.reload()} />;
 
-    const upcoming = events.filter((e) => new Date(e.event_date) > now).length;
-    const live = events.filter((e) => e.status === "live").length;
-    const pending = events.filter((e) => e.status === "pending").length;
-    const photos = events.reduce((sum, e) => sum + (e.photo_count || 0), 0);
+  /* ── Mobile: Light editorial gallery app ── */
+  if (isMobile) {
+    return (
+      <DashboardLayout>
+        <style>{`
+          @keyframes galleryFadeIn {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+          }
+        `}</style>
 
-    return [
-      { label: "Upcoming", value: upcoming },
-      { label: "Live", value: live },
-      { label: "Pending", value: pending },
-      { label: "Photos", value: photos },
-    ];
-  }, [events]);
-
-  const recentEvents = useMemo(() => events.slice(0, 3), [events]);
-
-  if (error) {
-    return <PageError message="Something went wrong" onRetry={() => window.location.reload()} />;
-  }
-
-  return (
-    <DashboardLayout>
-      <div
-        style={{
-          background: "#FDFCFB",
-          minHeight: "100vh",
-          padding: isMobile ? "20px 16px 88px" : "40px",
-          fontFamily: "'DM Sans', sans-serif",
-        }}
-      >
-        {/* HEADER */}
-        <div style={{ marginBottom: 28 }}>
-          <h1
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: isMobile ? 28 : 38,
-              fontWeight: 600,
-              color: "#1C1917",
-              margin: 0,
-              lineHeight: 1.1,
-            }}
-          >
-            {greeting}, {studioName}
+        {/* Header title area — generous breathing room */}
+        <div style={{ textAlign: "center", padding: "12px 0 24px" }}>
+          <h1 style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: "1.4rem",
+            fontWeight: 300,
+            letterSpacing: "0.25em",
+            textTransform: "uppercase",
+            color: "hsl(48, 7%, 10%)",
+            margin: 0,
+          }}>
+            {studioName}
           </h1>
-          <p style={{ fontSize: 12, color: "#A8A29E", marginTop: 6 }}>{today}</p>
+          <p style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: "0.65rem",
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "hsl(35, 4%, 56%)",
+            marginTop: 6,
+          }}>
+            Wedding Photography
+          </p>
         </div>
 
-        {/* STATS */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 12,
-            marginBottom: 24,
-          }}
-        >
-          {stats.map((card) => (
-            <div
-              key={card.label}
-              style={{
-                background: "#fff",
-                padding: 16,
+        {loading ? (
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(2, 1fr)",
+            gap: 8, padding: "0 16px",
+          }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} style={{
+                aspectRatio: "3/4", background: "hsl(40, 5%, 93%)",
                 borderRadius: 12,
+              }} />
+            ))}
+          </div>
+        ) : allPhotos.length === 0 ? (
+          <div style={{
+            display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", padding: "80px 24px",
+          }}>
+            <p style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 22, fontStyle: "italic", fontWeight: 300,
+              color: "hsl(35, 4%, 56%)",
+              textAlign: "center",
+            }}>
+              Your first gallery awaits
+            </p>
+            <button
+              onClick={() => setCreateOpen(true)}
+              style={{
+                marginTop: 24, height: 44, padding: "0 28px",
+                background: "#C8A97E", border: "none",
+                fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+                letterSpacing: "0.08em", textTransform: "uppercase",
+                color: "#fff", cursor: "pointer", borderRadius: 8,
               }}
             >
-              <p style={{ fontSize: 11, color: "#A8A29E", marginBottom: 6 }}>{card.label}</p>
-              <p style={{ fontSize: 24, fontWeight: 600 }}>{loading ? "—" : card.value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* PRIMARY ACTION */}
-        <button
-          onClick={() => setCreateOpen(true)}
-          style={{
-            width: "100%",
-            height: 52,
-            borderRadius: 12,
-            background: "#1C1917",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 500,
-            marginBottom: 16,
-          }}
-        >
-          New Event
-        </button>
-
-        {/* SECONDARY ACTIONS */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 32 }}>
-          <button
-            onClick={() => navigate("/dashboard/gallery")}
-            style={{
-              flex: 1,
-              height: 44,
-              borderRadius: 10,
-              background: "#fff",
-            }}
-          >
-            Upload
-          </button>
-
-          <button
-            onClick={() => navigate("/dashboard/cull")}
-            style={{
-              flex: 1,
-              height: 44,
-              borderRadius: 10,
-              background: "#fff",
-            }}
-          >
-            Cheetah
-          </button>
-        </div>
-
-        {/* RECENT EVENTS */}
-        <div>
-          <h2 style={{ fontSize: 16, marginBottom: 12 }}>Recent Events</h2>
-
-          {!loading && recentEvents.length === 0 && <div style={{ fontSize: 13, color: "#A8A29E" }}>No events yet</div>}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {recentEvents.map((evt) => (
+              Create Event
+            </button>
+          </div>
+        ) : (
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: 8,
+            padding: "0 16px",
+            paddingBottom: 24,
+          }}>
+            {allPhotos.map((url, i) => (
               <div
-                key={evt.id}
-                onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                key={i}
                 style={{
-                  background: "#fff",
-                  padding: 14,
+                  aspectRatio: "3/4",
+                  overflow: "hidden",
                   borderRadius: 12,
-                  cursor: "pointer",
+                  background: "hsl(40, 5%, 93%)",
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{evt.name}</div>
-
-                <div
+                <img
+                  src={url}
+                  alt=""
+                  loading={i < 6 ? "eager" : "lazy"}
+                  decoding="async"
                   style={{
-                    fontSize: 12,
-                    color: "#A8A29E",
-                    marginTop: 4,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                    animation: "galleryFadeIn 0.5s ease both",
+                    animationDelay: `${Math.min(i * 0.04, 0.3)}s`,
                   }}
-                >
-                  {new Date(evt.event_date).toLocaleDateString()}
-                </div>
+                />
               </div>
             ))}
           </div>
-        </div>
+        )}
+
+        <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
+      </DashboardLayout>
+    );
+  }
+
+  /* ── Desktop: Standard layout ── */
+  return (
+    <DashboardLayout>
+      <div style={{ marginBottom: 40 }}>
+        <h1 style={{
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontSize: 28, fontWeight: 300,
+          color: "hsl(48, 7%, 10%)",
+          margin: 0, letterSpacing: "0.02em",
+        }}>
+          {studioName}
+        </h1>
       </div>
 
-      <CreateEventModal
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onCreated={(id) => navigate(`/dashboard/events/${id}`)}
-      />
+      <div style={{ margin: "0 -40px" }}>
+        {loading ? (
+          <div style={{ columns: 3, columnGap: 6, padding: "0 40px" }}>
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} style={{ breakInside: "avoid", marginBottom: 6, height: 180 + (i % 3) * 60, background: "hsl(40, 5%, 93%)" }} />
+            ))}
+          </div>
+        ) : allPhotos.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "80px 24px" }}>
+            <p style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 22, fontStyle: "italic",
+              color: "hsl(37, 6%, 75%)", fontWeight: 300,
+            }}>
+              Your first gallery awaits
+            </p>
+          </div>
+        ) : (
+          <div style={{ columns: 3, columnGap: 6 }}>
+            {allPhotos.map((url, i) => (
+              <div key={i} style={{ breakInside: "avoid", marginBottom: 6, overflow: "hidden" }}>
+                <img src={url} alt="" style={{ width: "100%", display: "block" }} loading="lazy" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <button
+        onClick={() => setCreateOpen(true)}
+        style={{
+          position: "fixed", bottom: 32, right: 32,
+          width: 56, height: 56, borderRadius: "50%",
+          background: "#C8A97E", border: "none", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 4px 20px rgba(200,169,126,0.3)", zIndex: 50,
+        }}
+      >
+        <Plus style={{ width: 22, height: 22, color: "#0a0a0b" }} strokeWidth={2} />
+      </button>
+
+      <CreateEventModal open={createOpen} onOpenChange={setCreateOpen} onCreated={(id) => navigate(`/dashboard/events/${id}`)} />
     </DashboardLayout>
   );
 };
