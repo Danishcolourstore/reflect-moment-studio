@@ -155,7 +155,7 @@ export default function LandingGate() {
   /* ── Mobile: Fullscreen native gallery ── */
   if (mob) {
     return (
-      <div style={{ width: "100%", minHeight: "100dvh", background: "#0a0a0b", margin: 0, padding: 0, overflowX: "hidden" }}>
+      <div style={{ width: "100%", minHeight: "100dvh", background: "#FDFCFB", margin: 0, padding: 0, overflowX: "hidden" }}>
         <style>{`
           @keyframes lgFadeIn {
             from { opacity: 0; }
@@ -169,22 +169,23 @@ export default function LandingGate() {
           display: "flex", alignItems: "center", justifyContent: "space-between",
           height: 60, padding: "0 20px",
           paddingTop: "env(safe-area-inset-top)",
-          background: scrolled ? "rgba(10,10,11,0.85)" : "transparent",
+          background: scrolled ? "rgba(253,252,251,0.92)" : "#FDFCFB",
           backdropFilter: scrolled ? "blur(12px)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
-          transition: "background 0.3s ease, backdrop-filter 0.3s ease",
+          borderBottom: scrolled ? "1px solid #E8E6E1" : "1px solid transparent",
+          transition: "background 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease",
         }}>
           <button onClick={drawer.toggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
-            <Menu style={{ width: 24, height: 24, color: "rgba(255,255,255,0.9)" }} strokeWidth={2} />
+            <Menu style={{ width: 24, height: 24, color: "#1A1917" }} strokeWidth={2} />
           </button>
           <span style={{
             fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 600,
-            color: "#fff", letterSpacing: "0.18em", textTransform: "uppercase",
+            color: "#1A1917", letterSpacing: "0.18em", textTransform: "uppercase",
           }}>
             {profileName}
           </span>
           <button onClick={handleShare} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
-            <Share style={{ width: 20, height: 20, color: "rgba(255,255,255,0.7)" }} strokeWidth={2} />
+            <Share style={{ width: 20, height: 20, color: "#94918B" }} strokeWidth={2} />
           </button>
         </nav>
 

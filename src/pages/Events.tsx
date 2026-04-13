@@ -200,10 +200,11 @@ export default function Events() {
             </button>
           </div>
         ) : (
-          <div style={{
+        <div style={{
             display: "grid",
             gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
             gap: isMobile ? 16 : 40,
+            alignContent: "start",
           }}>
             {filteredEvents.map((evt) => {
               const status = getStatus(evt);
