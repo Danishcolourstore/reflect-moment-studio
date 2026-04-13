@@ -1,3 +1,4 @@
+```typescript
 import { useEffect, useState } from "react";
 import { PageError } from "@/components/PageStates";
 import { useNavigate } from "react-router-dom";
@@ -108,7 +109,7 @@ const Dashboard = () => {
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: isMobile ? 28 : 36,
               fontWeight: 400,
-              color: "#1a1a1a",
+              color: "#1c1917",
               margin: 0,
               letterSpacing: "0.01em",
             }}
@@ -119,8 +120,7 @@ const Dashboard = () => {
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 13,
-              color: "#1a1a1a",
-              opacity: 0.45,
+              color: "#a8a29e",
               marginTop: 6,
               marginBottom: 0,
             }}
@@ -144,8 +144,8 @@ const Dashboard = () => {
               style={{
                 background: "#fff",
                 border: "1px solid #e8e0d8",
-                borderRadius: 8,
-                padding: "20px 24px",
+                borderRadius: 4,
+                padding: isMobile ? "16px 16px" : "20px 24px",
               }}
             >
               <p
@@ -154,9 +154,11 @@ const Dashboard = () => {
                   fontSize: 11,
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
-                  color: "#1a1a1a",
-                  opacity: 0.45,
+                  color: "#a8a29e",
                   margin: "0 0 8px 0",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
                 {card.label}
@@ -164,9 +166,9 @@ const Dashboard = () => {
               <p
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 40,
+                  fontSize: isMobile ? 32 : 40,
                   fontWeight: 400,
-                  color: "#1a1a1a",
+                  color: "#1c1917",
                   margin: 0,
                   lineHeight: 1,
                 }}
@@ -201,6 +203,17 @@ const Dashboard = () => {
                 borderRadius: 4,
                 padding: "10px 20px",
                 cursor: "pointer",
+                transition: "all 0.2s ease",
+                flex: isMobile ? "1 1 auto" : "0 0 auto",
+                minWidth: isMobile ? "calc(50% - 6px)" : "auto",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#C8A97E";
+                e.currentTarget.style.color = "#FDFCFB";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "#C8A97E";
               }}
             >
               {btn.label}
@@ -215,7 +228,7 @@ const Dashboard = () => {
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: 22,
               fontWeight: 400,
-              color: "#1a1a1a",
+              color: "#1c1917",
               margin: "0 0 20px 0",
             }}
           >
@@ -223,14 +236,14 @@ const Dashboard = () => {
           </h2>
 
           {loading ? (
-            <p style={{ opacity: 0.4, fontSize: 14 }}>Loading...</p>
+            <p style={{ opacity: 0.4, fontSize: 14, color: "#a8a29e" }}>Loading...</p>
           ) : recentEvents.length === 0 ? (
             <p
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: 18,
                 fontStyle: "italic",
-                color: "#aaa",
+                color: "#a8a29e",
                 fontWeight: 300,
               }}
             >
@@ -251,9 +264,18 @@ const Dashboard = () => {
                   style={{
                     background: "#fff",
                     border: "1px solid #e8e0d8",
-                    borderRadius: 8,
+                    borderRadius: 4,
                     padding: "20px 24px",
                     cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
+                    e.currentTarget.style.borderColor = "#C8A97E";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = "none";
+                    e.currentTarget.style.borderColor = "#e8e0d8";
                   }}
                 >
                   <p
@@ -261,7 +283,7 @@ const Dashboard = () => {
                       fontFamily: "'Cormorant Garamond', serif",
                       fontSize: 20,
                       fontWeight: 400,
-                      color: "#1a1a1a",
+                      color: "#1c1917",
                       margin: "0 0 6px 0",
                     }}
                   >
@@ -270,7 +292,7 @@ const Dashboard = () => {
                   <p
                     style={{
                       fontSize: 12,
-                      color: "#888",
+                      color: "#a8a29e",
                       margin: "0 0 10px 0",
                     }}
                   >
@@ -283,7 +305,7 @@ const Dashboard = () => {
                       : "—"}
                   </p>
                   <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                    <span style={{ fontSize: 12, color: "#888" }}>{evt.photo_count || 0} photos</span>
+                    <span style={{ fontSize: 12, color: "#a8a29e" }}>{evt.photo_count || 0} photos</span>
                     <span
                       style={{
                         fontSize: 11,
@@ -313,3 +335,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+```
