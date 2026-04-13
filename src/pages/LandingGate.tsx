@@ -155,7 +155,7 @@ export default function LandingGate() {
   /* ── Mobile: Fullscreen native gallery ── */
   if (mob) {
     return (
-      <div style={{ width: "100%", minHeight: "100dvh", background: "#0a0a0b", margin: 0, padding: 0, overflowX: "hidden" }}>
+      <div style={{ width: "100%", minHeight: "100dvh", background: "#FDFCFB", margin: 0, padding: 0, overflowX: "hidden" }}>
         <style>{`
           @keyframes lgFadeIn {
             from { opacity: 0; }
