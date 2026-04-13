@@ -79,15 +79,19 @@ const Dashboard = () => {
   ];
 
   const quickActions = [
-    { label: "+ New Event", action: () => setCreateOpen(true) },
-    { label: "↑ Upload Photos", action: () => navigate("/dashboard/gallery") },
-    { label: "◎ Cull with Cheetah", action: () => navigate("/dashboard/cull") },
+    { label: "New Event", action: () => setCreateOpen(true) },
+    { label: "Upload Photos", action: () => navigate("/dashboard/gallery") },
+    { label: "Cull with Cheetah", action: () => navigate("/dashboard/cull") },
   ];
 
   const statusColor = (status: string) => {
     if (status === "live") return "#C8A97E";
-    if (status === "archived") return "#aaa";
-    return "#888";
+    return "#A8A29E";
+  };
+
+  const statusBg = (status: string) => {
+    if (status === "live") return "rgba(200,169,126,0.10)";
+    return "rgba(168,162,158,0.10)";
   };
 
   return (
@@ -96,34 +100,25 @@ const Dashboard = () => {
         style={{
           background: "#FDFCFB",
           minHeight: "100vh",
-          padding: isMobile ? "24px 20px" : "40px 40px",
+          padding: isMobile ? "24px 20px 88px 20px" : "48px",
           fontFamily: "'DM Sans', sans-serif",
         }}
       >
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 36 }}>
           <h1
             style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: isMobile ? 28 : 36,
-              fontWeight: 400,
-              color: "#1c1917",
+              fontSize: isMobile ? 30 : 40,
+              fontWeight: 600,
+              color: "#1C1917",
               margin: 0,
-              letterSpacing: "0.01em",
+              letterSpacing: "-0.01em",
+              lineHeight: 1.1,
             }}
           >
             {greeting()}, {studioName}
           </h1>
-          <p
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 13,
-              color: "#a8a29e",
-              marginTop: 6,
-              marginBottom: 0,
-            }}
-          >
-            {today}
-          </p>
+          <p style={{ fontSize: 13, color: "#A8A29E", marginTop: 8 }}>{today}</p>
         </div>
 
         <div
@@ -135,164 +130,31 @@ const Dashboard = () => {
           }}
         >
           {statCards.map((card) => (
-            <div
-              key={card.label}
-              style={{
-                background: "#fff",
-                border: "1px solid #e8e0d8",
-                borderRadius: 4,
-                padding: isMobile ? "16px 16px" : "20px 24px",
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 11,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "#a8a29e",
-                  margin: "0 0 8px 0",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {card.label}
-              </p>
-              <p
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: isMobile ? 32 : 40,
-                  fontWeight: 400,
-                  color: "#1c1917",
-                  margin: 0,
-                  lineHeight: 1,
-                }}
-              >
-                {loading ? "—" : card.value}
-              </p>
+            <div key={card.label} style={{ background: "#fff", padding: 20 }}>
+              <p style={{ fontSize: 10, color: "#A8A29E" }}>{card.label}</p>
+              <p style={{ fontSize: 32 }}>{loading ? "—" : card.value}</p>
             </div>
           ))}
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 48 }}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 48 }}>
           {quickActions.map((btn) => (
-            <button
-              key={btn.label}
-              onClick={btn.action}
-              style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "#C8A97E",
-                background: "transparent",
-                border: "1px solid #C8A97E",
-                borderRadius: 4,
-                padding: "10px 20px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                flex: isMobile ? "1 1 auto" : "0 0 auto",
-                minWidth: isMobile ? "calc(50% - 6px)" : "auto",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#C8A97E";
-                e.currentTarget.style.color = "#FDFCFB";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#C8A97E";
-              }}
-            >
+            <button key={btn.label} onClick={btn.action}>
               {btn.label}
             </button>
           ))}
         </div>
 
         <div>
-          <h2
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 22,
-              fontWeight: 400,
-              color: "#1c1917",
-              margin: "0 0 20px 0",
-            }}
-          >
-            Recent Events
-          </h2>
+          <h2>Recent Events</h2>
 
-          {loading ? (
-            <p style={{ opacity: 0.4, fontSize: 14, color: "#a8a29e" }}>Loading...</p>
-          ) : recentEvents.length === 0 ? (
-            <p
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: 18,
-                fontStyle: "italic",
-                color: "#a8a29e",
-                fontWeight: 300,
-              }}
-            >
-              No events yet. Create your first event to get started.
-            </p>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 16 }}>
+          {!loading && recentEvents.length === 0 && <div>No events yet</div>}
+
+          {!loading && recentEvents.length > 0 && (
+            <div>
               {recentEvents.map((evt: any) => (
-                <div
-                  key={evt.id}
-                  onClick={() => navigate(`/dashboard/events/${evt.id}`)}
-                  style={{
-                    background: "#fff",
-                    border: "1px solid #e8e0d8",
-                    borderRadius: 4,
-                    padding: "20px 24px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
-                    e.currentTarget.style.borderColor = "#C8A97E";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = "none";
-                    e.currentTarget.style.borderColor = "#e8e0d8";
-                  }}
-                >
-                  <p
-                    style={{
-                      fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: 20,
-                      fontWeight: 400,
-                      color: "#1c1917",
-                      margin: "0 0 6px 0",
-                    }}
-                  >
-                    {evt.name}
-                  </p>
-                  <p style={{ fontSize: 12, color: "#a8a29e", margin: "0 0 10px 0" }}>
-                    {evt.event_date
-                      ? new Date(evt.event_date).toLocaleDateString("en-US", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "—"}
-                  </p>
-                  <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                    <span style={{ fontSize: 12, color: "#a8a29e" }}>{evt.photo_count || 0} photos</span>
-                    <span
-                      style={{
-                        fontSize: 11,
-                        letterSpacing: "0.1em",
-                        textTransform: "uppercase",
-                        color: statusColor(evt.status),
-                        fontWeight: 500,
-                      }}
-                    >
-                      {evt.status || "—"}
-                    </span>
-                  </div>
+                <div key={evt.id}>
+                  <p>{evt.name}</p>
                 </div>
               ))}
             </div>
@@ -308,3 +170,5 @@ const Dashboard = () => {
     </DashboardLayout>
   );
 };
+
+export default Dashboard;
