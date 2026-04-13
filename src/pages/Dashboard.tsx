@@ -102,7 +102,6 @@ const Dashboard = () => {
           fontFamily: "'DM Sans', sans-serif",
         }}
       >
-        {/* ── GREETING ── */}
         <div style={{ marginBottom: 32 }}>
           <h1
             style={{
@@ -129,7 +128,6 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* ── STAT CARDS ── */}
         <div
           style={{
             display: "grid",
@@ -179,7 +177,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* ── QUICK ACTIONS ── */}
         <div
           style={{
             display: "flex",
@@ -221,7 +218,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* ── RECENT EVENTS ── */}
         <div>
           <h2
             style={{
