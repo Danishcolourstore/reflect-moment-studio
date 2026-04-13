@@ -6,7 +6,7 @@ const TABS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
   { title: "Gallery", url: "/home", icon: Image, center: true },
   { title: "Grid", url: "/builder-test", icon: Grid3X3 },
-  { title: "Album", url: "/dashboard/albums", icon: BookOpen },
+  { title: "Album", url: "/dashboard/album-designer", icon: BookOpen },
 ];
 
 export function MobileBottomNav() {
