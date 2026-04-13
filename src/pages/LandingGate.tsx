@@ -1,24 +1,19 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import CreateFeedPostModal from "@/components/CreateFeedPostModal";
-import EditFeedPostModal from "@/components/EditFeedPostModal";
-import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { Menu, Share, Plus, X } from "lucide-react";
+import { Menu, Plus, Upload, Scissors, CalendarDays, Radio, Clock, Image } from "lucide-react";
+import { format } from "date-fns";
 
-interface FeedPost {
+interface EventRow {
   id: string;
-  title: string;
-  caption: string | null;
-  content: string | null;
-  imageUrl: string | null;
-  location: string | null;
-  contentType: "post" | "blog";
-  galleryImages: string[];
-  date: string;
+  name: string;
+  date: string | null;
+  status: string;
+  created_at: string;
+  photo_count?: number;
 }
 
 export default function LandingGate() {
@@ -26,24 +21,11 @@ export default function LandingGate() {
   const { user } = useAuth();
   const drawer = useDrawerMenu();
 
-  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
-  const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
-  const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState("Studio");
-  const [feedSlug, setFeedSlug] = useState<string | null>(null);
+  const [events, setEvents] = useState<EventRow[]>([]);
+  const [totalPhotos, setTotalPhotos] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
-
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editPost, setEditPost] = useState<FeedPost | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
-  const [readingPost, setReadingPost] = useState<FeedPost | null>(null);
-
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIdx, setLightboxIdx] = useState(0);
-
-  // Scroll-based header
-  const [scrolled, setScrolled] = useState(false);
-  const [heroLoaded, setHeroLoaded] = useState(false);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -51,377 +33,294 @@ export default function LandingGate() {
     return () => window.removeEventListener("resize", h);
   }, []);
 
-  useEffect(() => {
-    if (!mob) return;
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [mob]);
-
   const loadData = useCallback(async () => {
     if (!user) { setLoading(false); return; }
     setLoading(true);
 
-    const { data: prof } = await (supabase.from("profiles").select("studio_name, username") as any)
+    const { data: prof } = await (supabase.from("profiles").select("studio_name") as any)
       .eq("user_id", user.id).maybeSingle();
     if (prof?.studio_name) setProfileName(prof.studio_name);
-    let slug = prof?.username || null;
-    if (!slug) {
-      const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
-        .eq("user_id", user.id).maybeSingle();
-      slug = dom?.subdomain || null;
-    }
-    setFeedSlug(slug);
 
-    const { data: postsData } = await (supabase.from("feed_posts")
-      .select("id, title, caption, content, image_url, location, content_type, gallery_images, created_at")
+    const { data: eventsData } = await supabase
+      .from("events")
+      .select("id, name, date, status, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(50) as any);
+      .limit(50);
 
-    const posts: FeedPost[] = (postsData || []).map((p: any) => ({
-      id: p.id, title: p.title, caption: p.caption, content: p.content,
-      imageUrl: p.image_url, location: p.location,
-      contentType: p.content_type || "post", galleryImages: p.gallery_images || [],
-      date: p.created_at,
+    const evts: EventRow[] = (eventsData || []).map((e: any) => ({
+      id: e.id, name: e.name, date: e.date, status: e.status || "draft", created_at: e.created_at,
     }));
-    setFeedPosts(posts);
 
-    const { data: events } = await supabase
-      .from("events").select("id, cover_url")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false }).limit(30);
-
-    const evtIds = (events || []).map((e: any) => e.id);
-    const allPhotos: { id: string; url: string }[] = [];
-    const seenUrls = new Set<string>();
-
-    for (const evt of events || []) {
-      if (evt.cover_url && !seenUrls.has(evt.cover_url)) {
-        allPhotos.push({ id: `cover-${evt.id}`, url: evt.cover_url });
-        seenUrls.add(evt.cover_url);
-      }
-    }
+    // Get photo counts per event
+    const evtIds = evts.map(e => e.id);
     if (evtIds.length > 0) {
-      const { data: photoData } = await supabase
-        .from("photos").select("id, url")
-        .in("event_id", evtIds)
-        .order("created_at", { ascending: false }).limit(100);
-      for (const p of photoData || []) {
-        if (p.url && !seenUrls.has(p.url)) {
-          allPhotos.push({ id: p.id, url: p.url });
-          seenUrls.add(p.url);
-        }
-      }
+      const { count } = await supabase
+        .from("photos")
+        .select("id", { count: "exact", head: true })
+        .in("event_id", evtIds);
+      setTotalPhotos(count || 0);
     }
-    setPhotos(allPhotos);
+
+    setEvents(evts);
     setLoading(false);
   }, [user]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const openLightbox = (idx: number) => { setLightboxIdx(idx); setLightboxOpen(true); };
-  const closeLightbox = () => setLightboxOpen(false);
+  const now = new Date();
+  const greeting = now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening";
+  const todayStr = format(now, "EEEE, MMMM d, yyyy");
 
-  useEffect(() => {
-    if (!lightboxOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowRight" && lightboxIdx < photos.length - 1) setLightboxIdx(i => i + 1);
-      if (e.key === "ArrowLeft" && lightboxIdx > 0) setLightboxIdx(i => i - 1);
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [lightboxOpen, lightboxIdx, photos.length]);
+  const upcomingCount = events.filter(e => e.date && new Date(e.date) > now).length;
+  const liveCount = events.filter(e => e.status === "published" || e.status === "live").length;
+  const pendingCount = events.filter(e => e.status === "draft" || e.status === "pending").length;
+  const recentEvents = events.slice(0, 3);
 
-  const handleShare = async () => {
-    const feedUrl = feedSlug ? `${window.location.origin}/feed/${feedSlug}` : window.location.origin;
-    if (navigator.share) {
-      try { await navigator.share({ title: profileName, url: feedUrl }); } catch {}
-    } else {
-      await navigator.clipboard.writeText(feedUrl);
-      toast.success("Link copied");
-    }
+  const stats = [
+    { label: "Upcoming Events", value: upcomingCount, icon: <CalendarDays size={18} strokeWidth={1.5} /> },
+    { label: "Live Events", value: liveCount, icon: <Radio size={18} strokeWidth={1.5} /> },
+    { label: "Pending Delivery", value: pendingCount, icon: <Clock size={18} strokeWidth={1.5} /> },
+    { label: "Total Photos", value: totalPhotos, icon: <Image size={18} strokeWidth={1.5} /> },
+  ];
+
+  const quickActions = [
+    { label: "New Event", icon: <Plus size={16} strokeWidth={2} />, url: "/dashboard/events" },
+    { label: "Upload Photos", icon: <Upload size={16} strokeWidth={2} />, url: "/dashboard/gallery" },
+    { label: "Cull with Cheetah", icon: <Scissors size={16} strokeWidth={2} />, url: "/dashboard/cheetah-live" },
+  ];
+
+  const getStatusColor = (status: string) => {
+    if (status === "published" || status === "live") return "#C8A97E";
+    return "#94918B";
   };
 
-  // Blog reader overlay
-  if (readingPost) {
-    return <BlogReader post={readingPost} onClose={() => setReadingPost(null)} />;
-  }
+  const getStatusLabel = (status: string) => {
+    if (status === "published" || status === "live") return "LIVE";
+    return "ARCHIVED";
+  };
 
-  const hasContent = photos.length > 0 || feedPosts.length > 0;
-  const gridPhotos = photos;
-
-  /* ── Mobile: Fullscreen native gallery ── */
-  if (mob) {
-    return (
-      <div style={{ width: "100%", minHeight: "100dvh", background: "#FDFCFB", margin: 0, padding: 0, overflowX: "hidden" }}>
-        <style>{`
-          @keyframes lgFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-        `}</style>
-
-        {/* Bold overlay header */}
-        <nav style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          height: 60, padding: "0 20px",
-          paddingTop: "env(safe-area-inset-top)",
-          background: scrolled ? "rgba(253,252,251,0.92)" : "#FDFCFB",
-          backdropFilter: scrolled ? "blur(12px)" : "none",
-          WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
-          borderBottom: scrolled ? "1px solid #E8E6E1" : "1px solid transparent",
-          transition: "background 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease",
+  const content = (
+    <>
+      {/* Greeting */}
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: mob ? 28 : 36,
+          fontWeight: 400,
+          color: "#1a1a1a",
+          margin: 0,
+          lineHeight: 1.2,
         }}>
-          <button onClick={drawer.toggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
-            <Menu style={{ width: 24, height: 24, color: "#1A1917" }} strokeWidth={2} />
-          </button>
-          <span style={{
-            fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 600,
-            color: "#1A1917", letterSpacing: "0.18em", textTransform: "uppercase",
-          }}>
-            {profileName}
-          </span>
-          <button onClick={handleShare} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
-            <Share style={{ width: 20, height: 20, color: "#94918B" }} strokeWidth={2} />
-          </button>
-        </nav>
-
-        {loading ? (
-          <>
-            <div style={{ width: "100%", height: "100svh", background: "#141414" }} />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 2 }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} style={{ aspectRatio: "3/4", background: "#141414" }} />
-              ))}
-            </div>
-          </>
-        ) : !hasContent ? (
-          <div style={{
-            minHeight: "100dvh", display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", padding: "0 24px",
-          }}>
-            <p style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 22, fontStyle: "italic", fontWeight: 300,
-              color: "rgba(255,255,255,0.3)", textAlign: "center",
-            }}>
-              Your first gallery awaits
-            </p>
-            <button
-              onClick={() => setCreateOpen(true)}
-              style={{
-                marginTop: 24, height: 44, padding: "0 28px",
-                background: "#C8A97E", border: "none",
-                fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-                letterSpacing: "0.08em", textTransform: "uppercase",
-                color: "#0a0a0b", cursor: "pointer",
-              }}
-            >
-              Create Event
-            </button>
-          </div>
-        ) : (
-          <div style={{ paddingBottom: 72, paddingTop: 72 }}>
-
-            {/* Masonry grid */}
-            <div style={{
-              columns: 3,
-              columnGap: 0,
-              padding: 0,
-            }}>
-              {gridPhotos.map((photo, i) => (
-                <div
-                  key={photo.id}
-                  onClick={() => openLightbox(i + 1)}
-                  style={{
-                    breakInside: "avoid",
-                    marginBottom: 0,
-                    overflow: "hidden",
-                    cursor: "pointer",
-                  }}
-                >
-                  <img
-                    src={photo.url}
-                    alt=""
-                    loading={i < 9 ? "eager" : "lazy"}
-                    decoding="async"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      animation: "lgFadeIn 0.4s ease both",
-                      animationDelay: `${Math.min(i * 0.04, 0.3)}s`,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Lightbox */}
-        {lightboxOpen && photos[lightboxIdx] && (
-          <div
-            onClick={(e) => { if (e.target === e.currentTarget) closeLightbox(); }}
-            style={{ position: "fixed", inset: 0, background: "#0A0A0A", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}
-          >
-            <button onClick={closeLightbox}
-              style={{ position: "fixed", top: 16, right: 16, zIndex: 310, background: "none", border: "none", cursor: "pointer", padding: 10, minWidth: 44, minHeight: 44 }}>
-              <X style={{ width: 18, height: 18, color: "rgba(255,255,255,0.25)" }} />
-            </button>
-            <img src={photos[lightboxIdx].url} alt="" style={{ maxHeight: "100vh", maxWidth: "100vw", objectFit: "contain" }} />
-            <span style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.2)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.1em" }}>
-              {lightboxIdx + 1} / {photos.length}
-            </span>
-          </div>
-        )}
-
-        <DrawerMenu open={drawer.open} onClose={drawer.close} />
-        <MobileBottomNav />
-        <CreateFeedPostModal open={createOpen} onOpenChange={setCreateOpen} onCreated={() => loadData()} />
-        {editPost && (
-          <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
-        )}
+          {greeting}, {profileName}
+        </h1>
+        <p style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: 13,
+          color: "rgba(26,26,26,0.5)",
+          marginTop: 6,
+        }}>
+          {todayStr}
+        </p>
       </div>
-    );
-  }
 
-  /* ── Desktop: Standard editorial layout ── */
-  return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "hsl(45, 14%, 97%)" }}>
-      <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        height: 48, padding: "0 16px",
-        background: "hsla(45, 14%, 97%, 0.85)",
-        backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+      {/* Stat Cards */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: mob ? "repeat(2, 1fr)" : "repeat(4, 1fr)",
+        gap: 12,
+        marginBottom: 32,
       }}>
-        <button onClick={drawer.toggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center" }}>
-          <Menu style={{ width: 18, height: 18, color: "hsl(48, 7%, 10%)" }} strokeWidth={1.5} />
-        </button>
-        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, fontWeight: 400, fontStyle: "italic", color: "hsl(35, 4%, 56%)", letterSpacing: "0.04em" }}>
-          {profileName}
-        </span>
-        <button onClick={handleShare} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center" }}>
-          <Share style={{ width: 16, height: 16, color: "hsl(35, 4%, 56%)" }} strokeWidth={1.5} />
-        </button>
-      </nav>
-
-      <div style={{ paddingTop: 48, paddingBottom: 80 }}>
-        {loading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
-            <div style={{ width: "100%", aspectRatio: "3/2", background: "hsl(40, 5%, 93%)" }} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-              <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
-              <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
+        {stats.map((s) => (
+          <div key={s.label} style={{
+            background: "#ffffff",
+            border: "1px solid #e8e0d8",
+            borderRadius: 8,
+            padding: "20px 24px",
+          }}>
+            <div style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 11,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase" as const,
+              color: "rgba(26,26,26,0.5)",
+              marginBottom: 12,
+            }}>
+              {s.label}
+            </div>
+            <div style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 40,
+              fontWeight: 400,
+              color: "#1a1a1a",
+              lineHeight: 1,
+            }}>
+              {loading ? "—" : s.value}
             </div>
           </div>
-        ) : !hasContent ? (
-          <div style={{ textAlign: "center", padding: "120px 24px" }}>
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontStyle: "italic", color: "hsl(37, 6%, 75%)", fontWeight: 300 }}>
-              Your first gallery awaits
-            </p>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div style={{
+        display: "flex",
+        gap: 12,
+        marginBottom: 40,
+        flexWrap: "wrap" as const,
+      }}>
+        {quickActions.map((a) => (
+          <button
+            key={a.label}
+            onClick={() => navigate(a.url)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 20px",
+              border: "1px solid #C8A97E",
+              borderRadius: 4,
+              background: "transparent",
+              color: "#C8A97E",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase" as const,
+              cursor: "pointer",
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(200,169,126,0.08)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            {a.icon}
+            {a.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Recent Events */}
+      <div>
+        <h2 style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: 22,
+          fontWeight: 400,
+          color: "#1a1a1a",
+          margin: "0 0 16px 0",
+        }}>
+          Recent Events
+        </h2>
+
+        {loading ? (
+          <div style={{ display: "flex", gap: 16 }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{ flex: 1, height: 100, background: "#f0ede8", borderRadius: 8 }} />
+            ))}
           </div>
+        ) : recentEvents.length === 0 ? (
+          <p style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 13,
+            color: "rgba(26,26,26,0.4)",
+          }}>
+            No events yet. Create your first event to get started.
+          </p>
         ) : (
-          <div style={{ columns: 3, columnGap: 6 }}>
-            {photos.map((photo, i) => (
-              <div key={photo.id} style={{ breakInside: "avoid", marginBottom: 6, overflow: "hidden", cursor: "pointer" }} onClick={() => openLightbox(i)}>
-                <img src={photo.url} alt="" style={{ width: "100%", display: "block" }} loading="lazy" />
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: mob ? "1fr" : "repeat(3, 1fr)",
+            gap: 12,
+          }}>
+            {recentEvents.map((evt) => (
+              <div
+                key={evt.id}
+                onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #e8e0d8",
+                  borderRadius: 8,
+                  padding: "20px 24px",
+                  cursor: "pointer",
+                  transition: "border-color 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#C8A97E")}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#e8e0d8")}
+              >
+                <div style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: 18,
+                  fontWeight: 400,
+                  color: "#1a1a1a",
+                  marginBottom: 8,
+                }}>
+                  {evt.name}
+                </div>
+                <div style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 11,
+                  color: "rgba(26,26,26,0.45)",
+                  letterSpacing: "0.05em",
+                  marginBottom: 10,
+                }}>
+                  {evt.date ? format(new Date(evt.date), "MMM d, yyyy") : "No date set"}
+                </div>
+                <span style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 10,
+                  fontWeight: 500,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: getStatusColor(evt.status),
+                }}>
+                  {getStatusLabel(evt.status)}
+                </span>
               </div>
             ))}
           </div>
         )}
       </div>
-
-      {/* Lightbox */}
-      {lightboxOpen && photos[lightboxIdx] && (
-        <div
-          onClick={(e) => { if (e.target === e.currentTarget) closeLightbox(); }}
-          style={{ position: "fixed", inset: 0, background: "#050505", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}
-        >
-          <button onClick={closeLightbox}
-            style={{ position: "fixed", top: 16, right: 16, zIndex: 310, background: "none", border: "none", cursor: "pointer", padding: 10 }}>
-            <X style={{ width: 18, height: 18, color: "rgba(255,255,255,0.3)" }} />
-          </button>
-          <img src={photos[lightboxIdx].url} alt="" style={{ maxHeight: "96vh", maxWidth: "96vw", objectFit: "contain" }} />
-          <span style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.25)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.1em" }}>
-            {lightboxIdx + 1} / {photos.length}
-          </span>
-        </div>
-      )}
-
-      {/* FAB — desktop only */}
-      <button
-        onClick={() => setCreateOpen(true)}
-        style={{
-          position: "fixed", bottom: 32, right: 32,
-          width: 56, height: 56, borderRadius: "50%",
-          background: "#C8A97E", border: "none", cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 20px rgba(200,169,126,0.3)", zIndex: 50,
-        }}
-      >
-        <Plus style={{ width: 22, height: 22, color: "#0a0a0b" }} strokeWidth={2} />
-      </button>
-
-      <DrawerMenu open={drawer.open} onClose={drawer.close} />
-      <MobileBottomNav />
-      <CreateFeedPostModal open={createOpen} onOpenChange={setCreateOpen} onCreated={() => loadData()} />
-      {editPost && (
-        <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
-      )}
-    </div>
+    </>
   );
-}
 
-/* Blog reader overlay */
-function BlogReader({ post, onClose }: { post: FeedPost; onClose: () => void }) {
-  const dateStr = new Date(post.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-  const paragraphs = (post.content || "").split("\n").filter(Boolean);
+  /* ── Mobile ── */
+  if (mob) {
+    return (
+      <div style={{ width: "100%", minHeight: "100dvh", background: "#FDFCFB", margin: 0, padding: 0, overflowX: "hidden" }}>
+        <nav style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          height: 60, padding: "0 20px",
+          paddingTop: "env(safe-area-inset-top)",
+          background: "#FDFCFB",
+          borderBottom: "1px solid #E8E6E1",
+        }}>
+          <button onClick={drawer.toggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
+            <Menu style={{ width: 24, height: 24, color: "#1A1917" }} strokeWidth={2} />
+          </button>
+          <span style={{
+            fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 600,
+            color: "#1A1917", letterSpacing: "0.18em", textTransform: "uppercase",
+          }}>
+            Mirror AI
+          </span>
+          <div style={{ width: 44, minHeight: 44 }} />
+        </nav>
 
+        <div style={{ padding: "84px 20px 88px" }}>
+          {content}
+        </div>
+
+        <DrawerMenu open={drawer.open} onClose={drawer.close} />
+        <MobileBottomNav />
+      </div>
+    );
+  }
+
+  /* ── Desktop: uses DashboardLayout sidebar ── */
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "hsl(45, 14%, 97%)", overflowY: "auto" }}>
-      <div style={{
-        position: "sticky", top: 0, zIndex: 10, background: "hsla(45, 14%, 97%, 0.9)",
-        backdropFilter: "blur(12px)", padding: "12px 16px",
-        display: "flex", alignItems: "center",
-      }}>
-        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(35, 4%, 56%)", display: "flex", alignItems: "center", gap: 6 }}>
-          ← Back
-        </button>
+    <div style={{ width: "100%", minHeight: "100vh", background: "#FDFCFB" }}>
+      <div style={{ padding: 32, maxWidth: 1100 }}>
+        {content}
       </div>
-
-      {post.imageUrl && (
-        <img src={post.imageUrl} alt={post.title} style={{ width: "100%", height: "auto", maxHeight: "60vh", objectFit: "cover", display: "block" }} />
-      )}
-
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 20px 80px" }}>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "hsl(35, 4%, 56%)", marginBottom: 12, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-          {dateStr}{post.location ? ` · ${post.location}` : ""}
-        </p>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 300, color: "hsl(48, 7%, 10%)", lineHeight: 1.25, marginBottom: 16 }}>
-          {post.title}
-        </h1>
-        {post.caption && (
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "hsl(35, 4%, 56%)", fontStyle: "italic", lineHeight: 1.6, marginBottom: 28, borderLeft: "2px solid hsl(37, 10%, 90%)", paddingLeft: 16 }}>
-            {post.caption}
-          </p>
-        )}
-        {paragraphs.map((para, i) => (
-          <p key={i} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "hsl(48, 7%, 20%)", lineHeight: 1.9, marginBottom: 20 }}>
-            {para}
-          </p>
-        ))}
-        {post.galleryImages.length > 0 && (
-          <div style={{ margin: "32px 0" }}>
-            {post.galleryImages.map((url, i) => (
-              <img key={i} src={url} alt="" loading="lazy" style={{ width: "100%", display: "block", marginBottom: 6 }} />
-            ))}
-          </div>
-        )}
-      </div>
+      <DrawerMenu open={drawer.open} onClose={drawer.close} />
     </div>
   );
 }
