@@ -63,15 +63,25 @@ export default function Events() {
   });
 
   const getStatus = (evt: EventItem) => {
-    if (evt.is_published) return "LIVE";
-    if (evt.photo_count === 0) return "DRAFT";
-    return "IN PROGRESS";
+    if (evt.is_published) return "Live";
+    if (evt.photo_count === 0) return "Draft";
+    return "In Progress";
   };
 
-  const getStatusColor = (status: string) => {
-    if (status === "LIVE") return "#C8A97E";
-    if (status === "DRAFT") return "hsl(35, 4%, 56%)";
-    return "hsl(48, 7%, 10%)";
+  const getStatusStyle = (status: string): React.CSSProperties => {
+    const base: React.CSSProperties = {
+      display: "inline-block",
+      fontSize: 10,
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      fontFamily: "'DM Sans', sans-serif",
+      fontWeight: 500,
+      padding: "3px 10px",
+      borderRadius: 20,
+    };
+    if (status === "Live") return { ...base, background: "#f0ebe3", color: "#C8A97E" };
+    if (status === "Draft") return { ...base, background: "#f5f5f5", color: "#999" };
+    return { ...base, background: "#f0f0f0", color: "#666" };
   };
 
   return (
@@ -80,44 +90,63 @@ export default function Events() {
         style={{
           background: "#FDFCFB",
           minHeight: "100vh",
-          padding: isMobile ? "24px 20px 120px 20px" : "40px 40px",
+          padding: isMobile ? "32px 20px 120px 20px" : "48px 48px",
+          fontFamily: "'DM Sans', sans-serif",
         }}
       >
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          {/* Header */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: 32,
+              marginBottom: 40,
             }}
           >
-            <h1
-              style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
-                fontSize: isMobile ? 28 : 32,
-                fontWeight: 300,
-                color: "hsl(48, 7%, 10%)",
-                margin: 0,
-                letterSpacing: "0.02em",
-              }}
-            >
-              Events
-            </h1>
+            <div>
+              <h1
+                style={{
+                  fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  fontSize: isMobile ? 30 : 34,
+                  fontWeight: 400,
+                  color: "#1c1917",
+                  margin: 0,
+                  letterSpacing: "0.01em",
+                  lineHeight: 1.2,
+                }}
+              >
+                Events
+              </h1>
+              <p
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 13,
+                  color: "#a8a29e",
+                  margin: "4px 0 0 0",
+                }}
+              >
+                {events.length} {events.length === 1 ? "event" : "events"}
+              </p>
+            </div>
             {!isMobile && (
               <button
                 onClick={() => setCreateOpen(true)}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#b8956a")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#C8A97E")}
                 style={{
                   background: "#C8A97E",
                   color: "#fff",
                   border: "none",
-                  padding: "12px 24px",
+                  padding: "13px 28px",
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 12,
-                  letterSpacing: "0.1em",
+                  letterSpacing: "0.12em",
                   textTransform: "uppercase",
                   cursor: "pointer",
-                  borderRadius: 4,
+                  borderRadius: 6,
+                  fontWeight: 500,
+                  transition: "background 0.2s",
                 }}
               >
                 + New Event
@@ -125,12 +154,13 @@ export default function Events() {
             )}
           </div>
 
+          {/* Filter tabs */}
           <div
             style={{
               display: "flex",
-              gap: isMobile ? 16 : 24,
-              borderBottom: "1px solid hsl(37, 10%, 90%)",
-              marginBottom: 32,
+              gap: 0,
+              borderBottom: "1px solid #e8e3de",
+              marginBottom: 40,
               overflowX: "auto",
             }}
           >
@@ -146,11 +176,12 @@ export default function Events() {
                   fontSize: 12,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
-                  color: filter === f.key ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 56%)",
-                  fontWeight: 400,
-                  paddingBottom: 12,
+                  color: filter === f.key ? "#1c1917" : "#a8a29e",
+                  fontWeight: filter === f.key ? 500 : 400,
+                  padding: "0 20px 14px 0",
+                  marginRight: 8,
                   borderBottom: filter === f.key ? "2px solid #C8A97E" : "2px solid transparent",
-                  transition: "color 0.2s, border-color 0.2s",
+                  transition: "all 0.2s",
                   whiteSpace: "nowrap",
                   flexShrink: 0,
                 }}
@@ -160,86 +191,103 @@ export default function Events() {
             ))}
           </div>
 
+          {/* Loading skeletons */}
           {loading ? (
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                gap: isMobile ? 24 : 40,
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+                gap: isMobile ? 24 : 32,
               }}
             >
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} style={{ opacity: 0.5 }}>
                   <div
-                    style={{ width: "100%", aspectRatio: "16/9", background: "hsl(40, 5%, 93%)", borderRadius: 4 }}
+                    style={{
+                      width: "100%",
+                      paddingBottom: "66%",
+                      background: "#f0ebe3",
+                      borderRadius: 8,
+                    }}
                   />
-                  <div
-                    style={{ height: 18, width: "60%", marginTop: 12, background: "hsl(40, 5%, 93%)", borderRadius: 2 }}
-                  />
-                  <div
-                    style={{ height: 12, width: "40%", marginTop: 8, background: "hsl(40, 5%, 93%)", borderRadius: 2 }}
-                  />
+                  <div style={{ height: 16, width: "55%", marginTop: 14, background: "#f0ebe3", borderRadius: 4 }} />
+                  <div style={{ height: 12, width: "35%", marginTop: 8, background: "#f0ebe3", borderRadius: 4 }} />
                 </div>
               ))}
             </div>
-          ) : filteredEvents.length === 0 ? (
+          ) : /* Empty state */
+          filteredEvents.length === 0 ? (
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                padding: "80px 0",
+                padding: "100px 0",
                 textAlign: "center",
               }}
             >
-              <Camera style={{ width: 40, height: 40, color: "hsl(37, 10%, 85%)", marginBottom: 16 }} strokeWidth={1} />
+              <div
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "50%",
+                  background: "#f5f0ea",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 20,
+                }}
+              >
+                <Camera style={{ width: 28, height: 28, color: "#C8A97E" }} strokeWidth={1.5} />
+              </div>
               <h2
                 style={{
                   fontFamily: "'Cormorant Garamond', Georgia, serif",
                   fontSize: isMobile ? 24 : 28,
-                  fontWeight: 300,
-                  color: "hsl(48, 7%, 10%)",
+                  fontWeight: 400,
+                  color: "#1c1917",
                   margin: 0,
                 }}
               >
-                Your first gallery awaits
+                No events yet
               </h2>
               <p
                 style={{
                   fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 13,
-                  color: "hsl(35, 4%, 56%)",
+                  fontSize: 14,
+                  color: "#a8a29e",
                   marginTop: 8,
+                  marginBottom: 28,
                 }}
               >
-                Add your work to begin
+                Create your first event to get started
               </p>
               <button
                 onClick={() => setCreateOpen(true)}
                 style={{
-                  marginTop: 24,
                   background: "#C8A97E",
                   color: "#fff",
                   border: "none",
-                  padding: "14px 32px",
+                  padding: "14px 36px",
                   fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 13,
-                  letterSpacing: "0.1em",
+                  fontSize: 12,
+                  letterSpacing: "0.12em",
                   textTransform: "uppercase",
                   cursor: "pointer",
-                  borderRadius: 4,
-                  minHeight: 44,
+                  borderRadius: 6,
+                  fontWeight: 500,
                 }}
               >
-                Create Event
+                + Create Event
               </button>
             </div>
           ) : (
+            /* Events grid */
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                gap: isMobile ? 24 : 40,
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+                gap: isMobile ? 28 : 32,
                 alignItems: "start",
               }}
             >
@@ -249,91 +297,109 @@ export default function Events() {
                   <div
                     key={evt.id}
                     onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget.querySelector(".evt-img") as HTMLElement)?.style &&
+                        ((e.currentTarget.querySelector(".evt-img") as HTMLElement).style.transform = "scale(1.03)");
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget.querySelector(".evt-img") as HTMLElement)?.style &&
+                        ((e.currentTarget.querySelector(".evt-img") as HTMLElement).style.transform = "scale(1)");
+                    }}
                     style={{ cursor: "pointer" }}
                   >
-                    {evt.cover_url ? (
-                      <div style={{ width: "100%", aspectRatio: "16/9", overflow: "hidden", borderRadius: 4 }}>
+                    {/* Cover */}
+                    <div
+                      style={{
+                        width: "100%",
+                        paddingBottom: "66%",
+                        position: "relative",
+                        overflow: "hidden",
+                        borderRadius: 8,
+                        background: "#f5f0ea",
+                      }}
+                    >
+                      {evt.cover_url ? (
                         <img
+                          className="evt-img"
                           src={evt.cover_url}
                           alt={evt.name}
                           loading="lazy"
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          aspectRatio: "16/9",
-                          background: "hsl(40, 5%, 95%)",
-                          borderRadius: 4,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <span
                           style={{
-                            fontFamily: "'Cormorant Garamond', Georgia, serif",
-                            fontSize: 40,
-                            color: "hsl(37, 10%, 85%)",
-                            fontWeight: 300,
+                            position: "absolute",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                            transition: "transform 0.4s ease",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          {evt.name.charAt(0)}
-                        </span>
-                      </div>
-                    )}
+                          <span
+                            style={{
+                              fontFamily: "'Cormorant Garamond', Georgia, serif",
+                              fontSize: 48,
+                              color: "#d4c4a8",
+                              fontWeight: 300,
+                            }}
+                          >
+                            {evt.name.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
 
-                    <div style={{ paddingTop: 12 }}>
-                      <h3
-                        style={{
-                          fontFamily: "'Cormorant Garamond', Georgia, serif",
-                          fontSize: isMobile ? 18 : 20,
-                          fontWeight: 400,
-                          color: "hsl(48, 7%, 10%)",
-                          margin: 0,
-                          letterSpacing: "0.02em",
-                        }}
+                    {/* Info */}
+                    <div style={{ paddingTop: 14 }}>
+                      <div
+                        style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}
                       >
-                        {evt.name}
-                      </h3>
+                        <h3
+                          style={{
+                            fontFamily: "'Cormorant Garamond', Georgia, serif",
+                            fontSize: isMobile ? 19 : 20,
+                            fontWeight: 400,
+                            color: "#1c1917",
+                            margin: 0,
+                            letterSpacing: "0.01em",
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {evt.name}
+                        </h3>
+                        <span style={getStatusStyle(status)}>{status}</span>
+                      </div>
                       <p
                         style={{
                           fontFamily: "'DM Sans', sans-serif",
                           fontSize: 12,
-                          color: "hsl(35, 4%, 56%)",
+                          color: "#a8a29e",
+                          margin: "6px 0 0 0",
+                          letterSpacing: "0.02em",
+                        }}
+                      >
+                        {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date set"}
+                        {evt.location ? ` · ${evt.location}` : ""}
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontSize: 12,
+                          color: "#c4bdb5",
                           margin: "4px 0 0 0",
                         }}
                       >
-                        {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date"}
-                        {evt.location ? ` · ${evt.location}` : ""}
+                        {evt.photo_count || 0} photos
                       </p>
-                      <div style={{ display: "flex", gap: 12, marginTop: 6, alignItems: "center" }}>
-                        <span
-                          style={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 11,
-                            letterSpacing: "0.08em",
-                            textTransform: "uppercase",
-                            color: "hsl(35, 4%, 56%)",
-                          }}
-                        >
-                          {evt.photo_count || 0} photos
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 11,
-                            letterSpacing: "0.08em",
-                            textTransform: "uppercase",
-                            color: getStatusColor(status),
-                            fontWeight: 500,
-                          }}
-                        >
-                          {status}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 );
@@ -343,15 +409,16 @@ export default function Events() {
         </div>
       </div>
 
+      {/* Mobile FAB */}
       {isMobile && (
         <button
           onClick={() => setCreateOpen(true)}
           style={{
             position: "fixed",
-            bottom: 80,
+            bottom: 88,
             right: 20,
-            width: 56,
-            height: 56,
+            width: 52,
+            height: 52,
             borderRadius: "50%",
             background: "#C8A97E",
             border: "none",
@@ -360,10 +427,10 @@ export default function Events() {
             alignItems: "center",
             justifyContent: "center",
             zIndex: 50,
-            boxShadow: "0 4px 16px rgba(200,169,126,0.4)",
+            boxShadow: "0 4px 20px rgba(200,169,126,0.45)",
           }}
         >
-          <Plus size={22} strokeWidth={2} style={{ color: "#fff" }} />
+          <Plus size={20} strokeWidth={2} style={{ color: "#fff" }} />
         </button>
       )}
 
