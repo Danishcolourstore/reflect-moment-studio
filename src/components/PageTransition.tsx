@@ -2,11 +2,6 @@ import { useRef, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-/**
- * Depth-based route hierarchy for determining slide direction.
- * Lower depth = closer to "home". Navigating deeper slides right→left,
- * navigating back slides left→right. Same depth cross-fades.
- */
 const ROUTE_DEPTH: Record<string, number> = {
   "/home": 0,
   "/dashboard": 0,
@@ -23,21 +18,16 @@ const ROUTE_DEPTH: Record<string, number> = {
 };
 
 function getDepth(pathname: string): number {
-  // Exact match first
   if (ROUTE_DEPTH[pathname] !== undefined) return ROUTE_DEPTH[pathname];
-  // Check prefix matches (e.g. /dashboard/events/xxx → depth 2)
   const segments = pathname.split("/").filter(Boolean);
-  // /dashboard/events/:id → depth 2
   if (segments.length >= 3 && segments[0] === "dashboard") return 2;
-  // /dashboard/xxx → depth 1
   if (segments.length >= 2 && segments[0] === "dashboard") return 1;
-  // Default
   return 0;
 }
 
-const SLIDE_DISTANCE = 60; // px — subtle, not dramatic
-const DURATION = 0.25;
-const EASE = [0.32, 0.72, 0, 1]; // iOS-like spring
+const SLIDE_DISTANCE = 40;
+const DURATION = 0.15;
+const EASE = [0.25, 0.46, 0.45, 0.94];
 
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -45,29 +35,24 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   const currentDepth = getDepth(location.pathname);
 
   const direction = useMemo(() => {
-    const d = currentDepth - prevDepth.current;
-    // Update ref after computing direction
-    return d;
+    return currentDepth - prevDepth.current;
   }, [currentDepth, location.pathname]);
 
   useEffect(() => {
     prevDepth.current = currentDepth;
   }, [currentDepth, location.pathname]);
 
-  // Forward (deeper) → slide in from right
-  // Backward (shallower) → slide in from left
-  // Same depth → cross-fade only
   const enterX = direction > 0 ? SLIDE_DISTANCE : direction < 0 ? -SLIDE_DISTANCE : 0;
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="sync" initial={false}>
       <motion.div
         key={location.pathname}
         initial={{ opacity: 0, x: enterX }}
         animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -enterX * 0.5 }}
+        exit={{ opacity: 0, x: -enterX * 0.4 }}
         transition={{ duration: DURATION, ease: EASE }}
-        style={{ minHeight: "100vh" }}
+        style={{ minHeight: "100vh", willChange: "transform, opacity" }}
       >
         {children}
       </motion.div>
