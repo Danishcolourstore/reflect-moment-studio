@@ -1,25 +1,41 @@
 
+# Mobile-Compatible Website Builder
 
-## Separate Home (Analytics) from Gallery (Feed)
+## What This Does
+Make the entire Website Builder flow (Template Picker → Preview → Editor) work beautifully on mobile devices with touch-friendly controls, proper safe areas, and responsive layouts.
 
-**Current state:** The bottom nav has Events, Gallery (→ /home which is the photo feed), Grid, Album. There's no dedicated analytics/stats home screen on mobile.
+## Changes
 
-**What you want:**
-- **Home** = Studio analytics dashboard (stats, quick actions, business insights)
-- **Gallery** = Photo feed of the studio (current LandingGate content)
+### 1. Template Picker — Mobile Layout (`src/components/website-builder/TemplatePicker.tsx`)
+- Template cards: stack vertically on mobile, reduce preview strip height to 160px on small screens
+- Buttons: ensure 44px min touch targets
+- Sticky bottom bar: add safe-area-inset-bottom padding
+- Header: reduce font sizes for small screens
 
-### Changes
+### 2. Website Builder — Mobile Toolbar (`src/pages/WebsiteBuilder.tsx`)
+- Preview toolbar: make responsive — stack buttons on small screens, reduce padding
+- Editor toolbar: collapse "Change Template" text to icon-only on mobile
+- Draft bar: adjust for mobile viewport
+- Add hamburger/mobile menu for nav links
+- Ensure fullscreen views respect safe-area insets (top + bottom)
 
-1. **Update MobileBottomNav** — Add a "Home" tab (House icon) pointing to `/dashboard` and rename current "Gallery" to keep pointing to `/home` (the feed). New tab order: Home, Events, Gallery, Grid, Album (5 tabs).
+### 3. Website Preview — Mobile Sections (`src/components/website-builder/WebsitePreview.tsx` + section files)
+- Already responsive ✓ — sections use `flex-col sm:flex-row` patterns
+- Minor: ensure navigation links have mobile menu (hamburger)
+- NavigationBar: add mobile hamburger menu toggle
 
-2. **Restore `/dashboard` route** — Instead of redirecting `/dashboard` → `/home`, render a proper analytics home page using `Dashboard.tsx` with the `HomeDashboardHub` component (stats cards, quick actions, business overview).
+### 4. Section Editor — Already Mobile-Ready
+- `WebsiteSectionEditor.tsx` already handles portrait/landscape orientation with bottom panel vs sidebar
+- Already has safe-area insets ✓
+- No changes needed here
 
-3. **Update Dashboard.tsx for mobile** — Replace the current photo-grid mobile view with a proper analytics layout: greeting, stat cards (events, photos, leads), quick action buttons (New Event, Upload, Cull), and recent events list — matching the editorial luxury aesthetic.
+## Files Modified
+- `src/components/website-builder/TemplatePicker.tsx` — mobile touch targets, safe-area bottom bar
+- `src/pages/WebsiteBuilder.tsx` — responsive toolbars, mobile-friendly editor chrome
+- `src/components/website-builder/sections/NavigationBar.tsx` — mobile hamburger menu
 
-4. **Keep `/home` as Gallery feed** — `LandingGate.tsx` stays unchanged as the studio's photo feed/portfolio view.
-
-### Files to update
-- `src/components/MobileBottomNav.tsx` — add Home tab, reorder
-- `src/App.tsx` — restore `/dashboard` to render Dashboard component
-- `src/pages/Dashboard.tsx` — rebuild mobile view as analytics hub
-
+## What Stays Untouched
+- Template system, colors, fonts — no changes
+- Section content components (About, Portfolio, etc.) — already responsive
+- Website Section Editor — already mobile-optimized
+- All data/logic — visual only

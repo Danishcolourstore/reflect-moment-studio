@@ -5,7 +5,7 @@ import { CalendarDays, Image, Grid3X3, BookOpen, Plus } from "lucide-react";
 const TABS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
   { title: "Gallery", url: "/home", icon: Image, center: true },
-  { title: "Grid", url: "/dashboard/grid-builder", icon: Grid3X3 },
+  { title: "Grid", url: "/builder-test", icon: Grid3X3 },
   { title: "Album", url: "/dashboard/album-designer", icon: BookOpen },
 ];
 
