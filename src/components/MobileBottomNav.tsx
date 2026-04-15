@@ -1,12 +1,13 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { CalendarDays, Image, Grid3X3, BookOpen, Plus } from "lucide-react";
+import { Home, CalendarDays, Image, Sparkles, User } from "lucide-react";
 
 const TABS = [
+  { title: "Home", url: "/home", icon: Home },
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Gallery", url: "/home", icon: Image, center: true },
-  { title: "Grid", url: "/builder-test", icon: Grid3X3 },
-  { title: "Album", url: "/dashboard/album-designer", icon: BookOpen },
+  { title: "Gallery", url: "/dashboard/gallery", icon: Image },
+  { title: "AI Tools", url: "/dashboard/ai-tools", icon: Sparkles },
+  { title: "Profile", url: "/dashboard/profile", icon: User },
 ];
 
 export function MobileBottomNav() {
@@ -29,11 +30,9 @@ export function MobileBottomNav() {
         right: 0,
         bottom: 0,
         zIndex: 60,
-        background: "hsla(45, 14%, 97%, 0.94)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderTop: "1px solid hsl(37, 10%, 90%)",
-        height: 56,
+        background: "#ffffff",
+        borderTop: "1px solid #e5e5e5",
+        height: 60,
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         display: "flex",
         justifyContent: "space-around",
@@ -43,58 +42,6 @@ export function MobileBottomNav() {
       {TABS.map((tab, i) => {
         const active = i === activeIndex;
         const Icon = tab.icon;
-        const isCenter = tab.center;
-
-        if (isCenter) {
-          return (
-            <button
-              key={tab.url}
-              onClick={() => navigate(tab.url)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 2,
-                flex: 1,
-                minHeight: 44,
-                minWidth: 44,
-                position: "relative",
-              }}
-            >
-              {/* Center plus circle */}
-              <div style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                background: active ? "#C8A97E" : "hsl(37, 10%, 88%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "background 0.2s ease",
-              }}>
-                <Plus
-                  size={18}
-                  strokeWidth={2}
-                  style={{ color: active ? "#fff" : "hsl(48, 7%, 30%)" }}
-                />
-              </div>
-              <span style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: "0.55rem",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: active ? "#C8A97E" : "hsl(35, 4%, 56%)",
-                fontWeight: active ? 500 : 400,
-              }}>
-                {tab.title}
-              </span>
-            </button>
-          );
-        }
 
         return (
           <button
@@ -108,26 +55,30 @@ export function MobileBottomNav() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 3,
+              gap: 4,
               flex: 1,
               minHeight: 44,
               minWidth: 44,
-              transition: "color 0.2s ease",
+              padding: "8px 0",
             }}
           >
             <Icon
-              size={21}
+              size={22}
               strokeWidth={1.5}
-              style={{ color: active ? "#C8A97E" : "hsl(35, 4%, 56%)" }}
+              style={{
+                color: active ? "#111111" : "#9ca3af",
+                transition: "color 0.15s ease",
+              }}
             />
             <span
               style={{
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: "0.55rem",
-                letterSpacing: "0.1em",
+                fontSize: "0.6rem",
+                letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: active ? "#C8A97E" : "hsl(35, 4%, 56%)",
-                fontWeight: active ? 500 : 400,
+                color: active ? "#111111" : "#9ca3af",
+                fontWeight: active ? 600 : 400,
+                transition: "color 0.15s ease",
               }}
             >
               {tab.title}
