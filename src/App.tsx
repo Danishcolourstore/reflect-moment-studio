@@ -4,6 +4,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
+// BetaFeedbackButton removed from production render
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StorybookGate } from "@/components/StorybookGate";
 import { GalleryShell } from "./components/GalleryShell";
@@ -13,6 +14,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { SUPER_ADMIN_ROUTES } from "@/config/super-admin-routes";
+// Dashboard.tsx is no longer routed — /dashboard redirects to /home
 
 // ─── Lazy-loaded pages ───
 const Auth = lazy(() => import("./pages/Auth").then((m) => ({ default: m.default })));
@@ -27,6 +29,7 @@ const Cheetah = lazy(() => import("./pages/Cheetah"));
 const CheetahLive = lazy(() => import("./pages/CheetahLive"));
 const Branding = lazy(() => import("./pages/Branding"));
 const MorePage = lazy(() => import("./pages/MorePage"));
+// BrandEditor, WebsiteEditor, TemplatePreview removed
 const Profile = lazy(() => import("./pages/Profile"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -44,6 +47,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const BuilderTest = lazy(() => import("./pages/BuilderTest"));
 const GuestFinder = lazy(() => import("./pages/GuestFinder"));
+// PhotographerFeed, PublicFeed removed
 const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
 const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
@@ -52,6 +56,7 @@ const AIAlbumBuilder = lazy(() => import("./pages/AIAlbumBuilder"));
 const IntelligenceHome = lazy(() => import("./pages/IntelligenceHome"));
 const LandingGate = lazy(() => import("./pages/LandingGate"));
 const ClientPreview = lazy(() => import("./pages/ClientPreview"));
+// DomainSettings removed
 const BusinessSuite = lazy(() => import("./pages/BusinessSuite"));
 const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
 const WebsiteSectionEditor = lazy(() => import("./pages/WebsiteSectionEditor"));
@@ -114,14 +119,12 @@ const SUPER_ADMIN_ROUTE_MAP: Record<string, React.LazyExoticComponent<any>> = {
   "art-gallery": SuperAdminArtGallery,
 };
 
-// ─── FIX 3: Aggressive caching, no refetch on reconnect ───
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60_000,
-      gcTime: 15 * 60_000,
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
       retry: 1,
     },
   },
@@ -137,24 +140,15 @@ function PageLoader() {
 
 const SuspendedContext = createContext<boolean | null>(null);
 
-// ─── FIX 1: Module-level cache — never re-fetches across navigations ───
-const suspendedCache = new Map<string, boolean>();
-
 function SuspendedProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [suspended, setSuspended] = useState<boolean | null>(user ? (suspendedCache.get(user.id) ?? null) : null);
+  const [suspended, setSuspended] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!user) {
       setSuspended(null);
       return;
     }
-
-    if (suspendedCache.has(user.id)) {
-      setSuspended(suspendedCache.get(user.id)!);
-      return;
-    }
-
     let mounted = true;
 
     (async () => {
@@ -162,9 +156,7 @@ function SuspendedProvider({ children }: { children: React.ReactNode }) {
         .eq("user_id", user.id)
         .maybeSingle();
       if (!mounted) return;
-      const val = data?.suspended ?? false;
-      suspendedCache.set(user.id, val);
-      setSuspended(val);
+      setSuspended(data?.suspended ?? false);
     })();
 
     const channel = supabase
@@ -174,10 +166,7 @@ function SuspendedProvider({ children }: { children: React.ReactNode }) {
         { event: "*", schema: "public", table: "profiles", filter: `user_id=eq.${user.id}` },
         (payload: any) => {
           const v = payload?.new?.suspended;
-          if (typeof v === "boolean") {
-            suspendedCache.set(user.id, v);
-            setSuspended(v);
-          }
+          if (typeof v === "boolean") setSuspended(v);
         },
       )
       .subscribe();
@@ -237,9 +226,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// ─── FIX 2: Module-level role cache — instant redirect after first login ───
-const roleCache = new Map<string, string>();
-
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const [checked, setChecked] = useState(false);
@@ -248,27 +234,25 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading || !user) return;
 
+    // Always clear any stale redirect
     sessionStorage.removeItem("redirectAfterLogin");
 
-    if (roleCache.has(user.id)) {
-      setRedirectTo(roleCache.get(user.id)!);
-      setChecked(true);
-      return;
-    }
-
     const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
-    const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 3000));
+    const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
 
     Promise.race([rolePromise, timeout])
       .then((result: any) => {
         const roles = (result?.data || []).map((r: any) => r.role);
-        const dest = roles.includes("super_admin") ? "/super-admin" : roles.includes("client") ? "/client" : "/home";
-        roleCache.set(user.id, dest);
-        setRedirectTo(dest);
+        if (roles.includes("super_admin")) {
+          setRedirectTo("/super-admin");
+        } else if (roles.includes("client")) {
+          setRedirectTo("/client");
+        } else {
+          setRedirectTo("/home");
+        }
         setChecked(true);
       })
       .catch(() => {
-        roleCache.set(user.id, "/home");
         setRedirectTo("/home");
         setChecked(true);
       });
@@ -293,9 +277,11 @@ const RealtimeSyncWrapper = ({ enabled }: { enabled: boolean }) => {
 
 const ScrollToTop = () => {
   const location = useLocation();
+
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [location.pathname]);
+
   return null;
 };
 
@@ -330,7 +316,6 @@ const AppRoutes = () => {
             <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/builder-test" element={<BuilderTest />} />
             <Route path="/preview/:previewId" element={<ClientPreview />} />
-
             <Route
               path="/home"
               element={
@@ -440,7 +425,10 @@ const AppRoutes = () => {
               }
             />
 
-            <Route path="/dashboard" element={<Navigate to="/home" replace />} />
+            <Route
+              path="/dashboard"
+              element={<Navigate to="/home" replace />}
+            />
             <Route
               path="/dashboard/events"
               element={
@@ -513,7 +501,7 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
-            <Route
+             <Route
               path="/dashboard/cheetah"
               element={
                 <ProtectedRoute>
@@ -569,6 +557,7 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
+            {/* BrandEditor, WebsiteEditor, DomainSettings, TemplatePreview routes removed */}
             <Route
               path="/dashboard/profile"
               element={
@@ -659,7 +648,10 @@ const AppRoutes = () => {
               }
             />
             <Route path="/widget/:slug" element={<WidgetPage />} />
-            <Route path="/gallery/:slug" element={<ClientGalleryExperience />} />
+            <Route
+              path="/gallery/:slug"
+              element={<ClientGalleryExperience />}
+            />
             <Route
               path="/gallery/:slug/view"
               element={
@@ -671,6 +663,7 @@ const AppRoutes = () => {
             <Route path="/gallery-view/:id" element={<PublicGalleryView />} />
             <Route path="/find/:token" element={<GuestFinder />} />
             <Route path="/album-preview/:shareToken" element={<AlbumPreviewPage />} />
+            {/* PhotographerFeed and PublicFeed routes removed */}
 
             <Route
               path="/storybook"
@@ -710,6 +703,7 @@ const App = () => (
                   <AppRoutes />
                 </ErrorBoundary>
               </ViewModeProvider>
+              {/* BetaFeedbackButton hidden in production */}
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
