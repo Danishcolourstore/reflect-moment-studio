@@ -26,7 +26,7 @@ const StudioSettings = lazy(() => import("./pages/StudioSettings"));
 const Billing = lazy(() => import("./pages/Billing"));
 const Clients = lazy(() => import("./pages/Clients"));
 const Cheetah = lazy(() => import("./pages/Cheetah"));
-const CheetahLive = lazy(() => import("./pages/CheetahLive"));
+const CheetahLiveView = lazy(() => import("./pages/CheetahLiveView"));
 const Branding = lazy(() => import("./pages/Branding"));
 const MorePage = lazy(() => import("./pages/MorePage"));
 // BrandEditor, WebsiteEditor, TemplatePreview removed
@@ -501,30 +501,17 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
-             <Route
-              path="/dashboard/cheetah"
-              element={
-                <ProtectedRoute>
-                  <CheetahLive />
-                </ProtectedRoute>
-              }
-            />
             <Route
-              path="/dashboard/cheetah-monitor"
+              path="/dashboard/cheetah"
               element={
                 <ProtectedRoute>
                   <Cheetah />
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/dashboard/cheetah-live"
-              element={
-                <ProtectedRoute>
-                  <CheetahLive />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/dashboard/cheetah-live" element={<Navigate to="/dashboard/cheetah" replace />} />
+            <Route path="/dashboard/cheetah-monitor" element={<Navigate to="/dashboard/cheetah" replace />} />
+            <Route path="/live/:code" element={<CheetahLiveView />} />
             <Route
               path="/dashboard/analytics"
               element={
