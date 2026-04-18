@@ -18,12 +18,6 @@ verify_jwt = false
 [functions.suggest-layout]
 verify_jwt = false
 
-[functions.cheetah-ingest]
-verify_jwt = false
-
-[functions.cheetah-analyze]
-verify_jwt = false
-
 [functions.ai-chat]
 verify_jwt = false
 
