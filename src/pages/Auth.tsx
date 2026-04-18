@@ -121,13 +121,15 @@ const Auth = function Auth({ initialView }: AuthProps) {
         style={{
           position: "relative", zIndex: 10, height: "100%",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
-          padding: "0 24px 48px",
+          padding: "24px 24px 32px",
+          overflowY: "auto",
         }}
       >
         <div
           style={{
-            flex: 1, display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", minHeight: 0,
+            flexShrink: 0, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            padding: "32px 0 24px",
           }}
         >
           <h1
