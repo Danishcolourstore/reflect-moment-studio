@@ -987,31 +987,46 @@ export type Database = {
         Row: {
           created_at: string
           event_id: string | null
+          expires_at: string | null
           id: string
+          is_live: boolean
+          public_view_count: number
+          session_code: string
           status: string
           title: string
           total_photos: number
           updated_at: string
+          upload_token: string
           user_id: string
         }
         Insert: {
           created_at?: string
           event_id?: string | null
+          expires_at?: string | null
           id?: string
+          is_live?: boolean
+          public_view_count?: number
+          session_code: string
           status?: string
           title?: string
           total_photos?: number
           updated_at?: string
+          upload_token: string
           user_id: string
         }
         Update: {
           created_at?: string
           event_id?: string | null
+          expires_at?: string | null
           id?: string
+          is_live?: boolean
+          public_view_count?: number
+          session_code?: string
           status?: string
           title?: string
           total_photos?: number
           updated_at?: string
+          upload_token?: string
           user_id?: string
         }
         Relationships: [
@@ -4748,6 +4763,7 @@ export type Database = {
       }
     }
     Functions: {
+      cheetah_increment_view: { Args: { p_code: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
