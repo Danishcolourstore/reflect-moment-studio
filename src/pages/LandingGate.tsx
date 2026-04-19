@@ -3,26 +3,48 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import { Menu } from "lucide-react";
-import { HERO_QUAD_MONOLITH } from "@/lib/website-demo-images";
+import CreateFeedPostModal from "@/components/CreateFeedPostModal";
+import EditFeedPostModal from "@/components/EditFeedPostModal";
+import { CreateEventModal } from "@/components/CreateEventModal";
+import { toast } from "sonner";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { Menu, Share, Plus, ChevronLeft } from "lucide-react";
 
-/**
- * /home — Editorial hero landing.
- * Replaces the prior dashboard. Pure black-and-white, 4-image collage,
- * serif wordmark, masthead nav. Inspired by Shamil Shajahan reference.
- */
+interface FeedPost {
+  id: string;
+  title: string;
+  caption: string | null;
+  content: string | null;
+  imageUrl: string | null;
+  location: string | null;
+  contentType: "post" | "blog";
+  galleryImages: string[];
+  date: string;
+}
 
-type NavTab = { label: string; route: string };
+interface EventRow {
+  id: string;
+  name: string;
+  slug: string | null;
+  cover_url: string | null;
+  event_date: string | null;
+  photo_count: number | null;
+  location: string | null;
+}
 
-const NAV_PRIMARY: NavTab[] = [
-  { label: "HOME",      route: "/home" },
-  { label: "STORIES",   route: "/dashboard/storybook" },
-  { label: "GALLERIES", route: "/dashboard/events" },
-  { label: "CLIENTS",   route: "/dashboard/clients" },
-];
+interface Stats {
+  events: number;
+  photos: number;
+  clients: number;
+  revenue: number;
+}
 
-const NAV_SECONDARY: NavTab[] = [
-  { label: "ABOUT", route: "/dashboard/profile" },
+const RITUAL_LINES = [
+  "Mirror never lies.",
+  "Every gallery, a story.",
+  "The light remembers.",
+  "What is seen, stays.",
+  "A frame, then forever.",
 ];
 
 export default function LandingGate() {
@@ -30,256 +52,322 @@ export default function LandingGate() {
   const { user } = useAuth();
   const drawer = useDrawerMenu();
 
-  const [studioName, setStudioName] = useState("Mirror AI");
-  const [activeTab, setActiveTab] = useState("HOME");
+  const [events, setEvents] = useState<EventRow[]>([]);
+  const [stats, setStats] = useState<Stats>({ events: 0, photos: 0, clients: 0, revenue: 0 });
+  const [loading, setLoading] = useState(true);
+  const [profileName, setProfileName] = useState("Studio");
+  const [feedSlug, setFeedSlug] = useState<string | null>(null);
+  const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 
-  const loadProfile = useCallback(async () => {
-    if (!user) return;
-    const { data } = await (supabase.from("profiles").select("studio_name") as any)
+  const [createPostOpen, setCreatePostOpen] = useState(false);
+  const [createEventOpen, setCreateEventOpen] = useState(false);
+  const [editPost, setEditPost] = useState<FeedPost | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [readingPost, setReadingPost] = useState<FeedPost | null>(null);
+
+  useEffect(() => {
+    const h = () => setMob(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+
+  const loadData = useCallback(async () => {
+    if (!user) { setLoading(false); return; }
+    setLoading(true);
+
+    const { data: prof } = await (supabase.from("profiles").select("studio_name, username") as any)
       .eq("user_id", user.id).maybeSingle();
-    if (data?.studio_name) setStudioName(data.studio_name);
+    if (prof?.studio_name) setProfileName(prof.studio_name);
+    let slug = prof?.username || null;
+    if (!slug) {
+      const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
+        .eq("user_id", user.id).maybeSingle();
+      slug = dom?.subdomain || null;
+    }
+    setFeedSlug(slug);
+
+    // Events
+    const { data: eventsData } = await supabase
+      .from("events")
+      .select("id, name, slug, cover_url, event_date, photo_count, location")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(8);
+
+    const evRows = (eventsData || []) as EventRow[];
+    setEvents(evRows);
+
+    // Stats
+    const evtIds = evRows.map((e) => e.id);
+    let photoCount = 0;
+    if (evtIds.length > 0) {
+      const { count } = await supabase
+        .from("photos")
+        .select("id", { count: "exact", head: true })
+        .in("event_id", evtIds);
+      photoCount = count || 0;
+    }
+
+    let clientsCount = 0;
+    let revenueAmt = 0;
+    try {
+      const { count: cc } = await (supabase
+        .from("clients")
+        .select("id", { count: "exact", head: true }) as any)
+        .eq("user_id", user.id);
+      clientsCount = cc || 0;
+    } catch { /* table optional */ }
+
+    try {
+      const { data: bookings } = await (supabase
+        .from("bookings")
+        .select("amount, created_at") as any)
+        .eq("photographer_id", user.id);
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      revenueAmt = (bookings || [])
+        .filter((b: any) => b.created_at >= monthStart)
+        .reduce((sum: number, b: any) => sum + (Number(b.amount) || 0), 0);
+    } catch { /* table optional */ }
+
+    setStats({
+      events: evRows.length,
+      photos: photoCount,
+      clients: clientsCount,
+      revenue: revenueAmt,
+    });
+
+    setLoading(false);
   }, [user]);
 
-  useEffect(() => { loadProfile(); }, [loadProfile]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  const handleNav = (tab: NavTab) => {
-    setActiveTab(tab.label);
-    if (tab.route !== "/home") navigate(tab.route);
+  const handleShare = async () => {
+    const feedUrl = feedSlug ? `${window.location.origin}/feed/${feedSlug}` : window.location.origin;
+    if (navigator.share) {
+      try { await navigator.share({ title: profileName, url: feedUrl }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(feedUrl);
+      toast.success("Link copied");
+    }
   };
 
+  if (readingPost) {
+    return <BlogReader post={readingPost} onClose={() => setReadingPost(null)} />;
+  }
+
+  // Greeting based on hour
+  const hour = new Date().getHours();
+  const greetingTime =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long", day: "numeric", month: "long",
+  });
+
+  // Subtitle from event counts
+  const subtitleParts: string[] = [];
+  if (events.length > 0) subtitleParts.push(`${events.length} event${events.length === 1 ? "" : "s"} on the books.`);
+  if (stats.photos > 0) subtitleParts.push(`${stats.photos.toLocaleString("en-IN")} photos in the library.`);
+  const subtitle = subtitleParts.length > 0
+    ? subtitleParts.join(" ")
+    : "A quiet day to catch up.";
+
+  // Ritual line — deterministic per day
+  const dayIdx = Math.floor(Date.now() / 86400000) % RITUAL_LINES.length;
+  const ritual = RITUAL_LINES[dayIdx];
+
+  // Format helpers
+  const fmtDate = (d: string | null) =>
+    d ? new Date(d).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "—";
+  const fmtRevenue = (n: number) =>
+    n >= 100000 ? `₹${(n / 100000).toFixed(2)}L` : `₹${n.toLocaleString("en-IN")}`;
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        background: "#F4F1EB",
-        display: "flex",
-        flexDirection: "column",
-        overflowX: "hidden",
-      }}
-    >
-      {/* ─── MASTHEAD ─────────────────────────────────────────── */}
-      <header
-        style={{
-          padding: "20px 16px 8px",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-        }}
+    <div className="w-full min-h-screen bg-[#EFEDE8]">
+      {/* ─── TOP NAV ─────────────────────────────────────────────── */}
+      <nav
+        className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between h-12 px-4 bg-white/80 backdrop-blur-md border-b border-[var(--rule)]"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 0px)" }}
       >
         <button
           onClick={drawer.toggle}
+          className="flex items-center justify-center min-w-[44px] min-h-[44px] -ml-2 bg-transparent border-0 cursor-pointer"
           aria-label="Menu"
-          style={{
-            width: 44, height: 44,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: "transparent", border: 0, cursor: "pointer",
-            marginLeft: -8,
-          }}
         >
-          <Menu size={22} strokeWidth={1.25} color="#1A1A1A" />
+          <Menu className="w-5 h-5 text-[var(--ink)]" strokeWidth={1.5} />
         </button>
-
-        <h1
-          style={{
-            flex: 1,
-            textAlign: "center",
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
-            fontWeight: 400,
-            fontSize: "clamp(28px, 7vw, 36px)",
-            letterSpacing: "0.02em",
-            color: "#1A1A1A",
-            margin: 0,
-            lineHeight: 1,
-          }}
+        {/* Wordmark — Mirror AI brand */}
+        <span className="font-serif text-[18px] font-normal text-[var(--ink)] inline-flex items-center gap-2 tracking-[-0.01em]">
+          Mirror AI
+          <span className="w-[3px] h-[3px] bg-[var(--ink)] rounded-full" />
+        </span>
+        <button
+          onClick={handleShare}
+          className="flex items-center justify-center min-w-[44px] min-h-[44px] -mr-2 bg-transparent border-0 cursor-pointer"
+          aria-label="Share"
         >
-          {studioName}
-        </h1>
-
-        <div style={{ width: 44 }} />
-      </header>
-
-      {/* ─── NAV TABS (primary row) ───────────────────────────── */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "space-around",
-          alignItems: "center",
-          padding: "20px 12px 8px",
-          gap: 4,
-        }}
-      >
-        {NAV_PRIMARY.map((tab) => {
-          const active = activeTab === tab.label;
-          return (
-            <button
-              key={tab.label}
-              onClick={() => handleNav(tab)}
-              style={{
-                background: "transparent",
-                border: 0,
-                cursor: "pointer",
-                padding: "6px 4px",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                fontWeight: 700,
-                letterSpacing: "0.18em",
-                color: active ? "#1A1A1A" : "rgba(26,26,26,0.45)",
-                borderBottom: active ? "1px solid #1A1A1A" : "1px solid transparent",
-                paddingBottom: 4,
-                transition: "color 200ms",
-              }}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
+          <Share className="w-[18px] h-[18px] text-[var(--ink-muted)]" strokeWidth={1.5} />
+        </button>
       </nav>
 
-      {/* ─── NAV (secondary — ABOUT centered) ─────────────────── */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          padding: "16px 12px 24px",
-        }}
-      >
-        {NAV_SECONDARY.map((tab) => {
-          const active = activeTab === tab.label;
-          return (
-            <button
-              key={tab.label}
-              onClick={() => handleNav(tab)}
-              style={{
-                background: "transparent",
-                border: 0,
-                cursor: "pointer",
-                padding: "6px 4px",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                fontWeight: 700,
-                letterSpacing: "0.18em",
-                color: active ? "#1A1A1A" : "rgba(26,26,26,0.45)",
-                borderBottom: active ? "1px solid #1A1A1A" : "1px solid transparent",
-                paddingBottom: 4,
-                transition: "color 200ms",
-              }}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </nav>
+      {/* ─── SPECIMEN CONTAINER ─────────────────────────────────── */}
+      <div className="pt-12 pb-24">
+        <div className="max-w-[1080px] mx-auto bg-white border border-[var(--rule)] md:my-10">
+          {/* ─── DASH FRAGMENT ───────────────────────────────────── */}
+          <div className="px-6 md:px-14 pt-10 md:pt-14 pb-10 md:pb-14">
+            <h1 className="font-serif font-light text-[32px] md:text-[44px] leading-[1.08] tracking-[-0.02em] text-[var(--ink)] mb-9 md:mb-12">
+              {today}
+            </h1>
 
-      {/* ─── HERO COLLAGE ─────────────────────────────────────── */}
-      <section
-        style={{
-          position: "relative",
-          flex: 1,
-          minHeight: "70vh",
-          width: "100%",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gridTemplateRows: "1fr 1fr",
-          gap: 0,
-        }}
-      >
-        {HERO_QUAD_MONOLITH.map((src, i) => (
-          <div
-            key={i}
-            style={{
-              position: "relative",
-              overflow: "hidden",
-              background: "#1A1A1A",
-            }}
-          >
-            <img
-              src={src}
-              alt=""
-              loading={i < 2 ? "eager" : "lazy"}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-                filter: "grayscale(100%) contrast(1.04)",
-              }}
-            />
+            {/* ─── STAT ROW ───────────────────────────────────────── */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 py-6 md:py-7 border-t border-b border-[var(--rule)] mb-10 md:mb-12">
+              <StatCell label="Events"  value={loading ? "—" : String(stats.events)} hint="this quarter" />
+              <StatCell label="Photos"  value={loading ? "—" : stats.photos.toLocaleString("en-IN")} hint="in library" />
+              <StatCell label="Clients" value={loading ? "—" : String(stats.clients)} />
+              <StatCell label="Revenue" value={loading ? "—" : fmtRevenue(stats.revenue)} hint="this month" />
+            </div>
+
+            {/* Recent Events preview removed — full list lives in /dashboard/events */}
+
+            {/* ─── ACTIONS ROW ────────────────────────────────────── */}
+            <div className="mt-10 md:mt-12 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setCreateEventOpen(true)}
+                className="bg-[var(--ink)] text-white border-0 px-6 py-3.5 text-[12px] font-medium tracking-[0.08em] uppercase cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                New event
+              </button>
+              <button
+                onClick={() => navigate("/dashboard/events")}
+                className="bg-transparent text-[var(--ink)] border border-[var(--rule-strong)] px-6 py-3 text-[12px] font-medium tracking-[0.02em] cursor-pointer hover:border-[var(--ink)] transition-colors"
+              >
+                Open events
+              </button>
+              <span className="text-[12px] text-[var(--ink-whisper)]">
+                or press <span className="font-mono">⌘ N</span>
+              </span>
+            </div>
           </div>
-        ))}
 
-        {/* ─── HEADLINE OVERLAY ────────────────────────────────── */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "0 24px",
-            pointerEvents: "none",
-          }}
-        >
-          <h2
-            style={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
-              fontWeight: 400,
-              fontSize: "clamp(40px, 11vw, 72px)",
-              lineHeight: 1.05,
-              letterSpacing: "-0.005em",
-              color: "#FFFFFF",
-              textAlign: "center",
-              margin: 0,
-              textShadow: "0 2px 24px rgba(0,0,0,0.35)",
-              maxWidth: 720,
-            }}
-          >
-            Witness to rare moments
-          </h2>
-        </div>
+          {/* ─── RITUAL LINE ─────────────────────────────────────── */}
+          <div className="border-t border-[var(--rule)] px-6 md:px-14 py-10 md:py-14">
+            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-5">
+              Today's ritual
+            </p>
+            <p className="font-serif italic font-light text-[28px] md:text-[40px] leading-[1.3] tracking-[-0.01em] text-[var(--ink)] max-w-[720px]">
+              {ritual}
+            </p>
+            <p className="text-[11px] text-[var(--ink-whisper)] tracking-[0.02em] leading-[1.6] mt-4">
+              Tiempos Headline Italic, weight 300. Rendered with Fraunces. First visit of the day.
+            </p>
+          </div>
 
-        {/* ─── CTA PILL ────────────────────────────────────────── */}
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: "8%",
-            display: "flex",
-            justifyContent: "center",
-            padding: "0 24px",
-          }}
-        >
-          <button
-            onClick={() => navigate("/dashboard/events")}
-            style={{
-              background: "rgba(26,26,26,0.55)",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              borderRadius: 999,
-              padding: "16px 36px",
-              cursor: "pointer",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: "0.22em",
-              color: "#FFFFFF",
-              transition: "transform 200ms, background 200ms",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(26,26,26,0.75)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(26,26,26,0.55)";
-            }}
-          >
-            VIEW THE WORK
-          </button>
+          {/* ─── FOOTER ──────────────────────────────────────────── */}
+          <div className="border-t border-[var(--rule)] px-6 md:px-14 py-8 flex justify-between items-baseline">
+            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)]">
+              Edition No. 001 · {profileName}
+            </p>
+            <p className="font-serif italic text-[14px] text-[var(--ink-whisper)]">
+              Every gallery, a story.
+            </p>
+          </div>
         </div>
-      </section>
+      </div>
+
+      {/* ─── FAB ────────────────────────────────────────────────── */}
+      <button
+        onClick={() => setCreateEventOpen(true)}
+        className="fixed bottom-20 md:bottom-8 right-5 md:right-8 w-14 h-14 rounded-full bg-[var(--ink)] flex items-center justify-center cursor-pointer z-50 hover:opacity-90 transition-opacity border-0"
+        aria-label="Create event"
+      >
+        <Plus className="w-5 h-5 text-white" strokeWidth={2} />
+      </button>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
+      {mob && <MobileBottomNav />}
+      <CreateFeedPostModal open={createPostOpen} onOpenChange={setCreatePostOpen} onCreated={() => loadData()} />
+      <CreateEventModal
+        open={createEventOpen}
+        onOpenChange={setCreateEventOpen}
+        onCreated={(id) => navigate(`/dashboard/events/${id}`)}
+      />
+      {editPost && (
+        <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
+      )}
+    </div>
+  );
+}
+
+/* ─── Stat cell ───────────────────────────────────────────────── */
+function StatCell({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div>
+      <p className="text-[9px] md:text-[10px] font-medium tracking-[0.08em] uppercase text-[var(--ink-muted)] mb-3">
+        {label}
+      </p>
+      <p className="text-[22px] md:text-[26px] font-medium text-[var(--ink)] tracking-[-0.02em] num leading-none">
+        {value}
+      </p>
+      {hint && (
+        <p className="text-[11px] text-[var(--ink-whisper)] mt-2">
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ─── Blog reader overlay ─────────────────────────────────────── */
+function BlogReader({ post, onClose }: { post: FeedPost; onClose: () => void }) {
+  const dateStr = new Date(post.date).toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  });
+  const paragraphs = (post.content || "").split("\n").filter(Boolean);
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-[var(--paper)] overflow-y-auto">
+      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur px-4 py-3 flex items-center border-b border-[var(--rule)]">
+        <button
+          onClick={onClose}
+          className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.06em] uppercase text-[var(--ink-muted)] bg-transparent border-0 cursor-pointer hover:text-[var(--ink)]"
+        >
+          <ChevronLeft size={14} strokeWidth={1.5} /> Back
+        </button>
+      </div>
+
+      {post.imageUrl && (
+        <img
+          src={post.imageUrl}
+          alt={post.title}
+          className="w-full h-auto max-h-[60vh] object-cover block"
+        />
+      )}
+
+      <div className="max-w-[720px] mx-auto px-5 pt-8 pb-24">
+        <p className="text-[11px] tracking-[0.15em] uppercase text-[var(--ink-muted)] mb-3">
+          {dateStr}{post.location ? ` · ${post.location}` : ""}
+        </p>
+        <h1 className="font-serif font-light text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.02em] text-[var(--ink)] mb-5">
+          {post.title}
+        </h1>
+        {post.caption && (
+          <p className="font-serif italic font-light text-[18px] md:text-[20px] text-[var(--ink-muted)] leading-[1.5] mb-7">
+            {post.caption}
+          </p>
+        )}
+        {paragraphs.map((para, i) => (
+          <p key={i} className="text-[15px] text-[var(--ink)] leading-[1.85] mb-5">
+            {para}
+          </p>
+        ))}
+        {post.galleryImages.length > 0 && (
+          <div className="mt-8 space-y-1.5">
+            {post.galleryImages.map((url, i) => (
+              <img key={i} src={url} alt="" loading="lazy" className="w-full block" />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
