@@ -985,11 +985,17 @@ export type Database = {
       }
       cheetah_sessions: {
         Row: {
+          connection_tested_at: string | null
           created_at: string
           event_id: string | null
           expires_at: string | null
+          ftp_host: string | null
+          ftp_password: string | null
+          ftp_port: number | null
+          ftp_username: string | null
           id: string
           is_live: boolean
+          last_upload_at: string | null
           public_view_count: number
           session_code: string
           status: string
@@ -1000,11 +1006,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          connection_tested_at?: string | null
           created_at?: string
           event_id?: string | null
           expires_at?: string | null
+          ftp_host?: string | null
+          ftp_password?: string | null
+          ftp_port?: number | null
+          ftp_username?: string | null
           id?: string
           is_live?: boolean
+          last_upload_at?: string | null
           public_view_count?: number
           session_code: string
           status?: string
@@ -1015,11 +1027,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          connection_tested_at?: string | null
           created_at?: string
           event_id?: string | null
           expires_at?: string | null
+          ftp_host?: string | null
+          ftp_password?: string | null
+          ftp_port?: number | null
+          ftp_username?: string | null
           id?: string
           is_live?: boolean
+          last_upload_at?: string | null
           public_view_count?: number
           session_code?: string
           status?: string
@@ -4763,6 +4781,10 @@ export type Database = {
       }
     }
     Functions: {
+      cheetah_generate_credential: {
+        Args: { len: number; prefix: string }
+        Returns: string
+      }
       cheetah_increment_view: { Args: { p_code: string }; Returns: undefined }
       has_role: {
         Args: {
