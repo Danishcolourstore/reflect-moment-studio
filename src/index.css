@@ -22,7 +22,7 @@
     --secondary-foreground: 48 7% 10%;
 
     --muted: 40 5% 95%;
-    --muted-foreground: 35 4% 56%;      /* #94918B */
+    --muted-foreground: 40 4% 40%;      /* #6B6962 — AA on white */
 
     --accent: 40 52% 48%;
     --accent-foreground: 45 14% 97%;
@@ -60,14 +60,20 @@
     scroll-behavior: smooth;
   }
 
+  html {
+    /* Tabular numerics globally — every price, count, date aligns */
+    font-variant-numeric: tabular-nums;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
     font-weight: 400;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-variant-numeric: tabular-nums;
     margin: 0;
     padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
     width: 100%;
@@ -142,15 +148,26 @@
   animation: loading-bar 1.2s ease-in-out infinite;
 }
 
-/* Skeleton pulse */
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+/* Skeleton — left-to-right shimmer (no pulse) */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 .skeleton-block {
-  background: #F0EFEB;
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background-color: #F4F3F0;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1200ms linear infinite;
 }
+
+/* Numeric utility — explicit opt-in where html-level inherit is overridden */
+.num { font-variant-numeric: tabular-nums; }
 
 /* Grid Builder panel slide-up */
 @keyframes slideUp {
