@@ -20,7 +20,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         },
         classNames: {
           toast: "group toast",
-          description: "group-[.toast]:text-[#94918B]",
+          description: "group-[.toast]:text-[#A8A6A0]",
           actionButton: "group-[.toast]:bg-[#B8953F] group-[.toast]:text-[#FAFAF8]",
           cancelButton: "group-[.toast]:bg-[#F4F3F0] group-[.toast]:text-[#1A1917]",
         },

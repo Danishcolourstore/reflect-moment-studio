@@ -9,6 +9,11 @@ const TABS = [
   { title: "Album", url: "/dashboard/album-designer", icon: BookOpen },
 ];
 
+const GOLD = "#B8953F";
+const INK_MUTED = "#6B6962";
+const RULE = "#E8E6E1";
+const WASH = "#F4F3F0";
+
 export function MobileBottomNav() {
   const { isMobile } = useViewMode();
   const navigate = useNavigate();
@@ -29,11 +34,11 @@ export function MobileBottomNav() {
         right: 0,
         bottom: 0,
         zIndex: 60,
-        background: "hsla(45, 14%, 97%, 0.94)",
+        background: "hsla(45, 14%, 97%, 0.85)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        borderTop: "1px solid hsl(37, 10%, 90%)",
-        height: 56,
+        borderTop: `1px solid ${RULE}`,
+        height: 64,
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         display: "flex",
         justifyContent: "space-around",
@@ -44,6 +49,7 @@ export function MobileBottomNav() {
         const active = i === activeIndex;
         const Icon = tab.icon;
         const isCenter = tab.center;
+        const color = active ? GOLD : INK_MUTED;
 
         if (isCenter) {
           return (
@@ -58,38 +64,36 @@ export function MobileBottomNav() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 2,
+                gap: 4,
                 flex: 1,
                 minHeight: 44,
                 minWidth: 44,
-                position: "relative",
               }}
             >
-              {/* Center plus circle */}
-              <div style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                background: active ? "#C8A97E" : "hsl(37, 10%, 88%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "background 0.2s ease",
-              }}>
-                <Plus
-                  size={18}
-                  strokeWidth={2}
-                  style={{ color: active ? "#fff" : "hsl(48, 7%, 30%)" }}
-                />
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  background: active ? GOLD : WASH,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background 120ms cubic-bezier(0.4,0,0.2,1)",
+                }}
+              >
+                <Plus size={18} strokeWidth={1.75} style={{ color: active ? "#FAFAF8" : INK_MUTED }} />
               </div>
-              <span style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: "0.55rem",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: active ? "#C8A97E" : "hsl(35, 4%, 56%)",
-                fontWeight: active ? 500 : 400,
-              }}>
+              <span
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 10,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color,
+                  fontWeight: 500,
+                }}
+              >
                 {tab.title}
               </span>
             </button>
@@ -108,26 +112,22 @@ export function MobileBottomNav() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 3,
+              gap: 4,
               flex: 1,
               minHeight: 44,
               minWidth: 44,
-              transition: "color 0.2s ease",
+              transition: "color 120ms cubic-bezier(0.4,0,0.2,1)",
             }}
           >
-            <Icon
-              size={21}
-              strokeWidth={1.5}
-              style={{ color: active ? "#C8A97E" : "hsl(35, 4%, 56%)" }}
-            />
+            <Icon size={20} strokeWidth={1.5} style={{ color }} />
             <span
               style={{
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: "0.55rem",
-                letterSpacing: "0.1em",
+                fontSize: 10,
+                letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                color: active ? "#C8A97E" : "hsl(35, 4%, 56%)",
-                fontWeight: active ? 500 : 400,
+                color,
+                fontWeight: 500,
               }}
             >
               {tab.title}
