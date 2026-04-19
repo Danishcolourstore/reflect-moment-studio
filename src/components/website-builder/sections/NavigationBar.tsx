@@ -12,11 +12,139 @@ export function NavigationBar({ template, studioName, links = [] }: NavigationBa
   const t = template;
   const variant = t.sections.nav;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const defaultLinks = links.length > 0 ? links : [
-    { label: 'Portfolio', href: '#portfolio' },
-    { label: 'About', href: '#about' },
-    { label: 'Contact', href: '#contact' },
-  ];
+  // Allow templates to declare their own default nav links (e.g. Monolith).
+  const templateLinks: { label: string; href: string }[] | undefined = t.extras?.navLinks;
+  const defaultLinks =
+    links.length > 0
+      ? links
+      : templateLinks?.length
+      ? templateLinks
+      : [
+          { label: 'Portfolio', href: '#portfolio' },
+          { label: 'About', href: '#about' },
+          { label: 'Contact', href: '#contact' },
+        ];
+  const activeLabel = defaultLinks[0]?.label;
+
+  /* ── Masthead Tabs (Monolith) — wordmark above, big bold tab row below ── */
+  if (variant === 'masthead-tabs') {
+    return (
+      <nav
+        className="w-full"
+        style={{
+          backgroundColor: t.colors.navBg,
+          borderBottom: `1px solid ${t.colors.border}`,
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+        }}
+      >
+        {/* Wordmark row */}
+        <div className="relative px-4 sm:px-10 pt-6 sm:pt-8 pb-4 flex items-center justify-center">
+          {/* Mobile hamburger pinned left */}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="sm:hidden absolute left-4 flex items-center justify-center"
+            style={{
+              minWidth: 44,
+              minHeight: 44,
+              background: 'none',
+              border: 'none',
+              color: t.colors.navText,
+            }}
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          <div
+            style={{
+              fontFamily: t.fonts.display,
+              fontSize: 'clamp(22px, 4.6vw, 28px)',
+              fontWeight: 400,
+              fontStyle: 'normal',
+              letterSpacing: '0.02em',
+              color: t.colors.navText,
+            }}
+          >
+            {studioName}
+          </div>
+        </div>
+
+        {/* Tab row — bigger + bolder per spec */}
+        <div className="px-4 sm:px-10 pb-5 sm:pb-6">
+          <div className="flex items-end justify-center gap-7 sm:gap-10 flex-wrap">
+            {defaultLinks.map((link) => {
+              const isActive = link.label === activeLabel;
+              return (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="transition-opacity hover:opacity-60"
+                  style={{
+                    fontFamily: t.fonts.ui,
+                    fontSize: 14,                    // ↑ ~20% over old 12
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase' as const,
+                    fontWeight: 700,                 // ↑ bolder
+                    color: t.colors.navText,
+                    textDecoration: 'none',
+                    paddingBottom: 6,
+                    borderBottom: isActive
+                      ? `1px solid ${t.colors.navText}`
+                      : '1px solid transparent',
+                  }}
+                >
+                  {link.label}
+                </a>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Mobile fullscreen menu */}
+        {mobileMenuOpen && (
+          <div
+            className="sm:hidden fixed inset-0 z-[100] flex flex-col items-center justify-center gap-9"
+            style={{ backgroundColor: t.colors.navBg }}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <button
+              className="absolute top-4 right-4 flex items-center justify-center"
+              style={{
+                minWidth: 44,
+                minHeight: 44,
+                background: 'none',
+                border: 'none',
+                color: t.colors.navText,
+                top: 'max(16px, env(safe-area-inset-top, 16px))',
+              }}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {defaultLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  fontFamily: t.fonts.display,
+                  fontSize: 32,
+                  fontWeight: 400,
+                  color: t.colors.navText,
+                  textDecoration: 'none',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        )}
+      </nav>
+    );
+  }
 
   if (variant === 'masthead') {
     return (

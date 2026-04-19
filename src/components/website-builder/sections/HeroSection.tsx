@@ -13,6 +13,81 @@ export function HeroSection({ template, studioName, tagline = 'Wedding Photograp
   const img = coverImage || getHeroImage(t.id);
   const variant = t.sections.hero;
 
+  /* ── Collage Quad (Monolith) — 4-image B&W mosaic + headline + pill CTA ── */
+  if (variant === 'collage-quad') {
+    const tiles: string[] = (t.extras?.heroQuad as string[] | undefined) || [
+      'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=80',
+      'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=1200&q=80',
+      'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1200&q=80',
+      'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=1200&q=80',
+    ];
+    const headline: string = t.extras?.heroHeadline || 'Witness to rare moments';
+    const ctaLabel: string = t.extras?.heroCta || 'View the Work';
+
+    return (
+      <section
+        className="relative w-full overflow-hidden"
+        style={{ minHeight: '92vh', backgroundColor: t.colors.bg }}
+      >
+        {/* 2x2 image grid */}
+        <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
+          {tiles.slice(0, 4).map((src, i) => (
+            <div key={i} className="relative overflow-hidden">
+              <img
+                src={src}
+                alt=""
+                className="w-full h-full object-cover"
+                style={{ filter: 'grayscale(100%) contrast(1.05)' }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Subtle global darken so text reads */}
+        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.32)' }} />
+
+        {/* Centered headline + CTA */}
+        <div className="relative z-10 flex h-full min-h-[92vh] flex-col items-center justify-center px-6 text-center">
+          <h1
+            style={{
+              fontFamily: t.fonts.display,
+              fontSize: 'clamp(38px, 8vw, 72px)',
+              fontWeight: 400,
+              fontStyle: 'normal',
+              letterSpacing: '-0.005em',
+              color: '#FFFFFF',
+              lineHeight: 1.1,
+              maxWidth: 880,
+            }}
+          >
+            {headline}
+          </h1>
+
+          <a
+            href="#portfolio"
+            className="inline-flex items-center justify-center transition-opacity hover:opacity-80"
+            style={{
+              marginTop: 36,
+              fontFamily: t.fonts.ui,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase' as const,
+              color: '#FFFFFF',
+              border: '1px solid rgba(255,255,255,0.55)',
+              borderRadius: 999,
+              padding: '14px 36px',
+              textDecoration: 'none',
+              backdropFilter: 'blur(2px)',
+            }}
+          >
+            {ctaLabel}
+          </a>
+        </div>
+      </section>
+    );
+  }
+
   /* ── Centered (Reverie, Heirloom) ── */
   if (variant === 'centered') {
     return (

@@ -3,16 +3,16 @@
  * Five luxury photographer website templates.
  */
 
-export type TemplateId = 'reverie' | 'linen' | 'vesper' | 'alabaster' | 'heirloom';
+export type TemplateId = 'reverie' | 'linen' | 'vesper' | 'alabaster' | 'heirloom' | 'monolith';
 
-export type HeroVariant = 'centered' | 'split-left' | 'split-right' | 'bottom-left';
+export type HeroVariant = 'centered' | 'split-left' | 'split-right' | 'bottom-left' | 'collage-quad';
 export type AboutVariant = 'two-col' | 'full-width-image' | 'typography-first';
 export type PortfolioVariant = 'masonry' | 'uniform' | 'editorial' | 'two-col';
 export type ServicesVariant = 'list' | 'cards' | 'numbered';
 export type TestimonialsVariant = 'single-centered' | 'horizontal-scroll' | 'dark-break';
 export type ContactVariant = 'minimal' | 'two-col' | 'split-dark';
 export type FooterVariant = 'centered' | 'two-col' | 'dark-bar';
-export type NavVariant = 'transparent' | 'solid' | 'masthead';
+export type NavVariant = 'transparent' | 'solid' | 'masthead' | 'masthead-tabs';
 
 export interface TemplateColors {
   bg: string;
@@ -298,6 +298,62 @@ const HEIRLOOM: TemplateConfig = {
   },
 };
 
+/* ── Monolith — strict black & white, editorial collage hero ──────────── */
+const MONOLITH: TemplateConfig = {
+  id: 'monolith',
+  name: 'Monolith',
+  tagline: 'Black & White · Editorial · Bold',
+  description: 'Pure monochrome editorial. A 4-image collage opens every story; the rest is silence and type.',
+  colors: {
+    bg: '#FAFAFA',
+    text: '#0A0A0A',
+    textSecondary: '#7A7A7A',
+    accent: '#0A0A0A',
+    border: '#E6E6E6',
+    cardBg: '#FFFFFF',
+    heroBg: '#FAFAFA',
+    heroText: '#FFFFFF',
+    navBg: '#FAFAFA',
+    navText: '#0A0A0A',
+    navScrollBg: '#FAFAFA',
+    navScrollText: '#0A0A0A',
+    footerBg: '#0A0A0A',
+    footerText: '#FFFFFF',
+    footerSecondary: '#7A7A7A',
+  },
+  fonts: {
+    display: "'Cormorant Garamond', Georgia, serif",
+    displayWeight: '400',
+    displayStyle: 'normal',
+    ui: "'DM Sans', sans-serif",
+    uiWeight: '500',
+  },
+  sections: {
+    hero: 'collage-quad',
+    about: 'typography-first',
+    portfolio: 'uniform',
+    services: 'numbered',
+    testimonials: 'single-centered',
+    contact: 'minimal',
+    footer: 'centered',
+    nav: 'masthead-tabs',
+  },
+  extras: {
+    portfolioCols: { desktop: 3, mobile: 2 },
+    portfolioGap: 2,
+    monochrome: true,
+    navLinks: [
+      { label: 'Home', href: '#top' },
+      { label: 'Stories', href: '#stories' },
+      { label: 'Galleries', href: '#portfolio' },
+      { label: 'Clients', href: '#clients' },
+      { label: 'About', href: '#about' },
+    ],
+    heroHeadline: 'Witness to rare moments',
+    heroCta: 'View the Work',
+  },
+};
+
 /* ── Registry ── */
 
 export const TEMPLATES: Record<TemplateId, TemplateConfig> = {
@@ -306,9 +362,10 @@ export const TEMPLATES: Record<TemplateId, TemplateConfig> = {
   vesper: VESPER,
   alabaster: ALABASTER,
   heirloom: HEIRLOOM,
+  monolith: MONOLITH,
 };
 
-export const TEMPLATE_LIST: TemplateConfig[] = [REVERIE, LINEN, VESPER, ALABASTER, HEIRLOOM];
+export const TEMPLATE_LIST: TemplateConfig[] = [MONOLITH, REVERIE, LINEN, VESPER, ALABASTER, HEIRLOOM];
 
 export function getTemplate(id: string): TemplateConfig {
   return TEMPLATES[id as TemplateId] || REVERIE;
