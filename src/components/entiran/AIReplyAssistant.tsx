@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Send, Copy, Check, X, Sparkles, Phone, Loader2, Edit3, Zap } from "lucide-react";
+import { Send, Copy, Check, X, Sparkles, Loader2, Edit3 } from "lucide-react";
 import { useAIReplyDrafts, type AIReplyDraft } from "@/hooks/use-entiran-business";
 import { toast } from "@/components/ui/sonner";
 
@@ -25,7 +24,6 @@ const DEMO_DRAFTS: AIReplyDraft[] = [
 
 export function AIReplyAssistant() {
   const { drafts: dbDrafts, generating, generateReply, markSent, dismissDraft } = useAIReplyDrafts();
-  const [open, setOpen] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
   const [leadName, setLeadName] = useState("");
   const [leadMessage, setLeadMessage] = useState("");
@@ -42,78 +40,48 @@ export function AIReplyAssistant() {
   };
 
   return (
-    <>
-      {/* FLOAT BUTTON */}
-      <button
-        onClick={() => setOpen(!open)}
-        aria-label="Open Daan AI"
-        className="fixed bottom-6 right-6 z-50 bg-[#1A1A1A] text-black p-4 rounded-full shadow-[0_0_20px_rgba(201,168,76,0.4)] hover:scale-105 active:scale-95 transition-all"
-      >
-        <Zap size={20} strokeWidth={1.5} />
-      </button>
+    <div className="space-y-3">
+      <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => setShowCompose(!showCompose)}>
+        <Edit3 className="h-3 w-3 mr-1" /> Compose
+      </Button>
 
-      {/* CHAT PANEL */}
-      {open && (
-        <div className="fixed bottom-20 right-6 w-[340px] max-h-[75vh] bg-[#0A0A0A] border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50">
-          {/* HEADER */}
-          <div className="p-3 border-b border-zinc-800 flex justify-between items-center">
-            <div>
-              <p className="text-sm font-semibold text-white flex items-center gap-1.5"><Zap size={14} strokeWidth={1.5} /> Daan AI</p>
-              <p className="text-[10px] text-zinc-400">Instant smart replies</p>
-            </div>
-            <button onClick={() => setOpen(false)} className="text-zinc-400 hover:text-white">
-              <X size={14} />
-            </button>
-          </div>
-
-          {/* BODY */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {/* Compose */}
-            <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => setShowCompose(!showCompose)}>
-              <Edit3 className="h-3 w-3 mr-1" /> Compose
+      {showCompose && (
+        <Card className="border-primary/20">
+          <CardContent className="p-3 space-y-2">
+            <Input
+              value={leadName}
+              onChange={(e) => setLeadName(e.target.value)}
+              placeholder="Lead name..."
+              className="text-xs"
+            />
+            <Textarea
+              value={leadMessage}
+              onChange={(e) => setLeadMessage(e.target.value)}
+              placeholder="Message..."
+              className="text-xs"
+            />
+            <Button size="sm" className="w-full text-xs" onClick={handleGenerate} disabled={generating}>
+              {generating ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <>
+                  <Sparkles className="h-3 w-3 mr-1" /> Generate
+                </>
+              )}
             </Button>
-
-            {showCompose && (
-              <Card className="border-primary/20">
-                <CardContent className="p-3 space-y-2">
-                  <Input
-                    value={leadName}
-                    onChange={(e) => setLeadName(e.target.value)}
-                    placeholder="Lead name..."
-                    className="text-xs"
-                  />
-                  <Textarea
-                    value={leadMessage}
-                    onChange={(e) => setLeadMessage(e.target.value)}
-                    placeholder="Message..."
-                    className="text-xs"
-                  />
-                  <Button size="sm" className="w-full text-xs" onClick={handleGenerate} disabled={generating}>
-                    {generating ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <>
-                        <Sparkles className="h-3 w-3 mr-1" /> Generate
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Drafts */}
-            {drafts.map((draft) => (
-              <ReplyDraftCard
-                key={draft.id}
-                draft={draft}
-                onSend={() => markSent(draft.id)}
-                onDismiss={() => dismissDraft(draft.id)}
-              />
-            ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
-    </>
+
+      {drafts.map((draft) => (
+        <ReplyDraftCard
+          key={draft.id}
+          draft={draft}
+          onSend={() => markSent(draft.id)}
+          onDismiss={() => dismissDraft(draft.id)}
+        />
+      ))}
+    </div>
   );
 }
 

@@ -79,8 +79,8 @@ function DaanInner({ children }: { children?: ReactNode }) {
         </div>
       )}
 
-      {/* Floating button — desktop/tablet only (mobile uses bottom nav Bot tab) */}
-      {!open && !showSignature && !isMobile && (
+      {/* Floating button — visible on all viewports (mobile auto-lifts above bottom nav) */}
+      {!open && !showSignature && (
         <EntiranButton onClick={handleOpen} unreadCount={unreadCount} />
       )}
 
