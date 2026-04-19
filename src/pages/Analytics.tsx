@@ -68,30 +68,31 @@ const Analytics = () => {
 
   return (
     <DashboardLayout>
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, color: "hsl(48, 7%, 10%)", letterSpacing: "0.02em", margin: 0 }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 4px" }}>
+        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(26px, 6vw, 32px)", fontWeight: 300, color: "#1A1A1A", letterSpacing: "0.01em", margin: 0, lineHeight: 1.1 }}>
           Insights
         </h1>
 
-        {/* Date range */}
-        <div style={{ display: "flex", gap: 8, marginTop: 40, marginBottom: 40, flexWrap: "wrap" }}>
+        {/* Date range — horizontal scroll on mobile */}
+        <div style={{ display: "flex", gap: 8, marginTop: 24, marginBottom: 28, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
           {RANGES.map((r) => (
             <button
               key={r.key}
               onClick={() => setRange(r.key)}
               style={{
+                flexShrink: 0,
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 11,
-                fontWeight: 400,
-                letterSpacing: "0.1em",
+                fontWeight: 500,
+                letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: range === r.key ? "hsl(40, 52%, 48%)" : "hsl(35, 4%, 56%)",
-                background: range === r.key ? "hsla(40, 52%, 48%, 0.08)" : "transparent",
-                border: `1px solid ${range === r.key ? "hsl(40, 52%, 48%)" : "hsl(37, 10%, 90%)"}`,
-                padding: "8px 16px",
+                color: range === r.key ? "#FFFFFF" : "#6E6E6E",
+                background: range === r.key ? "#1A1A1A" : "transparent",
+                border: `1px solid ${range === r.key ? "#1A1A1A" : "#ECECEC"}`,
+                padding: "0 14px",
+                height: 40,
                 cursor: "pointer",
-                transition: "all 0.2s",
-                minHeight: 44,
+                transition: "all 0.15s",
               }}
             >
               {r.label}
@@ -99,14 +100,14 @@ const Analytics = () => {
           ))}
         </div>
 
-        {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 40 }}>
+        {/* Stats — 2x2 on mobile, 4-up on desktop */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 28 }} className="sm:!grid-cols-4 sm:!gap-4">
           {stats.map(s => (
-            <div key={s.label} style={{ background: "hsl(0, 0%, 100%)", border: "1px solid hsl(37, 10%, 90%)", padding: 16 }}>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: "0.15em", textTransform: "uppercase", color: "hsl(35, 4%, 56%)" }}>
+            <div key={s.label} style={{ background: "#FFFFFF", border: "1px solid #ECECEC", padding: 14, minWidth: 0 }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: "0.14em", textTransform: "uppercase", color: "#A8A8A8" }}>
                 {s.label}
               </div>
-              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 300, color: "hsl(48, 7%, 10%)", marginTop: 8 }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 24, fontWeight: 600, color: "#1A1A1A", marginTop: 6, letterSpacing: "-0.01em", lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {loading ? "—" : s.value}
               </div>
             </div>

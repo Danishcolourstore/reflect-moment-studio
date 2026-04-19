@@ -668,6 +668,8 @@ const AppRoutes = () => {
             <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
             <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
             <Route path="/upload" element={<Navigate to="/dashboard/upload" replace />} />
+            <Route path="/dashboard/studio-settings" element={<Navigate to="/dashboard/profile" replace />} />
+            <Route path="/dashboard/website" element={<Navigate to="/dashboard/website-builder" replace />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

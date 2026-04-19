@@ -47,16 +47,32 @@ const BusinessSuite = () => {
       <div className="space-y-5">
         {/* Header */}
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Briefcase className="h-5 w-5 text-primary" strokeWidth={1.5} />
-            <h1
-              className="text-foreground"
-              style={{ fontFamily: 'var(--editorial-heading)', fontSize: '24px', fontWeight: 400, letterSpacing: '-0.3px' }}
-            >
-              Business Suite
-            </h1>
-          </div>
-          <p className="text-xs text-muted-foreground">Your revenue control system — leads, bookings, growth</p>
+          <h1
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 'clamp(26px, 6vw, 32px)',
+              fontWeight: 300,
+              letterSpacing: '0.01em',
+              lineHeight: 1.1,
+              color: '#1A1A1A',
+              margin: 0,
+            }}
+          >
+            Business
+          </h1>
+          <p
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 11,
+              fontWeight: 500,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: '#A8A8A8',
+              marginTop: 6,
+            }}
+          >
+            Leads · Bookings · Growth
+          </p>
         </div>
 
         {/* Tabs */}
