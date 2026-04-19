@@ -289,8 +289,7 @@ export default function LandingGate() {
                         {evt.name || "Untitled event"}
                       </p>
                       <p className="text-[12px] text-[var(--ink-muted)] mt-1.5 num truncate">
-                        {(evt.status ? evt.status.charAt(0).toUpperCase() + evt.status.slice(1) : "Draft")}
-                        {evt.photo_count ? ` · ${evt.photo_count.toLocaleString("en-IN")} photos` : ""}
+                        {evt.photo_count ? `${evt.photo_count.toLocaleString("en-IN")} photos` : "Draft"}
                         {evt.location ? ` · ${evt.location}` : ""}
                       </p>
                     </div>
