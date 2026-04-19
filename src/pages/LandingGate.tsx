@@ -274,14 +274,20 @@ export default function LandingGate() {
                     onClick={() => navigate(`/dashboard/events/${evt.id}`)}
                     className="w-full text-left grid grid-cols-[80px_1fr] md:grid-cols-[120px_1fr_auto] gap-6 md:gap-8 items-center py-4 border-b border-[var(--rule)] last:border-b-0 bg-transparent border-l-0 border-r-0 border-t-0 cursor-pointer group"
                   >
-                    <div className="aspect-[3/2] w-full bg-gradient-to-br from-[#E8E8E8] to-[#C8C8C8] overflow-hidden">
-                      {evt.cover_url && (
+                    <div className="aspect-[3/2] w-full bg-[#E6E2DA] overflow-hidden relative">
+                      {evt.cover_url ? (
                         <img
                           src={evt.cover_url}
                           alt={evt.name}
-                          className="w-full h-full object-cover block transition-transform duration-500 group-hover:scale-[1.02]"
+                          className="w-full h-full object-cover block transition-transform duration-700 group-hover:scale-[1.03]"
                           loading="lazy"
                         />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="font-serif italic text-[22px] text-[#B8B0A0]">
+                            {(evt.name || "·").charAt(0).toUpperCase()}
+                          </span>
+                        </div>
                       )}
                     </div>
                     <div className="min-w-0">
