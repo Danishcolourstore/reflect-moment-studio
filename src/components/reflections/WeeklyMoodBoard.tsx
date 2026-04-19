@@ -20,7 +20,7 @@ const DEMO_DROPS: MoodBoardDrop[] = [
     year: 2026,
     lighting_tip: 'Position your subject with the sun at 15° behind their shoulder. Use a white reflector from below to fill under-eye shadows. Shoot at f/1.8 for dreamy bokeh that catches the last golden rays.',
     pose_suggestion: 'Have them walk slowly toward camera, looking down, then glancing up on your count. The transition creates authentic micro-expressions that feel unposed.',
-    color_palette: ['#B8953F', '#8B6914', '#F5E6CC', '#2C1810', '#E8C896'],
+    color_palette: ['#1A1A1A', '#8B6914', '#F5E6CC', '#2C1810', '#E8C896'],
     reference_images: [
       { url: '/placeholder.svg', caption: 'Backlit rim light at f/1.4' },
       { url: '/placeholder.svg', caption: 'Warm tones, low sun angle' },
@@ -39,7 +39,7 @@ const DEMO_DROPS: MoodBoardDrop[] = [
     year: 2026,
     lighting_tip: 'Use harsh midday shadows as compositional elements. The geometric shadows of buildings create dramatic patterns on skin.',
     pose_suggestion: 'Lean against a concrete wall with arms relaxed. Let the architecture dominate the frame — your subject is the accent, not the whole painting.',
-    color_palette: ['#808080', '#B8953F', '#1A1A1A', '#B0B0B0', '#FFFFFF'],
+    color_palette: ['#808080', '#1A1A1A', '#1A1A1A', '#B0B0B0', '#FFFFFF'],
     reference_images: [],
     recommended_preset_id: null,
     created_at: new Date().toISOString(),
@@ -73,7 +73,7 @@ export function WeeklyMoodBoard({ drops: propDrops, onSaveToCollection }: Weekly
             <p className="text-[10px] text-muted-foreground">Drops every Monday · Week {currentDrop.week_number}</p>
           </div>
         </div>
-        <Badge variant="outline" className="text-[9px] h-5 gap-1 border-primary/20 text-primary animate-pulse">
+        <Badge variant="outline" className="text-[9px] h-5 gap-1 border-primary/20 text-primary skeleton-block">
           <Sparkles className="h-2.5 w-2.5" /> New Drop
         </Badge>
       </div>

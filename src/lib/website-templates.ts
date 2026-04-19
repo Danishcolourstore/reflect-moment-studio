@@ -74,7 +74,7 @@ const REVERIE: TemplateConfig = {
     bg: '#FDFCFB',
     text: '#2C2422',
     textSecondary: '#5C5450',
-    accent: '#B8953F',
+    accent: '#1A1A1A',
     border: '#F0EDE8',
     cardBg: '#FDFCFB',
     heroBg: 'transparent',

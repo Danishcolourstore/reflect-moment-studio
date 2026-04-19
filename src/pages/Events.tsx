@@ -25,7 +25,7 @@ type StatusKey = "confirmed" | "pending" | "draft";
 
 const STATUS_COLOR: Record<StatusKey, string> = {
   confirmed: "#5C7C5A", // --go
-  pending: "#B8953F",   // --gold
+  pending: "#1A1A1A",   // --gold
   draft: "#A8A6A0",     // --ink-whisper
 };
 
@@ -69,7 +69,7 @@ export default function Events() {
 
   // Tokens (locked design system)
   const INK = "#1A1917";
-  const INK_MUTED = "#6B6962";
+  const INK_MUTED = "#6E6E6E";
   const RULE = "#E8E6E1";
   const WASH = "#F4F3F0";
   const PAPER = "#FAFAF8";
@@ -150,7 +150,7 @@ export default function Events() {
                 paddingBottom: 12,
                 paddingTop: 4,
                 marginBottom: -1,
-                borderBottom: filter === f.key ? "1px solid #B8953F" : "1px solid transparent",
+                borderBottom: filter === f.key ? "1px solid #1A1A1A" : "1px solid transparent",
                 transition: "color 120ms cubic-bezier(0.4, 0, 0.2, 1)",
                 whiteSpace: "nowrap",
                 flexShrink: 0,
@@ -203,7 +203,7 @@ export default function Events() {
             <button
               onClick={() => setCreateOpen(true)}
               style={{
-                background: "#B8953F",
+                background: "#1A1A1A",
                 color: "#FAFAF8",
                 border: "none",
                 padding: "0 24px",
@@ -216,8 +216,8 @@ export default function Events() {
                 cursor: "pointer",
                 transition: "background 120ms cubic-bezier(0.4, 0, 0.2, 1)",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#8B6F2E")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#B8953F")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#1A1A1A")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#1A1A1A")}
             >
               Create event
             </button>

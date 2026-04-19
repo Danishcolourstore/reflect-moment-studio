@@ -208,7 +208,7 @@ export function FindMyPhotosModal({
                     style={{ borderColor: accent }}
                   />
                   <div
-                    className="absolute inset-0 rounded-full border-2 animate-pulse"
+                    className="absolute inset-0 rounded-full border-2 skeleton-block"
                     style={{ borderColor: accent }}
                   />
                 </div>
@@ -223,7 +223,7 @@ export function FindMyPhotosModal({
                 {[0, 1, 2].map(i => (
                   <div
                     key={i}
-                    className="w-2 h-2 rounded-full animate-pulse"
+                    className="w-2 h-2 rounded-full skeleton-block"
                     style={{ backgroundColor: accent, animationDelay: `${i * 0.3}s` }}
                   />
                 ))}

@@ -15,7 +15,7 @@ export function CollectionsGallery() {
     return (
       <div className="space-y-3">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-20 rounded-xl bg-secondary animate-pulse" />
+          <div key={i} className="h-20 rounded-xl bg-secondary skeleton-block" />
         ))}
       </div>
     );

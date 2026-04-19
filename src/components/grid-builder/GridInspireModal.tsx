@@ -424,7 +424,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           {/* Hero section */}
           <div className="text-center mb-10 animate-in fade-in slide-in-from-bottom-3 duration-700">
             <div className="relative mx-auto w-14 h-14 mb-5">
-              <div className="absolute inset-0 rounded-2xl bg-primary/10 animate-pulse" />
+              <div className="absolute inset-0 rounded-2xl bg-primary/10 skeleton-block" />
               <div className="absolute inset-0 rounded-2xl border border-primary/20" />
               <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary" />
             </div>
@@ -605,7 +605,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
                 >
                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0 transition-all duration-300 ${
                     isComplete ? 'bg-primary/20 text-primary' :
-                    isActive ? 'bg-primary/10 text-primary animate-pulse' :
+                    isActive ? 'bg-primary/10 text-primary skeleton-block' :
                     'bg-secondary text-muted-foreground'
                   }`}>
                     {isComplete ? <Check className="h-3 w-3" /> : <phase.Icon className="h-3 w-3" strokeWidth={1.5} />}

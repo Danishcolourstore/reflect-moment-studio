@@ -119,7 +119,7 @@ const Dashboard = () => {
               onClick={() => setCreateOpen(true)}
               style={{
                 marginTop: 24, height: 44, padding: "0 28px",
-                background: "#B8953F", border: "none",
+                background: "#1A1A1A", border: "none",
                 fontFamily: "'DM Sans', sans-serif", fontSize: 12,
                 letterSpacing: "0.08em", textTransform: "uppercase",
                 color: "#fff", cursor: "pointer", borderRadius: 8,
@@ -217,7 +217,7 @@ const Dashboard = () => {
         style={{
           position: "fixed", bottom: 32, right: 32,
           width: 56, height: 56, borderRadius: "50%",
-          background: "#B8953F", border: "none", cursor: "pointer",
+          background: "#1A1A1A", border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "0 4px 20px rgba(200,169,126,0.3)", zIndex: 50,
         }}

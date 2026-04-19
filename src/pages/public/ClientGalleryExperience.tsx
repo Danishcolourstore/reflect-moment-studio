@@ -146,7 +146,7 @@ function PasswordGate({
               fontSize: 12,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
-              color: "#6B6962",
+              color: "#6E6E6E",
               marginTop: 8,
             }}
           >
@@ -353,7 +353,7 @@ function ChapterMarker({ name }: { name: string }) {
           fontFamily: "'Cormorant Garamond', serif",
           fontSize: 18,
           fontWeight: 300,
-          color: "#6B6962",
+          color: "#6E6E6E",
           marginTop: 16,
         }}
       >
@@ -458,7 +458,7 @@ function GalleryImage({
             width: 6,
             height: 6,
             borderRadius: "50%",
-            background: "#B8953F",
+            background: "#1A1A1A",
           }}
         />
       )}
@@ -468,8 +468,8 @@ function GalleryImage({
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <Heart
             size={48}
-            fill="#B8953F"
-            color="#B8953F"
+            fill="#1A1A1A"
+            color="#1A1A1A"
             style={{
               animation: "galleryHeartPop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards",
             }}
@@ -722,7 +722,7 @@ function ChapterNav({
               width: 5,
               height: 5,
               borderRadius: "50%",
-              background: i === activeIndex ? "#B8953F" : "#E8E6E1",
+              background: i === activeIndex ? "#1A1A1A" : "#E8E6E1",
               transition: "background 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               flexShrink: 0,
             }}
@@ -885,8 +885,8 @@ function ImageViewer({
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[310]">
           <Heart
             size={48}
-            fill="#B8953F"
-            color="#B8953F"
+            fill="#1A1A1A"
+            color="#1A1A1A"
             style={{ animation: "galleryHeartPop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}
           />
         </div>
@@ -914,7 +914,7 @@ function ImageViewer({
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
-              color: "#6B6962",
+              color: "#6E6E6E",
             }}
           >
             {currentIndex + 1} / {photos.length}
@@ -934,8 +934,8 @@ function ImageViewer({
           >
             <Heart
               size={20}
-              color={isFav ? "#B8953F" : "#F5F5F5"}
-              fill={isFav ? "#B8953F" : "none"}
+              color={isFav ? "#1A1A1A" : "#F5F5F5"}
+              fill={isFav ? "#1A1A1A" : "none"}
             />
           </button>
           {downloadsEnabled && (
@@ -1081,7 +1081,7 @@ function FavoritesDrawer({
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 12,
-              color: "#6B6962",
+              color: "#6E6E6E",
               marginTop: 4,
             }}
           >
@@ -1243,7 +1243,7 @@ function GalleryFooter({
           style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 12,
-            color: "#6B6962",
+            color: "#6E6E6E",
             marginTop: 8,
           }}
         >
@@ -1491,7 +1491,7 @@ export default function ClientGalleryExperience() {
             left: 0,
             right: 0,
             height: 2,
-            background: "#B8953F",
+            background: "#1A1A1A",
             animation: "galleryLoadBar 2s cubic-bezier(0.4, 0, 0.2, 1) infinite",
             overflow: "hidden",
           }}
@@ -1513,7 +1513,7 @@ export default function ClientGalleryExperience() {
             fontFamily: "'Cormorant Garamond', serif",
             fontSize: 22,
             fontWeight: 300,
-            color: "#6B6962",
+            color: "#6E6E6E",
           }}
         >
           Gallery not found

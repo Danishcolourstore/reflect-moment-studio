@@ -58,7 +58,7 @@ export function GalleryPasswordGate({ eventId, eventTitle, studioLogoUrl, onUnlo
         <p className="font-serif text-lg text-muted-foreground">Private gallery</p>
         <p className="text-sm text-muted-foreground">Enter the password to view</p>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className={`relative ${shake ? "animate-pulse" : ""}`}>
+          <div className={`relative ${shake ? "skeleton-block" : ""}`}>
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
             <Input
               type={showPw ? "text" : "password"}

@@ -80,7 +80,7 @@ export function LiveSyncStatusBar({ isLive, cameraConnected, syncing, guestViewe
 
         {/* Cloud sync */}
         <div className="flex items-center gap-1.5">
-          <Cloud className={`h-3.5 w-3.5 ${syncing ? 'text-primary animate-pulse' : 'text-muted-foreground/40'}`} />
+          <Cloud className={`h-3.5 w-3.5 ${syncing ? 'text-primary skeleton-block' : 'text-muted-foreground/40'}`} />
           <span className="text-[10px] text-foreground/70">
             {syncing ? 'Syncing to Cloud' : 'Synced'}
           </span>

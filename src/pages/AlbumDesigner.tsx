@@ -24,8 +24,8 @@ import { cn } from "@/lib/utils";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
-  review: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  approved: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  review: "bg-amber-100 text-amber-800 ",
+  approved: "bg-emerald-100 text-emerald-800 ",
   print: "bg-primary/10 text-primary",
 };
 
@@ -283,7 +283,7 @@ export default function AlbumDesigner() {
             <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No albums.</h2>
             <button
               onClick={() => setWizardOpen(true)}
-              className="h-11 px-6 text-[13px] font-medium tracking-[0.06em] uppercase text-[#FAFAF8] bg-[#B8953F] hover:bg-[#8B6F2E] transition-colors duration-[120ms]"
+              className="h-11 px-6 text-[13px] font-medium tracking-[0.06em] uppercase text-[#FAFAF8] bg-[#1A1A1A] hover:bg-[#1A1A1A] transition-colors duration-[120ms]"
             >
               Create album
             </button>

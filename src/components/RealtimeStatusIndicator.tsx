@@ -59,7 +59,7 @@ export function RealtimeStatusIndicator({
             {status === 'reconnecting' && (
               <span
                 className={cn(
-                  'animate-pulse absolute inline-flex h-full w-full rounded-full opacity-60',
+                  'skeleton-block absolute inline-flex h-full w-full rounded-full opacity-60',
                   config.pulseClass
                 )}
               />

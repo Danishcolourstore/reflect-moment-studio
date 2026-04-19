@@ -28,7 +28,7 @@ export const BG_PRESETS: { label: string; style: BackgroundStyle; group: 'solid'
   { label: 'Warm Cream', group: 'gradient', style: { type: 'gradient', color: '#F5F0E8', gradientTo: '#E8DDD0', gradientAngle: 180 } },
   { label: 'Soft Blush', group: 'gradient', style: { type: 'gradient', color: '#F8E8E0', gradientTo: '#F0D8D0', gradientAngle: 135 } },
   { label: 'Dramatic Black', group: 'gradient', style: { type: 'gradient', color: '#1a1a1a', gradientTo: '#0a0a0a', gradientAngle: 180 } },
-  { label: 'Golden Hour', group: 'gradient', style: { type: 'gradient', color: '#F8F3E6', gradientTo: '#B8953F', gradientAngle: 135 } },
+  { label: 'Golden Hour', group: 'gradient', style: { type: 'gradient', color: '#F8F3E6', gradientTo: '#1A1A1A', gradientAngle: 135 } },
   { label: 'Dusty Rose', group: 'gradient', style: { type: 'gradient', color: '#E8D0D0', gradientTo: '#D0B8B8', gradientAngle: 180 } },
   { label: 'Moody', group: 'gradient', style: { type: 'gradient', color: '#2B2A28', gradientTo: '#1A1918', gradientAngle: 180 } },
 

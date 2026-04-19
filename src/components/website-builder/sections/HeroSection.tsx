@@ -85,7 +85,7 @@ export function HeroSection({ template, studioName, tagline = 'Wedding Photograp
         {/* Scroll indicator */}
         {t.id === 'reverie' && (
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-            <div className="w-px h-8 bg-white/40 animate-pulse" />
+            <div className="w-px h-8 bg-white/40 skeleton-block" />
           </div>
         )}
       </section>
