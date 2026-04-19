@@ -28,7 +28,7 @@ export default function ElementToolbar({ elements, selectedId, onAddElement, onU
               onClick={() => onAddElement(createDesignElement(s.type))}
               className="flex-1 flex flex-col items-center gap-1.5 py-2.5 rounded-lg border border-border/60 hover:border-foreground/20 hover:bg-muted/30 bg-background transition-all duration-200 active:scale-95"
             >
-              <span className="text-lg text-foreground/80">{s.icon}</span>
+              <s.Icon className="h-4 w-4 text-foreground/80" strokeWidth={1.5} />
               <span className="text-[8px] tracking-wider uppercase text-muted-foreground/50">{s.label}</span>
             </button>
           ))}

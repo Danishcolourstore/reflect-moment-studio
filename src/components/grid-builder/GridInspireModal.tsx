@@ -608,7 +608,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
                     isActive ? 'bg-primary/10 text-primary animate-pulse' :
                     'bg-secondary text-muted-foreground'
                   }`}>
-                    {isComplete ? <Check className="h-3 w-3" /> : phase.icon}
+                    {isComplete ? <Check className="h-3 w-3" /> : <phase.Icon className="h-3 w-3" strokeWidth={1.5} />}
                   </div>
                   <span className={`text-xs transition-colors duration-300 ${
                     isActive ? 'text-foreground font-medium' : 'text-muted-foreground'

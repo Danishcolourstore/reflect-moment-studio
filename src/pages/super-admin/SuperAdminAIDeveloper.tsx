@@ -22,7 +22,7 @@ import {
   Settings2, Shield, ShieldAlert, FileWarning, FolderOpen, ChevronRight,
   ChevronDown, File, Layers, Globe, Server, LayoutGrid, Package, Search,
   RefreshCw, Download, ExternalLink, FlaskConical, Lock, Cpu, FileText,
-  TestTube2, Gauge, BookOpen, ShieldCheck, Bug, Zap as ZapIcon, CircleCheck,
+  TestTube2, Gauge, BookOpen, ShieldCheck, Bug, Brain, Zap as ZapIcon, CircleCheck,
   CircleX, Info, Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -382,7 +382,7 @@ export default function SuperAdminAIDeveloper() {
               <SelectContent>
                 {AI_PROVIDERS.map(p => (
                   <SelectItem key={p.value} value={p.value}>
-                    <span className="flex items-center gap-2">{p.icon} {p.label}</span>
+                    <span className="flex items-center gap-2"><p.Icon className="h-3 w-3" strokeWidth={1.5} /> {p.label}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
