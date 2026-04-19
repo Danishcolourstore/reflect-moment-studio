@@ -196,9 +196,9 @@ export default function LandingGate() {
         >
           <Menu className="w-5 h-5 text-[var(--ink)]" strokeWidth={1.5} />
         </button>
-        {/* Wordmark in Fraunces — the ONLY serif in the chrome */}
-        <span className="font-serif text-[18px] font-normal text-[var(--ink)] inline-flex items-center gap-2">
-          {profileName}
+        {/* Wordmark — Mirror AI brand */}
+        <span className="font-serif text-[18px] font-normal text-[var(--ink)] inline-flex items-center gap-2 tracking-[-0.01em]">
+          Mirror AI
           <span className="w-[3px] h-[3px] bg-[var(--ink)] rounded-full" />
         </span>
         <button
@@ -215,97 +215,19 @@ export default function LandingGate() {
         <div className="max-w-[1080px] mx-auto bg-white border border-[var(--rule)] md:my-10">
           {/* ─── DASH FRAGMENT ───────────────────────────────────── */}
           <div className="px-6 md:px-14 pt-10 md:pt-14 pb-10 md:pb-14">
-            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-3">
+            <h1 className="font-serif font-light text-[32px] md:text-[44px] leading-[1.08] tracking-[-0.02em] text-[var(--ink)] mb-9 md:mb-12">
               {today}
-            </p>
-            <h1 className="font-serif font-light text-[36px] md:text-[48px] leading-[1.08] tracking-[-0.02em] text-[var(--ink)] mb-2">
-              {greetingTime}, {profileName}.
             </h1>
-            <p className="font-serif italic font-light text-[16px] md:text-[20px] leading-[1.5] text-[var(--ink-muted)] mb-9 md:mb-10">
-              {subtitle}
-            </p>
 
             {/* ─── STAT ROW ───────────────────────────────────────── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 py-6 md:py-7 border-t border-b border-[var(--rule)] mb-10 md:mb-12">
-              <StatCell label="Events"        value={loading ? "—" : String(stats.events)} hint="this quarter" />
-              <StatCell label="Photos"        value={loading ? "—" : stats.photos.toLocaleString("en-IN")} hint="delivered" />
-              <StatCell label="Active clients" value={loading ? "—" : String(stats.clients)} hint="all-time" />
-              <StatCell label="Revenue · this month" value={loading ? "—" : fmtRevenue(stats.revenue)} hint="confirmed" />
+              <StatCell label="Events"  value={loading ? "—" : String(stats.events)} hint="this quarter" />
+              <StatCell label="Photos"  value={loading ? "—" : stats.photos.toLocaleString("en-IN")} hint="in library" />
+              <StatCell label="Clients" value={loading ? "—" : String(stats.clients)} />
+              <StatCell label="Revenue" value={loading ? "—" : fmtRevenue(stats.revenue)} hint="this month" />
             </div>
 
-            {/* ─── RECENT EVENTS ──────────────────────────────────── */}
-            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-5">
-              Recent events
-            </p>
-
-            {loading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="grid grid-cols-[80px_1fr] md:grid-cols-[120px_1fr_auto] gap-6 md:gap-8 items-center py-4 border-b border-[var(--rule)] last:border-b-0">
-                    <div className="aspect-[3/2] w-full bg-[var(--wash-strong)] skeleton-block" />
-                    <div className="space-y-2">
-                      <div className="h-5 w-2/3 bg-[var(--wash-strong)] skeleton-block" />
-                      <div className="h-3 w-1/2 bg-[var(--wash-strong)] skeleton-block" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : events.length === 0 ? (
-              <div className="py-14 md:py-20 text-center">
-                <p className="font-serif italic text-[18px] md:text-[20px] text-[var(--ink-muted)] mb-1">
-                  No events yet.
-                </p>
-                <p className="text-[12px] tracking-[0.04em] text-[var(--ink-whisper)] mb-6">
-                  Your first gallery is one event away.
-                </p>
-                <button
-                  onClick={() => setCreateEventOpen(true)}
-                  className="inline-flex items-center gap-2 h-11 px-6 bg-[var(--ink)] text-white text-[12px] font-medium tracking-[0.08em] uppercase cursor-pointer hover:opacity-90 transition-opacity border-0"
-                >
-                  <Plus className="w-[14px] h-[14px]" strokeWidth={2} />
-                  Create event
-                </button>
-              </div>
-            ) : (
-              <div>
-                {events.slice(0, mob ? 4 : 5).map((evt) => (
-                  <button
-                    key={evt.id}
-                    onClick={() => navigate(`/dashboard/events/${evt.id}`)}
-                    className="w-full text-left grid grid-cols-[80px_1fr] md:grid-cols-[120px_1fr_auto] gap-6 md:gap-8 items-center py-4 border-b border-[var(--rule)] last:border-b-0 bg-transparent border-l-0 border-r-0 border-t-0 cursor-pointer group"
-                  >
-                    <div className="aspect-[3/2] w-full bg-[#E6E2DA] overflow-hidden relative">
-                      {evt.cover_url ? (
-                        <img
-                          src={evt.cover_url}
-                          alt={evt.name}
-                          className="w-full h-full object-cover block transition-transform duration-700 group-hover:scale-[1.03]"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="font-serif italic text-[22px] text-[#B8B0A0]">
-                            {(evt.name || "·").charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-serif italic font-normal text-[20px] md:text-[24px] leading-[1.2] text-[var(--ink)] truncate">
-                        {evt.name || "Untitled event"}
-                      </p>
-                      <p className="text-[12px] text-[var(--ink-muted)] mt-1.5 num truncate">
-                        {evt.photo_count ? `${evt.photo_count.toLocaleString("en-IN")} photos` : "Draft"}
-                        {evt.location ? ` · ${evt.location}` : ""}
-                      </p>
-                    </div>
-                    <p className="hidden md:block font-mono text-[11px] text-[var(--ink-whisper)] tracking-tight num">
-                      {fmtDate(evt.event_date)}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Recent Events preview removed — full list lives in /dashboard/events */}
 
             {/* ─── ACTIONS ROW ────────────────────────────────────── */}
             <div className="mt-10 md:mt-12 flex flex-wrap items-center gap-3">
@@ -380,10 +302,10 @@ export default function LandingGate() {
 function StatCell({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div>
-      <p className="text-[9px] md:text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-3">
+      <p className="text-[9px] md:text-[10px] font-medium tracking-[0.08em] uppercase text-[var(--ink-muted)] mb-3">
         {label}
       </p>
-      <p className="text-[20px] md:text-[22px] font-medium text-[var(--ink)] tracking-[-0.02em] num leading-none">
+      <p className="text-[22px] md:text-[26px] font-medium text-[var(--ink)] tracking-[-0.02em] num leading-none">
         {value}
       </p>
       {hint && (
