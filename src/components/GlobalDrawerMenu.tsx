@@ -211,21 +211,19 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                   fontSize: 28,
                   lineHeight: 1.55,
                   fontWeight: 400,
-                  fontStyle: active ? "italic" : "normal",
+                  fontStyle: "normal",
                   color: active ? "#B8953F" : "#1C1C1E",
                   padding: 0,
-                  transition: `color 180ms ease, font-style 180ms ease`,
+                  transition: `color 180ms ease`,
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
                     e.currentTarget.style.color = "#B8953F";
-                    e.currentTarget.style.fontStyle = "italic";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!active) {
                     e.currentTarget.style.color = "#1C1C1E";
-                    e.currentTarget.style.fontStyle = "normal";
                   }
                 }}
               >

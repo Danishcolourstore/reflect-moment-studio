@@ -153,7 +153,7 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
                     <strong className="font-semibold" style={{ color: '#F4F1EA' }}>{children}</strong>
                   ),
                   em: ({ children }) => (
-                    <em style={{ color: 'rgba(200,169,126,0.7)', fontStyle: 'italic' }}>{children}</em>
+                    <em style={{ color: 'rgba(200,169,126,0.7)', fontStyle: 'normal' }}>{children}</em>
                   ),
                   ul: ({ children }) => <ul className="list-disc pl-4 mb-3 space-y-1">{children}</ul>,
                   ol: ({ children }) => <ol className="list-decimal pl-4 mb-3 space-y-1">{children}</ol>,
