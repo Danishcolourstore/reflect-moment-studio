@@ -195,7 +195,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
             </div>
           )}
           {message && (
-            <div style={{ fontSize: 12, color: colors.textDim, textAlign: "center", marginBottom: 14, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: colors.inkMuted, textAlign: "center", marginBottom: 14, lineHeight: 1.5 }}>
               {message}
             </div>
           )}
@@ -293,7 +293,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
               onClick={() => { setIsSignup(!isSignup); setPassword(""); setError(""); setMessage(""); }}
               style={{
                 background: "none", border: "none", cursor: "pointer",
-                color: colors.textDim, fontSize: 14, fontFamily: fonts.body,
+                color: colors.inkMuted, fontSize: 14, fontFamily: fonts.body,
               }}
             >
               {isSignup ? "Sign in" : "Create Account"}
