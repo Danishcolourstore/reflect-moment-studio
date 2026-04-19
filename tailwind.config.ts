@@ -5,6 +5,46 @@ export default {
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
+    /* ─── LOCKED SCALES ─── */
+    /* These three replace Tailwind defaults entirely. Any class outside this
+       set will fail to compile. That is intentional — drift dies at the build. */
+    spacing: {
+      0: "0",
+      0.5: "2px",
+      1: "4px",
+      2: "8px",
+      3: "12px",
+      4: "16px",
+      6: "24px",
+      8: "32px",
+      12: "48px",
+      16: "64px",
+      24: "96px",
+      32: "128px",
+      px: "1px",
+    },
+    borderRadius: {
+      none: "0",
+      DEFAULT: "0",
+      sm: "0",
+      md: "0",
+      lg: "0",
+      xl: "0",
+      "2xl": "0",
+      "3xl": "0",
+      full: "9999px",
+      toast: "2px",
+    },
+    boxShadow: {
+      none: "none",
+      DEFAULT: "none",
+      sm: "none",
+      md: "none",
+      lg: "none",
+      xl: "none",
+      "2xl": "none",
+      inner: "none",
+    },
     container: {
       center: true,
       padding: "2rem",
@@ -62,11 +102,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "var(--radius)",
-        sm: "var(--radius)",
       },
       keyframes: {
         "accordion-down": {
