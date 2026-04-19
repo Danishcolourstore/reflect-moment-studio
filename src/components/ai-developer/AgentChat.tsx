@@ -510,7 +510,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
           <ScrollArea className="flex-1">
             <div className="p-2 space-y-0.5">
               {conversations.length === 0 ? (
-                <p className="text-[10px] text-muted-foreground text-center py-8 px-4">No conversations yet.</p>
+                <p className="text-center py-12 px-4 font-serif text-[20px] font-light text-foreground">No conversations.</p>
               ) : conversations.map(conv => (
                 <div key={conv.id} className={cn('group relative px-3 py-2.5 rounded-lg cursor-pointer transition-colors', activeConvId === conv.id ? 'bg-muted' : 'hover:bg-muted/50')} onClick={() => setActiveConvId(conv.id)}>
                   {editingTitle === conv.id ? (

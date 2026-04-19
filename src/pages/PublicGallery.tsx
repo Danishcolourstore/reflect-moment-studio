@@ -638,20 +638,14 @@ const PublicGallery = () => {
     if (displayPhotos.length === 0 && filter === 'favorites') {
       return (
         <div className="py-32 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/40 mb-5">
-            <Heart className="h-7 w-7 text-muted-foreground/25" />
-          </div>
-          <p className="font-serif text-lg text-muted-foreground/60">No favorites yet</p>
-          <p className="mt-2 text-sm text-muted-foreground/40 max-w-xs mx-auto">Tap the heart icon on any photo to save it to your favorites</p>
+          <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No favorites.</h2>
         </div>
       );
     }
     if (displayPhotos.length === 0 && photos.length === 0) {
       return (
         <div className="py-32 text-center">
-          <Camera className="mx-auto h-10 w-10 text-muted-foreground/15" />
-          <p className="mt-4 font-display text-xl text-muted-foreground/50 italic">Photos coming soon</p>
-          <p className="mt-1.5 text-[11px] text-muted-foreground/35 tracking-wide">Check back shortly</p>
+          <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No photos.</h2>
         </div>
       );
     }

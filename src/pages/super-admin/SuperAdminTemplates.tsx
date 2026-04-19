@@ -375,10 +375,8 @@ export default function SuperAdminTemplates() {
         ))}
 
         {templates.length === 0 && (
-          <div className="text-center py-16 text-muted-foreground">
-            <ImageIcon className="h-10 w-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No templates yet</p>
-            <p className="text-xs mt-1">Create your first website template</p>
+          <div className="text-center py-24">
+            <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No templates.</h2>
           </div>
         )}
       </div>

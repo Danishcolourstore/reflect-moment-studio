@@ -55,10 +55,8 @@ export function PackagesPanel({ packages, onAddPackage, onDeletePackage }: Packa
       </div>
 
       {packages.length === 0 ? (
-        <div className="text-center py-16 border border-dashed rounded-xl">
-          <Package className="mx-auto h-10 w-10 text-muted-foreground/20" />
-          <p className="mt-3 font-serif text-lg text-foreground">No packages yet</p>
-          <p className="text-sm text-muted-foreground">Create packages to offer clients</p>
+        <div className="py-24 text-center">
+          <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No packages.</h2>
         </div>
       ) : (
         <div className="grid gap-3">

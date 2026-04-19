@@ -279,20 +279,14 @@ export default function AlbumDesigner() {
             <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : albums.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center px-4">
-            <div className={cn(
-              "rounded-2xl bg-muted/50 flex items-center justify-center mb-4",
-              device.isPhone ? "h-16 w-16" : "h-20 w-20"
-            )}>
-              <BookOpen className={cn("text-muted-foreground/30", device.isPhone ? "h-8 w-8" : "h-10 w-10")} />
-            </div>
-            <h3 className="text-lg font-medium">No albums yet</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Create your first professional album to start designing spreads.
-            </p>
-            <Button onClick={() => setWizardOpen(true)} className="mt-4 gap-2 h-12 px-6">
-              <Plus className="h-4 w-4" /> Create First Album
-            </Button>
+          <div className="flex flex-col items-center justify-center py-24 text-center px-4 gap-6">
+            <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No albums.</h2>
+            <button
+              onClick={() => setWizardOpen(true)}
+              className="h-11 px-6 text-[13px] font-medium tracking-[0.06em] uppercase text-[#FAFAF8] bg-[#B8953F] hover:bg-[#8B6F2E] transition-colors duration-[120ms]"
+            >
+              Create album
+            </button>
           </div>
         ) : (
           device.isPhone ? renderMobileList() : renderDesktopTable()

@@ -229,8 +229,8 @@ export default function StorybookCreator({ standalone = false }: { standalone?: 
             {[1,2,3].map(i => <div key={i} className="skeleton-block" style={{ height: 72 }} />)}
           </div>
         ) : storybooks.length === 0 ? (
-          <div style={{ border: '1px solid hsl(37, 10%, 90%)', padding: '64px 24px', textAlign: 'center' }}>
-            <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 20, color: 'hsl(35, 4%, 56%)', fontWeight: 300 }}>No storybooks yet</p>
+          <div style={{ padding: '96px 24px', textAlign: 'center' }}>
+            <h2 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 28, color: '#1A1917', fontWeight: 300, margin: 0, lineHeight: 1.2 }}>No storybooks.</h2>
           </div>
         ) : (
           <div className="space-y-3">

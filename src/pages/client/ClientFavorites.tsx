@@ -47,10 +47,8 @@ const ClientFavorites = () => {
           {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-48" />)}
         </div>
       ) : photos.length === 0 ? (
-        <div className="border border-dashed border-border/60 py-24 text-center rounded-xl">
-          <Heart className="mx-auto h-12 w-12 text-muted-foreground/15" />
-          <p className="mt-4 font-serif text-lg text-muted-foreground/60">No favorites yet</p>
-          <p className="mt-1 text-[11px] text-muted-foreground/40">Browse your events and mark photos as favorites.</p>
+        <div className="py-24 text-center">
+          <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No favorites.</h2>
         </div>
       ) : (
         <>

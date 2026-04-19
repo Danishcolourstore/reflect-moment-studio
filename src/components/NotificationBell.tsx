@@ -56,11 +56,8 @@ export function NotificationBell() {
         </div>
         <ScrollArea className="max-h-[480px]">
           {notifications.length === 0 ? (
-            <div className="py-16 text-center space-y-3">
-              <div className="mx-auto w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
-                <Inbox className="h-8 w-8 text-muted-foreground/20" />
-              </div>
-              <p className="text-sm text-muted-foreground/50">No notifications yet</p>
+            <div className="py-20 text-center">
+              <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No notifications.</h2>
             </div>
           ) : (
             <div className="divide-y divide-border/50">

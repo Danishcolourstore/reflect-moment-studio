@@ -106,10 +106,8 @@ export function SaveToCollectionSheet({ open, onClose, itemToSave }: SaveToColle
             ))}
 
             {collections.length === 0 && !creating && (
-              <div className="text-center py-6">
-                <FolderPlus className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
-                <p className="text-xs text-muted-foreground">No collections yet</p>
-                <p className="text-[10px] text-muted-foreground/60">Create your first creative library below</p>
+              <div className="text-center py-12">
+                <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No collections.</h2>
               </div>
             )}
           </div>
