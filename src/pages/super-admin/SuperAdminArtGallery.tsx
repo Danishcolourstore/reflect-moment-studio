@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, MessageSquare, X, Send } from 'lucide-react';
+import { Plus, Pencil, Trash2, MessageSquare, X, Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-
-const playfair = '"Playfair Display", serif';
-const mont = '"Montserrat", sans-serif';
 
 /* ── Types ── */
 interface Photographer { id: string; name: string; location: string; bio: string; photo_url: string; website: string; status: string; sort_order: number; }
@@ -20,34 +17,35 @@ const TABS = ['FEATURED', 'STORIES', 'FEED', 'NEWS', 'EDUCATION', 'DISCOVER', 'S
 type Tab = typeof TABS[number];
 const TAG_OPTIONS = ['Free Tutorial', 'Premium', 'Workshop', 'Webinar'];
 
-/* ── Styles ── */
-const ink = '#1A1A1A';
-const gold = '#1A1A1A';
-const border = 'rgba(0,0,0,0.06)';
+/* ── Reusable className constants ── */
+const labelCls = "text-[10px] font-medium tracking-[0.15em] uppercase text-[var(--ink-muted)] mb-2";
+const inputCls = "bg-white border border-[var(--rule)] text-[var(--ink)] px-3 py-2 text-[13px] w-full outline-none focus:border-[var(--rule-strong)]";
+const textareaCls = `${inputCls} min-h-20 resize-y`;
+const ghostBtnCls = "bg-transparent border border-[var(--ink)] text-[var(--ink)] px-4 py-2 text-[11px] cursor-pointer inline-flex items-center gap-1.5 font-medium tracking-[0.05em] hover:bg-[var(--wash)]";
+const saveBtnCls = "bg-[var(--ink)] text-white border-0 px-5 py-2 text-[11px] font-semibold cursor-pointer";
+const cancelBtnCls = "bg-transparent border border-[var(--rule)] text-[var(--ink-muted)] px-4 py-2 text-[11px] cursor-pointer";
+const tdCls = "px-3 py-2.5 border-b border-[var(--rule)] text-[13px] text-[var(--ink)] align-top";
+const thCls = "px-3 py-2 border-b border-[var(--rule-strong)] text-[9px] font-semibold tracking-[0.15em] uppercase text-[var(--ink-muted)] text-left";
+const cardCls = "bg-white border border-[var(--rule)] p-5 mb-4";
+const iconBtnCls = "bg-transparent border-0 cursor-pointer p-1 text-[var(--ink-muted)] hover:text-[var(--ink)]";
 
-const s = {
-  label: { fontSize: 10, fontWeight: 500 as const, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: 'rgba(26,26,26,0.4)', marginBottom: 6, fontFamily: mont },
-  input: { background: '#FFFFFF', border: `1px solid ${border}`, color: ink, borderRadius: 4, padding: '8px 12px', fontSize: 13, width: '100%', outline: 'none', fontFamily: mont },
-  textarea: { background: '#FFFFFF', border: `1px solid ${border}`, color: ink, borderRadius: 4, padding: '8px 12px', fontSize: 13, width: '100%', outline: 'none', minHeight: 80, resize: 'vertical' as const, fontFamily: mont },
-  goldBtn: { background: 'transparent', border: `1px solid ${gold}`, color: gold, borderRadius: 4, padding: '8px 16px', fontSize: 11, cursor: 'pointer', display: 'inline-flex' as const, alignItems: 'center' as const, gap: 6, fontFamily: mont, fontWeight: 500 as const, letterSpacing: '0.05em' },
-  saveBtn: { background: ink, color: '#F5F0EA', border: 'none', borderRadius: 4, padding: '8px 20px', fontSize: 11, fontWeight: 600 as const, cursor: 'pointer', fontFamily: mont },
-  cancelBtn: { background: 'transparent', border: `1px solid ${border}`, color: 'rgba(26,26,26,0.4)', borderRadius: 4, padding: '8px 16px', fontSize: 11, cursor: 'pointer', fontFamily: mont },
-  td: { padding: '10px 12px', borderBottom: `1px solid ${border}`, fontSize: 13, color: ink, verticalAlign: 'top' as const, fontFamily: mont },
-  th: { padding: '8px 12px', borderBottom: `1px solid rgba(0,0,0,0.1)`, fontSize: 9, fontWeight: 600 as const, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: 'rgba(26,26,26,0.35)', textAlign: 'left' as const, fontFamily: mont },
-  badge: (active: boolean) => ({ fontSize: 9, padding: '2px 8px', borderRadius: 4, background: active ? 'rgba(76,175,80,0.1)' : 'rgba(0,0,0,0.04)', color: active ? '#4CAF50' : 'rgba(26,26,26,0.3)', fontWeight: 600 as const, letterSpacing: '0.08em', textTransform: 'uppercase' as const }),
-  card: { background: '#FFFFFF', border: `1px solid ${border}`, borderRadius: 4, padding: 20, marginBottom: 16 },
-  circle: { width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.04)', flexShrink: 0 },
-  iconBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'rgba(26,26,26,0.3)' },
-};
+function StatusBadge({ active, children }: { active: boolean; children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[10px] tracking-[0.08em] uppercase text-[var(--ink)]">
+      <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-[var(--ink)]' : 'border border-[var(--ink-whisper)]'}`} />
+      {children}
+    </span>
+  );
+}
 
 function Field({ label, value, onChange, type = 'text', placeholder = '' }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={s.label}>{label}</div>
+    <div className="mb-3">
+      <div className={labelCls}>{label}</div>
       {type === 'textarea' ? (
-        <textarea style={s.textarea as any} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+        <textarea className={textareaCls} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
       ) : (
-        <input style={s.input} type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+        <input className={inputCls} type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
       )}
     </div>
   );
@@ -86,16 +84,6 @@ export default function SuperAdminArtGallery() {
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!document.getElementById("ag-fonts")) {
-      const link = document.createElement("link");
-      link.id = "ag-fonts";
-      link.rel = "stylesheet";
-      link.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap";
-      document.head.appendChild(link);
-    }
-  }, []);
 
   const loadAll = async () => {
     const [p, st, n, t, d, cfg, fp] = await Promise.all([
@@ -176,17 +164,6 @@ export default function SuperAdminArtGallery() {
     await (supabase.from('ag_settings').update({ setting_value: settings as any, updated_at: new Date().toISOString() }).eq('setting_key', 'gallery_config') as any);
   };
 
-  const moveItem = async (table: string, list: any[], idx: number, dir: -1 | 1) => {
-    const ni = idx + dir;
-    if (ni < 0 || ni >= list.length) return;
-    const a = list[idx], b = list[ni];
-    await Promise.all([
-      (supabase.from(table as any).update({ sort_order: ni } as any).eq('id', a.id) as any),
-      (supabase.from(table as any).update({ sort_order: idx } as any).eq('id', b.id) as any),
-    ]);
-    loadAll();
-  };
-
   // ── Chat ──
   const sendChat = async () => {
     if (!chatInput.trim() || chatLoading) return;
@@ -214,12 +191,12 @@ export default function SuperAdminArtGallery() {
 
   function renderForm(item: any, setItem: (i: any) => void, fields: { key: string; label: string; type?: string; options?: string[] }[], onSave: () => void, onCancel: () => void) {
     return (
-      <div style={s.card}>
+      <div className={cardCls}>
         {fields.map(f => (
           f.options ? (
-            <div key={f.key} style={{ marginBottom: 12 }}>
-              <div style={s.label}>{f.label}</div>
-              <select style={{ ...s.input, cursor: 'pointer' }} value={String(item[f.key] ?? '')} onChange={e => setItem({ ...item, [f.key]: e.target.value })}>
+            <div key={f.key} className="mb-3">
+              <div className={labelCls}>{f.label}</div>
+              <select className={`${inputCls} cursor-pointer`} value={String(item[f.key] ?? '')} onChange={e => setItem({ ...item, [f.key]: e.target.value })}>
                 {f.options.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
@@ -227,31 +204,28 @@ export default function SuperAdminArtGallery() {
             <Field key={f.key} label={f.label} value={String(item[f.key] ?? '')} onChange={v => setItem({ ...item, [f.key]: v })} type={f.type || 'text'} />
           )
         ))}
-        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-          <button style={s.saveBtn} onClick={onSave}>Save</button>
-          <button style={s.cancelBtn} onClick={onCancel}>Cancel</button>
+        <div className="flex gap-2 mt-1">
+          <button className={saveBtnCls} onClick={onSave}>Save</button>
+          <button className={cancelBtnCls} onClick={onCancel}>Cancel</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '32px', maxWidth: 1100 }}>
+    <div className="p-8 max-w-[1100px]">
       {/* Header */}
-      <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div className="mb-8 flex justify-between items-start">
         <div>
-          <h1 style={{ fontFamily: playfair, fontSize: 26, fontWeight: 600, color: ink, margin: 0 }}>Art Gallery Editor</h1>
-          <div style={{ width: 40, height: 2, background: gold, marginTop: 8 }} />
-          <p style={{ fontFamily: mont, fontSize: 12, color: 'rgba(26,26,26,0.4)', margin: '8px 0 0' }}>Manage community content & photographer feeds</p>
+          <h1 className="text-[26px] font-semibold text-[var(--ink)] m-0">Art Gallery Editor</h1>
+          <div className="w-10 h-px bg-[var(--ink)] mt-2" />
+          <p className="text-xs text-[var(--ink-muted)] mt-2 mb-0">Manage community content & photographer feeds</p>
         </div>
         <button
           onClick={() => setChatOpen(!chatOpen)}
-          style={{
-            ...s.goldBtn,
-            background: chatOpen ? ink : 'transparent',
-            color: chatOpen ? '#F5F0EA' : gold,
-            border: chatOpen ? 'none' : `1px solid ${gold}`,
-          }}
+          className={chatOpen
+            ? `${saveBtnCls} inline-flex items-center gap-1.5`
+            : ghostBtnCls}
         >
           <MessageSquare size={14} /> AI Assistant
         </button>
@@ -259,24 +233,21 @@ export default function SuperAdminArtGallery() {
 
       {/* AI Chat Panel */}
       {chatOpen && (
-        <div style={{
-          background: '#FFFFFF', border: `1px solid ${border}`, borderRadius: 4,
-          marginBottom: 24, overflow: 'hidden',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: `1px solid ${border}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: gold }} />
-              <span style={{ fontFamily: playfair, fontSize: 14, fontWeight: 600, color: ink }}>Art Gallery AI</span>
+        <div className="bg-white border border-[var(--rule)] mb-6 overflow-hidden">
+          <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--rule)]">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[var(--ink)]" />
+              <span className="text-sm font-semibold text-[var(--ink)]">Art Gallery AI</span>
             </div>
-            <button style={s.iconBtn} onClick={() => setChatOpen(false)}><X size={16} /></button>
+            <button className={iconBtnCls} onClick={() => setChatOpen(false)}><X size={16} /></button>
           </div>
 
-          <div style={{ height: 320, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12, background: '#FAFAF5' }}>
+          <div className="h-80 overflow-y-auto p-4 flex flex-col gap-3 bg-[var(--wash)]">
             {chatMessages.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                <div style={{ fontFamily: mont, fontSize: 12, color: 'rgba(26,26,26,0.35)', lineHeight: 1.8 }}>
+              <div className="text-center px-5 py-10">
+                <div className="text-xs text-[var(--ink-muted)] leading-[1.8]">
                   Ask me to manage Art Gallery content.<br />
-                  <span style={{ color: 'rgba(26,26,26,0.2)', fontSize: 11 }}>
+                  <span className="text-[var(--ink-whisper)] text-[11px]">
                     "Add photographer Amrit from Chandigarh"<br />
                     "List all feed posts" · "Delete the Kerala story"<br />
                     "Hide feed post by title..." · "Change hero text to..."
@@ -285,16 +256,14 @@ export default function SuperAdminArtGallery() {
               </div>
             )}
             {chatMessages.map((m, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                <div style={{
-                  maxWidth: '80%', padding: '10px 14px', borderRadius: 8,
-                  background: m.role === 'user' ? ink : '#FFFFFF',
-                  color: m.role === 'user' ? '#F5F0EA' : ink,
-                  fontFamily: mont, fontSize: 13, lineHeight: 1.6,
-                  border: m.role === 'assistant' ? `1px solid ${border}` : 'none',
-                }}>
+              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] px-3.5 py-2.5 text-[13px] leading-[1.6] ${
+                  m.role === 'user'
+                    ? 'bg-[var(--ink)] text-white'
+                    : 'bg-white text-[var(--ink)] border border-[var(--rule)]'
+                }`}>
                   {m.role === 'assistant' ? (
-                    <div className="prose prose-sm" style={{ maxWidth: 'none' }}>
+                    <div className="prose prose-sm max-w-none">
                       <ReactMarkdown>{m.content}</ReactMarkdown>
                     </div>
                   ) : m.content}
@@ -302,28 +271,28 @@ export default function SuperAdminArtGallery() {
               </div>
             ))}
             {chatLoading && (
-              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <div style={{ padding: '10px 14px', borderRadius: 8, background: '#FFFFFF', border: `1px solid ${border}`, color: 'rgba(26,26,26,0.3)', fontFamily: mont, fontSize: 13 }}>
-                  Thinking...
+              <div className="flex justify-start">
+                <div className="px-3.5 py-2.5 bg-white border border-[var(--rule)] text-[var(--ink-muted)] text-[13px]">
+                  Thinking…
                 </div>
               </div>
             )}
             <div ref={chatEndRef} />
           </div>
 
-          <div style={{ padding: '12px 16px', borderTop: `1px solid ${border}`, display: 'flex', gap: 8 }}>
+          <div className="px-4 py-3 border-t border-[var(--rule)] flex gap-2">
             <input
-              style={{ ...s.input, flex: 1 }}
+              className={`${inputCls} flex-1`}
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChat()}
-              placeholder="Ask AI to manage content..."
+              placeholder="Ask AI to manage content…"
               disabled={chatLoading}
             />
             <button
               onClick={sendChat}
               disabled={chatLoading || !chatInput.trim()}
-              style={{ ...s.saveBtn, opacity: chatLoading || !chatInput.trim() ? 0.4 : 1, display: 'flex', alignItems: 'center', gap: 4 }}
+              className={`${saveBtnCls} inline-flex items-center gap-1 disabled:opacity-40`}
             >
               <Send size={14} />
             </button>
@@ -332,22 +301,28 @@ export default function SuperAdminArtGallery() {
       )}
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 28, overflowX: 'auto', borderBottom: `1px solid ${border}` }}>
+      <div className="flex gap-0 mb-8 overflow-x-auto border-b border-[var(--rule)]">
         {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            fontFamily: mont, fontSize: 10, fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase',
-            padding: '12px 20px', cursor: 'pointer', border: 'none', borderBottom: tab === t ? `2px solid ${gold}` : '2px solid transparent',
-            background: 'transparent', color: tab === t ? ink : 'rgba(26,26,26,0.3)', transition: 'color 0.2s', whiteSpace: 'nowrap',
-          }}>{t}</button>
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`text-[10px] font-semibold tracking-[0.15em] uppercase px-5 py-3 cursor-pointer border-0 bg-transparent whitespace-nowrap transition-colors ${
+              tab === t
+                ? 'text-[var(--ink)] [border-bottom:2px_solid_var(--ink)]'
+                : 'text-[var(--ink-muted)] [border-bottom:2px_solid_transparent]'
+            }`}
+          >
+            {t}
+          </button>
         ))}
       </div>
 
       {/* ═══ TAB: FEATURED ═══ */}
       {tab === 'FEATURED' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <span style={{ fontSize: 13, fontWeight: 500, color: ink, fontFamily: mont }}>{photographers.length} Photographers</span>
-            <button style={s.goldBtn} onClick={() => { setAddingP(true); setEditingP({ name: '', location: '', bio: '', photo_url: '', website: '', status: 'active' }); }}>
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-[13px] font-medium text-[var(--ink)]">{photographers.length} Photographers</span>
+            <button className={ghostBtnCls} onClick={() => { setAddingP(true); setEditingP({ name: '', location: '', bio: '', photo_url: '', website: '', status: 'active' }); }}>
               <Plus size={14} /> Add
             </button>
           </div>
@@ -356,19 +331,19 @@ export default function SuperAdminArtGallery() {
             () => { savePhotographer(editingP); setAddingP(false); setEditingP(null); },
             () => { setAddingP(false); setEditingP(null); },
           )}
-          <table style={{ width: '100%', borderCollapse: 'collapse', background: '#FFFFFF' }}>
-            <thead><tr><th style={s.th}>Photo</th><th style={s.th}>Name</th><th style={s.th}>Location</th><th style={s.th}>Status</th><th style={s.th}>Actions</th></tr></thead>
+          <table className="w-full border-collapse bg-white">
+            <thead><tr><th className={thCls}>Photo</th><th className={thCls}>Name</th><th className={thCls}>Location</th><th className={thCls}>Status</th><th className={thCls}>Actions</th></tr></thead>
             <tbody>
               {photographers.map(p => (
                 <tr key={p.id}>
-                  <td style={s.td}><div style={s.circle} /></td>
-                  <td style={{ ...s.td, fontWeight: 500 }}>{p.name}</td>
-                  <td style={s.td}>{p.location}</td>
-                  <td style={s.td}><span style={s.badge(p.status === 'active')}>{p.status}</span></td>
-                  <td style={s.td}>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button style={s.iconBtn} onClick={() => { setEditingP({ ...p }); setAddingP(true); }}><Pencil size={14} /></button>
-                      <button style={s.iconBtn} onClick={() => deletePhotographer(p.id)}><Trash2 size={14} /></button>
+                  <td className={tdCls}><div className="w-9 h-9 rounded-full bg-[var(--wash)] shrink-0" /></td>
+                  <td className={`${tdCls} font-medium`}>{p.name}</td>
+                  <td className={tdCls}>{p.location}</td>
+                  <td className={tdCls}><StatusBadge active={p.status === 'active'}>{p.status}</StatusBadge></td>
+                  <td className={tdCls}>
+                    <div className="flex gap-1">
+                      <button className={iconBtnCls} onClick={() => { setEditingP({ ...p }); setAddingP(true); }}><Pencil size={14} /></button>
+                      <button className={iconBtnCls} onClick={() => deletePhotographer(p.id)}><Trash2 size={14} /></button>
                     </div>
                   </td>
                 </tr>
@@ -381,9 +356,9 @@ export default function SuperAdminArtGallery() {
       {/* ═══ TAB: STORIES ═══ */}
       {tab === 'STORIES' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <span style={{ fontSize: 13, fontWeight: 500, color: ink, fontFamily: mont }}>{stories.length} Stories</span>
-            <button style={s.goldBtn} onClick={() => { setAddingS(true); setEditingS({ couple: '', location: '', story_date: '', snippet: '', cover_url: '', status: 'active' }); }}>
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-[13px] font-medium text-[var(--ink)]">{stories.length} Stories</span>
+            <button className={ghostBtnCls} onClick={() => { setAddingS(true); setEditingS({ couple: '', location: '', story_date: '', snippet: '', cover_url: '', status: 'active' }); }}>
               <Plus size={14} /> Add Story
             </button>
           </div>
@@ -392,19 +367,19 @@ export default function SuperAdminArtGallery() {
             () => { saveStory(editingS); setAddingS(false); setEditingS(null); },
             () => { setAddingS(false); setEditingS(null); },
           )}
-          <table style={{ width: '100%', borderCollapse: 'collapse', background: '#FFFFFF' }}>
-            <thead><tr><th style={s.th}>Couple</th><th style={s.th}>Location</th><th style={s.th}>Date</th><th style={s.th}>Status</th><th style={s.th}>Actions</th></tr></thead>
+          <table className="w-full border-collapse bg-white">
+            <thead><tr><th className={thCls}>Couple</th><th className={thCls}>Location</th><th className={thCls}>Date</th><th className={thCls}>Status</th><th className={thCls}>Actions</th></tr></thead>
             <tbody>
               {stories.map(st => (
                 <tr key={st.id}>
-                  <td style={{ ...s.td, fontWeight: 500 }}>{st.couple}</td>
-                  <td style={s.td}>{st.location}</td>
-                  <td style={s.td}>{st.story_date}</td>
-                  <td style={s.td}><span style={s.badge(st.status === 'active')}>{st.status}</span></td>
-                  <td style={s.td}>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button style={s.iconBtn} onClick={() => { setEditingS({ ...st }); setAddingS(true); }}><Pencil size={14} /></button>
-                      <button style={s.iconBtn} onClick={() => deleteStory(st.id)}><Trash2 size={14} /></button>
+                  <td className={`${tdCls} font-serif italic font-medium`}>{st.couple}</td>
+                  <td className={tdCls}>{st.location}</td>
+                  <td className={tdCls}>{st.story_date}</td>
+                  <td className={tdCls}><StatusBadge active={st.status === 'active'}>{st.status}</StatusBadge></td>
+                  <td className={tdCls}>
+                    <div className="flex gap-1">
+                      <button className={iconBtnCls} onClick={() => { setEditingS({ ...st }); setAddingS(true); }}><Pencil size={14} /></button>
+                      <button className={iconBtnCls} onClick={() => deleteStory(st.id)}><Trash2 size={14} /></button>
                     </div>
                   </td>
                 </tr>
@@ -417,48 +392,48 @@ export default function SuperAdminArtGallery() {
       {/* ═══ TAB: FEED ═══ */}
       {tab === 'FEED' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <span style={{ fontSize: 13, fontWeight: 500, color: ink, fontFamily: mont }}>
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-[13px] font-medium text-[var(--ink)]">
               {feedPosts.length} Feed Posts (All Photographers)
             </span>
           </div>
-          <p style={{ fontFamily: mont, fontSize: 11, color: 'rgba(26,26,26,0.4)', marginBottom: 20, lineHeight: 1.6 }}>
+          <p className="text-[11px] text-[var(--ink-muted)] mb-5 leading-[1.6]">
             Manage all photographer feed posts. Use AI Assistant to bulk edit, hide, or delete posts.
           </p>
-          <table style={{ width: '100%', borderCollapse: 'collapse', background: '#FFFFFF' }}>
+          <table className="w-full border-collapse bg-white">
             <thead><tr>
-              <th style={s.th}>Image</th><th style={s.th}>Title</th><th style={s.th}>Caption</th><th style={s.th}>Visible</th><th style={s.th}>Created</th><th style={s.th}>Actions</th>
+              <th className={thCls}>Image</th><th className={thCls}>Title</th><th className={thCls}>Caption</th><th className={thCls}>Visible</th><th className={thCls}>Created</th><th className={thCls}>Actions</th>
             </tr></thead>
             <tbody>
               {feedPosts.map(fp => (
                 <tr key={fp.id}>
-                  <td style={s.td}>
+                  <td className={tdCls}>
                     {fp.image_url ? (
-                      <img src={fp.image_url} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 0 }} />
+                      <img src={fp.image_url} alt="" className="w-10 h-10 object-cover" />
                     ) : (
-                      <div style={{ width: 40, height: 40, background: 'rgba(0,0,0,0.04)' }} />
+                      <div className="w-10 h-10 bg-[var(--wash)]" />
                     )}
                   </td>
-                  <td style={{ ...s.td, fontWeight: 500, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fp.title}</td>
-                  <td style={{ ...s.td, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'rgba(26,26,26,0.5)' }}>{fp.caption || '—'}</td>
-                  <td style={s.td}>
+                  <td className={`${tdCls} font-medium max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap`}>{fp.title}</td>
+                  <td className={`${tdCls} max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap text-[var(--ink-muted)]`}>{fp.caption || '—'}</td>
+                  <td className={tdCls}>
                     <button
-                      style={{ ...s.badge(fp.visible), cursor: 'pointer', border: 'none', padding: '3px 10px' }}
+                      className="bg-transparent border-0 cursor-pointer p-0"
                       onClick={() => toggleFeedVis(fp.id, fp.visible)}
                     >
-                      {fp.visible ? 'visible' : 'hidden'}
+                      <StatusBadge active={fp.visible}>{fp.visible ? 'visible' : 'hidden'}</StatusBadge>
                     </button>
                   </td>
-                  <td style={{ ...s.td, fontSize: 11, color: 'rgba(26,26,26,0.4)' }}>
+                  <td className={`${tdCls} text-[11px] text-[var(--ink-muted)]`}>
                     {new Date(fp.created_at).toLocaleDateString()}
                   </td>
-                  <td style={s.td}>
-                    <button style={s.iconBtn} onClick={() => deleteFeedPost(fp.id)}><Trash2 size={14} /></button>
+                  <td className={tdCls}>
+                    <button className={iconBtnCls} onClick={() => deleteFeedPost(fp.id)}><Trash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
               {feedPosts.length === 0 && (
-                <tr><td colSpan={6} style={{ ...s.td, textAlign: 'center', color: 'rgba(26,26,26,0.3)', padding: 40 }}>No feed posts yet</td></tr>
+                <tr><td colSpan={6} className={`${tdCls} text-center text-[var(--ink-whisper)] p-10`}>No feed posts yet</td></tr>
               )}
             </tbody>
           </table>
@@ -468,14 +443,14 @@ export default function SuperAdminArtGallery() {
       {/* ═══ TAB: NEWS ═══ */}
       {tab === 'NEWS' && (
         <div>
-          <div style={{ ...s.card, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4CAF50' }} />
-            <span style={{ fontSize: 12, color: ink, fontFamily: mont }}>Auto-fetching from PetaPixel, Fstoppers, DIY Photography</span>
-            <span style={{ ...s.badge(true), marginLeft: 8 }}>LIVE</span>
+          <div className={`${cardCls} flex items-center gap-2`}>
+            <span className="w-2 h-2 rounded-full bg-[var(--ink)]" />
+            <span className="text-xs text-[var(--ink)]">Auto-fetching from PetaPixel, Fstoppers, DIY Photography</span>
+            <span className="ml-2"><StatusBadge active>LIVE</StatusBadge></span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <span style={{ fontSize: 13, fontWeight: 500, color: ink, fontFamily: mont }}>Manual News ({manualNews.length})</span>
-            <button style={s.goldBtn} onClick={() => { setAddingN(true); setEditingN({ title: '', source: '', url: '', news_date: '', thumbnail_url: '' }); }}>
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-[13px] font-medium text-[var(--ink)]">Manual News ({manualNews.length})</span>
+            <button className={ghostBtnCls} onClick={() => { setAddingN(true); setEditingN({ title: '', source: '', url: '', news_date: '', thumbnail_url: '' }); }}>
               <Plus size={14} /> Add Article
             </button>
           </div>
@@ -484,18 +459,18 @@ export default function SuperAdminArtGallery() {
             () => { saveNews(editingN); setAddingN(false); setEditingN(null); },
             () => { setAddingN(false); setEditingN(null); },
           )}
-          <table style={{ width: '100%', borderCollapse: 'collapse', background: '#FFFFFF' }}>
-            <thead><tr><th style={s.th}>Title</th><th style={s.th}>Source</th><th style={s.th}>Date</th><th style={s.th}>Actions</th></tr></thead>
+          <table className="w-full border-collapse bg-white">
+            <thead><tr><th className={thCls}>Title</th><th className={thCls}>Source</th><th className={thCls}>Date</th><th className={thCls}>Actions</th></tr></thead>
             <tbody>
               {manualNews.map(n => (
                 <tr key={n.id}>
-                  <td style={{ ...s.td, fontWeight: 500 }}>{n.title}</td>
-                  <td style={s.td}><span style={{ ...s.badge(true), background: 'rgba(200,169,126,0.1)', color: gold }}>{n.source}</span></td>
-                  <td style={s.td}>{n.news_date}</td>
-                  <td style={s.td}>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button style={s.iconBtn} onClick={() => { setEditingN({ ...n }); setAddingN(true); }}><Pencil size={14} /></button>
-                      <button style={s.iconBtn} onClick={() => deleteNews(n.id)}><Trash2 size={14} /></button>
+                  <td className={`${tdCls} font-medium`}>{n.title}</td>
+                  <td className={tdCls}><span className="text-[10px] tracking-[0.08em] uppercase text-[var(--ink)]">{n.source}</span></td>
+                  <td className={tdCls}>{n.news_date}</td>
+                  <td className={tdCls}>
+                    <div className="flex gap-1">
+                      <button className={iconBtnCls} onClick={() => { setEditingN({ ...n }); setAddingN(true); }}><Pencil size={14} /></button>
+                      <button className={iconBtnCls} onClick={() => deleteNews(n.id)}><Trash2 size={14} /></button>
                     </div>
                   </td>
                 </tr>
@@ -508,9 +483,9 @@ export default function SuperAdminArtGallery() {
       {/* ═══ TAB: EDUCATION ═══ */}
       {tab === 'EDUCATION' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <span style={{ fontSize: 13, fontWeight: 500, color: ink, fontFamily: mont }}>{tutorials.length} Tutorials</span>
-            <button style={s.goldBtn} onClick={() => { setAddingT(true); setEditingT({ title: '', author: '', description: '', duration: '', tag: 'Free Tutorial', url: '', status: 'active' }); }}>
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-[13px] font-medium text-[var(--ink)]">{tutorials.length} Tutorials</span>
+            <button className={ghostBtnCls} onClick={() => { setAddingT(true); setEditingT({ title: '', author: '', description: '', duration: '', tag: 'Free Tutorial', url: '', status: 'active' }); }}>
               <Plus size={14} /> Add Tutorial
             </button>
           </div>
@@ -519,19 +494,19 @@ export default function SuperAdminArtGallery() {
             () => { saveTutorial(editingT); setAddingT(false); setEditingT(null); },
             () => { setAddingT(false); setEditingT(null); },
           )}
-          <table style={{ width: '100%', borderCollapse: 'collapse', background: '#FFFFFF' }}>
-            <thead><tr><th style={s.th}>Title</th><th style={s.th}>Author</th><th style={s.th}>Duration</th><th style={s.th}>Tag</th><th style={s.th}>Actions</th></tr></thead>
+          <table className="w-full border-collapse bg-white">
+            <thead><tr><th className={thCls}>Title</th><th className={thCls}>Author</th><th className={thCls}>Duration</th><th className={thCls}>Tag</th><th className={thCls}>Actions</th></tr></thead>
             <tbody>
               {tutorials.map(t => (
                 <tr key={t.id}>
-                  <td style={{ ...s.td, fontWeight: 500 }}>{t.title}</td>
-                  <td style={s.td}>{t.author}</td>
-                  <td style={s.td}>{t.duration}</td>
-                  <td style={s.td}><span style={{ ...s.badge(true), background: t.tag === 'Premium' ? 'rgba(200,169,126,0.1)' : 'rgba(76,175,80,0.1)', color: t.tag === 'Premium' ? gold : '#4CAF50' }}>{t.tag}</span></td>
-                  <td style={s.td}>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button style={s.iconBtn} onClick={() => { setEditingT({ ...t }); setAddingT(true); }}><Pencil size={14} /></button>
-                      <button style={s.iconBtn} onClick={() => deleteTutorial(t.id)}><Trash2 size={14} /></button>
+                  <td className={`${tdCls} font-medium`}>{t.title}</td>
+                  <td className={tdCls}>{t.author}</td>
+                  <td className={tdCls}>{t.duration}</td>
+                  <td className={tdCls}><span className="text-[10px] tracking-[0.08em] uppercase text-[var(--ink)]">{t.tag}</span></td>
+                  <td className={tdCls}>
+                    <div className="flex gap-1">
+                      <button className={iconBtnCls} onClick={() => { setEditingT({ ...t }); setAddingT(true); }}><Pencil size={14} /></button>
+                      <button className={iconBtnCls} onClick={() => deleteTutorial(t.id)}><Trash2 size={14} /></button>
                     </div>
                   </td>
                 </tr>
@@ -544,9 +519,9 @@ export default function SuperAdminArtGallery() {
       {/* ═══ TAB: DISCOVER ═══ */}
       {tab === 'DISCOVER' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <span style={{ fontSize: 13, fontWeight: 500, color: ink, fontFamily: mont }}>{profiles.length} Profiles</span>
-            <button style={s.goldBtn} onClick={() => { setAddingD(true); setEditingD({ name: '', location: '', avatar_url: '', profile_link: '' }); }}>
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-[13px] font-medium text-[var(--ink)]">{profiles.length} Profiles</span>
+            <button className={ghostBtnCls} onClick={() => { setAddingD(true); setEditingD({ name: '', location: '', avatar_url: '', profile_link: '' }); }}>
               <Plus size={14} /> Add Profile
             </button>
           </div>
@@ -555,15 +530,15 @@ export default function SuperAdminArtGallery() {
             () => { saveProfile(editingD); setAddingD(false); setEditingD(null); },
             () => { setAddingD(false); setEditingD(null); },
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 16 }}>
-            {profiles.map((p, i) => (
-              <div key={p.id} style={{ ...s.card, textAlign: 'center' as const, padding: 16, position: 'relative' as const }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(0,0,0,0.04)', margin: '0 auto 8px' }} />
-                <div style={{ fontSize: 12, fontWeight: 500, color: ink, fontFamily: mont }}>{p.name}</div>
-                <div style={{ fontSize: 10, color: 'rgba(26,26,26,0.35)', fontFamily: mont }}>{p.location}</div>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginTop: 8 }}>
-                  <button style={s.iconBtn} onClick={() => { setEditingD({ ...p }); setAddingD(true); }}><Pencil size={12} /></button>
-                  <button style={s.iconBtn} onClick={() => deleteProfile(p.id)}><Trash2 size={12} /></button>
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(130px,1fr))]">
+            {profiles.map(p => (
+              <div key={p.id} className={`${cardCls} text-center p-4 relative`}>
+                <div className="w-12 h-12 rounded-full bg-[var(--wash)] mx-auto mb-2" />
+                <div className="text-xs font-medium text-[var(--ink)]">{p.name}</div>
+                <div className="text-[10px] text-[var(--ink-muted)]">{p.location}</div>
+                <div className="flex justify-center gap-1 mt-2">
+                  <button className={iconBtnCls} onClick={() => { setEditingD({ ...p }); setAddingD(true); }}><Pencil size={12} /></button>
+                  <button className={iconBtnCls} onClick={() => deleteProfile(p.id)}><Trash2 size={12} /></button>
                 </div>
               </div>
             ))}
@@ -573,29 +548,34 @@ export default function SuperAdminArtGallery() {
 
       {/* ═══ TAB: SETTINGS ═══ */}
       {tab === 'SETTINGS' && (
-        <div style={{ maxWidth: 600 }}>
+        <div className="max-w-[600px]">
           <Field label="Art Gallery Name" value={settings.name} onChange={v => setSettings({ ...settings, name: v })} />
           <Field label="Tagline" value={settings.tagline} onChange={v => setSettings({ ...settings, tagline: v })} />
           <Field label="Hero Text" value={settings.heroText} onChange={v => setSettings({ ...settings, heroText: v })} type="textarea" />
 
-          <div style={{ marginTop: 24, marginBottom: 24 }}>
-            <div style={{ ...s.label, marginBottom: 16 }}>Section Visibility</div>
+          <div className="mt-6 mb-6">
+            <div className={`${labelCls} mb-4`}>Section Visibility</div>
             {([['showEducation', 'Education Bar'], ['showNews', 'News Section'], ['showDiscover', 'Discover Section']] as const).map(([key, label]) => (
-              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, fontSize: 12, color: ink, cursor: 'pointer', fontFamily: mont }}>
-                <input type="checkbox" checked={(settings as any)[key]} onChange={e => setSettings({ ...settings, [key]: e.target.checked })} style={{ accentColor: gold }} />
+              <label key={key} className="flex items-center gap-2.5 mb-3 text-xs text-[var(--ink)] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={(settings as any)[key]}
+                  onChange={e => setSettings({ ...settings, [key]: e.target.checked })}
+                  className="[accent-color:var(--ink)]"
+                />
                 {label}
               </label>
             ))}
           </div>
 
-          <div style={{ ...s.label, marginBottom: 12 }}>RSS Feed URLs</div>
+          <div className={`${labelCls} mb-3`}>RSS Feed URLs</div>
           {settings.rssFeeds.map((url, i) => (
-            <div key={i} style={{ marginBottom: 8 }}>
-              <input style={s.input} value={url} onChange={e => { const c = [...settings.rssFeeds]; c[i] = e.target.value; setSettings({ ...settings, rssFeeds: c }); }} placeholder={`Feed URL ${i + 1}`} />
+            <div key={i} className="mb-2">
+              <input className={inputCls} value={url} onChange={e => { const c = [...settings.rssFeeds]; c[i] = e.target.value; setSettings({ ...settings, rssFeeds: c }); }} placeholder={`Feed URL ${i + 1}`} />
             </div>
           ))}
 
-          <button style={{ ...s.saveBtn, marginTop: 20 }} onClick={saveSettings}>
+          <button className={`${saveBtnCls} mt-5`} onClick={saveSettings}>
             Save Settings
           </button>
         </div>
