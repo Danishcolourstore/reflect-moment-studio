@@ -356,13 +356,9 @@ export default function SuperAdminReflections() {
           ))}
         </div>
       ) : posts.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <Megaphone className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-            <p className="text-sm text-muted-foreground">No content yet</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Create your first post to populate the Reflections feed</p>
-          </CardContent>
-        </Card>
+        <div className="py-24 text-center">
+          <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No content.</h2>
+        </div>
       ) : (
         <div className="space-y-2">
           {posts.map(post => {
