@@ -15,7 +15,16 @@ export const HERO_IMAGES: Record<string, string> = {
   vesper:    'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=1600&q=80', // warm golden hour couple
   alabaster: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=1600&q=80', // high contrast editorial couple
   heirloom:  'https://images.unsplash.com/photo-1460978812857-470ed1c77af0?w=1600&q=80', // nostalgic film-like ceremony
+  monolith:  'https://images.unsplash.com/photo-1519741497674-611481863552?w=1600&q=80', // hero (collage uses HERO_QUAD)
 };
+
+/* Monolith — 4-image collage tiles (B&W rendered via CSS filter) */
+export const HERO_QUAD_MONOLITH = [
+  'https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=80',
+  'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=1200&q=80',
+  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1200&q=80',
+  'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=1200&q=80',
+];
 
 /* ── About / portrait images ── */
 export const ABOUT_IMAGES: Record<string, string> = {
@@ -24,6 +33,7 @@ export const ABOUT_IMAGES: Record<string, string> = {
   vesper:    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80',  // warm storytelling portrait
   alabaster: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',  // editorial minimal portrait
   heirloom:  'https://images.unsplash.com/photo-1529636798458-92182e662485?w=800&q=80',  // vintage warm portrait
+  monolith:  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',  // editorial portrait (B&W via filter)
 };
 
 /* ── Portfolio image collections (12-15 per template) ── */
@@ -111,6 +121,9 @@ export const PORTFOLIO_HEIRLOOM = [
   'https://images.unsplash.com/photo-1606216794079-73f85bbd57d5?w=1200&q=80', // reception dance
 ];
 
+/** Monolith — same set as Alabaster, rendered B&W via CSS filter at the section level */
+export const PORTFOLIO_MONOLITH = PORTFOLIO_ALABASTER;
+
 /** Get portfolio images for a given template id */
 export const PORTFOLIO_IMAGES: Record<string, string[]> = {
   reverie: PORTFOLIO_REVERIE,
@@ -118,6 +131,7 @@ export const PORTFOLIO_IMAGES: Record<string, string[]> = {
   vesper: PORTFOLIO_VESPER,
   alabaster: PORTFOLIO_ALABASTER,
   heirloom: PORTFOLIO_HEIRLOOM,
+  monolith: PORTFOLIO_MONOLITH,
 };
 
 export function getHeroImage(templateId: string): string {
