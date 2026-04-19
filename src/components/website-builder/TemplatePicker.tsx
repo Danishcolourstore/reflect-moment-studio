@@ -14,6 +14,7 @@ const TEMPLATE_COLORS: Record<TemplateId, string[]> = {
   vesper: ['#FAF7F2', '#B8873A', '#1E1916'],
   alabaster: ['#FFFFFF', '#0A0A0A', '#E0E0E0'],
   heirloom: ['#F5F0E8', '#8B6914', '#2A2118'],
+  monolith: ['#FAFAFA', '#0A0A0A', '#7A7A7A'],
 };
 
 export function TemplatePicker({ selectedId, onSelect, onPreview, onContinue }: TemplatePickerProps) {
