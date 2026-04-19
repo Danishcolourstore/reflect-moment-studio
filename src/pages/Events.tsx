@@ -203,20 +203,21 @@ export default function Events() {
             <button
               onClick={() => setCreateOpen(true)}
               style={{
-                background: "transparent",
-                color: INK,
-                border: `1px solid ${RULE}`,
+                background: "#B8953F",
+                color: "#FAFAF8",
+                border: "none",
                 padding: "0 24px",
                 height: 44,
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 13,
                 fontWeight: 500,
                 letterSpacing: "0.06em",
+                textTransform: "uppercase",
                 cursor: "pointer",
-                transition: "border-color 120ms cubic-bezier(0.4, 0, 0.2, 1)",
+                transition: "background 120ms cubic-bezier(0.4, 0, 0.2, 1)",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#D6D3CC")}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = RULE)}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#8B6F2E")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#B8953F")}
             >
               Create event
             </button>
