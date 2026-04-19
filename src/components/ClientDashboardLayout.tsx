@@ -94,7 +94,7 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
             to={item.url}
             end={item.end}
             className="flex flex-col items-center gap-0.5 px-3 py-1"
-            activeClassName="[&>span]:text-[#C8A97E] [&>svg]:text-[#C8A97E]"
+            activeClassName="[&>span]:text-[#B8953F] [&>svg]:text-[#B8953F]"
           >
             <item.icon className="h-[18px] w-[18px]" style={{ color: '#AAAAAA' }} />
             <span className="text-[9px] tracking-[0.1em] uppercase" style={{ color: '#AAAAAA', fontFamily: "'DM Sans', sans-serif" }}>

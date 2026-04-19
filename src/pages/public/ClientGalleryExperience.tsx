@@ -146,7 +146,7 @@ function PasswordGate({
               fontSize: 12,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
-              color: "#94918B",
+              color: "#6B6962",
               marginTop: 8,
             }}
           >
@@ -353,7 +353,7 @@ function ChapterMarker({ name }: { name: string }) {
           fontFamily: "'Cormorant Garamond', serif",
           fontSize: 18,
           fontWeight: 300,
-          color: "#94918B",
+          color: "#6B6962",
           marginTop: 16,
         }}
       >
@@ -914,7 +914,7 @@ function ImageViewer({
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
-              color: "#94918B",
+              color: "#6B6962",
             }}
           >
             {currentIndex + 1} / {photos.length}
@@ -1081,7 +1081,7 @@ function FavoritesDrawer({
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 12,
-              color: "#94918B",
+              color: "#6B6962",
               marginTop: 4,
             }}
           >
@@ -1243,7 +1243,7 @@ function GalleryFooter({
           style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 12,
-            color: "#94918B",
+            color: "#6B6962",
             marginTop: 8,
           }}
         >
@@ -1513,7 +1513,7 @@ export default function ClientGalleryExperience() {
             fontFamily: "'Cormorant Garamond', serif",
             fontSize: 22,
             fontWeight: 300,
-            color: "#94918B",
+            color: "#6B6962",
           }}
         >
           Gallery not found

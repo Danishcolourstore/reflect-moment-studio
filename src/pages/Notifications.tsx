@@ -103,7 +103,7 @@ const Notifications = () => {
               <div key={n.id} onClick={() => handleClick(n)}
                 className="flex items-start gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-secondary/30"
                 style={{
-                  borderLeft: !n.is_read ? '3px solid #C9A96E' : '3px solid transparent',
+                  borderLeft: !n.is_read ? '3px solid #B8953F' : '3px solid transparent',
                   backgroundColor: n.is_read ? undefined : 'hsl(var(--card))',
                 }}
               >

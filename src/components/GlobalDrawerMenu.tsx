@@ -212,13 +212,13 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                   lineHeight: 1.55,
                   fontWeight: 400,
                   fontStyle: active ? "italic" : "normal",
-                  color: active ? "#C8A97E" : "#1C1C1E",
+                  color: active ? "#B8953F" : "#1C1C1E",
                   padding: 0,
                   transition: `color 180ms ease, font-style 180ms ease`,
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
-                    e.currentTarget.style.color = "#C8A97E";
+                    e.currentTarget.style.color = "#B8953F";
                     e.currentTarget.style.fontStyle = "italic";
                   }
                 }}
@@ -255,7 +255,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
               letterSpacing: "0.14em",
-              color: "#C8A97E",
+              color: "#B8953F",
               textTransform: "uppercase",
               fontWeight: 400,
               padding: 0,

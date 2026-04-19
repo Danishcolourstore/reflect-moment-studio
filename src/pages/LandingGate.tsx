@@ -213,7 +213,7 @@ export default function LandingGate() {
               onClick={() => setCreateOpen(true)}
               style={{
                 marginTop: 24, height: 44, padding: "0 28px",
-                background: "#C8A97E", border: "none",
+                background: "#B8953F", border: "none",
                 fontFamily: "'DM Sans', sans-serif", fontSize: 12,
                 letterSpacing: "0.08em", textTransform: "uppercase",
                 color: "#0a0a0b", cursor: "pointer",
@@ -357,7 +357,7 @@ export default function LandingGate() {
         style={{
           position: "fixed", bottom: 32, right: 32,
           width: 56, height: 56, borderRadius: "50%",
-          background: "#C8A97E", border: "none", cursor: "pointer",
+          background: "#B8953F", border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "0 4px 20px rgba(200,169,126,0.3)", zIndex: 50,
         }}

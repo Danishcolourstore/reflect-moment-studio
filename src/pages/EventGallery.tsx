@@ -222,7 +222,7 @@ function StandardGridRenderer({
                     isPortfolioPhoto ? 'left-10' : 'left-2'
                   } ${
                     isArtGallery(photo.id)
-                      ? 'bg-[#C8A97E]/80 hover:bg-[#C8A97E]/90'
+                      ? 'bg-[#B8953F]/80 hover:bg-[#B8953F]/90'
                       : 'bg-black/40 opacity-0 group-hover:opacity-100 hover:bg-black/60'
                   }`}
                   title={isArtGallery(photo.id) ? 'Remove from Art Gallery' : 'Add to Art Gallery'}

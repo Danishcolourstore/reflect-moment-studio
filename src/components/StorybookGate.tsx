@@ -55,14 +55,14 @@ export function StorybookGate({ children }: { children: ReactNode }) {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => { setEmail(e.target.value); setError(''); }}
-              className="h-12 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-center outline-none focus:border-[#D4AF37] transition-colors px-4"
+              className="h-12 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-center outline-none focus:border-[#B8953F] transition-colors px-4"
               style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px' }}
             />
             <button
               type="submit"
               disabled={!email.trim()}
               className="h-12 rounded-xl transition-all duration-200 disabled:opacity-40 hover:brightness-110 active:scale-[0.98]"
-              style={{ background: '#D4AF37', color: '#000', fontFamily: "'DM Sans', sans-serif", fontSize: '13px', fontWeight: 600, letterSpacing: '0.05em' }}
+              style={{ background: '#B8953F', color: '#000', fontFamily: "'DM Sans', sans-serif", fontSize: '13px', fontWeight: 600, letterSpacing: '0.05em' }}
             >
               Continue
             </button>
@@ -70,7 +70,7 @@ export function StorybookGate({ children }: { children: ReactNode }) {
         ) : (
           <div className="flex flex-col gap-4">
             <div
-              className="flex items-center px-4 h-12 rounded-xl transition-all duration-200 focus-within:border-[#D4AF37]"
+              className="flex items-center px-4 h-12 rounded-xl transition-all duration-200 focus-within:border-[#B8953F]"
               style={{ background: '#111111', border: '1px solid #2A2A2A' }}
             >
               <input
@@ -91,7 +91,7 @@ export function StorybookGate({ children }: { children: ReactNode }) {
               onClick={handleCodeSubmit}
               disabled={code.length < 6}
               className="w-full h-12 rounded-xl transition-all duration-200 disabled:opacity-40 hover:brightness-110 active:scale-[0.98]"
-              style={{ background: '#D4AF37', color: '#000', fontFamily: "'DM Sans', sans-serif", fontSize: '13px', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}
+              style={{ background: '#B8953F', color: '#000', fontFamily: "'DM Sans', sans-serif", fontSize: '13px', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}
             >
               Verify & Continue
             </button>

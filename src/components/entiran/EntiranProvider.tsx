@@ -73,7 +73,7 @@ function DaanInner({ children }: { children?: ReactNode }) {
             </p>
             <div
               className="mt-4 h-px mx-auto"
-              style={{ width: 60, background: 'linear-gradient(90deg, transparent, #D4AF37, transparent)' }}
+              style={{ width: 60, background: 'linear-gradient(90deg, transparent, #B8953F, transparent)' }}
             />
           </div>
         </div>

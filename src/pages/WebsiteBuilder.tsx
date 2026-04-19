@@ -92,7 +92,7 @@ const WebsiteBuilder = () => {
               letterSpacing: '0.08em',
               textTransform: 'uppercase' as const,
               color: 'white',
-              backgroundColor: '#C8A97E',
+              backgroundColor: '#B8953F',
               border: 'none',
               minHeight: 36,
               padding: '0 12px',
@@ -128,7 +128,7 @@ const WebsiteBuilder = () => {
           }}
         >
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#C8A97E' }} />
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#B8953F' }} />
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#999' }}>
               {"You're editing a draft"}
             </span>
@@ -204,7 +204,7 @@ const WebsiteBuilder = () => {
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase' as const,
                 color: 'white',
-                backgroundColor: '#C8A97E',
+                backgroundColor: '#B8953F',
                 border: 'none',
                 minHeight: 36,
                 padding: '0 16px',

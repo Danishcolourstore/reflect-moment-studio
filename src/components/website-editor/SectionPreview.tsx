@@ -192,7 +192,7 @@ function TestimonialsPreview({ s }: { s: SectionSettings }) {
             {s.showStars && (
               <div className="flex gap-0.5 mb-2">
                 {Array.from({ length: s.starCount || 5 }).map((_, j) => (
-                  <Star key={j} size={14} strokeWidth={1.5} fill="#C8A97E" className="text-[#C8A97E]" />
+                  <Star key={j} size={14} strokeWidth={1.5} fill="#B8953F" className="text-[#B8953F]" />
                 ))}
               </div>
             )}
@@ -230,7 +230,7 @@ function ContactPreview({ s }: { s: SectionSettings }) {
         <div className="h-24 rounded border" style={{ borderColor: '#e8e4de' }} />
         <div
           className="h-12 rounded flex items-center justify-center text-[12px] uppercase tracking-[0.12em] text-white"
-          style={{ backgroundColor: s.buttonColor || '#C8A97E', fontFamily: "'DM Sans', sans-serif" }}
+          style={{ backgroundColor: s.buttonColor || '#B8953F', fontFamily: "'DM Sans', sans-serif" }}
         >
           Send Message
         </div>

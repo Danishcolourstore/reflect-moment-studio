@@ -60,7 +60,7 @@ const GuestFinder = () => {
   if (!event) {
     return (
       <div className="min-h-[100dvh] bg-[#0A0A0A] flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#C9A96E]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#B8953F]" />
       </div>
     );
   }
@@ -69,7 +69,7 @@ const GuestFinder = () => {
     <div className="min-h-[100dvh] bg-[#0A0A0A] flex flex-col">
       {/* Header */}
       <div className="text-center pt-10 pb-6 px-4">
-        <p className="text-[#C9A96E] text-sm tracking-[0.2em] uppercase flex items-center justify-center gap-2">
+        <p className="text-[#B8953F] text-sm tracking-[0.2em] uppercase flex items-center justify-center gap-2">
           <Sparkles className="h-3.5 w-3.5" /> MirrorAI
         </p>
         <h1
@@ -92,8 +92,8 @@ const GuestFinder = () => {
                 border: '1px solid rgba(255,255,255,0.06)',
               }}
             >
-              <div className="w-20 h-20 mx-auto rounded-full bg-[#C9A96E]/10 flex items-center justify-center">
-                <Camera className="h-8 w-8 text-[#C9A96E]" />
+              <div className="w-20 h-20 mx-auto rounded-full bg-[#B8953F]/10 flex items-center justify-center">
+                <Camera className="h-8 w-8 text-[#B8953F]" />
               </div>
               <div>
                 <h2 className="text-[#F5F0E8] text-lg font-serif">Take a selfie</h2>
@@ -109,13 +109,13 @@ const GuestFinder = () => {
                     el.onchange = (e: any) => handleFile(e.target.files[0]);
                     el.click();
                   }}
-                  className="w-full py-3.5 bg-[#C9A96E] text-[#0A0A0A] rounded-xl text-sm font-medium tracking-wide flex items-center justify-center gap-2 hover:bg-[#B8955A] transition-colors"
+                  className="w-full py-3.5 bg-[#B8953F] text-[#0A0A0A] rounded-xl text-sm font-medium tracking-wide flex items-center justify-center gap-2 hover:bg-[#B8955A] transition-colors"
                 >
                   <Camera className="h-4 w-4" /> Use Camera
                 </button>
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="w-full py-3.5 border border-[#2A2A2A] text-[#F5F0E8] rounded-xl text-sm font-medium tracking-wide flex items-center justify-center gap-2 hover:border-[#C9A96E] transition-colors"
+                  className="w-full py-3.5 border border-[#2A2A2A] text-[#F5F0E8] rounded-xl text-sm font-medium tracking-wide flex items-center justify-center gap-2 hover:border-[#B8953F] transition-colors"
                 >
                   <Upload className="h-4 w-4" /> Upload Photo
                 </button>
@@ -148,9 +148,9 @@ const GuestFinder = () => {
                   <img
                     src={selfiePreview}
                     alt="Your selfie"
-                    className="w-full h-full rounded-full object-cover border-2 border-[#C9A96E]"
+                    className="w-full h-full rounded-full object-cover border-2 border-[#B8953F]"
                   />
-                  <div className="absolute inset-0 rounded-full border-2 border-[#C9A96E] animate-pulse" />
+                  <div className="absolute inset-0 rounded-full border-2 border-[#B8953F] animate-pulse" />
                 </div>
               )}
               <div>
@@ -161,7 +161,7 @@ const GuestFinder = () => {
                 {[0, 1, 2].map(i => (
                   <div
                     key={i}
-                    className="w-2 h-2 rounded-full bg-[#C9A96E] animate-pulse"
+                    className="w-2 h-2 rounded-full bg-[#B8953F] animate-pulse"
                     style={{ animationDelay: `${i * 0.3}s` }}
                   />
                 ))}
@@ -238,7 +238,7 @@ const GuestFinder = () => {
                     } catch {}
                   }
                 }}
-                className="w-full py-3.5 bg-[#C9A96E] text-[#0A0A0A] rounded-xl text-sm font-medium tracking-wide flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[#B8953F] text-[#0A0A0A] rounded-xl text-sm font-medium tracking-wide flex items-center justify-center gap-2"
               >
                 <Download className="h-4 w-4" /> Download All Photos
               </button>
@@ -256,7 +256,7 @@ const GuestFinder = () => {
             <p className="text-[#9A8E82] text-sm">Please try uploading your photo again.</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-8 py-3 bg-[#C9A96E] text-[#0A0A0A] rounded-xl text-sm font-medium"
+              className="px-8 py-3 bg-[#B8953F] text-[#0A0A0A] rounded-xl text-sm font-medium"
             >
               Try Again
             </button>

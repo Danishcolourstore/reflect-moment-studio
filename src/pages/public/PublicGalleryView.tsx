@@ -146,7 +146,7 @@ export default function PublicGalleryView() {
   if (!gallery) {
     return (
       <div style={{ minHeight: "100vh", background: "#FAFAF8", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontStyle: "italic", color: "#94918B" }}>Gallery not found</p>
+        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontStyle: "italic", color: "#6B6962" }}>Gallery not found</p>
       </div>
     );
   }
@@ -291,12 +291,12 @@ export default function PublicGalleryView() {
                   <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1A1917", margin: 0 }}>
                     Your Selections
                   </h3>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B", marginTop: 2 }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B6962", marginTop: 2 }}>
                     {favCount} {favCount === 1 ? "photo" : "photos"}
                   </p>
                 </div>
                 <button onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 8 }}>
-                  <X style={{ width: 16, height: 16, color: "#94918B" }} />
+                  <X style={{ width: 16, height: 16, color: "#6B6962" }} />
                 </button>
               </div>
 
@@ -453,7 +453,7 @@ function SendSelectionsOverlay({ eventId, photoIds, photos, onClose }: {
             <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1A1917", margin: 0 }}>
               Selections sent
             </h3>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B", marginTop: 4 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B6962", marginTop: 4 }}>
               {photoIds.length} photos shared with your photographer
             </p>
             <button
@@ -472,7 +472,7 @@ function SendSelectionsOverlay({ eventId, photoIds, photos, onClose }: {
             <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1A1917", margin: "0 0 4px" }}>
               Send Selections
             </h3>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#94918B", margin: "0 0 16px" }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B6962", margin: "0 0 16px" }}>
               {photoIds.length} photos · Your photographer will be notified
             </p>
             <div style={{ display: "flex", gap: 3, overflowX: "auto", marginBottom: 16, paddingBottom: 4 }}>
@@ -481,7 +481,7 @@ function SendSelectionsOverlay({ eventId, photoIds, photos, onClose }: {
               ))}
               {photos.length > 8 && (
                 <div style={{ width: 48, height: 48, flexShrink: 0, background: "hsl(40, 5%, 93%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 10, color: "#94918B" }}>+{photos.length - 8}</span>
+                  <span style={{ fontSize: 10, color: "#6B6962" }}>+{photos.length - 8}</span>
                 </div>
               )}
             </div>

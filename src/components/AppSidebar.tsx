@@ -63,7 +63,7 @@ export function AppSidebar() {
             key={item.url}
             to={item.url}
             end={item.end}
-            className="flex items-center gap-3 transition-colors duration-200 text-[#94918B] hover:text-[#1A1917]"
+            className="flex items-center gap-3 transition-colors duration-200 text-[#6B6962] hover:text-[#1A1917]"
             activeClassName="!text-[#1A1917] !border-l-2 !border-l-[#B8953F]"
             style={{
               fontFamily: "'DM Sans', sans-serif",
@@ -88,7 +88,7 @@ export function AppSidebar() {
           <NavLink
             key={item.url}
             to={item.url}
-            className="flex items-center gap-3 transition-colors duration-200 text-[#94918B] hover:text-[#1A1917]"
+            className="flex items-center gap-3 transition-colors duration-200 text-[#6B6962] hover:text-[#1A1917]"
             activeClassName="!text-[#1A1917] !border-l-2 !border-l-[#B8953F]"
             style={{
               fontFamily: "'DM Sans', sans-serif",
@@ -123,7 +123,7 @@ export function AppSidebar() {
             fontSize: 12,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
-            color: "#94918B",
+            color: "#6B6962",
             padding: "8px 0",
           }}
         >

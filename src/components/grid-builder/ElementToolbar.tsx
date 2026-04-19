@@ -42,7 +42,7 @@ export default function ElementToolbar({ elements, selectedId, onAddElement, onU
           <div className="flex flex-col gap-2">
             <label className="text-[9px] tracking-[0.14em] uppercase text-muted-foreground/60 font-medium">Color</label>
             <div className="flex gap-2 items-center">
-              {['#ffffff', '#000000', '#D4AF37', '#F3EFE9', '#2B2A28', '#B7AA98'].map((c) => (
+              {['#ffffff', '#000000', '#B8953F', '#F3EFE9', '#2B2A28', '#B7AA98'].map((c) => (
                 <button
                   key={c}
                   onClick={() => onUpdateElement(selectedId!, { color: c, borderColor: c })}
