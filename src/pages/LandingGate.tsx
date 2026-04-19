@@ -1,13 +1,17 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import CreateFeedPostModal from "@/components/CreateFeedPostModal";
 import EditFeedPostModal from "@/components/EditFeedPostModal";
+import { CreateEventModal } from "@/components/CreateEventModal";
 import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { Menu, Share, Plus, X, ChevronLeft } from "lucide-react";
+import {
+  Menu, Share, Plus, X, ChevronLeft, ArrowRight,
+  Camera, Image as ImageIcon, BookOpen, Globe, Zap,
+} from "lucide-react";
 
 interface FeedPost {
   id: string;
@@ -21,19 +25,47 @@ interface FeedPost {
   date: string;
 }
 
+interface EventRow {
+  id: string;
+  name: string;
+  slug: string | null;
+  cover_url: string | null;
+  event_date: string | null;
+  photo_count: number | null;
+  location: string | null;
+}
+
+interface Stats {
+  events: number;
+  photos: number;
+  views: number;
+  leads: number;
+}
+
+const QUICK_ACTIONS = [
+  { label: "New Event",  icon: Camera,    to: "/dashboard/events",          primary: true  },
+  { label: "Upload",     icon: ImageIcon, to: "/dashboard/events",          primary: false },
+  { label: "Storybook",  icon: BookOpen,  to: "/dashboard/storybook",       primary: false },
+  { label: "Cheetah",    icon: Zap,       to: "/dashboard/cheetah-live",    primary: false },
+  { label: "Website",    icon: Globe,     to: "/dashboard/website-builder", primary: false },
+];
+
 export default function LandingGate() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const drawer = useDrawerMenu();
 
   const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
+  const [events, setEvents] = useState<EventRow[]>([]);
   const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
+  const [stats, setStats] = useState<Stats>({ events: 0, photos: 0, views: 0, leads: 0 });
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState("Studio");
   const [feedSlug, setFeedSlug] = useState<string | null>(null);
   const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createPostOpen, setCreatePostOpen] = useState(false);
+  const [createEventOpen, setCreateEventOpen] = useState(false);
   const [editPost, setEditPost] = useState<FeedPost | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [readingPost, setReadingPost] = useState<FeedPost | null>(null);
@@ -41,22 +73,11 @@ export default function LandingGate() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState(0);
 
-  // Scroll-based header
-  const [scrolled, setScrolled] = useState(false);
-  const [heroLoaded, setHeroLoaded] = useState(false);
-
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
     window.addEventListener("resize", h);
     return () => window.removeEventListener("resize", h);
   }, []);
-
-  useEffect(() => {
-    if (!mob) return;
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [mob]);
 
   const loadData = useCallback(async () => {
     if (!user) { setLoading(false); return; }
@@ -73,6 +94,7 @@ export default function LandingGate() {
     }
     setFeedSlug(slug);
 
+    // Feed posts
     const { data: postsData } = await (supabase.from("feed_posts")
       .select("id, title, caption, content, image_url, location, content_type, gallery_images, created_at")
       .eq("user_id", user.id)
@@ -87,26 +109,38 @@ export default function LandingGate() {
     }));
     setFeedPosts(posts);
 
-    const { data: events } = await supabase
-      .from("events").select("id, cover_url")
+    // Events
+    const { data: eventsData } = await supabase
+      .from("events")
+      .select("id, name, slug, cover_url, event_date, photo_count, location")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false }).limit(30);
+      .order("created_at", { ascending: false })
+      .limit(30);
 
-    const evtIds = (events || []).map((e: any) => e.id);
+    const evRows = (eventsData || []) as EventRow[];
+    setEvents(evRows);
+
+    // Photos for masonry + count
+    const evtIds = evRows.map((e) => e.id);
     const allPhotos: { id: string; url: string }[] = [];
     const seenUrls = new Set<string>();
 
-    for (const evt of events || []) {
+    for (const evt of evRows) {
       if (evt.cover_url && !seenUrls.has(evt.cover_url)) {
         allPhotos.push({ id: `cover-${evt.id}`, url: evt.cover_url });
         seenUrls.add(evt.cover_url);
       }
     }
+
+    let photoCount = 0;
     if (evtIds.length > 0) {
-      const { data: photoData } = await supabase
-        .from("photos").select("id, url")
+      const { data: photoData, count } = await supabase
+        .from("photos")
+        .select("id, url", { count: "exact" })
         .in("event_id", evtIds)
-        .order("created_at", { ascending: false }).limit(100);
+        .order("created_at", { ascending: false })
+        .limit(100);
+      photoCount = count || 0;
       for (const p of photoData || []) {
         if (p.url && !seenUrls.has(p.url)) {
           allPhotos.push({ id: p.id, url: p.url });
@@ -115,6 +149,33 @@ export default function LandingGate() {
       }
     }
     setPhotos(allPhotos);
+
+    // Lightweight stats — best-effort; ignore failures so the page still renders
+    let leadsCount = 0;
+    let viewsCount = 0;
+    try {
+      const { count: lc } = await (supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true }) as any)
+        .eq("user_id", user.id);
+      leadsCount = lc || 0;
+    } catch { /* table optional */ }
+
+    try {
+      const { count: vc } = await ((supabase as any)
+        .from("gallery_views")
+        .select("id", { count: "exact", head: true }))
+        .eq("photographer_id", user.id);
+      viewsCount = vc || 0;
+    } catch { /* table optional */ }
+
+    setStats({
+      events: evRows.length,
+      photos: photoCount,
+      views: viewsCount,
+      leads: leadsCount,
+    });
+
     setLoading(false);
   }, [user]);
 
@@ -144,230 +205,267 @@ export default function LandingGate() {
     }
   };
 
-  // Blog reader overlay
   if (readingPost) {
     return <BlogReader post={readingPost} onClose={() => setReadingPost(null)} />;
   }
 
-  const hasContent = photos.length > 0 || feedPosts.length > 0;
-  const gridPhotos = photos;
+  const heroImage = events.find((e) => e.cover_url)?.cover_url || photos[0]?.url || null;
+  const recentEvents = events.slice(0, mob ? 4 : 6);
 
-  /* ── Mobile: Fullscreen native gallery ── */
-  if (mob) {
-    return (
-      <div style={{ width: "100%", minHeight: "100dvh", background: "#0a0a0b", margin: 0, padding: 0, overflowX: "hidden" }}>
-        <style>{`
-          @keyframes lgFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-        `}</style>
-
-        {/* Bold overlay header */}
-        <nav style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          height: 60, padding: "0 20px",
-          paddingTop: "env(safe-area-inset-top)",
-          background: scrolled ? "rgba(10,10,11,0.85)" : "transparent",
-          backdropFilter: scrolled ? "blur(12px)" : "none",
-          WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
-          transition: "background 0.3s ease, backdrop-filter 0.3s ease",
-        }}>
-          <button onClick={drawer.toggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
-            <Menu style={{ width: 24, height: 24, color: "rgba(255,255,255,0.9)" }} strokeWidth={2} />
-          </button>
-          <span style={{
-            fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 600,
-            color: "#fff", letterSpacing: "0.18em", textTransform: "uppercase",
-          }}>
-            {profileName}
-          </span>
-          <button onClick={handleShare} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", minWidth: 44, minHeight: 44 }}>
-            <Share style={{ width: 20, height: 20, color: "rgba(255,255,255,0.7)" }} strokeWidth={2} />
-          </button>
-        </nav>
-
-        {loading ? (
-          <>
-            <div style={{ width: "100%", height: "100svh", background: "#141414" }} />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 2 }}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} style={{ aspectRatio: "3/4", background: "#141414" }} />
-              ))}
-            </div>
-          </>
-        ) : !hasContent ? (
-          <div style={{
-            minHeight: "100dvh", display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", padding: "0 24px",
-          }}>
-            <p style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 22, fontStyle: "italic", fontWeight: 300,
-              color: "rgba(255,255,255,0.3)", textAlign: "center",
-            }}>
-              Your first gallery awaits
-            </p>
-            <button
-              onClick={() => setCreateOpen(true)}
-              style={{
-                marginTop: 24, height: 44, padding: "0 28px",
-                background: "#1A1A1A", border: "none",
-                fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-                letterSpacing: "0.08em", textTransform: "uppercase",
-                color: "#0a0a0b", cursor: "pointer",
-              }}
-            >
-              Create Event
-            </button>
-          </div>
-        ) : (
-          <div style={{ paddingBottom: 72, paddingTop: 72 }}>
-
-            {/* Masonry grid */}
-            <div style={{
-              columns: 3,
-              columnGap: 0,
-              padding: 0,
-            }}>
-              {gridPhotos.map((photo, i) => (
-                <div
-                  key={photo.id}
-                  onClick={() => openLightbox(i + 1)}
-                  style={{
-                    breakInside: "avoid",
-                    marginBottom: 0,
-                    overflow: "hidden",
-                    cursor: "pointer",
-                  }}
-                >
-                  <img
-                    src={photo.url}
-                    alt=""
-                    loading={i < 9 ? "eager" : "lazy"}
-                    decoding="async"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      animation: "lgFadeIn 0.4s ease both",
-                      animationDelay: `${Math.min(i * 0.04, 0.3)}s`,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Lightbox */}
-        {lightboxOpen && photos[lightboxIdx] && (
-          <div
-            onClick={(e) => { if (e.target === e.currentTarget) closeLightbox(); }}
-            style={{ position: "fixed", inset: 0, background: "#0A0A0A", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}
-          >
-            <button onClick={closeLightbox}
-              style={{ position: "fixed", top: 16, right: 16, zIndex: 310, background: "none", border: "none", cursor: "pointer", padding: 10, minWidth: 44, minHeight: 44 }}>
-              <X style={{ width: 18, height: 18, color: "rgba(255,255,255,0.25)" }} />
-            </button>
-            <img src={photos[lightboxIdx].url} alt="" style={{ maxHeight: "100vh", maxWidth: "100vw", objectFit: "contain" }} />
-            <span style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.2)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.1em" }}>
-              {lightboxIdx + 1} / {photos.length}
-            </span>
-          </div>
-        )}
-
-        <DrawerMenu open={drawer.open} onClose={drawer.close} />
-        <MobileBottomNav />
-        <CreateFeedPostModal open={createOpen} onOpenChange={setCreateOpen} onCreated={() => loadData()} />
-        {editPost && (
-          <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
-        )}
-      </div>
-    );
-  }
-
-  /* ── Desktop: Standard editorial layout ── */
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "hsl(45, 14%, 97%)" }}>
-      <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        height: 48, padding: "0 16px",
-        background: "hsla(45, 14%, 97%, 0.85)",
-        backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-      }}>
-        <button onClick={drawer.toggle} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center" }}>
-          <Menu style={{ width: 18, height: 18, color: "hsl(48, 7%, 10%)" }} strokeWidth={1.5} />
+    <div className="w-full min-h-screen bg-[var(--paper)]">
+      {/* ─── TOP NAV ─────────────────────────────────────────────── */}
+      <nav
+        className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between h-12 px-4 bg-white/85 backdrop-blur border-b border-[var(--rule)]"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 0px)" }}
+      >
+        <button
+          onClick={drawer.toggle}
+          className="flex items-center justify-center min-w-[44px] min-h-[44px] -ml-2 bg-transparent border-0 cursor-pointer"
+          aria-label="Menu"
+        >
+          <Menu className="w-5 h-5 text-[var(--ink)]" strokeWidth={1.5} />
         </button>
-        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, fontWeight: 400, fontStyle: "italic", color: "hsl(35, 4%, 56%)", letterSpacing: "0.04em" }}>
+        <span className="font-serif text-[15px] font-normal tracking-[0.2em] uppercase text-[var(--ink)]">
           {profileName}
         </span>
-        <button onClick={handleShare} style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center" }}>
-          <Share style={{ width: 16, height: 16, color: "hsl(35, 4%, 56%)" }} strokeWidth={1.5} />
+        <button
+          onClick={handleShare}
+          className="flex items-center justify-center min-w-[44px] min-h-[44px] -mr-2 bg-transparent border-0 cursor-pointer"
+          aria-label="Share"
+        >
+          <Share className="w-[18px] h-[18px] text-[var(--ink-muted)]" strokeWidth={1.5} />
         </button>
       </nav>
 
-      <div style={{ paddingTop: 48, paddingBottom: 80 }}>
-        {loading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
-            <div style={{ width: "100%", aspectRatio: "3/2", background: "hsl(40, 5%, 93%)" }} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-              <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
-              <div style={{ aspectRatio: "1/1", background: "hsl(40, 5%, 93%)" }} />
+      <div className="pt-12 pb-24">
+        {/* ─── HERO BLOCK ─────────────────────────────────────────── */}
+        <section className="border-b border-[var(--rule)]">
+          <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-10 md:py-16">
+            <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-10 md:gap-16 items-center">
+              {/* Left: greeting + stats + CTA */}
+              <div>
+                <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--ink-muted)] mb-3">
+                  Studio
+                </p>
+                <h1 className="text-[28px] md:text-[40px] leading-[1.1] tracking-tight text-[var(--ink)] font-medium mb-2">
+                  Welcome back
+                </h1>
+                <p className="text-[14px] text-[var(--ink-muted)] mb-8 md:mb-10">
+                  Here's what's happening with your studio today.
+                </p>
+
+                {/* Stats row */}
+                <div className="grid grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-10">
+                  <StatCell label="Events" value={stats.events} loading={loading} />
+                  <StatCell label="Photos" value={stats.photos} loading={loading} />
+                  <StatCell label="Views"  value={stats.views}  loading={loading} />
+                  <StatCell label="Leads"  value={stats.leads}  loading={loading} />
+                </div>
+
+                {/* CTAs */}
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_ACTIONS.map((a) => {
+                    const Icon = a.icon;
+                    const baseCls =
+                      "flex items-center gap-2 h-10 px-4 text-[12px] font-medium tracking-[0.06em] uppercase cursor-pointer transition-colors border";
+                    const cls = a.primary
+                      ? `${baseCls} bg-[var(--ink)] text-white border-[var(--ink)] hover:bg-black`
+                      : `${baseCls} bg-white text-[var(--ink)] border-[var(--rule-strong)] hover:border-[var(--ink)]`;
+                    return (
+                      <button
+                        key={a.label}
+                        onClick={() => a.label === "New Event" ? setCreateEventOpen(true) : navigate(a.to)}
+                        className={cls}
+                      >
+                        <Icon className="w-[14px] h-[14px]" strokeWidth={1.75} />
+                        {a.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right: hero image */}
+              <div className="aspect-[4/5] md:aspect-[4/5] w-full bg-[var(--wash)] overflow-hidden">
+                {heroImage ? (
+                  <img
+                    src={heroImage}
+                    alt=""
+                    className="w-full h-full object-cover block"
+                    loading="eager"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <p className="text-[12px] tracking-[0.15em] uppercase text-[var(--ink-whisper)]">
+                      No photos yet
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        ) : !hasContent ? (
-          <div style={{ textAlign: "center", padding: "120px 24px" }}>
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontStyle: "italic", color: "hsl(37, 6%, 75%)", fontWeight: 300 }}>
-              Your first gallery awaits
-            </p>
-          </div>
-        ) : (
-          <div style={{ columns: 3, columnGap: 6 }}>
-            {photos.map((photo, i) => (
-              <div key={photo.id} style={{ breakInside: "avoid", marginBottom: 6, overflow: "hidden", cursor: "pointer" }} onClick={() => openLightbox(i)}>
-                <img src={photo.url} alt="" style={{ width: "100%", display: "block" }} loading="lazy" />
+        </section>
+
+        {/* ─── RECENT EVENTS ──────────────────────────────────────── */}
+        {recentEvents.length > 0 && (
+          <section className="border-b border-[var(--rule)]">
+            <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-10 md:py-14">
+              <div className="flex items-end justify-between mb-6 md:mb-8">
+                <div>
+                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--ink-muted)] mb-2">
+                    Recent
+                  </p>
+                  <h2 className="text-[20px] md:text-[24px] font-medium text-[var(--ink)] tracking-tight">
+                    Your events
+                  </h2>
+                </div>
+                <button
+                  onClick={() => navigate("/dashboard/events")}
+                  className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.06em] uppercase text-[var(--ink)] hover:opacity-70 bg-transparent border-0 cursor-pointer"
+                >
+                  View all
+                  <ArrowRight className="w-[14px] h-[14px]" strokeWidth={1.75} />
+                </button>
               </div>
-            ))}
-          </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
+                {recentEvents.map((evt) => (
+                  <button
+                    key={evt.id}
+                    onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                    className="group text-left bg-transparent border-0 p-0 cursor-pointer"
+                  >
+                    <div className="aspect-[4/5] w-full bg-[var(--wash)] overflow-hidden mb-3">
+                      {evt.cover_url ? (
+                        <img
+                          src={evt.cover_url}
+                          alt={evt.name}
+                          className="w-full h-full object-cover block transition-transform duration-500 group-hover:scale-[1.02]"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Camera className="w-5 h-5 text-[var(--ink-whisper)]" strokeWidth={1.5} />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[13px] font-medium text-[var(--ink)] truncate">
+                      {evt.name || "Untitled event"}
+                    </p>
+                    <p className="text-[11px] text-[var(--ink-muted)] tracking-[0.04em] mt-0.5">
+                      {evt.event_date
+                        ? new Date(evt.event_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                        : "—"}
+                      {evt.photo_count ? ` · ${evt.photo_count} photos` : ""}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
         )}
+
+        {/* ─── MASONRY GALLERY ────────────────────────────────────── */}
+        <section>
+          <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-10 md:py-14">
+            {photos.length > 0 && (
+              <div className="mb-6 md:mb-8">
+                <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--ink-muted)] mb-2">
+                  Library
+                </p>
+                <h2 className="text-[20px] md:text-[24px] font-medium text-[var(--ink)] tracking-tight">
+                  Latest frames
+                </h2>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="aspect-[3/4] bg-[var(--wash-strong)] skeleton-block" />
+                ))}
+              </div>
+            ) : photos.length === 0 ? (
+              <div className="py-20 md:py-28 text-center border border-[var(--rule)]">
+                <p className="text-[13px] text-[var(--ink-muted)] mb-1">No photos yet</p>
+                <p className="text-[11px] tracking-[0.15em] uppercase text-[var(--ink-whisper)] mb-6">
+                  Create your first event to begin
+                </p>
+                <button
+                  onClick={() => setCreateEventOpen(true)}
+                  className="inline-flex items-center gap-2 h-10 px-5 bg-[var(--ink)] text-white text-[12px] font-medium tracking-[0.06em] uppercase cursor-pointer hover:bg-black transition-colors"
+                >
+                  <Plus className="w-[14px] h-[14px]" strokeWidth={2} />
+                  Create event
+                </button>
+              </div>
+            ) : (
+              <div
+                className="[column-count:2] md:[column-count:4] [column-gap:8px] md:[column-gap:12px]"
+              >
+                {photos.map((photo, i) => (
+                  <div
+                    key={photo.id}
+                    onClick={() => openLightbox(i)}
+                    className="break-inside-avoid mb-2 md:mb-3 overflow-hidden cursor-pointer bg-[var(--wash)]"
+                  >
+                    <img
+                      src={photo.url}
+                      alt=""
+                      loading={i < 8 ? "eager" : "lazy"}
+                      decoding="async"
+                      className="w-full block transition-opacity duration-300 hover:opacity-90"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
       </div>
 
-      {/* Lightbox */}
+      {/* ─── LIGHTBOX ───────────────────────────────────────────── */}
       {lightboxOpen && photos[lightboxIdx] && (
         <div
           onClick={(e) => { if (e.target === e.currentTarget) closeLightbox(); }}
-          style={{ position: "fixed", inset: 0, background: "#050505", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}
+          className="fixed inset-0 bg-[var(--obsidian)] z-[300] flex items-center justify-center"
         >
-          <button onClick={closeLightbox}
-            style={{ position: "fixed", top: 16, right: 16, zIndex: 310, background: "none", border: "none", cursor: "pointer", padding: 10 }}>
-            <X style={{ width: 18, height: 18, color: "rgba(255,255,255,0.3)" }} />
+          <button
+            onClick={closeLightbox}
+            className="fixed top-4 right-4 z-[310] flex items-center justify-center min-w-[44px] min-h-[44px] bg-transparent border-0 cursor-pointer"
+            aria-label="Close"
+          >
+            <X className="w-[18px] h-[18px] text-white/40" />
           </button>
-          <img src={photos[lightboxIdx].url} alt="" style={{ maxHeight: "96vh", maxWidth: "96vw", objectFit: "contain" }} />
-          <span style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.25)", fontSize: 11, fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.1em" }}>
+          <img
+            src={photos[lightboxIdx].url}
+            alt=""
+            className="max-h-screen max-w-[100vw] object-contain"
+          />
+          <span className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[11px] tracking-[0.15em] text-white/30 num">
             {lightboxIdx + 1} / {photos.length}
           </span>
         </div>
       )}
 
-      {/* FAB — desktop only */}
+      {/* ─── FAB (mobile too) ───────────────────────────────────── */}
       <button
-        onClick={() => setCreateOpen(true)}
-        style={{
-          position: "fixed", bottom: 32, right: 32,
-          width: 56, height: 56, borderRadius: "50%",
-          background: "#1A1A1A", border: "none", cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 20px rgba(200,169,126,0.3)", zIndex: 50,
-        }}
+        onClick={() => setCreateEventOpen(true)}
+        className="fixed bottom-20 md:bottom-8 right-5 md:right-8 w-14 h-14 rounded-full bg-[var(--ink)] flex items-center justify-center cursor-pointer z-50 hover:bg-black transition-colors border-0"
+        aria-label="Create event"
       >
-        <Plus style={{ width: 22, height: 22, color: "#0a0a0b" }} strokeWidth={2} />
+        <Plus className="w-5 h-5 text-white" strokeWidth={2} />
       </button>
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
-      <MobileBottomNav />
-      <CreateFeedPostModal open={createOpen} onOpenChange={setCreateOpen} onCreated={() => loadData()} />
+      {mob && <MobileBottomNav />}
+      <CreateFeedPostModal open={createPostOpen} onOpenChange={setCreatePostOpen} onCreated={() => loadData()} />
+      <CreateEventModal
+        open={createEventOpen}
+        onOpenChange={setCreateEventOpen}
+        onCreated={(id) => navigate(`/dashboard/events/${id}`)}
+      />
       {editPost && (
         <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
       )}
@@ -375,48 +473,71 @@ export default function LandingGate() {
   );
 }
 
-/* Blog reader overlay */
+/* ─── Stat cell ───────────────────────────────────────────────── */
+function StatCell({ label, value, loading }: { label: string; value: number; loading: boolean }) {
+  return (
+    <div className="border-l border-[var(--rule)] pl-3 md:pl-4 first:border-l-0 first:pl-0">
+      <p className="text-[9px] md:text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--ink-muted)] mb-1.5">
+        {label}
+      </p>
+      {loading ? (
+        <div className="w-10 h-7 bg-[var(--wash-strong)] skeleton-block" />
+      ) : (
+        <p className="text-[24px] md:text-[32px] font-medium text-[var(--ink)] leading-none num tracking-tight">
+          {value}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ─── Blog reader overlay ─────────────────────────────────────── */
 function BlogReader({ post, onClose }: { post: FeedPost; onClose: () => void }) {
-  const dateStr = new Date(post.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const dateStr = new Date(post.date).toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  });
   const paragraphs = (post.content || "").split("\n").filter(Boolean);
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "hsl(45, 14%, 97%)", overflowY: "auto" }}>
-      <div style={{
-        position: "sticky", top: 0, zIndex: 10, background: "hsla(45, 14%, 97%, 0.9)",
-        backdropFilter: "blur(12px)", padding: "12px 16px",
-        display: "flex", alignItems: "center",
-      }}>
-        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(35, 4%, 56%)", display: "flex", alignItems: "center", gap: 6 }}>
+    <div className="fixed inset-0 z-[200] bg-[var(--paper)] overflow-y-auto">
+      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur px-4 py-3 flex items-center border-b border-[var(--rule)]">
+        <button
+          onClick={onClose}
+          className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.06em] uppercase text-[var(--ink-muted)] bg-transparent border-0 cursor-pointer hover:text-[var(--ink)]"
+        >
           <ChevronLeft size={14} strokeWidth={1.5} /> Back
         </button>
       </div>
 
       {post.imageUrl && (
-        <img src={post.imageUrl} alt={post.title} style={{ width: "100%", height: "auto", maxHeight: "60vh", objectFit: "cover", display: "block" }} />
+        <img
+          src={post.imageUrl}
+          alt={post.title}
+          className="w-full h-auto max-h-[60vh] object-cover block"
+        />
       )}
 
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 20px 80px" }}>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "hsl(35, 4%, 56%)", marginBottom: 12, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+      <div className="max-w-[720px] mx-auto px-5 pt-8 pb-24">
+        <p className="text-[11px] tracking-[0.15em] uppercase text-[var(--ink-muted)] mb-3">
           {dateStr}{post.location ? ` · ${post.location}` : ""}
         </p>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 300, color: "hsl(48, 7%, 10%)", lineHeight: 1.25, marginBottom: 16 }}>
+        <h1 className="text-[28px] md:text-[36px] leading-[1.2] font-medium text-[var(--ink)] tracking-tight mb-5">
           {post.title}
         </h1>
         {post.caption && (
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "hsl(35, 4%, 56%)", fontStyle: "italic", lineHeight: 1.6, marginBottom: 28, borderLeft: "2px solid hsl(37, 10%, 90%)", paddingLeft: 16 }}>
+          <p className="text-[15px] text-[var(--ink-muted)] leading-[1.6] mb-7 border-l-2 border-[var(--rule)] pl-4">
             {post.caption}
           </p>
         )}
         {paragraphs.map((para, i) => (
-          <p key={i} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "hsl(48, 7%, 20%)", lineHeight: 1.9, marginBottom: 20 }}>
+          <p key={i} className="text-[15px] text-[var(--ink)] leading-[1.85] mb-5">
             {para}
           </p>
         ))}
         {post.galleryImages.length > 0 && (
-          <div style={{ margin: "32px 0" }}>
+          <div className="mt-8 space-y-1.5">
             {post.galleryImages.map((url, i) => (
-              <img key={i} src={url} alt="" loading="lazy" style={{ width: "100%", display: "block", marginBottom: 6 }} />
+              <img key={i} src={url} alt="" loading="lazy" className="w-full block" />
             ))}
           </div>
         )}
