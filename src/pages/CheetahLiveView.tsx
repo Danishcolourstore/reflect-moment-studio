@@ -53,7 +53,7 @@ export default function CheetahLiveView() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8]">
         <div className="text-center">
-          <Radio className="mx-auto h-6 w-6 text-accent animate-pulse mb-3" />
+          <Radio className="mx-auto h-6 w-6 text-accent skeleton-block mb-3" />
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Connecting…</p>
         </div>
       </div>

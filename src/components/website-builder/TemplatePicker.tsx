@@ -9,7 +9,7 @@ interface TemplatePickerProps {
 }
 
 const TEMPLATE_COLORS: Record<TemplateId, string[]> = {
-  reverie: ['#FDFCFB', '#B8953F', '#2C2422'],
+  reverie: ['#FDFCFB', '#1A1A1A', '#2C2422'],
   linen: ['#FFFFFF', '#111111', '#999999'],
   vesper: ['#FAF7F2', '#B8873A', '#1E1916'],
   alabaster: ['#FFFFFF', '#0A0A0A', '#E0E0E0'],
@@ -48,7 +48,7 @@ export function TemplatePicker({ selectedId, onSelect, onPreview, onContinue }: 
               key={tmpl.id}
               className="relative overflow-hidden transition-all duration-200"
               style={{
-                border: isSelected ? '2px solid #B8953F' : '1px solid #F0EDE8',
+                border: isSelected ? '2px solid #1A1A1A' : '1px solid #F0EDE8',
                 borderRadius: 4,
               }}
             >
@@ -56,7 +56,7 @@ export function TemplatePicker({ selectedId, onSelect, onPreview, onContinue }: 
               {isSelected && (
                 <div
                   className="absolute top-3 right-3 z-10 w-6 h-6 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: '#B8953F' }}
+                  style={{ backgroundColor: '#1A1A1A' }}
                 >
                   <Check className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
                 </div>
@@ -141,9 +141,9 @@ export function TemplatePicker({ selectedId, onSelect, onPreview, onContinue }: 
                       fontSize: 12,
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase' as const,
-                      color: isSelected ? 'white' : '#B8953F',
-                      backgroundColor: isSelected ? '#B8953F' : 'transparent',
-                      border: '1px solid #B8953F',
+                      color: isSelected ? 'white' : '#1A1A1A',
+                      backgroundColor: isSelected ? '#1A1A1A' : 'transparent',
+                      border: '1px solid #1A1A1A',
                       minHeight: 44,
                       padding: '0 20px',
                       cursor: 'pointer',
@@ -178,7 +178,7 @@ export function TemplatePicker({ selectedId, onSelect, onPreview, onContinue }: 
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase' as const,
                 color: 'white',
-                backgroundColor: '#B8953F',
+                backgroundColor: '#1A1A1A',
                 border: 'none',
                 minHeight: 52,
               }}

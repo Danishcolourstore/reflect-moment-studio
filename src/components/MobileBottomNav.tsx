@@ -9,8 +9,8 @@ const TABS = [
   { title: "Album", url: "/dashboard/album-designer", icon: BookOpen },
 ];
 
-const GOLD = "#B8953F";
-const INK_MUTED = "#6B6962";
+const GOLD = "#1A1A1A";
+const INK_MUTED = "#6E6E6E";
 const RULE = "#E8E6E1";
 const WASH = "#F4F3F0";
 

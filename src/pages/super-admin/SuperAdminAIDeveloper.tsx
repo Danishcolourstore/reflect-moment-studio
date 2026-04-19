@@ -768,7 +768,7 @@ export default function SuperAdminAIDeveloper() {
                         )
                       ) : currentResponse.raw_content ? (
                         <div className="p-3">
-                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <div className="prose prose-sm max-w-none">
                             <ReactMarkdown>{currentResponse.raw_content}</ReactMarkdown>
                           </div>
                         </div>

@@ -220,7 +220,7 @@ export default function Reflections() {
       {loading && photos.length === 0 ? (
         <div className="px-4 space-y-4 pb-12">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="w-full rounded-lg animate-pulse" style={{ height: 280, background: '#0C0C0C' }} />
+            <div key={i} className="w-full rounded-lg skeleton-block" style={{ height: 280, background: '#0C0C0C' }} />
           ))}
         </div>
       ) : photos.length === 0 ? (

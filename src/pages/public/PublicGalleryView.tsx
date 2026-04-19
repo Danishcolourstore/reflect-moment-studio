@@ -54,7 +54,7 @@ function HeartBurst({ x, y, onDone }: { x: number; y: number; onDone: () => void
         width: 48, height: 48, pointerEvents: "none", zIndex: 100,
       }}
     >
-      <Heart style={{ width: 48, height: 48, color: "#B8953F", fill: "#B8953F" }} />
+      <Heart style={{ width: 48, height: 48, color: "#1A1A1A", fill: "#1A1A1A" }} />
     </motion.div>
   );
 }
@@ -146,7 +146,7 @@ export default function PublicGalleryView() {
   if (!gallery) {
     return (
       <div style={{ minHeight: "100vh", background: "#FAFAF8", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontStyle: "italic", color: "#6B6962" }}>Gallery not found</p>
+        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontStyle: "italic", color: "#6E6E6E" }}>Gallery not found</p>
       </div>
     );
   }
@@ -216,7 +216,7 @@ export default function PublicGalleryView() {
                     <div style={{
                       position: "absolute", bottom: 8, right: 8, zIndex: 2,
                       width: 6, height: 6, borderRadius: "50%",
-                      background: "#B8953F",
+                      background: "#1A1A1A",
                     }} />
                   )}
                 </>
@@ -247,7 +247,7 @@ export default function PublicGalleryView() {
               border: "none", cursor: "pointer",
             }}
           >
-            <Heart style={{ width: 13, height: 13, color: "#B8953F", fill: "#B8953F" }} />
+            <Heart style={{ width: 13, height: 13, color: "#1A1A1A", fill: "#1A1A1A" }} />
             <span style={{
               fontFamily: "'Cormorant Garamond', serif", fontSize: 14,
               color: "#FAFAF8", letterSpacing: "0.02em",
@@ -291,12 +291,12 @@ export default function PublicGalleryView() {
                   <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1A1917", margin: 0 }}>
                     Your Selections
                   </h3>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B6962", marginTop: 2 }}>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6E6E6E", marginTop: 2 }}>
                     {favCount} {favCount === 1 ? "photo" : "photos"}
                   </p>
                 </div>
                 <button onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 8 }}>
-                  <X style={{ width: 16, height: 16, color: "#6B6962" }} />
+                  <X style={{ width: 16, height: 16, color: "#6E6E6E" }} />
                 </button>
               </div>
 
@@ -448,12 +448,12 @@ function SendSelectionsOverlay({ eventId, photoIds, photos, onClose }: {
               width: 48, height: 48, borderRadius: "50%", background: "rgba(184,149,63,0.1)",
               display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px",
             }}>
-              <Heart style={{ width: 24, height: 24, color: "#B8953F", fill: "#B8953F" }} />
+              <Heart style={{ width: 24, height: 24, color: "#1A1A1A", fill: "#1A1A1A" }} />
             </div>
             <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1A1917", margin: 0 }}>
               Selections sent
             </h3>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B6962", marginTop: 4 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6E6E6E", marginTop: 4 }}>
               {photoIds.length} photos shared with your photographer
             </p>
             <button
@@ -472,7 +472,7 @@ function SendSelectionsOverlay({ eventId, photoIds, photos, onClose }: {
             <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 400, color: "#1A1917", margin: "0 0 4px" }}>
               Send Selections
             </h3>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6B6962", margin: "0 0 16px" }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#6E6E6E", margin: "0 0 16px" }}>
               {photoIds.length} photos · Your photographer will be notified
             </p>
             <div style={{ display: "flex", gap: 3, overflowX: "auto", marginBottom: 16, paddingBottom: 4 }}>
@@ -481,7 +481,7 @@ function SendSelectionsOverlay({ eventId, photoIds, photos, onClose }: {
               ))}
               {photos.length > 8 && (
                 <div style={{ width: 48, height: 48, flexShrink: 0, background: "hsl(40, 5%, 93%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 10, color: "#6B6962" }}>+{photos.length - 8}</span>
+                  <span style={{ fontSize: 10, color: "#6E6E6E" }}>+{photos.length - 8}</span>
                 </div>
               )}
             </div>

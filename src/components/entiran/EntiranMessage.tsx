@@ -77,8 +77,8 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
                 className="rounded-xl p-3.5 transition-colors duration-200"
                 style={{ background: 'rgba(200,169,126,0.04)', border: '1px solid rgba(200,169,126,0.06)' }}
               >
-                <c.Icon size={16} strokeWidth={1.5} className="mb-2 block" style={{ color: '#B8953F' }} />
-                <p className="text-[10px] font-semibold tracking-wider uppercase" style={{ color: '#B8953F' }}>{c.label}</p>
+                <c.Icon size={16} strokeWidth={1.5} className="mb-2 block" style={{ color: '#1A1A1A' }} />
+                <p className="text-[10px] font-semibold tracking-wider uppercase" style={{ color: '#1A1A1A' }}>{c.label}</p>
                 <p className="text-[9px] mt-0.5 leading-tight" style={{ color: 'rgba(244,241,234,0.3)' }}>{c.desc}</p>
               </div>
             ))}
@@ -114,7 +114,7 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
           className="text-[11px] px-5 py-2.5 rounded-xl font-medium tracking-wide transition-all duration-200 flex items-center gap-2"
           style={{
             border: '1px solid rgba(200,169,126,0.2)',
-            color: '#B8953F',
+            color: '#1A1A1A',
             background: 'rgba(200,169,126,0.05)',
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,169,126,0.1)'; }}
@@ -161,7 +161,7 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
                   h1: ({ children }) => (
                     <h3
                       className="text-sm font-medium mb-2 mt-4"
-                      style={{ color: '#B8953F', fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 16 }}
+                      style={{ color: '#1A1A1A', fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 16 }}
                     >
                       {children}
                     </h3>
@@ -169,7 +169,7 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
                   h2: ({ children }) => (
                     <h3
                       className="text-sm font-medium mb-2 mt-3"
-                      style={{ color: '#B8953F', fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 15 }}
+                      style={{ color: '#1A1A1A', fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 15 }}
                     >
                       {children}
                     </h3>
@@ -177,7 +177,7 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
                   h3: ({ children }) => (
                     <h4
                       className="text-xs font-medium mb-1.5 mt-3"
-                      style={{ color: '#B8953F', fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 14 }}
+                      style={{ color: '#1A1A1A', fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 14 }}
                     >
                       {children}
                     </h4>
@@ -197,7 +197,7 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
                     return (
                       <code
                         className="rounded-md px-1.5 py-0.5 text-xs"
-                        style={{ background: 'rgba(200,169,126,0.08)', color: '#B8953F' }}
+                        style={{ background: 'rgba(200,169,126,0.08)', color: '#1A1A1A' }}
                       >
                         {children}
                       </code>
@@ -238,7 +238,7 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
             title={copied ? 'Copied' : 'Copy'}
           >
             {copied
-              ? <Check className="h-3 w-3" style={{ color: '#B8953F' }} />
+              ? <Check className="h-3 w-3" style={{ color: '#1A1A1A' }} />
               : <Copy className="h-3 w-3" style={{ color: 'rgba(244,241,234,0.25)' }} />
             }
           </button>
@@ -267,7 +267,7 @@ export function TypingIndicator() {
             key={i}
             className="w-[5px] h-[5px] rounded-full"
             style={{
-              backgroundColor: '#B8953F',
+              backgroundColor: '#1A1A1A',
               opacity: 0.3,
               animation: `daan-dot 1.4s ease-in-out ${i * 180}ms infinite`,
             }}

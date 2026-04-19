@@ -31,8 +31,8 @@ interface EmptyStateProps {
 
 const INK = "#1A1917";
 const PAPER = "#FAFAF8";
-const GOLD = "#B8953F";
-const GOLD_INK = "#8B6F2E";
+const GOLD = "#1A1A1A";
+const GOLD_INK = "#1A1A1A";
 const RULE = "#E8E6E1";
 const RULE_STRONG = "#D6D3CC";
 

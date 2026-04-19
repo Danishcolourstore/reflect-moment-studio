@@ -30,7 +30,7 @@ export function ClientCRMTable({ clients, loading, onSelect, onInvite }: Props) 
         <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No clients.</h2>
         <button
           onClick={onInvite}
-          className="h-11 px-6 text-[13px] font-medium tracking-[0.06em] uppercase text-[#FAFAF8] bg-[#B8953F] hover:bg-[#8B6F2E] transition-colors duration-[120ms]"
+          className="h-11 px-6 text-[13px] font-medium tracking-[0.06em] uppercase text-[#FAFAF8] bg-[#1A1A1A] hover:bg-[#1A1A1A] transition-colors duration-[120ms]"
         >
           Add client
         </button>

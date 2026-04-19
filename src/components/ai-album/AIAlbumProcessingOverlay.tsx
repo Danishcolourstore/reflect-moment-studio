@@ -11,7 +11,7 @@ export default function AIAlbumProcessingOverlay({ progress, label }: Props) {
     <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center">
       <div className="w-full max-w-xs sm:max-w-sm text-center space-y-5 px-4">
         <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto">
-          <div className="absolute inset-0 rounded-2xl bg-primary/10 animate-pulse" />
+          <div className="absolute inset-0 rounded-2xl bg-primary/10 skeleton-block" />
           <div className="absolute inset-0 flex items-center justify-center">
             <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
           </div>

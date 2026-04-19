@@ -4,38 +4,38 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * Button — luxury editorial primitive.
- * Zero radius (except `icon` size, which is the documented circular exception).
- * No ring focus, no scale, no translate, no shadow.
+ * Button — Pixieset-Minimal primitive.
+ * Black ink primary. No uppercase. No radius. No shadow. No ring focus.
+ * Sentence case. Loading state replaces text with em-dash.
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap focus:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap focus:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transition-opacity duration-[120ms]",
   {
     variants: {
       variant: {
-        // Primary — solid gold. The single strongest action on a page.
+        // Primary — solid ink
         default:
-          "h-11 px-6 bg-[var(--gold)] text-[var(--paper)] uppercase tracking-[0.06em] font-medium text-[13px] border-0 hover:bg-[var(--gold-ink)] disabled:opacity-40 transition-colors duration-[120ms]",
-        // Secondary — bordered, sentence case
+          "h-11 px-5 bg-[var(--ink)] text-white border-0 text-[12px] font-medium tracking-[0.02em] hover:opacity-90 disabled:opacity-50",
+        // Secondary — bordered, transparent
         secondary:
-          "h-11 px-6 bg-transparent text-[var(--ink)] border border-[var(--rule)] text-[13px] font-medium tracking-[0.06em] hover:border-[var(--rule-strong)] disabled:opacity-40 transition-colors duration-[120ms]",
+          "h-11 px-5 bg-transparent text-[var(--ink)] border border-[var(--rule-strong)] text-[12px] font-medium tracking-[0.02em] hover:border-[var(--ink)] disabled:opacity-50 transition-colors",
         // Outline — alias of secondary for shadcn API parity
         outline:
-          "h-11 px-6 bg-transparent text-[var(--ink)] border border-[var(--rule)] text-[13px] font-medium tracking-[0.06em] hover:border-[var(--rule-strong)] disabled:opacity-40 transition-colors duration-[120ms]",
-        // Ghost — chromeless
+          "h-11 px-5 bg-transparent text-[var(--ink)] border border-[var(--rule-strong)] text-[12px] font-medium tracking-[0.02em] hover:border-[var(--ink)] disabled:opacity-50 transition-colors",
+        // Ghost — chromeless, underline on hover
         ghost:
-          "h-11 px-6 bg-transparent text-[var(--ink)] border-0 text-[13px] font-medium tracking-[0.06em] hover:bg-[var(--wash)] disabled:opacity-40 transition-colors duration-[120ms]",
-        // Destructive — bordered alert
+          "h-11 px-3 bg-transparent text-[var(--ink)] border-0 text-[12px] font-medium tracking-[0.02em] hover:underline underline-offset-4 disabled:opacity-50",
+        // Destructive — bordered alert text
         destructive:
-          "h-11 px-6 bg-transparent text-[var(--alert)] border border-[var(--alert)] uppercase tracking-[0.06em] font-medium text-[13px] hover:bg-[rgba(163,85,58,0.06)] disabled:opacity-40 transition-colors duration-[120ms]",
+          "h-11 px-5 bg-transparent text-[var(--alert)] border border-[var(--alert)] text-[12px] font-medium tracking-[0.02em] hover:bg-[rgba(139,58,42,0.04)] disabled:opacity-50 transition-colors",
         // Link — text only
         link:
-          "h-11 px-2 bg-transparent text-[var(--ink)] underline underline-offset-2 decoration-1 text-[13px] font-medium hover:text-[var(--gold-ink)] disabled:opacity-40 transition-colors duration-[120ms]",
+          "h-auto p-0 bg-transparent text-[var(--ink)] underline underline-offset-2 decoration-1 text-[13px] font-normal hover:opacity-70 disabled:opacity-50",
       },
       size: {
         default: "",
         lg: "",
-        sm: "!h-8 !px-4 !text-[12px]",
+        sm: "!h-9 !px-3 !text-[12px]",
         icon: "!h-11 !w-11 !p-0 !rounded-full",
       },
     },

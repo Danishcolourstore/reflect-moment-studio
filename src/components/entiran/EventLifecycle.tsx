@@ -139,18 +139,18 @@ export function EventLifecycle() {
               {evt.stages.map((stage, i) => (
                 <div key={i} className="flex items-center">
                   <div
-                    className={`rounded-full flex items-center justify-center ${stage.current ? 'motion-safe:animate-pulse' : ''}`}
+                    className={`rounded-full flex items-center justify-center ${stage.current ? 'motion-safe:skeleton-block' : ''}`}
                     style={{
                       width: stage.current ? 14 : 10,
                       height: stage.current ? 14 : 10,
-                      backgroundColor: stage.completed ? '#B8953F' : stage.current ? '#B8953F' : '#D1D5DB',
+                      backgroundColor: stage.completed ? '#1A1A1A' : stage.current ? '#1A1A1A' : '#D1D5DB',
                     }}
                     title={stage.label}
                   >
                     {stage.completed && <Check className="h-2 w-2 text-white" strokeWidth={3} />}
                   </div>
                   {i < evt.stages.length - 1 && (
-                    <div className="w-2 h-px" style={{ backgroundColor: stage.completed ? '#B8953F' : '#D1D5DB' }} />
+                    <div className="w-2 h-px" style={{ backgroundColor: stage.completed ? '#1A1A1A' : '#D1D5DB' }} />
                   )}
                 </div>
               ))}

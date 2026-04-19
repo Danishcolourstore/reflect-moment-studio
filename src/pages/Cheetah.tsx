@@ -397,7 +397,7 @@ function SessionRow({
     >
       <div className={cn(
         'h-2 w-2 rounded-full shrink-0',
-        session.is_live ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground/30',
+        session.is_live ? 'bg-emerald-500 skeleton-block' : 'bg-muted-foreground/30',
       )} />
       <div className="min-w-0 flex-1">
         <p className="text-[13px] text-foreground truncate font-medium">{session.title}</p>
@@ -474,7 +474,7 @@ export default function CheetahLivePage() {
               </span>
               {liveCount > 0 && (
                 <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 skeleton-block" />
                   {liveCount} live
                 </span>
               )}

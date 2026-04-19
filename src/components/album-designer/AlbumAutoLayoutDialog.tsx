@@ -416,16 +416,16 @@ export default function AlbumAutoLayoutDialog({
               {/* ── Event Tab ── */}
               <TabsContent value="event" className="mt-3">
                 {album.event_id ? (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200 ">
                     <Link2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                    <p className="text-sm text-emerald-700 ">
                       Event gallery linked — ready to generate
                     </p>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 ">
                     <Link2 className="h-4 w-4 text-amber-600 shrink-0" />
-                    <p className="text-sm text-amber-700 dark:text-amber-400">
+                    <p className="text-sm text-amber-700 ">
                       No event linked. Link an event to this album first using the toolbar.
                     </p>
                   </div>
@@ -505,9 +505,9 @@ export default function AlbumAutoLayoutDialog({
                 </div>
 
                 {selectedFiles.length > 0 && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200">
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
                     <FolderArchive className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                    <p className="text-sm text-emerald-700 ">
                       {selectedFiles.length} photos extracted from ZIP — ready!
                     </p>
                   </div>

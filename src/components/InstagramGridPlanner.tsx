@@ -35,7 +35,7 @@ const ED = {
   bg: '#0C0B08',
   panel: '#131210',
   border: '#272420',
-  gold: '#B8953F',
+  gold: '#1A1A1A',
   text: '#FAFAFA',
   textMuted: '#8A8478',
   font: '"Jost", sans-serif',

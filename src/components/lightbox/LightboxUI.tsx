@@ -103,8 +103,8 @@ export function LightboxUI({
           <ActionButton
             icon={<Heart style={{
               width: 22, height: 22,
-              color: isFav ? '#B8953F' : 'rgba(255,255,255,0.7)',
-              fill: isFav ? '#B8953F' : 'none',
+              color: isFav ? '#1A1A1A' : 'rgba(255,255,255,0.7)',
+              fill: isFav ? '#1A1A1A' : 'none',
               transition: 'all 0.2s',
               ...(isFav ? { animation: 'heartPop 0.4s ease' } : {}),
             }} />}

@@ -178,7 +178,7 @@ const ClientDashboard = () => {
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
                 color: activeSection === section ? '#1A1A1A' : '#BBBBBB',
-                borderBottom: activeSection === section ? '2px solid #B8953F' : '2px solid transparent',
+                borderBottom: activeSection === section ? '2px solid #1A1A1A' : '2px solid transparent',
                 fontWeight: activeSection === section ? 500 : 400,
               }}
             >
@@ -218,7 +218,7 @@ const ClientDashboard = () => {
                   <Heart
                     className="h-5 w-5 transition-all"
                     style={favoriteIds.has(heroPhoto.id)
-                      ? { color: '#B8953F', fill: '#B8953F' }
+                      ? { color: '#1A1A1A', fill: '#1A1A1A' }
                       : { color: 'white' }
                     }
                   />
@@ -272,7 +272,7 @@ const ClientDashboard = () => {
                       <Heart
                         className="h-4 w-4 transition-all"
                         style={isFav
-                          ? { color: '#B8953F', fill: '#B8953F' }
+                          ? { color: '#1A1A1A', fill: '#1A1A1A' }
                           : { color: 'rgba(255,255,255,0.9)' }
                         }
                       />
@@ -329,14 +329,14 @@ const ClientDashboard = () => {
               style={{
                 background: 'rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(12px)',
-                color: favoriteIds.has(filteredPhotos[lightboxIdx!].id) ? '#B8953F' : 'rgba(255,255,255,0.7)',
+                color: favoriteIds.has(filteredPhotos[lightboxIdx!].id) ? '#1A1A1A' : 'rgba(255,255,255,0.7)',
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 12,
               }}
             >
               <Heart
                 className="h-4 w-4"
-                style={favoriteIds.has(filteredPhotos[lightboxIdx!].id) ? { fill: '#B8953F', color: '#B8953F' } : {}}
+                style={favoriteIds.has(filteredPhotos[lightboxIdx!].id) ? { fill: '#1A1A1A', color: '#1A1A1A' } : {}}
               />
               {favoriteIds.has(filteredPhotos[lightboxIdx!].id) ? 'Saved' : 'Save'}
             </button>

@@ -25,7 +25,7 @@ const WidgetPage = () => {
     })();
   }, [slug]);
 
-  if (!event) return <div className="flex items-center justify-center h-screen bg-background"><Camera className="h-8 w-8 text-muted-foreground/20 animate-pulse" /></div>;
+  if (!event) return <div className="flex items-center justify-center h-screen bg-background"><Camera className="h-8 w-8 text-muted-foreground/20 skeleton-block" /></div>;
 
   const isDark = theme === 'dark';
   const bg = isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900';

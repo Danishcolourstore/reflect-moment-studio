@@ -157,7 +157,7 @@ export const DEFAULT_SECTION_SETTINGS: Record<SectionType, SectionSettings> = {
     heading: "Let's Connect",
     showPhone: true,
     showAddress: true,
-    buttonColor: '#B8953F',
+    buttonColor: '#1A1A1A',
     animationType: 'fade',
     animationDuration: 400,
   },

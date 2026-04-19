@@ -108,7 +108,7 @@ export function AIFindSimilarSheet({ open, onClose, photoCount, photos }: AIFind
               {scanning && (
                 <div className="mt-4 overflow-hidden" style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 1 }}>
                   <motion.div
-                    style={{ height: '100%', width: '40%', background: '#B8953F', borderRadius: 1 }}
+                    style={{ height: '100%', width: '40%', background: '#1A1A1A', borderRadius: 1 }}
                     animate={{ x: ['-100%', '300%'] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
                   />

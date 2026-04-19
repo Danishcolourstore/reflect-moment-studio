@@ -57,7 +57,7 @@ export const ProgressiveImage = memo(function ProgressiveImage({
         className="absolute inset-0 bg-muted/20 transition-opacity duration-700"
         style={{ opacity: thumbLoaded ? 0 : 1 }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-block" />
       </div>
 
       {inView && (

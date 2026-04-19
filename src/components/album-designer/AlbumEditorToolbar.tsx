@@ -11,8 +11,8 @@ import type { AlbumStatus } from "./types";
 
 const STATUS_BADGE: Record<AlbumStatus, { label: string; className: string }> = {
   draft: { label: "Draft", className: "bg-muted text-muted-foreground" },
-  review: { label: "In Review", className: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400" },
-  approved: { label: "Approved", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400" },
+  review: { label: "In Review", className: "bg-amber-100 text-amber-800 " },
+  approved: { label: "Approved", className: "bg-emerald-100 text-emerald-800 " },
   print: { label: "Sent to Print", className: "bg-primary/10 text-primary" },
 };
 
@@ -81,8 +81,8 @@ export default function AlbumEditorToolbar({
           <Badge variant="secondary" className={cn("text-[10px] shrink-0 hidden sm:inline-flex", badge.className)}>{badge.label}</Badge>
           <div className={cn(
             "flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full tracking-wide uppercase font-medium shrink-0",
-            saveStatus === "saved" ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400"
-              : saveStatus === "saving" ? "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400"
+            saveStatus === "saved" ? "text-emerald-600 bg-emerald-50 "
+              : saveStatus === "saving" ? "text-amber-600 bg-amber-50 "
                 : "text-muted-foreground bg-muted"
           )}>
             {saveStatus === "saved" ? (

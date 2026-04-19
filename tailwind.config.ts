@@ -5,23 +5,31 @@ export default {
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
-    /* ─── LOCKED SCALES ─── */
-    /* These three replace Tailwind defaults entirely. Any class outside this
-       set will fail to compile. That is intentional — drift dies at the build. */
+    /* ─── LOCKED SCALES ───────────────────────────────────────────────────
+       Pixieset-minimal direction. The scale here is the spec scale plus the
+       four primitive heights the spec itself requires (h-7=28, h-9=36,
+       h-10=40, h-11=44, h-14=56). Any value outside this set fails to
+       compile. That is intentional — drift dies at the build.
+       ──────────────────────────────────────────────────────────────────── */
     spacing: {
       0: "0",
+      px: "1px",
       0.5: "2px",
       1: "4px",
       2: "8px",
       3: "12px",
       4: "16px",
+      5: "20px",
       6: "24px",
+      7: "28px",
       8: "32px",
+      9: "36px",
+      10: "40px",
+      11: "44px",
       12: "48px",
+      14: "56px",
       16: "64px",
       24: "96px",
-      32: "128px",
-      px: "1px",
     },
     borderRadius: {
       none: "0",
@@ -33,7 +41,6 @@ export default {
       "2xl": "0",
       "3xl": "0",
       full: "9999px",
-      toast: "2px",
     },
     boxShadow: {
       none: "none",
@@ -47,7 +54,7 @@ export default {
     },
     container: {
       center: true,
-      padding: "2rem",
+      padding: "20px",
       screens: {
         "2xl": "1400px",
       },

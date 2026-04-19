@@ -235,7 +235,7 @@ function StylePanel({ layer, onUpdate }: { layer: TextLayer; onUpdate: (p: Parti
       <div className="flex flex-col gap-1.5">
         <label className="text-[9px] tracking-wider uppercase text-muted-foreground">Color</label>
         <div className="flex gap-2 items-center flex-wrap">
-          {['#ffffff', '#000000', '#B8953F', '#F3EFE9', '#2B2A28', '#B7AA98', '#E74C3C', '#3498DB'].map((c) => (
+          {['#ffffff', '#000000', '#1A1A1A', '#F3EFE9', '#2B2A28', '#B7AA98', '#E74C3C', '#3498DB'].map((c) => (
             <button
               key={c}
               onClick={() => onUpdate({ color: c, gradientColors: null })}
@@ -367,7 +367,7 @@ function AdvancedPanel({ layer, onUpdate }: { layer: TextLayer; onUpdate: (p: Pa
             onUpdate({ gradientColors: null });
             setShowGradient(false);
           } else {
-            onUpdate({ gradientColors: ['#B8953F', '#F5E6A3'] });
+            onUpdate({ gradientColors: ['#1A1A1A', '#F5E6A3'] });
             setShowGradient(true);
           }
         }}

@@ -207,7 +207,7 @@ export default function AlbumPreviewModal({ albumId, albumName, onClose, onShare
 
       <div className="flex-1 flex items-center justify-center relative px-16">
         {loading ? (
-          <div className="text-white/50 text-sm animate-pulse">Loading preview…</div>
+          <div className="text-white/50 text-sm skeleton-block">Loading preview…</div>
         ) : spread ? (
           <div className="flex gap-1 max-w-[80vw] max-h-[80vh]">
             {spread.pages.map((page) => (

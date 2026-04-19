@@ -47,7 +47,7 @@ export function AIReplyAssistant() {
       <button
         onClick={() => setOpen(!open)}
         aria-label="Open Daan AI"
-        className="fixed bottom-6 right-6 z-50 bg-[#B8953F] text-black p-4 rounded-full shadow-[0_0_20px_rgba(201,168,76,0.4)] hover:scale-105 active:scale-95 transition-all"
+        className="fixed bottom-6 right-6 z-50 bg-[#1A1A1A] text-black p-4 rounded-full shadow-[0_0_20px_rgba(201,168,76,0.4)] hover:scale-105 active:scale-95 transition-all"
       >
         <Zap size={20} strokeWidth={1.5} />
       </button>

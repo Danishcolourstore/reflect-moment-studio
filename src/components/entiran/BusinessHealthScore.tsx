@@ -48,7 +48,7 @@ export function BusinessHealthScoreCard() {
   const score = dbScore || DEMO_SCORE;
 
   if (loading) {
-    return <div className="h-40 rounded-xl bg-secondary animate-pulse" />;
+    return <div className="h-40 rounded-xl bg-secondary skeleton-block" />;
   }
 
   const scoreColor = getScoreColor(score.overall_score);

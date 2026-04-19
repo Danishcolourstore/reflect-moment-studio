@@ -694,7 +694,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
                             </div>
                           )}
                           <div className="bg-card border border-border rounded-2xl rounded-tl-md px-4 py-3">
-                            <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_pre]:relative [&_pre]:my-2 [&_pre]:rounded-lg [&_pre]:bg-muted/50 [&_pre]:border [&_pre]:border-border [&_code]:text-[11px] [&_p]:my-1.5">
+                            <div className="prose prose-sm max-w-none text-sm [&_pre]:relative [&_pre]:my-2 [&_pre]:rounded-lg [&_pre]:bg-muted/50 [&_pre]:border [&_pre]:border-border [&_code]:text-[11px] [&_p]:my-1.5">
                               <ReactMarkdown>{msg.content}</ReactMarkdown>
                             </div>
                           </div>
