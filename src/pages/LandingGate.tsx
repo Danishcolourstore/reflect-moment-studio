@@ -162,9 +162,9 @@ export default function LandingGate() {
     } catch { /* table optional */ }
 
     try {
-      const { count: vc } = await (supabase
+      const { count: vc } = await ((supabase as any)
         .from("gallery_views")
-        .select("id", { count: "exact", head: true }) as any)
+        .select("id", { count: "exact", head: true }))
         .eq("photographer_id", user.id);
       viewsCount = vc || 0;
     } catch { /* table optional */ }
