@@ -33,6 +33,13 @@ export interface CheetahLiveSession {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+  // FTP scaffold (forward-compatible — relay not yet hosted)
+  ftp_username: string | null;
+  ftp_password: string | null;
+  ftp_host: string | null;
+  ftp_port: number | null;
+  connection_tested_at: string | null;
+  last_upload_at: string | null;
 }
 
 const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;

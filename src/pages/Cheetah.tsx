@@ -143,19 +143,41 @@ function NewSessionDialog({
   );
 }
 
-/* ───────────────────────── Setup Card ───────────────────────── */
+/* ───────────────────────── Setup Card ─────────────────────────
+ * HTTPS is the primary path (works natively on Canon R5/R6, Fuji X-T5,
+ * Sony α1/α7R V firmware 2.0+, Nikon Z9). FTP is demoted to "Legacy /
+ * Bridge" with an honest disclaimer — Mirror does not currently host
+ * an FTP relay; photographers must run a small bridge at the venue.
+ * The DB columns are scaffolded so when/if a managed FTP relay ships,
+ * the credentials are already there and the camera-side config doesn't
+ * change.
+ * ─────────────────────────────────────────────────────────────── */
+
+function lastPing(iso: string | null) {
+  if (!iso) return null;
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
 
 function SetupCard({ session, uploadEndpoint }: { session: CheetahLiveSession; uploadEndpoint: string }) {
-  const [tab, setTab] = useState<'http' | 'ftp' | 'curl'>('http');
+  const [tab, setTab] = useState<'https' | 'ftp' | 'curl'>('https');
   const liveUrl = `${window.location.origin}/live/${session.session_code}`;
+  const lastUpload = lastPing(session.last_upload_at);
 
   const curlCmd = `curl -X POST "${uploadEndpoint}" \\
   -H "x-session-code: ${session.session_code}" \\
   -H "x-upload-token: ${session.upload_token}" \\
   -F "file=@photo.jpg"`;
 
-  const ftpInstructions = `# Run this Python bridge on a laptop / VPS
-# (camera FTPs to bridge → bridge HTTPS-uploads to Mirror AI)
+  const ftpInstructions = `# Mirror does not currently host a managed FTP relay.
+# To use FTP, run this small bridge on a laptop at the venue.
+# Camera FTPs to laptop → laptop forwards each photo to Mirror over HTTPS.
 
 pip install pyftpdlib requests
 
@@ -183,105 +205,150 @@ class H(FTPHandler):
 
 a = DummyAuthorizer()
 os.makedirs("./uploads", exist_ok=True)
-a.add_user("camera", "mirror2024", "./uploads", perm="elradfmw")
+a.add_user("${session.ftp_username || 'camera'}", "${session.ftp_password || 'mirror2024'}", "./uploads", perm="elradfmw")
 H.authorizer = a
 H.passive_ports = range(60000, 60100)
 FTPServer(("0.0.0.0", 2121), H).serve_forever()
 EOF
 
 python3 bridge.py
-# In your camera FTP settings → host: <laptop-ip>, port 2121, user: camera, pass: mirror2024`;
+# In your camera FTP settings:
+#   host: <laptop-ip>      port: 2121
+#   user: ${session.ftp_username || 'camera'}      pass: ${session.ftp_password || 'mirror2024'}`;
 
   return (
-    <div className="bg-card border border-border">
+    <div className="bg-white border border-[var(--rule)]">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-accent font-medium">Camera Setup</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Point any camera or FTP bridge at the credentials below.</p>
+      <div className="px-5 py-4 border-b border-[var(--rule)] flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--ink)] font-medium">Camera Setup</p>
+          <p className="text-xs text-[var(--ink-muted)] mt-0.5">
+            HTTPS is the primary path. Most cameras sold since 2022 support it natively.
+          </p>
         </div>
-        <Button asChild size="sm" variant="outline" className="gap-1.5">
+        <Button asChild size="sm" variant="outline" className="gap-1.5 shrink-0">
           <a href={liveUrl} target="_blank" rel="noreferrer">
             <ExternalLink className="h-3.5 w-3.5" />
-            Open guest view
+            Guest view
           </a>
         </Button>
       </div>
 
-      {/* Quick-glance credentials */}
-      <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-border">
+      {/* Quick credentials + telemetry */}
+      <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-[var(--rule)]">
         <div>
-          <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Session Code</p>
+          <p className="text-[9px] uppercase tracking-widest text-[var(--ink-muted)] mb-1">Session Code</p>
           <CopyChip value={session.session_code} />
         </div>
         <div>
-          <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Upload Token</p>
+          <p className="text-[9px] uppercase tracking-widest text-[var(--ink-muted)] mb-1">Upload Token</p>
           <CopyChip value={session.upload_token} />
         </div>
         <div>
-          <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Live Guest Link</p>
-          <CopyChip value={liveUrl} />
+          <p className="text-[9px] uppercase tracking-widest text-[var(--ink-muted)] mb-1">Last upload</p>
+          <p className="text-[11px] font-mono text-[var(--ink)] flex items-center gap-1.5">
+            <span className={cn(
+              'h-1.5 w-1.5 rounded-full',
+              lastUpload ? 'bg-emerald-500' : 'bg-[var(--ink-whisper)]',
+            )} />
+            {lastUpload ?? 'awaiting first photo'}
+          </p>
         </div>
       </div>
 
       {/* Method tabs */}
-      <div className="flex border-b border-border">
+      <div className="flex border-b border-[var(--rule)]">
         {[
-          { key: 'http' as const, label: 'HTTPS Direct', icon: Wifi },
-          { key: 'ftp' as const,  label: 'FTP Bridge',   icon: Server },
-          { key: 'curl' as const, label: 'cURL / Script', icon: Sparkles },
+          { key: 'https' as const, label: 'HTTPS Direct', icon: Wifi, badge: 'Primary' },
+          { key: 'ftp' as const,   label: 'FTP Bridge',   icon: Server, badge: 'Legacy' },
+          { key: 'curl' as const,  label: 'cURL · Script', icon: Sparkles, badge: null },
         ].map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
             className={cn(
               'flex-1 px-4 py-3 text-[11px] uppercase tracking-widest font-medium flex items-center justify-center gap-2 transition-colors border-b-2',
-              tab === t.key ? 'border-accent text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
+              tab === t.key ? 'border-[var(--ink)] text-[var(--ink)]' : 'border-transparent text-[var(--ink-muted)] hover:text-[var(--ink)]',
             )}
           >
             <t.icon className="h-3.5 w-3.5" />
-            {t.label}
+            <span>{t.label}</span>
+            {t.badge && (
+              <span className={cn(
+                'text-[8px] tracking-[0.12em] px-1.5 py-0.5 border',
+                t.badge === 'Primary'
+                  ? 'border-[var(--ink)] text-[var(--ink)]'
+                  : 'border-[var(--rule-strong)] text-[var(--ink-whisper)]',
+              )}>
+                {t.badge}
+              </span>
+            )}
           </button>
         ))}
       </div>
 
       <div className="p-5">
-        {tab === 'http' && (
-          <div className="space-y-3">
-            <p className="text-[12px] text-foreground/80 leading-relaxed">
-              Cameras with HTTP/WiFi transfer (Canon R5/R6, Fujifilm X-T5, etc.) can POST directly. Set the camera's
-              upload URL to the endpoint and add the headers shown.
+        {tab === 'https' && (
+          <div className="space-y-4">
+            <p className="text-[12px] text-[var(--ink)] leading-relaxed">
+              Set your camera's HTTPS upload URL to the endpoint below and add the two headers.
+              Tested on Canon R5 / R5 II / R6 II, Fujifilm X-T5 / X-H2, Sony α1 / α7R V (firmware 2.0+),
+              Nikon Z9. First photo appears here the moment you press the shutter.
             </p>
             <div className="space-y-2 text-[11px] font-mono">
-              <div className="bg-muted/40 px-3 py-2 rounded flex items-center justify-between">
-                <span className="truncate"><span className="text-muted-foreground">URL  </span>{uploadEndpoint}</span>
+              <div className="bg-[var(--wash-strong)] px-3 py-2 flex items-center justify-between gap-3">
+                <span className="truncate"><span className="text-[var(--ink-muted)]">URL  </span>{uploadEndpoint}</span>
                 <CopyChip value={uploadEndpoint} />
               </div>
-              <div className="bg-muted/40 px-3 py-2 rounded flex items-center justify-between">
-                <span className="truncate"><span className="text-muted-foreground">Header  </span>x-session-code: {session.session_code}</span>
+              <div className="bg-[var(--wash-strong)] px-3 py-2 flex items-center justify-between gap-3">
+                <span className="truncate"><span className="text-[var(--ink-muted)]">Header  </span>x-session-code: {session.session_code}</span>
               </div>
-              <div className="bg-muted/40 px-3 py-2 rounded flex items-center justify-between">
-                <span className="truncate"><span className="text-muted-foreground">Header  </span>x-upload-token: {session.upload_token}</span>
+              <div className="bg-[var(--wash-strong)] px-3 py-2 flex items-center justify-between gap-3">
+                <span className="truncate"><span className="text-[var(--ink-muted)]">Header  </span>x-upload-token: {session.upload_token}</span>
               </div>
-              <div className="bg-muted/40 px-3 py-2 rounded">
-                <span className="text-muted-foreground">Body  </span>multipart/form-data, field name "file"
+              <div className="bg-[var(--wash-strong)] px-3 py-2">
+                <span className="text-[var(--ink-muted)]">Body  </span>multipart/form-data, field name "file"
               </div>
             </div>
           </div>
         )}
 
         {tab === 'ftp' && (
-          <div className="space-y-3">
-            <p className="text-[12px] text-foreground/80 leading-relaxed">
-              Most pro cameras (Sony α, Nikon Z, Canon 1DX) push via FTP. Run this small bridge on a laptop at the venue —
-              it accepts FTP from your camera and forwards each photo to Mirror AI over HTTPS.
-            </p>
-            <pre className="text-[10px] font-mono leading-relaxed bg-muted/40 p-3 rounded overflow-x-auto whitespace-pre">
+          <div className="space-y-4">
+            <div className="border-l-2 border-[var(--ink)] pl-3 py-1">
+              <p className="text-[11px] text-[var(--ink)] leading-relaxed">
+                <strong className="font-medium">Mirror does not currently host an FTP server.</strong>{' '}
+                Older bodies (Sony α7 III, Canon 1DX II, Nikon D850) push only via FTP — for those,
+                run the bridge below on a venue laptop. It accepts FTP from your camera and forwards
+                each photo to Mirror over HTTPS.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono">
+              <div className="bg-[var(--wash-strong)] px-3 py-2">
+                <p className="text-[9px] uppercase tracking-widest text-[var(--ink-muted)] mb-1">Bridge user</p>
+                <CopyChip value={session.ftp_username || 'camera'} />
+              </div>
+              <div className="bg-[var(--wash-strong)] px-3 py-2">
+                <p className="text-[9px] uppercase tracking-widest text-[var(--ink-muted)] mb-1">Bridge pass</p>
+                <CopyChip value={session.ftp_password || 'mirror2024'} />
+              </div>
+              <div className="bg-[var(--wash-strong)] px-3 py-2">
+                <p className="text-[9px] uppercase tracking-widest text-[var(--ink-muted)] mb-1">Local port</p>
+                <span className="text-[var(--ink)]">2121</span>
+              </div>
+              <div className="bg-[var(--wash-strong)] px-3 py-2">
+                <p className="text-[9px] uppercase tracking-widest text-[var(--ink-muted)] mb-1">Mode</p>
+                <span className="text-[var(--ink)]">Passive</span>
+              </div>
+            </div>
+
+            <pre className="text-[10px] font-mono leading-relaxed bg-[var(--wash-strong)] p-3 overflow-x-auto whitespace-pre max-h-[260px]">
 {ftpInstructions}
             </pre>
             <button
               onClick={() => { navigator.clipboard.writeText(ftpInstructions); toast.success('Bridge script copied'); }}
-              className="text-[11px] text-accent hover:underline inline-flex items-center gap-1"
+              className="text-[11px] text-[var(--ink)] underline underline-offset-2 hover:opacity-70 inline-flex items-center gap-1"
             >
               <Copy className="h-3 w-3" /> Copy bridge script
             </button>
@@ -290,15 +357,15 @@ python3 bridge.py
 
         {tab === 'curl' && (
           <div className="space-y-3">
-            <p className="text-[12px] text-foreground/80 leading-relaxed">
-              Use this from any script, watcher, or terminal to push a single photo into the live session.
+            <p className="text-[12px] text-[var(--ink)] leading-relaxed">
+              For scripts, watchers, or terminal pushes — single photo into the live session.
             </p>
-            <pre className="text-[11px] font-mono bg-muted/40 p-3 rounded overflow-x-auto whitespace-pre">
+            <pre className="text-[11px] font-mono bg-[var(--wash-strong)] p-3 overflow-x-auto whitespace-pre">
 {curlCmd}
             </pre>
             <button
               onClick={() => { navigator.clipboard.writeText(curlCmd); toast.success('cURL copied'); }}
-              className="text-[11px] text-accent hover:underline inline-flex items-center gap-1"
+              className="text-[11px] text-[var(--ink)] underline underline-offset-2 hover:opacity-70 inline-flex items-center gap-1"
             >
               <Copy className="h-3 w-3" /> Copy cURL
             </button>
