@@ -183,10 +183,10 @@ export default function LandingGate() {
     n >= 100000 ? `₹${(n / 100000).toFixed(2)}L` : `₹${n.toLocaleString("en-IN")}`;
 
   return (
-    <div className="w-full min-h-screen bg-[#F4F4F4]">
+    <div className="w-full min-h-screen bg-[#EFEDE8]">
       {/* ─── TOP NAV ─────────────────────────────────────────────── */}
       <nav
-        className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between h-12 px-4 bg-white/85 backdrop-blur border-b border-[var(--rule)]"
+        className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between h-12 px-4 bg-white/80 backdrop-blur-md border-b border-[var(--rule)]"
         style={{ paddingTop: "max(env(safe-area-inset-top), 0px)" }}
       >
         <button
