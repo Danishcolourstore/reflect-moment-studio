@@ -349,8 +349,8 @@ const MONOLITH: TemplateConfig = {
       { label: 'Clients', href: '#clients' },
       { label: 'About', href: '#about' },
     ],
-    heroHeadline: 'Witness to rare moments',
-    heroCta: 'View the Work',
+    heroHeadline: 'A quiet record of the days that mattered.',
+    heroCta: 'Selected Work',
   },
 };
 
