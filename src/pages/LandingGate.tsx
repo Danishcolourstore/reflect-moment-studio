@@ -165,11 +165,9 @@ export default function LandingGate() {
   });
 
   // Subtitle from event counts
-  const draftCount = events.filter((e) => (e.status || "").toLowerCase() === "draft").length;
-  const editingCount = events.filter((e) => (e.status || "").toLowerCase() === "editing").length;
   const subtitleParts: string[] = [];
-  if (events.length > 0) subtitleParts.push(`${events.length} event${events.length === 1 ? "" : "s"} this week.`);
-  if (editingCount > 0) subtitleParts.push(`${editingCount} ${editingCount === 1 ? "gallery" : "galleries"} awaiting delivery.`);
+  if (events.length > 0) subtitleParts.push(`${events.length} event${events.length === 1 ? "" : "s"} on the books.`);
+  if (stats.photos > 0) subtitleParts.push(`${stats.photos.toLocaleString("en-IN")} photos in the library.`);
   const subtitle = subtitleParts.length > 0
     ? subtitleParts.join(" ")
     : "A quiet day to catch up.";
