@@ -8,10 +8,7 @@ import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { CreateEventModal } from "@/components/CreateEventModal";
 import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import {
-  Menu, Share, Plus, X, ChevronLeft, ArrowRight,
-  Camera, Image as ImageIcon, BookOpen, Globe, Zap,
-} from "lucide-react";
+import { Menu, Share, Plus, ChevronLeft } from "lucide-react";
 
 interface FeedPost {
   id: string;
@@ -33,21 +30,22 @@ interface EventRow {
   event_date: string | null;
   photo_count: number | null;
   location: string | null;
+  status?: string | null;
 }
 
 interface Stats {
   events: number;
   photos: number;
-  views: number;
-  leads: number;
+  clients: number;
+  revenue: number;
 }
 
-const QUICK_ACTIONS = [
-  { label: "New Event",  icon: Camera,    to: "/dashboard/events",          primary: true  },
-  { label: "Upload",     icon: ImageIcon, to: "/dashboard/events",          primary: false },
-  { label: "Storybook",  icon: BookOpen,  to: "/dashboard/storybook",       primary: false },
-  { label: "Cheetah",    icon: Zap,       to: "/dashboard/cheetah-live",    primary: false },
-  { label: "Website",    icon: Globe,     to: "/dashboard/website-builder", primary: false },
+const RITUAL_LINES = [
+  "Mirror never lies.",
+  "Every gallery, a story.",
+  "The light remembers.",
+  "What is seen, stays.",
+  "A frame, then forever.",
 ];
 
 export default function LandingGate() {
@@ -55,10 +53,8 @@ export default function LandingGate() {
   const { user } = useAuth();
   const drawer = useDrawerMenu();
 
-  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
-  const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
-  const [stats, setStats] = useState<Stats>({ events: 0, photos: 0, views: 0, leads: 0 });
+  const [stats, setStats] = useState<Stats>({ events: 0, photos: 0, clients: 0, revenue: 0 });
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState("Studio");
   const [feedSlug, setFeedSlug] = useState<string | null>(null);
@@ -69,9 +65,6 @@ export default function LandingGate() {
   const [editPost, setEditPost] = useState<FeedPost | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [readingPost, setReadingPost] = useState<FeedPost | null>(null);
-
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIdx, setLightboxIdx] = useState(0);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -94,106 +87,61 @@ export default function LandingGate() {
     }
     setFeedSlug(slug);
 
-    // Feed posts
-    const { data: postsData } = await (supabase.from("feed_posts")
-      .select("id, title, caption, content, image_url, location, content_type, gallery_images, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50) as any);
-
-    const posts: FeedPost[] = (postsData || []).map((p: any) => ({
-      id: p.id, title: p.title, caption: p.caption, content: p.content,
-      imageUrl: p.image_url, location: p.location,
-      contentType: p.content_type || "post", galleryImages: p.gallery_images || [],
-      date: p.created_at,
-    }));
-    setFeedPosts(posts);
-
     // Events
     const { data: eventsData } = await supabase
       .from("events")
-      .select("id, name, slug, cover_url, event_date, photo_count, location")
+      .select("id, name, slug, cover_url, event_date, photo_count, location, status")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(8);
 
     const evRows = (eventsData || []) as EventRow[];
     setEvents(evRows);
 
-    // Photos for masonry + count
+    // Stats
     const evtIds = evRows.map((e) => e.id);
-    const allPhotos: { id: string; url: string }[] = [];
-    const seenUrls = new Set<string>();
-
-    for (const evt of evRows) {
-      if (evt.cover_url && !seenUrls.has(evt.cover_url)) {
-        allPhotos.push({ id: `cover-${evt.id}`, url: evt.cover_url });
-        seenUrls.add(evt.cover_url);
-      }
-    }
-
     let photoCount = 0;
     if (evtIds.length > 0) {
-      const { data: photoData, count } = await supabase
+      const { count } = await supabase
         .from("photos")
-        .select("id, url", { count: "exact" })
-        .in("event_id", evtIds)
-        .order("created_at", { ascending: false })
-        .limit(100);
+        .select("id", { count: "exact", head: true })
+        .in("event_id", evtIds);
       photoCount = count || 0;
-      for (const p of photoData || []) {
-        if (p.url && !seenUrls.has(p.url)) {
-          allPhotos.push({ id: p.id, url: p.url });
-          seenUrls.add(p.url);
-        }
-      }
     }
-    setPhotos(allPhotos);
 
-    // Lightweight stats — best-effort; ignore failures so the page still renders
-    let leadsCount = 0;
-    let viewsCount = 0;
+    let clientsCount = 0;
+    let revenueAmt = 0;
     try {
-      const { count: lc } = await (supabase
-        .from("leads")
+      const { count: cc } = await (supabase
+        .from("clients")
         .select("id", { count: "exact", head: true }) as any)
         .eq("user_id", user.id);
-      leadsCount = lc || 0;
+      clientsCount = cc || 0;
     } catch { /* table optional */ }
 
     try {
-      const { count: vc } = await ((supabase as any)
-        .from("gallery_views")
-        .select("id", { count: "exact", head: true }))
+      const { data: bookings } = await (supabase
+        .from("bookings")
+        .select("amount, created_at") as any)
         .eq("photographer_id", user.id);
-      viewsCount = vc || 0;
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      revenueAmt = (bookings || [])
+        .filter((b: any) => b.created_at >= monthStart)
+        .reduce((sum: number, b: any) => sum + (Number(b.amount) || 0), 0);
     } catch { /* table optional */ }
 
     setStats({
       events: evRows.length,
       photos: photoCount,
-      views: viewsCount,
-      leads: leadsCount,
+      clients: clientsCount,
+      revenue: revenueAmt,
     });
 
     setLoading(false);
   }, [user]);
 
   useEffect(() => { loadData(); }, [loadData]);
-
-  const openLightbox = (idx: number) => { setLightboxIdx(idx); setLightboxOpen(true); };
-  const closeLightbox = () => setLightboxOpen(false);
-
-  useEffect(() => {
-    if (!lightboxOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowRight" && lightboxIdx < photos.length - 1) setLightboxIdx(i => i + 1);
-      if (e.key === "ArrowLeft" && lightboxIdx > 0) setLightboxIdx(i => i - 1);
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [lightboxOpen, lightboxIdx, photos.length]);
 
   const handleShare = async () => {
     const feedUrl = feedSlug ? `${window.location.origin}/feed/${feedSlug}` : window.location.origin;
@@ -209,11 +157,36 @@ export default function LandingGate() {
     return <BlogReader post={readingPost} onClose={() => setReadingPost(null)} />;
   }
 
-  const heroImage = events.find((e) => e.cover_url)?.cover_url || photos[0]?.url || null;
-  const recentEvents = events.slice(0, mob ? 4 : 6);
+  // Greeting based on hour
+  const hour = new Date().getHours();
+  const greetingTime =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long", day: "numeric", month: "long",
+  });
+
+  // Subtitle from event counts
+  const draftCount = events.filter((e) => (e.status || "").toLowerCase() === "draft").length;
+  const editingCount = events.filter((e) => (e.status || "").toLowerCase() === "editing").length;
+  const subtitleParts: string[] = [];
+  if (events.length > 0) subtitleParts.push(`${events.length} event${events.length === 1 ? "" : "s"} this week.`);
+  if (editingCount > 0) subtitleParts.push(`${editingCount} ${editingCount === 1 ? "gallery" : "galleries"} awaiting delivery.`);
+  const subtitle = subtitleParts.length > 0
+    ? subtitleParts.join(" ")
+    : "A quiet day to catch up.";
+
+  // Ritual line — deterministic per day
+  const dayIdx = Math.floor(Date.now() / 86400000) % RITUAL_LINES.length;
+  const ritual = RITUAL_LINES[dayIdx];
+
+  // Format helpers
+  const fmtDate = (d: string | null) =>
+    d ? new Date(d).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "—";
+  const fmtRevenue = (n: number) =>
+    n >= 100000 ? `₹${(n / 100000).toFixed(2)}L` : `₹${n.toLocaleString("en-IN")}`;
 
   return (
-    <div className="w-full min-h-screen bg-[var(--paper)]">
+    <div className="w-full min-h-screen bg-[#F4F4F4]">
       {/* ─── TOP NAV ─────────────────────────────────────────────── */}
       <nav
         className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between h-12 px-4 bg-white/85 backdrop-blur border-b border-[var(--rule)]"
@@ -226,8 +199,10 @@ export default function LandingGate() {
         >
           <Menu className="w-5 h-5 text-[var(--ink)]" strokeWidth={1.5} />
         </button>
-        <span className="font-serif text-[15px] font-normal tracking-[0.2em] uppercase text-[var(--ink)]">
+        {/* Wordmark in Fraunces — the ONLY serif in the chrome */}
+        <span className="font-serif text-[18px] font-normal text-[var(--ink)] inline-flex items-center gap-2">
           {profileName}
+          <span className="w-[3px] h-[3px] bg-[var(--ink)] rounded-full" />
         </span>
         <button
           onClick={handleShare}
@@ -238,221 +213,147 @@ export default function LandingGate() {
         </button>
       </nav>
 
+      {/* ─── SPECIMEN CONTAINER ─────────────────────────────────── */}
       <div className="pt-12 pb-24">
-        {/* ─── HERO BLOCK ─────────────────────────────────────────── */}
-        <section className="border-b border-[var(--rule)]">
-          <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-10 md:py-16">
-            <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-10 md:gap-16 items-center">
-              {/* Left: greeting + stats + CTA */}
-              <div>
-                <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--ink-muted)] mb-3">
-                  Studio
-                </p>
-                <h1 className="text-[28px] md:text-[40px] leading-[1.1] tracking-tight text-[var(--ink)] font-medium mb-2">
-                  Welcome back
-                </h1>
-                <p className="text-[14px] text-[var(--ink-muted)] mb-8 md:mb-10">
-                  Here's what's happening with your studio today.
-                </p>
+        <div className="max-w-[1080px] mx-auto bg-white border border-[var(--rule)] md:my-10">
+          {/* ─── DASH FRAGMENT ───────────────────────────────────── */}
+          <div className="px-6 md:px-14 pt-10 md:pt-14 pb-10 md:pb-14">
+            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-3">
+              {today}
+            </p>
+            <h1 className="font-serif font-light text-[36px] md:text-[48px] leading-[1.08] tracking-[-0.02em] text-[var(--ink)] mb-2">
+              {greetingTime}, {profileName}.
+            </h1>
+            <p className="font-serif italic font-light text-[16px] md:text-[20px] leading-[1.5] text-[var(--ink-muted)] mb-9 md:mb-10">
+              {subtitle}
+            </p>
 
-                {/* Stats row */}
-                <div className="grid grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-10">
-                  <StatCell label="Events" value={stats.events} loading={loading} />
-                  <StatCell label="Photos" value={stats.photos} loading={loading} />
-                  <StatCell label="Views"  value={stats.views}  loading={loading} />
-                  <StatCell label="Leads"  value={stats.leads}  loading={loading} />
-                </div>
-
-                {/* CTAs */}
-                <div className="flex flex-wrap gap-2">
-                  {QUICK_ACTIONS.map((a) => {
-                    const Icon = a.icon;
-                    const baseCls =
-                      "flex items-center gap-2 h-10 px-4 text-[12px] font-medium tracking-[0.06em] uppercase cursor-pointer transition-colors border";
-                    const cls = a.primary
-                      ? `${baseCls} bg-[var(--ink)] text-white border-[var(--ink)] hover:bg-black`
-                      : `${baseCls} bg-white text-[var(--ink)] border-[var(--rule-strong)] hover:border-[var(--ink)]`;
-                    return (
-                      <button
-                        key={a.label}
-                        onClick={() => a.label === "New Event" ? setCreateEventOpen(true) : navigate(a.to)}
-                        className={cls}
-                      >
-                        <Icon className="w-[14px] h-[14px]" strokeWidth={1.75} />
-                        {a.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Right: hero image */}
-              <div className="aspect-[4/5] md:aspect-[4/5] w-full bg-[var(--wash)] overflow-hidden">
-                {heroImage ? (
-                  <img
-                    src={heroImage}
-                    alt=""
-                    className="w-full h-full object-cover block"
-                    loading="eager"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <p className="text-[12px] tracking-[0.15em] uppercase text-[var(--ink-whisper)]">
-                      No photos yet
-                    </p>
-                  </div>
-                )}
-              </div>
+            {/* ─── STAT ROW ───────────────────────────────────────── */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 py-6 md:py-7 border-t border-b border-[var(--rule)] mb-10 md:mb-12">
+              <StatCell label="Events"        value={loading ? "—" : String(stats.events)} hint="this quarter" />
+              <StatCell label="Photos"        value={loading ? "—" : stats.photos.toLocaleString("en-IN")} hint="delivered" />
+              <StatCell label="Active clients" value={loading ? "—" : String(stats.clients)} hint="all-time" />
+              <StatCell label="Revenue · this month" value={loading ? "—" : fmtRevenue(stats.revenue)} hint="confirmed" />
             </div>
-          </div>
-        </section>
 
-        {/* ─── RECENT EVENTS ──────────────────────────────────────── */}
-        {recentEvents.length > 0 && (
-          <section className="border-b border-[var(--rule)]">
-            <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-10 md:py-14">
-              <div className="flex items-end justify-between mb-6 md:mb-8">
-                <div>
-                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--ink-muted)] mb-2">
-                    Recent
-                  </p>
-                  <h2 className="text-[20px] md:text-[24px] font-medium text-[var(--ink)] tracking-tight">
-                    Your events
-                  </h2>
-                </div>
-                <button
-                  onClick={() => navigate("/dashboard/events")}
-                  className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.06em] uppercase text-[var(--ink)] hover:opacity-70 bg-transparent border-0 cursor-pointer"
-                >
-                  View all
-                  <ArrowRight className="w-[14px] h-[14px]" strokeWidth={1.75} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
-                {recentEvents.map((evt) => (
-                  <button
-                    key={evt.id}
-                    onClick={() => navigate(`/dashboard/events/${evt.id}`)}
-                    className="group text-left bg-transparent border-0 p-0 cursor-pointer"
-                  >
-                    <div className="aspect-[4/5] w-full bg-[var(--wash)] overflow-hidden mb-3">
-                      {evt.cover_url ? (
-                        <img
-                          src={evt.cover_url}
-                          alt={evt.name}
-                          className="w-full h-full object-cover block transition-transform duration-500 group-hover:scale-[1.02]"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Camera className="w-5 h-5 text-[var(--ink-whisper)]" strokeWidth={1.5} />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-[13px] font-medium text-[var(--ink)] truncate">
-                      {evt.name || "Untitled event"}
-                    </p>
-                    <p className="text-[11px] text-[var(--ink-muted)] tracking-[0.04em] mt-0.5">
-                      {evt.event_date
-                        ? new Date(evt.event_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                        : "—"}
-                      {evt.photo_count ? ` · ${evt.photo_count} photos` : ""}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ─── MASONRY GALLERY ────────────────────────────────────── */}
-        <section>
-          <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-10 md:py-14">
-            {photos.length > 0 && (
-              <div className="mb-6 md:mb-8">
-                <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--ink-muted)] mb-2">
-                  Library
-                </p>
-                <h2 className="text-[20px] md:text-[24px] font-medium text-[var(--ink)] tracking-tight">
-                  Latest frames
-                </h2>
-              </div>
-            )}
+            {/* ─── RECENT EVENTS ──────────────────────────────────── */}
+            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-5">
+              Recent events
+            </p>
 
             {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="aspect-[3/4] bg-[var(--wash-strong)] skeleton-block" />
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="grid grid-cols-[80px_1fr] md:grid-cols-[120px_1fr_auto] gap-6 md:gap-8 items-center py-4 border-b border-[var(--rule)] last:border-b-0">
+                    <div className="aspect-[3/2] w-full bg-[var(--wash-strong)] skeleton-block" />
+                    <div className="space-y-2">
+                      <div className="h-5 w-2/3 bg-[var(--wash-strong)] skeleton-block" />
+                      <div className="h-3 w-1/2 bg-[var(--wash-strong)] skeleton-block" />
+                    </div>
+                  </div>
                 ))}
               </div>
-            ) : photos.length === 0 ? (
-              <div className="py-20 md:py-28 text-center border border-[var(--rule)]">
-                <p className="text-[13px] text-[var(--ink-muted)] mb-1">No photos yet</p>
-                <p className="text-[11px] tracking-[0.15em] uppercase text-[var(--ink-whisper)] mb-6">
-                  Create your first event to begin
+            ) : events.length === 0 ? (
+              <div className="py-14 md:py-20 text-center">
+                <p className="font-serif italic text-[18px] md:text-[20px] text-[var(--ink-muted)] mb-1">
+                  No events yet.
+                </p>
+                <p className="text-[12px] tracking-[0.04em] text-[var(--ink-whisper)] mb-6">
+                  Your first gallery is one event away.
                 </p>
                 <button
                   onClick={() => setCreateEventOpen(true)}
-                  className="inline-flex items-center gap-2 h-10 px-5 bg-[var(--ink)] text-white text-[12px] font-medium tracking-[0.06em] uppercase cursor-pointer hover:bg-black transition-colors"
+                  className="inline-flex items-center gap-2 h-11 px-6 bg-[var(--ink)] text-white text-[12px] font-medium tracking-[0.08em] uppercase cursor-pointer hover:opacity-90 transition-opacity border-0"
                 >
                   <Plus className="w-[14px] h-[14px]" strokeWidth={2} />
                   Create event
                 </button>
               </div>
             ) : (
-              <div
-                className="[column-count:2] md:[column-count:4] [column-gap:8px] md:[column-gap:12px]"
-              >
-                {photos.map((photo, i) => (
-                  <div
-                    key={photo.id}
-                    onClick={() => openLightbox(i)}
-                    className="break-inside-avoid mb-2 md:mb-3 overflow-hidden cursor-pointer bg-[var(--wash)]"
+              <div>
+                {events.slice(0, mob ? 4 : 5).map((evt) => (
+                  <button
+                    key={evt.id}
+                    onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                    className="w-full text-left grid grid-cols-[80px_1fr] md:grid-cols-[120px_1fr_auto] gap-6 md:gap-8 items-center py-4 border-b border-[var(--rule)] last:border-b-0 bg-transparent border-l-0 border-r-0 border-t-0 cursor-pointer group"
                   >
-                    <img
-                      src={photo.url}
-                      alt=""
-                      loading={i < 8 ? "eager" : "lazy"}
-                      decoding="async"
-                      className="w-full block transition-opacity duration-300 hover:opacity-90"
-                    />
-                  </div>
+                    <div className="aspect-[3/2] w-full bg-gradient-to-br from-[#E8E8E8] to-[#C8C8C8] overflow-hidden">
+                      {evt.cover_url && (
+                        <img
+                          src={evt.cover_url}
+                          alt={evt.name}
+                          className="w-full h-full object-cover block transition-transform duration-500 group-hover:scale-[1.02]"
+                          loading="lazy"
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-serif italic font-normal text-[20px] md:text-[24px] leading-[1.2] text-[var(--ink)] truncate">
+                        {evt.name || "Untitled event"}
+                      </p>
+                      <p className="text-[12px] text-[var(--ink-muted)] mt-1.5 num truncate">
+                        {(evt.status ? evt.status.charAt(0).toUpperCase() + evt.status.slice(1) : "Draft")}
+                        {evt.photo_count ? ` · ${evt.photo_count.toLocaleString("en-IN")} photos` : ""}
+                        {evt.location ? ` · ${evt.location}` : ""}
+                      </p>
+                    </div>
+                    <p className="hidden md:block font-mono text-[11px] text-[var(--ink-whisper)] tracking-tight num">
+                      {fmtDate(evt.event_date)}
+                    </p>
+                  </button>
                 ))}
               </div>
             )}
+
+            {/* ─── ACTIONS ROW ────────────────────────────────────── */}
+            <div className="mt-10 md:mt-12 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setCreateEventOpen(true)}
+                className="bg-[var(--ink)] text-white border-0 px-6 py-3.5 text-[12px] font-medium tracking-[0.08em] uppercase cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                New event
+              </button>
+              <button
+                onClick={() => navigate("/dashboard/events")}
+                className="bg-transparent text-[var(--ink)] border border-[var(--rule-strong)] px-6 py-3 text-[12px] font-medium tracking-[0.02em] cursor-pointer hover:border-[var(--ink)] transition-colors"
+              >
+                Open events
+              </button>
+              <span className="text-[12px] text-[var(--ink-whisper)]">
+                or press <span className="font-mono">⌘ N</span>
+              </span>
+            </div>
           </div>
-        </section>
+
+          {/* ─── RITUAL LINE ─────────────────────────────────────── */}
+          <div className="border-t border-[var(--rule)] px-6 md:px-14 py-10 md:py-14">
+            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-5">
+              Today's ritual
+            </p>
+            <p className="font-serif italic font-light text-[28px] md:text-[40px] leading-[1.3] tracking-[-0.01em] text-[var(--ink)] max-w-[720px]">
+              {ritual}
+            </p>
+            <p className="text-[11px] text-[var(--ink-whisper)] tracking-[0.02em] leading-[1.6] mt-4">
+              Tiempos Headline Italic, weight 300. Rendered with Fraunces. First visit of the day.
+            </p>
+          </div>
+
+          {/* ─── FOOTER ──────────────────────────────────────────── */}
+          <div className="border-t border-[var(--rule)] px-6 md:px-14 py-8 flex justify-between items-baseline">
+            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)]">
+              Edition No. 001 · {profileName}
+            </p>
+            <p className="font-serif italic text-[14px] text-[var(--ink-whisper)]">
+              Every gallery, a story.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* ─── LIGHTBOX ───────────────────────────────────────────── */}
-      {lightboxOpen && photos[lightboxIdx] && (
-        <div
-          onClick={(e) => { if (e.target === e.currentTarget) closeLightbox(); }}
-          className="fixed inset-0 bg-[var(--obsidian)] z-[300] flex items-center justify-center"
-        >
-          <button
-            onClick={closeLightbox}
-            className="fixed top-4 right-4 z-[310] flex items-center justify-center min-w-[44px] min-h-[44px] bg-transparent border-0 cursor-pointer"
-            aria-label="Close"
-          >
-            <X className="w-[18px] h-[18px] text-white/40" />
-          </button>
-          <img
-            src={photos[lightboxIdx].url}
-            alt=""
-            className="max-h-screen max-w-[100vw] object-contain"
-          />
-          <span className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[11px] tracking-[0.15em] text-white/30 num">
-            {lightboxIdx + 1} / {photos.length}
-          </span>
-        </div>
-      )}
-
-      {/* ─── FAB (mobile too) ───────────────────────────────────── */}
+      {/* ─── FAB ────────────────────────────────────────────────── */}
       <button
         onClick={() => setCreateEventOpen(true)}
-        className="fixed bottom-20 md:bottom-8 right-5 md:right-8 w-14 h-14 rounded-full bg-[var(--ink)] flex items-center justify-center cursor-pointer z-50 hover:bg-black transition-colors border-0"
+        className="fixed bottom-20 md:bottom-8 right-5 md:right-8 w-14 h-14 rounded-full bg-[var(--ink)] flex items-center justify-center cursor-pointer z-50 hover:opacity-90 transition-opacity border-0"
         aria-label="Create event"
       >
         <Plus className="w-5 h-5 text-white" strokeWidth={2} />
@@ -474,17 +375,18 @@ export default function LandingGate() {
 }
 
 /* ─── Stat cell ───────────────────────────────────────────────── */
-function StatCell({ label, value, loading }: { label: string; value: number; loading: boolean }) {
+function StatCell({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="border-l border-[var(--rule)] pl-3 md:pl-4 first:border-l-0 first:pl-0">
-      <p className="text-[9px] md:text-[10px] font-medium tracking-[0.2em] uppercase text-[var(--ink-muted)] mb-1.5">
+    <div>
+      <p className="text-[9px] md:text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-3">
         {label}
       </p>
-      {loading ? (
-        <div className="w-10 h-7 bg-[var(--wash-strong)] skeleton-block" />
-      ) : (
-        <p className="text-[24px] md:text-[32px] font-medium text-[var(--ink)] leading-none num tracking-tight">
-          {value}
+      <p className="text-[20px] md:text-[22px] font-medium text-[var(--ink)] tracking-[-0.02em] num leading-none">
+        {value}
+      </p>
+      {hint && (
+        <p className="text-[11px] text-[var(--ink-whisper)] mt-2">
+          {hint}
         </p>
       )}
     </div>
@@ -521,11 +423,11 @@ function BlogReader({ post, onClose }: { post: FeedPost; onClose: () => void }) 
         <p className="text-[11px] tracking-[0.15em] uppercase text-[var(--ink-muted)] mb-3">
           {dateStr}{post.location ? ` · ${post.location}` : ""}
         </p>
-        <h1 className="text-[28px] md:text-[36px] leading-[1.2] font-medium text-[var(--ink)] tracking-tight mb-5">
+        <h1 className="font-serif font-light text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.02em] text-[var(--ink)] mb-5">
           {post.title}
         </h1>
         {post.caption && (
-          <p className="text-[15px] text-[var(--ink-muted)] leading-[1.6] mb-7 border-l-2 border-[var(--rule)] pl-4">
+          <p className="font-serif italic font-light text-[18px] md:text-[20px] text-[var(--ink-muted)] leading-[1.5] mb-7">
             {post.caption}
           </p>
         )}
