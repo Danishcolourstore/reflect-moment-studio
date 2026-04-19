@@ -1,7 +1,7 @@
 /**
  * Premium Instagram Grid Planner
- * Editor panels: MirrorAI design tokens
- * Preview areas (grid, post): Instagram exact design system
+ * Editor panels: MirrorAI Pixieset-Minimal tokens (light, no radius, no shadow)
+ * Preview areas (grid, post): Instagram exact design system (kept intentionally)
  */
 
 import { useState, useEffect } from 'react';
@@ -15,7 +15,7 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { toast } from 'sonner';
 
-/* ─── Instagram Design Tokens ─── */
+/* ─── Instagram Design Tokens (preview chrome — KEEP) ─── */
 
 const IG = {
   bg: '#000000',
@@ -27,18 +27,6 @@ const IG = {
   blue: '#0095F6',
   blueHover: '#1877F2',
   font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-} as const;
-
-/* ─── MirrorAI Editor Tokens ─── */
-
-const ED = {
-  bg: '#0C0B08',
-  panel: '#131210',
-  border: '#272420',
-  gold: '#1A1A1A',
-  text: '#FAFAFA',
-  textMuted: '#8A8478',
-  font: '"Jost", sans-serif',
 } as const;
 
 /* ─── Types ─── */
@@ -130,7 +118,7 @@ function renderSplit(url: string, idx: number, total: number, rows: number, sz: 
   });
 }
 
-/* ─── Crop Editor (MirrorAI styled) ─── */
+/* ─── Crop Editor (MirrorAI Pixieset-Minimal) ─── */
 
 function CropEditor({ tile, onUpdate, onClose }: {
   tile: GridTile;
@@ -140,63 +128,81 @@ function CropEditor({ tile, onUpdate, onClose }: {
   if (!tile.imageUrl) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}>
-      <div className="rounded-2xl max-w-md w-full overflow-hidden" style={{ background: ED.panel, border: `1px solid ${ED.border}` }}>
-        <div className="flex items-center justify-between p-4" style={{ borderBottom: `1px solid ${ED.border}` }}>
-          <p style={{ color: ED.text, fontSize: '14px', fontWeight: 500, fontFamily: ED.font }}>Adjust Crop</p>
-          <button onClick={onClose} style={{ color: ED.textMuted }} className="hover:opacity-80 transition-opacity">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[rgba(0,0,0,0.5)] [backdrop-filter:blur(8px)]">
+      <div className="max-w-md w-full overflow-hidden bg-white border border-[var(--rule)]">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--rule)]">
+          <p className="text-sm font-medium text-[var(--ink)]">Adjust crop</p>
+          <button onClick={onClose} className="text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors">
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="p-4">
-          <div className="relative w-full aspect-square rounded-lg overflow-hidden mx-auto" style={{ maxWidth: 320, background: ED.bg }}>
-            <img src={tile.imageUrl} alt="" className="absolute inset-0 w-full h-full"
+          <div className="relative w-full aspect-square overflow-hidden mx-auto max-w-[320px] bg-[var(--wash)]">
+            <img
+              src={tile.imageUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
               style={{
-                objectFit: 'cover',
                 objectPosition: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
                 transform: `scale(${tile.cropZoom})`,
                 transformOrigin: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
-              }} />
-            <div className="absolute inset-0 rounded-lg pointer-events-none" style={{ border: `2px solid ${ED.gold}30` }} />
-            <div className="absolute top-2 left-2 rounded px-2 py-0.5" style={{ background: `${ED.bg}99`, backdropFilter: 'blur(4px)' }}>
-              <span style={{ color: ED.textMuted, fontSize: '10px', fontFamily: ED.font }}>Safe Crop Zone</span>
+              }}
+            />
+            <div className="absolute inset-0 pointer-events-none border border-[var(--rule-strong)]" />
+            <div className="absolute top-2 left-2 px-2 py-0.5 bg-white/90 [backdrop-filter:blur(4px)]">
+              <span className="text-[10px] text-[var(--ink-muted)] uppercase tracking-[2px]">Safe crop</span>
             </div>
           </div>
         </div>
 
         <div className="px-4 pb-4 space-y-4">
           <div>
-            <label style={{ color: ED.textMuted, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 600, fontFamily: ED.font }} className="mb-2 block">Position</label>
+            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">Position</label>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <span style={{ color: ED.textMuted, fontSize: '10px', fontFamily: ED.font }}>Horizontal</span>
-                <input type="range" min={0} max={100} value={tile.cropX * 100}
+                <span className="text-[10px] text-[var(--ink-muted)]">Horizontal</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={tile.cropX * 100}
                   onChange={e => onUpdate({ cropX: +e.target.value / 100 })}
-                  className="w-full h-1" style={{ accentColor: ED.gold }} />
+                  className="w-full h-1 [accent-color:var(--ink)]"
+                />
               </div>
               <div>
-                <span style={{ color: ED.textMuted, fontSize: '10px', fontFamily: ED.font }}>Vertical</span>
-                <input type="range" min={0} max={100} value={tile.cropY * 100}
+                <span className="text-[10px] text-[var(--ink-muted)]">Vertical</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={tile.cropY * 100}
                   onChange={e => onUpdate({ cropY: +e.target.value / 100 })}
-                  className="w-full h-1" style={{ accentColor: ED.gold }} />
+                  className="w-full h-1 [accent-color:var(--ink)]"
+                />
               </div>
             </div>
           </div>
 
           <div>
-            <label style={{ color: ED.textMuted, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 600, fontFamily: ED.font }} className="mb-2 block">Zoom</label>
+            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">Zoom</label>
             <div className="flex items-center gap-3">
-              <ZoomOut className="h-3.5 w-3.5" style={{ color: ED.textMuted }} />
-              <input type="range" min={100} max={300} value={tile.cropZoom * 100}
+              <ZoomOut className="h-3.5 w-3.5 text-[var(--ink-muted)]" />
+              <input
+                type="range"
+                min={100}
+                max={300}
+                value={tile.cropZoom * 100}
                 onChange={e => onUpdate({ cropZoom: +e.target.value / 100 })}
-                className="flex-1 h-1" style={{ accentColor: ED.gold }} />
-              <ZoomIn className="h-3.5 w-3.5" style={{ color: ED.textMuted }} />
+                className="flex-1 h-1 [accent-color:var(--ink)]"
+              />
+              <ZoomIn className="h-3.5 w-3.5 text-[var(--ink-muted)]" />
             </div>
           </div>
 
           <div>
-            <label style={{ color: ED.textMuted, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 600, fontFamily: ED.font }} className="mb-2 block">Quick Position</label>
+            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">Quick position</label>
             <div className="flex gap-1.5">
               {[
                 { l: 'Center', x: 0.5, y: 0.5 },
@@ -205,11 +211,11 @@ function CropEditor({ tile, onUpdate, onClose }: {
                 { l: 'Left', x: 0.2, y: 0.5 },
                 { l: 'Right', x: 0.8, y: 0.5 },
               ].map(p => (
-                <button key={p.l} onClick={() => onUpdate({ cropX: p.x, cropY: p.y })}
-                  className="flex-1 py-1.5 rounded text-[10px] transition-colors"
-                  style={{ background: ED.bg, color: ED.textMuted, fontFamily: ED.font }}
-                  onMouseEnter={e => { e.currentTarget.style.background = `${ED.gold}20`; e.currentTarget.style.color = ED.gold; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = ED.bg; e.currentTarget.style.color = ED.textMuted; }}>
+                <button
+                  key={p.l}
+                  onClick={() => onUpdate({ cropX: p.x, cropY: p.y })}
+                  className="flex-1 py-1.5 text-[10px] bg-[var(--wash)] text-[var(--ink-muted)] hover:bg-[var(--rule)] hover:text-[var(--ink)] transition-colors"
+                >
                   {p.l}
                 </button>
               ))}
@@ -223,7 +229,7 @@ function CropEditor({ tile, onUpdate, onClose }: {
   );
 }
 
-/* ─── Tile View (Instagram styled grid cell) ─── */
+/* ─── Tile View (Instagram styled grid cell — KEEP IG palette) ─── */
 
 function TileCell({ tile, index, isDragTarget, splitMode, splitUrl, splitIdx, splitTotal, splitRows, onDragStart, onDragOver, onDrop, onEdit, onRemove }: {
   tile: GridTile;
@@ -268,13 +274,16 @@ function TileCell({ tile, index, isDragTarget, splitMode, splitUrl, splitIdx, sp
       }}
     >
       {src ? (
-        <img src={src} alt="" className="h-full w-full"
-          style={splitMode ? { objectFit: 'cover' } : {
-            objectFit: 'cover',
+        <img
+          src={src}
+          alt=""
+          className="h-full w-full object-cover"
+          style={splitMode ? undefined : {
             objectPosition: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
             transform: `scale(${tile.cropZoom})`,
             transformOrigin: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
-          }} />
+          }}
+        />
       ) : (
         <div className="h-full w-full flex flex-col items-center justify-center gap-1">
           <Plus className="h-4 w-4" style={{ color: `${IG.textSecondary}40` }} />
@@ -283,49 +292,54 @@ function TileCell({ tile, index, isDragTarget, splitMode, splitUrl, splitIdx, sp
       )}
 
       {hasImg && !splitMode && (
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2"
-          style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <button onClick={e => { e.stopPropagation(); onEdit(); }}
-            className="h-7 w-7 rounded-full flex items-center justify-center" style={{ background: `${IG.blue}40`, color: IG.text }}>
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 bg-[rgba(0,0,0,0.5)]">
+          <button
+            onClick={e => { e.stopPropagation(); onEdit(); }}
+            className="h-7 w-7 rounded-full flex items-center justify-center"
+            style={{ background: `${IG.blue}40`, color: IG.text }}
+          >
             <Move className="h-3 w-3" />
           </button>
-          <button onClick={e => { e.stopPropagation(); onRemove(); }}
-            className="h-7 w-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(237,73,86,0.3)', color: '#ED4956' }}>
+          <button
+            onClick={e => { e.stopPropagation(); onRemove(); }}
+            className="h-7 w-7 rounded-full flex items-center justify-center bg-[rgba(237,73,86,0.3)] text-[#ED4956]"
+          >
             <Trash2 className="h-3 w-3" />
           </button>
         </div>
       )}
 
-      <div className="absolute bottom-0.5 right-0.5 rounded px-1 py-0.5" style={{ background: 'rgba(0,0,0,0.6)' }}>
+      <div className="absolute bottom-0.5 right-0.5 px-1 py-0.5 bg-[rgba(0,0,0,0.6)]">
         <span style={{ color: IG.textSecondary, fontSize: '8px', fontFamily: 'monospace' }}>{String(index + 1).padStart(2, '0')}</span>
       </div>
     </div>
   );
 }
 
-/* ─── Photo Pool (MirrorAI styled) ─── */
+/* ─── Photo Pool (MirrorAI Pixieset-Minimal) ─── */
 
 function Pool({ photos, onSelect }: { photos: string[]; onSelect: (u: string) => void }) {
   return (
-    <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+    <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto [scrollbar-width:thin]">
       {photos.map((u, i) => (
-        <button key={i} onClick={() => onSelect(u)} draggable
+        <button
+          key={i}
+          onClick={() => onSelect(u)}
+          draggable
           onDragStart={e => e.dataTransfer.setData('text/plain', u)}
-          className="aspect-square rounded overflow-hidden transition-all"
-          style={{ outline: 'none' }}
-          onMouseEnter={e => { e.currentTarget.style.outline = `2px solid ${ED.gold}`; }}
-          onMouseLeave={e => { e.currentTarget.style.outline = 'none'; }}>
+          className="aspect-square overflow-hidden transition-all outline-none hover:[outline:1px_solid_var(--ink)]"
+        >
           <img src={u} alt="" className="h-full w-full object-cover" loading="lazy" />
         </button>
       ))}
       {photos.length === 0 && (
-        <p className="col-span-4 text-center py-8" style={{ color: ED.textMuted, fontSize: '11px', fontFamily: ED.font }}>No photos available</p>
+        <p className="col-span-4 text-center py-8 text-[11px] text-[var(--ink-muted)]">No photos available</p>
       )}
     </div>
   );
 }
 
-/* ─── Post Preview (Instagram styled) ─── */
+/* ─── Post Preview (Instagram styled — KEEP IG palette + brand gradient) ─── */
 
 function PostView({ tile, username }: { tile: GridTile; username: string }) {
   if (!tile.imageUrl) return null;
@@ -341,18 +355,21 @@ function PostView({ tile, username }: { tile: GridTile; username: string }) {
         <MoreHorizontal className="h-4 w-4" style={{ color: IG.text }} />
       </div>
       <div className="aspect-square overflow-hidden">
-        <img src={tile.imageUrl} alt="" className="h-full w-full"
+        <img
+          src={tile.imageUrl}
+          alt=""
+          className="h-full w-full object-cover"
           style={{
-            objectFit: 'cover',
             objectPosition: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
             transform: `scale(${tile.cropZoom})`,
             transformOrigin: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
-          }} />
+          }}
+        />
       </div>
       <div className="flex items-center px-3 pt-2 pb-1">
         <div className="flex items-center gap-3.5 flex-1">
           <Heart className="h-5 w-5" style={{ color: IG.text }} />
-          <MessageCircle className="h-5 w-5" style={{ color: IG.text, transform: 'scaleX(-1)' }} />
+          <MessageCircle className="h-5 w-5 -scale-x-100" style={{ color: IG.text }} />
           <Send className="h-4 w-4 -rotate-12" style={{ color: IG.text }} />
         </div>
         <Bookmark className="h-5 w-5" style={{ color: IG.text }} />
@@ -467,33 +484,38 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
   const editTile = tiles.find(t => t.id === editId);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: ED.bg, maxWidth: '100vw' }}>
-      {/* ─── Header (MirrorAI) ─── */}
-      <header className="shrink-0 flex items-center gap-3 px-4 py-3" style={{ borderBottom: `1px solid ${ED.border}` }}>
-        <button onClick={onClose} className="transition-colors" style={{ color: ED.textMuted }}
-          onMouseEnter={e => { e.currentTarget.style.color = ED.text; }}
-          onMouseLeave={e => { e.currentTarget.style.color = ED.textMuted; }}>
+    <div className="fixed inset-0 z-50 flex flex-col bg-white max-w-[100vw]">
+      {/* ─── Header (MirrorAI Pixieset-Minimal) ─── */}
+      <header className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-[var(--rule)]">
+        <button
+          onClick={onClose}
+          className="text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors"
+        >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 style={{ color: ED.text, fontSize: '14px', fontWeight: 600, letterSpacing: '0.5px', fontFamily: ED.font }}>
+          <h1 className="text-sm font-semibold tracking-[0.5px] text-[var(--ink)]">
             Instagram Grid Planner
           </h1>
-          <p style={{ color: ED.textMuted, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 600, fontFamily: ED.font, marginTop: 2 }}>
+          <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">
             {preset.label} · {filled}/{preset.tileCount} tiles
           </p>
         </div>
 
         {/* View toggle (Instagram styled) */}
         <div className="flex rounded-full p-0.5" style={{ background: IG.surface2 }}>
-          <button onClick={() => setView('grid')}
+          <button
+            onClick={() => setView('grid')}
             className="px-3 py-1 rounded-full text-[11px] font-medium transition-all"
-            style={{ background: view === 'grid' ? IG.text : 'transparent', color: view === 'grid' ? IG.bg : IG.textSecondary, fontFamily: IG.font }}>
+            style={{ background: view === 'grid' ? IG.text : 'transparent', color: view === 'grid' ? IG.bg : IG.textSecondary, fontFamily: IG.font }}
+          >
             Grid
           </button>
-          <button onClick={() => setView('post')}
+          <button
+            onClick={() => setView('post')}
             className="px-3 py-1 rounded-full text-[11px] font-medium transition-all"
-            style={{ background: view === 'post' ? IG.text : 'transparent', color: view === 'post' ? IG.bg : IG.textSecondary, fontFamily: IG.font }}>
+            style={{ background: view === 'post' ? IG.text : 'transparent', color: view === 'post' ? IG.bg : IG.textSecondary, fontFamily: IG.font }}
+          >
             Post
           </button>
         </div>
@@ -506,41 +528,43 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
 
       {/* ─── Body ─── */}
       <div className="flex-1 flex overflow-hidden">
-        {/* ─── Sidebar (MirrorAI) ─── */}
-        <aside className="w-64 shrink-0 flex flex-col overflow-hidden" style={{ borderRight: `1px solid ${ED.border}`, background: ED.panel }}>
+        {/* ─── Sidebar (MirrorAI Pixieset-Minimal) ─── */}
+        <aside className="w-64 shrink-0 flex flex-col overflow-hidden border-r border-[var(--rule)] bg-[var(--wash)]">
           {/* Layout selector */}
-          <div className="p-3" style={{ borderBottom: `1px solid ${ED.border}` }}>
-            <button onClick={() => setShowPresets(!showPresets)}
-              className="w-full flex items-center justify-between py-2 px-3 rounded-lg transition-colors"
-              style={{ background: ED.bg }}
-              onMouseEnter={e => { e.currentTarget.style.background = `${ED.gold}15`; }}
-              onMouseLeave={e => { e.currentTarget.style.background = ED.bg; }}>
+          <div className="p-3 border-b border-[var(--rule)]">
+            <button
+              onClick={() => setShowPresets(!showPresets)}
+              className="w-full flex items-center justify-between py-2 px-3 bg-white border border-[var(--rule)] hover:border-[var(--rule-strong)] transition-colors"
+            >
               <div className="text-left">
-                <p style={{ color: ED.text, fontSize: '11px', fontWeight: 500, fontFamily: ED.font }}>{preset.label}</p>
-                <p style={{ color: ED.textMuted, fontSize: '9px', fontFamily: ED.font }}>{preset.description}</p>
+                <p className="text-[11px] font-medium text-[var(--ink)]">{preset.label}</p>
+                <p className="text-[9px] text-[var(--ink-muted)]">{preset.description}</p>
               </div>
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showPresets ? 'rotate-180' : ''}`} style={{ color: ED.textMuted }} />
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform text-[var(--ink-muted)] ${showPresets ? 'rotate-180' : ''}`} />
             </button>
 
             {showPresets && (
               <div className="mt-2 space-y-1">
-                {PRESETS.map(p => (
-                  <button key={p.type} onClick={() => switchPreset(p)}
-                    className="w-full text-left px-3 py-2 rounded-lg transition-colors text-[11px] flex items-center gap-2"
-                    style={{
-                      background: preset.type === p.type ? `${ED.gold}15` : 'transparent',
-                      color: preset.type === p.type ? ED.gold : ED.textMuted,
-                      fontFamily: ED.font,
-                    }}
-                    onMouseEnter={e => { if (preset.type !== p.type) e.currentTarget.style.background = `${ED.gold}08`; }}
-                    onMouseLeave={e => { if (preset.type !== p.type) e.currentTarget.style.background = 'transparent'; }}>
-                    <p.icon className="h-3.5 w-3.5 shrink-0" />
-                    <div>
-                      <p style={{ fontWeight: 500 }}>{p.label}</p>
-                      <p style={{ fontSize: '9px', opacity: 0.6, marginTop: 2 }}>{p.description}</p>
-                    </div>
-                  </button>
-                ))}
+                {PRESETS.map(p => {
+                  const active = preset.type === p.type;
+                  return (
+                    <button
+                      key={p.type}
+                      onClick={() => switchPreset(p)}
+                      className={`w-full text-left px-3 py-2 transition-colors text-[11px] flex items-center gap-2 ${
+                        active
+                          ? 'bg-[var(--ink)] text-white'
+                          : 'text-[var(--ink-muted)] hover:bg-white hover:text-[var(--ink)]'
+                      }`}
+                    >
+                      <p.icon className="h-3.5 w-3.5 shrink-0" />
+                      <div>
+                        <p className="font-medium">{p.label}</p>
+                        <p className="text-[9px] opacity-70 mt-0.5">{p.description}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -548,11 +572,11 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
           {/* Photo pool */}
           <div className="flex-1 overflow-hidden flex flex-col">
             <div className="px-3 py-2">
-              <p style={{ color: ED.textMuted, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 600, fontFamily: ED.font }}>
-                {isSplit ? 'Select Source Image' : 'Drag Photos to Grid'}
+              <p className="text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">
+                {isSplit ? 'Select source image' : 'Drag photos to grid'}
               </p>
             </div>
-            <div className="flex-1 overflow-y-auto px-3 pb-3" style={{ scrollbarWidth: 'thin' }}>
+            <div className="flex-1 overflow-y-auto px-3 pb-3 [scrollbar-width:thin]">
               <Pool photos={photos} onSelect={url => {
                 if (isSplit) { setSplitUrl(url); }
                 else {
@@ -564,10 +588,10 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
           </div>
 
           {/* Posting guide */}
-          <div className="p-3" style={{ borderTop: `1px solid ${ED.border}` }}>
-            <div className="rounded-lg p-2.5" style={{ background: `${ED.gold}10` }}>
-              <p style={{ color: ED.gold, fontSize: '10px', fontWeight: 500, fontFamily: ED.font, marginBottom: 4 }}>📋 Posting Order</p>
-              <p style={{ color: `${ED.gold}99`, fontSize: '9px', lineHeight: '14px', fontFamily: ED.font }}>
+          <div className="p-3 border-t border-[var(--rule)]">
+            <div className="p-2.5 bg-white border border-[var(--rule)]">
+              <p className="mb-1 text-[10px] font-medium text-[var(--ink)]">Posting order</p>
+              <p className="text-[9px] leading-[14px] text-[var(--ink-muted)]">
                 Post images in reverse order (last file first) for correct grid appearance.
               </p>
             </div>
@@ -581,8 +605,10 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
               {/* Instagram Profile header */}
               <div className="mb-4 px-2">
                 <div className="flex items-center gap-6 mb-3">
-                  <div className="h-20 w-20 rounded-full shrink-0 p-[3px]"
-                    style={{ background: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF, #515BD4)' }}>
+                  <div
+                    className="h-20 w-20 rounded-full shrink-0 p-[3px]"
+                    style={{ background: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF, #515BD4)' }}
+                  >
                     <div className="h-full w-full rounded-full flex items-center justify-center" style={{ background: IG.bg }}>
                       <span style={{ color: IG.text, fontSize: '24px', fontWeight: 700, fontFamily: IG.font }}>{username[0]?.toUpperCase()}</span>
                     </div>
@@ -601,7 +627,7 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
                   </div>
                 </div>
                 <p style={{ color: IG.text, fontSize: '14px', fontWeight: 600, fontFamily: IG.font }}>{username}</p>
-                <p style={{ color: IG.textSecondary, fontSize: '14px', fontFamily: IG.font, marginTop: 2 }}>Photographer ✦ Visual Stories</p>
+                <p className="mt-0.5" style={{ color: IG.textSecondary, fontSize: '14px', fontFamily: IG.font }}>Photographer ✦ Visual Stories</p>
 
                 {/* Edit profile buttons */}
                 <div className="flex gap-1.5 mt-3">
@@ -625,12 +651,18 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
               </div>
 
               {/* Grid — 2px gap */}
-              <div className="grid grid-cols-3" style={{ gap: '2px' }}>
+              <div className="grid grid-cols-3 gap-[2px]">
                 {tiles.map((t, i) => (
-                  <TileCell key={t.id} tile={t} index={i}
+                  <TileCell
+                    key={t.id}
+                    tile={t}
+                    index={i}
                     isDragTarget={dragOver === i}
-                    splitMode={isSplit} splitUrl={splitUrl || undefined}
-                    splitIdx={i} splitTotal={preset.tileCount} splitRows={preset.rows}
+                    splitMode={isSplit}
+                    splitUrl={splitUrl || undefined}
+                    splitIdx={i}
+                    splitTotal={preset.tileCount}
+                    splitRows={preset.rows}
                     onDragStart={() => setDragFrom(i)}
                     onDragOver={e => { e.preventDefault(); setDragOver(i); }}
                     onDrop={() => handleDrop(i)}
@@ -649,17 +681,23 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
           ) : (
             <div className="w-full max-w-md">
               <div className="flex items-center justify-center gap-2 mb-6">
-                <button onClick={() => setSelIdx(Math.max(0, selIdx - 1))} disabled={selIdx === 0}
+                <button
+                  onClick={() => setSelIdx(Math.max(0, selIdx - 1))}
+                  disabled={selIdx === 0}
                   className="h-8 w-8 rounded-full flex items-center justify-center disabled:opacity-30 transition-colors"
-                  style={{ background: IG.surface2, color: IG.textSecondary }}>
+                  style={{ background: IG.surface2, color: IG.textSecondary }}
+                >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
-                <p style={{ color: IG.textSecondary, fontSize: '13px', fontWeight: 500, fontFamily: IG.font, padding: '0 12px' }}>
+                <p className="px-3" style={{ color: IG.textSecondary, fontSize: '13px', fontWeight: 500, fontFamily: IG.font }}>
                   Tile {selIdx + 1} of {tiles.length}
                 </p>
-                <button onClick={() => setSelIdx(Math.min(tiles.length - 1, selIdx + 1))} disabled={selIdx >= tiles.length - 1}
-                  className="h-8 w-8 rounded-full flex items-center justify-center disabled:opacity-30 transition-colors"
-                  style={{ background: IG.surface2, color: IG.textSecondary, transform: 'scaleX(-1)' }}>
+                <button
+                  onClick={() => setSelIdx(Math.min(tiles.length - 1, selIdx + 1))}
+                  disabled={selIdx >= tiles.length - 1}
+                  className="h-8 w-8 rounded-full flex items-center justify-center disabled:opacity-30 transition-colors -scale-x-100"
+                  style={{ background: IG.surface2, color: IG.textSecondary }}
+                >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
               </div>
@@ -674,9 +712,11 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
 
       {/* Crop editor */}
       {editTile && (
-        <CropEditor tile={editTile}
+        <CropEditor
+          tile={editTile}
           onUpdate={u => updateTile(editTile.id, u)}
-          onClose={() => setEditId(null)} />
+          onClose={() => setEditId(null)}
+        />
       )}
     </div>
   );
