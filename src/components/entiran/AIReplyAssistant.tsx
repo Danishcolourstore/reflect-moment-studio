@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Send, Copy, Check, X, Sparkles, Phone, Loader2, Edit3, Zap } from "lucide-react";
+import { Send, Copy, Check, X, Sparkles, Loader2, Edit3 } from "lucide-react";
 import { useAIReplyDrafts, type AIReplyDraft } from "@/hooks/use-entiran-business";
 import { toast } from "@/components/ui/sonner";
-import { Card as _Card } from "@/components/ui/card";
 
 const DEMO_DRAFTS: AIReplyDraft[] = [
   {
