@@ -5,7 +5,7 @@ import { CreateEventModal } from "@/components/CreateEventModal";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { Plus, Camera } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useViewMode } from "@/lib/ViewModeContext";
 
 interface EventItem {
@@ -20,6 +20,14 @@ interface EventItem {
 }
 
 type EventFilter = "all" | "upcoming" | "delivered" | "archived";
+
+type StatusKey = "confirmed" | "pending" | "draft";
+
+const STATUS_COLOR: Record<StatusKey, string> = {
+  confirmed: "#5C7C5A", // --go
+  pending: "#B8953F",   // --gold
+  draft: "#A8A6A0",     // --ink-whisper
+};
 
 export default function Events() {
   const navigate = useNavigate();
@@ -53,66 +61,76 @@ export default function Events() {
     { key: "archived", label: "Archived" },
   ];
 
-  const getStatus = (evt: EventItem) => {
-    if (evt.is_published) return "LIVE";
-    if (evt.photo_count === 0) return "DRAFT";
-    return "IN PROGRESS";
+  const getStatus = (evt: EventItem): StatusKey => {
+    if (evt.is_published) return "confirmed";
+    if (evt.photo_count === 0) return "draft";
+    return "pending";
   };
 
-  const getStatusColor = (status: string) => {
-    if (status === "LIVE") return "hsl(40, 52%, 48%)";
-    if (status === "DRAFT") return "hsl(35, 4%, 56%)";
-    return "hsl(48, 7%, 10%)";
-  };
+  // Tokens (locked design system)
+  const INK = "#1A1917";
+  const INK_MUTED = "#6B6962";
+  const RULE = "#E8E6E1";
+  const WASH = "#F4F3F0";
+  const PAPER = "#FAFAF8";
+
+  const gutter = isMobile ? 24 : 64;
+  const thumbW = isMobile ? 80 : 120;
+  const thumbH = isMobile ? 56 : 80;
 
   return (
     <DashboardLayout>
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ marginBottom: isMobile ? 24 : 40 }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: `0 ${gutter}px` }}>
+        {/* Header row: title + new event */}
+        <div style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          marginTop: isMobile ? 24 : 48,
+          marginBottom: isMobile ? 24 : 32,
+          gap: 16,
+        }}>
           <h1 style={{
             fontFamily: "'Cormorant Garamond', Georgia, serif",
-            fontSize: isMobile ? 28 : 32,
+            fontSize: isMobile ? 28 : 40,
             fontWeight: 300,
-            color: "hsl(48, 7%, 10%)",
+            color: INK,
             margin: 0,
-            letterSpacing: "0.02em",
+            lineHeight: 1.1,
+            letterSpacing: "-0.005em",
           }}>
             Events
           </h1>
-        </div>
-
-        {/* Desktop: New Event button */}
-        {!isMobile && (
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+          {!isMobile && (
             <button
               onClick={() => setCreateOpen(true)}
               style={{
-                background: "hsl(48, 7%, 10%)",
-                color: "hsl(45, 14%, 97%)",
-                border: "none",
-                padding: "12px 24px",
+                background: "transparent",
+                color: INK,
+                border: `1px solid ${RULE}`,
+                padding: "0 24px",
+                height: 44,
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
+                fontSize: 13,
+                fontWeight: 500,
+                letterSpacing: "0.06em",
                 cursor: "pointer",
-                transition: "opacity 0.2s",
+                transition: "border-color 120ms cubic-bezier(0.4, 0, 0.2, 1)",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#D6D3CC")}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = RULE)}
             >
-              New Event
+              New event
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Filter tabs */}
+        {/* Filter rail */}
         <div style={{
           display: "flex",
-          gap: isMobile ? 16 : 24,
-          borderBottom: "1px solid hsl(37, 10%, 90%)",
-          marginBottom: isMobile ? 24 : 40,
+          gap: isMobile ? 24 : 32,
+          borderBottom: `1px solid ${RULE}`,
+          marginBottom: 0,
           overflowX: isMobile ? "auto" : undefined,
         }}>
           {FILTERS.map((f) => (
@@ -124,14 +142,16 @@ export default function Events() {
                 border: "none",
                 cursor: "pointer",
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12,
-                letterSpacing: "0.1em",
+                fontSize: 11,
+                fontWeight: 500,
+                letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                color: filter === f.key ? "hsl(48, 7%, 10%)" : "hsl(35, 4%, 56%)",
-                fontWeight: 400,
+                color: filter === f.key ? INK : INK_MUTED,
                 paddingBottom: 12,
-                borderBottom: filter === f.key ? "2px solid hsl(40, 52%, 48%)" : "2px solid transparent",
-                transition: "color 0.2s, border-color 0.2s",
+                paddingTop: 4,
+                marginBottom: -1,
+                borderBottom: filter === f.key ? "1px solid #B8953F" : "1px solid transparent",
+                transition: "color 120ms cubic-bezier(0.4, 0, 0.2, 1)",
                 whiteSpace: "nowrap",
                 flexShrink: 0,
               }}
@@ -143,149 +163,200 @@ export default function Events() {
 
         {/* Content */}
         {loading ? (
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-            gap: isMobile ? 16 : 40,
-          }}>
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i}>
-                <div className="skeleton-block" style={{ width: "100%", aspectRatio: isMobile ? "16/10" : "16/9" }} />
-                <div className="skeleton-block" style={{ height: 18, width: "60%", marginTop: 12 }} />
-                <div className="skeleton-block" style={{ height: 12, width: "40%", marginTop: 8 }} />
+          <div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 24,
+                padding: "16px 0",
+                borderBottom: `1px solid ${RULE}`,
+                minHeight: 56,
+              }}>
+                <div className="skeleton-block" style={{ width: thumbW, height: thumbH, flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div className="skeleton-block" style={{ height: 18, width: "40%" }} />
+                  <div className="skeleton-block" style={{ height: 12, width: "25%", marginTop: 8 }} />
+                </div>
               </div>
             ))}
           </div>
         ) : events.length === 0 ? (
           <div style={{
-            textAlign: "center",
-            padding: isMobile ? "60px 0" : "80px 0",
-            display: "flex", flexDirection: "column", alignItems: "center",
+            minHeight: "60vh",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 24,
           }}>
-            <Camera style={{ width: 40, height: 40, color: "hsl(37, 10%, 85%)", marginBottom: 16 }} strokeWidth={1} />
             <h2 style={{
               fontFamily: "'Cormorant Garamond', Georgia, serif",
-              fontSize: isMobile ? 24 : 28,
-              fontWeight: 300,
-              color: "hsl(48, 7%, 10%)",
+              fontSize: 28,
+              fontWeight: 400,
+              color: INK,
               margin: 0,
+              lineHeight: 1.2,
             }}>
-              Your first gallery awaits
+              No events.
             </h2>
-            <p style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 13,
-              color: "hsl(35, 4%, 56%)",
-              marginTop: 8,
-            }}>
-              Add your work to begin
-            </p>
             <button
               onClick={() => setCreateOpen(true)}
               style={{
-                marginTop: 24,
-                background: "hsl(48, 7%, 10%)",
-                color: "hsl(45, 14%, 97%)",
-                border: "none",
-                padding: "14px 32px",
+                background: "transparent",
+                color: INK,
+                border: `1px solid ${RULE}`,
+                padding: "0 24px",
+                height: 44,
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 13,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
+                fontWeight: 500,
+                letterSpacing: "0.06em",
                 cursor: "pointer",
-                minHeight: 44,
+                transition: "border-color 120ms cubic-bezier(0.4, 0, 0.2, 1)",
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#D6D3CC")}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = RULE)}
             >
-              Create Event
+              Create event
             </button>
           </div>
         ) : (
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-            gap: isMobile ? 16 : 40,
-          }}>
+          <div role="list">
             {filteredEvents.map((evt) => {
               const status = getStatus(evt);
-              return (
-                <button
-                  key={evt.id}
-                  onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+              const dateStr = evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "—";
+              const thumbnail = evt.cover_url ? (
+                <img
+                  src={evt.cover_url}
+                  alt={evt.name}
+                  loading="lazy"
                   style={{
+                    width: thumbW,
+                    height: thumbH,
+                    objectFit: "cover",
                     display: "block",
-                    width: "100%",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    padding: 0,
-                    minHeight: 44,
+                    flexShrink: 0,
                   }}
+                />
+              ) : (
+                <div style={{
+                  width: thumbW,
+                  height: thumbH,
+                  flexShrink: 0,
+                  background: WASH,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  fontSize: isMobile ? 22 : 28,
+                  color: "#A8A6A0",
+                  fontWeight: 300,
+                }}>
+                  {evt.name.charAt(0)}
+                </div>
+              );
+
+              return (
+                <div
+                  key={evt.id}
+                  role="listitem"
+                  onClick={() => navigate(`/dashboard/events/${evt.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate(`/dashboard/events/${evt.id}`);
+                    }
+                  }}
+                  tabIndex={0}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: isMobile ? 16 : 24,
+                    padding: isMobile ? "16px 0" : "20px 0",
+                    borderBottom: `1px solid ${RULE}`,
+                    minHeight: 56,
+                    cursor: "pointer",
+                    background: "transparent",
+                    transition: "background-color 120ms cubic-bezier(0.4, 0, 0.2, 1)",
+                    outline: "none",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = WASH)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  onFocus={(e) => (e.currentTarget.style.backgroundColor = WASH)}
+                  onBlur={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
-                  {/* Cover */}
-                  {evt.cover_url ? (
-                    <div style={{ width: "100%", aspectRatio: isMobile ? "16/10" : "16/9", overflow: "hidden" }}>
-                      <img
-                        src={evt.cover_url}
-                        alt={evt.name}
-                        loading="lazy"
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "opacity 0.3s ease" }}
-                      />
-                    </div>
-                  ) : (
-                    <div style={{
-                      width: "100%", aspectRatio: isMobile ? "16/10" : "16/9",
-                      background: "hsl(40, 5%, 95%)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <span style={{
-                        fontFamily: "'Cormorant Garamond', Georgia, serif",
-                        fontSize: isMobile ? 32 : 36,
-                        color: "hsl(37, 10%, 90%)", fontWeight: 300,
-                      }}>
-                        {evt.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                  {/* Info */}
-                  <div style={{ paddingTop: 12 }}>
+                  {/* Thumbnail with subtle inset so wash doesn't bleed under it */}
+                  <div style={{ paddingLeft: isMobile ? 4 : 8, flexShrink: 0 }}>{thumbnail}</div>
+
+                  {/* Title + meta */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <h3 style={{
                       fontFamily: "'Cormorant Garamond', Georgia, serif",
-                      fontSize: isMobile ? 18 : 20,
-                      fontWeight: 400,
-                      color: "hsl(48, 7%, 10%)",
+                      fontSize: 20,
+                      fontWeight: 500,
+                      color: INK,
                       margin: 0,
-                      letterSpacing: "0.02em",
+                      lineHeight: 1.3,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}>
                       {evt.name}
                     </h3>
-                    <p style={{
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      marginTop: 4,
                       fontFamily: "'DM Sans', sans-serif",
                       fontSize: 12,
-                      color: "hsl(35, 4%, 56%)",
-                      marginTop: 4,
+                      color: INK_MUTED,
+                      lineHeight: 1.4,
                     }}>
-                      {evt.event_date ? format(new Date(evt.event_date), "MMM d, yyyy") : "No date"}
-                      {evt.location ? ` · ${evt.location}` : ""}
-                    </p>
-                    <div style={{ display: "flex", gap: 12, marginTop: 6, alignItems: "center" }}>
-                      <span style={{
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 11, letterSpacing: "0.08em",
-                        textTransform: "uppercase", color: "hsl(35, 4%, 56%)",
-                      }}>
-                        {evt.photo_count || 0} photos
+                      <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                        {(evt.photo_count || 0).toLocaleString()} photos
                       </span>
-                      <span style={{
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 11, letterSpacing: "0.08em",
-                        textTransform: "uppercase", color: getStatusColor(status),
-                      }}>
+                      <span aria-hidden style={{ color: "#D6D3CC" }}>·</span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        <span
+                          aria-hidden
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: 9999,
+                            background: STATUS_COLOR[status],
+                            display: "inline-block",
+                          }}
+                        />
                         {status}
                       </span>
+                      {/* Mobile: date stacks here */}
+                      {isMobile && (
+                        <>
+                          <span aria-hidden style={{ color: "#D6D3CC" }}>·</span>
+                          <span style={{ fontVariantNumeric: "tabular-nums" }}>{dateStr}</span>
+                        </>
+                      )}
                     </div>
                   </div>
-                </button>
+
+                  {/* Date — desktop only, right-aligned */}
+                  {!isMobile && (
+                    <div style={{
+                      paddingRight: 8,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12,
+                      color: INK_MUTED,
+                      letterSpacing: "0.01em",
+                      fontVariantNumeric: "tabular-nums",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}>
+                      {dateStr}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -296,6 +367,7 @@ export default function Events() {
       {isMobile && (
         <button
           onClick={() => setCreateOpen(true)}
+          aria-label="Create event"
           style={{
             position: "fixed",
             bottom: 80,
@@ -303,18 +375,17 @@ export default function Events() {
             width: 56,
             height: 56,
             borderRadius: "50%",
-            background: "hsl(48, 7%, 10%)",
+            background: INK,
             border: "none",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 50,
-            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-            transition: "transform 0.2s",
+            transition: "opacity 120ms cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          <Plus size={22} strokeWidth={2} style={{ color: "hsl(45, 14%, 97%)" }} />
+          <Plus size={22} strokeWidth={2} style={{ color: PAPER }} />
         </button>
       )}
 
