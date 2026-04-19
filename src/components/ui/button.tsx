@@ -4,27 +4,32 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-[13px] font-normal tracking-[0.1em] uppercase ring-offset-background transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-[13px] font-medium tracking-[0.06em] ring-offset-background transition-colors duration-[120ms] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-foreground text-background hover:opacity-90",
-        destructive: "bg-destructive text-destructive-foreground hover:opacity-90",
-        outline: "border border-foreground bg-transparent text-foreground hover:bg-secondary",
-        secondary: "bg-secondary text-foreground hover:bg-secondary/80",
-        ghost: "text-muted-foreground hover:text-foreground hover:underline",
-        link: "text-muted-foreground underline-offset-4 hover:underline hover:text-foreground",
+        // Primary — solid gold. The single strongest action on a page.
+        default: "bg-primary text-primary-foreground uppercase hover:bg-[#8B6F2E]",
+        // Destructive — bordered, gold of caution
+        destructive: "bg-transparent text-destructive border border-destructive uppercase hover:bg-destructive/5",
+        // Secondary — bordered, sentence case
+        outline: "border border-border bg-transparent text-foreground hover:border-[#D6D3CC]",
+        secondary: "border border-border bg-transparent text-foreground hover:border-[#D6D3CC]",
+        // Ghost — chromeless
+        ghost: "text-foreground hover:bg-secondary",
+        link: "text-foreground underline-offset-2 underline decoration-1 hover:text-[#8B6F2E]",
       },
       size: {
-        default: "h-11 px-8 py-3.5",
-        sm: "h-9 px-5 text-[12px]",
-        lg: "h-12 px-10",
-        icon: "h-10 w-10",
+        // Two sizes only
+        lg: "h-11 px-6 text-[13px]",      // 44px — primary page actions, mobile
+        default: "h-11 px-6 text-[13px]", // alias of lg for backward compat
+        sm: "h-8 px-4 text-[12px]",       // 32px — row actions, toolbars
+        icon: "h-10 w-10 rounded-full",   // icon-only circular exception
       },
     },
     defaultVariants: {
       variant: "default",
-      size: "default",
+      size: "lg",
     },
   },
 );
