@@ -88,13 +88,14 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-weight: 400;
     font-size: 13px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-variant-numeric: tabular-nums;
+    font-feature-settings: 'ss01', 'cv11';
     margin: 0;
     padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
     width: 100%;
@@ -114,9 +115,9 @@
     max-width: 100%;
   }
 
-  /* Headings default to body font; Cormorant is opt-in via .font-display only. */
+  /* Headings default to Inter; Fraunces is opt-in via .font-display / .font-serif. */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-weight: 500;
     color: hsl(var(--foreground));
     letter-spacing: -0.005em;
