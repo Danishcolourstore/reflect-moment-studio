@@ -87,7 +87,7 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
           style={{
             width: isMobile ? 20 : 22,
             height: isMobile ? 20 : 22,
-            color: isHovered ? '#C8A97E' : 'rgba(200,169,126,0.65)',
+            color: isHovered ? '#B8953F' : 'rgba(200,169,126,0.65)',
           }}
         />
 
@@ -100,7 +100,7 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
               height: 18,
               fontSize: 9,
               fontWeight: 700,
-              backgroundColor: '#C8A97E',
+              backgroundColor: '#B8953F',
               color: '#080808',
               boxShadow: '0 0 8px rgba(200,169,126,0.3)',
             }}

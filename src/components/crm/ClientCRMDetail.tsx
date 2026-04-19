@@ -162,7 +162,7 @@ export function ClientCRMDetail({ client, onClose, onRemove, onRefresh }: Props)
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground italic">No galleries assigned yet</p>
+              <p className="text-sm text-muted-foreground">No galleries assigned yet</p>
             )}
 
             {/* Grant access */}
@@ -225,7 +225,7 @@ export function ClientCRMDetail({ client, onClose, onRemove, onRefresh }: Props)
               {client.last_activity ? (
                 <p>Last active {formatDistanceToNow(new Date(client.last_activity), { addSuffix: true })}</p>
               ) : (
-                <p className="italic">No activity recorded yet</p>
+                <p>No activity recorded yet</p>
               )}
             </div>
           </div>

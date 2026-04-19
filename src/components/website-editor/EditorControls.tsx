@@ -111,7 +111,7 @@ interface ColorSwatchRowProps {
 }
 
 const DEFAULT_PRESETS = [
-  '#ffffff', '#0a0a0a', '#1e1916', '#C8A97E', '#B8873A',
+  '#ffffff', '#0a0a0a', '#1e1916', '#B8953F', '#B8873A',
   '#0A84FF', '#ff3b30', '#34c759', '#faf7f2', '#f5f0e8',
 ];
 

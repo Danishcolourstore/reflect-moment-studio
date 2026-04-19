@@ -172,7 +172,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
                   border: '1px solid rgba(200,169,126,0.12)',
                 }}
               >
-                <Sparkles className="h-3.5 w-3.5" style={{ color: '#C8A97E' }} />
+                <Sparkles className="h-3.5 w-3.5" style={{ color: '#B8953F' }} />
               </div>
               <div>
                 <span
@@ -277,7 +277,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
                       border: '1px solid rgba(200,169,126,0.1)',
                     }}
                   >
-                    <Sparkles className="h-6 w-6" style={{ color: '#C8A97E', opacity: 0.7 }} />
+                    <Sparkles className="h-6 w-6" style={{ color: '#B8953F', opacity: 0.7 }} />
                   </div>
                   <p
                     className="text-lg mb-2"
@@ -369,7 +369,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
                   maxHeight: 120,
                   minHeight: 22,
                   color: 'rgba(244,241,234,0.92)',
-                  caretColor: '#C8A97E',
+                  caretColor: '#B8953F',
                   fontFamily: 'Inter, system-ui, sans-serif',
                 }}
                 aria-label="Message input"
@@ -384,7 +384,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
                 className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-200 active:scale-95"
                 style={{
                   background: input.trim()
-                    ? 'linear-gradient(135deg, #C8A97E, #B8956A)'
+                    ? 'linear-gradient(135deg, #B8953F, #B8956A)'
                     : 'transparent',
                   color: input.trim() ? '#080808' : 'rgba(200,169,126,0.2)',
                   boxShadow: input.trim() ? '0 2px 12px rgba(200,169,126,0.2)' : 'none',

@@ -67,7 +67,7 @@ export default function SuperAdminOverview() {
   };
 
   const ink = '#1A1A1A';
-  const gold = '#C8A97E';
+  const gold = '#B8953F';
   const border = 'rgba(0,0,0,0.06)';
 
   const cards = [

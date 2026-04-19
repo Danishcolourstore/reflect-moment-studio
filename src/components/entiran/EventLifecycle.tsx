@@ -143,14 +143,14 @@ export function EventLifecycle() {
                     style={{
                       width: stage.current ? 14 : 10,
                       height: stage.current ? 14 : 10,
-                      backgroundColor: stage.completed ? '#C9A96E' : stage.current ? '#C9A96E' : '#D1D5DB',
+                      backgroundColor: stage.completed ? '#B8953F' : stage.current ? '#B8953F' : '#D1D5DB',
                     }}
                     title={stage.label}
                   >
                     {stage.completed && <Check className="h-2 w-2 text-white" strokeWidth={3} />}
                   </div>
                   {i < evt.stages.length - 1 && (
-                    <div className="w-2 h-px" style={{ backgroundColor: stage.completed ? '#C9A96E' : '#D1D5DB' }} />
+                    <div className="w-2 h-px" style={{ backgroundColor: stage.completed ? '#B8953F' : '#D1D5DB' }} />
                   )}
                 </div>
               ))}

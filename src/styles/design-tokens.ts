@@ -3,8 +3,8 @@
  * Single source of truth for all visual tokens.
  *
  * RULES (locked):
- *   - One gold only: #B8953F. Never #C8A97E.
- *   - Body muted text: #6B6962 (AA-passing). Never #94918B.
+ *   - One gold only: #B8953F. Never #B8953F.
+ *   - Body muted text: #6B6962 (AA-passing). Never #6B6962.
  *   - 11-value spacing scale. No ad-hoc values.
  *   - Zero radius except: avatar/icon-circle (full), toast (2), status dot (full).
  *

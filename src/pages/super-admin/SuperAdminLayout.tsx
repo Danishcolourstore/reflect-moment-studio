@@ -40,7 +40,7 @@ export default function SuperAdminLayout() {
 
   const cream = '#F5F0EA';
   const ink = '#1A1A1A';
-  const gold = '#C8A97E';
+  const gold = '#B8953F';
   const border = 'rgba(0,0,0,0.06)';
 
   return (
