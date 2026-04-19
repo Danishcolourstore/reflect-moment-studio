@@ -30,7 +30,6 @@ interface EventRow {
   event_date: string | null;
   photo_count: number | null;
   location: string | null;
-  status?: string | null;
 }
 
 interface Stats {
