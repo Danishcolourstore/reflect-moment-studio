@@ -7,6 +7,10 @@
  *   - Body muted text: #6B6962 (AA-passing). Never #94918B.
  *   - 11-value spacing scale. No ad-hoc values.
  *   - Zero radius except: avatar/icon-circle (full), toast (2), status dot (full).
+ *
+ * NOTE: The legacy aliases (`textDim`, `goldDim`, `goldSoft`, `brandGold`)
+ * have been removed. Use `inkMuted` and `gold` directly. Aliases are how
+ * the old palette leaked back in — never reintroduce them.
  */
 
 export const colors = {
@@ -34,15 +38,14 @@ export const colors = {
   obsidian: "#0A0A0A",
   obsidianInk: "#F5F5F5",
 
-  // ─── Legacy aliases (do not use in new code) ────────────────────
+  // ─── Minimal legacy aliases retained for non-token consumers only.
+  // Do not add more. Do not reintroduce textDim / goldDim / brandGold.
   bg: "#FAFAF8",
   border: "#E8E6E1",
   borderHover: "#D6D3CC",
   borderActive: "#B8953F",
-  goldDim: "rgba(184,149,63,0.08)",
   hover: "#F4F3F0",
   text: "#1A1917",
-  textDim: "#6B6962",       // ← fixed from #94918B
   textMuted: "#A8A6A0",
   white: "#FFFFFF",
   black: "#1A1917",

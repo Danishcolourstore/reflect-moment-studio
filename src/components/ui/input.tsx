@@ -2,13 +2,17 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Input — luxury editorial primitive.
+ * Zero radius. Gold border on focus. No ring. 44px height.
+ */
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
     return (
       <input
         type={type}
         className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          "flex h-11 w-full border border-[var(--rule)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink-whisper)] focus:border-[var(--gold)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-40",
           className,
         )}
         ref={ref}
