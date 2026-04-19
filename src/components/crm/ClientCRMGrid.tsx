@@ -40,11 +40,14 @@ export function ClientCRMGrid({ clients, loading, onSelect, onInvite }: Props) {
 
   if (clients.length === 0) {
     return (
-      <div className="text-center py-20 border border-dashed border-border rounded-xl bg-card/50">
-        <Users className="mx-auto h-12 w-12 text-muted-foreground/20" />
-        <p className="mt-4 font-serif text-xl text-foreground">No clients yet</p>
-        <p className="text-sm text-muted-foreground mt-1">Start building your client relationships</p>
-        <Button className="mt-5" onClick={onInvite}>Add Your First Client</Button>
+      <div className="py-24 text-center flex flex-col items-center gap-6">
+        <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No clients.</h2>
+        <button
+          onClick={onInvite}
+          className="h-11 px-6 text-[13px] font-medium tracking-[0.06em] uppercase text-[#FAFAF8] bg-[#B8953F] hover:bg-[#8B6F2E] transition-colors duration-[120ms]"
+        >
+          Add client
+        </button>
       </div>
     );
   }

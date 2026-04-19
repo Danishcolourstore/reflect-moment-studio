@@ -25,7 +25,7 @@ export function EnhancedInsightsPanel({ insights }: EnhancedInsightsPanelProps) 
     insights.conversionRate > 25 ? 'Excellent conversion rate — above average.' : null,
     insights.conversionRate < 10 && insights.totalLeads > 5 ? 'Conversion rate is low. Follow up faster or review pricing.' : null,
     avgBookingValue > 50000 ? `Average booking value is ₹${avgBookingValue.toLocaleString()} — premium segment.` : null,
-    insights.totalLeads === 0 ? 'No enquiries yet. Upload more portfolio images to attract clients.' : null,
+    insights.totalLeads === 0 ? 'No enquiries. Upload more portfolio images to attract clients.' : null,
   ].filter(Boolean);
 
   return (

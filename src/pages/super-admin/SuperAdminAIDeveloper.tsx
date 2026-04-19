@@ -429,7 +429,7 @@ export default function SuperAdminAIDeveloper() {
                   {historyLoading ? (
                     <div className="flex items-center justify-center py-8"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
                   ) : history.length === 0 ? (
-                    <p className="text-[10px] text-muted-foreground text-center py-8">No history yet.</p>
+                    <p className="text-center py-12 px-4 font-serif text-[20px] font-light text-foreground">No history.</p>
                   ) : history.map((item) => {
                     const si = getStatusInfo(item.status);
                     return (

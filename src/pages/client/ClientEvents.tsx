@@ -42,10 +42,8 @@ const ClientEvents = () => {
           {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-64" />)}
         </div>
       ) : events.length === 0 ? (
-        <div className="border border-dashed border-border/60 py-24 text-center rounded-xl">
-          <Camera className="mx-auto h-12 w-12 text-muted-foreground/15" />
-          <p className="mt-4 font-serif text-lg text-muted-foreground/60">No events yet</p>
-          <p className="mt-1 text-[11px] text-muted-foreground/40">Your photographer will assign events to you.</p>
+        <div className="py-24 text-center">
+          <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No events.</h2>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -127,11 +127,8 @@ export function AvailabilityCalendar() {
       )}
 
       {bookedDates.length === 0 && (
-        <div className="border-l-2 border-l-border bg-card rounded-lg p-3 flex items-start gap-2.5">
-          <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-          <p className="text-xs text-muted-foreground">
-            No bookings yet. Share your profile to start getting enquiries.
-          </p>
+        <div className="py-8 text-center">
+          <p className="font-serif text-[20px] font-light text-foreground">No bookings.</p>
         </div>
       )}
     </div>

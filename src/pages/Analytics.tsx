@@ -133,7 +133,7 @@ const Analytics = () => {
               {loading ? (
                 <tr><td colSpan={5} style={{ padding: 40, textAlign: "center", fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(35, 4%, 56%)" }}>Preparing…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={5} style={{ padding: 40, textAlign: "center", fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(35, 4%, 56%)" }}>No data yet</td></tr>
+                <tr><td colSpan={5} style={{ padding: 64, textAlign: "center", fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 300, color: "#1A1917", lineHeight: 1.2 }}>No data.</td></tr>
               ) : filtered.map(r => (
                 <tr key={r.event_id} style={{ cursor: "pointer", transition: "background 0.2s" }} onClick={() => navigate(`/dashboard/events/${r.event_id}`)}>
                   <td style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(48, 7%, 10%)", padding: "16px", borderBottom: "1px solid hsl(37, 10%, 90%)" }}>{r.event_name}</td>

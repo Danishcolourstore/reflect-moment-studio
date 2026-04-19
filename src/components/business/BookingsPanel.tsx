@@ -78,10 +78,8 @@ export function BookingsPanel({ bookings, packages, onUpdateStatus, onAddBooking
       </div>
 
       {bookings.length === 0 ? (
-        <div className="text-center py-16 border border-dashed rounded-xl">
-          <Calendar className="mx-auto h-10 w-10 text-muted-foreground/20" />
-          <p className="mt-3 font-serif text-lg text-foreground">No bookings yet</p>
-          <p className="text-sm text-muted-foreground">Convert leads into bookings</p>
+        <div className="py-24 text-center">
+          <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No bookings.</h2>
         </div>
       ) : (
         <div className="space-y-2">

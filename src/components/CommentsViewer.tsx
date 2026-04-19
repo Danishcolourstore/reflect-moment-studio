@@ -68,10 +68,8 @@ export function CommentsViewer({ eventId }: { eventId: string }) {
 
   if (comments.length === 0) {
     return (
-      <div className="border border-dashed border-border/60 py-20 text-center rounded-xl">
-        <MessageCircle className="mx-auto h-12 w-12 text-muted-foreground/15" />
-        <p className="mt-4 font-serif text-lg text-muted-foreground/60">No comments yet</p>
-        <p className="mt-1 text-[11px] text-muted-foreground/40">Guests can comment on individual photos in the gallery.</p>
+      <div className="py-24 text-center">
+        <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No comments.</h2>
       </div>
     );
   }

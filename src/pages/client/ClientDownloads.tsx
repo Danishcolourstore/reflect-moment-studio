@@ -38,10 +38,8 @@ const ClientDownloads = () => {
       {loading ? (
         <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16" />)}</div>
       ) : downloads.length === 0 ? (
-        <div className="border border-dashed border-border/60 py-24 text-center rounded-xl">
-          <Download className="mx-auto h-12 w-12 text-muted-foreground/15" />
-          <p className="mt-4 font-serif text-lg text-muted-foreground/60">No downloads yet</p>
-          <p className="mt-1 text-[11px] text-muted-foreground/40">Photos you download will appear here.</p>
+        <div className="py-24 text-center">
+          <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No downloads.</h2>
         </div>
       ) : (
         <div className="border border-border rounded-xl overflow-hidden">

@@ -61,10 +61,8 @@ export function LeadsPanel({ leads, onUpdateStatus, onAddLead, onConvertToBookin
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-16 border border-dashed rounded-xl">
-          <UserPlus className="mx-auto h-10 w-10 text-muted-foreground/20" />
-          <p className="mt-3 font-serif text-lg text-foreground">No leads yet</p>
-          <p className="text-sm text-muted-foreground">Leads from your galleries will appear here</p>
+        <div className="py-24 text-center">
+          <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No leads.</h2>
         </div>
       ) : (
         <div className="space-y-2">

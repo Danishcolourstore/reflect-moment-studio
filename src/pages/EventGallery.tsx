@@ -382,10 +382,7 @@ function FilterBar({
 function EmptyFavorites() {
   return (
     <div className="py-24 text-center">
-      <div className="mx-auto w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
-        <Heart className="h-7 w-7 text-muted-foreground/20" />
-      </div>
-      <p className="font-serif text-base text-muted-foreground/50">No favorites yet</p>
+      <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No favorites.</h2>
     </div>
   );
 }

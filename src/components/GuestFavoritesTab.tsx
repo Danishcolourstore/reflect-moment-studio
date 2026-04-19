@@ -196,14 +196,8 @@ export function GuestFavoritesTab({ eventId, eventName }: GuestFavoritesTabProps
 
   if (photos.length === 0) {
     return (
-      <div className="border border-dashed border-border/60 py-20 text-center">
-        <Heart className="mx-auto h-8 w-8 text-muted-foreground/15" />
-        <p className="mt-4 font-serif text-sm text-muted-foreground/60">
-          Your guests haven't favorited any photos yet
-        </p>
-        <p className="mt-1 text-[10px] text-muted-foreground/40">
-          When guests heart photos in the gallery, they'll appear here.
-        </p>
+      <div className="py-24 text-center">
+        <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No favorites.</h2>
       </div>
     );
   }
