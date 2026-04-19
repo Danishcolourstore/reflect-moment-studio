@@ -8,7 +8,7 @@ import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
-  Heart, Download, Trash2, Share2, Upload, X,
+  Heart, Download, Trash2, Share2, Upload, X, Check,
   PackageOpen, Loader2, FolderDown, Settings, FileArchive, LayoutGrid, Image, Diamond,
 } from 'lucide-react';
 import {

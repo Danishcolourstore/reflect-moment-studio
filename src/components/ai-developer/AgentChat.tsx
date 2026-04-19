@@ -566,7 +566,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
                 <div className="grid grid-cols-2 gap-2.5 w-full max-w-md">
                   {SUGGESTIONS.map(s => (
                     <button key={s.label} onClick={() => sendMessage(s.prompt)} className="text-left p-3.5 rounded-xl border border-border bg-card hover:bg-muted/50 transition-all hover:shadow-sm group">
-                      <span className="text-base mb-1 block">{s.icon}</span>
+                      <s.Icon className="h-4 w-4 mb-1 text-foreground/70" strokeWidth={1.5} />
                       <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">{s.label}</span>
                       <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{s.prompt}</p>
                     </button>
