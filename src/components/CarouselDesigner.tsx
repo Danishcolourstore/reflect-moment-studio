@@ -2,7 +2,14 @@
  * CarouselDesigner — Professional Instagram Carousel Editor
  * Canvas-based slide editor with layout templates, drag-and-drop,
  * grid overlay, snap alignment, Instagram preview, and full-res export.
- * Instagram-style light UI. No text layers.
+ *
+ * Two visual surfaces in this file:
+ *   1. Editor chrome (top nav, side panel, bottom toolbar, tool panels)
+ *      → Pixieset-Minimal tokens (var(--ink), var(--rule), bg-white, …).
+ *   2. Instagram preview modal (IGPreview / SlidePreviewRender)
+ *      → KEEPS Instagram brand chrome (#262626 text, #0095F6 dots,
+ *      gradient avatar ring). That UI is content — a faithful mock
+ *      of Instagram itself, not the app's own design surface.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -17,17 +24,11 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { toast } from 'sonner';
 
-/* ─── Design Tokens (Instagram Light) ─── */
-
-const IG = {
-  bg: '#FFFFFF',
-  surface: '#FAFAFA',
-  surface2: '#F0F0F0',
-  border: '#DBDBDB',
+/* ─── Instagram preview palette (KEEP — used only inside <IGPreview>) ─── */
+const IG_PREVIEW = {
   text: '#262626',
   textSecondary: '#8E8E8E',
   blue: '#0095F6',
-  blueHover: '#1877F2',
   font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
 } as const;
 
@@ -563,6 +564,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
     container.innerHTML = '';
 
     const wrapper = document.createElement('div');
+    // Programmatic DOM build for html2canvas — not React JSX.
     wrapper.style.cssText = `width:${dims.w}px;height:${dims.h}px;position:absolute;left:-9999px;top:0;overflow:hidden;background:${slideToCapture.bg};`;
     container.appendChild(wrapper);
 
@@ -634,55 +636,69 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
   /* ─── Render ─── */
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: IG.bg, fontFamily: IG.font }}>
-      {/* Hidden export container */}
+    <div className="fixed inset-0 z-50 flex flex-col bg-white text-[var(--ink)]">
+      {/* Hidden export container — DYNAMIC: programmatic offscreen positioning for html2canvas */}
       <div ref={exportRef} style={{ position: 'fixed', left: -9999, top: 0, width: 0, height: 0, overflow: 'hidden' }} />
       <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileUpload} />
       <input ref={frameFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFrameUpload} />
 
       {/* ═══ Top Nav ═══ */}
-      <div className="flex items-center h-12 px-3 shrink-0" style={{ borderBottom: `1px solid ${IG.border}`, background: IG.bg }}>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors" style={{ color: IG.text }}
-          onMouseEnter={e => { e.currentTarget.style.background = IG.surface2; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+      <div className="flex items-center h-12 px-3 shrink-0 border-b border-[var(--rule)] bg-white">
+        <button
+          onClick={onClose}
+          className="h-8 w-8 flex items-center justify-center transition-colors text-[var(--ink)] hover:bg-[var(--wash-strong)]"
+        >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <span className="ml-3 text-[13px] font-semibold truncate" style={{ color: IG.text }}>
+        <span className="ml-3 text-[13px] font-semibold truncate text-[var(--ink)]">
           {title || 'Carousel Designer'}
         </span>
-        <span className="ml-2 text-[11px] shrink-0" style={{ color: IG.textSecondary }}>
+        <span className="ml-2 text-[11px] shrink-0 text-[var(--ink-muted)]">
           Slide {activeIdx + 1}/{slides.length} · {dims.w}×{dims.h}
         </span>
 
         <div className="ml-auto flex items-center gap-1">
-          <button onClick={undo} disabled={history.length === 0} className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30"
-            style={{ color: IG.text }} title="Undo">
+          <button
+            onClick={undo}
+            disabled={history.length === 0}
+            className="h-8 w-8 flex items-center justify-center transition-colors disabled:opacity-30 text-[var(--ink)] hover:bg-[var(--wash-strong)]"
+            title="Undo"
+          >
             <Undo2 className="h-4 w-4" />
           </button>
-          <button onClick={redo} disabled={future.length === 0} className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30"
-            style={{ color: IG.text }} title="Redo">
+          <button
+            onClick={redo}
+            disabled={future.length === 0}
+            className="h-8 w-8 flex items-center justify-center transition-colors disabled:opacity-30 text-[var(--ink)] hover:bg-[var(--wash-strong)]"
+            title="Redo"
+          >
             <Redo2 className="h-4 w-4" />
           </button>
 
-          <button onClick={() => setShowGrid(!showGrid)}
-            className="h-8 w-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ color: showGrid ? IG.blue : IG.textSecondary, background: showGrid ? `${IG.blue}15` : 'transparent' }}
-            title="Grid overlay">
+          <button
+            onClick={() => setShowGrid(!showGrid)}
+            className={`h-8 w-8 flex items-center justify-center transition-colors ${showGrid ? 'bg-[var(--wash-strong)] text-[var(--ink)]' : 'text-[var(--ink-muted)] hover:bg-[var(--wash-strong)]'}`}
+            title="Grid overlay"
+          >
             <Grid3X3 className="h-4 w-4" />
           </button>
 
           {onSave && (
-            <button onClick={() => onSave(slides)} disabled={saving}
-              className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-[13px] font-semibold transition-colors"
-              style={{ background: IG.surface, color: IG.text, border: `1px solid ${IG.border}` }}>
+            <button
+              onClick={() => onSave(slides)}
+              disabled={saving}
+              className="h-8 px-3 flex items-center gap-1.5 text-[13px] font-semibold transition-colors bg-[var(--wash)] text-[var(--ink)] border border-[var(--rule)] hover:bg-[var(--wash-strong)] disabled:opacity-50"
+            >
               <Save className="h-3.5 w-3.5" />
               {saving ? 'Saving...' : 'Save'}
             </button>
           )}
 
           <div className="relative">
-            <button onClick={() => setShowExportMenu(!showExportMenu)}
-              className="h-8 px-3 rounded-lg flex items-center gap-1.5 text-[13px] font-semibold transition-colors"
-              style={{ background: IG.blue, color: '#fff' }}>
+            <button
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              className="h-8 px-3 flex items-center gap-1.5 text-[13px] font-semibold transition-colors bg-[var(--ink)] text-white hover:opacity-90"
+            >
               {exporting ? (
                 <span className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
               ) : (
@@ -691,13 +707,17 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
               {exporting ? exportProgress : 'Export'}
             </button>
             {showExportMenu && !exporting && (
-              <div className="absolute right-0 top-full mt-1 w-52 rounded-lg overflow-hidden shadow-xl z-30" style={{ background: IG.bg, border: `1px solid ${IG.border}` }}>
-                <button onClick={exportCurrent} className="w-full text-left px-4 py-2.5 text-[13px] transition-colors" style={{ color: IG.text }}
-                  onMouseEnter={e => { e.currentTarget.style.background = IG.surface; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+              <div className="absolute right-0 top-full mt-1 w-52 overflow-hidden z-30 bg-white border border-[var(--rule)]">
+                <button
+                  onClick={exportCurrent}
+                  className="w-full text-left px-4 py-2.5 text-[13px] transition-colors text-[var(--ink)] hover:bg-[var(--wash)]"
+                >
                   Current slide (.jpg)
                 </button>
-                <button onClick={exportAll} className="w-full text-left px-4 py-2.5 text-[13px] transition-colors" style={{ color: IG.text }}
-                  onMouseEnter={e => { e.currentTarget.style.background = IG.surface; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                <button
+                  onClick={exportAll}
+                  className="w-full text-left px-4 py-2.5 text-[13px] transition-colors text-[var(--ink)] hover:bg-[var(--wash)]"
+                >
                   All slides (.zip)
                 </button>
               </div>
@@ -709,7 +729,8 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
       {/* ═══ Main Area ═══ */}
       <div className="flex flex-1 overflow-hidden">
         {/* Canvas area */}
-        <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden" style={{ background: IG.surface }}
+        <div
+          className="flex-1 flex flex-col items-center justify-center relative overflow-hidden bg-[var(--wash)]"
           onClick={() => { setSelectedId(null); setShowExportMenu(false); }}
           onTouchStart={e => {
             if (e.touches.length === 1) {
@@ -727,116 +748,130 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
               if (dx < 0 && activeIdx < slides.length - 1) setActiveIdx(activeIdx + 1);
               else if (dx > 0 && activeIdx > 0) setActiveIdx(activeIdx - 1);
             }
-          }}>
+          }}
+        >
 
           {/* Slide strip */}
           <div className="absolute top-3 left-0 right-0 flex items-center justify-center gap-2 z-10 px-4">
-            <button onClick={() => setActiveIdx(Math.max(0, activeIdx - 1))} disabled={activeIdx === 0}
-              className="h-7 w-7 rounded-full flex items-center justify-center disabled:opacity-20" style={{ background: IG.bg, color: IG.text, border: `1px solid ${IG.border}` }}>
+            <button
+              onClick={() => setActiveIdx(Math.max(0, activeIdx - 1))}
+              disabled={activeIdx === 0}
+              className="h-7 w-7 rounded-full flex items-center justify-center disabled:opacity-20 bg-white text-[var(--ink)] border border-[var(--rule)]"
+            >
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
-            <div className="flex gap-1.5 overflow-x-auto max-w-[60vw]" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex gap-1.5 overflow-x-auto max-w-[60vw] [scrollbar-width:none]">
               {slides.map((s, i) => (
-                <button key={s.id} onClick={(e) => { e.stopPropagation(); setActiveIdx(i); }}
-                  className="shrink-0 rounded-md overflow-hidden transition-all"
-                  style={{
-                    width: 48, height: 60,
-                    border: i === activeIdx ? `2px solid ${IG.blue}` : `1px solid ${IG.border}`,
-                    background: s.bg, opacity: i === activeIdx ? 1 : 0.6,
-                  }}>
+                <button
+                  key={s.id}
+                  onClick={(e) => { e.stopPropagation(); setActiveIdx(i); }}
+                  className={`shrink-0 overflow-hidden transition-all w-12 h-[60px] ${i === activeIdx ? 'border-2 border-[var(--ink)] opacity-100' : 'border border-[var(--rule)] opacity-60'}`}
+                  /* DYNAMIC: per-slide bg is user-controlled content, not chrome */
+                  style={{ background: s.bg }}
+                >
                   <div className="w-full h-full flex items-center justify-center">
-                    <span style={{ fontSize: 10, color: IG.textSecondary, fontWeight: 600 }}>{i + 1}</span>
+                    <span className="text-[10px] font-semibold text-[var(--ink-muted)]">{i + 1}</span>
                   </div>
                 </button>
               ))}
-              <button onClick={(e) => { e.stopPropagation(); addSlide(); }}
-                className="shrink-0 rounded-md flex items-center justify-center transition-colors"
-                style={{ width: 48, height: 60, border: `1px dashed ${IG.border}`, color: IG.textSecondary }}>
+              <button
+                onClick={(e) => { e.stopPropagation(); addSlide(); }}
+                className="shrink-0 flex items-center justify-center transition-colors w-12 h-[60px] border border-dashed border-[var(--rule)] text-[var(--ink-muted)] hover:border-[var(--ink)]"
+              >
                 <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
-            <button onClick={() => setActiveIdx(Math.min(slides.length - 1, activeIdx + 1))} disabled={activeIdx >= slides.length - 1}
-              className="h-7 w-7 rounded-full flex items-center justify-center disabled:opacity-20" style={{ background: IG.bg, color: IG.text, border: `1px solid ${IG.border}` }}>
+            <button
+              onClick={() => setActiveIdx(Math.min(slides.length - 1, activeIdx + 1))}
+              disabled={activeIdx >= slides.length - 1}
+              className="h-7 w-7 rounded-full flex items-center justify-center disabled:opacity-20 bg-white text-[var(--ink)] border border-[var(--rule)]"
+            >
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          {/* Canvas */}
-          <div ref={canvasRef} className="relative" onClick={e => e.stopPropagation()}
+          {/* Canvas — DYNAMIC: scaled width/height, user-picked bg */}
+          <div
+            ref={canvasRef}
+            className="relative overflow-hidden"
+            onClick={e => e.stopPropagation()}
             style={{
-              width: dims.w * scale, height: dims.h * scale,
-              background: slide.bg, borderRadius: 4,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
-              overflow: 'hidden',
-            }}>
+              width: dims.w * scale,
+              height: dims.h * scale,
+              background: slide.bg,
+            }}
+          >
+            {/* DYNAMIC: canvas dimensions + transform scale */}
             <div style={{ width: dims.w, height: dims.h, transform: `scale(${scale})`, transformOrigin: 'top left', position: 'relative' }}>
               {/* Grid overlay */}
               {showGrid && (
                 <div className="absolute inset-0 pointer-events-none z-30">
                   {Array.from({ length: 13 }).map((_, i) => {
                     const x = GAP + (i * (dims.w - GAP * 2)) / 12;
-                    return <div key={`gx${i}`} style={{ position: 'absolute', left: x, top: 0, width: 1, height: '100%', background: 'rgba(0,0,0,0.06)' }} />;
+                    /* DYNAMIC: computed grid line position */
+                    return <div key={`gx${i}`} className="absolute top-0 w-px h-full bg-[var(--rule-strong)]" style={{ left: x }} />;
                   })}
-                  <div style={{ position: 'absolute', left: dims.w / 2, top: 0, width: 1, height: '100%', background: 'rgba(0,149,246,0.25)' }} />
-                  <div style={{ position: 'absolute', left: 0, top: dims.h / 2, width: '100%', height: 1, background: 'rgba(0,149,246,0.25)' }} />
+                  {/* DYNAMIC: midline positions */}
+                  <div className="absolute top-0 w-px h-full bg-[var(--ink)]/20" style={{ left: dims.w / 2 }} />
+                  <div className="absolute left-0 w-full h-px bg-[var(--ink)]/20" style={{ top: dims.h / 2 }} />
                 </div>
               )}
 
-              {/* Snap lines */}
+              {/* Snap lines — DYNAMIC: computed positions */}
               {snapLines.map((l, i) => (
                 l.x !== undefined
-                  ? <div key={`sl${i}`} className="absolute z-40 pointer-events-none" style={{ left: l.x, top: 0, width: 1, height: '100%', background: '#FF3B30' }} />
-                  : <div key={`sl${i}`} className="absolute z-40 pointer-events-none" style={{ left: 0, top: l.y, width: '100%', height: 1, background: '#FF3B30' }} />
+                  ? <div key={`sl${i}`} className="absolute z-40 pointer-events-none top-0 w-px h-full bg-[var(--ink)]" style={{ left: l.x }} />
+                  : <div key={`sl${i}`} className="absolute z-40 pointer-events-none left-0 w-full h-px bg-[var(--ink)]" style={{ top: l.y }} />
               ))}
 
-              {/* Elements */}
+              {/* Elements — DYNAMIC: per-element position/size/rotation/z */}
               {slide.elements.map(el => (
-                <div key={el.id}
+                <div
+                  key={el.id}
                   onMouseDown={e => onCanvasMouseDown(e, el.id)}
-                  className="absolute"
+                  className="absolute overflow-hidden"
                   style={{
                     left: el.x, top: el.y, width: el.width, height: el.height,
                     transform: `rotate(${el.rotation}deg)`,
                     cursor: dragState?.id === el.id ? 'grabbing' : 'grab',
-                    outline: selectedId === el.id ? `2px solid ${IG.blue}` : 'none',
+                    outline: selectedId === el.id ? `2px solid var(--ink)` : 'none',
                     outlineOffset: 2,
                     zIndex: selectedId === el.id ? 20 : 10,
-                    borderRadius: el.type === 'shape' && el.shapeType === 'circle' ? '50%' : 8,
-                    overflow: 'hidden',
-                  }}>
+                  }}
+                >
 
                   {el.type === 'image' && el.src && (
-                    <img src={el.src} alt="" draggable={false} className="w-full h-full pointer-events-none"
-                      style={{ objectFit: el.objectFit || 'cover', borderRadius: 8 }} />
+                    /* DYNAMIC: per-element objectFit */
+                    <img src={el.src} alt="" draggable={false} className="w-full h-full pointer-events-none" style={{ objectFit: el.objectFit || 'cover' }} />
                   )}
                   {el.type === 'image' && !el.src && (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 cursor-pointer"
+                    <div
+                      className="w-full h-full flex flex-col items-center justify-center gap-2 cursor-pointer bg-[var(--wash-strong)] border-2 border-dashed border-[var(--rule-strong)]"
                       onClick={(ev) => triggerFrameUpload(el.id, ev)}
-                      style={{ background: 'rgba(0,0,0,0.03)', borderRadius: 8, border: '2px dashed rgba(0,0,0,0.12)' }}>
-                      <ImageIcon className="h-8 w-8" style={{ color: 'rgba(0,0,0,0.15)' }} />
-                      <span style={{ color: 'rgba(0,0,0,0.25)', fontSize: 11, fontWeight: 500 }}>Click to add</span>
+                    >
+                      <ImageIcon className="h-8 w-8 text-[var(--ink-whisper)]" />
+                      <span className="text-[11px] font-medium text-[var(--ink-muted)]">Click to add</span>
                     </div>
                   )}
                   {el.type === 'shape' && (
-                    <div className="w-full h-full" style={{
-                      background: el.fill,
-                      borderRadius: el.shapeType === 'circle' ? '50%' : 8,
-                    }} />
+                    /* DYNAMIC: user-controlled fill, shape-driven radius */
+                    <div className="w-full h-full" style={{ background: el.fill, borderRadius: el.shapeType === 'circle' ? '50%' : 0 }} />
                   )}
 
-                  {/* Resize handles */}
+                  {/* Resize handles — DYNAMIC: corner-driven offset */}
                   {selectedId === el.id && (
                     <>
                       {['tl', 'tr', 'bl', 'br'].map(c => (
-                        <div key={c}
+                        <div
+                          key={c}
                           onMouseDown={e => onResizeMouseDown(e, el.id, c)}
-                          className="absolute z-30"
+                          className="absolute z-30 w-2.5 h-2.5 bg-white border-2 border-[var(--ink)]"
                           style={{
-                            width: 10, height: 10, background: '#fff', border: `2px solid ${IG.blue}`, borderRadius: 2,
                             cursor: c === 'tl' || c === 'br' ? 'nwse-resize' : 'nesw-resize',
                             ...(c.includes('t') ? { top: -5 } : { bottom: -5 }),
                             ...(c.includes('l') ? { left: -5 } : { right: -5 }),
-                          }} />
+                          }}
+                        />
                       ))}
                     </>
                   )}
@@ -846,8 +881,8 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
               {/* Empty state */}
               {slide.elements.length === 0 && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <ImageIcon className="h-10 w-10" style={{ color: 'rgba(0,0,0,0.12)' }} />
-                  <p style={{ color: IG.textSecondary, fontSize: 14, fontFamily: IG.font }}>Choose a layout or add images</p>
+                  <ImageIcon className="h-10 w-10 text-[var(--ink-whisper)]" />
+                  <p className="text-sm text-[var(--ink-muted)]">Choose a layout or add images</p>
                 </div>
               )}
             </div>
@@ -856,47 +891,66 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
         {/* ═══ Right Panel — Element Properties ═══ */}
         {sel && (
-          <div className="w-64 shrink-0 overflow-y-auto hidden md:block" style={{ background: IG.bg, borderLeft: `1px solid ${IG.border}`, scrollbarWidth: 'thin' }}>
+          <div className="w-64 shrink-0 overflow-y-auto hidden md:block bg-white border-l border-[var(--rule)] [scrollbar-width:thin]">
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-[2px] font-semibold" style={{ color: IG.textSecondary }}>
+                <span className="text-[11px] uppercase tracking-[2px] font-semibold text-[var(--ink-muted)]">
                   {sel.type}
                 </span>
-                <button onClick={() => removeElement(sel.id)} className="h-7 w-7 rounded flex items-center justify-center" style={{ color: '#ED4956' }}>
+                <button
+                  onClick={() => removeElement(sel.id)}
+                  className="h-7 w-7 flex items-center justify-center text-[var(--alert)] hover:bg-[var(--wash-strong)]"
+                >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
 
               {/* Position */}
               <div>
-                <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block" style={{ color: IG.textSecondary }}>Position</label>
+                <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block text-[var(--ink-muted)]">Position</label>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-[10px]" style={{ color: IG.textSecondary }}>X</span>
-                    <input type="number" value={Math.round(sel.x)} onChange={e => updateElement(sel.id, { x: +e.target.value })}
-                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
+                    <span className="text-[10px] text-[var(--ink-muted)]">X</span>
+                    <input
+                      type="number"
+                      value={Math.round(sel.x)}
+                      onChange={e => updateElement(sel.id, { x: +e.target.value })}
+                      className="w-full h-7 px-2 text-[12px] bg-[var(--wash)] border border-[var(--rule)] text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+                    />
                   </div>
                   <div>
-                    <span className="text-[10px]" style={{ color: IG.textSecondary }}>Y</span>
-                    <input type="number" value={Math.round(sel.y)} onChange={e => updateElement(sel.id, { y: +e.target.value })}
-                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
+                    <span className="text-[10px] text-[var(--ink-muted)]">Y</span>
+                    <input
+                      type="number"
+                      value={Math.round(sel.y)}
+                      onChange={e => updateElement(sel.id, { y: +e.target.value })}
+                      className="w-full h-7 px-2 text-[12px] bg-[var(--wash)] border border-[var(--rule)] text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Size */}
               <div>
-                <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block" style={{ color: IG.textSecondary }}>Size</label>
+                <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block text-[var(--ink-muted)]">Size</label>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-[10px]" style={{ color: IG.textSecondary }}>W</span>
-                    <input type="number" value={Math.round(sel.width)} onChange={e => updateElement(sel.id, { width: +e.target.value })}
-                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
+                    <span className="text-[10px] text-[var(--ink-muted)]">W</span>
+                    <input
+                      type="number"
+                      value={Math.round(sel.width)}
+                      onChange={e => updateElement(sel.id, { width: +e.target.value })}
+                      className="w-full h-7 px-2 text-[12px] bg-[var(--wash)] border border-[var(--rule)] text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+                    />
                   </div>
                   <div>
-                    <span className="text-[10px]" style={{ color: IG.textSecondary }}>H</span>
-                    <input type="number" value={Math.round(sel.height)} onChange={e => updateElement(sel.id, { height: +e.target.value })}
-                      className="w-full h-7 rounded px-2 text-[12px]" style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text, outline: 'none' }} />
+                    <span className="text-[10px] text-[var(--ink-muted)]">H</span>
+                    <input
+                      type="number"
+                      value={Math.round(sel.height)}
+                      onChange={e => updateElement(sel.id, { height: +e.target.value })}
+                      className="w-full h-7 px-2 text-[12px] bg-[var(--wash)] border border-[var(--rule)] text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+                    />
                   </div>
                 </div>
               </div>
@@ -904,19 +958,26 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
               {/* Image replace */}
               {sel.type === 'image' && (
                 <div>
-                  <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block" style={{ color: IG.textSecondary }}>Replace Image</label>
-                  <input type="file" accept="image/*" onChange={async e => {
-                    const f = e.target.files?.[0];
-                    if (!f) return;
-                    const url = await readFileAsDataURL(f);
-                    updateElement(sel.id, { src: url });
-                  }} className="w-full text-[11px]" style={{ color: IG.textSecondary }} />
+                  <label className="text-[10px] uppercase tracking-[1.5px] mb-1.5 block text-[var(--ink-muted)]">Replace Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async e => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      const url = await readFileAsDataURL(f);
+                      updateElement(sel.id, { src: url });
+                    }}
+                    className="w-full text-[11px] text-[var(--ink-muted)]"
+                  />
                   {photos.length > 0 && (
-                    <div className="grid grid-cols-3 gap-1 mt-2 max-h-32 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                    <div className="grid grid-cols-3 gap-1 mt-2 max-h-32 overflow-y-auto [scrollbar-width:thin]">
                       {photos.map((p, i) => (
-                        <button key={i} onClick={() => updateElement(sel.id, { src: p })}
-                          className="aspect-square rounded overflow-hidden transition-all"
-                          style={{ border: sel.src === p ? `2px solid ${IG.blue}` : `1px solid ${IG.border}` }}>
+                        <button
+                          key={i}
+                          onClick={() => updateElement(sel.id, { src: p })}
+                          className={`aspect-square overflow-hidden transition-all ${sel.src === p ? 'border-2 border-[var(--ink)]' : 'border border-[var(--rule)]'}`}
+                        >
                           <img src={p} alt="" className="w-full h-full object-cover" loading="lazy" />
                         </button>
                       ))}
@@ -930,7 +991,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
       </div>
 
       {/* ═══ Bottom Toolbar ═══ */}
-      <div className="flex items-center justify-center gap-1 h-14 px-4 shrink-0" style={{ borderTop: `1px solid ${IG.border}`, background: IG.bg }}>
+      <div className="flex items-center justify-center gap-1 h-14 px-4 shrink-0 border-t border-[var(--rule)] bg-white">
         {[
           { id: 'background' as ToolPanel, icon: Palette, label: 'Background' },
           { id: 'add' as ToolPanel, icon: Plus, label: 'Add' },
@@ -939,9 +1000,11 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
           { id: 'slides' as ToolPanel, icon: Layers, label: 'Slides' },
           { id: 'preview' as ToolPanel, icon: Eye, label: 'Preview' },
         ].map(t => (
-          <button key={t.id} onClick={() => { if (t.id === 'preview') { setShowIGPreview(true); setTool(null); } else setTool(tool === t.id ? null : t.id); }}
-            className="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg transition-colors"
-            style={{ color: tool === t.id ? IG.blue : IG.textSecondary, background: tool === t.id ? `${IG.blue}10` : 'transparent' }}>
+          <button
+            key={t.id}
+            onClick={() => { if (t.id === 'preview') { setShowIGPreview(true); setTool(null); } else setTool(tool === t.id ? null : t.id); }}
+            className={`flex flex-col items-center gap-0.5 px-4 py-1 transition-colors ${tool === t.id ? 'bg-[var(--wash-strong)] text-[var(--ink)]' : 'text-[var(--ink-muted)] hover:text-[var(--ink)]'}`}
+          >
             <t.icon className="h-5 w-5" />
             <span className="text-[10px] font-medium">{t.label}</span>
           </button>
@@ -950,52 +1013,63 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
       {/* ═══ Tool Panels ═══ */}
       {tool && (
-        <div className="absolute bottom-14 left-0 right-0 z-20" style={{ background: IG.bg, borderTop: `1px solid ${IG.border}`, maxHeight: '40vh', overflowY: 'auto' }}>
+        <div className="absolute bottom-14 left-0 right-0 z-20 bg-white border-t border-[var(--rule)] [max-height:40vh] overflow-y-auto">
           <div className="p-4 max-w-lg mx-auto">
             {tool === 'background' && (
               <div>
-                <p className="text-[11px] uppercase tracking-[2px] font-semibold mb-3" style={{ color: IG.textSecondary }}>Slide Background</p>
+                <p className="text-[11px] uppercase tracking-[2px] font-semibold mb-3 text-[var(--ink-muted)]">Slide Background</p>
                 <div className="flex gap-2 flex-wrap">
+                  {/* User-facing color palette — these ARE the content, not chrome. KEEP. */}
                   {['#EDEDED', '#FFFFFF', '#F5F0EB', '#000000', '#1a1a2e', '#0f3460', '#e94560', '#533483', '#2b2d42', '#d4a373'].map(c => (
-                    <button key={c} onClick={() => { pushHistory(); updateSlide(s => ({ ...s, bg: c })); }}
-                      className="h-10 w-10 rounded-lg transition-all"
-                      style={{ background: c, border: slide.bg === c ? `2px solid ${IG.blue}` : `1px solid ${IG.border}` }} />
+                    <button
+                      key={c}
+                      onClick={() => { pushHistory(); updateSlide(s => ({ ...s, bg: c })); }}
+                      className={`h-10 w-10 transition-all ${slide.bg === c ? 'border-2 border-[var(--ink)]' : 'border border-[var(--rule)]'}`}
+                      /* DYNAMIC: user-selectable theme color */
+                      style={{ background: c }}
+                    />
                   ))}
                 </div>
                 <div className="mt-3">
-                  <input type="color" value={slide.bg} onChange={e => updateSlide(s => ({ ...s, bg: e.target.value }))}
-                    className="w-full h-10 rounded-lg cursor-pointer" style={{ border: `1px solid ${IG.border}` }} />
+                  <input
+                    type="color"
+                    value={slide.bg}
+                    onChange={e => updateSlide(s => ({ ...s, bg: e.target.value }))}
+                    className="w-full h-10 cursor-pointer border border-[var(--rule)]"
+                  />
                 </div>
               </div>
             )}
 
             {tool === 'add' && (
               <div>
-                <p className="text-[11px] uppercase tracking-[2px] font-semibold mb-3" style={{ color: IG.textSecondary }}>Add Element</p>
+                <p className="text-[11px] uppercase tracking-[2px] font-semibold mb-3 text-[var(--ink-muted)]">Add Element</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 p-3 rounded-lg transition-colors"
-                    style={{ background: IG.surface, color: IG.text, border: `1px solid ${IG.border}` }}>
-                    <ImageIcon className="h-5 w-5" style={{ color: IG.blue }} />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 p-3 transition-colors bg-[var(--wash)] text-[var(--ink)] border border-[var(--rule)] hover:border-[var(--ink)]"
+                  >
+                    <ImageIcon className="h-5 w-5 text-[var(--ink)]" />
                     <span className="text-[13px]">Image</span>
                   </button>
-                  <button onClick={() => { addShape(); setTool(null); }}
-                    className="flex items-center gap-2 p-3 rounded-lg transition-colors"
-                    style={{ background: IG.surface, color: IG.text, border: `1px solid ${IG.border}` }}>
-                    <Square className="h-5 w-5" style={{ color: IG.blue }} />
+                  <button
+                    onClick={() => { addShape(); setTool(null); }}
+                    className="flex items-center gap-2 p-3 transition-colors bg-[var(--wash)] text-[var(--ink)] border border-[var(--rule)] hover:border-[var(--ink)]"
+                  >
+                    <Square className="h-5 w-5 text-[var(--ink)]" />
                     <span className="text-[13px]">Shape</span>
                   </button>
                 </div>
                 {photos.length > 0 && (
                   <div className="mt-3">
-                    <p className="text-[10px] uppercase tracking-[1.5px] mb-2" style={{ color: IG.textSecondary }}>Event Photos</p>
-                    <div className="grid grid-cols-5 gap-1 max-h-32 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                    <p className="text-[10px] uppercase tracking-[1.5px] mb-2 text-[var(--ink-muted)]">Event Photos</p>
+                    <div className="grid grid-cols-5 gap-1 max-h-32 overflow-y-auto [scrollbar-width:thin]">
                       {photos.map((p, i) => (
-                        <button key={i} onClick={() => addImage(p)}
-                          className="aspect-square rounded overflow-hidden transition-all"
-                          style={{ border: `1px solid ${IG.border}` }}
-                          onMouseEnter={e => { e.currentTarget.style.border = `2px solid ${IG.blue}`; }}
-                          onMouseLeave={e => { e.currentTarget.style.border = `1px solid ${IG.border}`; }}>
+                        <button
+                          key={i}
+                          onClick={() => addImage(p)}
+                          className="aspect-square overflow-hidden transition-all border border-[var(--rule)] hover:border-[var(--ink)]"
+                        >
                           <img src={p} alt="" className="w-full h-full object-cover" loading="lazy" />
                         </button>
                       ))}
@@ -1006,32 +1080,32 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
             )}
 
             {tool === 'layouts' && (
-              <div className="space-y-4" style={{ maxHeight: '60vh', overflowY: 'auto', scrollbarWidth: 'thin' }}>
+              <div className="space-y-4 [max-height:60vh] overflow-y-auto [scrollbar-width:thin]">
                 {LAYOUT_CATEGORIES.map(cat => {
                   const items = LAYOUT_TEMPLATES.filter(lt => lt.category === cat.key);
                   if (items.length === 0) return null;
                   return (
                     <div key={cat.key}>
-                      <p className="text-[10px] uppercase tracking-[2px] font-semibold mb-2" style={{ color: IG.textSecondary }}>{cat.label}</p>
+                      <p className="text-[10px] uppercase tracking-[2px] font-semibold mb-2 text-[var(--ink-muted)]">{cat.label}</p>
                       <div className="grid grid-cols-3 gap-1.5">
                         {items.map(lt => (
-                          <button key={lt.name} onClick={() => applyLayout(lt)}
-                            className="p-1.5 rounded-lg text-left transition-colors"
-                            style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = IG.blue; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = IG.border; }}
-                            title={lt.name}>
-                            <div className="w-full aspect-[4/5] rounded relative overflow-hidden" style={{ background: '#E8E8E8' }}>
+                          <button
+                            key={lt.name}
+                            onClick={() => applyLayout(lt)}
+                            className="p-1.5 text-left transition-colors bg-[var(--wash)] border border-[var(--rule)] text-[var(--ink)] hover:border-[var(--ink)]"
+                            title={lt.name}
+                          >
+                            <div className="w-full aspect-[4/5] relative overflow-hidden bg-[var(--wash-strong)]">
                               {lt.frames.map((f, i) => (
+                                /* DYNAMIC: per-frame computed position + size + preview-only HSL accent */
                                 <div key={i} className="absolute" style={{
                                   left: `${Math.max(0, f.x * 100) + 2}%`, top: `${Math.max(0, f.y * 100) + 2}%`,
                                   width: `${Math.min(f.w * 100, 100) - 4}%`, height: `${Math.min(f.h * 100, 100) - 4}%`,
-                                  background: `hsl(${210 + i * 40}, 35%, 72%)`,
-                                  borderRadius: 2,
+                                  background: `hsl(0, 0%, ${72 - i * 6}%)`,
                                 }} />
                               ))}
                             </div>
-                            <span className="text-[10px] block mt-1 truncate" style={{ color: IG.textSecondary }}>{lt.name}</span>
+                            <span className="text-[10px] block mt-1 truncate text-[var(--ink-muted)]">{lt.name}</span>
                           </button>
                         ))}
                       </div>
@@ -1041,19 +1115,19 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
                 {/* Multi-slide continuation layouts */}
                 <div>
-                  <p className="text-[10px] uppercase tracking-[2px] font-semibold mb-2" style={{ color: IG.textSecondary }}>
+                  <p className="text-[10px] uppercase tracking-[2px] font-semibold mb-2 text-[var(--ink-muted)]">
                     Multi-Slide Continuation
                   </p>
                   <div className="space-y-1.5">
                     {MULTI_SLIDE_LAYOUTS.map(ml => (
-                      <button key={ml.name} onClick={() => applyMultiSlideLayout(ml)}
-                        className="w-full p-2 rounded-lg text-left transition-colors"
-                        style={{ background: IG.surface, border: `1px solid ${IG.border}`, color: IG.text }}
-                        onMouseEnter={e => { e.currentTarget.style.borderColor = IG.blue; }}
-                        onMouseLeave={e => { e.currentTarget.style.borderColor = IG.border; }}>
+                      <button
+                        key={ml.name}
+                        onClick={() => applyMultiSlideLayout(ml)}
+                        className="w-full p-2 text-left transition-colors bg-[var(--wash)] border border-[var(--rule)] text-[var(--ink)] hover:border-[var(--ink)]"
+                      >
                         <div className="flex gap-1 mb-1.5">
                           {ml.slides.map((sl, si) => (
-                            <div key={si} className="flex-1 aspect-[4/5] rounded relative overflow-hidden" style={{ background: '#E8E8E8' }}>
+                            <div key={si} className="flex-1 aspect-[4/5] relative overflow-hidden bg-[var(--wash-strong)]">
                               {sl.frames.map((f, fi) => {
                                 const clampedX = Math.max(0, Math.min(f.x * 100, 100));
                                 const clampedY = Math.max(0, Math.min(f.y * 100, 100));
@@ -1061,11 +1135,11 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                                 const clampedH = Math.min(f.h * 100, 100 - clampedY);
                                 if (clampedW <= 0 || clampedH <= 0) return null;
                                 return (
+                                  /* DYNAMIC: per-frame computed dims */
                                   <div key={fi} className="absolute" style={{
                                     left: `${clampedX + 3}%`, top: `${clampedY + 3}%`,
                                     width: `${clampedW - 6}%`, height: `${clampedH - 6}%`,
-                                    background: `hsl(${200 + fi * 50}, 40%, 68%)`,
-                                    borderRadius: 1,
+                                    background: `hsl(0, 0%, ${68 - fi * 6}%)`,
                                   }} />
                                 );
                               })}
@@ -1073,7 +1147,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
                           ))}
                         </div>
                         <span className="text-[11px] font-medium block">{ml.name}</span>
-                        <span className="text-[9px] block" style={{ color: IG.textSecondary }}>{ml.description}</span>
+                        <span className="text-[9px] block text-[var(--ink-muted)]">{ml.description}</span>
                       </button>
                     ))}
                   </div>
@@ -1083,22 +1157,25 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
             {tool === 'ratio' && (
               <div>
-                <p className="text-[11px] uppercase tracking-[2px] font-semibold mb-3" style={{ color: IG.textSecondary }}>Canvas Ratio</p>
+                <p className="text-[11px] uppercase tracking-[2px] font-semibold mb-3 text-[var(--ink-muted)]">Canvas Ratio</p>
                 <div className="grid grid-cols-2 gap-2">
                   {(Object.keys(RATIO_DIMS) as Ratio[]).map(r => {
                     const d = RATIO_DIMS[r];
                     return (
-                      <button key={r} onClick={() => { setRatio(r); setTool(null); }}
-                        className="p-3 rounded-lg flex items-center gap-3 transition-colors"
-                        style={{ background: ratio === r ? `${IG.blue}15` : IG.surface, border: `1px solid ${ratio === r ? IG.blue : IG.border}`, color: IG.text }}>
-                        <div className="rounded" style={{
+                      <button
+                        key={r}
+                        onClick={() => { setRatio(r); setTool(null); }}
+                        className={`p-3 flex items-center gap-3 transition-colors text-[var(--ink)] ${ratio === r ? 'bg-[var(--wash-strong)] border border-[var(--ink)]' : 'bg-[var(--wash)] border border-[var(--rule)]'}`}
+                      >
+                        {/* DYNAMIC: ratio icon dims + active border color */}
+                        <div style={{
                           width: r === '9:16' ? 16 : r === '16:9' ? 32 : r === '1:1' ? 24 : 20,
                           height: r === '9:16' ? 28 : r === '16:9' ? 18 : r === '1:1' ? 24 : 25,
-                          border: `2px solid ${ratio === r ? IG.blue : IG.textSecondary}`,
+                          border: `2px solid ${ratio === r ? 'var(--ink)' : 'var(--ink-muted)'}`,
                         }} />
                         <div>
                           <p className="text-[13px] font-medium">{r}</p>
-                          <p className="text-[10px]" style={{ color: IG.textSecondary }}>{d.w}×{d.h}</p>
+                          <p className="text-[10px] text-[var(--ink-muted)]">{d.w}×{d.h}</p>
                         </div>
                       </button>
                     );
@@ -1109,32 +1186,39 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
             {tool === 'slides' && (
               <div>
-                <p className="text-[11px] uppercase tracking-[2px] font-semibold mb-3" style={{ color: IG.textSecondary }}>Slide Management</p>
+                <p className="text-[11px] uppercase tracking-[2px] font-semibold mb-3 text-[var(--ink-muted)]">Slide Management</p>
                 <div className="flex gap-2 mb-3">
-                  <button onClick={addSlide} className="flex-1 py-2 rounded-lg text-[12px] font-medium flex items-center justify-center gap-1.5"
-                    style={{ background: IG.blue, color: '#fff' }}>
+                  <button
+                    onClick={addSlide}
+                    className="flex-1 py-2 text-[12px] font-medium flex items-center justify-center gap-1.5 bg-[var(--ink)] text-white hover:opacity-90"
+                  >
                     <Plus className="h-3.5 w-3.5" /> Add
                   </button>
-                  <button onClick={dupSlide} className="flex-1 py-2 rounded-lg text-[12px] font-medium flex items-center justify-center gap-1.5"
-                    style={{ background: IG.surface, color: IG.text, border: `1px solid ${IG.border}` }}>
+                  <button
+                    onClick={dupSlide}
+                    className="flex-1 py-2 text-[12px] font-medium flex items-center justify-center gap-1.5 bg-[var(--wash)] text-[var(--ink)] border border-[var(--rule)] hover:border-[var(--ink)]"
+                  >
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </button>
-                  <button onClick={delSlide} disabled={slides.length <= 1}
-                    className="flex-1 py-2 rounded-lg text-[12px] font-medium flex items-center justify-center gap-1.5 disabled:opacity-30"
-                    style={{ background: IG.surface, color: '#ED4956', border: `1px solid ${IG.border}` }}>
+                  <button
+                    onClick={delSlide}
+                    disabled={slides.length <= 1}
+                    className="flex-1 py-2 text-[12px] font-medium flex items-center justify-center gap-1.5 disabled:opacity-30 bg-[var(--wash)] text-[var(--alert)] border border-[var(--rule)] hover:border-[var(--alert)]"
+                  >
                     <Trash2 className="h-3.5 w-3.5" /> Delete
                   </button>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {slides.map((s, i) => (
-                    <button key={s.id} onClick={() => { setActiveIdx(i); setTool(null); }}
-                      className="rounded-lg overflow-hidden transition-all"
-                      style={{
-                        width: 64, height: 80, background: s.bg,
-                        border: i === activeIdx ? `2px solid ${IG.blue}` : `1px solid ${IG.border}`,
-                      }}>
+                    <button
+                      key={s.id}
+                      onClick={() => { setActiveIdx(i); setTool(null); }}
+                      className={`overflow-hidden transition-all w-16 h-20 ${i === activeIdx ? 'border-2 border-[var(--ink)]' : 'border border-[var(--rule)]'}`}
+                      /* DYNAMIC: user-controlled slide bg */
+                      style={{ background: s.bg }}
+                    >
                       <div className="w-full h-full flex items-center justify-center">
-                        <span style={{ fontSize: 14, color: IG.textSecondary, fontWeight: 700 }}>{i + 1}</span>
+                        <span className="text-sm font-bold text-[var(--ink-muted)]">{i + 1}</span>
                       </div>
                     </button>
                   ))}
@@ -1151,7 +1235,9 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
   );
 }
 
-/* ─── Instagram Preview Modal (Light UI) ─── */
+/* ─── Instagram Preview Modal (Light UI)
+   This block is intentionally NOT migrated to MirrorAI tokens.
+   It is a faithful Instagram preview — content, not chrome. ─── */
 
 function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: number; h: number }; onClose: () => void }) {
   const [idx, setIdx] = useState(0);
@@ -1160,7 +1246,7 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
   const username = 'photographer';
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.4)', fontFamily: IG.font }}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.4)', fontFamily: IG_PREVIEW.font }}>
       <button onClick={onClose} className="absolute top-4 right-4 z-[70] h-9 w-9 rounded-full flex items-center justify-center"
         style={{ background: 'rgba(0,0,0,0.5)', color: '#fff' }}>
         <X className="h-4 w-4" />
@@ -1171,24 +1257,26 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
 
         {/* Top bar */}
         <div className="flex items-center gap-3 px-3 py-2.5" style={{ borderBottom: '1px solid #EFEFEF' }}>
+          {/* Instagram brand gradient ring — KEEP */}
           <div className="h-8 w-8 rounded-full p-[2px]" style={{ background: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF, #515BD4)' }}>
             <div className="h-full w-full rounded-full flex items-center justify-center" style={{ background: '#fff' }}>
-              <span style={{ color: '#262626', fontSize: '9px', fontWeight: 700 }}>{username[0].toUpperCase()}</span>
+              <span style={{ color: IG_PREVIEW.text, fontSize: '9px', fontWeight: 700 }}>{username[0].toUpperCase()}</span>
             </div>
           </div>
-          <p className="flex-1" style={{ color: '#262626', fontSize: 14, fontWeight: 600 }}>{username}</p>
-          <MoreHorizontal className="h-5 w-5" style={{ color: '#262626' }} />
+          <p className="flex-1" style={{ color: IG_PREVIEW.text, fontSize: 14, fontWeight: 600 }}>{username}</p>
+          <MoreHorizontal className="h-5 w-5" style={{ color: IG_PREVIEW.text }} />
         </div>
 
-        {/* Post area */}
+        {/* Post area — DYNAMIC: aspect ratio from canvas dims */}
         <div className="relative w-full" style={{ aspectRatio: `${dims.w}/${dims.h}`, background: '#FAFAFA' }}>
           {slides[idx] && <SlidePreviewRender slide={slides[idx]} dims={dims} />}
 
           {slides.length > 1 && (
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
               {slides.map((_, i) => (
+                /* DYNAMIC: active dot size + Instagram brand blue */
                 <button key={i} onClick={() => setIdx(i)} className="rounded-full transition-all"
-                  style={{ width: i === idx ? 6 : 5, height: i === idx ? 6 : 5, background: i === idx ? '#0095F6' : 'rgba(0,0,0,0.15)' }} />
+                  style={{ width: i === idx ? 6 : 5, height: i === idx ? 6 : 5, background: i === idx ? IG_PREVIEW.blue : 'rgba(0,0,0,0.15)' }} />
               ))}
             </div>
           )}
@@ -1216,21 +1304,21 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
         {/* Bottom actions */}
         <div className="flex items-center px-3 pt-2.5 pb-1">
           <div className="flex items-center gap-4 flex-1">
-            <button onClick={() => setLiked(!liked)}><Heart className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : ''}`} style={liked ? {} : { color: '#262626' }} /></button>
-            <MessageCircle className="h-6 w-6" style={{ color: '#262626', transform: 'scaleX(-1)' }} />
-            <Send className="h-5 w-5 -rotate-12" style={{ color: '#262626' }} />
+            <button onClick={() => setLiked(!liked)}><Heart className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : ''}`} style={liked ? {} : { color: IG_PREVIEW.text }} /></button>
+            <MessageCircle className="h-6 w-6" style={{ color: IG_PREVIEW.text, transform: 'scaleX(-1)' }} />
+            <Send className="h-5 w-5 -rotate-12" style={{ color: IG_PREVIEW.text }} />
           </div>
-          <button onClick={() => setSaved(!saved)}><Bookmark className={`h-6 w-6 ${saved ? 'fill-black' : ''}`} style={{ color: '#262626' }} /></button>
+          <button onClick={() => setSaved(!saved)}><Bookmark className={`h-6 w-6 ${saved ? 'fill-black' : ''}`} style={{ color: IG_PREVIEW.text }} /></button>
         </div>
 
         {/* Likes */}
         <div className="px-3 pt-1 pb-1">
-          <p style={{ color: '#262626', fontSize: 14, fontWeight: 600 }}>{liked ? '1 like' : '0 likes'}</p>
+          <p style={{ color: IG_PREVIEW.text, fontSize: 14, fontWeight: 600 }}>{liked ? '1 like' : '0 likes'}</p>
         </div>
 
         {/* Caption */}
         <div className="px-3 pb-4">
-          <p style={{ color: '#262626', fontSize: 14, lineHeight: '18px' }}>
+          <p style={{ color: IG_PREVIEW.text, fontSize: 14, lineHeight: '18px' }}>
             <span style={{ fontWeight: 600, marginRight: 6 }}>{username}</span>
             Beautiful carousel story
           </p>
@@ -1244,22 +1332,24 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
 
 function SlidePreviewRender({ slide, dims }: { slide: Slide; dims: { w: number; h: number } }) {
   return (
+    /* DYNAMIC: user-controlled slide bg */
     <div className="w-full h-full relative overflow-hidden" style={{ background: slide.bg }}>
       {slide.elements.filter(e => e.type !== 'text').map(el => (
-        <div key={el.id} className="absolute" style={{
+        /* DYNAMIC: per-element computed position/size/rotation */
+        <div key={el.id} className="absolute overflow-hidden" style={{
           left: `${(el.x / dims.w) * 100}%`,
           top: `${(el.y / dims.h) * 100}%`,
           width: `${(el.width / dims.w) * 100}%`,
           height: `${(el.height / dims.h) * 100}%`,
           transform: `rotate(${el.rotation}deg)`,
-          overflow: 'hidden',
-          borderRadius: el.type === 'shape' && el.shapeType === 'circle' ? '50%' : 4,
         }}>
           {el.type === 'image' && el.src && (
+            /* DYNAMIC: per-element objectFit */
             <img src={el.src} alt="" className="w-full h-full" style={{ objectFit: el.objectFit || 'cover' }} />
           )}
           {el.type === 'shape' && (
-            <div className="w-full h-full" style={{ background: el.fill, borderRadius: el.shapeType === 'circle' ? '50%' : 4 }} />
+            /* DYNAMIC: user-controlled shape fill + circle radius */
+            <div className="w-full h-full" style={{ background: el.fill, borderRadius: el.shapeType === 'circle' ? '50%' : 0 }} />
           )}
         </div>
       ))}
