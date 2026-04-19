@@ -20,7 +20,7 @@ import {
   GripVertical, Monitor, Smartphone, Tablet, Code, Zap, Layout,
   Camera, Image, BookOpen, BarChart3, Users, Globe, CheckSquare,
   Scan, RefreshCcw, Grid3X3, Book, Home, Bell, HardDrive,
-  FileText, Calendar, Activity, Sparkles, Lock, Unlock,
+  FileText, Calendar, Activity, Sparkles, Lock, Unlock, ArrowRight,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, any> = {
@@ -1091,8 +1091,8 @@ export default function SuperAdminPlatformBuilder() {
                 <div className="text-center py-6 text-muted-foreground">
                   <Grid3X3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">Manage via Grid Builder Manager</p>
-                  <Button variant="link" size="sm" className="mt-2" onClick={() => window.location.href = '/super-admin/grid-manager'}>
-                    Open Grid Manager →
+                  <Button variant="link" size="sm" className="mt-2 gap-1" onClick={() => window.location.href = '/super-admin/grid-manager'}>
+                    Open Grid Manager <ArrowRight className="h-3 w-3" strokeWidth={1.5} />
                   </Button>
                 </div>
               </CardContent>
@@ -1107,8 +1107,8 @@ export default function SuperAdminPlatformBuilder() {
                 <div className="text-center py-6 text-muted-foreground">
                   <Globe className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">Manage via Templates page</p>
-                  <Button variant="link" size="sm" className="mt-2" onClick={() => window.location.href = '/super-admin/templates'}>
-                    Open Templates →
+                  <Button variant="link" size="sm" className="mt-2 gap-1" onClick={() => window.location.href = '/super-admin/templates'}>
+                    Open Templates <ArrowRight className="h-3 w-3" strokeWidth={1.5} />
                   </Button>
                 </div>
               </CardContent>

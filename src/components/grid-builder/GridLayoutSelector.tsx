@@ -4,16 +4,17 @@ import { useDeviceDetect } from "@/hooks/use-device-detect";
 import { GRID_LAYOUTS, type GridLayout } from "./types";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Square, Grid3X3, LayoutGrid, Sparkles } from "lucide-react";
 
 interface Props {
   onSelect: (layout: GridLayout) => void;
 }
 
 const CATEGORIES = [
-  { key: "single", label: "Single", emoji: "◻" },
-  { key: "basic", label: "Grid", emoji: "⊞" },
-  { key: "instagram", label: "Carousel", emoji: "◈" },
-  { key: "creative", label: "Creative", emoji: "✦" },
+  { key: "single", label: "Single", Icon: Square },
+  { key: "basic", label: "Grid", Icon: Grid3X3 },
+  { key: "instagram", label: "Carousel", Icon: LayoutGrid },
+  { key: "creative", label: "Creative", Icon: Sparkles },
 ] as const;
 
 function LayoutPreview({ layout }: { layout: GridLayout }) {
@@ -80,7 +81,7 @@ export default function GridLayoutSelector({ onSelect }: Props) {
                 : "text-muted-foreground active:bg-muted/40 hover:text-foreground"
             )}
           >
-            <span className={isMobile ? "text-[13px]" : "text-[11px]"}>{c.emoji}</span>
+            <c.Icon size={isMobile ? 14 : 12} strokeWidth={1.5} />
             <span>{c.label}</span>
           </button>
         ))}

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Send, Copy, Check, X, Sparkles, Phone, Loader2, Edit3 } from "lucide-react";
+import { MessageSquare, Send, Copy, Check, X, Sparkles, Phone, Loader2, Edit3, Zap } from "lucide-react";
 import { useAIReplyDrafts, type AIReplyDraft } from "@/hooks/use-entiran-business";
 import { toast } from "@/components/ui/sonner";
 
@@ -43,21 +43,22 @@ export function AIReplyAssistant() {
 
   return (
     <>
-      {/* ⚡ FLOAT BUTTON */}
+      {/* FLOAT BUTTON */}
       <button
         onClick={() => setOpen(!open)}
+        aria-label="Open Daan AI"
         className="fixed bottom-6 right-6 z-50 bg-[#C9A84C] text-black p-4 rounded-full shadow-[0_0_20px_rgba(201,168,76,0.4)] hover:scale-105 active:scale-95 transition-all"
       >
-        ⚡
+        <Zap size={20} strokeWidth={1.5} />
       </button>
 
-      {/* ⚡ CHAT PANEL */}
+      {/* CHAT PANEL */}
       {open && (
         <div className="fixed bottom-20 right-6 w-[340px] max-h-[75vh] bg-[#0A0A0A] border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50">
           {/* HEADER */}
           <div className="p-3 border-b border-zinc-800 flex justify-between items-center">
             <div>
-              <p className="text-sm font-semibold text-white flex items-center gap-1">⚡ Daan AI</p>
+              <p className="text-sm font-semibold text-white flex items-center gap-1.5"><Zap size={14} strokeWidth={1.5} /> Daan AI</p>
               <p className="text-[10px] text-zinc-400">Instant smart replies</p>
             </div>
             <button onClick={() => setOpen(false)} className="text-zinc-400 hover:text-white">

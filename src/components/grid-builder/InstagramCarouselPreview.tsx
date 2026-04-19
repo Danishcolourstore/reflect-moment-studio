@@ -54,9 +54,9 @@ function StoryPreview({ images, onClose }: { images: string[]; onClose: () => vo
       {showSafeZones && (
         <div className="absolute inset-0 pointer-events-none z-30">
           <div className="absolute top-0 left-0 right-0 bg-red-500/15 border-b border-dashed border-red-400/50" style={{ height: '13%' }} />
-          <div className="absolute left-2 text-[8px] text-red-400/80 font-mono uppercase tracking-widest" style={{ top: '13.5%' }}>↑ top safe zone</div>
+          <div className="absolute left-2 text-[8px] text-red-400/80 font-mono uppercase tracking-widest" style={{ top: '13.5%' }}>top safe zone</div>
           <div className="absolute bottom-0 left-0 right-0 bg-red-500/15 border-t border-dashed border-red-400/50" style={{ height: '18.2%' }} />
-          <div className="absolute right-2 text-[8px] text-red-400/80 font-mono uppercase tracking-widest" style={{ bottom: '18.7%' }}>↓ bottom safe zone</div>
+          <div className="absolute right-2 text-[8px] text-red-400/80 font-mono uppercase tracking-widest" style={{ bottom: '18.7%' }}>bottom safe zone</div>
           <div className="absolute border border-dotted border-green-400/30" style={{ top: '13%', left: '5%', right: '5%', bottom: '18.2%' }} />
         </div>
       )}

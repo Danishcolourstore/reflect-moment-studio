@@ -104,10 +104,10 @@ interface AgentChatProps { selectedProvider: string; getRelevantContext: (text: 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 
 const SUGGESTIONS = [
-  { icon: '🏗️', label: 'Build a feature', prompt: 'Create a complete client review feature for galleries with database, API, page, components, and documentation.' },
-  { icon: '🐛', label: 'Debug an error', prompt: 'I have an error in my code. Help me analyze the stack trace, find the root cause, and suggest a fix.' },
-  { icon: '📊', label: 'Design database', prompt: 'Help me design a database schema for a new feature.' },
-  { icon: '🔍', label: 'Fix broken imports', prompt: 'Analyze my project for missing imports, broken routes, or database query errors and suggest fixes.' },
+  { Icon: Wrench, label: 'Build a feature', prompt: 'Create a complete client review feature for galleries with database, API, page, components, and documentation.' },
+  { Icon: Bug, label: 'Debug an error', prompt: 'I have an error in my code. Help me analyze the stack trace, find the root cause, and suggest a fix.' },
+  { Icon: Database, label: 'Design database', prompt: 'Help me design a database schema for a new feature.' },
+  { Icon: Search, label: 'Fix broken imports', prompt: 'Analyze my project for missing imports, broken routes, or database query errors and suggest fixes.' },
 ];
 
 const getToolDef = (name: string): ToolDefinition | undefined => TOOL_REGISTRY.find(t => t.name === name);

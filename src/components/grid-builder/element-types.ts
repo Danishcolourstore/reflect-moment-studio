@@ -2,6 +2,8 @@
  * Design element types for shape overlays in Grid Builder.
  */
 
+import { Square, Circle, Minus, Tag, type LucideIcon } from 'lucide-react';
+
 export type ShapeType = 'rectangle' | 'circle' | 'line' | 'divider' | 'badge';
 
 export interface DesignElement {
@@ -42,10 +44,10 @@ export function createDesignElement(type: ShapeType, overrides?: Partial<DesignE
   return { ...base, ...overrides };
 }
 
-export const SHAPE_PRESETS: { type: ShapeType; label: string; icon: string }[] = [
-  { type: 'rectangle', label: 'Rectangle', icon: '▬' },
-  { type: 'circle', label: 'Circle', icon: '●' },
-  { type: 'line', label: 'Line', icon: '—' },
-  { type: 'divider', label: 'Divider', icon: '┄' },
-  { type: 'badge', label: 'Badge', icon: '◻' },
+export const SHAPE_PRESETS: { type: ShapeType; label: string; Icon: LucideIcon }[] = [
+  { type: 'rectangle', label: 'Rectangle', Icon: Square },
+  { type: 'circle', label: 'Circle', Icon: Circle },
+  { type: 'line', label: 'Line', Icon: Minus },
+  { type: 'divider', label: 'Divider', Icon: Minus },
+  { type: 'badge', label: 'Badge', Icon: Tag },
 ];

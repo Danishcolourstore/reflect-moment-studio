@@ -255,7 +255,7 @@ export default function IntelligenceHome() {
                 transition: "background 0.3s",
               }}
             >
-              REAL INTELLIGENCE →
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>REAL INTELLIGENCE <ArrowRight size={14} strokeWidth={1.5} /></span>
             </button>
           )}
           {mob && <div style={{ width: 20 }} />}
@@ -336,7 +336,7 @@ export default function IntelligenceHome() {
             cursor: "pointer",
           }}
         >
-          Enter Real Intelligence →
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Enter Real Intelligence <ArrowRight size={14} strokeWidth={1.5} /></span>
         </button>
       )}
 
@@ -486,7 +486,7 @@ export default function IntelligenceHome() {
                       {n.description}
                     </p>
                     <div style={{ fontFamily: mont, fontSize: 11, fontWeight: 600, color: "#000000", marginTop: 8 }}>
-                      Read Article →
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Read Article <ArrowRight size={12} strokeWidth={1.5} /></span>
                     </div>
                   </div>
                 </a>
@@ -564,7 +564,7 @@ export default function IntelligenceHome() {
                       cursor: "pointer",
                     }}
                   >
-                    Read Story →
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Read Story <ArrowRight size={12} strokeWidth={1.5} /></span>
                   </div>
                 </div>
               </div>

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard, Users, Camera, HardDrive, DollarSign,
-  Mail, Activity, Settings, LogOut, Menu, X, Layers,
+  Mail, Activity, Settings, LogOut, Menu, X, Layers, AlertTriangle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -126,8 +126,8 @@ export default function AdminLayout() {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {maintenance && (
-          <div className="bg-destructive text-destructive-foreground text-center text-xs py-1.5 font-medium">
-            ⚠️ Maintenance mode is active
+          <div className="bg-destructive text-destructive-foreground text-center text-xs py-1.5 font-medium inline-flex items-center justify-center gap-1.5 w-full">
+            <AlertTriangle size={12} strokeWidth={1.5} /> Maintenance mode is active
           </div>
         )}
 

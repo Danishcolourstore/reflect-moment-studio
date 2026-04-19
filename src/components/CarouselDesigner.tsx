@@ -1232,7 +1232,7 @@ function IGPreview({ slides, dims, onClose }: { slides: Slide[]; dims: { w: numb
         <div className="px-3 pb-4">
           <p style={{ color: '#262626', fontSize: 14, lineHeight: '18px' }}>
             <span style={{ fontWeight: 600, marginRight: 6 }}>{username}</span>
-            Beautiful carousel story ✨
+            Beautiful carousel story
           </p>
         </div>
       </div>

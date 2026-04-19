@@ -1,5 +1,6 @@
 import { usePageContext } from '@/hooks/use-page-context';
 import { getBotLanguageLabel } from './LanguageSelector';
+import { Globe } from 'lucide-react';
 
 const CHIPS: Record<string, string[]> = {
   dashboard: [
@@ -89,7 +90,7 @@ export function SuggestionChips({ onChipClick, onLanguageClick }: SuggestionChip
         }}
         aria-label="Choose language"
       >
-        🌐 {langLabel}
+        <Globe size={12} strokeWidth={1.5} /> {langLabel}
       </button>
 
       {chips.map(chip => (

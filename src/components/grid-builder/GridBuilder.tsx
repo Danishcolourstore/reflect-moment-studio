@@ -72,7 +72,7 @@ export default function GridBuilder({ onClose }: Props) {
             {[
               { active: showAISuggest, onClick: () => { setShowAISuggest(!showAISuggest); setShowCaption(false); }, icon: <LayoutGrid className="h-3.5 w-3.5" />, label: 'AI', ariaLabel: 'AI Layout' },
               { active: showCaption, onClick: () => { setShowCaption(!showCaption); setShowAISuggest(false); }, icon: <MessageSquare className="h-3.5 w-3.5" />, label: 'Cap', ariaLabel: 'Caption' },
-              { active: false, onClick: () => setShowInspire(true), icon: <Sparkles className="h-3.5 w-3.5" />, label: '✨', ariaLabel: 'Inspire' },
+              { active: false, onClick: () => setShowInspire(true), icon: <Sparkles className="h-3.5 w-3.5" />, label: '', ariaLabel: 'Inspire' },
             ].map((btn) => (
               <button
                 key={btn.ariaLabel}

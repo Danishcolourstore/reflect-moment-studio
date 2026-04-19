@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { fonts } from "@/styles/design-tokens";
+import { X, Image as ImageIcon } from "lucide-react";
 
 interface PostData {
   id: string;
@@ -162,7 +163,8 @@ export default function EditFeedPostModal({ open, onOpenChange, post, onSaved }:
                           border: "none", cursor: "pointer", fontSize: 11,
                           display: "flex", alignItems: "center", justifyContent: "center",
                         }}
-                      >✕</button>
+                        aria-label="Remove image"
+                      ><X size={12} strokeWidth={1.5} /></button>
                     </div>
                   ))}
                 </div>
@@ -174,7 +176,7 @@ export default function EditFeedPostModal({ open, onOpenChange, post, onSaved }:
                 color: "#666666", border: "1px dashed #DDDDDD", borderRadius: 8,
                 cursor: "pointer", justifyContent: "center", background: "#FAFAFA",
               }}>
-                🖼️ Add More Images
+                <ImageIcon size={16} strokeWidth={1.5} /> Add More Images
                 <input type="file" accept="image/*" multiple onChange={handleGalleryImages} style={{ display: "none" }} />
               </label>
             </>

@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react';
-import { Sparkles, Copy, Check, Hash, FileText } from 'lucide-react';
+import { Sparkles, Copy, Check, Hash, FileText, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -60,7 +60,7 @@ export default function AICaptionGenerator({ photoCount = 1, onClose }: Props) {
           <h3 className="text-sm font-semibold text-foreground">AI Caption Generator</h3>
         </div>
         {onClose && (
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground" aria-label="Close"><X size={16} strokeWidth={1.5} /></button>
         )}
       </div>
 

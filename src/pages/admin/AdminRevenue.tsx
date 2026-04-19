@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { format, subMonths } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, Users, TrendingUp } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, Lightbulb } from 'lucide-react';
 
 const MONTHLY_PRICE = 999;
 
@@ -114,8 +114,9 @@ export default function AdminRevenue() {
       {/* Note card */}
       <Card className="bg-muted border-border">
         <CardContent className="p-5">
-          <p className="text-sm text-muted-foreground">
-            💡 <strong>Note:</strong> Payment gateway integration coming soon. Actual transaction data will appear here after Razorpay integration.
+          <p className="text-sm text-muted-foreground inline-flex items-start gap-2">
+            <Lightbulb size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+            <span><strong>Note:</strong> Payment gateway integration coming soon. Actual transaction data will appear here after Razorpay integration.</span>
           </p>
         </CardContent>
       </Card>
