@@ -1,59 +1,65 @@
 /**
- * MirrorAI Design System — Luxury Editorial
- * Single source of truth for all visual tokens.
+ * MirrorAI Design Tokens — Pixieset-Minimal Direction
+ *
+ * The product has ONE color: black. No gold, no warm paper, no second accent.
+ * Cool neutral palette. Photography-first chrome.
  *
  * RULES (locked):
- *   - One gold only: #B8953F. Never #B8953F.
- *   - Body muted text: #6B6962 (AA-passing). Never #6B6962.
- *   - 11-value spacing scale. No ad-hoc values.
- *   - Zero radius except: avatar/icon-circle (full), toast (2), status dot (full).
+ *   - No gold. Anywhere. Status, dots, active states all use --ink.
+ *   - No warm whites. Paper is #FFFFFF.
+ *   - Spacing scale matches tailwind.config.ts exactly.
+ *   - Radius: 0 everywhere. Exception: avatar / icon-button (full).
+ *   - Cormorant restricted to wordmark, couple names, chapter markers,
+ *     greeting lines. Everything else is DM Sans.
  *
- * NOTE: The legacy aliases (`textDim`, `goldDim`, `goldSoft`, `brandGold`)
- * have been removed. Use `inkMuted` and `gold` directly. Aliases are how
- * the old palette leaked back in — never reintroduce them.
+ * Legacy aliases (`gold`, `goldDim`, `brandGold`, `borderActive`) are mapped
+ * to neutral tokens so old call-sites don't crash. They render as ink/rule
+ * and should be migrated out over time.
  */
 
 export const colors = {
-  // Surfaces
-  paper: "#FAFAF8",         // app background
-  surface: "#FFFFFF",       // cards, inputs
-  wash: "#F4F3F0",          // hover surface, skeleton base
-  rule: "#E8E6E1",          // borders, dividers
-  ruleStrong: "#D6D3CC",    // hover borders, focus
+  // Surfaces — cool white, not warm
+  paper: "#FFFFFF",
+  surface: "#FFFFFF",
+  wash: "#FCFCFC",
+  washStrong: "#F7F7F7",
+  rule: "#ECECEC",
+  ruleStrong: "#D4D4D4",
 
   // Ink (text)
-  ink: "#1A1917",           // primary
-  inkMuted: "#6B6962",      // secondary (AA on white)
-  inkWhisper: "#A8A6A0",    // placeholder/tertiary only
+  ink: "#1A1A1A",
+  inkMuted: "#6E6E6E",
+  inkWhisper: "#A8A8A8",
 
-  // The one gold
-  gold: "#B8953F",
-  goldInk: "#8B6F2E",       // hover/pressed
-
-  // Semantic
-  alert: "#A3553A",
-  go: "#5C7C5A",
+  // Signals — barely used
+  alert: "#8B3A2A",
+  go: "#3D5A3A",
 
   // Dark surfaces — imagery-first only (Cheetah live, lightbox)
   obsidian: "#0A0A0A",
   obsidianInk: "#F5F5F5",
 
-  // ─── Minimal legacy aliases retained for non-token consumers only.
-  // Do not add more. Do not reintroduce textDim / goldDim / brandGold.
-  bg: "#FAFAF8",
-  border: "#E8E6E1",
-  borderHover: "#D6D3CC",
-  borderActive: "#B8953F",
-  hover: "#F4F3F0",
-  text: "#1A1917",
-  textMuted: "#A8A6A0",
+  // ─── Legacy aliases (do not use in new code) ────────────────────────────
+  // Old gold references resolve to ink so the UI stays coherent.
+  // Old warm-paper references resolve to white.
+  bg: "#FFFFFF",
+  border: "#ECECEC",
+  borderHover: "#D4D4D4",
+  borderActive: "#1A1A1A",   // was gold; now ink
+  hover: "#FCFCFC",
+  text: "#1A1A1A",
+  textMuted: "#A8A8A8",
   white: "#FFFFFF",
-  black: "#1A1917",
-  danger: "#A3553A",
-  success: "#5C7C5A",
+  black: "#1A1A1A",
+  danger: "#8B3A2A",
+  success: "#3D5A3A",
   darkBg: "#0A0A0A",
   darkText: "#F5F5F5",
   darkTextDim: "#6B6B6B",
+
+  // Gold aliases — neutralized to ink. Kept only so legacy call-sites compile.
+  gold: "#1A1A1A",
+  goldInk: "#1A1A1A",
 } as const;
 
 export const fonts = {
@@ -61,37 +67,43 @@ export const fonts = {
   body: "'DM Sans', system-ui, sans-serif",
 } as const;
 
-/** 11-value spacing scale. The only legal values. */
+/** Spacing scale — must match tailwind.config.ts theme.spacing exactly. */
 export const space = {
-  "2": 2,
-  "4": 4,
-  "8": 8,
-  "12": 12,
-  "16": 16,
-  "24": 24,
-  "32": 32,
-  "48": 48,
-  "64": 64,
-  "96": 96,
-  "128": 128,
+  "0": 0,
+  "px": 1,
+  "0.5": 2,
+  "1": 4,
+  "2": 8,
+  "3": 12,
+  "4": 16,
+  "5": 20,
+  "6": 24,
+  "7": 28,
+  "8": 32,
+  "9": 36,
+  "10": 40,
+  "11": 44,
+  "12": 48,
+  "14": 56,
+  "16": 64,
+  "24": 96,
 } as const;
 
 export const spacing = {
-  pageMobile: "24px",
-  pageDesktop: "64px",
-  sectionMobile: "48px",
-  sectionDesktop: "64px",
-  sectionMajor: "96px",
-  cardPad: "24px",
-  fieldStack: "20px",
-  labelInput: "8px",
-  iconText: "12px",
-  rowMin: "56px",
+  pageMobile: "20px",
+  pageDesktop: "32px",
+  sectionMobile: "20px",
+  sectionDesktop: "24px",
+  sectionMajor: "48px",
+  cardPad: "20px",
+  fieldStack: "16px",
+  labelInput: "6px",
+  iconText: "8px",
+  rowMin: "44px",
 } as const;
 
 export const radius = {
   none: 0,
-  toast: 2,
   full: 9999,
 } as const;
 
@@ -102,31 +114,34 @@ export const motion = {
 } as const;
 
 export const fragments = {
+  /** Brand moment — Cormorant only here. */
   display: {
     fontFamily: fonts.display,
-    fontWeight: 300 as const,
-    fontSize: 56,
-    lineHeight: 1.05,
+    fontWeight: 400 as const,
+    fontSize: 28,
+    lineHeight: 1.15,
     letterSpacing: "-0.01em",
     color: colors.ink,
   } as const,
   h1: {
-    fontFamily: fonts.display,
-    fontWeight: 300 as const,
-    fontSize: 40,
-    lineHeight: 1.1,
+    fontFamily: fonts.body,
+    fontWeight: 500 as const,
+    fontSize: 22,
+    lineHeight: 1.2,
     letterSpacing: "-0.005em",
     color: colors.ink,
   } as const,
   sectionHeading: {
-    fontFamily: fonts.display,
-    fontWeight: 300 as const,
-    letterSpacing: "0.03em",
+    fontFamily: fonts.body,
+    fontWeight: 500 as const,
+    fontSize: 15,
+    lineHeight: 1.3,
+    letterSpacing: "-0.005em",
     color: colors.ink,
   } as const,
   label: {
     fontFamily: fonts.body,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 500 as const,
     letterSpacing: "0.12em",
     textTransform: "uppercase" as const,
@@ -136,15 +151,15 @@ export const fragments = {
     fontFamily: fonts.body,
     fontSize: 12,
     fontWeight: 400 as const,
-    letterSpacing: "0.01em",
+    letterSpacing: "0",
     color: colors.inkMuted,
     fontVariantNumeric: "tabular-nums" as const,
   } as const,
   bodyText: {
     fontFamily: fonts.body,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: 400 as const,
     color: colors.ink,
-    lineHeight: 1.6,
+    lineHeight: 1.55,
   } as const,
 } as const;

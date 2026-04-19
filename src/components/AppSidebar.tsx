@@ -1,16 +1,20 @@
-import { CalendarDays, Image, Scissors, Settings, CreditCard, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 
+/**
+ * AppSidebar — Pixieset-Minimal.
+ * 200px fixed. Text-only. No icons. Active row gets --wash-strong + ink + 500.
+ */
+
 const STUDIO_ITEMS = [
-  { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Gallery", url: "/home", icon: Image, end: true },
-  { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
+  { title: "Events", url: "/dashboard/events" },
+  { title: "Gallery", url: "/home", end: true },
+  { title: "Cull", url: "/dashboard/cheetah-live" },
 ];
 
 const ACCOUNT_ITEMS = [
-  { title: "Settings", url: "/dashboard/profile", icon: Settings },
-  { title: "Billing", url: "/dashboard/billing", icon: CreditCard },
+  { title: "Settings", url: "/dashboard/profile" },
+  { title: "Billing", url: "/dashboard/billing" },
 ];
 
 export function AppSidebar() {
@@ -21,10 +25,10 @@ export function AppSidebar() {
       style={{
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 10,
-        fontWeight: 400,
-        letterSpacing: "0.15em",
+        fontWeight: 500,
+        letterSpacing: "0.12em",
         textTransform: "uppercase",
-        color: "#C4C1BB",
+        color: "var(--ink-whisper)",
         padding: "0 24px",
         marginTop: 32,
         marginBottom: 8,
@@ -42,69 +46,69 @@ export function AppSidebar() {
         top: 0,
         zIndex: 30,
         height: "100vh",
-        width: 240,
-        background: "#FFFFFF",
-        borderRight: "1px solid #E8E6E1",
+        width: 200,
+        background: "var(--surface)",
+        borderRight: "1px solid var(--rule)",
         display: "none",
         flexDirection: "column",
       }}
       className="lg:!flex"
     >
-      <div style={{ padding: "32px 24px 24px" }}>
-        <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 400, letterSpacing: "0.05em", color: "#1A1917" }}>
-          MirrorAI
+      <div style={{ padding: "24px 24px 20px" }}>
+        <span
+          style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: 22,
+            fontWeight: 400,
+            letterSpacing: "0",
+            color: "var(--ink)",
+          }}
+        >
+          Mirror
         </span>
       </div>
 
       <nav style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        {sectionLabel("STUDIO")}
+        {sectionLabel("Studio")}
         {STUDIO_ITEMS.map((item) => (
           <NavLink
             key={item.url}
             to={item.url}
             end={item.end}
-            className="flex items-center gap-3 transition-colors duration-200 text-[#6B6962] hover:text-[#1A1917]"
-            activeClassName="!text-[#1A1917] !border-l-2 !border-l-[#B8953F]"
+            className="transition-colors duration-150"
+            activeClassName="!bg-[var(--wash-strong)] !text-[var(--ink)] !font-medium"
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 13,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              padding: "12px 24px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
+              fontWeight: 400,
+              padding: "10px 24px",
+              color: "var(--ink-muted)",
               textDecoration: "none",
-              borderLeft: "2px solid transparent",
+              display: "block",
             }}
           >
-            <item.icon size={18} strokeWidth={1.5} />
-            <span>{item.title}</span>
+            {item.title}
           </NavLink>
         ))}
 
-        {sectionLabel("ACCOUNT")}
+        {sectionLabel("Account")}
         {ACCOUNT_ITEMS.map((item) => (
           <NavLink
             key={item.url}
             to={item.url}
-            className="flex items-center gap-3 transition-colors duration-200 text-[#6B6962] hover:text-[#1A1917]"
-            activeClassName="!text-[#1A1917] !border-l-2 !border-l-[#B8953F]"
+            className="transition-colors duration-150"
+            activeClassName="!bg-[var(--wash-strong)] !text-[var(--ink)] !font-medium"
             style={{
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 13,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              padding: "12px 24px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
+              fontWeight: 400,
+              padding: "10px 24px",
+              color: "var(--ink-muted)",
               textDecoration: "none",
-              borderLeft: "2px solid transparent",
+              display: "block",
             }}
           >
-            <item.icon size={18} strokeWidth={1.5} />
-            <span>{item.title}</span>
+            {item.title}
           </NavLink>
         ))}
       </nav>
@@ -116,19 +120,14 @@ export function AppSidebar() {
             background: "none",
             border: "none",
             cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 12,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "#6B6962",
-            padding: "8px 0",
+            fontWeight: 400,
+            color: "var(--ink-muted)",
+            padding: 0,
           }}
         >
-          <LogOut size={16} strokeWidth={1.5} />
-          Sign Out
+          Sign out
         </button>
       </div>
     </aside>
