@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { colors, fonts } from "@/styles/design-tokens";
 
 interface AuthProps {
   initialView?: "landing" | "login" | "signup" | "forgot";
 }
 
+/**
+ * Auth — Pixieset-Minimal.
+ * Light surface. Bottom-rule inputs. Black ink button. Cormorant greeting only.
+ */
 const Auth = function Auth({ initialView }: AuthProps) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -16,21 +19,6 @@ const Auth = function Auth({ initialView }: AuthProps) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isSignup, setIsSignup] = useState(initialView === "signup");
-  const [phase, setPhase] = useState(0);
-
-  useEffect(() => {
-    const t1 = setTimeout(() => setPhase(1), 80);
-    const t2 = setTimeout(() => setPhase(2), 1500);
-    const t3 = setTimeout(() => setPhase(3), 2800);
-    const t4 = setTimeout(() => setPhase(4), 3600);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-  }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("accent");
-    if (saved === "red") document.documentElement.classList.add("accent-red");
-    else document.documentElement.classList.remove("accent-red");
-  }, []);
 
   const handleLogin = async () => {
     setLoading(true); setError(""); setMessage("");
@@ -70,25 +58,10 @@ const Auth = function Auth({ initialView }: AuthProps) {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) setError(error.message);
-    else setMessage("Password reset link sent to your email");
+    else setMessage("Password reset link sent to your email.");
   };
 
   const submit = isSignup ? handleSignup : handleLogin;
-
-  const inputStyle: React.CSSProperties = {
-    background: "transparent",
-    border: "none",
-    borderBottom: `1px solid ${colors.border}`,
-    color: colors.text,
-    fontFamily: fonts.body,
-    fontSize: 16,
-    padding: "12px 0",
-    outline: "none",
-    width: "100%",
-    height: 44,
-    WebkitFontSmoothing: "antialiased",
-    transition: "border-color 0.2s",
-  };
 
   return (
     <div
@@ -96,210 +69,294 @@ const Auth = function Auth({ initialView }: AuthProps) {
         position: "fixed",
         inset: 0,
         height: "100dvh",
-        overflow: "hidden",
-        backgroundColor: colors.black,
+        overflow: "auto",
+        background: "var(--paper)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
       }}
     >
-      <img
-        src="/images/login-hero.jpg"
-        alt=""
-        style={{
-          position: "absolute", inset: 0, width: "100%", height: "100%",
-          objectFit: "cover",
-          opacity: phase >= 1 ? 1 : 0,
-          transition: "opacity 2s ease-out",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.45), rgba(0,0,0,0.7))",
-        }}
-      />
-
-      <div
-        style={{
-          position: "relative", zIndex: 10, height: "100%",
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
-          padding: "24px 24px 32px",
-          overflowY: "auto",
-        }}
-      >
-        <div
-          style={{
-            flexShrink: 0, display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center",
-            padding: "32px 0 24px",
-          }}
-        >
-          <h1
+      <div style={{ width: "100%", maxWidth: 360 }}>
+        {/* Wordmark */}
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span
             style={{
-              fontFamily: fonts.display,
-              fontWeight: 300,
-              fontSize: "clamp(28px, 7vw, 36px)",
-              color: colors.gold,
-              letterSpacing: "0.08em",
-              opacity: phase >= 2 ? 1 : 0,
-              transform: phase >= 2 ? "translateY(0)" : "translateY(8px)",
-              transition: "opacity 1.2s ease-out, transform 1.2s ease-out",
-              margin: 0,
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: 22,
+              fontWeight: 400,
+              color: "var(--ink)",
             }}
           >
-            Mirror AI
-          </h1>
-          <p
-            style={{
-              fontFamily: fonts.display,
-              fontStyle: "italic",
-              fontWeight: 300,
-              fontSize: "clamp(13px, 3.5vw, 16px)",
-              color: "rgba(255,255,255,0.7)",
-              letterSpacing: "0.05em",
-              marginTop: 6,
-              opacity: phase >= 3 ? 1 : 0,
-              transition: "opacity 1s ease-out",
-            }}
-          >
-            Reflections of Your Moments
-          </p>
+            Mirror
+          </span>
         </div>
 
-        <div
+        {/* Greeting — the only Cormorant on this surface besides wordmark */}
+        <h1
           style={{
-            width: "100%", maxWidth: 380,
-            background: "rgba(10,10,11,0.7)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            border: `1px solid ${colors.border}`,
-            padding: "32px 24px",
-            opacity: phase >= 4 ? 1 : 0,
-            transform: phase >= 4 ? "translateY(0)" : "translateY(6px)",
-            transition: "opacity 1s ease-out, transform 1s ease-out",
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 28,
+            fontWeight: 400,
+            color: "var(--ink)",
+            letterSpacing: "-0.01em",
+            margin: 0,
+            marginBottom: 8,
+            lineHeight: 1.15,
           }}
         >
-          <p
+          {isSignup ? "Create your studio." : "Welcome back."}
+        </h1>
+        <p
+          style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 13,
+            color: "var(--ink-muted)",
+            margin: 0,
+            marginBottom: 32,
+          }}
+        >
+          {isSignup ? "Start delivering work in minutes." : "Sign in to continue."}
+        </p>
+
+        {error && (
+          <div
             style={{
-              fontFamily: fonts.display,
-              fontWeight: 400, fontSize: 17,
-              color: colors.gold,
-              letterSpacing: "0.06em",
-              textAlign: "center", marginBottom: 24,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12,
+              color: "var(--alert)",
+              marginBottom: 16,
+              lineHeight: 1.4,
             }}
           >
-            Mirror AI
-          </p>
-
-          {error && (
-            <div style={{ fontSize: 12, color: colors.danger, textAlign: "center", marginBottom: 14, lineHeight: 1.5 }}>
-              {error}
-            </div>
-          )}
-          {message && (
-            <div style={{ fontSize: 12, color: colors.inkMuted, textAlign: "center", marginBottom: 14, lineHeight: 1.5 }}>
-              {message}
-            </div>
-          )}
-
-          <form
-            onSubmit={(e) => { e.preventDefault(); submit(); }}
-            style={{ display: "flex", flexDirection: "column", gap: 16 }}
+            {error}
+          </div>
+        )}
+        {message && (
+          <div
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12,
+              color: "var(--ink-muted)",
+              marginBottom: 16,
+              lineHeight: 1.4,
+            }}
           >
-            <input
-              type="email" value={email}
-              onChange={(e) => { setEmail(e.target.value); setError(""); }}
-              placeholder="Email" required autoComplete="email"
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderBottomColor = String(colors.borderActive))}
-              onBlur={(e) => (e.currentTarget.style.borderBottomColor = colors.border)}
-            />
-            <input
-              type="password" value={password}
-              onChange={(e) => { setPassword(e.target.value); setError(""); }}
-              placeholder="Password" required minLength={6}
-              autoComplete={isSignup ? "new-password" : "current-password"}
-              style={inputStyle}
-              onFocus={(e) => (e.currentTarget.style.borderBottomColor = String(colors.borderActive))}
-              onBlur={(e) => (e.currentTarget.style.borderBottomColor = colors.border)}
-            />
+            {message}
+          </div>
+        )}
 
-            {!isSignup && (
-              <button
-                type="button" onClick={handleForgot}
-                style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  color: colors.textMuted, fontSize: 12, fontFamily: fonts.body,
-                  textAlign: "right", padding: 0,
-                }}
-              >
-                Forgot password?
-              </button>
-            )}
-
-            <button
-              type="submit" disabled={loading}
+        <form
+          onSubmit={(e) => { e.preventDefault(); submit(); }}
+          style={{ display: "flex", flexDirection: "column", gap: 20 }}
+        >
+          <div>
+            <label
               style={{
-                width: "100%", height: 48,
-                border: "none", background: colors.gold, color: colors.bg,
-                fontFamily: fonts.body, fontSize: 14, fontWeight: 500,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase" as const,
-                cursor: loading ? "wait" : "pointer",
-                opacity: loading ? 0.6 : 1,
-                transition: "opacity 0.2s",
-                marginTop: 8,
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 10,
+                fontWeight: 500,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--ink-muted)",
+                display: "block",
+                marginBottom: 6,
               }}
             >
-              {loading ? "..." : isSignup ? "Create Account" : "Enter"}
-            </button>
-          </form>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0 4px" }}>
-            <div style={{ flex: 1, height: 1, background: colors.border }} />
-            <span style={{ fontSize: 11, color: colors.textMuted, fontFamily: fonts.body, letterSpacing: "0.08em" }}>OR</span>
-            <div style={{ flex: 1, height: 1, background: colors.border }} />
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError(""); }}
+              required
+              autoComplete="email"
+              style={{
+                width: "100%",
+                height: 44,
+                background: "transparent",
+                border: "none",
+                borderBottom: "1px solid var(--rule)",
+                color: "var(--ink)",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 15,
+                padding: "12px 0",
+                outline: "none",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderBottom = "2px solid var(--ink)";
+                e.currentTarget.style.paddingBottom = "11px";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderBottom = "1px solid var(--rule)";
+                e.currentTarget.style.paddingBottom = "12px";
+              }}
+            />
           </div>
 
+          <div>
+            <label
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 10,
+                fontWeight: 500,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--ink-muted)",
+                display: "block",
+                marginBottom: 6,
+              }}
+            >
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setError(""); }}
+              required
+              minLength={6}
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              style={{
+                width: "100%",
+                height: 44,
+                background: "transparent",
+                border: "none",
+                borderBottom: "1px solid var(--rule)",
+                color: "var(--ink)",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 15,
+                padding: "12px 0",
+                outline: "none",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderBottom = "2px solid var(--ink)";
+                e.currentTarget.style.paddingBottom = "11px";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderBottom = "1px solid var(--rule)";
+                e.currentTarget.style.paddingBottom = "12px";
+              }}
+            />
+          </div>
+
+          {!isSignup && (
+            <button
+              type="button"
+              onClick={handleForgot}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--ink-muted)",
+                fontSize: 12,
+                fontFamily: "'DM Sans', sans-serif",
+                textAlign: "left",
+                padding: 0,
+                marginTop: -8,
+              }}
+            >
+              Forgot password?
+            </button>
+          )}
+
           <button
-            type="button"
-            onClick={handleGoogleLogin}
+            type="submit"
             disabled={loading}
             style={{
-              width: "100%", height: 48,
-              border: `1px solid ${colors.border}`,
-              background: "transparent",
-              color: colors.text,
-              fontFamily: fonts.body, fontSize: 14, fontWeight: 400,
-              letterSpacing: "0.04em",
+              width: "100%",
+              height: 44,
+              border: "none",
+              background: "var(--ink)",
+              color: "#FFFFFF",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12,
+              fontWeight: 500,
+              letterSpacing: "0.02em",
               cursor: loading ? "wait" : "pointer",
-              opacity: loading ? 0.6 : 1,
-              transition: "opacity 0.2s, border-color 0.2s",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              opacity: loading ? 0.5 : 1,
+              transition: "opacity 120ms",
               marginTop: 8,
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.04 24.04 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-            Continue with Google
+            {loading ? "—" : isSignup ? "Create account" : "Sign in"}
           </button>
+        </form>
 
-          <p
+        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "24px 0 16px" }}>
+          <div style={{ flex: 1, height: 1, background: "var(--rule)" }} />
+          <span
             style={{
-              textAlign: "center", marginTop: 16,
-              fontSize: 14, color: colors.textMuted, fontFamily: fonts.body,
+              fontSize: 10,
+              color: "var(--ink-muted)",
+              fontFamily: "'DM Sans', sans-serif",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              fontWeight: 500,
             }}
           >
-            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              type="button"
-              onClick={() => { setIsSignup(!isSignup); setPassword(""); setError(""); setMessage(""); }}
-              style={{
-                background: "none", border: "none", cursor: "pointer",
-                color: colors.inkMuted, fontSize: 14, fontFamily: fonts.body,
-              }}
-            >
-              {isSignup ? "Sign in" : "Create Account"}
-            </button>
-          </p>
+            or
+          </span>
+          <div style={{ flex: 1, height: 1, background: "var(--rule)" }} />
         </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          style={{
+            width: "100%",
+            height: 44,
+            border: "1px solid var(--rule-strong)",
+            background: "transparent",
+            color: "var(--ink)",
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 12,
+            fontWeight: 500,
+            letterSpacing: "0.02em",
+            cursor: loading ? "wait" : "pointer",
+            opacity: loading ? 0.5 : 1,
+            transition: "border-color 120ms",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--rule-strong)"; }}
+        >
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.04 24.04 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: 24,
+            fontSize: 13,
+            color: "var(--ink-muted)",
+            fontFamily: "'DM Sans', sans-serif",
+          }}
+        >
+          {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+          <button
+            type="button"
+            onClick={() => { setIsSignup(!isSignup); setPassword(""); setError(""); setMessage(""); }}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--ink)",
+              fontSize: 13,
+              fontWeight: 500,
+              fontFamily: "'DM Sans', sans-serif",
+              padding: 0,
+              textDecoration: "underline",
+              textUnderlineOffset: 2,
+            }}
+          >
+            {isSignup ? "Sign in" : "Create account"}
+          </button>
+        </p>
       </div>
     </div>
   );
