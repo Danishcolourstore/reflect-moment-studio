@@ -89,7 +89,7 @@ export default function LandingGate() {
     // Events
     const { data: eventsData } = await supabase
       .from("events")
-      .select("id, name, slug, cover_url, event_date, photo_count, location, status")
+      .select("id, name, slug, cover_url, event_date, photo_count, location")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(8);
