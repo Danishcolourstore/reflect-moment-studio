@@ -148,7 +148,7 @@ export function EnhancedLeadsPanel({ leads, onUpdateStatus, onAddLead, onConvert
 
                 {/* Notes preview */}
                 {lead.notes && (
-                  <p className="text-xs text-muted-foreground/70 line-clamp-1 mb-2 italic">"{lead.notes}"</p>
+                  <p className="text-xs text-muted-foreground/70 line-clamp-1 mb-2">"{lead.notes}"</p>
                 )}
 
                 {/* Footer */}

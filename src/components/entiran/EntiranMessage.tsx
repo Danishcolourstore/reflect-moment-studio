@@ -205,7 +205,7 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
                   },
                   blockquote: ({ children }) => (
                     <blockquote
-                      className="pl-4 italic my-3 rounded-r-lg py-2"
+                      className="pl-4 my-3 rounded-r-lg py-2"
                       style={{
                         borderLeft: '2px solid rgba(200,169,126,0.3)',
                         color: 'rgba(244,241,234,0.45)',
