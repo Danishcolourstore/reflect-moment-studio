@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, ChevronDown, ChevronLeft, ChevronRight, X, Download } from "lucide-react";
@@ -105,9 +105,7 @@ function PasswordGate({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // For demo, accept any non-empty password
     if (!input.trim()) return;
-    // In production, this would verify against the DB
     setError(true);
     setShake(true);
     setTimeout(() => setShake(false), 300);
@@ -122,39 +120,19 @@ function PasswordGate({
     : "";
 
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center px-6"
-      style={{ background: "#FAFAF8" }}
-    >
-      <div className="w-full" style={{ maxWidth: 320 }}>
-        <h1
-          className="text-center"
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 28,
-            fontWeight: 300,
-            color: "#1A1917",
-          }}
-        >
+    <div className="fixed inset-0 z-[200] flex items-center justify-center px-6 bg-[var(--wash)]">
+      <div className="w-full max-w-[320px]">
+        <h1 className="text-center font-serif text-[28px] font-light text-[var(--ink)]">
           {eventName}
         </h1>
         {dateStr && (
-          <p
-            className="text-center"
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 12,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "#6E6E6E",
-              marginTop: 8,
-            }}
-          >
+          <p className="text-center text-[12px] tracking-[0.1em] uppercase text-[var(--ink-muted)] mt-2">
             {dateStr}
           </p>
         )}
 
-        <form onSubmit={handleSubmit} style={{ marginTop: 40 }}>
+        <form onSubmit={handleSubmit} className="mt-12">
+          {/* Dynamic: shake animation toggles on submit failure */}
           <div
             style={{
               animation: shake ? "galleryShake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97)" : "none",
@@ -169,60 +147,20 @@ function PasswordGate({
               }}
               placeholder="Enter password"
               autoFocus
-              className="w-full outline-none"
-              style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 14,
-                color: "#1A1917",
-                textAlign: "center",
-                background: "transparent",
-                border: "none",
-                borderBottom: `1px solid ${error ? "#A3553A" : "#E8E6E1"}`,
-                padding: "12px 0",
-                transition: "border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-              }}
-              onFocus={(e) => {
-                if (!error)
-                  e.currentTarget.style.borderBottomColor = "#1A1917";
-              }}
-              onBlur={(e) => {
-                if (!error)
-                  e.currentTarget.style.borderBottomColor = "#E8E6E1";
-              }}
+              className={`w-full outline-none text-[14px] text-[var(--ink)] text-center bg-transparent border-0 border-b py-3 transition-colors duration-200 ${
+                error ? "border-b-[var(--alert)]" : "border-b-[var(--rule)] focus:border-b-[var(--ink)]"
+              }`}
             />
           </div>
           {error && (
-            <p
-              className="text-center"
-              style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12,
-                color: "#A3553A",
-                marginTop: 8,
-              }}
-            >
+            <p className="text-center text-[12px] text-[var(--alert)] mt-2">
               Incorrect password
             </p>
           )}
 
           <button
             type="submit"
-            className="w-full"
-            style={{
-              marginTop: 24,
-              background: "#1A1917",
-              color: "#FAFAF8",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 13,
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              padding: "14px 0",
-              border: "none",
-              cursor: "pointer",
-              transition: "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            className="w-full mt-6 bg-[var(--ink)] text-white text-[13px] uppercase tracking-[0.1em] py-[14px] border-0 cursor-pointer transition-opacity duration-300 hover:opacity-85"
           >
             View Gallery
           </button>
@@ -262,15 +200,12 @@ function HeroSection({
     : "";
 
   return (
-    <div
-      ref={heroRef}
-      className="relative w-full overflow-hidden"
-      style={{ height: "100dvh" }}
-    >
+    <div ref={heroRef} className="relative w-full overflow-hidden h-[100dvh]">
       <img
         src={coverUrl}
         alt={`${eventName} cover`}
         className="absolute inset-0 w-full h-full object-cover"
+        /* Dynamic: parallax transform driven by scrollY */
         style={{
           transform: `translateY(${scrollY * 0.3}px)`,
           willChange: "transform",
@@ -279,37 +214,18 @@ function HeroSection({
         decoding="async"
       />
 
-      {/* Bottom left overlay */}
+      {/* Bottom overlay — gradient kept: it's a photographic legibility scrim, not decorative chrome */}
       <div
-        className="absolute bottom-0 left-0 right-0"
+        className="absolute bottom-0 left-0 right-0 px-6 pt-[80px] pb-6"
         style={{
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.25) 0%, transparent 100%)",
-          padding: "80px 24px 24px",
+          background: "linear-gradient(to top, rgba(0,0,0,0.25) 0%, transparent 100%)",
         }}
       >
-        <h1
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "clamp(28px, 4vw, 40px)",
-            fontWeight: 300,
-            color: "#FFFFFF",
-          }}
-        >
+        <h1 className="font-serif font-light text-white text-[clamp(28px,4vw,40px)]">
           {eventName}
         </h1>
         {dateStr && (
-          <p
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 12,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "#FFFFFF",
-              opacity: 0.6,
-              marginTop: 6,
-            }}
-          >
+          <p className="text-[12px] tracking-[0.1em] uppercase text-white opacity-60 mt-1.5">
             {dateStr}
           </p>
         )}
@@ -318,17 +234,14 @@ function HeroSection({
       {/* Scroll indicator */}
       <button
         onClick={onScrollDown}
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{ bottom: 24 }}
+        className="absolute left-1/2 -translate-x-1/2 bottom-6"
         aria-label="Scroll down"
       >
         <ChevronDown
           size={20}
           color="#FFFFFF"
-          style={{
-            opacity: 0.3,
-            animation: "galleryBounce 2s infinite ease-in-out",
-          }}
+          className="opacity-30"
+          style={{ animation: "galleryBounce 2s infinite ease-in-out" }}
         />
       </button>
     </div>
@@ -338,25 +251,9 @@ function HeroSection({
 /* ─── Chapter Marker ─── */
 function ChapterMarker({ name }: { name: string }) {
   return (
-    <div className="flex flex-col items-center" style={{ padding: "48px 0 32px" }}>
-      <div
-        style={{
-          width: 4,
-          height: 4,
-          borderRadius: "50%",
-          background: "#E8E6E1",
-        }}
-      />
-      <h2
-        className="text-center"
-        style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 18,
-          fontWeight: 300,
-          color: "#6E6E6E",
-          marginTop: 16,
-        }}
-      >
+    <div className="flex flex-col items-center pt-12 pb-8">
+      <div className="w-1 h-1 rounded-full bg-[var(--rule)]" />
+      <h2 className="text-center font-serif text-[18px] font-light text-[var(--ink-muted)] mt-4">
         {name}
       </h2>
     </div>
@@ -389,7 +286,6 @@ function GalleryImage({
   const imgRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef(0);
 
-  // Intersection observer for lazy loading
   useEffect(() => {
     if (eager || visible) return;
     const el = imgRef.current;
@@ -410,7 +306,6 @@ function GalleryImage({
   const handleClick = () => {
     const now = Date.now();
     if (now - lastTapRef.current < 280) {
-      // Double tap
       onDoubleTap?.();
       setHeartAnim(true);
       setTimeout(() => setHeartAnim(false), 600);
@@ -429,19 +324,18 @@ function GalleryImage({
   return (
     <div
       ref={imgRef}
-      className={`relative overflow-hidden cursor-pointer ${className || ""}`}
-      style={{ background: "#F0EFEB", ...style }}
+      className={`relative overflow-hidden cursor-pointer bg-[var(--wash)] ${className || ""}`}
+      /* Dynamic: caller-passed sizing (width, maxHeight, objectFit) for layout variants */
+      style={style}
       onClick={handleClick}
     >
       {visible && (
         <img
           src={src}
           alt={alt}
-          className="w-full h-full object-cover block"
-          style={{
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
+          className={`w-full h-full object-cover block transition-opacity duration-500 ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
           loading={eager ? "eager" : "lazy"}
           decoding="async"
           onLoad={() => setLoaded(true)}
@@ -450,17 +344,7 @@ function GalleryImage({
 
       {/* Favorite dot indicator */}
       {isFavorited && !heartAnim && (
-        <div
-          className="absolute"
-          style={{
-            bottom: 6,
-            right: 6,
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: "#1A1A1A",
-          }}
-        />
+        <div className="absolute bottom-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[var(--ink)]" />
       )}
 
       {/* Heart animation on double tap */}
@@ -470,9 +354,8 @@ function GalleryImage({
             size={48}
             fill="#1A1A1A"
             color="#1A1A1A"
-            style={{
-              animation: "galleryHeartPop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-            }}
+            /* Dynamic: keyframe animation tied to transient state */
+            style={{ animation: "galleryHeartPop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}
           />
         </div>
       )}
@@ -509,15 +392,15 @@ function EditorialGrid({
       const pattern = rowKey % 5;
 
       if (pattern === 0 && remaining >= 1) {
-        // Row 1: single full width
         const p = photos[i];
         groups.push(
-          <div key={`row-${startIdx}-${rowKey}`} style={{ marginBottom: 24, minHeight: 200 }}>
+          <div key={`row-${startIdx}-${rowKey}`} className="mb-6 min-h-[200px]">
             <GalleryImage
               src={p.url}
               alt={`Photo from gallery`}
               eager={getGlobalIndex(p) < 6}
-              style={{ width: "100%", maxHeight: "70vh", objectFit: "contain", background: "#FAFAF8" }}
+              className="[max-height:70vh] [object-fit:contain]"
+              style={{ width: "100%" }}
               onClick={() => onOpenViewer(getGlobalIndex(p))}
               onDoubleTap={() => onToggleFav(p.id)}
               isFavorited={favs.has(p.id)}
@@ -526,12 +409,10 @@ function EditorialGrid({
         );
         i += 1;
       } else if (pattern === 1 && remaining >= 2) {
-        // Row 2: two images
         groups.push(
           <div
             key={`row-${startIdx}-${rowKey}`}
-            className="grid grid-cols-2"
-            style={{ gap: 4, marginBottom: 4 }}
+            className="grid grid-cols-2 gap-1 mb-1"
           >
             {photos.slice(i, i + 2).map((p) => (
               <div key={p.id} className="aspect-[3/2] overflow-hidden">
@@ -550,12 +431,10 @@ function EditorialGrid({
         );
         i += 2;
       } else if (pattern === 2 && remaining >= 2) {
-        // Row 3: two images
         groups.push(
           <div
             key={`row-${startIdx}-${rowKey}`}
-            className="grid grid-cols-2"
-            style={{ gap: 4, marginBottom: 20 }}
+            className="grid grid-cols-2 gap-1 mb-5"
           >
             {photos.slice(i, i + 2).map((p) => (
               <div key={p.id} className="aspect-[3/2] overflow-hidden">
@@ -574,12 +453,10 @@ function EditorialGrid({
         );
         i += 2;
       } else if (pattern === 3 && remaining >= 3) {
-        // Row 4: three images
         groups.push(
           <div
             key={`row-${startIdx}-${rowKey}`}
-            className="grid grid-cols-3"
-            style={{ gap: 4, marginBottom: 4 }}
+            className="grid grid-cols-3 gap-1 mb-1"
           >
             {photos.slice(i, i + 3).map((p) => (
               <div key={p.id} className="aspect-[3/2] overflow-hidden">
@@ -598,12 +475,10 @@ function EditorialGrid({
         );
         i += 3;
       } else if (pattern === 4 && remaining >= 2) {
-        // Row 5: two images
         groups.push(
           <div
             key={`row-${startIdx}-${rowKey}`}
-            className="grid grid-cols-2"
-            style={{ gap: 4, marginBottom: 20 }}
+            className="grid grid-cols-2 gap-1 mb-5"
           >
             {photos.slice(i, i + 2).map((p) => (
               <div key={p.id} className="aspect-[3/2] overflow-hidden">
@@ -622,10 +497,9 @@ function EditorialGrid({
         );
         i += 2;
       } else {
-        // Remaining: show individually
         const p = photos[i];
         groups.push(
-          <div key={`row-${startIdx}-${rowKey}`} style={{ marginBottom: 24 }}>
+          <div key={`row-${startIdx}-${rowKey}`} className="mb-6">
             <GalleryImage
               src={p.url}
               alt="Photo from gallery"
@@ -646,11 +520,11 @@ function EditorialGrid({
   };
 
   return (
-    <div ref={contentRef} style={{ background: "#FFFFFF" }}>
+    <div ref={contentRef} className="bg-white">
       {chapters.map((chapter, ci) => (
         <div key={chapter.name} id={`chapter-${ci}`}>
           <ChapterMarker name={chapter.name} />
-          <div className="px-4 md:px-6" style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div className="px-4 md:px-6 max-w-[1200px] mx-auto">
             {renderPhotoGroup(chapter.photos, ci * 100)}
           </div>
         </div>
@@ -687,45 +561,28 @@ function ChapterNav({
 
   return (
     <div
-      className="fixed z-50 flex flex-col items-end gap-3 hidden min-[375px]:flex"
-      style={{
-        right: 8,
-        top: "50%",
-        transform: "translateY(-50%)",
-        opacity: visible ? 1 : 0,
-        transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-        pointerEvents: visible ? "auto" : "none",
-      }}
+      className={`fixed z-50 flex-col items-end gap-3 hidden min-[375px]:flex right-2 top-1/2 -translate-y-1/2 transition-opacity duration-300 ${
+        visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      }`}
     >
       {chapters.map((ch, i) => (
         <button
           key={ch.name}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 min-h-6"
           onClick={() => onSelect(i)}
-          style={{ minHeight: 24 }}
           aria-label={`Go to ${ch.name}`}
         >
           <span
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 8,
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              color: i === activeIndex ? "#1A1917" : "#D4D1CB",
-              transition: "color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
+            className={`text-[8px] uppercase tracking-[0.1em] transition-colors duration-300 ${
+              i === activeIndex ? "text-[var(--ink)]" : "text-[var(--ink-whisper)]"
+            }`}
           >
             {ch.name}
           </span>
           <div
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: "50%",
-              background: i === activeIndex ? "#1A1A1A" : "#E8E6E1",
-              transition: "background 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              flexShrink: 0,
-            }}
+            className={`w-[5px] h-[5px] rounded-full flex-shrink-0 transition-colors duration-300 ${
+              i === activeIndex ? "bg-[var(--ink)]" : "bg-[var(--rule)]"
+            }`}
           />
         </button>
       ))}
@@ -759,7 +616,6 @@ function ImageViewer({
   const current = photos[currentIndex];
   const isFav = favs.has(current?.id);
 
-  // Lock body scroll
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -768,7 +624,6 @@ function ImageViewer({
     };
   }, []);
 
-  // Preload adjacent
   useEffect(() => {
     [-1, 1].forEach((d) => {
       const idx = currentIndex + d;
@@ -779,7 +634,6 @@ function ImageViewer({
     });
   }, [currentIndex, photos]);
 
-  // Keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -800,7 +654,6 @@ function ImageViewer({
   const handleTap = () => {
     const now = Date.now();
     if (now - lastTapRef.current < 280) {
-      // Double tap = favorite
       onToggleFav(current.id);
       setHeartAnim(true);
       setTimeout(() => setHeartAnim(false), 600);
@@ -809,7 +662,6 @@ function ImageViewer({
       lastTapRef.current = now;
       setTimeout(() => {
         if (lastTapRef.current !== 0) {
-          // Single tap = toggle controls
           setControlsVisible((v) => {
             if (!v) showControls();
             else setControlsVisible(false);
@@ -862,8 +714,9 @@ function ImageViewer({
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center"
-      style={{ background: "#0A0A0A", animation: "galleryFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1)" }}
+      className="fixed inset-0 z-[300] flex items-center justify-center bg-[var(--obsidian)]"
+      /* Dynamic: fade-in animation on mount */
+      style={{ animation: "galleryFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1)" }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -887,6 +740,7 @@ function ImageViewer({
             size={48}
             fill="#1A1A1A"
             color="#1A1A1A"
+            /* Dynamic: keyframe animation tied to transient state */
             style={{ animation: "galleryHeartPop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}
           />
         </div>
@@ -894,42 +748,29 @@ function ImageViewer({
 
       {/* Controls */}
       <div
-        className="absolute inset-0 pointer-events-none z-[305]"
-        style={{
-          opacity: controlsVisible ? 1 : 0,
-          transition: "opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
+        className={`absolute inset-0 pointer-events-none z-[305] transition-opacity duration-300 ${
+          controlsVisible ? "opacity-100" : "opacity-0"
+        }`}
       >
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 pointer-events-auto">
           <button
             onClick={onClose}
-            style={{ minWidth: 44, minHeight: 44 }}
-            className="flex items-center justify-center"
+            className="flex items-center justify-center min-w-11 min-h-11"
             aria-label="Close viewer"
           >
             <X size={20} color="#F5F5F5" />
           </button>
-          <span
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 11,
-              color: "#6E6E6E",
-            }}
-          >
+          <span className="text-[11px] text-[var(--ink-muted)]">
             {currentIndex + 1} / {photos.length}
           </span>
         </div>
 
         {/* Bottom bar */}
-        <div
-          className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-12 pointer-events-auto"
-          style={{ paddingBottom: 32 }}
-        >
+        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-12 pointer-events-auto pb-8">
           <button
             onClick={() => onToggleFav(current.id)}
-            style={{ minWidth: 44, minHeight: 44 }}
-            className="flex items-center justify-center"
+            className="flex items-center justify-center min-w-11 min-h-11"
             aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
           >
             <Heart
@@ -941,8 +782,7 @@ function ImageViewer({
           {downloadsEnabled && (
             <button
               onClick={handleDownload}
-              style={{ minWidth: 44, minHeight: 44 }}
-              className="flex items-center justify-center"
+              className="flex items-center justify-center min-w-11 min-h-11"
               aria-label="Download photo"
             >
               <Download size={20} color="#F5F5F5" />
@@ -953,11 +793,8 @@ function ImageViewer({
         {/* Desktop arrows */}
         {currentIndex > 0 && (
           <button
-            className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center pointer-events-auto"
+            className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center pointer-events-auto min-w-11 min-h-11 opacity-30 hover:opacity-80 transition-opacity"
             onClick={() => onNavigate(currentIndex - 1)}
-            style={{ minWidth: 44, minHeight: 44, opacity: 0.3 }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.3")}
             aria-label="Previous photo"
           >
             <ChevronLeft size={28} color="#F5F5F5" />
@@ -965,11 +802,8 @@ function ImageViewer({
         )}
         {currentIndex < photos.length - 1 && (
           <button
-            className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center pointer-events-auto"
+            className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center pointer-events-auto min-w-11 min-h-11 opacity-30 hover:opacity-80 transition-opacity"
             onClick={() => onNavigate(currentIndex + 1)}
-            style={{ minWidth: 44, minHeight: 44, opacity: 0.3 }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.3")}
             aria-label="Next photo"
           >
             <ChevronRight size={28} color="#F5F5F5" />
@@ -1033,18 +867,17 @@ function FavoritesDrawer({
   return (
     <div className="fixed inset-0 z-[250]" onClick={onClose}>
       {/* Backdrop */}
-      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.2)", animation: "galleryFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1)" }} />
+      <div
+        className="absolute inset-0 bg-black/20"
+        /* Dynamic: fade-in animation on mount */
+        style={{ animation: "galleryFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1)" }}
+      />
 
       {/* Drawer */}
       <div
-        className="absolute bottom-0 left-0 right-0"
-        style={{
-          background: "#FFFFFF",
-          maxHeight: "85vh",
-          borderTop: "1px solid #E8E6E1",
-          animation: "galleryDrawerUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-          overflowY: "auto",
-        }}
+        className="absolute bottom-0 left-0 right-0 bg-white max-h-[85vh] border-t border-[var(--rule)] overflow-y-auto"
+        /* Dynamic: drawer slide-up animation on mount */
+        style={{ animation: "galleryDrawerUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={(e) => {
           touchStartY.current = e.touches[0].clientY;
@@ -1055,51 +888,26 @@ function FavoritesDrawer({
         }}
       >
         {/* Handle */}
-        <div className="flex justify-center" style={{ padding: "12px 0" }}>
-          <div
-            style={{
-              width: 32,
-              height: 4,
-              background: "#E8E6E1",
-              borderRadius: 2,
-            }}
-          />
+        <div className="flex justify-center py-3">
+          <div className="w-8 h-1 bg-[var(--rule)]" />
         </div>
 
-        <div style={{ padding: "0 24px 24px" }}>
-          <h2
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 20,
-              fontWeight: 300,
-              color: "#1A1917",
-            }}
-          >
+        <div className="px-6 pb-6">
+          <h2 className="font-serif text-[20px] font-light text-[var(--ink)]">
             Selections
           </h2>
-          <p
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 12,
-              color: "#6E6E6E",
-              marginTop: 4,
-            }}
-          >
+          <p className="text-[12px] text-[var(--ink-muted)] mt-1">
             {favPhotos.length} photos
           </p>
 
           {/* Thumbnail grid */}
-          <div
-            className="grid grid-cols-4"
-            style={{ gap: 3, marginTop: 24 }}
-          >
+          <div className="grid grid-cols-4 mt-6 [gap:3px]">
             {favPhotos.map((p) => {
               const globalIdx = allPhotos.findIndex((ap) => ap.id === p.id);
               return (
                 <div
                   key={p.id}
-                  className="relative aspect-square cursor-pointer group"
-                  style={{ overflow: "hidden" }}
+                  className="relative aspect-square cursor-pointer group overflow-hidden"
                   onClick={() => {
                     onClose();
                     setTimeout(() => onOpenViewer(globalIdx), 200);
@@ -1111,8 +919,7 @@ function FavoritesDrawer({
                     className="w-full h-full object-cover"
                   />
                   <button
-                    className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ background: "rgba(0,0,0,0.5)" }}
+                    className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50"
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleFav(p.id);
@@ -1127,43 +934,21 @@ function FavoritesDrawer({
           </div>
 
           {/* Actions */}
-          <div style={{ marginTop: 24 }}>
+          <div className="mt-6">
             <button
-              className="w-full"
+              className={`w-full bg-[var(--ink)] text-white text-[13px] uppercase tracking-[0.1em] py-[14px] border-0 ${
+                submitted ? "opacity-50 cursor-default" : "cursor-pointer"
+              }`}
               onClick={handleSubmit}
               disabled={submitted}
-              style={{
-                background: "#1A1917",
-                color: "#FAFAF8",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                padding: "14px 0",
-                border: "none",
-                cursor: submitted ? "default" : "pointer",
-                opacity: submitted ? 0.5 : 1,
-              }}
             >
               {submitted ? "Selections Submitted" : "Submit Selections"}
             </button>
 
             <button
-              className="w-full"
+              className="w-full mt-3 bg-transparent text-[var(--ink)] text-[13px] uppercase tracking-[0.1em] py-[14px] border border-[var(--ink)] cursor-pointer"
               onClick={handleDownloadAll}
               disabled={downloading}
-              style={{
-                marginTop: 12,
-                background: "transparent",
-                color: "#1A1917",
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                padding: "14px 0",
-                border: "1px solid #1A1917",
-                cursor: "pointer",
-              }}
             >
               {downloading ? "Downloading…" : "Download All"}
             </button>
@@ -1171,7 +956,7 @@ function FavoritesDrawer({
         </div>
 
         {/* Safe area */}
-        <div style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
+        <div className="[padding-bottom:env(safe-area-inset-bottom,0px)]" />
       </div>
     </div>
   );
@@ -1190,25 +975,12 @@ function FavoritesPill({
   return (
     <button
       onClick={onClick}
-      className="fixed z-[100] left-1/2 -translate-x-1/2 flex items-center gap-2"
-      style={{
-        bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
-        background: "#FFFFFF",
-        border: "1px solid #E8E6E1",
-        borderRadius: 24,
-        padding: "10px 20px",
-        cursor: "pointer",
-        animation: "galleryPillUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-      }}
+      className="fixed z-[100] left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white border border-[var(--rule)] px-5 py-2.5 cursor-pointer [bottom:calc(16px+env(safe-area-inset-bottom,0px))]"
+      /* Dynamic: pill slide-up animation on mount */
+      style={{ animation: "galleryPillUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}
       aria-label={`${count} favorites`}
     >
-      <span
-        style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 14,
-          color: "#1A1917",
-        }}
-      >
+      <span className="font-serif text-[14px] text-[var(--ink)]">
         {count} favorite{count !== 1 ? "s" : ""}
       </span>
     </button>
@@ -1218,53 +990,27 @@ function FavoritesPill({
 /* ─── Gallery Footer ─── */
 function GalleryFooter({
   studioName,
-  studioLogoUrl,
 }: {
   studioName?: string;
   studioLogoUrl?: string | null;
 }) {
   return (
-    <div
-      className="flex flex-col items-center"
-      style={{ padding: "64px 24px 40px", background: "#FFFFFF" }}
-    >
-      <h3
-        style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 20,
-          fontWeight: 300,
-          color: "#1A1917",
-        }}
-      >
+    <div className="flex flex-col items-center px-6 pt-16 pb-10 bg-white">
+      <h3 className="font-serif text-[20px] font-light text-[var(--ink)]">
         Thank you
       </h3>
       {studioName && (
-        <p
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 12,
-            color: "#6E6E6E",
-            marginTop: 8,
-          }}
-        >
+        <p className="text-[12px] text-[var(--ink-muted)] mt-2">
           {studioName}
         </p>
       )}
-      {/* Logo removed for minimal feel */}
 
-      <div style={{ marginTop: 48 }}>
+      <div className="mt-12">
         <a
           href="https://mirrorai.com"
           target="_blank"
           rel="noopener noreferrer"
-          style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: 9,
-            textTransform: "uppercase",
-            letterSpacing: "0.15em",
-            color: "#D4D1CB",
-            textDecoration: "none",
-          }}
+          className="text-[9px] uppercase tracking-[0.15em] text-[var(--ink-whisper)] no-underline"
         >
           Powered by MirrorAI
         </a>
@@ -1324,9 +1070,9 @@ export default function ClientGalleryExperience() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [notFound] = useState(false);
   const [passwordLocked, setPasswordLocked] = useState(false);
-  const [useMock, setUseMock] = useState(false);
+  const [, setUseMock] = useState(false);
 
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
@@ -1335,7 +1081,6 @@ export default function ClientGalleryExperience() {
 
   const galleryContentRef = useRef<HTMLDivElement>(null);
 
-  // Inject keyframes
   useEffect(() => {
     const style = document.createElement("style");
     style.textContent = galleryStyles;
@@ -1345,7 +1090,6 @@ export default function ClientGalleryExperience() {
     };
   }, []);
 
-  // Fetch event data
   useEffect(() => {
     if (!slug) return;
 
@@ -1358,7 +1102,6 @@ export default function ClientGalleryExperience() {
         .maybeSingle();
 
       if (!data) {
-        // Use mock data for demo
         setUseMock(true);
         const mockChapters = generateMockPhotos();
         setChapters(mockChapters);
@@ -1383,7 +1126,6 @@ export default function ClientGalleryExperience() {
       setEvent(ev);
       document.title = `${ev.name} — Gallery`;
 
-      // Check password
       if (ev.gallery_password) {
         const verified = localStorage.getItem(`mirrorai_gallery_pw_verified_${ev.id}`);
         if (verified !== "true") {
@@ -1393,7 +1135,6 @@ export default function ClientGalleryExperience() {
         }
       }
 
-      // Fetch studio profile
       const { data: profile } = await (
         supabase
           .from("profiles")
@@ -1403,7 +1144,6 @@ export default function ClientGalleryExperience() {
         .maybeSingle();
       if (profile) setStudioProfile(profile as unknown as StudioProfile);
 
-      // Fetch photos
       let allPhotos: Photo[] = [];
       let from = 0;
       const PAGE = 1000;
@@ -1423,7 +1163,6 @@ export default function ClientGalleryExperience() {
       }
       setPhotos(allPhotos);
 
-      // Organize into chapters by section
       const sectionMap = new Map<string, Photo[]>();
       allPhotos.forEach((p) => {
         const sec = p.section || "Gallery";
@@ -1444,7 +1183,6 @@ export default function ClientGalleryExperience() {
 
   const { favs, toggle: toggleFav, count: favCount } = useFavorites(event?.id);
 
-  // Track active chapter on scroll
   useEffect(() => {
     if (chapters.length === 0) return;
     const handler = () => {
@@ -1477,52 +1215,28 @@ export default function ClientGalleryExperience() {
     setViewerOpen(true);
   };
 
-  // Loading
   if (loading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "#FAFAF8" }}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-[var(--wash)]">
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 2,
-            background: "#1A1A1A",
-            animation: "galleryLoadBar 2s cubic-bezier(0.4, 0, 0.2, 1) infinite",
-            overflow: "hidden",
-          }}
-        >
-        </div>
+          className="fixed top-0 left-0 right-0 h-0.5 bg-[var(--ink)] overflow-hidden"
+          /* Dynamic: indeterminate loading bar animation */
+          style={{ animation: "galleryLoadBar 2s cubic-bezier(0.4, 0, 0.2, 1) infinite" }}
+        />
       </div>
     );
   }
 
-  // Not found (shouldn't happen with mock fallback)
   if (notFound || !event) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "#FAFAF8" }}
-      >
-        <p
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 22,
-            fontWeight: 300,
-            color: "#6E6E6E",
-          }}
-        >
+      <div className="min-h-screen flex items-center justify-center bg-[var(--wash)]">
+        <p className="font-serif text-[22px] font-light text-[var(--ink-muted)]">
           Gallery not found
         </p>
       </div>
     );
   }
 
-  // Password gate
   if (passwordLocked) {
     return (
       <PasswordGate
@@ -1537,7 +1251,7 @@ export default function ClientGalleryExperience() {
     event.cover_url || (photos.length > 0 ? photos[0].url : null);
 
   return (
-    <div style={{ background: "#FFFFFF" }}>
+    <div className="bg-white">
       {/* Hero */}
       {heroUrl && (
         <HeroSection
