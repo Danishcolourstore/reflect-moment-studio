@@ -73,7 +73,7 @@ export function PerformanceTracker({ snapshots, onAddSnapshot }: PerformanceTrac
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">
-          {latest ? `Last updated: ${format(new Date(latest.snapshot_date), 'dd MMM yyyy')}` : 'No data yet'}
+          {latest ? `Last updated: ${format(new Date(latest.snapshot_date), 'dd MMM yyyy')}` : 'No data.'}
         </p>
         <Button size="sm" onClick={() => setAddOpen(true)}>
           <Plus className="h-4 w-4 mr-1" /> Log Snapshot
