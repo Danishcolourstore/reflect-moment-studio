@@ -15,8 +15,18 @@ interface WebsitePreviewProps {
 }
 
 export function WebsitePreview({ template, studioName = 'Colour Store', tagline = 'Wedding Photography' }: WebsitePreviewProps) {
+  // Monolith renders strict B&W: apply a global desaturation filter so all
+  // user / portfolio imagery inherits the monochrome look without per-image work.
+  const monochrome = !!template.extras?.monochrome;
+
   return (
-    <div className="w-full overflow-hidden" style={{ backgroundColor: template.colors.bg }}>
+    <div
+      className="w-full overflow-hidden"
+      style={{
+        backgroundColor: template.colors.bg,
+        filter: monochrome ? 'grayscale(100%) contrast(1.04)' : undefined,
+      }}
+    >
       <NavigationBar template={template} studioName={studioName} />
       <HeroSection template={template} studioName={studioName} tagline={tagline} />
       <AboutSection template={template} id="about" />
