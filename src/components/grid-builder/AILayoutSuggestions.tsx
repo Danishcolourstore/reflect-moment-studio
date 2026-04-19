@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react';
-import { Sparkles, LayoutGrid, ArrowRight } from 'lucide-react';
+import { Sparkles, LayoutGrid, ArrowRight, X, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -65,7 +65,7 @@ export default function AILayoutSuggestions({ photoCount, onSelectLayout, onClos
           <h3 className="text-sm font-semibold text-foreground">AI Layout Suggestions</h3>
         </div>
         {onClose && (
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground" aria-label="Close"><X size={16} strokeWidth={1.5} /></button>
         )}
       </div>
 
@@ -115,7 +115,7 @@ export default function AILayoutSuggestions({ photoCount, onSelectLayout, onClos
                   <p className="text-xs font-semibold text-foreground">{s.name}</p>
                   <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{s.reason}</p>
                   {s.tip && (
-                    <p className="text-[10px] text-primary/70 mt-1">💡 {s.tip}</p>
+                    <p className="text-[10px] text-primary/70 mt-1 inline-flex items-center gap-1"><Lightbulb size={12} strokeWidth={1.5} /> {s.tip}</p>
                   )}
                 </div>
                 <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary shrink-0 mt-0.5 transition-colors" />

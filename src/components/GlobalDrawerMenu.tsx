@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { X } from "lucide-react";
 
 const CUBIC = "cubic-bezier(0.25, 0.46, 0.45, 0.94)";
 
@@ -165,7 +166,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
             }}
             aria-label="Close menu"
           >
-            ✕
+            <X size={16} strokeWidth={1.5} />
           </button>
         </div>
 

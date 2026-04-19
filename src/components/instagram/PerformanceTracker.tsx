@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, TrendingUp, TrendingDown, Eye, Heart, Bookmark, Share2, MessageCircle, Users, MousePointerClick } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Eye, Heart, Bookmark, Share2, MessageCircle, Users, MousePointerClick, Flame, AlertTriangle, Film, Camera, Smartphone } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface PerformanceTrackerProps {
@@ -103,17 +103,19 @@ export function PerformanceTracker({ snapshots, onAddSnapshot }: PerformanceTrac
                   return (
                     <>
                       {reachChange !== null && (
-                        <p className="text-sm text-foreground">
-                          {reachChange >= 0 ? '📈' : '📉'} Reach {reachChange >= 0 ? 'increased' : 'decreased'} by {Math.abs(reachChange)}%
+                        <p className="text-sm text-foreground inline-flex items-center gap-1.5">
+                          {reachChange >= 0 ? <TrendingUp size={14} strokeWidth={1.5} /> : <TrendingDown size={14} strokeWidth={1.5} />}
+                          Reach {reachChange >= 0 ? 'increased' : 'decreased'} by {Math.abs(reachChange)}%
                         </p>
                       )}
                       {engChange !== null && (
-                        <p className="text-sm text-foreground">
-                          {engChange >= 0 ? '🔥' : '⚠️'} Engagement {engChange >= 0 ? 'up' : 'down'} by {Math.abs(engChange)}%
+                        <p className="text-sm text-foreground inline-flex items-center gap-1.5">
+                          {engChange >= 0 ? <Flame size={14} strokeWidth={1.5} /> : <AlertTriangle size={14} strokeWidth={1.5} />}
+                          Engagement {engChange >= 0 ? 'up' : 'down'} by {Math.abs(engChange)}%
                         </p>
                       )}
-                      <p className="text-sm text-foreground">
-                        👥 {latest.followers_gained >= 0 ? '+' : ''}{latest.followers_gained} followers this period
+                      <p className="text-sm text-foreground inline-flex items-center gap-1.5">
+                        <Users size={14} strokeWidth={1.5} /> {latest.followers_gained >= 0 ? '+' : ''}{latest.followers_gained} followers this period
                       </p>
                     </>
                   );
@@ -138,9 +140,9 @@ export function PerformanceTracker({ snapshots, onAddSnapshot }: PerformanceTrac
           <div className="bg-card border border-border rounded-xl p-4">
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">Content Mix</p>
             <div className="flex gap-3">
-              <Badge variant="secondary" className="text-xs px-3 py-1">🎬 {latest.reels_count} Reels</Badge>
-              <Badge variant="secondary" className="text-xs px-3 py-1">📸 {latest.posts_count} Posts</Badge>
-              <Badge variant="secondary" className="text-xs px-3 py-1">📱 {latest.stories_count} Stories</Badge>
+              <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5"><Film size={12} strokeWidth={1.5} /> {latest.reels_count} Reels</Badge>
+              <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5"><Camera size={12} strokeWidth={1.5} /> {latest.posts_count} Posts</Badge>
+              <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5"><Smartphone size={12} strokeWidth={1.5} /> {latest.stories_count} Stories</Badge>
             </div>
           </div>
         </>

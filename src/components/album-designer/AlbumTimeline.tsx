@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { Plus, Trash2, Copy, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Copy, ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -135,7 +135,7 @@ export default function AlbumTimeline({
                         "w-full h-10 rounded flex items-center justify-center text-[10px] font-medium",
                         isActive ? "bg-primary/20 text-primary" : "bg-muted/50 text-muted-foreground"
                       )}>
-                        {isCover ? "📖" : spread.spreadIndex}
+                        {isCover ? <BookOpen size={14} strokeWidth={1.5} /> : spread.spreadIndex}
                       </div>
                     )}
                     <span className="text-[8px] text-muted-foreground leading-none truncate w-full text-center px-1">

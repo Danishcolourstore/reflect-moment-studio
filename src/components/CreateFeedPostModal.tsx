@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { fonts } from "@/styles/design-tokens";
+import { Camera, Image as ImageIcon, X, FileText } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -146,7 +147,10 @@ export default function CreateFeedPostModal({ open, onOpenChange, onCreated }: P
                 transition: "all 0.2s ease",
               }}
             >
-              {m === "post" ? "📸 Photo Post" : "✍️ Blog Story"}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                {m === "post" ? <Camera size={14} strokeWidth={1.5} /> : <FileText size={14} strokeWidth={1.5} />}
+                {m === "post" ? "Photo Post" : "Blog Story"}
+              </span>
             </button>
           ))}
         </div>
@@ -169,7 +173,7 @@ export default function CreateFeedPostModal({ open, onOpenChange, onCreated }: P
               cursor: "pointer", justifyContent: "center",
               background: "#FAFAFA",
             }}>
-              📷 {imageFile ? "Change Cover" : "Add Cover Image"}
+              <Camera size={16} strokeWidth={1.5} /> {imageFile ? "Change Cover" : "Add Cover Image"}
               <input type="file" accept="image/*" onChange={handleImage} style={{ display: "none" }} />
             </label>
           </div>
@@ -185,7 +189,8 @@ export default function CreateFeedPostModal({ open, onOpenChange, onCreated }: P
                   border: "none", cursor: "pointer", fontSize: 14,
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}
-              >✕</button>
+                aria-label="Remove cover"
+              ><X size={14} strokeWidth={1.5} /></button>
             </div>
           )}
 
@@ -232,7 +237,7 @@ export default function CreateFeedPostModal({ open, onOpenChange, onCreated }: P
                   cursor: "pointer", justifyContent: "center",
                   background: "#FAFAFA",
                 }}>
-                  🖼️ Add Story Images ({galleryPreviews.length})
+                  <ImageIcon size={16} strokeWidth={1.5} /> Add Story Images ({galleryPreviews.length})
                   <input type="file" accept="image/*" multiple onChange={handleGalleryImages} style={{ display: "none" }} />
                 </label>
               </div>
@@ -250,7 +255,8 @@ export default function CreateFeedPostModal({ open, onOpenChange, onCreated }: P
                           border: "none", cursor: "pointer", fontSize: 11,
                           display: "flex", alignItems: "center", justifyContent: "center",
                         }}
-                      >✕</button>
+                        aria-label="Remove image"
+                      ><X size={12} strokeWidth={1.5} /></button>
                     </div>
                   ))}
                 </div>

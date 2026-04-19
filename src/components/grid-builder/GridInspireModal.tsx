@@ -46,11 +46,12 @@ interface LayoutVariation {
 }
 
 // ─── Analysis phases with icons ───
+import { Search as SearchIcon, Ruler, Type as TypeIcon } from 'lucide-react';
 const ANALYSIS_PHASES = [
-  { text: 'Scanning composition…', icon: '🔍' },
-  { text: 'Mapping grid structure…', icon: '📐' },
-  { text: 'Detecting typography…', icon: '🔤' },
-  { text: 'Crafting variations…', icon: '✨' },
+  { text: 'Scanning composition…', Icon: SearchIcon },
+  { text: 'Mapping grid structure…', Icon: Ruler },
+  { text: 'Detecting typography…', Icon: TypeIcon },
+  { text: 'Crafting variations…', Icon: Sparkles },
 ];
 
 // ─── Variation metadata ───

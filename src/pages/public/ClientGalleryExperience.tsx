@@ -1145,7 +1145,7 @@ function FavoritesDrawer({
                 opacity: submitted ? 0.5 : 1,
               }}
             >
-              {submitted ? "Selections Submitted ✓" : "Submit Selections"}
+              {submitted ? "Selections Submitted" : "Submit Selections"}
             </button>
 
             <button

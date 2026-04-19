@@ -1,5 +1,5 @@
 import { BusinessInsights } from '@/hooks/use-business-suite';
-import { Users, Calendar, IndianRupee, TrendingUp, UserPlus, Target } from 'lucide-react';
+import { Users, Calendar, IndianRupee, TrendingUp, UserPlus, Target, Lightbulb } from 'lucide-react';
 
 interface InsightsPanelProps {
   insights: BusinessInsights;
@@ -43,12 +43,17 @@ export function InsightsPanel({ insights }: InsightsPanelProps) {
               <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(insights.conversionRate, 100)}%` }} />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {insights.conversionRate >= 30
-              ? '🎯 Great conversion rate! Keep it up.'
-              : insights.conversionRate >= 10
-              ? '📈 Good progress. Follow up with leads faster.'
-              : '💡 Tip: Follow up within 24 hours for better conversions.'}
+          <p className="text-xs text-muted-foreground inline-flex items-start gap-1.5">
+            {insights.conversionRate >= 30 ? <Target size={12} strokeWidth={1.5} className="mt-0.5 shrink-0" /> :
+             insights.conversionRate >= 10 ? <TrendingUp size={12} strokeWidth={1.5} className="mt-0.5 shrink-0" /> :
+             <Lightbulb size={12} strokeWidth={1.5} className="mt-0.5 shrink-0" />}
+            <span>
+              {insights.conversionRate >= 30
+                ? 'Great conversion rate. Keep it up.'
+                : insights.conversionRate >= 10
+                ? 'Good progress. Follow up with leads faster.'
+                : 'Tip: Follow up within 24 hours for better conversions.'}
+            </span>
           </p>
         </div>
       </div>

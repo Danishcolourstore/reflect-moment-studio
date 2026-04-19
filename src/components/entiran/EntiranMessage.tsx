@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Check, ArrowRight } from 'lucide-react';
+import { Copy, Check, ArrowRight, MessageCircle, Bug, Brain, Zap, type LucideIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { type ChatMessage } from '@/hooks/use-entiran-chat';
 
@@ -61,11 +61,11 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
 
   // Welcome feature cards
   if (isWelcome && message.metadata?.type === 'feature_cards') {
-    const cards = [
-      { icon: '💬', label: 'Intelligence', desc: 'Studio help & creative advice' },
-      { icon: '🐛', label: 'Reports', desc: 'Auto-collected device info' },
-      { icon: '🧠', label: 'Studio Brain', desc: 'Proactive nudges' },
-      { icon: '⚡', label: 'Actions', desc: 'Pricing & replies' },
+    const cards: { Icon: LucideIcon; label: string; desc: string }[] = [
+      { Icon: MessageCircle, label: 'Intelligence', desc: 'Studio help & creative advice' },
+      { Icon: Bug, label: 'Reports', desc: 'Auto-collected device info' },
+      { Icon: Brain, label: 'Studio Brain', desc: 'Proactive nudges' },
+      { Icon: Zap, label: 'Actions', desc: 'Pricing & replies' },
     ];
     return (
       <div className="flex justify-start mb-4">
@@ -77,7 +77,7 @@ export function EntiranMessage({ message, onFollowUp }: DaanMessageProps) {
                 className="rounded-xl p-3.5 transition-colors duration-200"
                 style={{ background: 'rgba(200,169,126,0.04)', border: '1px solid rgba(200,169,126,0.06)' }}
               >
-                <span className="text-base mb-2 block">{c.icon}</span>
+                <c.Icon size={16} strokeWidth={1.5} className="mb-2 block" style={{ color: '#C8A97E' }} />
                 <p className="text-[10px] font-semibold tracking-wider uppercase" style={{ color: '#C8A97E' }}>{c.label}</p>
                 <p className="text-[9px] mt-0.5 leading-tight" style={{ color: 'rgba(244,241,234,0.3)' }}>{c.desc}</p>
               </div>

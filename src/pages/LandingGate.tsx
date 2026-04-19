@@ -7,7 +7,7 @@ import CreateFeedPostModal from "@/components/CreateFeedPostModal";
 import EditFeedPostModal from "@/components/EditFeedPostModal";
 import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { Menu, Share, Plus, X } from "lucide-react";
+import { Menu, Share, Plus, X, ChevronLeft } from "lucide-react";
 
 interface FeedPost {
   id: string;
@@ -388,7 +388,7 @@ function BlogReader({ post, onClose }: { post: FeedPost; onClose: () => void }) 
         display: "flex", alignItems: "center",
       }}>
         <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "hsl(35, 4%, 56%)", display: "flex", alignItems: "center", gap: 6 }}>
-          ← Back
+          <ChevronLeft size={14} strokeWidth={1.5} /> Back
         </button>
       </div>
 

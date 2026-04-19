@@ -4,8 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Zap, X, ArrowRight, Eye, Calendar, TrendingUp,
-  Package, MessageSquare, Clock, Sparkles
+  Package, MessageSquare, Clock, Sparkles, DollarSign, type LucideIcon,
 } from 'lucide-react';
+
+const NUDGE_ICON_MAP: Record<string, LucideIcon> = {
+  eye: Eye, calendar: Calendar, dollar: DollarSign, clock: Clock,
+};
 import { useSmartNudges, type SmartNudge } from '@/hooks/use-entiran-business';
 
 const DEMO_NUDGES: SmartNudge[] = [
@@ -14,7 +18,7 @@ const DEMO_NUDGES: SmartNudge[] = [
     nudge_type: 'gallery_engagement',
     title: 'A viewer spent 4 minutes in your gallery',
     body: 'Someone browsed 23 photos in "Priya & Arjun Wedding" but didn\'t message. Send them a direct link to your contact page?',
-    icon: '👀',
+    icon: 'eye',
     priority: 'high',
     action_type: 'route',
     action_data: { route: '/dashboard/events' },
@@ -27,7 +31,7 @@ const DEMO_NUDGES: SmartNudge[] = [
     nudge_type: 'availability_gap',
     title: '3 empty Saturdays in July',
     body: 'You have no bookings for July 5, 12, and 19. Post a limited availability offer in Reflections to attract last-minute bookings?',
-    icon: '📅',
+    icon: 'calendar',
     priority: 'medium',
     action_type: 'route',
     action_data: { route: '/dashboard/reflections' },
@@ -40,7 +44,7 @@ const DEMO_NUDGES: SmartNudge[] = [
     nudge_type: 'pricing_stale',
     title: 'Packages haven\'t been updated in 6 months',
     body: 'Local pricing has risen 15% since your last update. Review your packages to stay competitive.',
-    icon: '💰',
+    icon: 'dollar',
     priority: 'medium',
     action_type: 'route',
     action_data: { route: '/dashboard/business' },
@@ -53,7 +57,7 @@ const DEMO_NUDGES: SmartNudge[] = [
     nudge_type: 'lead_followup',
     title: '2 leads haven\'t been contacted',
     body: 'Ravi and Meena sent inquiries 36 hours ago. Quick follow-ups convert 3x better within 24 hours.',
-    icon: '⏰',
+    icon: 'clock',
     priority: 'high',
     action_type: 'route',
     action_data: { route: '/dashboard/business' },
@@ -124,7 +128,10 @@ export function SmartNudgesPanel() {
             <CardContent className="p-3 space-y-2">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                  <span className="text-lg mt-0.5">{nudge.icon}</span>
+                  {(() => {
+                    const NudgeIcon = NUDGE_ICON_MAP[nudge.icon as string] || Sparkles;
+                    return <NudgeIcon size={16} strokeWidth={1.5} className="mt-0.5 text-muted-foreground" />;
+                  })()}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       {NUDGE_TYPE_ICONS[nudge.nudge_type] && (

@@ -1,5 +1,6 @@
 import type { SectionType, SectionSettings } from './section-configs';
 import { SECTION_LABELS } from './section-configs';
+import { Star } from 'lucide-react';
 
 interface SectionPreviewProps {
   type: SectionType;
@@ -191,7 +192,7 @@ function TestimonialsPreview({ s }: { s: SectionSettings }) {
             {s.showStars && (
               <div className="flex gap-0.5 mb-2">
                 {Array.from({ length: s.starCount || 5 }).map((_, j) => (
-                  <span key={j} className="text-[#C8A97E] text-sm">★</span>
+                  <Star key={j} size={14} strokeWidth={1.5} fill="#C8A97E" className="text-[#C8A97E]" />
                 ))}
               </div>
             )}

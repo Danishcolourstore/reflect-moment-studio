@@ -86,8 +86,8 @@ interface ChatMessage { role: 'user' | 'assistant'; content: string; }
 // Codebase memory, PROJECT_TREE, DB_TABLES now in CodebaseMemory.tsx
 
 const AI_PROVIDERS = [
-  { value: 'lovable', label: 'Gemini (Lovable AI)', icon: '✨' },
-  { value: 'anthropic', label: 'Claude (Anthropic)', icon: '🧠' },
+  { value: 'lovable', label: 'Gemini (Lovable AI)', Icon: Sparkles },
+  { value: 'anthropic', label: 'Claude (Anthropic)', Icon: Brain },
 ];
 
 const GENERATION_MODES = [

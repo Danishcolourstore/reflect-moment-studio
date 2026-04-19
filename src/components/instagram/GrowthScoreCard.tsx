@@ -1,4 +1,5 @@
 import { GrowthScore } from '@/hooks/use-instagram-intelligence';
+import { Brain, Lightbulb } from 'lucide-react';
 
 interface GrowthScoreCardProps {
   score: GrowthScore;
@@ -49,7 +50,7 @@ export function GrowthScoreCard({ score, insights }: GrowthScoreCardProps) {
 
       {/* AI Insights */}
       <div className="bg-card border border-border rounded-xl p-4">
-        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">🧠 Daan Insights</p>
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3 inline-flex items-center gap-1.5"><Brain size={12} strokeWidth={1.5} /> Daan Insights</p>
         <div className="space-y-2">
           {insights.map((insight, i) => (
             <p key={i} className="text-sm text-foreground leading-relaxed">{insight}</p>
@@ -59,7 +60,7 @@ export function GrowthScoreCard({ score, insights }: GrowthScoreCardProps) {
 
       {/* Quick Tips */}
       <div className="bg-card border border-primary/10 rounded-xl p-4">
-        <p className="text-[11px] uppercase tracking-wider text-primary mb-2">💡 Quick Growth Tips</p>
+        <p className="text-[11px] uppercase tracking-wider text-primary mb-2 inline-flex items-center gap-1.5"><Lightbulb size={12} strokeWidth={1.5} /> Quick Growth Tips</p>
         <ul className="text-sm text-foreground/80 space-y-1.5">
           <li>• Post at consistent times (7-9 PM works best)</li>
           <li>• First 3 seconds of reels determine reach</li>

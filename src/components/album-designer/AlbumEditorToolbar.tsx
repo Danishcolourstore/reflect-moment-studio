@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   ArrowLeft, Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Eye, Download, Wand2,
-  Grid3X3, Ruler,
+  Grid3X3, Ruler, Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,7 +85,9 @@ export default function AlbumEditorToolbar({
               : saveStatus === "saving" ? "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400"
                 : "text-muted-foreground bg-muted"
           )}>
-            {saveStatus === "saved" ? "Saved ✓" : saveStatus === "saving" ? "Saving…" : "Unsaved"}
+            {saveStatus === "saved" ? (
+              <span className="inline-flex items-center gap-1"><Check size={12} strokeWidth={1.5} /> Saved</span>
+            ) : saveStatus === "saving" ? "Saving…" : "Unsaved"}
           </div>
         </div>
 

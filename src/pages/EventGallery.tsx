@@ -760,7 +760,7 @@ const EventGallery = () => {
                   onClick={() => updateLayout(opt.value)}
                   className={`text-[12px] gap-2 ${layout === opt.value ? 'font-semibold text-primary' : ''}`}
                 >
-                  {layout === opt.value && <span className="text-primary">●</span>}
+                  {layout === opt.value && <Check size={12} strokeWidth={1.5} className="text-primary" />}
                   {opt.label}
                 </DropdownMenuItem>
               ))}

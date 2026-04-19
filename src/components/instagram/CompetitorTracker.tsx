@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Users, Heart, MessageCircle, Film, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Users, Heart, MessageCircle, Film, RefreshCw, ArrowUp, ArrowDown, Zap } from 'lucide-react';
 
 interface CompetitorTrackerProps {
   competitors: InstagramCompetitor[];
@@ -131,11 +131,13 @@ export function CompetitorTracker({ competitors, latestSnapshot, onAddCompetitor
                   <div className="mt-3 pt-3 border-t border-border">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">vs You</p>
                     <div className="flex gap-3 text-xs">
-                      <span className={c.followers > latestSnapshot.followers ? 'text-destructive' : 'text-green-600'}>
-                        {c.followers > latestSnapshot.followers ? '↑' : '↓'} {Math.abs(c.followers - latestSnapshot.followers).toLocaleString()} followers
+                      <span className={`inline-flex items-center gap-1 ${c.followers > latestSnapshot.followers ? 'text-destructive' : 'text-green-600'}`}>
+                        {c.followers > latestSnapshot.followers ? <ArrowUp size={12} strokeWidth={1.5} /> : <ArrowDown size={12} strokeWidth={1.5} />}
+                        {Math.abs(c.followers - latestSnapshot.followers).toLocaleString()} followers
                       </span>
-                      <span className={c.avg_likes > latestSnapshot.likes ? 'text-destructive' : 'text-green-600'}>
-                        {c.avg_likes > latestSnapshot.likes ? '↑' : '↓'} {Math.abs(c.avg_likes - latestSnapshot.likes)} avg likes
+                      <span className={`inline-flex items-center gap-1 ${c.avg_likes > latestSnapshot.likes ? 'text-destructive' : 'text-green-600'}`}>
+                        {c.avg_likes > latestSnapshot.likes ? <ArrowUp size={12} strokeWidth={1.5} /> : <ArrowDown size={12} strokeWidth={1.5} />}
+                        {Math.abs(c.avg_likes - latestSnapshot.likes)} avg likes
                       </span>
                     </div>
                   </div>
@@ -147,7 +149,7 @@ export function CompetitorTracker({ competitors, latestSnapshot, onAddCompetitor
           {/* Gap Analysis */}
           {gaps.length > 0 && (
             <div className="bg-card border border-yellow-500/20 rounded-xl p-4">
-              <p className="text-[11px] uppercase tracking-wider text-yellow-600 mb-2">⚡ Gap Analysis</p>
+              <p className="text-[11px] uppercase tracking-wider text-yellow-600 mb-2 inline-flex items-center gap-1.5"><Zap size={12} strokeWidth={1.5} /> Gap Analysis</p>
               <div className="space-y-1.5">
                 {gaps.map((g, i) => (
                   <p key={i} className="text-sm text-foreground">• {g}</p>

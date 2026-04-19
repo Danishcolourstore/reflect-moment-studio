@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { OtpInput } from "@/components/OtpInput";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, ShieldAlert, LogOut } from "lucide-react";
+import { ShieldCheck, ShieldAlert, LogOut, Phone, MessageCircle } from "lucide-react";
 
 const VALID_PINS = ["291219", "010126", "141220"];
 const SESSION_KEY = "mirrorai_access_verified";
@@ -112,10 +112,10 @@ export default function VerifyAccess() {
               <>
                 <div className="flex gap-3">
                   <a href="tel:+919605761589" className="flex-1">
-                    <Button variant="outline" className="w-full text-sm gap-1.5">📞 Call</Button>
+                    <Button variant="outline" className="w-full text-sm gap-1.5"><Phone size={14} strokeWidth={1.5} /> Call</Button>
                   </a>
                   <a href="https://wa.me/919605761589" target="_blank" rel="noopener noreferrer" className="flex-1">
-                    <Button variant="outline" className="w-full text-sm gap-1.5">💬 WhatsApp</Button>
+                    <Button variant="outline" className="w-full text-sm gap-1.5"><MessageCircle size={14} strokeWidth={1.5} /> WhatsApp</Button>
                   </a>
                 </div>
                 <OtpInput length={6} onComplete={handleVerify} disabled={verifying} />
