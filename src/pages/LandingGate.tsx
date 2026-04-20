@@ -285,15 +285,21 @@ export default function LandingGate() {
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
       {mob && <MobileBottomNav />}
-      <CreateFeedPostModal open={createPostOpen} onOpenChange={setCreatePostOpen} onCreated={() => loadData()} />
-      <CreateEventModal
-        open={createEventOpen}
-        onOpenChange={setCreateEventOpen}
-        onCreated={(id) => navigate(`/dashboard/events/${id}`)}
-      />
-      {editPost && (
-        <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
-      )}
+      <Suspense fallback={null}>
+        {createPostOpen && (
+          <CreateFeedPostModal open={createPostOpen} onOpenChange={setCreatePostOpen} onCreated={() => loadData()} />
+        )}
+        {createEventOpen && (
+          <CreateEventModal
+            open={createEventOpen}
+            onOpenChange={setCreateEventOpen}
+            onCreated={(id) => navigate(`/dashboard/events/${id}`)}
+          />
+        )}
+        {editPost && editOpen && (
+          <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
+        )}
+      </Suspense>
     </div>
   );
 }
