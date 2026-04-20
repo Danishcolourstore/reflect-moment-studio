@@ -35,8 +35,10 @@ function getDepth(pathname: string): number {
   return 0;
 }
 
-const SLIDE_DISTANCE = 60; // px — subtle, not dramatic
-const DURATION = 0.25;
+// v2 §10 — forward 280ms, back 240ms, both ease-out spring
+const SLIDE_DISTANCE = 100; // % of width handled via transform; px fallback for subtlety
+const DURATION_FORWARD = 0.28;
+const DURATION_BACK = 0.24;
 const EASE = [0.32, 0.72, 0, 1]; // iOS-like spring
 
 export function PageTransition({ children }: { children: React.ReactNode }) {

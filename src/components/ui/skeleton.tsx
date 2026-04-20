@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Skeleton — left-to-right shimmer on --wash base.
- * No pulse. No radius. The single loading primitive.
+ * Skeleton — UI Parameter System v2 §10
+ * Pulse 0.5 ↔ 1.0, 1200ms ease-in-out, infinite. --wash-strong base.
+ * Skeleton shape MUST match actual content shape exactly.
  */
 function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("skeleton-block", className)} {...props} />;
