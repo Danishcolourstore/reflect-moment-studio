@@ -5,8 +5,13 @@ import { supabase } from "@/lib/supabase";
 // ═══════════════════════════════════════════════════════════
 // TEMPORARY: Set to true for full app testing without auth
 // Set to false to restore normal authentication
-const TEST_MODE_BYPASS_AUTH = true;
+export const TEST_MODE_BYPASS_AUTH = true;
 // ═══════════════════════════════════════════════════════════
+
+if (TEST_MODE_BYPASS_AUTH && typeof window !== "undefined") {
+  // eslint-disable-next-line no-console
+  console.warn("⚠️ AUTH MODE: BYPASS ACTIVE — all auth guards disabled");
+}
 
 // Mock user for testing
 const MOCK_USER: User = {

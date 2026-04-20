@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth";
+import { useAuth, TEST_MODE_BYPASS_AUTH } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminGate({ children }: { children: ReactNode }) {
@@ -49,6 +49,7 @@ export default function AdminGate({ children }: { children: ReactNode }) {
     };
   }, [user, loading]);
 
+  if (TEST_MODE_BYPASS_AUTH) return <>{children}</>;
   if (loading || checking) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
