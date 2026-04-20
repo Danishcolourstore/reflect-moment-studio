@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { useAlbumEditor } from "@/hooks/use-album-editor";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
@@ -7,9 +7,9 @@ import AlbumPhotoPanel from "@/components/album-designer/AlbumPhotoPanel";
 import AlbumCanvas from "@/components/album-designer/AlbumCanvas";
 import AlbumRightPanel from "@/components/album-designer/AlbumRightPanel";
 import AlbumTimeline from "@/components/album-designer/AlbumTimeline";
-import AlbumPreviewModal from "@/components/album-designer/AlbumPreviewModal";
-import AlbumExportDialog from "@/components/album-designer/AlbumExportDialog";
-import AlbumAutoLayoutDialog from "@/components/album-designer/AlbumAutoLayoutDialog";
+const AlbumPreviewModal = lazy(() => import("@/components/album-designer/AlbumPreviewModal"));
+const AlbumExportDialog = lazy(() => import("@/components/album-designer/AlbumExportDialog"));
+const AlbumAutoLayoutDialog = lazy(() => import("@/components/album-designer/AlbumAutoLayoutDialog"));
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ImageIcon, Settings, Layers, ChevronLeft, ChevronRight, Wand2, LayoutGrid, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -220,16 +220,22 @@ export default function AlbumEditorPage() {
           </SheetContent>
         </Sheet>
 
-        {previewOpen && (
-          <AlbumPreviewModal
-            albumId={editor.album.id}
-            albumName={editor.album.name}
-            onClose={() => setPreviewOpen(false)}
-            onSharePreview={editor.getShareLink}
-          />
-        )}
-        <AlbumExportDialog open={exportOpen} onOpenChange={setExportOpen} album={editor.album} spreads={editor.spreads} onSharePreview={editor.getShareLink} />
-        <AlbumAutoLayoutDialog open={autoLayoutOpen} onOpenChange={setAutoLayoutOpen} album={editor.album} onComplete={editor.reloadSpreads} />
+        <Suspense fallback={null}>
+          {previewOpen && (
+            <AlbumPreviewModal
+              albumId={editor.album.id}
+              albumName={editor.album.name}
+              onClose={() => setPreviewOpen(false)}
+              onSharePreview={editor.getShareLink}
+            />
+          )}
+          {exportOpen && (
+            <AlbumExportDialog open={exportOpen} onOpenChange={setExportOpen} album={editor.album} spreads={editor.spreads} onSharePreview={editor.getShareLink} />
+          )}
+          {autoLayoutOpen && (
+            <AlbumAutoLayoutDialog open={autoLayoutOpen} onOpenChange={setAutoLayoutOpen} album={editor.album} onComplete={editor.reloadSpreads} />
+          )}
+        </Suspense>
       </div>
     );
   }
@@ -322,11 +328,17 @@ export default function AlbumEditorPage() {
           </SheetContent>
         </Sheet>
 
-        {previewOpen && (
-          <AlbumPreviewModal albumId={editor.album.id} albumName={editor.album.name} onClose={() => setPreviewOpen(false)} onSharePreview={editor.getShareLink} />
-        )}
-        <AlbumExportDialog open={exportOpen} onOpenChange={setExportOpen} album={editor.album} spreads={editor.spreads} onSharePreview={editor.getShareLink} />
-        <AlbumAutoLayoutDialog open={autoLayoutOpen} onOpenChange={setAutoLayoutOpen} album={editor.album} onComplete={editor.reloadSpreads} />
+        <Suspense fallback={null}>
+          {previewOpen && (
+            <AlbumPreviewModal albumId={editor.album.id} albumName={editor.album.name} onClose={() => setPreviewOpen(false)} onSharePreview={editor.getShareLink} />
+          )}
+          {exportOpen && (
+            <AlbumExportDialog open={exportOpen} onOpenChange={setExportOpen} album={editor.album} spreads={editor.spreads} onSharePreview={editor.getShareLink} />
+          )}
+          {autoLayoutOpen && (
+            <AlbumAutoLayoutDialog open={autoLayoutOpen} onOpenChange={setAutoLayoutOpen} album={editor.album} onComplete={editor.reloadSpreads} />
+          )}
+        </Suspense>
       </div>
     );
   }
@@ -387,11 +399,17 @@ export default function AlbumEditorPage() {
         albumSize={editor.album.size}
       />
 
-      {previewOpen && (
-        <AlbumPreviewModal albumId={editor.album.id} albumName={editor.album.name} onClose={() => setPreviewOpen(false)} onSharePreview={editor.getShareLink} />
-      )}
-      <AlbumExportDialog open={exportOpen} onOpenChange={setExportOpen} album={editor.album} spreads={editor.spreads} onSharePreview={editor.getShareLink} />
-      <AlbumAutoLayoutDialog open={autoLayoutOpen} onOpenChange={setAutoLayoutOpen} album={editor.album} onComplete={editor.reloadSpreads} />
+      <Suspense fallback={null}>
+        {previewOpen && (
+          <AlbumPreviewModal albumId={editor.album.id} albumName={editor.album.name} onClose={() => setPreviewOpen(false)} onSharePreview={editor.getShareLink} />
+        )}
+        {exportOpen && (
+          <AlbumExportDialog open={exportOpen} onOpenChange={setExportOpen} album={editor.album} spreads={editor.spreads} onSharePreview={editor.getShareLink} />
+        )}
+        {autoLayoutOpen && (
+          <AlbumAutoLayoutDialog open={autoLayoutOpen} onOpenChange={setAutoLayoutOpen} album={editor.album} onComplete={editor.reloadSpreads} />
+        )}
+      </Suspense>
     </div>
   );
 }

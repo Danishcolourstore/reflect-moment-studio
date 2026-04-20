@@ -34,7 +34,7 @@ const WidgetPage = () => {
     <div className={`${bg} h-screen overflow-hidden flex flex-col`} style={{ fontFamily: "'Cormorant Garamond', serif" }}>
       <div className="aspect-[3/2] overflow-hidden shrink-0">
         {event.cover_url ? (
-          <img src={event.cover_url} alt="" className="h-full w-full object-cover" />
+          <img src={event.cover_url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
         ) : (
           <div className={`h-full flex items-center justify-center ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
             <Camera className="h-10 w-10 opacity-20" />
@@ -44,7 +44,7 @@ const WidgetPage = () => {
       <div className="p-4 flex-1 flex flex-col">
         {studio?.studio_logo_url && (
           <div className="flex items-center gap-2 mb-2">
-            <img src={studio.studio_logo_url} alt="" className="h-6 object-contain" />
+            <img src={studio.studio_logo_url} alt="" className="h-6 object-contain" loading="lazy" decoding="async" />
             <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{studio.studio_name}</span>
           </div>
         )}

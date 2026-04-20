@@ -92,7 +92,7 @@ export function PixiesetEditorialGrid({ photos, eventName, isFavorite, toggleFav
   return (
     <div>
       <div className="group relative w-full h-[50vh] sm:h-[60vh] lg:h-[68vh] overflow-hidden">
-        <img src={hero.url} alt="" className="h-full w-full object-cover" />
+        <img src={hero.url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
         {eventName && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -172,7 +172,7 @@ export function HighlightMosaicGrid({ photos, eventName, isFavorite, toggleFavor
   return (
     <div>
       <div className="group relative w-full h-[45vh] sm:h-[55vh] lg:h-[65vh] overflow-hidden">
-        <img src={banner.url} alt="" className="h-full w-full object-cover" />
+        <img src={banner.url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
         {eventName && (
           <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-10 z-10">

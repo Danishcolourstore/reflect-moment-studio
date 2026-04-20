@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import CreateFeedPostModal from "@/components/CreateFeedPostModal";
-import EditFeedPostModal from "@/components/EditFeedPostModal";
+const CreateFeedPostModal = lazy(() => import("@/components/CreateFeedPostModal"));
+const EditFeedPostModal = lazy(() => import("@/components/EditFeedPostModal"));
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Plus, Share, ArrowLeft } from "lucide-react";
 
@@ -186,15 +186,19 @@ export default function FeedEditor() {
       </button>
 
       <MobileBottomNav />
-      <CreateFeedPostModal open={createOpen} onOpenChange={setCreateOpen} onCreated={() => loadPosts()} />
-      {editPost && (
-        <EditFeedPostModal
-          open={editOpen}
-          onOpenChange={setEditOpen}
-          post={editPost}
-          onSaved={() => loadPosts()}
-        />
-      )}
+      <Suspense fallback={null}>
+        {createOpen && (
+          <CreateFeedPostModal open={createOpen} onOpenChange={setCreateOpen} onCreated={() => loadPosts()} />
+        )}
+        {editPost && editOpen && (
+          <EditFeedPostModal
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            post={editPost}
+            onSaved={() => loadPosts()}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

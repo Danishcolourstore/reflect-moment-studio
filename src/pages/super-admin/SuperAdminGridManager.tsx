@@ -797,7 +797,7 @@ function InspireImportPanel({ onTemplateCreated }: { onTemplateCreated: () => vo
           <div className="space-y-4">
             {/* Image with grid overlay */}
             <div className="relative aspect-square rounded-xl overflow-hidden border border-border">
-              <img src={image} alt="Inspiration" className="w-full h-full object-cover" />
+              <img src={image} alt="Inspiration" className="w-full h-full object-cover" loading="lazy" decoding="async" />
               {/* Grid overlay */}
               <div
                 className="absolute inset-0 grid pointer-events-none"

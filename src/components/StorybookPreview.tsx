@@ -84,7 +84,7 @@ function PreviewHeroCover({ block }: { block: StoryBlock }) {
     <div className="relative w-full" style={{ height: '100vh' }}>
       {block.photo_urls[0] && (
         <img src={block.photo_urls[0]} alt={block.caption || ''} className="absolute inset-0 h-full w-full object-cover"
-          style={{ animation: 'kenBurns 20s ease-in-out infinite alternate' }} />
+          style={{ animation: 'kenBurns 20s ease-in-out infinite alternate' }} loading="lazy" decoding="async" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
@@ -111,7 +111,7 @@ function PreviewSplitEditorial({ block }: { block: StoryBlock }) {
       <RevealBlock>
         <div className="h-[50vh] md:h-[70vh] overflow-hidden">
           {block.photo_urls[0] && (
-            <img src={block.photo_urls[0]} alt="" className="h-full w-full object-cover transition-transform duration-[1200ms] hover:scale-105" />
+            <img src={block.photo_urls[0]} alt="" className="h-full w-full object-cover transition-transform duration-[1200ms] hover:scale-105" loading="lazy" decoding="async" />
           )}
         </div>
       </RevealBlock>
@@ -147,7 +147,7 @@ function PreviewFilmStrip({ block }: { block: StoryBlock }) {
         {block.photo_urls.map((url, i) => (
           <RevealBlock key={i} delay={i * 150}>
             <div className="shrink-0 h-[40vh] md:h-[50vh] w-[60vw] md:w-[35vw] rounded-lg overflow-hidden snap-center">
-              <img src={url} alt="" className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
+              <img src={url} alt="" className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" />
             </div>
           </RevealBlock>
         ))}
@@ -170,7 +170,7 @@ function PreviewMinimalGrid({ block }: { block: StoryBlock }) {
         {block.photo_urls.slice(0, 4).map((url, i) => (
           <RevealBlock key={i} delay={i * 120}>
             <div className="aspect-square rounded-lg overflow-hidden">
-              <img src={url} alt="" className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
+              <img src={url} alt="" className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" />
             </div>
           </RevealBlock>
         ))}
@@ -183,7 +183,7 @@ function PreviewFullscreenStory({ block }: { block: StoryBlock }) {
   return (
     <div className="relative w-full" style={{ height: '100vh' }}>
       {block.photo_urls[0] && (
-        <img src={block.photo_urls[0]} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={block.photo_urls[0]} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
       {block.caption && (
@@ -245,7 +245,7 @@ function ExportSlide({ block, title, index }: { block: StoryBlock; title: string
       {/* Background image */}
       {mainPhoto && (
         <img src={mainPhoto} alt="" crossOrigin="anonymous"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" decoding="async" />
       )}
 
       {/* Gradient overlay */}
@@ -270,7 +270,7 @@ function ExportSlide({ block, title, index }: { block: StoryBlock; title: string
         }}>
           {block.photo_urls.slice(0, 4).map((url, i) => (
             <img key={i} src={url} alt="" crossOrigin="anonymous"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
+              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} loading="lazy" decoding="async" />
           ))}
         </div>
       )}
@@ -283,7 +283,7 @@ function ExportSlide({ block, title, index }: { block: StoryBlock; title: string
         }}>
           {block.photo_urls.map((url, i) => (
             <img key={i} src={url} alt="" crossOrigin="anonymous"
-              style={{ width: '100%', height: `${100 / block.photo_urls.length}%`, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
+              style={{ width: '100%', height: `${100 / block.photo_urls.length}%`, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} loading="lazy" decoding="async" />
           ))}
         </div>
       )}

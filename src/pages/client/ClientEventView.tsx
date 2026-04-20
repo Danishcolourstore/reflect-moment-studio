@@ -265,7 +265,7 @@ const ClientEventView = () => {
       {/* Lightbox */}
       {lightboxIdx !== null && filteredPhotos[lightboxIdx] && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.95)' }} onClick={() => setLightboxIdx(null)}>
-          <img src={filteredPhotos[lightboxIdx].url} alt="" className="max-h-[90vh] max-w-[90vw] object-contain" />
+          <img src={filteredPhotos[lightboxIdx].url} alt="" className="max-h-[90vh] max-w-[90vw] object-contain" loading="lazy" decoding="async" />
           {lightboxIdx > 0 && (
             <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white text-4xl transition-colors" onClick={e => { e.stopPropagation(); setLightboxIdx(lightboxIdx - 1); }}>‹</button>
           )}

@@ -108,7 +108,7 @@ export default function AdminEvents() {
                 <tr key={e.id}>
                   <td className="px-4 py-2">
                     {e.cover_url ? (
-                      <img src={e.cover_url} alt="" className="h-8 w-12 rounded object-cover" />
+                      <img src={e.cover_url} alt="" className="h-8 w-12 rounded object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="h-8 w-12 rounded bg-secondary" />
                     )}

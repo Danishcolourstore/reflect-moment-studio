@@ -153,7 +153,7 @@ export default function EditFeedPostModal({ open, onOpenChange, post, onSaved }:
                 <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
                   {existingGallery.map((url, i) => (
                     <div key={i} style={{ position: "relative", flexShrink: 0 }}>
-                      <img src={url} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 6 }} />
+                      <img src={url} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 6 }} loading="lazy" decoding="async" />
                       <button
                         onClick={() => setExistingGallery((prev) => prev.filter((_, j) => j !== i))}
                         style={{

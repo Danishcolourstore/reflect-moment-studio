@@ -1,11 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import CreateFeedPostModal from "@/components/CreateFeedPostModal";
-import EditFeedPostModal from "@/components/EditFeedPostModal";
-import { CreateEventModal } from "@/components/CreateEventModal";
+const CreateFeedPostModal = lazy(() => import("@/components/CreateFeedPostModal"));
+const EditFeedPostModal = lazy(() => import("@/components/EditFeedPostModal"));
+const CreateEventModal = lazy(() => import("@/components/CreateEventModal").then(m => ({ default: m.CreateEventModal })));
 import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Menu, Share, Plus, ChevronLeft } from "lucide-react";
@@ -285,15 +285,21 @@ export default function LandingGate() {
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
       {mob && <MobileBottomNav />}
-      <CreateFeedPostModal open={createPostOpen} onOpenChange={setCreatePostOpen} onCreated={() => loadData()} />
-      <CreateEventModal
-        open={createEventOpen}
-        onOpenChange={setCreateEventOpen}
-        onCreated={(id) => navigate(`/dashboard/events/${id}`)}
-      />
-      {editPost && (
-        <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
-      )}
+      <Suspense fallback={null}>
+        {createPostOpen && (
+          <CreateFeedPostModal open={createPostOpen} onOpenChange={setCreatePostOpen} onCreated={() => loadData()} />
+        )}
+        {createEventOpen && (
+          <CreateEventModal
+            open={createEventOpen}
+            onOpenChange={setCreateEventOpen}
+            onCreated={(id) => navigate(`/dashboard/events/${id}`)}
+          />
+        )}
+        {editPost && editOpen && (
+          <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
+        )}
+      </Suspense>
     </div>
   );
 }
@@ -339,8 +345,7 @@ function BlogReader({ post, onClose }: { post: FeedPost; onClose: () => void }) 
         <img
           src={post.imageUrl}
           alt={post.title}
-          className="w-full h-auto max-h-[60vh] object-cover block"
-        />
+          className="w-full h-auto max-h-[60vh] object-cover block" loading="lazy" decoding="async" />
       )}
 
       <div className="max-w-[720px] mx-auto px-5 pt-8 pb-24">

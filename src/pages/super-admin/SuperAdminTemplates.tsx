@@ -315,7 +315,7 @@ export default function SuperAdminTemplates() {
             <CardContent className="p-4 flex items-center gap-4">
               <div className="w-20 h-14 rounded-lg border border-border shrink-0 overflow-hidden relative" style={{ backgroundColor: tmpl.bg_color }}>
                 {(tmpl.preview_image_url || tmpl.demo_content?.hero?.image_url) ? (
-                  <img src={tmpl.preview_image_url || tmpl.demo_content?.hero?.image_url || ''} alt="" className="w-full h-full object-cover opacity-70" />
+                  <img src={tmpl.preview_image_url || tmpl.demo_content?.hero?.image_url || ''} alt="" className="w-full h-full object-cover opacity-70" loading="lazy" decoding="async" />
                 ) : null}
                 <div className="absolute inset-0 flex items-center justify-center" style={{ color: tmpl.text_color }}>
                   <span className="text-[10px] font-bold" style={{ fontFamily: tmpl.font_family }}>Aa</span>
@@ -981,7 +981,7 @@ function PreviewPanel({ form }: { form: Omit<TemplateRow, 'id' | 'created_at' | 
                   return (
                     <section key="hero" className="relative" style={{ minHeight: isMobile ? 280 : 400 }}>
                       {dc.hero?.image_url ? (
-                        <img src={dc.hero.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                        <img src={dc.hero.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
                       ) : (
                         <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${form.card_bg}, ${form.bg_color})` }} />
                       )}
@@ -1010,7 +1010,7 @@ function PreviewPanel({ form }: { form: Omit<TemplateRow, 'id' | 'created_at' | 
                         <h2 className="text-center mb-6" style={{ fontFamily: form.font_family, fontSize: isMobile ? 18 : 22 }}>Portfolio</h2>
                         <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
                           {dc.portfolio!.demo_images!.map((url, i) => (
-                            <img key={i} src={url} alt="" className="w-full aspect-[3/4] object-cover rounded" />
+                            <img key={i} src={url} alt="" className="w-full aspect-[3/4] object-cover rounded" loading="lazy" decoding="async" />
                           ))}
                         </div>
                       </div>
@@ -1025,7 +1025,7 @@ function PreviewPanel({ form }: { form: Omit<TemplateRow, 'id' | 'created_at' | 
                         <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(cols, (dc.featured_stories || []).length)}, 1fr)` }}>
                           {(dc.featured_stories || []).map((story, i) => (
                             <div key={i} className="relative overflow-hidden rounded aspect-[3/4]">
-                              {story.image_url && <img src={story.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+                              {story.image_url && <img src={story.image_url} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />}
                               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
                               <div className="absolute bottom-0 left-0 right-0 p-4">
                                 <h3 className="font-light text-sm" style={{ color: '#fff', fontFamily: form.font_family }}>{story.title}</h3>
@@ -1045,7 +1045,7 @@ function PreviewPanel({ form }: { form: Omit<TemplateRow, 'id' | 'created_at' | 
                         <h2 className="text-center mb-6" style={{ fontFamily: form.font_family, fontSize: isMobile ? 18 : 22 }}>Gallery</h2>
                         <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
                           {(dc.gallery_images || []).map((url, i) => (
-                            <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded" />
+                            <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded" loading="lazy" decoding="async" />
                           ))}
                         </div>
                       </div>
@@ -1058,7 +1058,7 @@ function PreviewPanel({ form }: { form: Omit<TemplateRow, 'id' | 'created_at' | 
                       <div className={`max-w-3xl mx-auto ${isMobile ? 'text-center' : 'flex gap-8 items-start'}`}>
                         {dc.about.profile_image_url && (
                           <div className={isMobile ? 'mx-auto mb-4' : 'w-40 shrink-0'}>
-                            <img src={dc.about.profile_image_url} alt="" className="object-cover rounded-lg" style={{ width: isMobile ? 100 : 160, height: isMobile ? 130 : 200 }} />
+                            <img src={dc.about.profile_image_url} alt="" className="object-cover rounded-lg" style={{ width: isMobile ? 100 : 160, height: isMobile ? 130 : 200 }} loading="lazy" decoding="async" />
                           </div>
                         )}
                         <div className="flex-1">
@@ -1095,7 +1095,7 @@ function PreviewPanel({ form }: { form: Omit<TemplateRow, 'id' | 'created_at' | 
                           {(dc.films || []).map((film, i) => (
                             <div key={i} className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer">
                               {film.thumbnail_url ? (
-                                <img src={film.thumbnail_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                                <img src={film.thumbnail_url} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
                               ) : (
                                 <div className="absolute inset-0" style={{ backgroundColor: form.card_bg }} />
                               )}
@@ -1139,7 +1139,7 @@ function PreviewPanel({ form }: { form: Omit<TemplateRow, 'id' | 'created_at' | 
                         <p className="text-xs mb-6" style={{ color: form.text_secondary_color }}>@studio</p>
                         <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${Math.min(isMobile ? 3 : 6, (dc.social_images || []).length)}, 1fr)` }}>
                           {(dc.social_images || []).map((url, i) => (
-                            <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded" />
+                            <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded" loading="lazy" decoding="async" />
                           ))}
                         </div>
                       </div>
@@ -1243,7 +1243,7 @@ function DemoImageUploader({ label, value, onChange, folder, uploadFn }: {
       <label className="text-xs font-medium text-muted-foreground">{label}</label>
       {value ? (
         <div className="relative group rounded-lg overflow-hidden border border-border w-40">
-          <img src={value} alt="" className="w-full aspect-video object-cover" />
+          <img src={value} alt="" className="w-full aspect-video object-cover" loading="lazy" decoding="async" />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
             <label className="cursor-pointer">
               <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
@@ -1284,7 +1284,7 @@ function SingleImageField({ value, onChange, folder, uploadFn }: {
   if (value) {
     return (
       <div className="relative group w-16 h-16 rounded overflow-hidden border border-border shrink-0">
-        <img src={value} alt="" className="w-full h-full object-cover" />
+        <img src={value} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
         <label className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer">
           <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
           <Camera className="h-3 w-3 text-white" />
@@ -1318,7 +1318,7 @@ function MultiImageSection({ label, images, max, onChange, folder, uploadFn }: {
       <div className="grid grid-cols-4 gap-1.5">
         {images.map((url, i) => (
           <div key={i} className="relative group rounded overflow-hidden border border-border">
-            <img src={url} alt="" className="w-full aspect-square object-cover" />
+            <img src={url} alt="" className="w-full aspect-square object-cover" loading="lazy" decoding="async" />
             <button
               onClick={() => onChange(images.filter((_, idx) => idx !== i))}
               className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"

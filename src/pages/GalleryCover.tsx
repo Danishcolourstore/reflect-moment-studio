@@ -206,7 +206,7 @@ const GalleryCover = () => {
     <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center px-4">
       {event.cover_url ? (
         <div className="relative w-full max-w-2xl aspect-[3/2] overflow-hidden mb-8">
-          <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
+          <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         </div>
       ) : (
         <div className="w-full max-w-2xl aspect-[3/2] bg-secondary flex items-center justify-center mb-8">

@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { ArrowLeft, Grid3X3, Sparkles, MessageSquare, LayoutGrid } from 'lucide-react';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import type { GridLayout } from './types';
 import type { TextLayer } from './text-overlay-types';
 import GridLayoutSelector from './GridLayoutSelector';
 import GridEditor from './GridEditor';
-import GridInspireModal from './GridInspireModal';
+const GridInspireModal = lazy(() => import('./GridInspireModal'));
 import AICaptionGenerator from './AICaptionGenerator';
 import AILayoutSuggestions from './AILayoutSuggestions';
 import { cn } from '@/lib/utils';
@@ -35,14 +35,16 @@ export default function GridBuilder({ onClose }: Props) {
 
   if (showInspire) {
     return (
-      <GridInspireModal
-        onClose={() => setShowInspire(false)}
-        onLayoutGenerated={(layout, textLayers) => {
-          setShowInspire(false);
-          setInitialTextLayers(textLayers);
-          setSelectedLayout(layout);
-        }}
-      />
+      <Suspense fallback={null}>
+        <GridInspireModal
+          onClose={() => setShowInspire(false)}
+          onLayoutGenerated={(layout, textLayers) => {
+            setShowInspire(false);
+            setInitialTextLayers(textLayers);
+            setSelectedLayout(layout);
+          }}
+        />
+      </Suspense>
     );
   }
 

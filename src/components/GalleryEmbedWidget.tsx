@@ -29,7 +29,7 @@ export function GalleryEmbedWidget({ eventSlug, eventTitle, coverUrl, photoCount
       <div className="border border-border rounded-xl overflow-hidden bg-card" style={{ width: '320px' }}>
         <div className="aspect-[3/2] bg-secondary overflow-hidden">
           {coverUrl ? (
-            <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+            <img src={coverUrl} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
           ) : (
             <div className="h-full flex items-center justify-center"><Camera className="h-8 w-8 text-muted-foreground/15" /></div>
           )}

@@ -60,8 +60,7 @@ function HeroPreview({ s }: { s: SectionSettings }) {
         <img
           src={s.heroImageUrl}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+          className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
       )}
       <div
         className="absolute inset-0"
@@ -161,7 +160,7 @@ function GalleryPreview({ s }: { s: SectionSettings }) {
       >
         {images.map((src, i) => (
           <div key={i} className="aspect-square overflow-hidden" style={{ borderRadius: s.borderRadius || 4 }}>
-            <img src={src} alt="" className="w-full h-full" style={{ objectFit: s.imageFit || 'cover' }} />
+            <img src={src} alt="" className="w-full h-full" style={{ objectFit: s.imageFit || 'cover' }} loading="lazy" decoding="async" />
           </div>
         ))}
       </div>

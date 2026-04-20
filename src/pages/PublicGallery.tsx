@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
 import { useInfinitePhotos } from '@/hooks/use-infinite-photos';
@@ -27,14 +27,14 @@ import {
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { PhotoShareSheet } from '@/components/PhotoShareSheet';
-import { CinematicLightbox } from '@/components/lightbox';
+const PhotoShareSheet = lazy(() => import('@/components/PhotoShareSheet').then(m => ({ default: m.PhotoShareSheet })));
+const CinematicLightbox = lazy(() => import('@/components/lightbox').then(m => ({ default: m.CinematicLightbox })));
 import { PhotoSlideshow } from '@/components/PhotoSlideshow';
 import { OtpInput } from '@/components/OtpInput';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
-import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
-import { FindMyPhotosModal } from '@/components/FindMyPhotosModal';
+const SendFavoritesDialog = lazy(() => import('@/components/SendFavoritesDialog').then(m => ({ default: m.SendFavoritesDialog })));
+const FindMyPhotosModal = lazy(() => import('@/components/FindMyPhotosModal').then(m => ({ default: m.FindMyPhotosModal })));
 import { GalleryTextBlockRenderer, type TextBlock } from '@/components/GalleryTextBlock';
 import { TimelessWeddingHero } from '@/components/TimelessWeddingHero';
 import { AndhakarHero } from '@/components/AndhakarHero';
@@ -144,7 +144,7 @@ function PinGate({ event, studioProfile, onUnlock }: {
     <div className="fixed inset-0 z-[200] bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-card border border-border rounded-lg p-8 text-center space-y-6 shadow-lg">
         {studioProfile?.studio_logo_url ? (
-          <img src={studioProfile.studio_logo_url} alt="" className="h-12 mx-auto object-contain" />
+          <img src={studioProfile.studio_logo_url} alt="" className="h-12 mx-auto object-contain" loading="lazy" decoding="async" />
         ) : (
           <h2 className="font-display text-xl italic text-foreground">MirrorAI</h2>
         )}
@@ -1006,8 +1006,7 @@ const PublicGallery = () => {
               src={event.cover_url}
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
-              style={{ animation: 'kenBurns 12s ease-in-out alternate infinite' }}
-            />
+              style={{ animation: 'kenBurns 12s ease-in-out alternate infinite' }} loading="lazy" decoding="async" />
           ) : (
             <div className="absolute inset-0 bg-foreground/90" />
           )}
@@ -1015,7 +1014,7 @@ const PublicGallery = () => {
 
           <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 lg:pb-32 px-6 text-center">
             {studioProfile?.studio_logo_url ? (
-              <img src={studioProfile.studio_logo_url} alt="" className="h-12 lg:h-16 object-contain mb-6 opacity-80" />
+              <img src={studioProfile.studio_logo_url} alt="" className="h-12 lg:h-16 object-contain mb-6 opacity-80" loading="lazy" decoding="async" />
             ) : studioProfile?.studio_name ? (
               <p className="font-display text-sm lg:text-base italic text-white/60 mb-6 tracking-wider">{studioProfile.studio_name}</p>
             ) : null}
@@ -1054,7 +1053,7 @@ const PublicGallery = () => {
           {/* Left: logo or name */}
           <div className="flex items-center gap-3 min-w-0">
             {studioProfile?.studio_logo_url ? (
-              <img src={studioProfile.studio_logo_url} alt="" className="h-8 object-contain" />
+              <img src={studioProfile.studio_logo_url} alt="" className="h-8 object-contain" loading="lazy" decoding="async" />
             ) : (
               <span className="text-xs font-medium text-foreground truncate">{studioProfile?.studio_name}</span>
             )}
@@ -1281,74 +1280,82 @@ const PublicGallery = () => {
         </div>
       )}
 
-      {/* ── Lightbox ── */}
-      <CinematicLightbox
-        photos={displayPhotos}
-        currentIndex={lightboxIndex}
-        open={lightboxOpen}
-        onClose={() => setLightboxOpen(false)}
-        onIndexChange={setLightboxIndex}
-        isFavorite={isFavorite}
-        toggleFavorite={toggleFavorite}
-        canDownload={canDownload}
-        onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
-        onShare={(p) => setSharePhoto(p as Photo)}
-      />
+      {/* ── Lightbox + lazy modals ── */}
+      <Suspense fallback={null}>
+        {lightboxOpen && (
+          <CinematicLightbox
+            photos={displayPhotos}
+            currentIndex={lightboxIndex}
+            open={lightboxOpen}
+            onClose={() => setLightboxOpen(false)}
+            onIndexChange={setLightboxIndex}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
+            canDownload={canDownload}
+            onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
+            onShare={(p) => setSharePhoto(p as Photo)}
+          />
+        )}
 
-      {/* Send Favorites Dialog */}
-      <SendFavoritesDialog
-        open={sendFavOpen}
-        onOpenChange={setSendFavOpen}
-        eventId={event.id}
-        eventTitle={event.name}
-        favoritePhotoIds={photos.filter(p => isFavorite(p.id)).map(p => p.id)}
-        favoritePhotos={photos.filter(p => isFavorite(p.id)).map(p => ({ id: p.id, url: p.url }))}
-        sessionId={sessionId}
-      />
+        {/* Send Favorites Dialog */}
+        {sendFavOpen && (
+          <SendFavoritesDialog
+            open={sendFavOpen}
+            onOpenChange={setSendFavOpen}
+            eventId={event.id}
+            eventTitle={event.name}
+            favoritePhotoIds={photos.filter(p => isFavorite(p.id)).map(p => p.id)}
+            favoritePhotos={photos.filter(p => isFavorite(p.id)).map(p => ({ id: p.id, url: p.url }))}
+            sessionId={sessionId}
+          />
+        )}
 
-      <PhotoSlideshow
-        photos={displayPhotos}
-        open={slideshowOpen}
-        onClose={() => setSlideshowOpen(false)}
-      />
+        <PhotoSlideshow
+          photos={displayPhotos}
+          open={slideshowOpen}
+          onClose={() => setSlideshowOpen(false)}
+        />
 
-      {sharePhoto && (
-        <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
-          photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownload} />
-      )}
+        {sharePhoto && (
+          <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
+            photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownload} />
+        )}
 
-      {/* Download password prompt */}
-      {downloadPwPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
-          <div className="w-full max-w-xs bg-card border border-border rounded-lg p-6 space-y-4">
-            <h3 className="font-serif text-lg font-semibold text-foreground text-center">Download Password</h3>
-            <p className="text-[11px] text-muted-foreground/60 text-center">Enter the password to download photos.</p>
-            <form onSubmit={handleDownloadPwSubmit} className="space-y-3">
-              <Input value={downloadPwInput} onChange={(e) => { setDownloadPwInput(e.target.value); setDownloadPwError(false); }}
-                placeholder="Enter password" className="bg-background border-border h-10 text-center" autoFocus />
-              {downloadPwError && <p className="text-[10px] text-destructive text-center">Incorrect password.</p>}
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => { setDownloadPwPrompt(false); setDownloadPwInput(''); setDownloadPwError(false); setPendingDownloadAction(null); }}>Cancel</Button>
-                <Button type="submit" className="flex-1 h-10">Confirm</Button>
-              </div>
-            </form>
+        {/* Download password prompt */}
+        {downloadPwPrompt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
+            <div className="w-full max-w-xs bg-card border border-border rounded-lg p-6 space-y-4">
+              <h3 className="font-serif text-lg font-semibold text-foreground text-center">Download Password</h3>
+              <p className="text-[11px] text-muted-foreground/60 text-center">Enter the password to download photos.</p>
+              <form onSubmit={handleDownloadPwSubmit} className="space-y-3">
+                <Input value={downloadPwInput} onChange={(e) => { setDownloadPwInput(e.target.value); setDownloadPwError(false); }}
+                  placeholder="Enter password" className="bg-background border-border h-10 text-center" autoFocus />
+                {downloadPwError && <p className="text-[10px] text-destructive text-center">Incorrect password.</p>}
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => { setDownloadPwPrompt(false); setDownloadPwInput(''); setDownloadPwError(false); setPendingDownloadAction(null); }}>Cancel</Button>
+                  <Button type="submit" className="flex-1 h-10">Confirm</Button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Find My Photos Modal */}
-      <FindMyPhotosModal
-        open={findMyPhotosOpen}
-        onOpenChange={setFindMyPhotosOpen}
-        eventId={event.id}
-        eventName={event.name}
-        accentColor={accentColor}
-        onOpenLightbox={openLightbox}
-        isFavorite={isFavorite}
-        toggleFavorite={toggleFavorite}
-        canDownload={canDownload}
-        onDownloadPhoto={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
-      />
+        {/* Find My Photos Modal */}
+        {findMyPhotosOpen && (
+          <FindMyPhotosModal
+            open={findMyPhotosOpen}
+            onOpenChange={setFindMyPhotosOpen}
+            eventId={event.id}
+            eventName={event.name}
+            accentColor={accentColor}
+            onOpenLightbox={openLightbox}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
+            canDownload={canDownload}
+            onDownloadPhoto={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };

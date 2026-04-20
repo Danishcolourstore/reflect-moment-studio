@@ -88,7 +88,7 @@ export function CommentsViewer({ eventId }: { eventId: string }) {
         {filtered.map(c => (
           <div key={c.id} className="bg-card border border-border rounded-lg p-3 flex gap-3">
             {c.photo_url && (
-              <img src={c.photo_url} alt="" className="h-16 w-16 object-cover rounded-lg shrink-0" />
+              <img src={c.photo_url} alt="" className="h-16 w-16 object-cover rounded-lg shrink-0" loading="lazy" decoding="async" />
             )}
             <div className="flex-1 min-w-0">
               <p className="font-serif text-sm font-medium text-foreground">{c.guest_name || 'Guest'}</p>

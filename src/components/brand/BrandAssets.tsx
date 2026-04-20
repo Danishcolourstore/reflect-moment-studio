@@ -87,7 +87,7 @@ const BrandAssets = ({ userId, assets, onAssetsChange }: Props) => {
         <div className="grid grid-cols-3 gap-2">
           {filtered.map(asset => (
             <div key={asset.id} className="group relative border border-border rounded-lg overflow-hidden bg-card aspect-square">
-              <img src={asset.url} alt={asset.name} className="h-full w-full object-contain p-2" />
+              <img src={asset.url} alt={asset.name} className="h-full w-full object-contain p-2" loading="lazy" decoding="async" />
               <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
                 <a href={asset.url} download className="h-7 w-7 rounded-full bg-card border border-border flex items-center justify-center">
                   <Download className="h-3 w-3 text-foreground" />

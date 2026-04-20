@@ -121,7 +121,7 @@ export default function LogoToolbar({ logo, onAddLogo, onUpdateLogo }: Props) {
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <img src={logo.imageUrl} alt="Logo" className="h-10 w-10 object-contain rounded-lg border border-border/60" />
+              <img src={logo.imageUrl} alt="Logo" className="h-10 w-10 object-contain rounded-lg border border-border/60" loading="lazy" decoding="async" />
               <div className="flex gap-2">
                 <label className="text-xs text-muted-foreground/60 cursor-pointer hover:text-foreground transition-colors duration-200 underline underline-offset-2">
                   Replace

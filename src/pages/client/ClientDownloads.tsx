@@ -56,7 +56,7 @@ const ClientDownloads = () => {
                 <tr key={dl.id} className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors">
                   <td className="px-4 py-3">
                     {dl.photo ? (
-                      <img src={dl.photo.url} alt="" className="h-10 w-14 rounded object-cover" />
+                      <img src={dl.photo.url} alt="" className="h-10 w-14 rounded object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="h-10 w-14 rounded bg-secondary" />
                     )}

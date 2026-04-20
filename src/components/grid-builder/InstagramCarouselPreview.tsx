@@ -48,7 +48,7 @@ function StoryPreview({ images, onClose }: { images: string[]; onClose: () => vo
   return (
     <div className="relative w-full max-w-[375px] h-full max-h-[812px] bg-black overflow-hidden rounded-none sm:rounded-[40px] mx-auto">
       <div className="absolute inset-0" onClick={handleTap}>
-        <img src={images[current]} alt={`Story ${current + 1}`} className="w-full h-full object-cover" draggable={false} />
+        <img src={images[current]} alt={`Story ${current + 1}`} className="w-full h-full object-cover" draggable={false} loading="lazy" decoding="async" />
       </div>
 
       {showSafeZones && (
@@ -165,7 +165,7 @@ function GridPreview({ images, onClose }: { images: string[]; onClose: () => voi
         {cells.map((src, i) => (
           <div key={i} className="aspect-square bg-white/5 relative overflow-hidden">
             {src ? (
-              <img src={src} alt={`Grid ${i + 1}`} className="w-full h-full object-cover" draggable={false} />
+              <img src={src} alt={`Grid ${i + 1}`} className="w-full h-full object-cover" draggable={false} loading="lazy" decoding="async" />
             ) : (
               <div className="w-full h-full bg-white/5" />
             )}
@@ -257,7 +257,7 @@ function FeedPreview({ images, onClose, canvasRatio }: { images: string[]; onClo
           >
             {images.map((src, i) => (
               <div key={i} className="h-full flex-shrink-0 flex items-center justify-center bg-black" style={{ width: `${100 / total}%` }}>
-                <img src={src} alt={`Slide ${i + 1}`} className="max-w-full max-h-full object-contain" draggable={false} />
+                <img src={src} alt={`Slide ${i + 1}`} className="max-w-full max-h-full object-contain" draggable={false} loading="lazy" decoding="async" />
               </div>
             ))}
           </div>

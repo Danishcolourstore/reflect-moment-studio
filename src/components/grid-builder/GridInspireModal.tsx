@@ -665,7 +665,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           <div className="max-w-lg mx-auto space-y-4">
             {/* Reference image */}
             <div className="rounded-xl overflow-hidden border border-border/50 bg-muted">
-              <img src={current.image} alt={`Slide ${currentSlideIndex + 1}`} className="w-full object-contain max-h-[240px]" />
+              <img src={current.image} alt={`Slide ${currentSlideIndex + 1}`} className="w-full object-contain max-h-[240px]" loading="lazy" decoding="async" />
             </div>
 
             {/* Detected layout preview */}
@@ -742,7 +742,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
                     : 'border-transparent opacity-50 hover:opacity-80 scale-95'
                 }`}
               >
-                <img src={result.image} alt="" className="w-12 h-12 object-cover" />
+                <img src={result.image} alt="" className="w-12 h-12 object-cover" loading="lazy" decoding="async" />
                 <p className={`text-[7px] text-center py-0.5 font-medium ${
                   i === currentSlideIndex ? 'text-primary' : 'text-muted-foreground'
                 }`}>

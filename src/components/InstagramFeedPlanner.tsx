@@ -196,7 +196,7 @@ function CropModal({ tile, onUpdate, onClose, colors }: {
           <div className="relative w-full aspect-square rounded-lg overflow-hidden mx-auto" style={{ maxWidth: 280 }}>
             <img src={tile.imageUrl} alt="" className="absolute inset-0 w-full h-full"
               style={{ objectFit: 'cover', objectPosition: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
-                transform: `scale(${tile.cropZoom})`, transformOrigin: `${tile.cropX * 100}% ${tile.cropY * 100}%` }} />
+                transform: `scale(${tile.cropZoom})`, transformOrigin: `${tile.cropX * 100}% ${tile.cropY * 100}%` }} loading="lazy" decoding="async" />
           </div>
         </div>
         <div className="px-4 pb-4 space-y-3">
@@ -246,7 +246,7 @@ function PostDetailPanel({ tile, onUpdate, onClose, colors }: {
         {tile.imageUrl && (
           <div className="aspect-square w-full max-w-[200px] mx-auto mt-4 rounded-lg overflow-hidden">
             <img src={tile.imageUrl} alt="" className="w-full h-full object-cover"
-              style={{ objectPosition: `${tile.cropX * 100}% ${tile.cropY * 100}%` }} />
+              style={{ objectPosition: `${tile.cropX * 100}% ${tile.cropY * 100}%` }} loading="lazy" decoding="async" />
           </div>
         )}
 
@@ -820,7 +820,7 @@ export default function InstagramFeedPlanner({ photos, username = 'photographer'
                     <>
                       <div className="w-full h-full" style={gridTheme === 'border' ? { padding: 4 } : undefined}>
                         <img src={t.imageUrl} alt="" className="w-full h-full"
-                          style={{ objectFit: 'cover', objectPosition: `${t.cropX * 100}% ${t.cropY * 100}%`, transform: `scale(${t.cropZoom})`, transformOrigin: `${t.cropX * 100}% ${t.cropY * 100}%`, borderRadius: gridTheme === 'border' ? '2px' : 0, ...tileStyle }} />
+                          style={{ objectFit: 'cover', objectPosition: `${t.cropX * 100}% ${t.cropY * 100}%`, transform: `scale(${t.cropZoom})`, transformOrigin: `${t.cropX * 100}% ${t.cropY * 100}%`, borderRadius: gridTheme === 'border' ? '2px' : 0, ...tileStyle }} loading="lazy" decoding="async" />
                       </div>
                       {/* Desktop hover */}
                       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex items-center justify-center gap-2" style={{ background: 'rgba(0,0,0,0.45)' }}>
@@ -854,7 +854,7 @@ export default function InstagramFeedPlanner({ photos, username = 'photographer'
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {tiles.filter(t => t.scheduledDate && t.imageUrl).sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate)).map(t => (
                   <div key={t.id} className="shrink-0 flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: colors.surface2, minWidth: 160 }}>
-                    {t.imageUrl && <div className="h-8 w-8 rounded shrink-0 overflow-hidden"><img src={t.imageUrl} alt="" className="h-full w-full object-cover" /></div>}
+                    {t.imageUrl && <div className="h-8 w-8 rounded shrink-0 overflow-hidden"><img src={t.imageUrl} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /></div>}
                     <div className="min-w-0">
                       <p className="text-[11px] font-semibold truncate" style={{ color: colors.text }}>{new Date(t.scheduledDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
                       <p className="text-[10px]" style={{ color: colors.textSecondary }}>{new Date(t.scheduledDate).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</p>

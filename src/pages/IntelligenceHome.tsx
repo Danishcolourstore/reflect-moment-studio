@@ -447,7 +447,7 @@ export default function IntelligenceHome() {
                   }}
                 >
                   {n.thumbnail ? (
-                    <img src={n.thumbnail} alt={n.title} style={{ width: "100%", height: "auto", display: "block" }} />
+                    <img src={n.thumbnail} alt={n.title} style={{ width: "100%", height: "auto", display: "block" }} loading="lazy" decoding="async" />
                   ) : (
                     <div style={{ width: "100%", paddingTop: "50%", background: i % 2 === 0 ? warmGrad : coolGrad }} />
                   )}

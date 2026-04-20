@@ -50,7 +50,7 @@ export function GalleryPasswordGate({ eventId, eventTitle, studioLogoUrl, onUnlo
     <div className="fixed inset-0 z-[200] bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-card border border-border rounded-lg p-8 text-center space-y-5 shadow-md">
         {studioLogoUrl ? (
-          <img src={studioLogoUrl} alt="" className="h-12 mx-auto object-contain" />
+          <img src={studioLogoUrl} alt="" className="h-12 mx-auto object-contain" loading="lazy" decoding="async" />
         ) : (
           <h2 className="font-serif italic text-xl text-foreground">MirrorAI</h2>
         )}

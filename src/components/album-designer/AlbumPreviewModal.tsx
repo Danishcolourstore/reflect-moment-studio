@@ -150,8 +150,7 @@ export default function AlbumPreviewModal({ albumId, albumName, onClose, onShare
                 style={{
                   gridArea: `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`,
                 }}
-                alt=""
-              />
+                alt="" loading="lazy" decoding="async" />
             ) : (
               <div
                 key={i}
@@ -181,7 +180,7 @@ export default function AlbumPreviewModal({ albumId, albumName, onClose, onShare
         }}
       >
         {page.photos.map((p, i) => (
-          <img key={i} src={p.url} className="w-full h-full object-cover" alt="" />
+          <img key={i} src={p.url} className="w-full h-full object-cover" alt="" loading="lazy" decoding="async" />
         ))}
       </div>
     );

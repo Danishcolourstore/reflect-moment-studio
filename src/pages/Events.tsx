@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { CreateEventModal } from "@/components/CreateEventModal";
+const CreateEventModal = lazy(() => import("@/components/CreateEventModal").then(m => ({ default: m.CreateEventModal })));
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -390,14 +390,18 @@ export default function Events() {
         </button>
       )}
 
-      <CreateEventModal
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onCreated={(eventId) => {
-          fetchEvents();
-          navigate(`/dashboard/events/${eventId}`);
-        }}
-      />
+      {createOpen && (
+        <Suspense fallback={null}>
+          <CreateEventModal
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            onCreated={(eventId) => {
+              fetchEvents();
+              navigate(`/dashboard/events/${eventId}`);
+            }}
+          />
+        </Suspense>
+      )}
     </DashboardLayout>
   );
 }
