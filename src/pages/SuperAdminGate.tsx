@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth";
+import { useAuth, TEST_MODE_BYPASS_AUTH } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 const ADMIN_OTP = "470815";
@@ -9,6 +9,9 @@ export default function SuperAdminGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const [checking, setChecking] = useState(true);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  // ── Bypass in test mode ──
+  if (TEST_MODE_BYPASS_AUTH) return <>{children}</>;
 
   useEffect(() => {
     let cancelled = false;

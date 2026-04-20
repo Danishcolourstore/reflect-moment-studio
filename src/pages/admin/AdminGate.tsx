@@ -1,12 +1,15 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth";
+import { useAuth, TEST_MODE_BYPASS_AUTH } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  // ── Bypass in test mode ──
+  if (TEST_MODE_BYPASS_AUTH) return <>{children}</>;
 
   useEffect(() => {
     let cancelled = false;

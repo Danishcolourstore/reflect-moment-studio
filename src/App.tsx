@@ -3,7 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/lib/auth";
+import { AuthProvider, useAuth, TEST_MODE_BYPASS_AUTH } from "@/lib/auth";
 // BetaFeedbackButton removed from production render
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StorybookGate } from "@/components/StorybookGate";
@@ -185,6 +185,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const suspended = useContext(SuspendedContext);
 
+  // ── Bypass everything in test mode ──
+  if (TEST_MODE_BYPASS_AUTH) return <>{children}</>;
+
   if (loading)
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -231,10 +234,12 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   const [checked, setChecked] = useState(false);
   const [redirectTo, setRedirectTo] = useState<string | null>(null);
 
+  // ── In bypass mode, send straight to /home (skip login screen) ──
+  if (TEST_MODE_BYPASS_AUTH) return <Navigate to="/home" replace />;
+
   useEffect(() => {
     if (loading || !user) return;
 
-    // Always clear any stale redirect
     sessionStorage.removeItem("redirectAfterLogin");
 
     const rolePromise = supabase.from("user_roles").select("role").eq("user_id", user.id);
