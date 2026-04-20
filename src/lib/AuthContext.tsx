@@ -2,6 +2,35 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
+// ═══════════════════════════════════════════════════════════
+// TEMPORARY: Set to true for full app testing without auth
+// Set to false to restore normal authentication
+const TEST_MODE_BYPASS_AUTH = true;
+// ═══════════════════════════════════════════════════════════
+
+// Mock user for testing
+const MOCK_USER: User = {
+  id: "test-user-123",
+  email: "test@mirror.studio",
+  user_metadata: { studio_name: "Test Studio" },
+  app_metadata: {},
+  aud: "authenticated",
+  created_at: new Date().toISOString(),
+  role: "authenticated",
+  updated_at: new Date().toISOString(),
+  identities: [],
+  factors: [],
+} as User;
+
+const MOCK_SESSION: Session = {
+  access_token: "mock-token",
+  refresh_token: "mock-refresh",
+  expires_in: 3600,
+  expires_at: Date.now() + 3600000,
+  token_type: "bearer",
+  user: MOCK_USER,
+} as Session;
+
 type AuthContextType = {
   user: User | null;
   session: Session | null;
@@ -21,12 +50,14 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [studioName, setStudioName] = useState("My Studio");
+  const [user, setUser] = useState<User | null>(TEST_MODE_BYPASS_AUTH ? MOCK_USER : null);
+  const [session, setSession] = useState<Session | null>(TEST_MODE_BYPASS_AUTH ? MOCK_SESSION : null);
+  const [loading, setLoading] = useState(!TEST_MODE_BYPASS_AUTH);
+  const [studioName, setStudioName] = useState(TEST_MODE_BYPASS_AUTH ? "Test Studio" : "My Studio");
 
   useEffect(() => {
+    if (TEST_MODE_BYPASS_AUTH) return; // Skip real auth in test mode
+
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
@@ -44,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Fetch actual studio name from profiles table
   useEffect(() => {
+    if (TEST_MODE_BYPASS_AUTH) return; // Skip in test mode
     if (!user) {
       setStudioName("My Studio");
       return;
@@ -71,6 +103,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const signOut = async () => {
+    if (TEST_MODE_BYPASS_AUTH) {
+      // In test mode, just reload to reset
+      window.location.reload();
+      return;
+    }
     await supabase.auth.signOut();
     setStudioName("My Studio");
     sessionStorage.removeItem("redirectAfterLogin");
