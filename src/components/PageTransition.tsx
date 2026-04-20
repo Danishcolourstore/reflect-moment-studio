@@ -35,8 +35,10 @@ function getDepth(pathname: string): number {
   return 0;
 }
 
-const SLIDE_DISTANCE = 60; // px — subtle, not dramatic
-const DURATION = 0.25;
+// v2 §10 — forward 280ms, back 240ms, both ease-out spring
+const SLIDE_DISTANCE = 100; // % of width handled via transform; px fallback for subtlety
+const DURATION_FORWARD = 0.28;
+const DURATION_BACK = 0.24;
 const EASE = [0.32, 0.72, 0, 1]; // iOS-like spring
 
 export function PageTransition({ children }: { children: React.ReactNode }) {
@@ -56,8 +58,10 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
 
   // Forward (deeper) → slide in from right
   // Backward (shallower) → slide in from left
-  // Same depth → cross-fade only
-  const enterX = direction > 0 ? SLIDE_DISTANCE : direction < 0 ? -SLIDE_DISTANCE : 0;
+  // Same depth → cross-fade only (v2 §10 tab-switch rule)
+  const isSameDepth = direction === 0;
+  const duration = isSameDepth ? 0.16 : direction > 0 ? DURATION_FORWARD : DURATION_BACK;
+  const enterX = direction > 0 ? 60 : direction < 0 ? -60 : 0;
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -66,7 +70,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         initial={{ opacity: 0, x: enterX }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -enterX * 0.5 }}
-        transition={{ duration: DURATION, ease: EASE }}
+        transition={{ duration, ease: EASE }}
         style={{ minHeight: "100vh" }}
       >
         {children}
