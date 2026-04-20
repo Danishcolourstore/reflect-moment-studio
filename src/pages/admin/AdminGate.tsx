@@ -8,9 +8,6 @@ export default function AdminGate({ children }: { children: ReactNode }) {
   const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // ── Bypass in test mode ──
-  if (TEST_MODE_BYPASS_AUTH) return <>{children}</>;
-
   useEffect(() => {
     let cancelled = false;
 
