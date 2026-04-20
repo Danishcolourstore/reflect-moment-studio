@@ -61,6 +61,11 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   // Same depth → cross-fade only
   const enterX = direction > 0 ? SLIDE_DISTANCE : direction < 0 ? -SLIDE_DISTANCE : 0;
 
+  // Same depth → cross-fade (160ms per v2 §10 tab-switch rule)
+  const isSameDepth = direction === 0;
+  const duration = isSameDepth ? 0.16 : direction > 0 ? DURATION_FORWARD : DURATION_BACK;
+  const enterX = direction > 0 ? 60 : direction < 0 ? -60 : 0;
+
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
@@ -68,7 +73,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         initial={{ opacity: 0, x: enterX }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -enterX * 0.5 }}
-        transition={{ duration: DURATION, ease: EASE }}
+        transition={{ duration, ease: EASE }}
         style={{ minHeight: "100vh" }}
       >
         {children}
