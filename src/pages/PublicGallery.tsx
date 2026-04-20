@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
 import { useInfinitePhotos } from '@/hooks/use-infinite-photos';
@@ -27,14 +27,14 @@ import {
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { PhotoShareSheet } from '@/components/PhotoShareSheet';
-import { CinematicLightbox } from '@/components/lightbox';
+const PhotoShareSheet = lazy(() => import('@/components/PhotoShareSheet').then(m => ({ default: m.PhotoShareSheet })));
+const CinematicLightbox = lazy(() => import('@/components/lightbox').then(m => ({ default: m.CinematicLightbox })));
 import { PhotoSlideshow } from '@/components/PhotoSlideshow';
 import { OtpInput } from '@/components/OtpInput';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GalleryPasswordGate } from '@/components/GalleryPasswordGate';
-import { SendFavoritesDialog } from '@/components/SendFavoritesDialog';
-import { FindMyPhotosModal } from '@/components/FindMyPhotosModal';
+const SendFavoritesDialog = lazy(() => import('@/components/SendFavoritesDialog').then(m => ({ default: m.SendFavoritesDialog })));
+const FindMyPhotosModal = lazy(() => import('@/components/FindMyPhotosModal').then(m => ({ default: m.FindMyPhotosModal })));
 import { GalleryTextBlockRenderer, type TextBlock } from '@/components/GalleryTextBlock';
 import { TimelessWeddingHero } from '@/components/TimelessWeddingHero';
 import { AndhakarHero } from '@/components/AndhakarHero';
