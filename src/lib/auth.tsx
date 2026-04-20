@@ -1,1 +1,1 @@
-export { AuthProvider, useAuth, TEST_MODE_BYPASS_AUTH } from "@/lib/AuthContext";
+export { AuthProvider, useAuth, TEST_MODE_BYPASS_AUTH, SAFE_BYPASS } from "@/lib/AuthContext";
