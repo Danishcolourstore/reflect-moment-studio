@@ -234,10 +234,8 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   const [checked, setChecked] = useState(false);
   const [redirectTo, setRedirectTo] = useState<string | null>(null);
 
-  // ── In bypass mode, send straight to /home (skip login screen) ──
-  if (TEST_MODE_BYPASS_AUTH) return <Navigate to="/home" replace />;
-
   useEffect(() => {
+    if (TEST_MODE_BYPASS_AUTH) return;
     if (loading || !user) return;
 
     sessionStorage.removeItem("redirectAfterLogin");
