@@ -1280,74 +1280,82 @@ const PublicGallery = () => {
         </div>
       )}
 
-      {/* ── Lightbox ── */}
-      <CinematicLightbox
-        photos={displayPhotos}
-        currentIndex={lightboxIndex}
-        open={lightboxOpen}
-        onClose={() => setLightboxOpen(false)}
-        onIndexChange={setLightboxIndex}
-        isFavorite={isFavorite}
-        toggleFavorite={toggleFavorite}
-        canDownload={canDownload}
-        onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
-        onShare={(p) => setSharePhoto(p as Photo)}
-      />
+      {/* ── Lightbox + lazy modals ── */}
+      <Suspense fallback={null}>
+        {lightboxOpen && (
+          <CinematicLightbox
+            photos={displayPhotos}
+            currentIndex={lightboxIndex}
+            open={lightboxOpen}
+            onClose={() => setLightboxOpen(false)}
+            onIndexChange={setLightboxIndex}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
+            canDownload={canDownload}
+            onDownload={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
+            onShare={(p) => setSharePhoto(p as Photo)}
+          />
+        )}
 
-      {/* Send Favorites Dialog */}
-      <SendFavoritesDialog
-        open={sendFavOpen}
-        onOpenChange={setSendFavOpen}
-        eventId={event.id}
-        eventTitle={event.name}
-        favoritePhotoIds={photos.filter(p => isFavorite(p.id)).map(p => p.id)}
-        favoritePhotos={photos.filter(p => isFavorite(p.id)).map(p => ({ id: p.id, url: p.url }))}
-        sessionId={sessionId}
-      />
+        {/* Send Favorites Dialog */}
+        {sendFavOpen && (
+          <SendFavoritesDialog
+            open={sendFavOpen}
+            onOpenChange={setSendFavOpen}
+            eventId={event.id}
+            eventTitle={event.name}
+            favoritePhotoIds={photos.filter(p => isFavorite(p.id)).map(p => p.id)}
+            favoritePhotos={photos.filter(p => isFavorite(p.id)).map(p => ({ id: p.id, url: p.url }))}
+            sessionId={sessionId}
+          />
+        )}
 
-      <PhotoSlideshow
-        photos={displayPhotos}
-        open={slideshowOpen}
-        onClose={() => setSlideshowOpen(false)}
-      />
+        <PhotoSlideshow
+          photos={displayPhotos}
+          open={slideshowOpen}
+          onClose={() => setSlideshowOpen(false)}
+        />
 
-      {sharePhoto && (
-        <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
-          photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownload} />
-      )}
+        {sharePhoto && (
+          <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
+            photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownload} />
+        )}
 
-      {/* Download password prompt */}
-      {downloadPwPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
-          <div className="w-full max-w-xs bg-card border border-border rounded-lg p-6 space-y-4">
-            <h3 className="font-serif text-lg font-semibold text-foreground text-center">Download Password</h3>
-            <p className="text-[11px] text-muted-foreground/60 text-center">Enter the password to download photos.</p>
-            <form onSubmit={handleDownloadPwSubmit} className="space-y-3">
-              <Input value={downloadPwInput} onChange={(e) => { setDownloadPwInput(e.target.value); setDownloadPwError(false); }}
-                placeholder="Enter password" className="bg-background border-border h-10 text-center" autoFocus />
-              {downloadPwError && <p className="text-[10px] text-destructive text-center">Incorrect password.</p>}
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => { setDownloadPwPrompt(false); setDownloadPwInput(''); setDownloadPwError(false); setPendingDownloadAction(null); }}>Cancel</Button>
-                <Button type="submit" className="flex-1 h-10">Confirm</Button>
-              </div>
-            </form>
+        {/* Download password prompt */}
+        {downloadPwPrompt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
+            <div className="w-full max-w-xs bg-card border border-border rounded-lg p-6 space-y-4">
+              <h3 className="font-serif text-lg font-semibold text-foreground text-center">Download Password</h3>
+              <p className="text-[11px] text-muted-foreground/60 text-center">Enter the password to download photos.</p>
+              <form onSubmit={handleDownloadPwSubmit} className="space-y-3">
+                <Input value={downloadPwInput} onChange={(e) => { setDownloadPwInput(e.target.value); setDownloadPwError(false); }}
+                  placeholder="Enter password" className="bg-background border-border h-10 text-center" autoFocus />
+                {downloadPwError && <p className="text-[10px] text-destructive text-center">Incorrect password.</p>}
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" className="flex-1 h-10" onClick={() => { setDownloadPwPrompt(false); setDownloadPwInput(''); setDownloadPwError(false); setPendingDownloadAction(null); }}>Cancel</Button>
+                  <Button type="submit" className="flex-1 h-10">Confirm</Button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Find My Photos Modal */}
-      <FindMyPhotosModal
-        open={findMyPhotosOpen}
-        onOpenChange={setFindMyPhotosOpen}
-        eventId={event.id}
-        eventName={event.name}
-        accentColor={accentColor}
-        onOpenLightbox={openLightbox}
-        isFavorite={isFavorite}
-        toggleFavorite={toggleFavorite}
-        canDownload={canDownload}
-        onDownloadPhoto={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
-      />
+        {/* Find My Photos Modal */}
+        {findMyPhotosOpen && (
+          <FindMyPhotosModal
+            open={findMyPhotosOpen}
+            onOpenChange={setFindMyPhotosOpen}
+            eventId={event.id}
+            eventName={event.name}
+            accentColor={accentColor}
+            onOpenLightbox={openLightbox}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
+            canDownload={canDownload}
+            onDownloadPhoto={canDownload ? (p) => guardedDownload(() => handleDownloadPhoto(p as Photo)) : undefined}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };
