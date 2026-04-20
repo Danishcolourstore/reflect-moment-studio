@@ -370,16 +370,18 @@ export default function PublicGalleryView() {
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
-        <CinematicLightbox
-          photos={photos}
-          currentIndex={lightboxIndex}
-          open={lightboxIndex !== null}
-          onClose={() => setLightboxIndex(null)}
-          onIndexChange={setLightboxIndex}
-          canDownload={gallery.downloads_enabled}
-          isFavorite={(id) => favs.has(id)}
-          toggleFavorite={toggle}
-        />
+        <Suspense fallback={null}>
+          <CinematicLightbox
+            photos={photos}
+            currentIndex={lightboxIndex}
+            open={lightboxIndex !== null}
+            onClose={() => setLightboxIndex(null)}
+            onIndexChange={setLightboxIndex}
+            canDownload={gallery.downloads_enabled}
+            isFavorite={(id) => favs.has(id)}
+            toggleFavorite={toggle}
+          />
+        </Suspense>
       )}
     </div>
   );
