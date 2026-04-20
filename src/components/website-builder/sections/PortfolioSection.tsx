@@ -63,11 +63,13 @@ export function PortfolioSection({ template, images, id }: PortfolioSectionProps
                   src={src}
                   alt={`Portfolio ${i + 1}`}
                   className="w-full block"
+                  loading="lazy"
+                  decoding="async"
                   style={{
                     filter: t.extras.imageFilter,
                     transition: 'filter 400ms ease',
                   }}
-                  onMouseEnter={(e) = loading="lazy" decoding="async"> {
+                  onMouseEnter={(e) => {
                     if (t.extras.imageHoverFilter) (e.target as HTMLImageElement).style.filter = t.extras.imageHoverFilter;
                   }}
                   onMouseLeave={(e) => {
