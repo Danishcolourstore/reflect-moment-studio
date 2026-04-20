@@ -3,21 +3,46 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 // ═══════════════════════════════════════════════════════════
-// TEMPORARY: Set to true for full app testing without auth
-// Set to false to restore normal authentication
-export const TEST_MODE_BYPASS_AUTH = true;
+// SAFE DEV AUTH BYPASS
+// Activates ONLY when (a) NODE_ENV !== "production" AND
+// (b) the developer explicitly opts in via:
+//    - URL query  → ?dev=true   (also persists for the session)
+//    - localStorage → DEV_AUTH = "true"
+// In production builds this is ALWAYS false — zero side effects.
 // ═══════════════════════════════════════════════════════════
 
-if (TEST_MODE_BYPASS_AUTH && typeof window !== "undefined") {
+const IS_DEV_TRIGGER =
+  typeof window !== "undefined" &&
+  (window.location.search.includes("dev=true") ||
+    (typeof localStorage !== "undefined" && localStorage.getItem("DEV_AUTH") === "true"));
+
+// Vite exposes mode via import.meta.env; fall back to process.env for safety.
+const IS_NON_PROD =
+  (typeof import.meta !== "undefined" && (import.meta as any).env?.MODE !== "production") ||
+  (typeof process !== "undefined" && (process as any).env?.NODE_ENV !== "production");
+
+export const SAFE_BYPASS = IS_DEV_TRIGGER && IS_NON_PROD;
+
+// Persist the flag once the URL trigger is used so refreshes keep working.
+if (SAFE_BYPASS && typeof window !== "undefined") {
+  if (window.location.search.includes("dev=true")) {
+    try {
+      localStorage.setItem("DEV_AUTH", "true");
+    } catch {
+      /* ignore */
+    }
+  }
   // eslint-disable-next-line no-console
-  console.warn("⚠️ AUTH MODE: BYPASS ACTIVE — all auth guards disabled");
+  console.log("⚠️ AUTH MODE: DEV BYPASS ACTIVE");
 }
 
-// Mock user for testing
-const MOCK_USER: User = {
-  id: "test-user-123",
-  email: "test@mirror.studio",
-  user_metadata: { studio_name: "Test Studio" },
+// Back-compat alias — existing imports (AdminGate, SuperAdminGate, App.tsx) keep working.
+export const TEST_MODE_BYPASS_AUTH = SAFE_BYPASS;
+
+const MOCK_USER = {
+  id: "dev-user",
+  email: "dev@mirror.ai",
+  user_metadata: { role: "admin", studio_name: "Dev Studio" },
   app_metadata: {},
   aud: "authenticated",
   created_at: new Date().toISOString(),
@@ -25,16 +50,16 @@ const MOCK_USER: User = {
   updated_at: new Date().toISOString(),
   identities: [],
   factors: [],
-} as User;
+} as unknown as User;
 
-const MOCK_SESSION: Session = {
-  access_token: "mock-token",
-  refresh_token: "mock-refresh",
+const MOCK_SESSION = {
+  user: MOCK_USER,
+  access_token: "dev-token",
+  refresh_token: "dev-refresh",
   expires_in: 3600,
   expires_at: Date.now() + 3600000,
   token_type: "bearer",
-  user: MOCK_USER,
-} as Session;
+} as unknown as Session;
 
 type AuthContextType = {
   user: User | null;
@@ -55,13 +80,13 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(TEST_MODE_BYPASS_AUTH ? MOCK_USER : null);
-  const [session, setSession] = useState<Session | null>(TEST_MODE_BYPASS_AUTH ? MOCK_SESSION : null);
-  const [loading, setLoading] = useState(!TEST_MODE_BYPASS_AUTH);
-  const [studioName, setStudioName] = useState(TEST_MODE_BYPASS_AUTH ? "Test Studio" : "My Studio");
+  const [user, setUser] = useState<User | null>(SAFE_BYPASS ? MOCK_USER : null);
+  const [session, setSession] = useState<Session | null>(SAFE_BYPASS ? MOCK_SESSION : null);
+  const [loading, setLoading] = useState(!SAFE_BYPASS);
+  const [studioName, setStudioName] = useState(SAFE_BYPASS ? "Dev Studio" : "My Studio");
 
   useEffect(() => {
-    if (TEST_MODE_BYPASS_AUTH) return; // Skip real auth in test mode
+    if (SAFE_BYPASS) return; // Skip real auth in dev bypass mode
 
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
@@ -80,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Fetch actual studio name from profiles table
   useEffect(() => {
-    if (TEST_MODE_BYPASS_AUTH) return; // Skip in test mode
+    if (SAFE_BYPASS) return; // Skip in dev bypass mode
     if (!user) {
       setStudioName("My Studio");
       return;
@@ -108,8 +133,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const signOut = async () => {
-    if (TEST_MODE_BYPASS_AUTH) {
-      // In test mode, just reload to reset
+    if (SAFE_BYPASS) {
+      try {
+        localStorage.removeItem("DEV_AUTH");
+      } catch {
+        /* ignore */
+      }
       window.location.reload();
       return;
     }
