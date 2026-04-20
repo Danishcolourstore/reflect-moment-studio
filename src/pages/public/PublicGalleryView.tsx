@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, lazy, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { useSiteContext } from "@/lib/SiteContext";
 import { useSiteProfile } from "@/lib/SiteProfileContext";
 import { SiteHead } from "@/components/SiteHead";
-import { CinematicLightbox } from "@/components/lightbox";
+const CinematicLightbox = lazy(() => import("@/components/lightbox").then(m => ({ default: m.CinematicLightbox })));
 import { EditorialRhythmGrid } from "@/components/EditorialRhythmGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, X, Download, Send, Loader2 } from "lucide-react";

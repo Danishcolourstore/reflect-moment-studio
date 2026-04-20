@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ClientCRMGrid } from "@/components/crm/ClientCRMGrid";
 import { ClientCRMTable } from "@/components/crm/ClientCRMTable";
 import { ClientCRMDetail } from "@/components/crm/ClientCRMDetail";
-import { InviteClientModal } from "@/components/InviteClientModal";
+const InviteClientModal = lazy(() => import("@/components/InviteClientModal").then(m => ({ default: m.InviteClientModal })));
 import { ClientRelationshipPanel } from "@/components/crm/ClientRelationshipPanel";
 import { Users, Heart, Clock, UserCheck, Search, LayoutGrid, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -197,7 +197,11 @@ const Clients = () => {
         )}
       </div>
 
-      <InviteClientModal open={inviteOpen} onOpenChange={setInviteOpen} onInvited={loadClients} />
+      {inviteOpen && (
+        <Suspense fallback={null}>
+          <InviteClientModal open={inviteOpen} onOpenChange={setInviteOpen} onInvited={loadClients} />
+        </Suspense>
+      )}
       <ClientCRMDetail client={selectedClient} onClose={() => setSelectedClient(null)} onRemove={removeClient} onRefresh={loadClients} />
     </DashboardLayout>
   );

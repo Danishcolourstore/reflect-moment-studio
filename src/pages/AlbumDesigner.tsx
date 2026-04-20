@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import NewAlbumWizard from "@/components/album-designer/NewAlbumWizard";
+const NewAlbumWizard = lazy(() => import("@/components/album-designer/NewAlbumWizard"));
 import type { AlbumSize, CoverType } from "@/components/album-designer/types";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -292,7 +292,11 @@ export default function AlbumDesigner() {
           device.isPhone ? renderMobileList() : renderDesktopTable()
         )}
 
-        <NewAlbumWizard open={wizardOpen} onOpenChange={setWizardOpen} onCreate={handleCreate} loading={creating} />
+        {wizardOpen && (
+          <Suspense fallback={null}>
+            <NewAlbumWizard open={wizardOpen} onOpenChange={setWizardOpen} onCreate={handleCreate} loading={creating} />
+          </Suspense>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { useAlbumEditor } from "@/hooks/use-album-editor";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
@@ -7,9 +7,9 @@ import AlbumPhotoPanel from "@/components/album-designer/AlbumPhotoPanel";
 import AlbumCanvas from "@/components/album-designer/AlbumCanvas";
 import AlbumRightPanel from "@/components/album-designer/AlbumRightPanel";
 import AlbumTimeline from "@/components/album-designer/AlbumTimeline";
-import AlbumPreviewModal from "@/components/album-designer/AlbumPreviewModal";
-import AlbumExportDialog from "@/components/album-designer/AlbumExportDialog";
-import AlbumAutoLayoutDialog from "@/components/album-designer/AlbumAutoLayoutDialog";
+const AlbumPreviewModal = lazy(() => import("@/components/album-designer/AlbumPreviewModal"));
+const AlbumExportDialog = lazy(() => import("@/components/album-designer/AlbumExportDialog"));
+const AlbumAutoLayoutDialog = lazy(() => import("@/components/album-designer/AlbumAutoLayoutDialog"));
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ImageIcon, Settings, Layers, ChevronLeft, ChevronRight, Wand2, LayoutGrid, X } from "lucide-react";
 import { Button } from "@/components/ui/button";

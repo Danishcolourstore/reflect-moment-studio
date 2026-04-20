@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
 import { useInfinitePhotos } from '@/hooks/use-infinite-photos';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ShareModal } from '@/components/ShareModal';
+const ShareModal = lazy(() => import('@/components/ShareModal').then(m => ({ default: m.ShareModal })));
 import { UploadProgressPanel } from '@/components/UploadProgressPanel';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -19,7 +19,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useGuestFavorites } from '@/hooks/use-guest-favorites';
 import { usePhotoUpload } from '@/hooks/use-photo-upload';
-import { EventSettingsModal } from '@/components/EventSettingsModal';
+const EventSettingsModal = lazy(() => import('@/components/EventSettingsModal').then(m => ({ default: m.EventSettingsModal })));
 import { useZipUpload } from '@/hooks/use-zip-upload';
 import { EditorialCollageGrid } from '@/components/EditorialCollageGrid';
 import { ProgressiveImage } from '@/components/ProgressiveImage';
@@ -29,7 +29,7 @@ import { StoryBookLayout } from '@/components/StoryBookLayout';
 import { format } from 'date-fns';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { PhotoShareSheet } from '@/components/PhotoShareSheet';
+const PhotoShareSheet = lazy(() => import('@/components/PhotoShareSheet').then(m => ({ default: m.PhotoShareSheet })));
 import { GuestFavoritesTab } from '@/components/GuestFavoritesTab';
 import { PhotoSectionSelect } from '@/components/PhotoSectionSelect';
 import { SelectionsViewer } from '@/components/SelectionsViewer';
@@ -962,9 +962,13 @@ const EventGallery = () => {
 
       {/* Modals */}
       {event && (
-        <>
-          <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventSlug={event.slug} eventName={event.name} pin={event.gallery_pin} />
-          <EventSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} event={event} onUpdated={() => { fetchEvent(); fetchPhotos(); }} />
+        <Suspense fallback={null}>
+          {shareOpen && (
+            <ShareModal open={shareOpen} onOpenChange={setShareOpen} eventSlug={event.slug} eventName={event.name} pin={event.gallery_pin} />
+          )}
+          {settingsOpen && (
+            <EventSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} event={event} onUpdated={() => { fetchEvent(); fetchPhotos(); }} />
+          )}
           <TextBlockEditor
             open={textEditorOpen} onOpenChange={setTextEditorOpen}
             eventId={event.id}
@@ -975,7 +979,7 @@ const EventGallery = () => {
             <PhotoShareSheet open={!!sharePhoto} onOpenChange={() => setSharePhoto(null)}
               photoUrl={sharePhoto.url} photoName={sharePhoto.file_name} eventName={event.name} canDownload={canDownload} />
           )}
-        </>
+        </Suspense>
       )}
     </DashboardLayout>
   );
