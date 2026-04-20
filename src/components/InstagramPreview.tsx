@@ -247,7 +247,7 @@ export default function InstagramPreview({
                 >
                   {photos.map((url, i) => (
                     <div key={i} className="w-full h-full shrink-0 flex items-center justify-center">
-                      <img src={url} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                      <img src={url} alt="" className="max-w-full max-h-full object-contain" draggable={false} loading="lazy" decoding="async" />
                     </div>
                   ))}
                 </div>
@@ -433,7 +433,7 @@ export default function InstagramPreview({
               {/* Photo grid */}
               <div className="grid grid-cols-3" style={{ gap: "2px" }}>
                 <div className="relative aspect-square">
-                  <img src={photos[0]} alt="" className="h-full w-full object-cover" />
+                  <img src={photos[0]} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   {photos.length > 1 && (
                     <div className="absolute top-1.5 right-1.5">
                       <svg

@@ -44,8 +44,7 @@ export function AboutSection({ template, heading = 'About', body, portraitImage,
                 style={{
                   filter: isVesper ? t.extras.imageFilter : undefined,
                   maxHeight: 600,
-                }}
-              />
+                }} loading="lazy" decoding="async" />
               {t.id === 'reverie' && (
                 <div
                   className="absolute right-0 top-4 bottom-4"
@@ -91,8 +90,7 @@ export function AboutSection({ template, heading = 'About', body, portraitImage,
             src={img}
             alt="About"
             className="w-full h-full object-cover"
-            style={{ filter: t.extras.imageFilter }}
-          />
+            style={{ filter: t.extras.imageFilter }} loading="lazy" decoding="async" />
           {t.id === 'heirloom' && (
             <p className="text-center mt-3" style={{
               fontFamily: t.fonts.ui,
@@ -175,7 +173,7 @@ export function AboutSection({ template, heading = 'About', body, portraitImage,
           </p>
         </div>
         <div className="sm:w-1/2">
-          <img src={img} alt="About" className="w-full object-cover" style={{ maxHeight: 600 }} />
+          <img src={img} alt="About" className="w-full object-cover" style={{ maxHeight: 600 }} loading="lazy" decoding="async" />
         </div>
       </div>
     </section>

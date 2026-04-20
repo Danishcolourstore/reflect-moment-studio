@@ -37,8 +37,7 @@ export function HeroSection({ template, studioName, tagline = 'Wedding Photograp
                 src={src}
                 alt=""
                 className="w-full h-full object-cover"
-                style={{ filter: 'grayscale(100%) contrast(1.05)' }}
-              />
+                style={{ filter: 'grayscale(100%) contrast(1.05)' }} loading="lazy" decoding="async" />
             </div>
           ))}
         </div>
@@ -92,7 +91,7 @@ export function HeroSection({ template, studioName, tagline = 'Wedding Photograp
   if (variant === 'centered') {
     return (
       <section className="relative w-full overflow-hidden" style={{ height: '100vh', minHeight: 500 }}>
-        <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
         {/* Film grain for Heirloom */}
         {t.id === 'heirloom' && (
           <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{
@@ -172,7 +171,7 @@ export function HeroSection({ template, studioName, tagline = 'Wedding Photograp
     return (
       <section className="w-full flex flex-col sm:flex-row" style={{ minHeight: '100vh' }}>
         <div className="sm:hidden w-full" style={{ height: '50vh' }}>
-          <img src={img} alt="" className="w-full h-full object-cover" />
+          <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
         </div>
         <div
           className="flex flex-col justify-center px-8 sm:px-12 py-16 sm:w-1/2"
@@ -213,7 +212,7 @@ export function HeroSection({ template, studioName, tagline = 'Wedding Photograp
           </a>
         </div>
         <div className="hidden sm:block sm:w-1/2">
-          <img src={img} alt="" className="w-full h-full object-cover" />
+          <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
         </div>
       </section>
     );
@@ -257,7 +256,7 @@ export function HeroSection({ template, studioName, tagline = 'Wedding Photograp
           }} />
         </div>
         <div className="sm:w-[65%]" style={{ minHeight: '50vh' }}>
-          <img src={img} alt="" className="w-full h-full object-cover" />
+          <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
         </div>
       </section>
     );
@@ -266,7 +265,7 @@ export function HeroSection({ template, studioName, tagline = 'Wedding Photograp
   /* ── Bottom Left (Vesper) ── */
   return (
     <section className="relative w-full overflow-hidden" style={{ height: '100vh', minHeight: 500 }}>
-      <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
       <div
         className="absolute inset-0"
         style={{

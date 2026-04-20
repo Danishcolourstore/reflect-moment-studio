@@ -842,7 +842,7 @@ export default function CarouselDesigner({ photos = [], onClose, onSave, initial
 
                   {el.type === 'image' && el.src && (
                     /* DYNAMIC: per-element objectFit */
-                    <img src={el.src} alt="" draggable={false} className="w-full h-full pointer-events-none" style={{ objectFit: el.objectFit || 'cover' }} />
+                    <img src={el.src} alt="" draggable={false} className="w-full h-full pointer-events-none" style={{ objectFit: el.objectFit || 'cover' }} loading="lazy" decoding="async" />
                   )}
                   {el.type === 'image' && !el.src && (
                     <div
@@ -1345,7 +1345,7 @@ function SlidePreviewRender({ slide, dims }: { slide: Slide; dims: { w: number; 
         }}>
           {el.type === 'image' && el.src && (
             /* DYNAMIC: per-element objectFit */
-            <img src={el.src} alt="" className="w-full h-full" style={{ objectFit: el.objectFit || 'cover' }} />
+            <img src={el.src} alt="" className="w-full h-full" style={{ objectFit: el.objectFit || 'cover' }} loading="lazy" decoding="async" />
           )}
           {el.type === 'shape' && (
             /* DYNAMIC: user-controlled shape fill + circle radius */

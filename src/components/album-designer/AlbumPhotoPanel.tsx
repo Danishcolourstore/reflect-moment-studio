@@ -393,7 +393,7 @@ export default function AlbumPhotoPanel({
                   className="flex items-center gap-3 w-full p-3 border rounded-lg hover:bg-accent/50 transition-colors text-left"
                 >
                   {ev.cover_url ? (
-                    <img src={ev.cover_url} className="h-10 w-10 rounded object-cover" alt="" />
+                    <img src={ev.cover_url} className="h-10 w-10 rounded object-cover" alt="" loading="lazy" decoding="async" />
                   ) : (
                     <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
                       <ImageIcon className="h-4 w-4 text-muted-foreground" />

@@ -179,7 +179,7 @@ export default function CreateFeedPostModal({ open, onOpenChange, onCreated }: P
           </div>
           {preview && (
             <div style={{ position: "relative" }}>
-              <img src={preview} alt="Cover" style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 8 }} />
+              <img src={preview} alt="Cover" style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 8 }} loading="lazy" decoding="async" />
               <button
                 onClick={() => { setImageFile(null); setPreview(null); }}
                 style={{
@@ -245,7 +245,7 @@ export default function CreateFeedPostModal({ open, onOpenChange, onCreated }: P
                 <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
                   {galleryPreviews.map((p, i) => (
                     <div key={i} style={{ position: "relative", flexShrink: 0 }}>
-                      <img src={p} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 6 }} />
+                      <img src={p} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 6 }} loading="lazy" decoding="async" />
                       <button
                         onClick={() => removeGalleryImage(i)}
                         style={{

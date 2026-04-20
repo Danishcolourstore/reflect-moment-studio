@@ -126,7 +126,7 @@ export default function AdminPhotographers() {
                 <tr key={p.id}>
                   <td className="px-4 py-2.5 font-medium flex items-center gap-2">
                     {p.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" />
+                      <img src={p.avatar_url} alt="" className="h-6 w-6 rounded-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-medium text-muted-foreground">
                         {p.studio_name.charAt(0)}

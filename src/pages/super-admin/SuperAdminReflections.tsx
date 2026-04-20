@@ -233,7 +233,7 @@ export default function SuperAdminReflections() {
               placeholder="https://..."
             />
             {editingPost.image_url && (
-              <img src={editingPost.image_url} alt="Preview" className="mt-2 h-32 w-auto rounded-lg object-cover" />
+              <img src={editingPost.image_url} alt="Preview" className="mt-2 h-32 w-auto rounded-lg object-cover" loading="lazy" decoding="async" />
             )}
           </div>
 

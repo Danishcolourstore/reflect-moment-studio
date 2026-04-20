@@ -147,8 +147,7 @@ function CropEditor({ tile, onUpdate, onClose }: {
                 objectPosition: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
                 transform: `scale(${tile.cropZoom})`,
                 transformOrigin: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
-              }}
-            />
+              }} loading="lazy" decoding="async" />
             <div className="absolute inset-0 pointer-events-none border border-[var(--rule-strong)]" />
             <div className="absolute top-2 left-2 px-2 py-0.5 bg-white/90 [backdrop-filter:blur(4px)]">
               <span className="text-[10px] text-[var(--ink-muted)] uppercase tracking-[2px]">Safe crop</span>
@@ -282,8 +281,7 @@ function TileCell({ tile, index, isDragTarget, splitMode, splitUrl, splitIdx, sp
             objectPosition: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
             transform: `scale(${tile.cropZoom})`,
             transformOrigin: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
-          }}
-        />
+          }} loading="lazy" decoding="async" />
       ) : (
         <div className="h-full w-full flex flex-col items-center justify-center gap-1">
           <Plus className="h-4 w-4" style={{ color: `${IG.textSecondary}40` }} />
@@ -363,8 +361,7 @@ function PostView({ tile, username }: { tile: GridTile; username: string }) {
             objectPosition: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
             transform: `scale(${tile.cropZoom})`,
             transformOrigin: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
-          }}
-        />
+          }} loading="lazy" decoding="async" />
       </div>
       <div className="flex items-center px-3 pt-2 pb-1">
         <div className="flex items-center gap-3.5 flex-1">

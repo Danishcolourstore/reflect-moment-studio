@@ -45,7 +45,7 @@ const BrandWatermark = ({ watermarkUrl, opacity, position, studioName, onUpload,
         {watermarkUrl ? (
           <div className="space-y-2">
             <div className="bg-[#1a1a1a] rounded-lg p-4 flex items-center justify-center">
-              <img src={watermarkUrl} alt="Watermark" className="h-12 object-contain opacity-60" />
+              <img src={watermarkUrl} alt="Watermark" className="h-12 object-contain opacity-60" loading="lazy" decoding="async" />
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading} className="text-[10px] h-7">
@@ -100,8 +100,7 @@ const BrandWatermark = ({ watermarkUrl, opacity, position, studioName, onUpload,
               style={{
                 opacity: opacity / 100,
                 ...positionStyles[position],
-              }}
-            />
+              }} loading="lazy" decoding="async" />
           ) : (
             <p
               className="absolute text-foreground/30 text-[10px] font-medium uppercase tracking-[0.2em] pointer-events-none"

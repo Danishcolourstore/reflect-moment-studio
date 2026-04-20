@@ -126,7 +126,7 @@ export function GuestSelectionMode({ eventId, photos, onClose }: GuestSelectionM
           {/* Thumbnail strip */}
           <div className="flex gap-1 overflow-x-auto pb-1">
             {photos.filter(p => selectedIds.has(p.id)).slice(0, 8).map(p => (
-              <img key={p.id} src={p.url} alt="" className="h-12 w-12 object-cover shrink-0" />
+              <img key={p.id} src={p.url} alt="" className="h-12 w-12 object-cover shrink-0" loading="lazy" decoding="async" />
             ))}
             {selectedIds.size > 8 && (
               <div className="h-12 w-12 bg-muted flex items-center justify-center shrink-0">

@@ -104,7 +104,7 @@ export function EditorTabControls({ sectionType, activeTab, settings, onChange }
               style={{ backgroundColor: '#2c2c2e' }}
             >
               {s.heroImageUrl && (
-                <img src={s.heroImageUrl} alt="" className="w-full h-full object-cover" />
+                <img src={s.heroImageUrl} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
               )}
             </div>
             <div className="flex gap-2">

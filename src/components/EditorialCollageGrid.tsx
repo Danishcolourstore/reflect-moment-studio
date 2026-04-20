@@ -109,7 +109,7 @@ export function EditorialCollageGrid({
     <div className="space-y-0">
       {/* Hero Banner */}
       <div className="group relative w-full h-[55vh] sm:h-[65vh] lg:h-[75vh] overflow-hidden mb-4">
-        <img src={heroPhoto.url} alt="" className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-[0.92]" />
+        <img src={heroPhoto.url} alt="" className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-[0.92]" loading="lazy" decoding="async" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
         {eventName && (
           <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-10 z-10">

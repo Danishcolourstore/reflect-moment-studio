@@ -610,7 +610,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
                               {msg.attachments.map((att, i) => (
                                 <div key={i} className="rounded-lg overflow-hidden border border-border">
                                   {att.type.startsWith('image/') ? (
-                                    <img src={att.previewUrl} className="h-24 w-24 object-cover" />
+                                    <img src={att.previewUrl} className="h-24 w-24 object-cover" loading="lazy" decoding="async" />
                                   ) : (
                                     <div className="h-12 px-3 bg-muted flex items-center gap-2">
                                       <FileCode className="h-4 w-4 text-muted-foreground" />
@@ -782,7 +782,7 @@ export default function AgentChat({ selectedProvider, getRelevantContext }: Agen
                 {attachments.map((att, i) => (
                   <div key={i} className="relative group">
                     {att.previewUrl ? (
-                      <img src={att.previewUrl} className="h-14 w-14 rounded-lg object-cover border border-border" />
+                      <img src={att.previewUrl} className="h-14 w-14 rounded-lg object-cover border border-border" loading="lazy" decoding="async" />
                     ) : (
                       <div className="h-14 w-14 rounded-lg border border-border bg-muted flex flex-col items-center justify-center gap-1">
                         <FileCode className="h-5 w-5 text-muted-foreground" />

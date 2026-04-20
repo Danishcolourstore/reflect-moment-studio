@@ -74,7 +74,7 @@ export function SendFavoritesDialog({
         {/* Thumbnail row */}
         <div className="flex gap-1.5 overflow-x-auto py-2 scrollbar-hide">
           {favoritePhotos.slice(0, 10).map(p => (
-            <img key={p.id} src={p.url} alt="" className="h-[60px] w-[60px] rounded-lg object-cover shrink-0" />
+            <img key={p.id} src={p.url} alt="" className="h-[60px] w-[60px] rounded-lg object-cover shrink-0" loading="lazy" decoding="async" />
           ))}
           {favoritePhotos.length > 10 && (
             <div className="h-[60px] w-[60px] rounded-lg bg-secondary flex items-center justify-center text-xs text-muted-foreground shrink-0">

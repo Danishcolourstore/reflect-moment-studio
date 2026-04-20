@@ -148,8 +148,7 @@ const GuestFinder = () => {
                   <img
                     src={selfiePreview}
                     alt="Your selfie"
-                    className="w-full h-full rounded-full object-cover border-2 border-[#1A1A1A]"
-                  />
+                    className="w-full h-full rounded-full object-cover border-2 border-[#1A1A1A]" loading="lazy" decoding="async" />
                   <div className="absolute inset-0 rounded-full border-2 border-[#1A1A1A] skeleton-block" />
                 </div>
               )}
@@ -193,7 +192,7 @@ const GuestFinder = () => {
               <div className="grid grid-cols-2 gap-2">
                 {matchedPhotos.map((photo: any) => (
                   <div key={photo.id} className="relative group rounded-lg overflow-hidden">
-                    <img src={photo.url} alt="" className="w-full aspect-square object-cover" />
+                    <img src={photo.url} alt="" className="w-full aspect-square object-cover" loading="lazy" decoding="async" />
                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <button
                         onClick={() => {

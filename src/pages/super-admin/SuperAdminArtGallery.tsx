@@ -409,7 +409,7 @@ export default function SuperAdminArtGallery() {
                 <tr key={fp.id}>
                   <td className={tdCls}>
                     {fp.image_url ? (
-                      <img src={fp.image_url} alt="" className="w-10 h-10 object-cover" />
+                      <img src={fp.image_url} alt="" className="w-10 h-10 object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-10 h-10 bg-[var(--wash)]" />
                     )}

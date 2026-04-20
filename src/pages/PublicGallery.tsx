@@ -144,7 +144,7 @@ function PinGate({ event, studioProfile, onUnlock }: {
     <div className="fixed inset-0 z-[200] bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-card border border-border rounded-lg p-8 text-center space-y-6 shadow-lg">
         {studioProfile?.studio_logo_url ? (
-          <img src={studioProfile.studio_logo_url} alt="" className="h-12 mx-auto object-contain" />
+          <img src={studioProfile.studio_logo_url} alt="" className="h-12 mx-auto object-contain" loading="lazy" decoding="async" />
         ) : (
           <h2 className="font-display text-xl italic text-foreground">MirrorAI</h2>
         )}
@@ -1006,8 +1006,7 @@ const PublicGallery = () => {
               src={event.cover_url}
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
-              style={{ animation: 'kenBurns 12s ease-in-out alternate infinite' }}
-            />
+              style={{ animation: 'kenBurns 12s ease-in-out alternate infinite' }} loading="lazy" decoding="async" />
           ) : (
             <div className="absolute inset-0 bg-foreground/90" />
           )}
@@ -1015,7 +1014,7 @@ const PublicGallery = () => {
 
           <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 lg:pb-32 px-6 text-center">
             {studioProfile?.studio_logo_url ? (
-              <img src={studioProfile.studio_logo_url} alt="" className="h-12 lg:h-16 object-contain mb-6 opacity-80" />
+              <img src={studioProfile.studio_logo_url} alt="" className="h-12 lg:h-16 object-contain mb-6 opacity-80" loading="lazy" decoding="async" />
             ) : studioProfile?.studio_name ? (
               <p className="font-display text-sm lg:text-base italic text-white/60 mb-6 tracking-wider">{studioProfile.studio_name}</p>
             ) : null}
@@ -1054,7 +1053,7 @@ const PublicGallery = () => {
           {/* Left: logo or name */}
           <div className="flex items-center gap-3 min-w-0">
             {studioProfile?.studio_logo_url ? (
-              <img src={studioProfile.studio_logo_url} alt="" className="h-8 object-contain" />
+              <img src={studioProfile.studio_logo_url} alt="" className="h-8 object-contain" loading="lazy" decoding="async" />
             ) : (
               <span className="text-xs font-medium text-foreground truncate">{studioProfile?.studio_name}</span>
             )}

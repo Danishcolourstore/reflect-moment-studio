@@ -339,8 +339,7 @@ function BlogReader({ post, onClose }: { post: FeedPost; onClose: () => void }) 
         <img
           src={post.imageUrl}
           alt={post.title}
-          className="w-full h-auto max-h-[60vh] object-cover block"
-        />
+          className="w-full h-auto max-h-[60vh] object-cover block" loading="lazy" decoding="async" />
       )}
 
       <div className="max-w-[720px] mx-auto px-5 pt-8 pb-24">

@@ -110,7 +110,7 @@ export default function AlbumPreviewPage() {
                 className="w-full h-full"
               >
                 {url ? (
-                  <img src={url} className="w-full h-full object-cover" alt="" />
+                  <img src={url} className="w-full h-full object-cover" alt="" loading="lazy" decoding="async" />
                 ) : (
                   <div className="w-full h-full bg-neutral-800" />
                 )}
@@ -134,7 +134,7 @@ export default function AlbumPreviewPage() {
       >
         {photos.map((p, i) => {
           const url = p.settings_json?.imageUrl;
-          return <img key={i} src={url} className="w-full h-full object-cover" alt="" />;
+          return <img key={i} src={url} className="w-full h-full object-cover" alt="" loading="lazy" decoding="async" />;
         })}
       </div>
     );

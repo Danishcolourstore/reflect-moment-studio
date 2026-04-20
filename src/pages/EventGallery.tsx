@@ -707,7 +707,7 @@ const EventGallery = () => {
       {/* Cover banner */}
       {event.cover_url && (
         <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 sm:-mt-6 mb-6 h-44 sm:h-52 lg:h-64 overflow-hidden rounded-b-2xl">
-          <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" />
+          <img src={event.cover_url} alt={event.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
           <div className="absolute bottom-4 left-4 sm:left-6 lg:left-8">
             <h1 className="font-serif text-xl sm:text-2xl lg:text-3xl font-semibold text-white drop-shadow-lg leading-tight">

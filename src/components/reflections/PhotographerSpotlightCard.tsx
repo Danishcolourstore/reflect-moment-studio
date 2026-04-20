@@ -67,7 +67,7 @@ export function PhotographerSpotlightCard({ spotlight: propSpotlight }: Photogra
           {/* Portrait Placeholder */}
           <div className="absolute top-4 left-4 h-16 w-16 rounded-2xl bg-secondary border-2 border-primary/20 flex items-center justify-center overflow-hidden">
             {spotlight.portrait_url ? (
-              <img src={spotlight.portrait_url} alt={spotlight.photographer_name} className="w-full h-full object-cover" />
+              <img src={spotlight.portrait_url} alt={spotlight.photographer_name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
             ) : (
               <Camera className="h-6 w-6 text-muted-foreground/20" />
             )}

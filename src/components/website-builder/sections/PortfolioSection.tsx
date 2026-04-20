@@ -67,7 +67,7 @@ export function PortfolioSection({ template, images, id }: PortfolioSectionProps
                     filter: t.extras.imageFilter,
                     transition: 'filter 400ms ease',
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e) = loading="lazy" decoding="async"> {
                     if (t.extras.imageHoverFilter) (e.target as HTMLImageElement).style.filter = t.extras.imageHoverFilter;
                   }}
                   onMouseLeave={(e) => {
@@ -153,7 +153,7 @@ export function PortfolioSection({ template, images, id }: PortfolioSectionProps
             >
               {imgs.map((src, i) => (
                 <div key={i} className="aspect-square overflow-hidden">
-                  <img src={src} alt={`Portfolio ${i + 1}`} className="w-full h-full object-cover" />
+                  <img src={src} alt={`Portfolio ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 </div>
               ))}
             </div>
@@ -172,7 +172,7 @@ export function PortfolioSection({ template, images, id }: PortfolioSectionProps
           {/* Hero image */}
           {imgs[0] && (
             <div className="w-full overflow-hidden" style={{ height: '70vh', minHeight: 300 }}>
-              <img src={imgs[0]} alt="Featured" className="w-full h-full object-cover" style={{ filter: t.extras.imageFilter }} />
+              <img src={imgs[0]} alt="Featured" className="w-full h-full object-cover" style={{ filter: t.extras.imageFilter }} loading="lazy" decoding="async" />
             </div>
           )}
           {/* Alternating layout */}
@@ -183,15 +183,14 @@ export function PortfolioSection({ template, images, id }: PortfolioSectionProps
                   src={src}
                   alt={`Portfolio ${i + 2}`}
                   className="w-full h-full object-cover"
-                  style={{ filter: t.extras.imageFilter }}
-                />
+                  style={{ filter: t.extras.imageFilter }} loading="lazy" decoding="async" />
               </div>
             ))}
           </div>
           <div className="grid grid-cols-3 gap-2">
             {imgs.slice(4, 7).map((src, i) => (
               <div key={i}>
-                <img src={src} alt={`Portfolio ${i + 5}`} className="w-full h-full object-cover" style={{ filter: t.extras.imageFilter }} />
+                <img src={src} alt={`Portfolio ${i + 5}`} className="w-full h-full object-cover" style={{ filter: t.extras.imageFilter }} loading="lazy" decoding="async" />
               </div>
             ))}
           </div>
@@ -207,7 +206,7 @@ export function PortfolioSection({ template, images, id }: PortfolioSectionProps
       <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-[2px]">
         {imgs.slice(0, 6).map((src, i) => (
           <div key={i} className="overflow-hidden" style={{ aspectRatio: i % 2 === 0 ? '3/4' : '4/3' }}>
-            <img src={src} alt={`Portfolio ${i + 1}`} className="w-full h-full object-cover" />
+            <img src={src} alt={`Portfolio ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" />
           </div>
         ))}
       </div>
