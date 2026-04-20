@@ -1,11 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import CreateFeedPostModal from "@/components/CreateFeedPostModal";
-import EditFeedPostModal from "@/components/EditFeedPostModal";
-import { CreateEventModal } from "@/components/CreateEventModal";
+const CreateFeedPostModal = lazy(() => import("@/components/CreateFeedPostModal"));
+const EditFeedPostModal = lazy(() => import("@/components/EditFeedPostModal"));
+const CreateEventModal = lazy(() => import("@/components/CreateEventModal").then(m => ({ default: m.CreateEventModal })));
 import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Menu, Share, Plus, ChevronLeft } from "lucide-react";
