@@ -261,6 +261,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
       });
   }, [user, loading]);
 
+  if (TEST_MODE_BYPASS_AUTH) return <Navigate to="/home" replace />;
   if (loading) return <PageLoader />;
   if (!user) return <>{children}</>;
   if (!checked) return <PageLoader />;
