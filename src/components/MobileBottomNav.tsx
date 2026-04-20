@@ -1,11 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { CalendarDays, Image, Grid3X3, Users, Plus } from "lucide-react";
+import { CalendarDays, Image, Grid3X3, Users, Plus, BookOpen } from "lucide-react";
 
 const TABS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Gallery", url: "/home", icon: Image, center: true },
   { title: "Grid", url: "/builder-test", icon: Grid3X3 },
+  { title: "Gallery", url: "/home", icon: Image, center: true },
+  { title: "Album", url: "/dashboard/album-designer", icon: BookOpen },
   { title: "Clients", url: "/dashboard/clients", icon: Users },
 ];
 
