@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,43 +12,43 @@
 @layer base {
   :root {
     /* ─── Ink ──────────────────────────────────────────────────────────── */
-    --ink: #0A0A0A;             /* primary text, primary CTA */
-    --ink-secondary: #2A2A28;   /* hover for primary surfaces */
-    --ink-muted: #6B6962;       /* secondary text */
-    --ink-whisper: #A8A6A0;     /* placeholders, disabled hints */
+    --ink: #0a0a0a;
+    --ink-secondary: #2a2a28;
+    --ink-muted: #6b6962;
+    --ink-whisper: #a8a6a0;
 
-    /* ─── Surfaces (warm offset) ────────────────────────────────────────── */
-    --paper: #FAFAF8;           /* page background */
-    --surface: #FFFFFF;         /* cards, modals */
-    --wash: #F5F4F1;            /* hover, secondary surface */
-    --wash-strong: #EEECE8;     /* skeleton base, soft button bg */
-    --wash-deep: #E0DDD8;       /* skeleton highlight, soft hover */
+    /* ─── Surfaces ──────────────────────────────────────────────────────── */
+    --paper: #fafaf8;
+    --surface: #ffffff;
+    --wash: #f5f4f1;
+    --wash-strong: #eeece8;
+    --wash-deep: #e0ddd8;
 
     /* ─── Rules ────────────────────────────────────────────────────────── */
-    --rule: #EEECE8;            /* dividers in tool screens */
-    --rule-strong: #E0DDD8;     /* card border equivalent */
-    --rule-active: #0A0A0A;     /* selected card */
+    --rule: #eeece8;
+    --rule-strong: #e0ddd8;
+    --rule-active: #0a0a0a;
 
     /* ─── Signals ──────────────────────────────────────────────────────── */
-    --alert: #C0392B;           /* errors */
-    --go: #3D5A3A;              /* confirm/success */
+    --alert: #c0392b;
+    --go: #3d5a3a;
 
     /* ─── Dark imagery surfaces ────────────────────────────────────────── */
-    --obsidian: #0A0A0A;
-    --obsidian-ink: #F5F4F1;
+    --obsidian: #0a0a0a;
+    --obsidian-ink: #f5f4f1;
 
-    /* ─── Radius scale (v2) ────────────────────────────────────────────── */
-    --radius-sharp: 2px;        /* inputs, cards, primary buttons, table cells */
-    --radius-soft: 6px;         /* chips, tags, badges, contextual buttons */
-    --radius-rounded: 12px;     /* mobile bottom sheet top corners */
-    --radius-pill: 999px;       /* status dots, small toggles */
+    /* ─── Radius scale ─────────────────────────────────────────────────── */
+    --radius-sharp: 2px;
+    --radius-soft: 6px;
+    --radius-rounded: 12px;
+    --radius-pill: 999px;
 
-    /* ─── Shadow taxonomy (v2) ─────────────────────────────────────────── */
+    /* ─── Shadow taxonomy ──────────────────────────────────────────────── */
     --shadow-none: none;
     --shadow-border: inset 0 0 0 1px var(--rule-strong);
-    --shadow-lift: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
-    --shadow-float: 0 2px 8px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.10);
-    --shadow-modal: 0 8px 48px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lift: 0 1px 4px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.06);
+    --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow-modal: 0 8px 48px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);
 
     /* ─── Motion ───────────────────────────────────────────────────────── */
     --motion-instant: 80ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -58,9 +56,9 @@
     --motion-base: 240ms cubic-bezier(0.32, 0.72, 0, 1);
     --motion-slow: 340ms cubic-bezier(0.32, 0.72, 0, 1);
 
-    /* ─── shadcn HSL bridge — every shadcn token routes back to v2 ─────── */
-    --background: 60 14% 98%;            /* #FAFAF8 */
-    --foreground: 0 0% 4%;               /* #0A0A0A */
+    /* ─── shadcn HSL bridge ────────────────────────────────────────────── */
+    --background: 60 14% 98%;
+    --foreground: 0 0% 4%;
 
     --card: 0 0% 100%;
     --card-foreground: 0 0% 4%;
@@ -68,26 +66,26 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 4%;
 
-    --primary: 0 0% 4%;                  /* ink */
+    --primary: 0 0% 4%;
     --primary-foreground: 60 14% 98%;
 
-    --secondary: 60 12% 96%;             /* --wash */
+    --secondary: 60 12% 96%;
     --secondary-foreground: 0 0% 4%;
 
-    --muted: 48 12% 92%;                 /* --wash-strong */
-    --muted-foreground: 50 4% 40%;       /* --ink-muted */
+    --muted: 48 12% 92%;
+    --muted-foreground: 50 4% 40%;
 
-    --accent: 0 0% 4%;                   /* still ink — no decorative accent */
+    --accent: 0 0% 4%;
     --accent-foreground: 60 14% 98%;
 
-    --destructive: 8 65% 46%;            /* --alert */
+    --destructive: 8 65% 46%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 48 12% 92%;                /* --rule */
-    --input: 36 12% 86%;                 /* --rule-strong */
+    --border: 48 12% 92%;
+    --input: 36 12% 86%;
     --ring: 0 0% 4%;
 
-    --radius: 2px;                       /* shadcn DEFAULT → sharp */
+    --radius: 2px;
 
     --sidebar-background: 60 14% 98%;
     --sidebar-foreground: 50 4% 40%;
@@ -116,9 +114,14 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family:
+      "DM Sans",
+      -apple-system,
+      BlinkMacSystemFont,
+      system-ui,
+      sans-serif;
     font-weight: 400;
-    font-size: 15px;            /* base per v2 §2 */
+    font-size: 15px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -138,29 +141,50 @@
     min-height: 100vh;
     overflow: visible;
   }
-
-  img, video, canvas, svg {
+  img,
+  video,
+  canvas,
+  svg {
     max-width: 100%;
   }
 
-  /* Headings default to DM Sans. Cormorant is opt-in via .font-display / .font-serif
-     and ONLY for non-interactive display tier ≥ 22px. */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family:
+      "DM Sans",
+      -apple-system,
+      BlinkMacSystemFont,
+      system-ui,
+      sans-serif;
     font-weight: 500;
     color: hsl(var(--foreground));
     letter-spacing: -0.005em;
   }
+  h1 {
+    font-size: 28px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 22px;
+    line-height: 1.2;
+  }
+  h3 {
+    font-size: 17px;
+    line-height: 1.3;
+  }
 
-  h1 { font-size: 28px; line-height: 1.15; letter-spacing: -0.01em; }    /* xl */
-  h2 { font-size: 22px; line-height: 1.2; }                              /* lg */
-  h3 { font-size: 17px; line-height: 1.3; }                              /* md */
-
-  /* Display tier — apply .font-display for Cormorant. ≥22px, non-interactive only. */
-  .font-display, .font-serif {
-    font-family: 'Cormorant Garamond', Georgia, serif !important;
-    font-weight: 400;
-    letter-spacing: 0;
+  /* ─── Cormorant — display tier only, 300 italic, ≥48px hero moments ─── */
+  .font-display,
+  .font-serif {
+    font-family: "Cormorant Garamond", Georgia, serif !important;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: -0.02em;
   }
 
   ::selection {
@@ -168,18 +192,30 @@
     color: hsl(var(--primary-foreground));
   }
 
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 0; }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
-  * { scrollbar-color: hsl(var(--border)) transparent; scrollbar-width: thin; }
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 0;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+  * {
+    scrollbar-color: hsl(var(--border)) transparent;
+    scrollbar-width: thin;
+  }
 
-  /* Touch targets — 44px minimum per v2 §10 */
-  button, [role="button"], a {
+  button,
+  [role="button"],
+  a {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Smooth momentum scrolling on iOS */
   .scroll-momentum {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
@@ -187,11 +223,26 @@
 }
 
 @layer components {
-  .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
-  .safe-area-pt { padding-top: env(safe-area-inset-top, 0px); }
-  .touch-target { @apply min-h-[44px] min-w-[44px]; }
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
 
-  /* ─── Card classes (v2 §5) ───────────────────────────────────────────── */
+  /* ─── Label uppercase utility ───────────────────────────────────────── */
+  .label-upper {
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* ─── Card classes ───────────────────────────────────────────────────── */
   .card-flat {
     background: var(--surface);
     box-shadow: var(--shadow-border);
@@ -202,7 +253,9 @@
     background: var(--surface);
     box-shadow: var(--shadow-border);
     border-radius: var(--radius-sharp);
-    transition: box-shadow var(--motion-base), transform var(--motion-fast);
+    transition:
+      box-shadow var(--motion-base),
+      transform var(--motion-fast);
     cursor: pointer;
   }
   .card-interactive:hover {
@@ -219,17 +272,21 @@
     border-radius: var(--radius-sharp);
   }
 
-  /* ─── Tap feedback (v2 §10) ──────────────────────────────────────────── */
+  /* ─── Tap feedback ───────────────────────────────────────────────────── */
   .tap-active:active {
     transform: scale(0.97);
     transition: transform var(--motion-instant);
   }
 }
 
-/* ─── Loading bar — v2 §10 ─────────────────────────────────────────────── */
+/* ─── Loading bar ──────────────────────────────────────────────────────── */
 @keyframes loading-bar {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 .loading-bar {
   position: fixed;
@@ -242,74 +299,118 @@
   z-index: 9999;
 }
 .loading-bar::after {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: var(--ink);
   animation: loading-bar 800ms ease-in-out infinite;
 }
 
-/* ─── Skeleton — v2 §10 (pulse 0.5↔1.0, 1200ms ease-in-out) ────────────── */
+/* ─── Skeleton ─────────────────────────────────────────────────────────── */
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.5; }
-  50%      { opacity: 1.0; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 .skeleton-block {
   background-color: var(--wash-strong);
   border-radius: var(--radius-sharp);
   animation: skeleton-pulse 1200ms ease-in-out infinite;
 }
+.skeleton-stagger > * {
+  animation-delay: calc(var(--stagger-i, 0) * 30ms);
+}
 
-/* Stagger reveal for image grids — 30ms per tile (v2 §10) */
-.skeleton-stagger > * { animation-delay: calc(var(--stagger-i, 0) * 30ms); }
-
-/* ─── Toast slide (v2 §10) ─────────────────────────────────────────────── */
+/* ─── Toast ────────────────────────────────────────────────────────────── */
 @keyframes toast-in {
-  0% { transform: translateY(20px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 @keyframes toast-out {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-12px); opacity: 0; }
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-12px);
+    opacity: 0;
+  }
 }
 
-/* ─── Inline error slide-down (v2 §10) ─────────────────────────────────── */
+/* ─── Field error ──────────────────────────────────────────────────────── */
 @keyframes error-slide-down {
-  0% { transform: translateY(-6px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+  0% {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 .field-error {
   animation: error-slide-down 200ms ease-out;
 }
 
-/* ─── Screen transitions (v2 §10) ──────────────────────────────────────── */
+/* ─── Screen transitions ───────────────────────────────────────────────── */
 @keyframes screen-forward-in {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 @keyframes screen-back-in {
-  0% { transform: translateX(-25%); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(-25%);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
-/* ─── Bottom sheet (v2 §10) ────────────────────────────────────────────── */
+/* ─── Bottom sheet ─────────────────────────────────────────────────────── */
 @keyframes sheet-up {
-  0% { transform: translateY(100%); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 @keyframes sheet-down {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(100%); }
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
 }
 
 /* ─── Numeric utility ──────────────────────────────────────────────────── */
-.num { font-variant-numeric: tabular-nums; }
+.num {
+  font-variant-numeric: tabular-nums;
+}
 
-/* ─── Grid Builder panel slide-up (legacy) ─────────────────────────────── */
+/* ─── Grid Builder legacy ──────────────────────────────────────────────── */
 @keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0.5; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
