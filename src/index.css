@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 /* ─── UI PARAMETER SYSTEM v2 ──────────────────────────────────────────────
-   Confident Clarity. Warm near-neutral palette, no gold accent.
+   Confident Clarity. Warm near-neutral palette.
+   Accent: Cognac #B06A3A — one chromatic identity token.
    Two-voice typography: DM Sans (functional), Cormorant Garamond (display).
    Token scale: radius (sharp/soft/rounded/pill), shadow (border/lift/float/modal).
    Interaction layer: gestures, loading, errors, transitions.
@@ -28,6 +29,12 @@
     --rule: #eeece8;
     --rule-strong: #e0ddd8;
     --rule-active: #0a0a0a;
+
+    /* ─── Brand accent — Cognac ────────────────────────────────────────── */
+    --cognac: #b06a3a;
+    --cognac-hover: #9a5c30;
+    --cognac-muted: #e8d5c4;
+    --cognac-ink: #ffffff;
 
     /* ─── Signals ──────────────────────────────────────────────────────── */
     --alert: #c0392b;
@@ -75,15 +82,16 @@
     --muted: 48 12% 92%;
     --muted-foreground: 50 4% 40%;
 
-    --accent: 0 0% 4%;
-    --accent-foreground: 60 14% 98%;
+    /* ─── Accent now routes to Cognac ──────────────────────────────────── */
+    --accent: 25 51% 46%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 8 65% 46%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 48 12% 92%;
     --input: 36 12% 86%;
-    --ring: 0 0% 4%;
+    --ring: 25 51% 46%;
 
     --radius: 2px;
 
@@ -91,10 +99,10 @@
     --sidebar-foreground: 50 4% 40%;
     --sidebar-primary: 0 0% 4%;
     --sidebar-primary-foreground: 60 14% 98%;
-    --sidebar-accent: 60 12% 96%;
-    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-accent: 25 51% 46%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 48 12% 92%;
-    --sidebar-ring: 0 0% 4%;
+    --sidebar-ring: 25 51% 46%;
   }
 }
 
@@ -178,7 +186,6 @@
     line-height: 1.3;
   }
 
-  /* ─── Cormorant — display tier only, 300 italic, ≥48px hero moments ─── */
   .font-display,
   .font-serif {
     font-family: "Cormorant Garamond", Georgia, serif !important;
@@ -188,8 +195,8 @@
   }
 
   ::selection {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
+    background: var(--cognac);
+    color: var(--cognac-ink);
   }
 
   ::-webkit-scrollbar {
@@ -203,7 +210,7 @@
     border-radius: 0;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
+    background: var(--cognac);
   }
   * {
     scrollbar-color: hsl(var(--border)) transparent;
@@ -240,6 +247,25 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
     font-weight: 500;
+  }
+
+  /* ─── Cognac accent utilities ───────────────────────────────────────── */
+  .accent {
+    color: var(--cognac);
+  }
+  .accent-bg {
+    background: var(--cognac);
+    color: var(--cognac-ink);
+  }
+  .accent-bg:hover {
+    background: var(--cognac-hover);
+  }
+  .accent-muted {
+    background: var(--cognac-muted);
+    color: var(--cognac);
+  }
+  .accent-border {
+    box-shadow: inset 0 0 0 1px var(--cognac);
   }
 
   /* ─── Card classes ───────────────────────────────────────────────────── */
@@ -302,7 +328,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--ink);
+  background: var(--cognac);
   animation: loading-bar 800ms ease-in-out infinite;
 }
 
