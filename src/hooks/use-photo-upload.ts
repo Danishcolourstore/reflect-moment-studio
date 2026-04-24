@@ -1,12 +1,15 @@
 import { useState, useCallback, useRef } from 'react';
+import pLimit from 'p-limit';
 import { supabase } from '@/integrations/supabase/client';
-import imageCompression from 'browser-image-compression';
+import { compressForGallery } from '@/lib/imageCompression';
 
 export type FileStatus = 'pending' | 'uploading' | 'compressing' | 'finalizing' | 'success' | 'failed' | 'duplicate';
 export type ErrorType = 'size' | 'cors' | 'network' | 'timeout' | 'storage' | 'duplicate' | 'unknown';
 
 export interface FileUploadInfo {
   file: File;
+  originalFile?: File;
+  galleryFile?: File;
   id: string;
   status: FileStatus;
   progress: number;
@@ -46,11 +49,8 @@ const INITIAL: UploadState = {
 };
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
-const MAX_RETRIES = 3;
 const UPLOAD_TIMEOUT = 300_000;
-const KEEPALIVE_INTERVAL = 30_000;
-const CONCURRENCY = 5;
-const BATCH_SIZE = 10;
+const CONCURRENCY = 4;
 
 function classifyError(err: any): { message: string; type: ErrorType } {
   const msg = String(err?.message || err || '').toLowerCase();
@@ -65,24 +65,6 @@ function classifyError(err: any): { message: string; type: ErrorType } {
   if (msg.includes('storage') || msg.includes('bucket') || msg.includes('policy'))
     return { message: 'Storage error — please try again', type: 'storage' };
   return { message: err?.message || 'Upload failed — please retry', type: 'unknown' };
-}
-
-async function compressImage(file: File, optimized: boolean): Promise<File> {
-  if (!optimized) return file;
-  if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) return file;
-  try {
-    const compressed = await imageCompression(file, {
-      maxSizeMB: 2,
-      maxWidthOrHeight: 4096,
-      initialQuality: 0.85,
-      useWebWorker: true,
-      exifOrientation: undefined,
-    });
-    // Strip EXIF by re-encoding
-    return new File([compressed], file.name, { type: compressed.type || 'image/jpeg' });
-  } catch {
-    return file;
-  }
 }
 
 /** Fast hash for duplicate detection using first+last 64KB + size */
