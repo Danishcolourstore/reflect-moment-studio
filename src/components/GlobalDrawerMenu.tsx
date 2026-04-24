@@ -4,6 +4,12 @@ import { useAuth } from "@/lib/auth";
 import { X } from "lucide-react";
 
 const CUBIC = "cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+const PANEL = "hsl(var(--background))";
+const SURFACE = "hsl(var(--card))";
+const INK = "hsl(var(--foreground))";
+const MUTED = "hsl(var(--muted-foreground))";
+const WHISPER = "var(--ink-whisper)";
+const RULE = "hsl(var(--border))";
 
 const NAV_ITEMS = [
   { label: "Home", path: "/home" },
@@ -11,6 +17,7 @@ const NAV_ITEMS = [
   { divider: true },
   { label: "Website", path: "/dashboard/website-builder" },
   { label: "Storybook", path: "/dashboard/storybook" },
+  { label: "Album", path: "/dashboard/album-designer" },
   { label: "More", path: "/dashboard/more" },
 ] as const;
 
@@ -32,7 +39,7 @@ export function HamburgerButton({ onClick }: { onClick: () => void }) {
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 11,
         fontWeight: 500,
-        color: "#1A1A1A",
+        color: INK,
         letterSpacing: "0.2em",
       }}
       aria-label="Menu"
@@ -92,7 +99,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
     navigate("/login");
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => path === "/home" ? location.pathname === path : location.pathname.startsWith(path);
 
   if (!mounted) return null;
 
