@@ -1,7 +1,5 @@
 import { useState, useEffect, lazy, Suspense, useCallback, Component, ReactNode, createContext, useContext } from 'react';
-import { EntiranButton } from './EntiranButton';
 import { useStudioBrain } from '@/hooks/use-studio-brain';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const EntiranPanel = lazy(() =>
   import('./EntiranPanel').then(m => ({ default: m.EntiranPanel }))
@@ -26,7 +24,6 @@ class DaanErrorBoundary extends Component<{ children: ReactNode }, { hasError: b
 function DaanInner({ children }: { children?: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { unreadCount } = useStudioBrain();
-  const isMobile = useIsMobile();
   const [showSignature, setShowSignature] = useState(false);
 
 
@@ -78,12 +75,6 @@ function DaanInner({ children }: { children?: ReactNode }) {
           </div>
         </div>
       )}
-
-      {/* Floating button — visible on all viewports (mobile auto-lifts above bottom nav) */}
-      {!open && !showSignature && (
-        <EntiranButton onClick={handleOpen} unreadCount={unreadCount} />
-      )}
-
       {open && (
         <Suspense fallback={null}>
           <EntiranPanel
