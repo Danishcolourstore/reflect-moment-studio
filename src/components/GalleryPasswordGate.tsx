@@ -33,6 +33,7 @@ export function GalleryPasswordGate({ eventId, eventTitle, studioLogoUrl, onUnlo
 
       if (data?.valid) {
         localStorage.setItem(`mirrorai_gallery_pw_verified_${eventId}`, "true");
+        if (data?.token) localStorage.setItem(`gallery_token:${eventId}`, data.token);
         onUnlock();
       } else {
         toast.error("That didn't match. Try again.");
