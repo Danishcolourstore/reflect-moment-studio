@@ -11,11 +11,12 @@ import {
 
 interface DaanPanelProps {
   open: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   pendingSuggestionCount: number;
+  embedded?: boolean;
 }
 
-export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPanelProps) {
+export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded = false }: DaanPanelProps) {
   const {
     messages, loading, typing,
     initConversation, sendMessage,
@@ -82,7 +83,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose?.(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
@@ -231,14 +232,14 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <button
+              {onClose && <button
                 onClick={onClose}
                 className="h-10 w-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
                 style={{ color: 'rgba(244,241,234,0.3)' }}
                 aria-label="Close"
               >
                 <X className="h-[18px] w-[18px]" />
-              </button>
+              </button>}
             </div>
           </header>
 
@@ -405,6 +406,14 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount }: DaanPane
       )}
     </div>
   );
+
+  if (embedded) {
+    return (
+      <div className="h-[calc(100dvh-88px)] min-h-[560px] overflow-hidden" role="region" aria-label="Daan">
+        {chatUI}
+      </div>
+    );
+  }
 
   // ── Mobile: full-screen ──
   if (isMobile) {
