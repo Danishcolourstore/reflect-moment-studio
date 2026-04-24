@@ -26,6 +26,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { CheetahQuickUpload } from '@/components/cheetah/CheetahQuickUpload';
+import { CheetahQRCard } from '@/components/cheetah/CheetahQRCard';
 
 /* ───────────────────────── helpers ───────────────────────── */
 
@@ -166,7 +168,7 @@ function lastPing(iso: string | null) {
 }
 
 function SetupCard({ session, uploadEndpoint }: { session: CheetahLiveSession; uploadEndpoint: string }) {
-  const [tab, setTab] = useState<'https' | 'ftp' | 'curl'>('https');
+  const [tab, setTab] = useState<'upload' | 'https' | 'ftp' | 'curl'>('upload');
   const liveUrl = `${window.location.origin}/live/${session.session_code}`;
   const lastUpload = lastPing(session.last_upload_at);
 
