@@ -35,14 +35,15 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
       className="fixed"
       style={{
         bottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom, 0px))' : 28,
-        right: isMobile ? 16 : 28,
+        left: isMobile ? 16 : undefined,
+        right: isMobile ? undefined : 28,
         zIndex: 10001,
       }}
     >
       {/* First-time tooltip */}
       {showTooltip && (
         <div
-          className="absolute bottom-full right-0 mb-3 whitespace-nowrap animate-fade-in"
+          className={`absolute bottom-full ${isMobile ? 'left-0' : 'right-0'} mb-3 whitespace-nowrap animate-fade-in`}
           style={{
             background: '#111111',
             border: '1px solid rgba(200,169,126,0.12)',
@@ -57,7 +58,7 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
         >
           Ask anything with Daan
           <div
-            className="absolute -bottom-1.5 right-6 w-3 h-3 rotate-45"
+            className={`absolute -bottom-1.5 ${isMobile ? 'left-6' : 'right-6'} w-3 h-3 rotate-45`}
             style={{ background: '#111111', border: '1px solid rgba(200,169,126,0.12)', borderTop: 'none', borderLeft: 'none' }}
           />
         </div>
