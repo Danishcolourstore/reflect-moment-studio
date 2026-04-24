@@ -50,35 +50,35 @@ export function LanguageChips({ onChange }: LanguageChipsProps) {
       {QUICK_LANGUAGES.map((lang) => {
         const isActive = lang.code === active;
         return (
-          <Badge
+          <button
             key={lang.code}
-            asChild
-            variant="outline"
-            className="cursor-pointer select-none whitespace-nowrap transition-colors"
-            style={{
-              borderRadius: 0,
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: '0.02em',
-              padding: '4px 10px',
-              background: isActive ? 'hsl(var(--primary))' : 'transparent',
-              borderColor: isActive
-                ? 'hsl(var(--primary))'
-                : 'hsl(var(--primary) / 0.25)',
-              color: isActive
-                ? 'hsl(var(--primary-foreground))'
-                : 'hsl(var(--primary) / 0.7)',
-            }}
+            type="button"
+            role="radio"
+            aria-checked={isActive}
+            onClick={() => handleSelect(lang.code)}
+            className="shrink-0"
           >
-            <button
-              type="button"
-              role="radio"
-              aria-checked={isActive}
-              onClick={() => handleSelect(lang.code)}
+            <Badge
+              variant="outline"
+              className="cursor-pointer select-none whitespace-nowrap transition-colors"
+              style={{
+                borderRadius: 0,
+                fontSize: 11,
+                fontWeight: 500,
+                letterSpacing: '0.02em',
+                padding: '4px 10px',
+                background: isActive ? 'hsl(var(--primary))' : 'transparent',
+                borderColor: isActive
+                  ? 'hsl(var(--primary))'
+                  : 'hsl(var(--primary) / 0.25)',
+                color: isActive
+                  ? 'hsl(var(--primary-foreground))'
+                  : 'hsl(var(--primary) / 0.7)',
+              }}
             >
               {lang.label}
-            </button>
-          </Badge>
+            </Badge>
+          </button>
         );
       })}
     </div>
