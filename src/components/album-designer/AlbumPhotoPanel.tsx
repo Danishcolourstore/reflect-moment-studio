@@ -77,12 +77,26 @@ export default function AlbumPhotoPanel({
   const [linkOpen, setLinkOpen] = useState(false);
   const [events, setEvents] = useState<EventOption[]>([]);
 
+  // Source selector — Events (existing) vs Device (new upload flow)
+  const [source, setSource] = useState<PhotoSource>("events");
+
   // Suggestion 5: Batch selection
   const [selectMode, setSelectMode] = useState(false);
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
 
   const fileRef = useRef<HTMLInputElement>(null);
   const zipRef = useRef<HTMLInputElement>(null);
+
+  // When the album already has an event linked, default to Events. Otherwise stay on Events too
+  // — switching to Device is an explicit user action.
+  // Auto-switch back to Events once a device upload finishes and the album becomes linked.
+  useEffect(() => {
+    if (eventId && source === "device") {
+      // photos for the just-created event will be loaded by the effect below
+      setSource("events");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
 
   /* ─── Load Photos ─── */
 
