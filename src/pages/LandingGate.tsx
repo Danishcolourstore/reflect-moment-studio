@@ -3,25 +3,28 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-const CreateFeedPostModal = lazy(() => import("@/components/CreateFeedPostModal"));
-const EditFeedPostModal = lazy(() => import("@/components/EditFeedPostModal"));
-const CreateEventModal = lazy(() => import("@/components/CreateEventModal").then(m => ({ default: m.CreateEventModal })));
+const CreateEventModal = lazy(() =>
+  import("@/components/CreateEventModal").then((m) => ({ default: m.CreateEventModal }))
+);
 import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { Menu, Share, Plus, ChevronLeft } from "lucide-react";
 import { resolveUsername } from "@/lib/studio-url";
 
-interface FeedPost {
-  id: string;
-  title: string;
-  caption: string | null;
-  content: string | null;
-  imageUrl: string | null;
-  location: string | null;
-  contentType: "post" | "blog";
-  galleryImages: string[];
-  date: string;
-}
+/* ──────────────────────────────────────────────────────────────────────────
+   Editorial Home — /home
+   Answers, in order:
+     1. Who am I + where am I (identity, date)
+     2. Business health at a glance (storage · delivered · views · galleries)
+     3. What's been happening (recent events + recent activity)
+     4. What to do next (one obvious primary action)
+
+   Constraints:
+     · Cormorant Garamond (display) + DM Sans (UI) only
+     · Palette: #FAFAF8 / #1A1917 / #C8A97E / #6B6760 / #E8E5E0
+     · 4px scale, 1px borders, max radius 4px, images 0px radius
+     · No icon libraries, no shadcn Card/Badge, no spinners
+     · 1px gold top loading bar
+   ────────────────────────────────────────────────────────────────────────── */
 
 interface EventRow {
   id: string;
@@ -31,22 +34,37 @@ interface EventRow {
   event_date: string | null;
   photo_count: number | null;
   location: string | null;
+  is_published?: boolean | null;
+  created_at?: string;
 }
 
-interface Stats {
-  events: number;
-  photos: number;
-  clients: number;
-  revenue: number;
+interface Health {
+  storageUsedGB: number;        // 0..100
+  storageQuotaGB: number;
+  photosDelivered: number;
+  clientViews: number;
+  galleriesDelivered: number;
 }
 
-const RITUAL_LINES = [
-  "Mirror never lies.",
-  "Every gallery, a story.",
-  "The light remembers.",
-  "What is seen, stays.",
-  "A frame, then forever.",
-];
+interface ActivityRow {
+  id: string;
+  kind: "view" | "favorite" | "download" | "event";
+  text: string;
+  meta: string;
+  ts: number;
+}
+
+const PALETTE = {
+  bg: "#FAFAF8",
+  ink: "#1A1917",
+  inkSoft: "#6B6760",
+  rule: "#E8E5E0",
+  gold: "#C8A97E",
+  paper: "#FFFFFF",
+};
+
+const SERIF = "'Cormorant Garamond', Georgia, serif";
+const SANS = "'DM Sans', system-ui, sans-serif";
 
 export default function LandingGate() {
   const navigate = useNavigate();
@@ -54,17 +72,21 @@ export default function LandingGate() {
   const drawer = useDrawerMenu();
 
   const [events, setEvents] = useState<EventRow[]>([]);
-  const [stats, setStats] = useState<Stats>({ events: 0, photos: 0, clients: 0, revenue: 0 });
+  const [health, setHealth] = useState<Health>({
+    storageUsedGB: 0,
+    storageQuotaGB: 100,
+    photosDelivered: 0,
+    clientViews: 0,
+    galleriesDelivered: 0,
+  });
+  const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileName, setProfileName] = useState("Studio");
   const [feedSlug, setFeedSlug] = useState<string | null>(null);
-  const [mob, setMob] = useState(typeof window !== "undefined" && window.innerWidth < 768);
-
-  const [createPostOpen, setCreatePostOpen] = useState(false);
+  const [mob, setMob] = useState(
+    typeof window !== "undefined" && window.innerWidth < 768
+  );
   const [createEventOpen, setCreateEventOpen] = useState(false);
-  const [editPost, setEditPost] = useState<FeedPost | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
-  const [readingPost, setReadingPost] = useState<FeedPost | null>(null);
 
   useEffect(() => {
     const h = () => setMob(window.innerWidth < 768);
@@ -73,25 +95,37 @@ export default function LandingGate() {
   }, []);
 
   const loadData = useCallback(async () => {
-    if (!user) { setLoading(false); return; }
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
 
-    const { data: prof } = await (supabase.from("profiles").select("studio_name") as any)
-      .eq("user_id", user.id).maybeSingle();
+    // Profile
+    const { data: prof } = await (supabase
+      .from("profiles")
+      .select("studio_name") as any)
+      .eq("user_id", user.id)
+      .maybeSingle();
     if (prof?.studio_name) setProfileName(prof.studio_name);
+
+    // Feed slug
     let slug: string | null = null;
-    if (!slug) {
-      const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
-        .eq("user_id", user.id).maybeSingle();
-      slug = dom?.subdomain || null;
-    }
+    const { data: dom } = await (supabase
+      .from("domains")
+      .select("subdomain") as any)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    slug = dom?.subdomain || null;
     if (!slug) slug = resolveUsername(undefined, user.email);
     setFeedSlug(slug);
 
     // Events
     const { data: eventsData } = await supabase
       .from("events")
-      .select("id, name, slug, cover_url, event_date, photo_count, location")
+      .select(
+        "id, name, slug, cover_url, event_date, photo_count, location, is_published, created_at"
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(8);
@@ -99,196 +133,546 @@ export default function LandingGate() {
     const evRows = (eventsData || []) as EventRow[];
     setEvents(evRows);
 
-    // Stats
+    // Photos delivered
     const evtIds = evRows.map((e) => e.id);
-    let photoCount = 0;
+    let photosDelivered = 0;
     if (evtIds.length > 0) {
       const { count } = await supabase
         .from("photos")
         .select("id", { count: "exact", head: true })
         .in("event_id", evtIds);
-      photoCount = count || 0;
+      photosDelivered = count || 0;
     }
 
-    let clientsCount = 0;
-    let revenueAmt = 0;
-    try {
-      const { count: cc } = await (supabase
-        .from("clients")
-        .select("id", { count: "exact", head: true }) as any)
-        .eq("user_id", user.id);
-      clientsCount = cc || 0;
-    } catch { /* table optional */ }
+    // Client views (sum of event_analytics.gallery_views)
+    let clientViews = 0;
+    if (evtIds.length > 0) {
+      try {
+        const { data: an } = await (supabase
+          .from("event_analytics")
+          .select("gallery_views, event_id, updated_at") as any)
+          .in("event_id", evtIds);
+        clientViews = (an || []).reduce(
+          (s: number, r: any) => s + (r?.gallery_views || 0),
+          0
+        );
+      } catch {
+        /* analytics optional */
+      }
+    }
 
-    try {
-      const { data: bookings } = await (supabase
-        .from("bookings")
-        .select("amount, created_at") as any)
-        .eq("photographer_id", user.id);
-      const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      revenueAmt = (bookings || [])
-        .filter((b: any) => b.created_at >= monthStart)
-        .reduce((sum: number, b: any) => sum + (Number(b.amount) || 0), 0);
-    } catch { /* table optional */ }
+    // Galleries delivered = published events
+    const galleriesDelivered = evRows.filter((e) => e.is_published).length;
 
-    setStats({
-      events: evRows.length,
-      photos: photoCount,
-      clients: clientsCount,
-      revenue: revenueAmt,
+    // Storage estimate: 5 MB / photo, capped at quota
+    const storageQuotaGB = 100;
+    const storageUsedGB = Math.min(
+      storageQuotaGB,
+      Math.round((photosDelivered * 5) / 1024)
+    );
+
+    setHealth({
+      storageUsedGB,
+      storageQuotaGB,
+      photosDelivered,
+      clientViews,
+      galleriesDelivered,
     });
+
+    // Activity feed (recent published events as proxy events)
+    const acts: ActivityRow[] = [];
+    evRows.slice(0, 6).forEach((e) => {
+      acts.push({
+        id: e.id,
+        kind: "event",
+        text: e.name,
+        meta: e.location || "",
+        ts: new Date(e.created_at || e.event_date || Date.now()).getTime(),
+      });
+    });
+    acts.sort((a, b) => b.ts - a.ts);
+    setActivity(acts.slice(0, 5));
 
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleShare = async () => {
-    const feedUrl = feedSlug ? `${window.location.origin}/feed/${feedSlug}` : window.location.origin;
+    const feedUrl = feedSlug
+      ? `${window.location.origin}/feed/${feedSlug}`
+      : window.location.origin;
     if (navigator.share) {
-      try { await navigator.share({ title: profileName, url: feedUrl }); } catch {}
+      try {
+        await navigator.share({ title: profileName, url: feedUrl });
+      } catch {}
     } else {
       await navigator.clipboard.writeText(feedUrl);
       toast.success("Link copied");
     }
   };
 
-  if (readingPost) {
-    return <BlogReader post={readingPost} onClose={() => setReadingPost(null)} />;
-  }
-
-  // Greeting based on hour
-  const hour = new Date().getHours();
-  const greetingTime =
-    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long", day: "numeric", month: "long",
+  // Date / greeting
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting =
+    hour < 5 ? "Late night" :
+    hour < 12 ? "Morning" :
+    hour < 17 ? "Afternoon" :
+    hour < 21 ? "Evening" : "Tonight";
+  const dateLong = now.toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
+  const dayNum = now.getDate();
+  const monthShort = now
+    .toLocaleDateString("en-IN", { month: "short" })
+    .toUpperCase();
 
-  // Subtitle from event counts
-  const subtitleParts: string[] = [];
-  if (events.length > 0) subtitleParts.push(`${events.length} event${events.length === 1 ? "" : "s"} on the books.`);
-  if (stats.photos > 0) subtitleParts.push(`${stats.photos.toLocaleString("en-IN")} photos in the library.`);
-  const subtitle = subtitleParts.length > 0
-    ? subtitleParts.join(" ")
-    : "A quiet day to catch up.";
-
-  // Ritual line — deterministic per day
-  const dayIdx = Math.floor(Date.now() / 86400000) % RITUAL_LINES.length;
-  const ritual = RITUAL_LINES[dayIdx];
-
-  // Format helpers
-  const fmtDate = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "—";
-  const fmtRevenue = (n: number) =>
-    n >= 100000 ? `₹${(n / 100000).toFixed(2)}L` : `₹${n.toLocaleString("en-IN")}`;
+  const fmt = (n: number) => n.toLocaleString("en-IN");
 
   return (
-    <div className="w-full min-h-screen bg-[#EFEDE8]">
-      {/* ─── TOP NAV ─────────────────────────────────────────────── */}
+    <div
+      style={{
+        background: PALETTE.bg,
+        color: PALETTE.ink,
+        minHeight: "100vh",
+        fontFamily: SANS,
+        WebkitFontSmoothing: "antialiased",
+      }}
+    >
+      {/* ── 1px gold top loading bar ─────────────────────────────── */}
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 1,
+            background: PALETTE.gold,
+            zIndex: 9999,
+            animation: "mai-load 1.4s ease-in-out infinite",
+          }}
+        />
+      )}
+
+      {/* ── Top nav (minimal, type-only) ─────────────────────────── */}
       <nav
-        className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between h-12 px-4 bg-white/80 backdrop-blur-md border-b border-[var(--rule)]"
-        style={{ paddingTop: "max(env(safe-area-inset-top), 0px)" }}
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 56,
+          padding: "0 16px",
+          background: PALETTE.bg,
+          borderBottom: `1px solid ${PALETTE.rule}`,
+        }}
       >
         <button
           onClick={drawer.toggle}
-          className="flex items-center justify-center min-w-[44px] min-h-[44px] -ml-2 bg-transparent border-0 cursor-pointer"
           aria-label="Menu"
+          style={{
+            minHeight: 44,
+            minWidth: 44,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "transparent",
+            border: 0,
+            cursor: "pointer",
+            fontFamily: SANS,
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: PALETTE.ink,
+            padding: 0,
+          }}
         >
-          <Menu className="w-5 h-5 text-[var(--ink)]" strokeWidth={1.5} />
+          Menu
         </button>
-        {/* Wordmark — Mirror AI brand */}
-        <span className="font-serif text-[18px] font-normal text-[var(--ink)] inline-flex items-center gap-2 tracking-[-0.01em]">
-          Mirror AI
-          <span className="w-[3px] h-[3px] bg-[var(--ink)] rounded-full" />
+
+        <span
+          style={{
+            fontFamily: SERIF,
+            fontWeight: 400,
+            fontSize: 18,
+            letterSpacing: "0.04em",
+            color: PALETTE.ink,
+          }}
+        >
+          Mirror<span style={{ color: PALETTE.gold }}>·</span>AI
         </span>
+
         <button
           onClick={handleShare}
-          className="flex items-center justify-center min-w-[44px] min-h-[44px] -mr-2 bg-transparent border-0 cursor-pointer"
-          aria-label="Share"
+          aria-label="Share studio link"
+          style={{
+            minHeight: 44,
+            minWidth: 44,
+            background: "transparent",
+            border: 0,
+            cursor: "pointer",
+            fontFamily: SANS,
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: PALETTE.inkSoft,
+            padding: 0,
+          }}
         >
-          <Share className="w-[18px] h-[18px] text-[var(--ink-muted)]" strokeWidth={1.5} />
+          Share
         </button>
       </nav>
 
-      {/* ─── SPECIMEN CONTAINER ─────────────────────────────────── */}
-      <div className="pt-12 pb-32 md:pb-24">
-        <div className="max-w-[1080px] mx-auto bg-white md:border md:border-[var(--rule)] md:my-10">
-          {/* ─── DASH FRAGMENT ───────────────────────────────────── */}
-          <div className="px-6 md:px-14 pt-8 md:pt-14 pb-8 md:pb-14">
-            <h1 className="font-serif font-light text-[32px] md:text-[44px] leading-[1.08] tracking-[-0.02em] text-[var(--ink)] mb-9 md:mb-12">
-              {today}
-            </h1>
-
-            {/* ─── STAT ROW ───────────────────────────────────────── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 py-6 md:py-7 border-t border-b border-[var(--rule)] mb-10 md:mb-12">
-              <StatCell label="Events"  value={loading ? "—" : String(stats.events)} hint="this quarter" />
-              <StatCell label="Photos"  value={loading ? "—" : stats.photos.toLocaleString("en-IN")} hint="in library" />
-              <StatCell label="Clients" value={loading ? "—" : String(stats.clients)} />
-              <StatCell label="Revenue" value={loading ? "—" : fmtRevenue(stats.revenue)} hint="this month" />
-            </div>
-
-            {/* Recent Events preview removed — full list lives in /dashboard/events */}
-
-            {/* ─── ACTIONS ROW ────────────────────────────────────── */}
-            <div className="mt-10 md:mt-12 flex flex-wrap items-center gap-3">
-              <button
-                onClick={() => setCreateEventOpen(true)}
-                className="flex-1 md:flex-none bg-[var(--ink)] text-white border-0 px-6 py-3.5 text-[12px] font-medium tracking-[0.08em] uppercase cursor-pointer hover:opacity-90 transition-opacity"
-              >
-                New event
-              </button>
-              <button
-                onClick={() => navigate("/dashboard/events")}
-                className="flex-1 md:flex-none bg-transparent text-[var(--ink)] border border-[var(--rule-strong)] px-6 py-3 text-[12px] font-medium tracking-[0.02em] cursor-pointer hover:border-[var(--ink)] transition-colors"
-              >
-                Open events
-              </button>
-              <span className="hidden md:inline text-[12px] text-[var(--ink-whisper)]">
-                or press <span className="font-mono">⌘ N</span>
-              </span>
-            </div>
-          </div>
-
-          {/* ─── RITUAL LINE ─────────────────────────────────────── */}
-          <div className="border-t border-[var(--rule)] px-6 md:px-14 py-10 md:py-14">
-            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-5">
-              Today's ritual
-            </p>
-            <p className="font-serif italic font-light text-[26px] md:text-[40px] leading-[1.3] tracking-[-0.01em] text-[var(--ink)] max-w-[720px]">
-              {ritual}
-            </p>
-          </div>
-
-          {/* ─── FOOTER ──────────────────────────────────────────── */}
-          <div className="border-t border-[var(--rule)] px-6 md:px-14 py-8 flex justify-between items-baseline">
-            <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)]">
-              {profileName}
-            </p>
-            <p className="font-serif italic text-[14px] text-[var(--ink-whisper)]">
-              Every gallery, a story.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── FAB ────────────────────────────────────────────────── */}
-      <button
-        onClick={() => setCreateEventOpen(true)}
-        className="fixed right-5 md:right-8 w-14 h-14 rounded-full bg-[var(--ink)] flex items-center justify-center cursor-pointer z-50 hover:opacity-90 transition-opacity border-0 shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
-        style={{ bottom: mob ? "calc(72px + env(safe-area-inset-bottom, 0px))" : "32px" }}
-        aria-label="Create event"
+      <main
+        style={{
+          maxWidth: 1080,
+          margin: "0 auto",
+          padding: mob ? "32px 20px 160px" : "64px 48px 96px",
+        }}
       >
-        <Plus className="w-5 h-5 text-white" strokeWidth={2} />
-      </button>
+        {/* ── 1. IDENTITY ─────────────────────────────────────────── */}
+        <section style={{ marginBottom: mob ? 48 : 96 }}>
+          <div
+            style={{
+              fontFamily: SANS,
+              fontSize: 11,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              color: PALETTE.inkSoft,
+              marginBottom: 16,
+            }}
+          >
+            {greeting} · {dateLong}
+          </div>
+
+          <h1
+            style={{
+              fontFamily: SERIF,
+              fontWeight: 300,
+              fontSize: mob ? 44 : 72,
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
+              color: PALETTE.ink,
+              margin: 0,
+              fontStyle: "italic",
+            }}
+          >
+            {profileName}
+          </h1>
+
+          {/* Hairline + day stamp */}
+          <div
+            style={{
+              marginTop: 24,
+              display: "flex",
+              alignItems: "baseline",
+              gap: 16,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: SERIF,
+                fontWeight: 300,
+                fontSize: 28,
+                color: PALETTE.gold,
+                lineHeight: 1,
+              }}
+            >
+              {dayNum}
+            </span>
+            <span
+              style={{
+                fontFamily: SANS,
+                fontSize: 11,
+                letterSpacing: "0.24em",
+                color: PALETTE.inkSoft,
+              }}
+            >
+              {monthShort}
+            </span>
+            <span
+              style={{
+                flex: 1,
+                height: 1,
+                background: PALETTE.rule,
+              }}
+            />
+          </div>
+        </section>
+
+        {/* ── 2. BUSINESS HEALTH ──────────────────────────────────── */}
+        <section style={{ marginBottom: mob ? 48 : 96 }}>
+          <SectionLabel>Studio at a glance</SectionLabel>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: mob ? "1fr 1fr" : "repeat(4, 1fr)",
+              gap: 0,
+              borderTop: `1px solid ${PALETTE.rule}`,
+              borderLeft: `1px solid ${PALETTE.rule}`,
+            }}
+          >
+            <Metric
+              label="Storage"
+              value={loading ? "—" : `${health.storageUsedGB}`}
+              suffix={loading ? "" : ` of ${health.storageQuotaGB} GB`}
+              progress={
+                loading ? null : health.storageUsedGB / health.storageQuotaGB
+              }
+              mob={mob}
+            />
+            <Metric
+              label="Photos delivered"
+              value={loading ? "—" : fmt(health.photosDelivered)}
+              suffix=""
+              mob={mob}
+            />
+            <Metric
+              label="Client views"
+              value={loading ? "—" : fmt(health.clientViews)}
+              suffix=""
+              mob={mob}
+            />
+            <Metric
+              label="Galleries live"
+              value={loading ? "—" : fmt(health.galleriesDelivered)}
+              suffix={loading ? "" : ` of ${events.length}`}
+              mob={mob}
+            />
+          </div>
+        </section>
+
+        {/* ── 3a. RECENT EVENTS — horizontal editorial reel ───────── */}
+        <section style={{ marginBottom: mob ? 48 : 80 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              marginBottom: 24,
+            }}
+          >
+            <SectionLabel noMargin>Recent work</SectionLabel>
+            <button
+              onClick={() => navigate("/dashboard/events")}
+              style={{
+                background: "transparent",
+                border: 0,
+                cursor: "pointer",
+                fontFamily: SANS,
+                fontSize: 11,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: PALETTE.gold,
+                padding: 0,
+                minHeight: 44,
+              }}
+            >
+              All events →
+            </button>
+          </div>
+
+          {loading ? (
+            <EventReelSkeleton mob={mob} />
+          ) : events.length === 0 ? (
+            <EmptyEvents
+              onCreate={() => setCreateEventOpen(true)}
+              mob={mob}
+            />
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                overflowX: "auto",
+                scrollSnapType: "x mandatory",
+                scrollPaddingLeft: mob ? 20 : 48,
+                margin: mob ? "0 -20px" : "0 -48px",
+                padding: mob ? "0 20px 8px" : "0 48px 8px",
+                WebkitOverflowScrolling: "touch",
+                scrollbarWidth: "none",
+              }}
+              className="mai-no-scrollbar"
+            >
+              {events.map((e, i) => (
+                <EventCard
+                  key={e.id}
+                  event={e}
+                  index={i}
+                  mob={mob}
+                  onClick={() => navigate(`/dashboard/events/${e.id}`)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── 3b. ACTIVITY FEED ───────────────────────────────────── */}
+        {activity.length > 0 && (
+          <section style={{ marginBottom: mob ? 48 : 80 }}>
+            <SectionLabel>What's been happening</SectionLabel>
+            <ul
+              style={{
+                listStyle: "none",
+                padding: 0,
+                margin: 0,
+                borderTop: `1px solid ${PALETTE.rule}`,
+              }}
+            >
+              {activity.map((a) => (
+                <li
+                  key={a.id}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: mob ? "1fr auto" : "120px 1fr auto",
+                    gap: 16,
+                    alignItems: "baseline",
+                    padding: "20px 0",
+                    borderBottom: `1px solid ${PALETTE.rule}`,
+                  }}
+                >
+                  {!mob && (
+                    <span
+                      style={{
+                        fontFamily: SANS,
+                        fontSize: 11,
+                        letterSpacing: "0.18em",
+                        textTransform: "uppercase",
+                        color: PALETTE.inkSoft,
+                      }}
+                    >
+                      {labelFor(a.kind)}
+                    </span>
+                  )}
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontFamily: SERIF,
+                        fontWeight: 400,
+                        fontSize: mob ? 18 : 22,
+                        lineHeight: 1.25,
+                        color: PALETTE.ink,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {a.text}
+                    </div>
+                    {a.meta && (
+                      <div
+                        style={{
+                          fontFamily: SANS,
+                          fontSize: 12,
+                          color: PALETTE.inkSoft,
+                          marginTop: 4,
+                        }}
+                      >
+                        {mob ? `${labelFor(a.kind)} · ${a.meta}` : a.meta}
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: SANS,
+                      fontSize: 11,
+                      letterSpacing: "0.12em",
+                      color: PALETTE.inkSoft,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {timeAgo(a.ts)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* ── 4. ONE PRIMARY ACTION ───────────────────────────────── */}
+        {!mob && (
+          <section
+            style={{
+              marginTop: 96,
+              borderTop: `1px solid ${PALETTE.rule}`,
+              paddingTop: 48,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 32,
+            }}
+          >
+            <div style={{ maxWidth: 480 }}>
+              <p
+                style={{
+                  fontFamily: SERIF,
+                  fontStyle: "italic",
+                  fontWeight: 300,
+                  fontSize: 32,
+                  lineHeight: 1.25,
+                  color: PALETTE.ink,
+                  margin: 0,
+                }}
+              >
+                Begin the next story.
+              </p>
+              <p
+                style={{
+                  fontFamily: SANS,
+                  fontSize: 13,
+                  color: PALETTE.inkSoft,
+                  marginTop: 12,
+                  lineHeight: 1.6,
+                }}
+              >
+                A new event opens a new chapter in your studio's archive.
+              </p>
+            </div>
+            <PrimaryAction
+              onClick={() => setCreateEventOpen(true)}
+              label="Create event"
+            />
+          </section>
+        )}
+      </main>
+
+      {/* ── Mobile sticky primary action ─────────────────────────── */}
+      {mob && (
+        <div
+          style={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 60,
+            background: PALETTE.bg,
+            borderTop: `1px solid ${PALETTE.rule}`,
+            padding: "12px 20px calc(12px + env(safe-area-inset-bottom, 0px))",
+            paddingBottom: "calc(72px + env(safe-area-inset-bottom, 0px))",
+          }}
+        >
+          <PrimaryAction
+            onClick={() => setCreateEventOpen(true)}
+            label="Create event"
+            full
+          />
+        </div>
+      )}
 
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
       {mob && <MobileBottomNav />}
+
       <Suspense fallback={null}>
-        {createPostOpen && (
-          <CreateFeedPostModal open={createPostOpen} onOpenChange={setCreatePostOpen} onCreated={() => loadData()} />
-        )}
         {createEventOpen && (
           <CreateEventModal
             open={createEventOpen}
@@ -296,83 +680,442 @@ export default function LandingGate() {
             onCreated={(id) => navigate(`/dashboard/events/${id}`)}
           />
         )}
-        {editPost && editOpen && (
-          <EditFeedPostModal open={editOpen} onOpenChange={setEditOpen} post={editPost} onSaved={() => loadData()} />
-        )}
       </Suspense>
+
+      {/* Local keyframes (no Tailwind config dependency) */}
+      <style>{`
+        @keyframes mai-load {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(0%); }
+          100% { transform: translateX(100%); }
+        }
+        .mai-no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes mai-fade-up {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
 
-/* ─── Stat cell ───────────────────────────────────────────────── */
-function StatCell({ label, value, hint }: { label: string; value: string; hint?: string }) {
+/* ──────────────────────────────────────────────────────────────────────────
+   Subcomponents — kept inline, raw, no shadcn
+   ────────────────────────────────────────────────────────────────────────── */
+
+function SectionLabel({
+  children,
+  noMargin,
+}: {
+  children: React.ReactNode;
+  noMargin?: boolean;
+}) {
   return (
-    <div>
-      <p className="text-[9px] md:text-[10px] font-medium tracking-[0.08em] uppercase text-[var(--ink-muted)] mb-3">
+    <p
+      style={{
+        fontFamily: SANS,
+        fontSize: 10,
+        fontWeight: 500,
+        letterSpacing: "0.24em",
+        textTransform: "uppercase",
+        color: PALETTE.inkSoft,
+        margin: 0,
+        marginBottom: noMargin ? 0 : 24,
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  suffix,
+  progress,
+  mob,
+}: {
+  label: string;
+  value: string;
+  suffix?: string;
+  progress?: number | null;
+  mob: boolean;
+}) {
+  return (
+    <div
+      style={{
+        padding: mob ? "20px 16px" : "32px 24px",
+        borderRight: `1px solid ${PALETTE.rule}`,
+        borderBottom: `1px solid ${PALETTE.rule}`,
+        background: PALETTE.bg,
+        minHeight: mob ? 96 : 140,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }}
+    >
+      <p
+        style={{
+          fontFamily: SANS,
+          fontSize: 10,
+          fontWeight: 500,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: PALETTE.inkSoft,
+          margin: 0,
+        }}
+      >
         {label}
       </p>
-      <p className="text-[22px] md:text-[26px] font-medium text-[var(--ink)] tracking-[-0.02em] num leading-none">
-        {value}
-      </p>
-      {hint && (
-        <p className="text-[11px] text-[var(--ink-whisper)] mt-2">
-          {hint}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ─── Blog reader overlay ─────────────────────────────────────── */
-function BlogReader({ post, onClose }: { post: FeedPost; onClose: () => void }) {
-  const dateStr = new Date(post.date).toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric", year: "numeric",
-  });
-  const paragraphs = (post.content || "").split("\n").filter(Boolean);
-
-  return (
-    <div className="fixed inset-0 z-[200] bg-[var(--paper)] overflow-y-auto">
-      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur px-4 py-3 flex items-center border-b border-[var(--rule)]">
-        <button
-          onClick={onClose}
-          className="flex items-center gap-1.5 text-[12px] font-medium tracking-[0.06em] uppercase text-[var(--ink-muted)] bg-transparent border-0 cursor-pointer hover:text-[var(--ink)]"
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            gap: 4,
+            marginTop: 12,
+          }}
         >
-          <ChevronLeft size={14} strokeWidth={1.5} /> Back
-        </button>
-      </div>
-
-      {post.imageUrl && (
-        <img
-          src={post.imageUrl}
-          alt={post.title}
-          className="w-full h-auto max-h-[60vh] object-cover block" loading="lazy" decoding="async" />
-      )}
-
-      <div className="max-w-[720px] mx-auto px-5 pt-8 pb-24">
-        <p className="text-[11px] tracking-[0.15em] uppercase text-[var(--ink-muted)] mb-3">
-          {dateStr}{post.location ? ` · ${post.location}` : ""}
-        </p>
-        <h1 className="font-serif font-light text-[32px] md:text-[44px] leading-[1.1] tracking-[-0.02em] text-[var(--ink)] mb-5">
-          {post.title}
-        </h1>
-        {post.caption && (
-          <p className="font-serif italic font-light text-[18px] md:text-[20px] text-[var(--ink-muted)] leading-[1.5] mb-7">
-            {post.caption}
-          </p>
-        )}
-        {paragraphs.map((para, i) => (
-          <p key={i} className="text-[15px] text-[var(--ink)] leading-[1.85] mb-5">
-            {para}
-          </p>
-        ))}
-        {post.galleryImages.length > 0 && (
-          <div className="mt-8 space-y-1.5">
-            {post.galleryImages.map((url, i) => (
-              <img key={i} src={url} alt="" loading="lazy" className="w-full block" />
-            ))}
+          <span
+            style={{
+              fontFamily: SERIF,
+              fontWeight: 300,
+              fontSize: mob ? 32 : 44,
+              lineHeight: 1,
+              letterSpacing: "-0.02em",
+              color: PALETTE.ink,
+            }}
+          >
+            {value}
+          </span>
+          {suffix && (
+            <span
+              style={{
+                fontFamily: SANS,
+                fontSize: 11,
+                color: PALETTE.inkSoft,
+                letterSpacing: "0.04em",
+              }}
+            >
+              {suffix}
+            </span>
+          )}
+        </div>
+        {typeof progress === "number" && (
+          <div
+            style={{
+              marginTop: 12,
+              height: 1,
+              background: PALETTE.rule,
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: `${Math.min(100, Math.max(0, progress * 100))}%`,
+                background: PALETTE.gold,
+                height: 1,
+              }}
+            />
           </div>
         )}
       </div>
     </div>
   );
+}
+
+function EventCard({
+  event,
+  index,
+  mob,
+  onClick,
+}: {
+  event: EventRow;
+  index: number;
+  mob: boolean;
+  onClick: () => void;
+}) {
+  const w = mob ? 260 : 340;
+  const cover =
+    event.cover_url ||
+    `https://source.unsplash.com/featured/${w}x${Math.round(
+      w * 1.25
+    )}/?indianwedding,photography&sig=${event.id.slice(0, 6)}`;
+  const dateStr = event.event_date
+    ? new Date(event.event_date)
+        .toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+        .toUpperCase()
+    : "DATE TBC";
+
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        flex: "0 0 auto",
+        width: w,
+        scrollSnapAlign: "start",
+        background: "transparent",
+        border: 0,
+        padding: 0,
+        margin: 0,
+        cursor: "pointer",
+        textAlign: "left",
+        animation: `mai-fade-up 0.5s ${index * 60}ms ease both`,
+        minHeight: 44,
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          aspectRatio: "4 / 5",
+          background: "#EDE9E2",
+          overflow: "hidden",
+          borderRadius: 0,
+          position: "relative",
+        }}
+      >
+        <img
+          src={cover}
+          alt={event.name}
+          loading={index < 2 ? "eager" : "lazy"}
+          decoding="async"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            transition: "transform 600ms cubic-bezier(.2,.7,.2,1)",
+          }}
+        />
+        {event.is_published && (
+          <span
+            style={{
+              position: "absolute",
+              top: 12,
+              left: 12,
+              fontFamily: SANS,
+              fontSize: 9,
+              fontWeight: 600,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color: PALETTE.paper,
+              background: "rgba(26,25,23,0.72)",
+              padding: "4px 8px",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            Live
+          </span>
+        )}
+      </div>
+
+      <div style={{ paddingTop: 16 }}>
+        <div
+          style={{
+            fontFamily: SANS,
+            fontSize: 10,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: PALETTE.inkSoft,
+            marginBottom: 6,
+          }}
+        >
+          {dateStr}
+          {event.location ? ` · ${event.location}` : ""}
+        </div>
+        <div
+          style={{
+            fontFamily: SERIF,
+            fontSize: mob ? 20 : 24,
+            fontWeight: 400,
+            color: PALETTE.ink,
+            lineHeight: 1.2,
+            letterSpacing: "-0.01em",
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+          }}
+        >
+          {event.name}
+        </div>
+        <div
+          style={{
+            fontFamily: SANS,
+            fontSize: 11,
+            color: PALETTE.inkSoft,
+            marginTop: 8,
+            letterSpacing: "0.04em",
+          }}
+        >
+          {(event.photo_count || 0).toLocaleString("en-IN")} photographs
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function EventReelSkeleton({ mob }: { mob: boolean }) {
+  const w = mob ? 260 : 340;
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 16,
+        overflowX: "hidden",
+      }}
+    >
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} style={{ flex: "0 0 auto", width: w }}>
+          <div
+            style={{
+              width: "100%",
+              aspectRatio: "4 / 5",
+              background: "#EFECE6",
+            }}
+          />
+          <div
+            style={{
+              height: 10,
+              width: "40%",
+              marginTop: 16,
+              background: "#EFECE6",
+            }}
+          />
+          <div
+            style={{
+              height: 18,
+              width: "80%",
+              marginTop: 12,
+              background: "#EFECE6",
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyEvents({
+  onCreate,
+  mob,
+}: {
+  onCreate: () => void;
+  mob: boolean;
+}) {
+  return (
+    <div
+      style={{
+        border: `1px solid ${PALETTE.rule}`,
+        padding: mob ? "48px 24px" : "80px 48px",
+        textAlign: "center",
+      }}
+    >
+      <p
+        style={{
+          fontFamily: SERIF,
+          fontStyle: "italic",
+          fontWeight: 300,
+          fontSize: mob ? 24 : 32,
+          color: PALETTE.ink,
+          margin: 0,
+          lineHeight: 1.3,
+        }}
+      >
+        The first chapter awaits.
+      </p>
+      <p
+        style={{
+          fontFamily: SANS,
+          fontSize: 13,
+          color: PALETTE.inkSoft,
+          marginTop: 12,
+          marginBottom: 24,
+        }}
+      >
+        Create an event to begin your studio's archive.
+      </p>
+      <PrimaryAction onClick={onCreate} label="Create event" />
+    </div>
+  );
+}
+
+function PrimaryAction({
+  onClick,
+  label,
+  full,
+}: {
+  onClick: () => void;
+  label: string;
+  full?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 48,
+        padding: "0 32px",
+        width: full ? "100%" : "auto",
+        background: PALETTE.ink,
+        color: PALETTE.paper,
+        border: 0,
+        borderRadius: 0,
+        fontFamily: SANS,
+        fontSize: 12,
+        fontWeight: 500,
+        letterSpacing: "0.22em",
+        textTransform: "uppercase",
+        cursor: "pointer",
+        transition: "background 160ms ease",
+        position: "relative",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background =
+          PALETTE.gold;
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = PALETTE.ink;
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+/* ── helpers ─────────────────────────────────────────────────────────────── */
+
+function labelFor(k: ActivityRow["kind"]) {
+  switch (k) {
+    case "view":
+      return "Viewed";
+    case "favorite":
+      return "Favorited";
+    case "download":
+      return "Downloaded";
+    default:
+      return "Event";
+  }
+}
+
+function timeAgo(ts: number) {
+  const diff = Math.max(0, Date.now() - ts);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+  return new Date(ts)
+    .toLocaleDateString("en-IN", { day: "2-digit", month: "short" })
+    .toUpperCase();
 }
