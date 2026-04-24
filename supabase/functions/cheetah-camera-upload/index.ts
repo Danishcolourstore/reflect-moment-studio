@@ -110,6 +110,21 @@ Deno.serve(async (req) => {
       .eq("id", session.id)
       .then(() => {});
 
+    // Fire-and-forget AI scoring (does not block upload response)
+    try {
+      const scoreUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/cheetah-score-photo`;
+      fetch(scoreUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({ photo_id: photo.id }),
+      }).catch((e) => console.warn("score-photo dispatch failed:", e));
+    } catch (e) {
+      console.warn("score-photo dispatch error:", e);
+    }
+
     return json({
       success: true,
       photo_id: photo.id,
