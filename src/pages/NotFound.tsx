@@ -11,10 +11,10 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--paper)]">
+    <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center px-6 max-w-md">
         <h1
-          className="mb-3 text-[var(--ink)]"
+          className="mb-3 text-foreground"
           style={{
             fontFamily: "'Cormorant Garamond', serif",
             fontSize: 34,
@@ -23,10 +23,10 @@ const NotFound = () => {
             letterSpacing: "-0.01em",
           }}
         >
-          Page not found.
+          This page has moved.
         </h1>
         <p
-          className="mb-8 text-[var(--ink-muted)]"
+          className="mb-8 text-muted-foreground"
           style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 13,
@@ -34,10 +34,10 @@ const NotFound = () => {
             lineHeight: 1.55,
           }}
         >
-          The link may have moved or expired.
+          Return to your studio and continue from the latest route.
         </p>
-        <Button variant="ghost" onClick={() => navigate("/dashboard/events")}>
-          Back to events
+        <Button variant="ghost" onClick={() => navigate("/home")}>
+          Back to studio
         </Button>
       </div>
     </div>

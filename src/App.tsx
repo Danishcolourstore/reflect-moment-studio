@@ -668,6 +668,7 @@ const AppRoutes = () => {
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
             <Route path="/events/:id" element={<LegacyEventRedirect />} />
+            <Route path="/more" element={<Navigate to="/dashboard/more" replace />} />
             <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
             <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
             <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />

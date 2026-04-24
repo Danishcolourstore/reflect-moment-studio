@@ -4,6 +4,12 @@ import { useAuth } from "@/lib/auth";
 import { X } from "lucide-react";
 
 const CUBIC = "cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+const PANEL = "hsl(var(--background))";
+const SURFACE = "hsl(var(--card))";
+const INK = "hsl(var(--foreground))";
+const MUTED = "hsl(var(--muted-foreground))";
+const WHISPER = "var(--ink-whisper)";
+const RULE = "hsl(var(--border))";
 
 const NAV_ITEMS = [
   { label: "Home", path: "/home" },
@@ -11,6 +17,7 @@ const NAV_ITEMS = [
   { divider: true },
   { label: "Website", path: "/dashboard/website-builder" },
   { label: "Storybook", path: "/dashboard/storybook" },
+  { label: "Album", path: "/dashboard/album-designer" },
   { label: "More", path: "/dashboard/more" },
 ] as const;
 
@@ -32,7 +39,7 @@ export function HamburgerButton({ onClick }: { onClick: () => void }) {
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 11,
         fontWeight: 500,
-        color: "#1A1A1A",
+        color: INK,
         letterSpacing: "0.2em",
       }}
       aria-label="Menu"
@@ -92,7 +99,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
     navigate("/login");
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => path === "/home" ? location.pathname === path : location.pathname.startsWith(path);
 
   if (!mounted) return null;
 
@@ -105,7 +112,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
           position: "fixed",
           inset: 0,
           zIndex: 190,
-          background: "rgba(255, 255, 255, 0.4)",
+          background: "color-mix(in hsl, hsl(var(--card)) 40%, transparent)",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
           opacity: animating ? 1 : 0,
@@ -123,8 +130,8 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
           height: "100dvh",
           width: "80vw",
           maxWidth: 360,
-          background: "#FDFCFB",
-          borderRight: "1px solid #F0EDE8",
+          background: PANEL,
+          borderRight: `1px solid ${RULE}`,
           boxShadow: "none",
           display: "flex",
           flexDirection: "column",
@@ -139,7 +146,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
             alignItems: "center",
             justifyContent: "space-between",
             padding: "18px 22px",
-            borderBottom: "1px solid #F0EDE8",
+            borderBottom: `1px solid ${RULE}`,
           }}
         >
           <span
@@ -147,7 +154,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: 12,
               letterSpacing: "0.18em",
-              color: "#AAAAAA",
+              color: WHISPER,
               fontWeight: 400,
             }}
           >
@@ -160,7 +167,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               border: "none",
               cursor: "pointer",
               fontSize: 16,
-              color: "#AAAAAA",
+              color: WHISPER,
               lineHeight: 1,
               padding: 0,
             }}
@@ -186,7 +193,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                   key={`div-${i}`}
                   style={{
                     height: 1,
-                    background: "#F0EDE8",
+                    background: RULE,
                     marginTop: 14,
                     marginBottom: 14,
                   }}
@@ -212,18 +219,18 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                   lineHeight: 1.55,
                   fontWeight: 400,
                   fontStyle: "normal",
-                  color: active ? "#1A1A1A" : "#1C1C1E",
+                  color: active ? INK : MUTED,
                   padding: 0,
                   transition: `color 180ms ease`,
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
-                    e.currentTarget.style.color = "#1A1A1A";
+                    e.currentTarget.style.color = INK;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!active) {
-                    e.currentTarget.style.color = "#1C1C1E";
+                    e.currentTarget.style.color = MUTED;
                   }
                 }}
               >
@@ -236,7 +243,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
         {/* Bottom section */}
         <div
           style={{
-            borderTop: "1px solid #F0EDE8",
+            borderTop: `1px solid ${RULE}`,
             paddingTop: 20,
             paddingBottom: 32,
             paddingLeft: 28,
@@ -253,14 +260,14 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
               letterSpacing: "0.14em",
-              color: "#1A1A1A",
+              color: INK,
               textTransform: "uppercase",
               fontWeight: 400,
               padding: 0,
               marginBottom: 8,
             }}
           >
-            Colour Store
+            Website Editor
           </button>
           <button
             onClick={handleSignOut}
@@ -271,7 +278,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
-              color: "#C0C0C0",
+              color: WHISPER,
               fontWeight: 400,
               padding: 0,
             }}
