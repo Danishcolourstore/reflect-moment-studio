@@ -5,7 +5,6 @@ import { X } from "lucide-react";
 
 const CUBIC = "cubic-bezier(0.25, 0.46, 0.45, 0.94)";
 const PANEL = "hsl(var(--background))";
-const SURFACE = "hsl(var(--card))";
 const INK = "hsl(var(--foreground))";
 const MUTED = "hsl(var(--muted-foreground))";
 const WHISPER = "var(--ink-whisper)";
@@ -13,14 +12,15 @@ const RULE = "hsl(var(--border))";
 
 const NAV_ITEMS = [
   { label: "Home", path: "/home" },
-  { label: "Events", path: "/dashboard/events" },
   { divider: true },
   { label: "Grid", path: "/builder-test" },
   { label: "Album", path: "/dashboard/album-designer" },
   { label: "Storybook", path: "/dashboard/storybook" },
   { label: "Website", path: "/dashboard/website-builder" },
-  { divider: true },
-  { label: "More", path: "/dashboard/more" },
+  { label: "Business Suite", path: "/dashboard/business" },
+  { label: "Analytics", path: "/dashboard/analytics" },
+  { label: "Clients", path: "/dashboard/clients" },
+  { label: "Brand Studio", path: "/dashboard/branding" },
 ] as const;
 
 export function useDrawerMenu() {
@@ -58,7 +58,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
   const [mounted, setMounted] = useState(false);
   const [animating, setAnimating] = useState(false);
 
-  // Mount/unmount with animation
   useEffect(() => {
     if (open) {
       setMounted(true);
@@ -70,7 +69,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
     }
   }, [open]);
 
-  // Escape key
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -80,14 +78,15 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
-  // Lock body scroll
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
   const handleNav = (path: string) => {
@@ -101,13 +100,13 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
     navigate("/login");
   };
 
-  const isActive = (path: string) => path === "/home" ? location.pathname === path : location.pathname.startsWith(path);
+  const isActive = (path: string) =>
+    path === "/home" ? location.pathname === path : location.pathname.startsWith(path);
 
   if (!mounted) return null;
 
   return (
     <>
-      {/* Backdrop — white 40% opacity with blur */}
       <div
         onClick={onClose}
         style={{
@@ -122,7 +121,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
         }}
       />
 
-      {/* Panel — slides from left */}
       <aside
         style={{
           position: "fixed",
@@ -141,7 +139,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
           transition: `transform 280ms ${CUBIC}`,
         }}
       >
-        {/* Header */}
         <div
           style={{
             display: "flex",
@@ -179,13 +176,13 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
           </button>
         </div>
 
-        {/* Navigation */}
         <nav
           style={{
             flex: 1,
             paddingLeft: 28,
             paddingRight: 28,
             paddingTop: 24,
+            overflowY: "auto",
           }}
         >
           {NAV_ITEMS.map((item, i) => {
@@ -226,14 +223,10 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                   transition: `color 180ms ease`,
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.color = INK;
-                  }
+                  if (!active) e.currentTarget.style.color = INK;
                 }}
                 onMouseLeave={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.color = MUTED;
-                  }
+                  if (!active) e.currentTarget.style.color = MUTED;
                 }}
               >
                 {item.label}
@@ -242,7 +235,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
           })}
         </nav>
 
-        {/* Bottom section */}
         <div
           style={{
             borderTop: `1px solid ${RULE}`,
@@ -253,7 +245,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
           }}
         >
           <button
-            onClick={() => handleNav("/dashboard/website-editor")}
+            onClick={() => handleNav("/dashboard/profile")}
             style={{
               display: "block",
               background: "none",
@@ -269,7 +261,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               marginBottom: 8,
             }}
           >
-            Website Editor
+            Settings
           </button>
           <button
             onClick={handleSignOut}
