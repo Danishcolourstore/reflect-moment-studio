@@ -62,6 +62,7 @@ const WebsiteBuilder = lazy(() => import("./pages/WebsiteBuilder"));
 const WebsiteSectionEditor = lazy(() => import("./pages/WebsiteSectionEditor"));
 const Reflections = lazy(() => import("./pages/Reflections"));
 const EntiranBusiness = lazy(() => import("./pages/EntiranBusiness"));
+const DaanChat = lazy(() => import("./pages/DaanChat"));
 const PublicGalleryView = lazy(() => import("./pages/public/PublicGalleryView"));
 const ClientGalleryExperience = lazy(() => import("./pages/public/ClientGalleryExperience"));
 const VerifyAccess = lazy(() => import("./pages/VerifyAccess"));
@@ -602,6 +603,14 @@ const AppRoutes = () => {
               element={
                 <ProtectedRoute>
                   <EntiranBusiness />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/daan"
+              element={
+                <ProtectedRoute>
+                  <DaanChat />
                 </ProtectedRoute>
               }
             />
