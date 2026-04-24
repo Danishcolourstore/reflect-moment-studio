@@ -56,6 +56,11 @@ function DaanInner({ children }: { children?: ReactNode }) {
     <EntiranOpenContext.Provider value={{ openBot: handleOpen }}>
       {children}
 
+      {/* Persistent concierge button — always visible, one obvious home for Daan */}
+      {!open && !showSignature && (
+        <EntiranButton onClick={handleOpen} unreadCount={unreadCount} />
+      )}
+
       {/* Signature first-open experience */}
       {showSignature && !open && (
         <div
