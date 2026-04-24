@@ -224,6 +224,23 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     return () => window.removeEventListener("keydown", handler);
   }, [undo, redo, selectedTextId, selectedElementId, logoSelected, logo]);
 
+  // Measure bottom bar + tool panel so canvas can reserve space and never be hidden
+  useEffect(() => {
+    const measure = () => {
+      if (bottomBarRef.current) setBottomBarH(bottomBarRef.current.offsetHeight);
+      setToolPanelH(toolPanelRef.current?.offsetHeight ?? 0);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (bottomBarRef.current) ro.observe(bottomBarRef.current);
+    if (toolPanelRef.current) ro.observe(toolPanelRef.current);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [activeTool]);
+
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
 
   const updateCell = useCallback((index: number, patch: Partial<GridCellData>) => {
