@@ -12,6 +12,7 @@ export type FileStatus =
   | "success"
   | "failed"
   | "duplicate";
+
 export type ErrorType = "size" | "cors" | "network" | "timeout" | "storage" | "duplicate" | "unknown";
 
 export interface FileUploadInfo {
@@ -77,10 +78,13 @@ type UploadResult = "success" | "failed" | "duplicate";
 
 function classifyError(err: any): { message: string; type: ErrorType } {
   const msg = String(err?.message || err || "").toLowerCase();
+
   if (msg.includes("cors") || msg.includes("access-control"))
     return { message: "Server configuration issue — contact support", type: "cors" };
+
   if (msg.includes("timeout") || msg.includes("aborted") || msg.includes("timed out"))
     return { message: "Upload timed out — check connection and retry", type: "timeout" };
+
   if (
     msg.includes("network") ||
     msg.includes("failed to fetch") ||
@@ -88,21 +92,30 @@ function classifyError(err: any): { message: string; type: ErrorType } {
     msg.includes("load failed")
   )
     return { message: "Network issue — try a different connection", type: "network" };
+
   if (msg.includes("payload too large") || msg.includes("entity too large") || msg.includes("too large"))
-    return { message: `Photo too large — max ${MAX_FILE_SIZE / (1024 * 1024)}MB`, type: "size" };
+    return {
+      message: `Photo too large — max ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
+      type: "size",
+    };
+
   if (msg.includes("storage") || msg.includes("bucket") || msg.includes("policy"))
     return { message: "Storage error — please try again", type: "storage" };
+
   return { message: err?.message || "Upload failed — please retry", type: "unknown" };
 }
 
 async function fileHash(file: File): Promise<string> {
   const size = file.size;
   const chunkSize = 65536;
+
   const first = file.slice(0, Math.min(chunkSize, size));
   const last = size > chunkSize ? file.slice(size - chunkSize) : new Blob();
+
   const buf = await new Blob([first, last]).arrayBuffer();
   const hashBuf = await crypto.subtle.digest("SHA-256", buf);
   const hashArr = Array.from(new Uint8Array(hashBuf));
+
   return `${size}-${hashArr
     .slice(0, 8)
     .map((b) => b.toString(16).padStart(2, "0"))
@@ -168,7 +181,11 @@ export function usePhotoUpload(
       try {
         const hash = await fileHash(file);
         if (existingHashes.has(hash)) {
-          updateFileInfo(id, { status: "duplicate", error: "Duplicate photo skipped", errorType: "duplicate" });
+          updateFileInfo(id, {
+            status: "duplicate",
+            error: "Duplicate photo skipped",
+            errorType: "duplicate",
+          });
           return "duplicate";
         }
         existingHashes.add(hash);
@@ -181,8 +198,15 @@ export function usePhotoUpload(
           originalSize: file.size,
           originalFile: file,
         });
+
         const galleryFile = optimizedUpload ? await compressForGallery(file) : file;
-        updateFileInfo(id, { galleryFile, compressedSize: galleryFile.size, status: "uploading", progress: 10 });
+
+        updateFileInfo(id, {
+          galleryFile,
+          compressedSize: galleryFile.size,
+          status: "uploading",
+          progress: 10,
+        });
 
         if (abortRef.current) return "failed";
 
@@ -205,7 +229,7 @@ export function usePhotoUpload(
           event_id: eventId,
           user_id: userId,
           url: publicUrl,
-          storage_path: path, // ✅ FIX ADDED HERE
+          storage_path: path,
           file_name: file.name,
           file_size: galleryFile.size,
         } as any);
@@ -216,7 +240,12 @@ export function usePhotoUpload(
         return "success";
       } catch (err: any) {
         const classified = classifyError(err);
-        updateFileInfo(id, { status: "failed", error: classified.message, errorType: classified.type, progress: 0 });
+        updateFileInfo(id, {
+          status: "failed",
+          error: classified.message,
+          errorType: classified.type,
+          progress: 0,
+        });
         return "failed";
       }
     },
@@ -239,7 +268,6 @@ export function usePhotoUpload(
       }));
 
       const startTime = Date.now();
-
       setState({
         isUploading: true,
         totalFiles: files.length,
@@ -259,20 +287,16 @@ export function usePhotoUpload(
       let duplicates = 0;
       const failed: File[] = [];
       let completed = 0;
-
       const limit = pLimit(getAdaptiveConcurrency());
 
       const tasks = infos.map((info) =>
         limit(async () => {
           if (abortRef.current) return;
-
           const result = await uploadSingleFile(info, existingHashes);
-
           completed += 1;
           if (result === "success") success += 1;
           if (result === "duplicate") duplicates += 1;
           if (result === "failed") failed.push(info.file);
-
           markProgress(completed, success, duplicates, failed, infos.length, startTime);
         }),
       );
@@ -293,12 +317,10 @@ export function usePhotoUpload(
   const retrySingle = useCallback(
     async (fileId: string) => {
       if (!eventId || !userId) return;
-
       const info = state.fileInfos.find((f) => f.id === fileId);
       if (!info) return;
 
       const startTime = Date.now();
-
       setState((prev) => ({ ...prev, isUploading: true, isDone: false }));
 
       const result = await uploadSingleFile(
@@ -308,12 +330,9 @@ export function usePhotoUpload(
 
       setState((prev) => {
         const failedFiles = result === "success" ? prev.failedFiles.filter((f) => f !== info.file) : prev.failedFiles;
-
         const completedFiles =
           result === "success" ? Math.min(prev.completedFiles + 1, prev.totalFiles) : prev.completedFiles;
-
         const successCount = result === "success" ? prev.successCount + 1 : prev.successCount;
-
         const allDone = prev.fileInfos.every((f) =>
           f.id === fileId ? result === "success" : ["success", "failed", "duplicate"].includes(f.status),
         );
