@@ -128,6 +128,7 @@ function PinGate({ event, studioProfile, onUnlock }: {
       if (error) throw error;
       if (data?.valid) {
         localStorage.setItem(`mirrorai_pin_verified_${event.id}`, 'true');
+        if (data?.token) localStorage.setItem(`gallery_token:${event.id}`, data.token);
         onUnlock();
       } else {
         setError(true);
