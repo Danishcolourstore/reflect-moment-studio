@@ -8,6 +8,7 @@ import { AuthProvider, useAuth, TEST_MODE_BYPASS_AUTH } from "@/lib/auth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StorybookGate } from "@/components/StorybookGate";
 import { GalleryShell } from "./components/GalleryShell";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 import { useEffect, useState, lazy, Suspense, createContext, useContext } from "react";
 import { ViewModeProvider } from "@/lib/ViewModeContext";
 import { PageTransition } from "@/components/PageTransition";
@@ -705,6 +706,7 @@ const App = () => (
                 <ErrorBoundary>
                   <AppRoutes />
                 </ErrorBoundary>
+                <PWAInstallBanner />
               </ViewModeProvider>
               {/* BetaFeedbackButton hidden in production */}
             </AuthProvider>
