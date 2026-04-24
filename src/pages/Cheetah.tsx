@@ -614,7 +614,13 @@ export default function CheetahLivePage() {
                 </div>
 
                 {activeSession.is_live && (
-                  <SetupCard session={activeSession} uploadEndpoint={uploadEndpoint} />
+                  <>
+                    <CheetahQRCard
+                      liveUrl={`${window.location.origin}/live/${activeSession.session_code}`}
+                      sessionCode={activeSession.session_code}
+                    />
+                    <SetupCard session={activeSession} uploadEndpoint={uploadEndpoint} />
+                  </>
                 )}
 
                 <LiveMonitor session={activeSession} photos={photos} />
