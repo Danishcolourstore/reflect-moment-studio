@@ -1,25 +1,28 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen, Upload, ImageIcon, X } from "lucide-react";
 import { useEffect } from "react";
 import { SPREAD_SIZES, LEAF_PRESETS, type AlbumSize, type CoverType } from "./types";
+import { cn } from "@/lib/utils";
 
 interface NewAlbumWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (data: { name: string; size: AlbumSize; leafCount: number; coverType: CoverType }) => void;
+  onCreate: (data: { name: string; size: AlbumSize; leafCount: number; coverType: CoverType; files: File[] }) => void;
   loading?: boolean;
 }
 
-const STEPS = ["Album Name", "Spread Size", "Leaf Count", "Cover Type"];
+const STEPS = ["Album Name", "Photos", "Spread Size", "Leaf Count", "Cover Type"];
 
 export default function NewAlbumWizard({ open, onOpenChange, onCreate, loading }: NewAlbumWizardProps) {
+  const fileRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const [size, setSize] = useState<AlbumSize>("12x36");
   const [leafPreset, setLeafPreset] = useState("20");
   const [customLeaf, setCustomLeaf] = useState("");
@@ -27,7 +30,7 @@ export default function NewAlbumWizard({ open, onOpenChange, onCreate, loading }
 
   const reset = () => {
     setStep(0); setName(""); setSize("12x36");
-    setLeafPreset("20"); setCustomLeaf(""); setCoverType("hardcover");
+    setFiles([]); setLeafPreset("20"); setCustomLeaf(""); setCoverType("hardcover");
   };
 
   useEffect(() => { if (!open) reset(); }, [open]);
@@ -37,16 +40,21 @@ export default function NewAlbumWizard({ open, onOpenChange, onCreate, loading }
 
   const canNext = () => {
     if (step === 0) return name.trim().length > 0;
-    if (step === 2 && leafPreset === "custom") return parsedCustom >= 10 && parsedCustom <= 200;
+    if (step === 3 && leafPreset === "custom") return parsedCustom >= 10 && parsedCustom <= 200;
     return true;
   };
 
   const handleCreate = () => {
-    onCreate({ name: name.trim() || "New Album", size, leafCount, coverType });
+    onCreate({ name: name.trim() || "New Album", size, leafCount, coverType, files });
   };
 
   const handleKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && step < 3 && canNext()) setStep(step + 1);
+    if (e.key === "Enter" && step < 4 && canNext()) setStep(step + 1);
+  };
+
+  const addFiles = (list: FileList | null) => {
+    const next = Array.from(list || []).filter((file) => file.type.startsWith("image/"));
+    if (next.length) setFiles((current) => [...current, ...next]);
   };
 
   return (
@@ -55,7 +63,7 @@ export default function NewAlbumWizard({ open, onOpenChange, onCreate, loading }
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-serif">
             <BookOpen className="h-5 w-5 text-primary" />
-            New Album — Step {step + 1} of 4
+            New Album — Step {step + 1} of 5
           </DialogTitle>
         </DialogHeader>
 
@@ -76,6 +84,54 @@ export default function NewAlbumWizard({ open, onOpenChange, onCreate, loading }
 
           {step === 1 && (
             <div className="space-y-4">
+              <Label className="text-sm text-muted-foreground">Photos</Label>
+              <input
+                ref={fileRef}
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className={cn(
+                  "w-full min-h-32 rounded-xl border border-dashed border-border bg-muted/20 px-4 py-6 text-center transition-colors",
+                  "hover:border-primary/50 hover:bg-primary/5"
+                )}
+              >
+                <Upload className="mx-auto h-6 w-6 text-primary" />
+                <span className="mt-3 block text-sm font-medium text-foreground">Upload album photos</span>
+                <span className="mt-1 block text-xs text-muted-foreground">You can also skip and add photos later.</span>
+              </button>
+              {files.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <ImageIcon className="h-3.5 w-3.5 text-primary" />
+                    {files.length} selected
+                  </div>
+                  <div className="grid grid-cols-5 gap-1.5 max-h-28 overflow-y-auto">
+                    {files.slice(0, 25).map((file, index) => (
+                      <div key={`${file.name}-${file.size}-${index}`} className="relative aspect-square overflow-hidden rounded bg-muted">
+                        <img src={URL.createObjectURL(file)} alt="" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setFiles((current) => current.filter((_, i) => i !== index))}
+                          className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-background/80 text-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4">
               <Label className="text-sm text-muted-foreground">Spread Size (Height × Width)</Label>
               <RadioGroup value={size} onValueChange={v => setSize(v as AlbumSize)} className="grid grid-cols-2 gap-3">
                 {(Object.keys(SPREAD_SIZES) as AlbumSize[]).map(key => {
@@ -94,7 +150,7 @@ export default function NewAlbumWizard({ open, onOpenChange, onCreate, loading }
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-4">
               <Label className="text-sm text-muted-foreground">Leaf Count (1 leaf = 1 spread)</Label>
               <RadioGroup value={leafPreset} onValueChange={setLeafPreset} className="space-y-2">
@@ -119,7 +175,7 @@ export default function NewAlbumWizard({ open, onOpenChange, onCreate, loading }
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="space-y-4">
               <Label className="text-sm text-muted-foreground">Cover Type</Label>
               <RadioGroup value={coverType} onValueChange={v => setCoverType(v as CoverType)} className="space-y-2">
@@ -146,7 +202,7 @@ export default function NewAlbumWizard({ open, onOpenChange, onCreate, loading }
             <ChevronLeft className="h-4 w-4 mr-1" />
             {step === 0 ? "Cancel" : "Back"}
           </Button>
-          {step < 3 ? (
+          {step < 4 ? (
             <Button onClick={() => setStep(step + 1)} disabled={!canNext()}>
               Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
