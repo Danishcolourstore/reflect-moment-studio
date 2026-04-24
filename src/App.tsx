@@ -28,6 +28,7 @@ const Billing = lazy(() => import("./pages/Billing"));
 const Clients = lazy(() => import("./pages/Clients"));
 const Cheetah = lazy(() => import("./pages/Cheetah"));
 const CheetahLiveView = lazy(() => import("./pages/CheetahLiveView"));
+const Daan = lazy(() => import("./pages/Daan"));
 const Branding = lazy(() => import("./pages/Branding"));
 const MorePage = lazy(() => import("./pages/MorePage"));
 // BrandEditor, WebsiteEditor, TemplatePreview removed
