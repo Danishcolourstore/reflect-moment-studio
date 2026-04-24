@@ -7,6 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, ShieldAlert, LogOut, Phone, MessageCircle } from "lucide-react";
 
+type AccessCodeResult = { valid?: boolean; locked?: boolean; retry_after?: number };
+const verifyAccessCode = supabase.rpc as unknown as (
+  fn: "verify_access_code",
+  args: { code_input: string; subject_input: string },
+) => Promise<{ data: AccessCodeResult | null; error: unknown }>;
+
 const SESSION_KEY = "mirrorai_access_verified";
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_SECONDS = 60;
@@ -60,7 +66,7 @@ export default function VerifyAccess() {
     setError("");
 
     const subject = user?.id || "authenticated-user";
-    const { data, error: verifyError } = await (supabase.rpc as any)("verify_access_code", {
+    const { data, error: verifyError } = await verifyAccessCode("verify_access_code", {
       code_input: inputPin,
       subject_input: subject,
     });
