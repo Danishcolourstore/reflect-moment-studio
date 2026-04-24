@@ -4914,6 +4914,13 @@ export type Database = {
         Args: { p_bucket: string; p_url: string }
         Returns: string
       }
+      get_guest_selfie_status: {
+        Args: { _selfie_id: string }
+        Returns: {
+          match_results: Json
+          processing_status: string
+        }[]
+      }
       get_public_cheetah_session: {
         Args: { p_code: string }
         Returns: {
@@ -4931,6 +4938,42 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_public_event_by_slug: {
+        Args: { _slug: string }
+        Returns: {
+          allow_favorites_download: boolean
+          allow_full_download: boolean
+          cover_storage_path: string
+          cover_url: string
+          download_requires_password: boolean
+          download_resolution: string
+          downloads_enabled: boolean
+          event_date: string
+          event_type: string
+          face_recognition_enabled: boolean
+          feed_visible: boolean
+          gallery_layout: string
+          gallery_style: string
+          guest_face_enabled: boolean
+          has_password: boolean
+          has_pin: boolean
+          hero_button_label: string
+          hero_couple_name: string
+          hero_subtitle: string
+          id: string
+          is_published: boolean
+          location: string
+          name: string
+          qr_enabled: boolean
+          qr_token: string
+          selection_mode_enabled: boolean
+          selection_token: string
+          slug: string
+          user_id: string
+          watermark_enabled: boolean
+        }[]
+      }
+      get_public_platform_setting: { Args: { _key: string }; Returns: string }
       get_public_profile_watermark: {
         Args: { p_user_id: string }
         Returns: {
@@ -4942,6 +4985,22 @@ export type Database = {
           watermark_opacity: number
           watermark_position: string
           watermark_text: string
+        }[]
+      }
+      get_public_studio_profile: {
+        Args: { _user_id: string }
+        Returns: {
+          bio: string
+          body_font: string
+          cover_url: string
+          display_name: string
+          font_style: string
+          footer_text: string
+          heading_font: string
+          instagram: string
+          user_id: string
+          username: string
+          website: string
         }[]
       }
       has_role: {
