@@ -1,29 +1,49 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Phone, MessageCircle, ShieldCheck } from "lucide-react";
-import { ADMIN_OTP, USER_CODES } from "@/config/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 const VerifyOTP = () => {
   const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
+    setSubmitting(true);
 
-    if (code === ADMIN_OTP) {
-      localStorage.setItem("admin_otp", code);
+    const subject = (() => {
+      try {
+        return `${navigator.userAgent.slice(0, 120)}:${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+      } catch {
+        return "browser";
+      }
+    })();
+
+    const { data, error: verifyError } = await (supabase.rpc as any)("verify_access_code", {
+      code_input: code,
+      subject_input: subject,
+    });
+
+    setSubmitting(false);
+
+    if (verifyError) {
+      setError("Verification failed. Please try again.");
+      return;
+    }
+
+    if (data?.valid) {
       navigate("/verify-access");
       return;
     }
 
-    if (USER_CODES.includes(code)) {
-      localStorage.removeItem("admin_otp");
-      navigate("/verify-access");
+    if (data?.locked) {
+      setError(`Too many attempts. Try again in ${data.retry_after ?? 60} seconds.`);
       return;
     }
 
-    setError("This code isn’t valid. Please check or contact support.");
+    setError(`This code isn’t valid. ${data?.remaining ?? 0} attempts remaining.`);
   };
 
   return (
@@ -66,10 +86,10 @@ const VerifyOTP = () => {
           {/* CTA */}
           <button
             onClick={handleSubmit}
-            disabled={code.length < 6}
+            disabled={code.length < 6 || submitting}
             className="w-full h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40"
           >
-            Continue
+            {submitting ? "Verifying…" : "Continue"}
           </button>
 
           {/* Divider */}
