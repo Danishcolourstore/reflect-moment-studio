@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send, Plus, Image, Camera, FileText, Globe, MoreVertical, ArrowUp, Sparkles, MessageSquarePlus } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { useEntiranChat, type ChatMessage } from '@/hooks/use-entiran-chat';
-import { EntiranMessage, TypingIndicator } from './EntiranMessage';
-import { LanguageSelector, type BotLanguage, getBotLanguageLabel } from './LanguageSelector';
-import { LanguageChips } from './LanguageChips';
-import { supabase } from '@/integrations/supabase/client';
-import { useIsMobile } from '@/hooks/use-mobile';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+  type BotLanguage,
+  getBotLanguage,
+  setBotLanguage,
+} from './LanguageSelector';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DaanPanelProps {
   open: boolean;
@@ -17,36 +16,56 @@ interface DaanPanelProps {
   embedded?: boolean;
 }
 
-export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded = false }: DaanPanelProps) {
+const LANG_CHIPS: { code: BotLanguage; label: string }[] = [
+  { code: 'en', label: 'English' },
+  { code: 'hi', label: 'Hindi' },
+  { code: 'ta', label: 'Tamil' },
+  { code: 'te', label: 'Telugu' },
+  { code: 'kn', label: 'Kannada' },
+  { code: 'bn', label: 'Bengali' },
+];
+
+const STARTERS = [
+  'How do I set up MirrorLive for a wedding day?',
+  'Best settings for indoor reception photography',
+  'How does face recognition work for guests?',
+  'How many photos should I deliver for a full wedding?',
+  'Which website template suits a luxury portfolio?',
+  'Handling mixed lighting at a Sangeet?',
+];
+
+function formatTime(iso: string) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
+export function EntiranPanel({ open, onClose, embedded = false }: DaanPanelProps) {
   const {
     messages, loading, typing,
     initConversation, sendMessage,
-    submitBugReport,
-    clearConversation, startNewConversation,
   } = useEntiranChat();
   const [input, setInput] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
-  const [showLangSelector, setShowLangSelector] = useState(false);
-  const [showAttachMenu, setShowAttachMenu] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [activeLang, setActiveLang] = useState<BotLanguage>(() => getBotLanguage());
   const [mounted, setMounted] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useIsMobile();
 
+  // Slide-in mount transition
   useEffect(() => {
-    if (open) {
-      requestAnimationFrame(() => setMounted(true));
-    } else {
-      setMounted(false);
-    }
+    if (open) requestAnimationFrame(() => setMounted(true));
+    else setMounted(false);
   }, [open]);
 
   useEffect(() => {
     if (open) {
       initConversation();
-      setTimeout(() => inputRef.current?.focus(), 350);
+      setTimeout(() => inputRef.current?.focus(), 380);
     }
   }, [open, initConversation]);
 
@@ -56,6 +75,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
     }
   }, [messages, typing]);
 
+  // Body scroll lock on mobile
   useEffect(() => {
     if (!open || !isMobile) return;
     const original = document.body.style.overflow;
@@ -63,15 +83,16 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
     return () => { document.body.style.overflow = original; };
   }, [open, isMobile]);
 
+  // Visual viewport — keyboard tracking on mobile
   useEffect(() => {
     if (!open || !isMobile) return;
     const vv = window.visualViewport;
     if (!vv) return;
     const onResize = () => {
-      const kbHeight = window.innerHeight - vv.height;
-      setKeyboardHeight(Math.max(0, kbHeight));
+      const kb = window.innerHeight - vv.height;
+      setKeyboardHeight(Math.max(0, kb));
       setTimeout(() => {
-        scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+        scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
       }, 50);
     };
     vv.addEventListener('resize', onResize);
@@ -82,6 +103,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
     };
   }, [open, isMobile]);
 
+  // Esc to close
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose?.(); };
@@ -89,9 +111,10 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  const handleSend = useCallback(() => {
-    if (!input.trim()) return;
-    sendMessage(input.trim());
+  const handleSend = useCallback((override?: string) => {
+    const text = (override ?? input).trim();
+    if (!text) return;
+    sendMessage(text);
     setInput('');
     if (inputRef.current) inputRef.current.style.height = 'auto';
   }, [input, sendMessage]);
@@ -107,322 +130,272 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
     setInput(e.target.value);
     const el = e.target;
     el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    // 3 lines max — line-height ~1.5 × 14px = 21px → cap ~84px
+    el.style.height = Math.min(el.scrollHeight, 84) + 'px';
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const path = `bug-reports/${Date.now()}-${file.name}`;
-    const { data } = await supabase.storage.from('bug-screenshots').upload(path, file);
-    if (data) {
-      const { data: urlData } = supabase.storage.from('bug-screenshots').getPublicUrl(path);
-      await submitBugReport(urlData.publicUrl);
-    }
-    setShowAttachMenu(false);
+  const pickLang = (code: BotLanguage) => {
+    setBotLanguage(code);
+    setActiveLang(code);
   };
 
   if (!open) return null;
 
+  // Find first assistant index for "DAAN" eyebrow
+  let firstAssistantSeen = false;
+
   const chatUI = (
     <div
-      ref={containerRef}
-      className="flex flex-col h-full relative"
+      className="flex flex-col h-full relative overflow-hidden"
       style={{
-        background: '#080808',
+        background: '#111111',
         paddingBottom: isMobile ? keyboardHeight : 0,
         transition: 'padding-bottom 0.15s ease-out',
       }}
     >
-      {/* Subtle ambient glow at top */}
+      {/* Streaming gold bar — animates while typing, fades on completion */}
       <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
+        aria-hidden
+        className="absolute top-0 left-0 right-0 pointer-events-none"
         style={{
-          width: 300,
-          height: 200,
-          background: 'radial-gradient(ellipse, rgba(200,169,126,0.04) 0%, transparent 70%)',
-          filter: 'blur(40px)',
+          height: 1,
+          opacity: typing ? 1 : 0,
+          transition: 'opacity 400ms ease-out',
+          overflow: 'hidden',
         }}
-      />
+      >
+        <div
+          style={{
+            height: '100%',
+            width: '40%',
+            background: 'linear-gradient(90deg, transparent, #C8A97E, transparent)',
+            animation: 'daan-stream-bar 1.4s linear infinite',
+          }}
+        />
+      </div>
 
-      {showLangSelector && (
-        <LanguageSelector onSelect={() => setShowLangSelector(false)} onClose={() => setShowLangSelector(false)} />
-      )}
-
-      {!showLangSelector && (
-        <>
-          {/* ── Header ── */}
-          <header
-            className="flex items-center justify-between shrink-0 relative"
+      {/* Header */}
+      <header
+        className="flex items-center justify-between shrink-0"
+        style={{
+          height: 56,
+          paddingLeft: isMobile && embedded ? 60 : 20,
+          paddingRight: 8,
+          borderBottom: '1px solid rgba(200,169,126,0.08)',
+          paddingTop: isMobile && !embedded ? 'env(safe-area-inset-top, 0px)' : 0,
+          boxSizing: 'content-box',
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <span
             style={{
-              height: 56,
-              paddingLeft: isMobile && embedded ? 60 : 20,
-              paddingRight: 8,
-              borderBottom: '1px solid rgba(200,169,126,0.06)',
-              paddingTop: isMobile ? 'env(safe-area-inset-top, 0px)' : 0,
+              color: '#F4F1EA',
+              fontFamily: '"Cormorant Garamond", Georgia, serif',
+              fontSize: 22,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              lineHeight: 1,
             }}
           >
-            <div className="flex items-center gap-3">
-              {/* Elegant mirror icon */}
-              <div
-                className="flex items-center justify-center"
+            Daan
+          </span>
+          <span
+            aria-hidden
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: '#C8A97E',
+              opacity: 0.7,
+              animation: 'daan-status-pulse 2.4s ease-in-out infinite',
+            }}
+          />
+        </div>
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="flex items-center justify-center"
+            style={{
+              width: 44,
+              height: 44,
+              color: 'rgba(244,241,234,0.50)',
+              background: 'transparent',
+              border: 'none',
+            }}
+          >
+            <X style={{ width: 18, height: 18 }} />
+          </button>
+        )}
+      </header>
+
+      {/* Language chips */}
+      <div
+        className="shrink-0 flex gap-2 overflow-x-auto"
+        role="radiogroup"
+        aria-label="Conversation language"
+        style={{
+          padding: '12px 20px',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        <style>{`.daan-lang-row::-webkit-scrollbar{display:none;}`}</style>
+        <div className="daan-lang-row flex gap-2">
+          {LANG_CHIPS.map((l) => {
+            const isActive = l.code === activeLang;
+            return (
+              <button
+                key={l.code}
+                role="radio"
+                aria-checked={isActive}
+                onClick={() => pickLang(l.code)}
+                className="shrink-0 whitespace-nowrap"
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  background: 'linear-gradient(135deg, rgba(200,169,126,0.15), rgba(200,169,126,0.05))',
-                  border: '1px solid rgba(200,169,126,0.12)',
+                  padding: '6px 12px',
+                  borderRadius: 999,
+                  border: isActive ? '1px solid #C8A97E' : '1px solid rgba(200,169,126,0.12)',
+                  background: isActive ? '#C8A97E' : 'transparent',
+                  color: isActive ? '#111111' : 'rgba(244,241,234,0.55)',
+                  fontFamily: '"DM Sans", system-ui, sans-serif',
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: '0.02em',
+                  transition: 'all 160ms ease-out',
                 }}
               >
-                <Sparkles className="h-3.5 w-3.5" style={{ color: '#1A1A1A' }} />
-              </div>
-              <div>
-                <span
-                  className="text-[15px] tracking-wide"
-                  style={{
-                    color: '#F4F1EA',
-                    fontFamily: '"Cormorant Garamond", Georgia, serif',
-                    fontWeight: 500,
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  Daan
-                </span>
-                <div className="flex items-center gap-1.5 mt-px">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ background: '#4CAF50', boxShadow: '0 0 4px rgba(76,175,80,0.4)' }}
+                {l.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto min-h-0 overscroll-contain"
+        style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+        role="log"
+        aria-live="polite"
+      >
+        <div className="mx-auto max-w-[640px] px-4 sm:px-6 pt-4 pb-8">
+          {loading ? (
+            <div className="flex items-center justify-center" style={{ minHeight: 240 }}>
+              <span
+                style={{
+                  color: 'rgba(200,169,126,0.45)',
+                  fontFamily: '"DM Sans", system-ui, sans-serif',
+                  fontSize: 11,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Loading
+              </span>
+            </div>
+          ) : messages.length === 0 ? (
+            <EmptyState onPick={(t) => handleSend(t)} />
+          ) : (
+            <div className="space-y-5">
+              {messages.map((msg: ChatMessage) => {
+                const isFirstAssistant = msg.role === 'assistant' && !firstAssistantSeen;
+                if (isFirstAssistant) firstAssistantSeen = true;
+                return (
+                  <DaanMessage
+                    key={msg.id}
+                    message={msg}
+                    showEyebrow={isFirstAssistant}
                   />
-                  <span className="text-[9px] tracking-wider uppercase" style={{ color: 'rgba(200,169,126,0.45)' }}>
-                    Online
-                  </span>
-                </div>
-              </div>
+                );
+              })}
             </div>
-            <div className="flex items-center">
-              <button
-                onClick={() => startNewConversation()}
-                className="h-10 w-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
-                style={{ color: 'rgba(244,241,234,0.5)' }}
-                aria-label="New chat"
-                title="New chat"
-              >
-                <MessageSquarePlus className="h-[18px] w-[18px]" />
-              </button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="h-10 w-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
-                    style={{ color: 'rgba(244,241,234,0.3)' }}
-                    aria-label="Options"
-                  >
-                    <MoreVertical className="h-[18px] w-[18px]" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="min-w-[200px]"
-                  style={{
-                    background: '#111111',
-                    border: '1px solid rgba(200,169,126,0.1)',
-                    borderRadius: 14,
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-                  }}
-                >
-                  <DropdownMenuItem onClick={() => setShowLangSelector(true)} className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.8)' }}>
-                    <Globe className="h-4 w-4 mr-2.5" style={{ color: 'rgba(200,169,126,0.5)' }} />
-                    Language · {getBotLanguageLabel()}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator style={{ background: 'rgba(200,169,126,0.06)' }} />
-                  <DropdownMenuItem onClick={() => startNewConversation()} className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.8)' }}>
-                    New conversation
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => clearConversation()} className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.8)' }}>
-                    Clear chat
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {onClose && <button
-                onClick={onClose}
-                className="h-10 w-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
-                style={{ color: 'rgba(244,241,234,0.3)' }}
-                aria-label="Close"
-              >
-                <X className="h-[18px] w-[18px]" />
-              </button>}
-            </div>
-          </header>
+          )}
+        </div>
+      </div>
 
-          {/* ── Messages ── */}
-          <div
-            ref={scrollRef}
-            className="flex-1 overflow-y-auto min-h-0 overscroll-contain"
-            style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
-            role="log"
-            aria-live="polite"
-          >
-            <div className="mx-auto max-w-[640px] px-4 sm:px-6 py-6 space-y-4">
-              {loading ? (
-                <div className="flex items-center justify-center py-16">
-                  <div className="flex flex-col items-center gap-4">
-                    <div
-                      className="w-8 h-8 rounded-full"
-                      style={{
-                        border: '1.5px solid rgba(200,169,126,0.1)',
-                        borderTopColor: 'rgba(200,169,126,0.5)',
-                        animation: 'spin 0.8s linear infinite',
-                      }}
-                    />
-                    <span className="text-[11px] tracking-wider uppercase" style={{ color: 'rgba(200,169,126,0.3)' }}>
-                      Loading
-                    </span>
-                  </div>
-                </div>
-              ) : messages.length === 0 ? (
-                /* ── Empty state — premium welcome ── */
-                <div className="flex flex-col items-center justify-center" style={{ paddingTop: '18vh' }}>
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
-                    style={{
-                      background: 'linear-gradient(145deg, rgba(200,169,126,0.12), rgba(200,169,126,0.03))',
-                      border: '1px solid rgba(200,169,126,0.1)',
-                    }}
-                  >
-                    <Sparkles className="h-6 w-6" style={{ color: '#1A1A1A', opacity: 0.7 }} />
-                  </div>
-                  <p
-                    className="text-lg mb-2"
-                    style={{
-                      color: 'rgba(244,241,234,0.85)',
-                      fontFamily: '"Cormorant Garamond", Georgia, serif',
-                      fontWeight: 400,
-                      letterSpacing: '0.02em',
-                    }}
-                  >
-                    How can I help?
-                  </p>
-                  <p className="text-[12px] text-center max-w-[240px] leading-relaxed" style={{ color: 'rgba(244,241,234,0.25)' }}>
-                    Photography advice, studio workflow, gear recommendations, or anything about MirrorAI.
-                  </p>
-                </div>
-              ) : (
-                messages.map((msg: ChatMessage) => (
-                  <EntiranMessage key={msg.id} message={msg} onFollowUp={(t) => sendMessage(t)} />
-                ))
-              )}
-              {typing && <TypingIndicator />}
-            </div>
-          </div>
-
-          {/* ── Input area ── */}
-          <div
-            className="shrink-0 px-3 sm:px-4"
+      {/* Input */}
+      <div
+        className="shrink-0"
+        style={{
+          padding: '10px 16px',
+          paddingBottom: isMobile && keyboardHeight === 0
+            ? 'max(14px, env(safe-area-inset-bottom, 14px))'
+            : 14,
+          borderTop: '1px solid rgba(200,169,126,0.06)',
+        }}
+      >
+        <div
+          className="mx-auto max-w-[640px] flex items-end"
+          style={{
+            background: '#1A1A1A',
+            border: `1px solid ${input.trim() ? 'rgba(200,169,126,0.30)' : 'rgba(200,169,126,0.12)'}`,
+            borderRadius: 12,
+            padding: '6px 6px 6px 14px',
+            transition: 'border-color 180ms ease-out',
+          }}
+        >
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask Daan…"
+            rows={1}
+            className="flex-1 outline-none resize-none bg-transparent"
             style={{
-              paddingTop: 10,
-              paddingBottom: isMobile && keyboardHeight === 0
-                ? 'max(14px, env(safe-area-inset-bottom, 14px))'
-                : 10,
+              fontFamily: '"DM Sans", system-ui, sans-serif',
+              fontSize: 14,
+              lineHeight: 1.5,
+              color: '#F4F1EA',
+              caretColor: '#C8A97E',
+              maxHeight: 84,
+              minHeight: 22,
+              paddingTop: 8,
+              paddingBottom: 8,
+            }}
+            aria-label="Message Daan"
+            enterKeyHint="send"
+            autoComplete="off"
+            autoCorrect="on"
+          />
+          <button
+            onClick={() => handleSend()}
+            disabled={!input.trim() || typing}
+            aria-label="Send message"
+            className="shrink-0 flex items-center justify-center"
+            style={{
+              width: 44,
+              height: 44,
+              background: 'transparent',
+              border: 'none',
+              opacity: input.trim() && !typing ? 1 : 0.45,
+              transition: 'opacity 160ms ease-out, transform 120ms ease-out',
+              transform: input.trim() && !typing ? 'scale(1)' : 'scale(0.96)',
             }}
           >
-            <div className="mx-auto max-w-[640px] mb-2">
-              <LanguageChips />
-            </div>
-            <div
-              className="mx-auto max-w-[640px] flex items-end gap-1 rounded-2xl transition-all duration-200"
-              style={{
-                background: 'rgba(244,241,234,0.04)',
-                border: '1px solid rgba(200,169,126,0.08)',
-                padding: '6px 6px 6px 4px',
-                boxShadow: input.trim() ? '0 0 20px rgba(200,169,126,0.03)' : 'none',
-              }}
-            >
-              <DropdownMenu open={showAttachMenu} onOpenChange={setShowAttachMenu}>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl active:bg-white/5 transition-colors"
-                    style={{ color: 'rgba(200,169,126,0.35)' }}
-                    aria-label="Attach file"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="start"
-                  side="top"
-                  className="min-w-[180px]"
-                  style={{
-                    background: '#111111',
-                    border: '1px solid rgba(200,169,126,0.1)',
-                    borderRadius: 14,
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
-                  }}
-                >
-                  <DropdownMenuItem onClick={() => fileRef.current?.click()} className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.85)' }}>
-                    <Image className="h-4 w-4 mr-2.5" style={{ color: 'rgba(200,169,126,0.5)' }} /> Upload image
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.85)' }}>
-                    <Camera className="h-4 w-4 mr-2.5" style={{ color: 'rgba(200,169,126,0.5)' }} /> Camera
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="py-2.5 focus:bg-white/5" style={{ color: 'rgba(244,241,234,0.85)' }}>
-                    <FileText className="h-4 w-4 mr-2.5" style={{ color: 'rgba(200,169,126,0.5)' }} /> File
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <Sparkles style={{ width: 18, height: 18, color: 'rgba(200,169,126,0.70)' }} />
+          </button>
+        </div>
+      </div>
 
-              <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileUpload} />
-
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Message Daan…"
-                rows={1}
-                className="flex-1 text-[15px] outline-none resize-none leading-relaxed bg-transparent py-1.5"
-                style={{
-                  maxHeight: 120,
-                  minHeight: 22,
-                  color: 'rgba(244,241,234,0.92)',
-                  caretColor: '#1A1A1A',
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                }}
-                aria-label="Message input"
-                enterKeyHint="send"
-                autoComplete="off"
-                autoCorrect="on"
-              />
-
-              <button
-                onClick={handleSend}
-                disabled={!input.trim()}
-                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-200 active:scale-95"
-                style={{
-                  background: input.trim()
-                    ? 'linear-gradient(135deg, #1A1A1A, #B8956A)'
-                    : 'transparent',
-                  color: input.trim() ? '#080808' : 'rgba(200,169,126,0.2)',
-                  boxShadow: input.trim() ? '0 2px 12px rgba(200,169,126,0.2)' : 'none',
-                  opacity: input.trim() ? 1 : 0.4,
-                }}
-                aria-label="Send message"
-              >
-                <ArrowUp className="h-[18px] w-[18px]" strokeWidth={2.5} />
-              </button>
-            </div>
-
-            {/* Subtle branding */}
-            <p className="text-center mt-2 mb-1 text-[9px] tracking-widest uppercase" style={{ color: 'rgba(200,169,126,0.15)' }}>
-              MirrorAI Intelligence
-            </p>
-          </div>
-        </>
-      )}
+      {/* Local keyframes — scoped, no global pollution */}
+      <style>{`
+        @keyframes daan-status-pulse {
+          0%, 100% { opacity: 0.7; transform: scale(1); }
+          50% { opacity: 0.35; transform: scale(0.9); }
+        }
+        @keyframes daan-stream-bar {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(350%); }
+        }
+      `}</style>
     </div>
   );
 
+  // Embedded mode (used by /daan-chat route)
   if (embedded) {
-    // On mobile, use full dynamic viewport (no dashboard chrome around us).
-    // On desktop, leave room for the dashboard header (~88px).
     const embeddedHeight = isMobile ? '100dvh' : 'calc(100dvh - 88px)';
     return (
       <div
@@ -436,24 +409,32 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
     );
   }
 
-  // ── Mobile: full-screen ──
+  // Mobile: fullscreen sheet sliding up
   if (isMobile) {
     return (
-      <div className="fixed inset-0" style={{ zIndex: 200 }} role="dialog" aria-modal="true" aria-label="Daan">
+      <div
+        className="fixed inset-0"
+        style={{ zIndex: 200 }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Daan"
+      >
         <div
-          className="absolute inset-0 transition-opacity duration-300"
+          className="absolute inset-0"
           style={{
-            background: 'rgba(0,0,0,0.9)',
+            background: 'rgba(0,0,0,0.85)',
             opacity: mounted ? 1 : 0,
+            transition: 'opacity 280ms cubic-bezier(0.32,0.72,0,1)',
           }}
           onClick={onClose}
         />
         <div
-          className="absolute inset-x-0 bottom-0 flex flex-col overflow-hidden transition-transform duration-300 ease-out"
+          className="absolute inset-x-0 bottom-0 flex flex-col overflow-hidden"
           style={{
             height: '100dvh',
-            background: '#080808',
+            background: '#111111',
             transform: mounted ? 'translateY(0)' : 'translateY(100%)',
+            transition: 'transform 340ms cubic-bezier(0.32,0.72,0,1)',
           }}
         >
           {chatUI}
@@ -462,30 +443,262 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
     );
   }
 
-  // ── Desktop: side panel ──
+  // Desktop: 420px right rail
   return (
-    <div className="fixed inset-0 flex justify-end" style={{ zIndex: 200 }} role="dialog" aria-modal="true" aria-label="Daan">
+    <div
+      className="fixed inset-0 flex justify-end"
+      style={{ zIndex: 200 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Daan"
+    >
       <div
-        className="absolute inset-0 transition-opacity duration-300"
+        className="absolute inset-0"
         style={{
-          background: 'rgba(0,0,0,0.6)',
+          background: 'rgba(0,0,0,0.55)',
           backdropFilter: 'blur(8px)',
           opacity: mounted ? 1 : 0,
+          transition: 'opacity 280ms cubic-bezier(0.32,0.72,0,1)',
         }}
         onClick={onClose}
       />
       <div
-        className="relative h-full flex flex-col transition-transform duration-300 ease-out"
+        className="relative h-full flex flex-col"
         style={{
-          background: '#080808',
-          width: 440,
-          borderLeft: '1px solid rgba(200,169,126,0.06)',
+          background: '#111111',
+          width: 420,
+          borderLeft: '1px solid rgba(200,169,126,0.08)',
           transform: mounted ? 'translateX(0)' : 'translateX(100%)',
-          boxShadow: '-20px 0 60px rgba(0,0,0,0.4)',
+          transition: 'transform 340ms cubic-bezier(0.32,0.72,0,1)',
+          boxShadow: '-20px 0 60px rgba(0,0,0,0.5)',
         }}
       >
         {chatUI}
       </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/*  Empty state                                                 */
+/* ─────────────────────────────────────────────────────────── */
+function EmptyState({ onPick }: { onPick: (text: string) => void }) {
+  return (
+    <div className="flex flex-col items-center" style={{ paddingTop: 32 }}>
+      <p
+        style={{
+          fontFamily: '"Cormorant Garamond", Georgia, serif',
+          fontSize: 32,
+          fontStyle: 'italic',
+          color: '#F4F1EA',
+          opacity: 0.20,
+          letterSpacing: '0.02em',
+          marginBottom: 32,
+        }}
+      >
+        Daan
+      </p>
+      <div
+        className="grid w-full"
+        style={{
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 10,
+        }}
+      >
+        {STARTERS.map((s) => (
+          <button
+            key={s}
+            onClick={() => onPick(s)}
+            className="text-left"
+            style={{
+              padding: '12px 14px',
+              background: 'rgba(200,169,126,0.10)',
+              border: '1px solid rgba(200,169,126,0.14)',
+              borderRadius: 10,
+              color: 'rgba(244,241,234,0.60)',
+              fontFamily: '"DM Sans", system-ui, sans-serif',
+              fontSize: 13,
+              lineHeight: 1.4,
+              transition: 'background 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(200,169,126,0.16)';
+              e.currentTarget.style.borderColor = 'rgba(200,169,126,0.28)';
+              e.currentTarget.style.color = 'rgba(244,241,234,0.85)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(200,169,126,0.10)';
+              e.currentTarget.style.borderColor = 'rgba(200,169,126,0.14)';
+              e.currentTarget.style.color = 'rgba(244,241,234,0.60)';
+            }}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/*  Single message                                              */
+/* ─────────────────────────────────────────────────────────── */
+function DaanMessage({
+  message,
+  showEyebrow,
+}: { message: ChatMessage; showEyebrow: boolean }) {
+  const isUser = message.role === 'user';
+
+  // Skip non-conversational types in this minimal panel
+  if (
+    message.message_type === 'related_questions' ||
+    message.message_type === 'welcome'
+  ) return null;
+
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <div
+          style={{
+            maxWidth: '80%',
+            background: '#1A1A1A',
+            color: '#F4F1EA',
+            padding: '10px 14px',
+            borderRadius: 12,
+            fontFamily: '"DM Sans", system-ui, sans-serif',
+            fontSize: 14,
+            lineHeight: 1.55,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+          }}
+        >
+          {message.content}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-start">
+      {showEyebrow && (
+        <span
+          style={{
+            fontFamily: '"DM Sans", system-ui, sans-serif',
+            fontSize: 10,
+            fontWeight: 500,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: 'rgba(200,169,126,0.65)',
+            marginBottom: 6,
+          }}
+        >
+          Daan
+        </span>
+      )}
+      <div
+        className="daan-prose"
+        style={{
+          maxWidth: '100%',
+          color: '#F4F1EA',
+          fontFamily: '"Cormorant Garamond", Georgia, serif',
+          fontSize: 15,
+          lineHeight: 1.7,
+          letterSpacing: '0.005em',
+          wordBreak: 'break-word',
+        }}
+      >
+        <ReactMarkdown
+          components={{
+            p: ({ children }) => <p style={{ margin: '0 0 10px 0' }}>{children}</p>,
+            strong: ({ children }) => (
+              <strong style={{ color: '#F4F1EA', fontWeight: 600 }}>{children}</strong>
+            ),
+            em: ({ children }) => (
+              <em style={{ color: 'rgba(200,169,126,0.85)', fontStyle: 'italic' }}>{children}</em>
+            ),
+            ul: ({ children }) => <ul style={{ paddingLeft: 18, margin: '6px 0 10px 0' }}>{children}</ul>,
+            ol: ({ children }) => <ol style={{ paddingLeft: 18, margin: '6px 0 10px 0' }}>{children}</ol>,
+            li: ({ children }) => <li style={{ marginBottom: 4 }}>{children}</li>,
+            h1: ({ children }) => (
+              <h3 style={{ fontSize: 17, fontWeight: 500, margin: '12px 0 6px', color: '#F4F1EA' }}>{children}</h3>
+            ),
+            h2: ({ children }) => (
+              <h3 style={{ fontSize: 16, fontWeight: 500, margin: '12px 0 6px', color: '#F4F1EA' }}>{children}</h3>
+            ),
+            h3: ({ children }) => (
+              <h4 style={{ fontSize: 15, fontWeight: 500, margin: '10px 0 4px', color: '#F4F1EA' }}>{children}</h4>
+            ),
+            code: ({ children, className }) => {
+              const isBlock = className?.includes('language-');
+              if (isBlock) {
+                return (
+                  <pre
+                    style={{
+                      background: '#1A1A1A',
+                      border: '1px solid rgba(200,169,126,0.10)',
+                      borderRadius: 8,
+                      padding: 12,
+                      overflow: 'auto',
+                      margin: '8px 0',
+                      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                      fontSize: 12,
+                      color: 'rgba(244,241,234,0.85)',
+                    }}
+                  >
+                    <code>{children}</code>
+                  </pre>
+                );
+              }
+              return (
+                <code
+                  style={{
+                    background: 'rgba(200,169,126,0.10)',
+                    color: '#F4F1EA',
+                    padding: '1px 6px',
+                    borderRadius: 4,
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                    fontSize: 13,
+                  }}
+                >
+                  {children}
+                </code>
+              );
+            },
+            blockquote: ({ children }) => (
+              <blockquote
+                style={{
+                  borderLeft: '2px solid rgba(200,169,126,0.30)',
+                  paddingLeft: 12,
+                  margin: '8px 0',
+                  color: 'rgba(244,241,234,0.65)',
+                }}
+              >
+                {children}
+              </blockquote>
+            ),
+            a: ({ children, href }) => (
+              <a href={href} target="_blank" rel="noreferrer" style={{ color: '#C8A97E', textDecoration: 'underline' }}>
+                {children}
+              </a>
+            ),
+          }}
+        >
+          {message.content || ''}
+        </ReactMarkdown>
+      </div>
+      {message.created_at && (
+        <span
+          style={{
+            fontFamily: '"DM Sans", system-ui, sans-serif',
+            fontSize: 10,
+            color: 'rgba(200,169,126,0.40)',
+            marginTop: 6,
+          }}
+        >
+          {formatTime(message.created_at)}
+        </span>
+      )}
     </div>
   );
 }

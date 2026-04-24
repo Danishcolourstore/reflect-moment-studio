@@ -7,18 +7,19 @@ interface EntiranButtonProps {
   unreadCount: number;
 }
 
-const TOOLTIP_KEY = 'mirrorbot_tooltip_dismissed';
+const TOOLTIP_KEY = 'daan_tooltip_dismissed';
 
 export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
   const isMobile = useIsMobile();
   const [showTooltip, setShowTooltip] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
 
   useEffect(() => {
     const dismissed = localStorage.getItem(TOOLTIP_KEY);
     if (!dismissed) {
-      const timer = setTimeout(() => setShowTooltip(true), 1500);
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setShowTooltip(true), 1500);
+      return () => clearTimeout(t);
     }
   }, []);
 
@@ -29,6 +30,8 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
     }
     onClick();
   };
+
+  const size = isMobile ? 48 : 52;
 
   return (
     <div
@@ -59,7 +62,11 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
           Ask anything with Daan
           <div
             className={`absolute -bottom-1.5 ${isMobile ? 'left-6' : 'right-6'} w-3 h-3 rotate-45`}
-            style={{ background: '#111111', border: '1px solid rgba(200,169,126,0.12)', borderTop: 'none', borderLeft: 'none' }}
+            style={{
+              background: '#111111',
+              borderRight: '1px solid rgba(200,169,126,0.12)',
+              borderBottom: '1px solid rgba(200,169,126,0.12)',
+            }}
           />
         </div>
       )}
@@ -67,32 +74,34 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
       <button
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className="relative flex items-center justify-center transition-all duration-300 ease-out active:scale-[0.94]"
-        style={{
-          width: isMobile ? 48 : 52,
-          height: isMobile ? 48 : 52,
-          borderRadius: 16,
-          background: isHovered
-            ? 'linear-gradient(145deg, rgba(200,169,126,0.2), rgba(200,169,126,0.08))'
-            : 'linear-gradient(145deg, rgba(200,169,126,0.12), rgba(200,169,126,0.04))',
-          border: `1px solid ${isHovered ? 'rgba(200,169,126,0.3)' : 'rgba(200,169,126,0.1)'}`,
-          boxShadow: isHovered
-            ? '0 0 30px rgba(200,169,126,0.12), 0 8px 32px rgba(0,0,0,0.4)'
-            : '0 4px 24px rgba(0,0,0,0.3)',
-        }}
+        onMouseLeave={() => { setIsHovered(false); setIsPressed(false); }}
+        onMouseDown={() => setIsPressed(true)}
+        onMouseUp={() => setIsPressed(false)}
+        onTouchStart={() => setIsPressed(true)}
+        onTouchEnd={() => setIsPressed(false)}
         aria-label="Open Daan AI"
+        className="relative flex items-center justify-center"
+        style={{
+          width: size,
+          height: size,
+          borderRadius: 16,
+          background: 'linear-gradient(145deg, rgba(200,169,126,0.14), rgba(200,169,126,0.04))',
+          border: `1px solid ${isHovered ? 'rgba(200,169,126,0.32)' : 'rgba(200,169,126,0.12)'}`,
+          boxShadow: isHovered
+            ? '0 8px 32px rgba(0,0,0,0.40)'
+            : '0 4px 18px rgba(0,0,0,0.30)',
+          transform: isPressed ? 'scale(0.94)' : 'scale(1)',
+          transition: 'transform 120ms ease-out, box-shadow 200ms ease-out, border-color 200ms ease-out',
+        }}
       >
         <Sparkles
-          className="transition-all duration-300"
           style={{
-            width: isMobile ? 20 : 22,
-            height: isMobile ? 20 : 22,
-            color: isHovered ? '#1A1A1A' : 'rgba(200,169,126,0.65)',
+            width: 22,
+            height: 22,
+            color: 'rgba(200,169,126,0.70)',
           }}
         />
 
-        {/* Unread badge */}
         {unreadCount > 0 && (
           <span
             className="absolute -top-1 -right-1 flex items-center justify-center rounded-full"
@@ -101,9 +110,9 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
               height: 18,
               fontSize: 9,
               fontWeight: 700,
-              backgroundColor: '#1A1A1A',
-              color: '#080808',
-              boxShadow: '0 0 8px rgba(200,169,126,0.3)',
+              backgroundColor: '#C8A97E',
+              color: '#111111',
+              boxShadow: '0 0 8px rgba(200,169,126,0.30)',
             }}
           >
             {unreadCount > 9 ? '9+' : unreadCount}
