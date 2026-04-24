@@ -2150,6 +2150,7 @@ export type Database = {
           selection_mode_enabled: boolean
           selection_token: string | null
           slug: string
+          source: string
           updated_at: string
           user_id: string
           views: number
@@ -2190,6 +2191,7 @@ export type Database = {
           selection_mode_enabled?: boolean
           selection_token?: string | null
           slug: string
+          source?: string
           updated_at?: string
           user_id: string
           views?: number
@@ -2230,6 +2232,7 @@ export type Database = {
           selection_mode_enabled?: boolean
           selection_token?: string | null
           slug?: string
+          source?: string
           updated_at?: string
           user_id?: string
           views?: number
