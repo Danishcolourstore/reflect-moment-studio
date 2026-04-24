@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { divider: true },
   { label: "Website", path: "/dashboard/website-builder" },
   { label: "Storybook", path: "/dashboard/storybook" },
-  { label: "More", path: "/more" },
+  { label: "More", path: "/dashboard/more" },
 ] as const;
 
 export function useDrawerMenu() {
