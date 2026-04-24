@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send, Plus, Image, Camera, FileText, Globe, MoreVertical, ArrowUp, Sparkles } from 'lucide-react';
+import { X, Send, Plus, Image, Camera, FileText, Globe, MoreVertical, ArrowUp, Sparkles, MessageSquarePlus } from 'lucide-react';
 import { useEntiranChat, type ChatMessage } from '@/hooks/use-entiran-chat';
 import { EntiranMessage, TypingIndicator } from './EntiranMessage';
 import { LanguageSelector, type BotLanguage, getBotLanguageLabel } from './LanguageSelector';
