@@ -26,6 +26,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { CheetahQuickUpload } from '@/components/cheetah/CheetahQuickUpload';
+import { CheetahQRCard } from '@/components/cheetah/CheetahQRCard';
 
 /* ───────────────────────── helpers ───────────────────────── */
 
@@ -166,7 +168,7 @@ function lastPing(iso: string | null) {
 }
 
 function SetupCard({ session, uploadEndpoint }: { session: CheetahLiveSession; uploadEndpoint: string }) {
-  const [tab, setTab] = useState<'https' | 'ftp' | 'curl'>('https');
+  const [tab, setTab] = useState<'upload' | 'https' | 'ftp' | 'curl'>('upload');
   const liveUrl = `${window.location.origin}/live/${session.session_code}`;
   const lastUpload = lastPing(session.last_upload_at);
 
@@ -257,11 +259,12 @@ python3 bridge.py
       </div>
 
       {/* Method tabs */}
-      <div className="flex border-b border-[var(--rule)]">
+      <div className="flex border-b border-[var(--rule)] overflow-x-auto">
         {[
-          { key: 'https' as const, label: 'HTTPS Direct', icon: Wifi, badge: 'Primary' },
-          { key: 'ftp' as const,   label: 'FTP Bridge',   icon: Server, badge: 'Legacy' },
-          { key: 'curl' as const,  label: 'cURL · Script', icon: Sparkles, badge: null },
+          { key: 'upload' as const, label: 'Quick Upload', icon: ImageIcon, badge: 'Easiest' },
+          { key: 'https' as const,  label: 'Camera HTTPS', icon: Wifi,      badge: null },
+          { key: 'ftp' as const,    label: 'FTP Bridge',   icon: Server,    badge: 'Legacy' },
+          { key: 'curl' as const,   label: 'cURL',         icon: Sparkles,  badge: null },
         ].map((t) => (
           <button
             key={t.key}
@@ -288,6 +291,14 @@ python3 bridge.py
       </div>
 
       <div className="p-5">
+        {tab === 'upload' && (
+          <CheetahQuickUpload
+            uploadEndpoint={uploadEndpoint}
+            sessionCode={session.session_code}
+            uploadToken={session.upload_token}
+            isLive={session.is_live}
+          />
+        )}
         {tab === 'https' && (
           <div className="space-y-4">
             <p className="text-[12px] text-[var(--ink)] leading-relaxed">
@@ -603,7 +614,13 @@ export default function CheetahLivePage() {
                 </div>
 
                 {activeSession.is_live && (
-                  <SetupCard session={activeSession} uploadEndpoint={uploadEndpoint} />
+                  <>
+                    <CheetahQRCard
+                      liveUrl={`${window.location.origin}/live/${activeSession.session_code}`}
+                      sessionCode={activeSession.session_code}
+                    />
+                    <SetupCard session={activeSession} uploadEndpoint={uploadEndpoint} />
+                  </>
                 )}
 
                 <LiveMonitor session={activeSession} photos={photos} />
