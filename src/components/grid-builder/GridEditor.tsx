@@ -93,6 +93,10 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [showIgPreview, setShowIgPreview] = useState(false);
   const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
   const gridRef = useRef<HTMLDivElement>(null);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
+  const toolPanelRef = useRef<HTMLDivElement>(null);
+  const [bottomBarH, setBottomBarH] = useState(96);
+  const [toolPanelH, setToolPanelH] = useState(0);
 
   // ─── Undo/Redo History ───
   const MAX_HISTORY = 30;
