@@ -239,13 +239,25 @@ export function usePhotoUpload(
         updateFileInfo(id, { status: "success", progress: 100 });
         return "success";
       } catch (err: any) {
+        // 🔴 DEBUG LOG
+        console.error("UPLOAD ERROR:", {
+          message: err?.message,
+          code: err?.code,
+          details: err?.details,
+          hint: err?.hint,
+          statusCode: err?.statusCode,
+          raw: err,
+        });
+
         const classified = classifyError(err);
+
         updateFileInfo(id, {
           status: "failed",
-          error: classified.message,
+          error: classified.message + " | " + (err?.message || "no message"),
           errorType: classified.type,
           progress: 0,
         });
+
         return "failed";
       }
     },
@@ -268,6 +280,7 @@ export function usePhotoUpload(
       }));
 
       const startTime = Date.now();
+
       setState({
         isUploading: true,
         totalFiles: files.length,
@@ -287,16 +300,20 @@ export function usePhotoUpload(
       let duplicates = 0;
       const failed: File[] = [];
       let completed = 0;
+
       const limit = pLimit(getAdaptiveConcurrency());
 
       const tasks = infos.map((info) =>
         limit(async () => {
           if (abortRef.current) return;
+
           const result = await uploadSingleFile(info, existingHashes);
+
           completed += 1;
           if (result === "success") success += 1;
           if (result === "duplicate") duplicates += 1;
           if (result === "failed") failed.push(info.file);
+
           markProgress(completed, success, duplicates, failed, infos.length, startTime);
         }),
       );
@@ -317,10 +334,12 @@ export function usePhotoUpload(
   const retrySingle = useCallback(
     async (fileId: string) => {
       if (!eventId || !userId) return;
+
       const info = state.fileInfos.find((f) => f.id === fileId);
       if (!info) return;
 
       const startTime = Date.now();
+
       setState((prev) => ({ ...prev, isUploading: true, isDone: false }));
 
       const result = await uploadSingleFile(
@@ -330,9 +349,12 @@ export function usePhotoUpload(
 
       setState((prev) => {
         const failedFiles = result === "success" ? prev.failedFiles.filter((f) => f !== info.file) : prev.failedFiles;
+
         const completedFiles =
           result === "success" ? Math.min(prev.completedFiles + 1, prev.totalFiles) : prev.completedFiles;
+
         const successCount = result === "success" ? prev.successCount + 1 : prev.successCount;
+
         const allDone = prev.fileInfos.every((f) =>
           f.id === fileId ? result === "success" : ["success", "failed", "duplicate"].includes(f.status),
         );
