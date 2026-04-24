@@ -26,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import DeviceUploadFlow from "./DeviceUploadFlow";
 
 interface Photo {
   id: string;
@@ -45,6 +46,7 @@ interface Props {
 }
 
 type FilterType = "all" | "unused";
+type PhotoSource = "events" | "device";
 
 interface EventOption {
   id: string;
