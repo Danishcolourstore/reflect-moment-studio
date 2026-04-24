@@ -211,10 +211,10 @@ export default function LandingGate() {
       </nav>
 
       {/* ─── SPECIMEN CONTAINER ─────────────────────────────────── */}
-      <div className="pt-12 pb-24">
-        <div className="max-w-[1080px] mx-auto bg-white border border-[var(--rule)] md:my-10">
+      <div className="pt-12 pb-32 md:pb-24">
+        <div className="max-w-[1080px] mx-auto bg-white md:border md:border-[var(--rule)] md:my-10">
           {/* ─── DASH FRAGMENT ───────────────────────────────────── */}
-          <div className="px-6 md:px-14 pt-10 md:pt-14 pb-10 md:pb-14">
+          <div className="px-6 md:px-14 pt-8 md:pt-14 pb-8 md:pb-14">
             <h1 className="font-serif font-light text-[32px] md:text-[44px] leading-[1.08] tracking-[-0.02em] text-[var(--ink)] mb-9 md:mb-12">
               {today}
             </h1>
