@@ -512,14 +512,20 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         </div>
       </header>
 
-      {/* ─── Canvas Area (FIXED: overflow-y-auto) ─── */}
+      {/* ─── Canvas Area — reserves space for bottom bar + tool panel so canvas stays fully visible ─── */}
       <div
-        className={cn("flex-1 overflow-y-auto flex items-center justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
+        className={cn("flex-1 overflow-y-auto flex items-start justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
+        style={{
+          paddingBottom: `calc(${bottomBarH + toolPanelH + 16}px + env(safe-area-inset-bottom, 0px))`,
+        }}
         onClick={deselectAll}
       >
         <div
           ref={gridRef}
-          className="w-full max-w-[420px] rounded-xl overflow-hidden relative"
+          className={cn(
+            "w-full rounded-xl overflow-hidden relative my-auto",
+            isMobile ? "max-w-[420px]" : "max-w-[560px]",
+          )}
           style={{
             aspectRatio: canvasRatio,
             background: canvasBg,
