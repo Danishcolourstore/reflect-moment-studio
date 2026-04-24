@@ -135,8 +135,8 @@ export function LazyImage({
           ? getOptimizedUrl(resolvedSrc, variant)
           : resolvedSrc;
         const srcSet = enableResponsive ? getImageSrcSet(resolvedSrc) : undefined;
-        const sizes = enableResponsive
-          ? getImageSizes(responsive === 'none' ? 'grid' : responsive)
+        const sizes = enableResponsive && responsive !== 'none'
+          ? getImageSizes(responsive)
           : undefined;
 
         return (
