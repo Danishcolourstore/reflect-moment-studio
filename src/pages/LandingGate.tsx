@@ -9,6 +9,7 @@ const CreateEventModal = lazy(() => import("@/components/CreateEventModal").then
 import { toast } from "sonner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Menu, Share, Plus, ChevronLeft } from "lucide-react";
+import { resolveUsername } from "@/lib/studio-url";
 
 interface FeedPost {
   id: string;
@@ -75,15 +76,16 @@ export default function LandingGate() {
     if (!user) { setLoading(false); return; }
     setLoading(true);
 
-    const { data: prof } = await (supabase.from("profiles").select("studio_name, username") as any)
+    const { data: prof } = await (supabase.from("profiles").select("studio_name") as any)
       .eq("user_id", user.id).maybeSingle();
     if (prof?.studio_name) setProfileName(prof.studio_name);
-    let slug = prof?.username || null;
+    let slug: string | null = null;
     if (!slug) {
       const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
         .eq("user_id", user.id).maybeSingle();
       slug = dom?.subdomain || null;
     }
+    if (!slug) slug = resolveUsername(undefined, user.email);
     setFeedSlug(slug);
 
     // Events

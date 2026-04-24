@@ -187,9 +187,6 @@ export default function IntelligenceHome() {
   const goToFeed = async () => {
     if (!user) { navigate("/feed/community"); return; }
     // Get username/slug for the photographer's public feed
-    const { data: sp } = await (supabase.from("studio_profiles").select("username") as any)
-      .eq("user_id", user.id).maybeSingle();
-    if (sp?.username) { navigate(`/feed/${sp.username}`); return; }
     const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
       .eq("user_id", user.id).maybeSingle();
     if (dom?.subdomain) { navigate(`/feed/${dom.subdomain}`); return; }
