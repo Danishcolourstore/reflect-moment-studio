@@ -6,14 +6,14 @@ const TABS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
   { title: "Grid", url: "/builder-test", icon: Grid3X3 },
   { title: "Gallery", url: "/home", icon: Image, center: true },
-  { title: "Album", url: "/dashboard/album-designer", icon: BookOpen },
+  { title: "Album Builder", url: "/dashboard/album-designer", icon: BookOpen },
   { title: "Clients", url: "/dashboard/clients", icon: Users },
 ];
 
-const GOLD = "#1A1A1A";
-const INK_MUTED = "#6E6E6E";
-const RULE = "#E8E6E1";
-const WASH = "#F4F3F0";
+const GOLD = "hsl(0, 0%, 10%)";
+const INK_MUTED = "hsl(0, 0%, 43%)";
+const RULE = "hsl(40, 12%, 90%)";
+const WASH = "hsl(45, 12%, 95%)";
 
 export function MobileBottomNav() {
   const { isMobile } = useViewMode();
@@ -73,8 +73,8 @@ export function MobileBottomNav() {
             >
               <div
                 style={{
-                  width: 36,
-                  height: 36,
+                  width: 34,
+                  height: 34,
                   borderRadius: "50%",
                   background: active ? GOLD : WASH,
                   display: "flex",
@@ -83,16 +83,19 @@ export function MobileBottomNav() {
                   transition: "background 120ms cubic-bezier(0.4,0,0.2,1)",
                 }}
               >
-                <Plus size={18} strokeWidth={1.75} style={{ color: active ? "#FAFAF8" : INK_MUTED }} />
+                <Plus size={18} strokeWidth={1.75} style={{ color: active ? "hsl(60, 14%, 98%)" : INK_MUTED }} />
               </div>
               <span
                 style={{
                   fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 10,
-                  letterSpacing: "0.12em",
+                  fontSize: 9,
+                  letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   color,
                   fontWeight: 500,
+                  lineHeight: 1.1,
+                  maxWidth: 58,
+                  textAlign: "center",
                 }}
               >
                 {tab.title}
@@ -124,11 +127,14 @@ export function MobileBottomNav() {
             <span
               style={{
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 10,
-                letterSpacing: "0.12em",
+                fontSize: 9,
+                letterSpacing: "0.06em",
                 textTransform: "uppercase",
                 color,
                 fontWeight: 500,
+                lineHeight: 1.1,
+                maxWidth: 58,
+                textAlign: "center",
               }}
             >
               {tab.title}
