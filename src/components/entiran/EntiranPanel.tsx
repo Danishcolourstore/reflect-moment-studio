@@ -199,6 +199,15 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
               </div>
             </div>
             <div className="flex items-center">
+              <button
+                onClick={() => startNewConversation()}
+                className="h-10 w-10 flex items-center justify-center rounded-full active:bg-white/5 transition-colors"
+                style={{ color: 'rgba(244,241,234,0.5)' }}
+                aria-label="New chat"
+                title="New chat"
+              >
+                <MessageSquarePlus className="h-[18px] w-[18px]" />
+              </button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
