@@ -98,9 +98,9 @@ export function LazyImage({
       }}
     >
       {/* Blur-up thumbnail */}
-      {thumbnailSrc && inView && !loaded && (
+      {thumbnailSrc && resolvedThumb && inView && !loaded && (
         <img
-          src={thumbnailSrc}
+          src={resolvedThumb}
           alt=""
           aria-hidden
           onLoad={() => setThumbLoaded(true)}
@@ -119,10 +119,10 @@ export function LazyImage({
       )}
 
       {/* Full resolution image */}
-      {inView && (
+      {inView && resolvedSrc && (
         <img
           {...imgProps}
-          src={src}
+          src={resolvedSrc}
           alt={alt}
           width={typeof width === "number" ? width : undefined}
           height={typeof height === "number" ? height : undefined}
