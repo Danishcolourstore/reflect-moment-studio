@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, CSSProperties, ImgHTMLAttributes } from "react";
 import { useStorageUrl, type StorageRef } from "@/hooks/use-signed-url";
+import { getImageSrcSet, getImageSizes, getOptimizedUrl, type ImageSize } from "@/lib/image-utils";
 
 interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "style" | "src"> {
   /** Either a direct URL string OR a {bucket, path, eventId?} reference */
@@ -29,6 +30,10 @@ interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "styl
   objectFit?: CSSProperties["objectFit"];
   /** Callback when image loads */
   onLoaded?: () => void;
+  /** Layout context — drives responsive `sizes` attribute (default 'grid') */
+  responsive?: 'grid' | 'lightbox' | 'hero' | 'none';
+  /** Render a smaller variant by default (e.g. 'thumbnail' for cards) */
+  variant?: ImageSize;
 }
 
 /**
@@ -53,6 +58,8 @@ export function LazyImage({
   borderRadius = 0,
   objectFit = "cover",
   onLoaded,
+  responsive = 'grid',
+  variant,
   ...imgProps
 }: LazyImageProps) {
   const { url: resolvedSrc } = useStorageUrl(src);
