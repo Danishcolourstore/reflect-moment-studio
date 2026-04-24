@@ -27,7 +27,7 @@ export function SiteProfileProvider({ children }: { children: ReactNode }) {
 
     const load = async () => {
       const [profileRes, domainsRes] = await Promise.all([
-        (supabase.from("profiles").select("*").eq("user_id", siteOwnerId).maybeSingle() as any),
+        (supabase.from("public_profile_watermarks" as any).select("*").eq("user_id", siteOwnerId).maybeSingle() as any),
         (supabase.from("domains").select("*").eq("user_id", siteOwnerId) as any),
       ]);
 
