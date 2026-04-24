@@ -259,11 +259,12 @@ python3 bridge.py
       </div>
 
       {/* Method tabs */}
-      <div className="flex border-b border-[var(--rule)]">
+      <div className="flex border-b border-[var(--rule)] overflow-x-auto">
         {[
-          { key: 'https' as const, label: 'HTTPS Direct', icon: Wifi, badge: 'Primary' },
-          { key: 'ftp' as const,   label: 'FTP Bridge',   icon: Server, badge: 'Legacy' },
-          { key: 'curl' as const,  label: 'cURL · Script', icon: Sparkles, badge: null },
+          { key: 'upload' as const, label: 'Quick Upload', icon: ImageIcon, badge: 'Easiest' },
+          { key: 'https' as const,  label: 'Camera HTTPS', icon: Wifi,      badge: null },
+          { key: 'ftp' as const,    label: 'FTP Bridge',   icon: Server,    badge: 'Legacy' },
+          { key: 'curl' as const,   label: 'cURL',         icon: Sparkles,  badge: null },
         ].map((t) => (
           <button
             key={t.key}
