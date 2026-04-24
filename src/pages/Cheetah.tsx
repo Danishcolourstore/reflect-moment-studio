@@ -28,6 +28,11 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { CheetahQuickUpload } from '@/components/cheetah/CheetahQuickUpload';
 import { CheetahQRCard } from '@/components/cheetah/CheetahQRCard';
+import {
+  CameraSetupPanel,
+  FtpBridgeSettings,
+  LiveFeedStatus,
+} from '@/components/cheetah/CheetahCameraSetup';
 
 /* ───────────────────────── helpers ───────────────────────── */
 
