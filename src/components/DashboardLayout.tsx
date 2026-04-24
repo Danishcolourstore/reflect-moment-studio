@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewMode } from "@/lib/ViewModeContext";
 import {
-  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu,
+  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu, Sparkles,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
@@ -15,6 +15,7 @@ const STUDIO_ITEMS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
   { title: "Gallery", url: "/home", icon: Image, end: true },
   { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
+  { title: "Daan", url: "/dashboard/daan", icon: Sparkles },
 ];
 
 const ACCOUNT_ITEMS = [
