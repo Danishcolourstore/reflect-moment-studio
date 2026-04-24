@@ -261,26 +261,75 @@ export default function AlbumPhotoPanel({
           </span>
         </div>
 
-        {/* Upload buttons */}
-        <div className="flex gap-1.5">
-          <Button variant="outline" size="sm" className="flex-1 h-7 text-xs" onClick={() => fileRef.current?.click()} disabled={uploading}>
-            <Upload className="h-3 w-3 mr-1" /> Upload
-          </Button>
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => zipRef.current?.click()} disabled={uploading}>
-            <FileArchive className="h-3 w-3" />
-          </Button>
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { loadEvents(); setLinkOpen(true); }}>
-            <Link2 className="h-3 w-3" />
-          </Button>
+        {/* Source selector pills — Events vs Device */}
+        <div className="flex items-center gap-2">
+          {(["events", "device"] as const).map((s) => {
+            const active = source === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSource(s)}
+                style={{
+                  borderRadius: 999,
+                  height: 36,
+                  padding: "0 16px",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  border: active ? "none" : "1px solid #E8E5E0",
+                  background: active ? "#C8A97E" : "#FAFAF8",
+                  color: active ? "#1A1917" : "#6B6760",
+                  cursor: "pointer",
+                  transition: "all 160ms ease-out",
+                }}
+              >
+                {s === "events" ? "From Events" : "From Device"}
+              </button>
+            );
+          })}
         </div>
 
-        {uploading && (
-          <Progress value={(uploadDone / uploadTotal) * 100} className="h-1" />
-        )}
+        {/* Upload buttons (only relevant for the existing Events flow) */}
+        {source === "events" && (
+          <>
+            <div className="flex gap-1.5">
+              <Button variant="outline" size="sm" className="flex-1 h-7 text-xs" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                <Upload className="h-3 w-3 mr-1" /> Upload
+              </Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => zipRef.current?.click()} disabled={uploading}>
+                <FileArchive className="h-3 w-3" />
+              </Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { loadEvents(); setLinkOpen(true); }}>
+                <Link2 className="h-3 w-3" />
+              </Button>
+            </div>
 
-        <input ref={fileRef} type="file" multiple className="hidden" accept="image/*" onChange={(e) => uploadFiles(Array.from(e.target.files || []))} />
-        <input ref={zipRef} type="file" className="hidden" accept=".zip" onChange={handleZipUpload} />
+            {uploading && (
+              <Progress value={(uploadDone / uploadTotal) * 100} className="h-1" />
+            )}
+
+            <input ref={fileRef} type="file" multiple className="hidden" accept="image/*" onChange={(e) => uploadFiles(Array.from(e.target.files || []))} />
+            <input ref={zipRef} type="file" className="hidden" accept=".zip" onChange={handleZipUpload} />
+          </>
+        )}
       </div>
+
+      {/* Device upload flow — drop zone, naming sheet, inline progress */}
+      {source === "device" && (
+        <DeviceUploadFlow
+          albumId={albumId}
+          onEventReady={async (newEventId) => {
+            // Link the new event to the album so existing logic takes over
+            await supabase.from("albums").update({ event_id: newEventId }).eq("id", albumId);
+            onEventLinked(newEventId);
+          }}
+          onPhotoUploaded={(photo) => {
+            // Progressive: show new photos immediately as they finish uploading
+            setPhotos((prev) => (prev.find((p) => p.id === photo.id) ? prev : [...prev, photo]));
+          }}
+        />
+      )}
 
       {/* Photo Progress Summary */}
       {photos.length > 0 && (
