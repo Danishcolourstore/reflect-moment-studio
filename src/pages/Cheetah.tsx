@@ -28,6 +28,11 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { CheetahQuickUpload } from '@/components/cheetah/CheetahQuickUpload';
 import { CheetahQRCard } from '@/components/cheetah/CheetahQRCard';
+import {
+  CameraSetupPanel,
+  FtpBridgeSettings,
+  LiveFeedStatus,
+} from '@/components/cheetah/CheetahCameraSetup';
 
 /* ───────────────────────── helpers ───────────────────────── */
 
@@ -620,6 +625,9 @@ export default function CheetahLivePage() {
                       sessionCode={activeSession.session_code}
                     />
                     <SetupCard session={activeSession} uploadEndpoint={uploadEndpoint} />
+                    <CameraSetupPanel session={activeSession} uploadEndpoint={uploadEndpoint} />
+                    <FtpBridgeSettings session={activeSession as any} />
+                    <LiveFeedStatus session={activeSession} />
                   </>
                 )}
 
