@@ -211,10 +211,10 @@ export default function LandingGate() {
       </nav>
 
       {/* ─── SPECIMEN CONTAINER ─────────────────────────────────── */}
-      <div className="pt-12 pb-24">
-        <div className="max-w-[1080px] mx-auto bg-white border border-[var(--rule)] md:my-10">
+      <div className="pt-12 pb-32 md:pb-24">
+        <div className="max-w-[1080px] mx-auto bg-white md:border md:border-[var(--rule)] md:my-10">
           {/* ─── DASH FRAGMENT ───────────────────────────────────── */}
-          <div className="px-6 md:px-14 pt-10 md:pt-14 pb-10 md:pb-14">
+          <div className="px-6 md:px-14 pt-8 md:pt-14 pb-8 md:pb-14">
             <h1 className="font-serif font-light text-[32px] md:text-[44px] leading-[1.08] tracking-[-0.02em] text-[var(--ink)] mb-9 md:mb-12">
               {today}
             </h1>
@@ -233,17 +233,17 @@ export default function LandingGate() {
             <div className="mt-10 md:mt-12 flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setCreateEventOpen(true)}
-                className="bg-[var(--ink)] text-white border-0 px-6 py-3.5 text-[12px] font-medium tracking-[0.08em] uppercase cursor-pointer hover:opacity-90 transition-opacity"
+                className="flex-1 md:flex-none bg-[var(--ink)] text-white border-0 px-6 py-3.5 text-[12px] font-medium tracking-[0.08em] uppercase cursor-pointer hover:opacity-90 transition-opacity"
               >
                 New event
               </button>
               <button
                 onClick={() => navigate("/dashboard/events")}
-                className="bg-transparent text-[var(--ink)] border border-[var(--rule-strong)] px-6 py-3 text-[12px] font-medium tracking-[0.02em] cursor-pointer hover:border-[var(--ink)] transition-colors"
+                className="flex-1 md:flex-none bg-transparent text-[var(--ink)] border border-[var(--rule-strong)] px-6 py-3 text-[12px] font-medium tracking-[0.02em] cursor-pointer hover:border-[var(--ink)] transition-colors"
               >
                 Open events
               </button>
-              <span className="text-[12px] text-[var(--ink-whisper)]">
+              <span className="hidden md:inline text-[12px] text-[var(--ink-whisper)]">
                 or press <span className="font-mono">⌘ N</span>
               </span>
             </div>
@@ -254,18 +254,15 @@ export default function LandingGate() {
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-5">
               Today's ritual
             </p>
-            <p className="font-serif italic font-light text-[28px] md:text-[40px] leading-[1.3] tracking-[-0.01em] text-[var(--ink)] max-w-[720px]">
+            <p className="font-serif italic font-light text-[26px] md:text-[40px] leading-[1.3] tracking-[-0.01em] text-[var(--ink)] max-w-[720px]">
               {ritual}
-            </p>
-            <p className="text-[11px] text-[var(--ink-whisper)] tracking-[0.02em] leading-[1.6] mt-4">
-              Tiempos Headline Italic, weight 300. Rendered with Fraunces. First visit of the day.
             </p>
           </div>
 
           {/* ─── FOOTER ──────────────────────────────────────────── */}
           <div className="border-t border-[var(--rule)] px-6 md:px-14 py-8 flex justify-between items-baseline">
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)]">
-              Edition No. 001 · {profileName}
+              {profileName}
             </p>
             <p className="font-serif italic text-[14px] text-[var(--ink-whisper)]">
               Every gallery, a story.
@@ -277,7 +274,8 @@ export default function LandingGate() {
       {/* ─── FAB ────────────────────────────────────────────────── */}
       <button
         onClick={() => setCreateEventOpen(true)}
-        className="fixed bottom-20 md:bottom-8 right-5 md:right-8 w-14 h-14 rounded-full bg-[var(--ink)] flex items-center justify-center cursor-pointer z-50 hover:opacity-90 transition-opacity border-0"
+        className="fixed right-5 md:right-8 w-14 h-14 rounded-full bg-[var(--ink)] flex items-center justify-center cursor-pointer z-50 hover:opacity-90 transition-opacity border-0 shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
+        style={{ bottom: mob ? "calc(72px + env(safe-area-inset-bottom, 0px))" : "32px" }}
         aria-label="Create event"
       >
         <Plus className="w-5 h-5 text-white" strokeWidth={2} />
