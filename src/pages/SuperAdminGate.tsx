@@ -36,7 +36,7 @@ export default function SuperAdminGate({ children }: { children: ReactNode }) {
     });
 
     Promise.race([rolePromise, timeoutPromise])
-      .then((result: any) => {
+      .then((result: { data?: unknown }) => {
         if (cancelled) return;
         setIsSuperAdmin(Boolean(result?.data));
       })
