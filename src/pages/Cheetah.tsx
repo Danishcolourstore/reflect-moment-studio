@@ -291,6 +291,14 @@ python3 bridge.py
       </div>
 
       <div className="p-5">
+        {tab === 'upload' && (
+          <CheetahQuickUpload
+            uploadEndpoint={uploadEndpoint}
+            sessionCode={session.session_code}
+            uploadToken={session.upload_token}
+            isLive={session.is_live}
+          />
+        )}
         {tab === 'https' && (
           <div className="space-y-4">
             <p className="text-[12px] text-[var(--ink)] leading-relaxed">
