@@ -15,17 +15,35 @@ interface Tab {
   key: TabKey;
   title: string;
   icon: typeof Calendar;
-  url?: string;            // simple navigation
+  url?: string;
   match?: (path: string) => boolean;
   center?: boolean;
 }
 
 const TABS: Tab[] = [
-  { key: "events", title: "Events", icon: Calendar, url: "/dashboard/events", match: (p) => p.startsWith("/dashboard/events") },
-  { key: "cheetah", title: "Cheetah", icon: Zap, url: "/dashboard/cheetah", match: (p) => p.startsWith("/dashboard/cheetah") || p === "/cheetah" },
+  {
+    key: "events",
+    title: "Events",
+    icon: Calendar,
+    url: "/dashboard/events",
+    match: (p) => p.startsWith("/dashboard/events"),
+  },
+  {
+    key: "cheetah",
+    title: "Cheetah",
+    icon: Zap,
+    url: "/dashboard/cheetah",
+    match: (p) => p.startsWith("/dashboard/cheetah") || p === "/cheetah",
+  },
   { key: "gallery", title: "Gallery", icon: Plus, center: true },
-  { key: "daan", title: "Daan", icon: Sparkles },
-  { key: "more", title: "More", icon: MoreHorizontal },
+  { key: "daan", title: "Daan", icon: Sparkles, url: "/daan", match: (p) => p.startsWith("/daan") },
+  {
+    key: "more",
+    title: "More",
+    icon: MoreHorizontal,
+    url: "/dashboard/more",
+    match: (p) => p.startsWith("/dashboard/more"),
+  },
 ];
 
 const ACTIVE = "hsl(var(--primary))";
@@ -33,7 +51,6 @@ const MUTED = "hsl(var(--muted-foreground))";
 const RULE = "hsl(var(--border))";
 const WASH = "hsl(var(--secondary))";
 const PAPER = "hsl(var(--background))";
-const ACTIVE_INK = "hsl(var(--primary-foreground))";
 
 export function MobileBottomNav() {
   const { isMobile } = useViewMode();
@@ -58,11 +75,11 @@ export function MobileBottomNav() {
       return;
     }
     if (tab.key === "daan") {
-      openBot();
+      navigate("/daan");
       return;
     }
     if (tab.key === "more") {
-      drawer.toggle();
+      navigate("/dashboard/more");
       return;
     }
     if (tab.url) navigate(tab.url);
@@ -186,10 +203,9 @@ export function MobileBottomNav() {
         })}
       </nav>
 
-      {/* More drawer — owned by the bottom nav so it works on every screen */}
+      {/* Drawer still available for hamburger menu triggers on other pages */}
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
-      {/* Create Event modal — center + button */}
       {createOpen && (
         <Suspense fallback={null}>
           <CreateEventModal
