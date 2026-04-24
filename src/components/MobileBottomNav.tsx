@@ -1,19 +1,21 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { CalendarDays, Image, Grid3X3, Users, Plus, BookOpen } from "lucide-react";
+import { CalendarDays, Image, Grid3X3, MoreHorizontal, Plus, BookOpen } from "lucide-react";
 
 const TABS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
   { title: "Grid", url: "/builder-test", icon: Grid3X3 },
   { title: "Gallery", url: "/home", icon: Image, center: true },
-  { title: "Album Builder", url: "/dashboard/album-designer", icon: BookOpen },
-  { title: "Clients", url: "/dashboard/clients", icon: Users },
+  { title: "Album", url: "/dashboard/album-designer", icon: BookOpen },
+  { title: "More", url: "/dashboard/more", icon: MoreHorizontal },
 ];
 
-const GOLD = "hsl(0, 0%, 10%)";
-const INK_MUTED = "hsl(0, 0%, 43%)";
-const RULE = "hsl(40, 12%, 90%)";
-const WASH = "hsl(45, 12%, 95%)";
+const ACTIVE = "hsl(var(--primary))";
+const MUTED = "hsl(var(--muted-foreground))";
+const RULE = "hsl(var(--border))";
+const WASH = "hsl(var(--secondary))";
+const PAPER = "hsl(var(--background))";
+const ACTIVE_INK = "hsl(var(--primary-foreground))";
 
 export function MobileBottomNav() {
   const { isMobile } = useViewMode();
@@ -35,7 +37,7 @@ export function MobileBottomNav() {
         right: 0,
         bottom: 0,
         zIndex: 60,
-        background: "hsla(45, 14%, 97%, 0.85)",
+        background: `color-mix(in hsl, ${PAPER} 86%, transparent)`,
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         borderTop: `1px solid ${RULE}`,
@@ -50,7 +52,7 @@ export function MobileBottomNav() {
         const active = i === activeIndex;
         const Icon = tab.icon;
         const isCenter = tab.center;
-        const color = active ? GOLD : INK_MUTED;
+        const color = active ? ACTIVE : MUTED;
 
         if (isCenter) {
           return (
@@ -76,14 +78,14 @@ export function MobileBottomNav() {
                   width: 34,
                   height: 34,
                   borderRadius: "50%",
-                  background: active ? GOLD : WASH,
+                  background: active ? ACTIVE : WASH,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   transition: "background 120ms cubic-bezier(0.4,0,0.2,1)",
                 }}
               >
-                <Plus size={18} strokeWidth={1.75} style={{ color: active ? "hsl(60, 14%, 98%)" : INK_MUTED }} />
+                <Plus size={18} strokeWidth={1.75} style={{ color: active ? ACTIVE_INK : MUTED }} />
               </div>
               <span
                 style={{
