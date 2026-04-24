@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getCachedPhotos, setCachedPhotos, invalidatePhotoCache } from '@/lib/photo-cache';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfinitePhotos } from '@/hooks/use-infinite-photos';
 import { ProgressiveImage } from '@/components/ProgressiveImage';
 // MinimalPortfolioLayout removed
@@ -50,8 +49,11 @@ const MinimalPortfolioLayout = (_props: any) => null;
 interface Photo {
   id: string;
   url: string;
+  storage_path: string | null;
   file_name: string | null;
+  file_size: number | null;
   section: string | null;
+  sort_order: number | null;
   created_at: string;
 }
 
@@ -61,7 +63,7 @@ interface EventData {
   slug: string;
   event_date: string;
   cover_url: string | null;
-  gallery_pin: string | null;
+  gallery_pin: string | boolean | null;
   downloads_enabled: boolean;
   download_resolution: string;
   watermark_enabled: boolean;
@@ -73,7 +75,7 @@ interface EventData {
   download_requires_password: boolean;
   download_password: string | null;
   selection_mode_enabled: boolean;
-  gallery_password: string | null;
+  gallery_password: string | boolean | null;
   hero_couple_name?: string | null;
   hero_subtitle?: string | null;
   hero_button_label?: string | null;
@@ -264,6 +266,7 @@ function PhotoCard({
 const PublicGallery = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
   const [event, setEvent] = useState<EventData | null>(null);
@@ -320,12 +323,16 @@ const PublicGallery = () => {
   const fetchGallery = useCallback(async () => {
     if (!slug) return;
 
-    const { data } = await (supabase.from('events').select('*') as any)
-      .eq('slug', slug).eq('is_published', true).maybeSingle();
+    // Fetch event + photos via edge function (signed URLs, no direct DB access)
+    const access_token = searchParams.get('token') ?? undefined;
+    const { data: fnData, error: fnError } = await supabase.functions.invoke(
+      'get-gallery-photos',
+      { body: { event_slug: slug, ...(access_token ? { access_token } : {}) } },
+    );
 
-    if (!data) { setNotFound(true); setLoading(false); return; }
+    if (fnError || !fnData?.success) { setNotFound(true); setLoading(false); return; }
 
-    const ev = data as unknown as EventData;
+    const ev = fnData.event as EventData;
     setEvent(ev);
     document.title = `${ev.name} — MirrorAI`;
 
@@ -338,12 +345,19 @@ const PublicGallery = () => {
     }
 
     // Check password gate
-    if ((ev as any).gallery_password) {
+    if (ev.gallery_password) {
       const wasVerified = localStorage.getItem(`mirrorai_gallery_pw_verified_${ev.id}`);
       if (wasVerified !== 'true') {
         setPasswordLocked(true);
       }
     }
+
+    // Map signed_url → url so all downstream code works unchanged
+    const mappedPhotos: Photo[] = (fnData.photos ?? []).map((p: any) => ({
+      ...p,
+      url: p.signed_url ?? p.url,
+    }));
+    setPhotos(mappedPhotos);
 
     // Fetch studio profile
     const { data: profile } = await (supabase.from('profiles')
@@ -356,27 +370,6 @@ const PublicGallery = () => {
       .select('bio, display_name, instagram, website, whatsapp, footer_text, cover_url, font_style, username, heading_font, body_font') as any)
       .eq('user_id', ev.user_id).maybeSingle();
     if (studioExt) setStudioExtended(studioExt as unknown as StudioExtended);
-
-    // Fetch photos — use session cache, paginate past 1000-row limit
-    const cached = getCachedPhotos<Photo[]>(ev.id);
-    if (cached) {
-      setPhotos(cached);
-    } else {
-      let allPhotos: Photo[] = [];
-      let from = 0;
-      const PAGE = 1000;
-      while (true) {
-        const { data: photoData } = await (supabase.from('photos').select('id, url, file_name, section, created_at') as any)
-          .eq('event_id', ev.id).order('sort_order', { ascending: true, nullsFirst: false })
-          .range(from, from + PAGE - 1);
-        if (!photoData || photoData.length === 0) break;
-        allPhotos = allPhotos.concat(photoData as unknown as Photo[]);
-        if (photoData.length < PAGE) break;
-        from += PAGE;
-      }
-      setPhotos(allPhotos);
-      if (allPhotos.length > 0) setCachedPhotos(ev.id, allPhotos);
-    }
 
     // Fetch text blocks
     const { data: tbData } = await (supabase.from('gallery_text_blocks' as any)
@@ -403,7 +396,7 @@ const PublicGallery = () => {
     }
 
     setLoading(false);
-  }, [slug]);
+  }, [slug, searchParams]);
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
   useEffect(() => { if (event?.id) trackView(); }, [event?.id, trackView]);

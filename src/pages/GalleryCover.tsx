@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ interface Event {
   slug: string;
   event_date: string;
   cover_url: string | null;
-  gallery_pin: string | null;
+  gallery_pin: string | boolean | null;
   is_published: boolean;
   gallery_layout: string;
   downloads_enabled: boolean;
@@ -24,6 +24,7 @@ interface Event {
 const GalleryCover = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,31 +38,28 @@ const GalleryCover = () => {
 
   const fetchEvent = useCallback(async () => {
     if (!slug) return;
-    const { data } = await (supabase
-      .from('events')
-      .select('*') as any)
-      .eq('slug', slug)
-      .eq('is_published', true)
-      .maybeSingle();
 
-    if (!data) {
+    const access_token = searchParams.get('token') ?? undefined;
+    const { data, error } = await supabase.functions.invoke('get-gallery-photos', {
+      body: { event_slug: slug, ...(access_token ? { access_token } : {}) },
+    });
+
+    if (error || !data?.success) {
       setNotFound(true);
       setLoading(false);
       return;
     }
 
-    const ev = data as unknown as Event;
+    const ev = data.event as Event;
     setEvent(ev);
 
-    // Check PIN gate — we no longer have access to the plaintext PIN client-side.
-    // We only know the user previously verified successfully if the marker exists.
     if (ev.gallery_pin) {
       const verified = localStorage.getItem(`mirrorai_pin_${ev.id}`) === '1';
       setPinRequired(!verified);
     }
 
     setLoading(false);
-  }, [slug]);
+  }, [slug, searchParams]);
 
   useEffect(() => { fetchEvent(); }, [fetchEvent]);
 
