@@ -22,7 +22,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { key: "events", title: "Events", icon: Calendar, url: "/dashboard/events", match: (p) => p.startsWith("/dashboard/events") },
-  { key: "cheetah", title: "Cheetah", icon: Zap, url: "/cheetah", match: (p) => p === "/cheetah" || p.startsWith("/cheetah/") },
+  { key: "cheetah", title: "Cheetah", icon: Zap, url: "/dashboard/cheetah", match: (p) => p.startsWith("/dashboard/cheetah") || p === "/cheetah" },
   { key: "gallery", title: "Gallery", icon: Plus, center: true },
   { key: "daan", title: "Daan", icon: Sparkles },
   { key: "more", title: "More", icon: MoreHorizontal },
