@@ -155,7 +155,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
             className="flex items-center justify-between shrink-0 relative"
             style={{
               height: 56,
-              paddingLeft: 20,
+              paddingLeft: isMobile && embedded ? 60 : 20,
               paddingRight: 8,
               borderBottom: '1px solid rgba(200,169,126,0.06)',
               paddingTop: isMobile ? 'env(safe-area-inset-top, 0px)' : 0,
