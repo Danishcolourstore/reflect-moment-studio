@@ -46,15 +46,14 @@ export const useGuestFinder = (eventId: string, qrAccessId: string) => {
 
       if (result?.engine) setEngine(result.engine);
 
-      // Poll for results
+      // Poll for results via security-definer RPC (anonymous reads on guest_selfies are blocked).
       let pollActive = true;
       const poll = setInterval(async () => {
         if (!pollActive) return;
-        const { data } = await (supabase
-          .from('guest_selfies' as any)
-          .select('processing_status, match_results')
-          .eq('id', selfie.id)
-          .single() as any);
+        const { data: rows } = await (supabase.rpc as any)('get_guest_selfie_status', {
+          _selfie_id: selfie.id,
+        });
+        const data = Array.isArray(rows) ? rows[0] : rows;
         if (data?.processing_status === 'completed') {
           clearInterval(poll);
           pollActive = false;

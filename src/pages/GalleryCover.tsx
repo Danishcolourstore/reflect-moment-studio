@@ -53,14 +53,11 @@ const GalleryCover = () => {
     const ev = data as unknown as Event;
     setEvent(ev);
 
-    // Check password gate
+    // Check PIN gate — we no longer have access to the plaintext PIN client-side.
+    // We only know the user previously verified successfully if the marker exists.
     if (ev.gallery_pin) {
-      const storedPin = localStorage.getItem(`mirrorai_pin_${ev.id}`);
-      if (storedPin === ev.gallery_pin) {
-        setPinRequired(false);
-      } else {
-        setPinRequired(true);
-      }
+      const verified = localStorage.getItem(`mirrorai_pin_${ev.id}`) === '1';
+      setPinRequired(!verified);
     }
 
     setLoading(false);
@@ -68,11 +65,17 @@ const GalleryCover = () => {
 
   useEffect(() => { fetchEvent(); }, [fetchEvent]);
 
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!event) return;
-    if (pinInput === event.gallery_pin) {
-      localStorage.setItem(`mirrorai_pin_${event.id}`, pinInput);
+    // Server-side verification — never compare PINs client-side.
+    const { data } = await (supabase.rpc as any)('verify_gallery_pin', {
+      event_id: event.id,
+      pin_input: pinInput,
+    });
+    if (data?.valid) {
+      localStorage.setItem(`mirrorai_pin_${event.id}`, '1');
+      if (data.token) localStorage.setItem(`mirrorai_pin_token_${event.id}`, data.token);
       setPinRequired(false);
       setPinError(false);
     } else {

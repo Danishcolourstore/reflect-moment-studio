@@ -91,13 +91,12 @@ export function FindMyPhotosModal({
         body: { selfieId: selfie.id, eventId },
       });
 
-      // Poll for results
+      // Poll for results via security-definer RPC (anonymous reads on guest_selfies are blocked).
       const poll = setInterval(async () => {
-        const { data } = await (supabase
-          .from('guest_selfies' as any)
-          .select('processing_status, match_results')
-          .eq('id', selfie.id)
-          .single() as any);
+        const { data: rows } = await (supabase.rpc as any)('get_guest_selfie_status', {
+          _selfie_id: selfie.id,
+        });
+        const data = Array.isArray(rows) ? rows[0] : rows;
 
         if (data?.processing_status === 'completed') {
           clearInterval(poll);
