@@ -73,7 +73,7 @@ export default function AlbumDesigner() {
   useEffect(() => { fetchAlbums(); }, [fetchAlbums]);
 
   const handleCreate = async (data: {
-    name: string; size: AlbumSize; leafCount: number; coverType: CoverType;
+    name: string; size: AlbumSize; leafCount: number; coverType: CoverType; files: File[];
   }) => {
     if (!user) return;
     setCreating(true);
@@ -106,10 +106,24 @@ export default function AlbumDesigner() {
     const { error: pagesError } = await supabase.from("album_pages").insert(pages);
     if (pagesError) console.error("Failed to create pages:", pagesError);
 
+    if (data.files.length > 0) {
+      let uploaded = 0;
+      for (const file of data.files) {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+        const path = `${user.id}/${album.id}/${Date.now()}-${uploaded}-${safeName}`;
+        const { error: uploadError } = await supabase.storage
+          .from("gallery-photos")
+          .upload(path, file, { contentType: file.type });
+        if (!uploadError) uploaded++;
+      }
+      if (uploaded > 0) toast.success(`${uploaded} photos added to album`);
+    }
+
     toast.success(`Album "${data.name}" created with ${data.leafCount} leaves`);
     setCreating(false);
     setWizardOpen(false);
     fetchAlbums();
+    navigate(`/dashboard/album-designer/${album.id}/editor`);
   };
 
   const handleDuplicate = async (album: AlbumRow) => {
