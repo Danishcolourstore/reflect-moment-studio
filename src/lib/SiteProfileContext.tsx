@@ -27,11 +27,11 @@ export function SiteProfileProvider({ children }: { children: ReactNode }) {
 
     const load = async () => {
       const [profileRes, domainsRes] = await Promise.all([
-        (supabase.from("public_profile_watermarks" as any).select("*").eq("user_id", siteOwnerId).maybeSingle() as any),
+        (supabase.rpc as any)("get_public_profile_watermark", { p_user_id: siteOwnerId }),
         (supabase.from("domains").select("*").eq("user_id", siteOwnerId) as any),
       ]);
 
-      setProfile(profileRes.data);
+      setProfile(Array.isArray(profileRes.data) ? profileRes.data[0] ?? null : null);
 
       const allDomains = (domainsRes.data || []) as any[];
       const primaryRow = allDomains.find((d: any) => d.is_primary);
