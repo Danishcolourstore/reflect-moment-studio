@@ -126,27 +126,45 @@ export function LazyImage({
       )}
 
       {/* Full resolution image */}
-      {inView && resolvedSrc && (
-        <img
-          {...imgProps}
-          src={resolvedSrc}
-          alt={alt}
-          width={typeof width === "number" ? width : undefined}
-          height={typeof height === "number" ? height : undefined}
-          onLoad={handleLoad}
-          className={imgClassName}
-          style={{
-            display: "block",
-            width: "100%",
-            height: "100%",
-            objectFit,
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 0.5s ease",
-            borderRadius,
-            ...imgStyle,
-          }}
-        />
-      )}
+      {inView && resolvedSrc && (() => {
+        // Responsive variants only apply to direct Supabase public URLs.
+        // Signed URLs (StorageRef) skip transforms — the URL is already pinned.
+        const isStringSrc = typeof src === 'string';
+        const enableResponsive = responsive !== 'none' && isStringSrc;
+        const displaySrc = variant && isStringSrc
+          ? getOptimizedUrl(resolvedSrc, variant)
+          : resolvedSrc;
+        const srcSet = enableResponsive ? getImageSrcSet(resolvedSrc) : undefined;
+        const sizes = enableResponsive
+          ? getImageSizes(responsive === 'none' ? 'grid' : responsive)
+          : undefined;
+
+        return (
+          <img
+            {...imgProps}
+            src={displaySrc}
+            srcSet={srcSet}
+            sizes={sizes}
+            alt={alt}
+            width={typeof width === "number" ? width : undefined}
+            height={typeof height === "number" ? height : undefined}
+            loading={imgProps.loading ?? "lazy"}
+            decoding={imgProps.decoding ?? "async"}
+            onLoad={handleLoad}
+            className={imgClassName}
+            style={{
+              display: "block",
+              width: "100%",
+              height: "100%",
+              objectFit,
+              opacity: loaded ? 1 : 0,
+              transition: "opacity 0.5s ease",
+              borderRadius,
+              ...imgStyle,
+            }}
+          />
+        );
+      })()}
 
       {/* Shimmer skeleton while not loaded */}
       {!loaded && (
