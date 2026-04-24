@@ -35,7 +35,8 @@ export function EntiranButton({ onClick, unreadCount }: EntiranButtonProps) {
       className="fixed"
       style={{
         bottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom, 0px))' : 28,
-        right: isMobile ? 16 : 28,
+        left: isMobile ? 16 : undefined,
+        right: isMobile ? undefined : 28,
         zIndex: 10001,
       }}
     >
