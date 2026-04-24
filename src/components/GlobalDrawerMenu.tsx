@@ -243,7 +243,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
         {/* Bottom section */}
         <div
           style={{
-            borderTop: "1px solid #F0EDE8",
+            borderTop: `1px solid ${RULE}`,
             paddingTop: 20,
             paddingBottom: 32,
             paddingLeft: 28,
@@ -260,14 +260,14 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
               letterSpacing: "0.14em",
-              color: "#1A1A1A",
+              color: INK,
               textTransform: "uppercase",
               fontWeight: 400,
               padding: 0,
               marginBottom: 8,
             }}
           >
-            Colour Store
+            Website Editor
           </button>
           <button
             onClick={handleSignOut}
@@ -278,7 +278,7 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
-              color: "#C0C0C0",
+              color: WHISPER,
               fontWeight: 400,
               padding: 0,
             }}
