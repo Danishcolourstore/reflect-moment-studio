@@ -408,8 +408,16 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
   );
 
   if (embedded) {
+    // On mobile, use full dynamic viewport (no dashboard chrome around us).
+    // On desktop, leave room for the dashboard header (~88px).
+    const embeddedHeight = isMobile ? '100dvh' : 'calc(100dvh - 88px)';
     return (
-      <div className="h-[calc(100dvh-88px)] min-h-[560px] overflow-hidden" role="region" aria-label="Daan">
+      <div
+        className="overflow-hidden"
+        style={{ height: embeddedHeight, minHeight: isMobile ? undefined : 560 }}
+        role="region"
+        aria-label="Daan"
+      >
         {chatUI}
       </div>
     );
