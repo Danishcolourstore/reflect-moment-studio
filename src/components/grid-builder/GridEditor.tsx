@@ -93,6 +93,10 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [showIgPreview, setShowIgPreview] = useState(false);
   const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
   const gridRef = useRef<HTMLDivElement>(null);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
+  const toolPanelRef = useRef<HTMLDivElement>(null);
+  const [bottomBarH, setBottomBarH] = useState(96);
+  const [toolPanelH, setToolPanelH] = useState(0);
 
   // ─── Undo/Redo History ───
   const MAX_HISTORY = 30;
@@ -219,6 +223,23 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [undo, redo, selectedTextId, selectedElementId, logoSelected, logo]);
+
+  // Measure bottom bar + tool panel so canvas can reserve space and never be hidden
+  useEffect(() => {
+    const measure = () => {
+      if (bottomBarRef.current) setBottomBarH(bottomBarRef.current.offsetHeight);
+      setToolPanelH(toolPanelRef.current?.offsetHeight ?? 0);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (bottomBarRef.current) ro.observe(bottomBarRef.current);
+    if (toolPanelRef.current) ro.observe(toolPanelRef.current);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [activeTool]);
 
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
 
@@ -491,14 +512,20 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         </div>
       </header>
 
-      {/* ─── Canvas Area (FIXED: overflow-y-auto) ─── */}
+      {/* ─── Canvas Area — reserves space for bottom bar + tool panel so canvas stays fully visible ─── */}
       <div
-        className={cn("flex-1 overflow-y-auto flex items-center justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
+        className={cn("flex-1 overflow-y-auto flex items-start justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
+        style={{
+          paddingBottom: `calc(${bottomBarH + toolPanelH + 16}px + env(safe-area-inset-bottom, 0px))`,
+        }}
         onClick={deselectAll}
       >
         <div
           ref={gridRef}
-          className="w-full max-w-[420px] rounded-xl overflow-hidden relative"
+          className={cn(
+            "w-full rounded-xl overflow-hidden relative my-auto",
+            isMobile ? "max-w-[420px]" : "max-w-[560px]",
+          )}
           style={{
             aspectRatio: canvasRatio,
             background: canvasBg,
@@ -614,20 +641,30 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         </div>
       </div>
 
-      {/* ─── Tool Panel (slides up from bottom with drag handle) ─── */}
-      <div className="fixed bottom-[52px] left-0 right-0 z-30">
+      {/* ─── Tool Panel — anchored above measured bottom-bar height (not hardcoded) ─── */}
+      <div
+        className="fixed left-0 right-0 z-30"
+        style={{ bottom: bottomBarH }}
+      >
         {activeTool && (
           <div
+            ref={toolPanelRef}
             style={{
               transform: panelDragY > 0 ? `translateY(${panelDragY}px)` : "translateY(0)",
               opacity: panelDragY > 60 ? 0.5 : 1,
               transition: panelDragY > 0 ? "none" : "transform 200ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease",
               animation: "slideUp 200ms cubic-bezier(0.4,0,0.2,1)",
+              maxHeight: "55vh",
+              overflowY: "auto",
+              background: "hsl(var(--card))",
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              boxShadow: "0 -8px 24px -12px rgba(0,0,0,0.18)",
             }}
           >
             {/* Drag handle pill */}
             <div
-              className="flex justify-center py-2 bg-card border-t border-border/60 cursor-grab active:cursor-grabbing rounded-t-2xl"
+              className="flex justify-center py-2 border-b border-border/40 cursor-grab active:cursor-grabbing sticky top-0 bg-card z-[1]"
               onTouchStart={handlePanelDragStart}
               onTouchMove={handlePanelDragMove}
               onTouchEnd={handlePanelDragEnd}
@@ -658,7 +695,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               <LogoToolbar logo={logo} onAddLogo={handleAddLogo} onUpdateLogo={handleUpdateLogo} />
             )}
             {activeTool === "caption" && (
-              <div className="max-h-[50vh] overflow-y-auto bg-card border-t border-border px-3 py-2">
+              <div className="px-3 py-2">
                 <AICaptionGenerator photoCount={filledCount} onClose={() => setActiveTool(null)} />
               </div>
             )}
@@ -666,9 +703,10 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         )}
       </div>
 
-      {/* ─── Bottom Bar (FIXED: proper padding and overflow) ─── */}
+      {/* ─── Bottom Bar — auto-height so export row is always visible ─── */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60 overflow-y-auto max-h-[52px]"
+        ref={bottomBarRef}
+        className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60"
         style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom, 8px))" }}
       >
         <div className="max-w-[480px] mx-auto">
