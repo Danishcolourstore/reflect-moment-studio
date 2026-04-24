@@ -1,38 +1,54 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { useDeviceDetect } from '@/hooks/use-device-detect';
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useDeviceDetect } from "@/hooks/use-device-detect";
 import {
-  ArrowLeft, RotateCcw, Type, Shapes, Palette, Stamp, Instagram,
-  MessageSquare, Eye, Download, GripHorizontal, Undo2, Redo2,
-} from 'lucide-react';
-import AICaptionGenerator from './AICaptionGenerator';
-import InstagramCarouselPreview from './InstagramCarouselPreview';
-import type { GridLayout, GridCellData, CanvasFormat } from './types';
-import { createCellsForLayout, CANVAS_FORMATS } from './types';
-import type { TextLayer } from './text-overlay-types';
-import { GOOGLE_FONTS_URL } from './text-overlay-types';
-import { preloadCommonFonts } from './font-library';
-import type { DesignElement } from './element-types';
-import type { LogoLayer } from './LogoOverlay';
-import { BackgroundStyle, DEFAULT_BG, bgToCss } from './BackgroundStyler';
-import GridCell from './GridCell';
-import TextOverlay from './TextOverlay';
-import TextToolbar from './TextToolbar';
-import ElementOverlay from './ElementOverlay';
-import ElementToolbar from './ElementToolbar';
-import SafeAreaGuides from './SafeAreaGuides';
-import BackgroundStyler from './BackgroundStyler';
-import LogoOverlayComponent from './LogoOverlay';
-import LogoToolbar from './LogoToolbar';
-import SmartFillUploader from './SmartFillUploader';
-import DownloadGridButton from './DownloadGridButton';
-import CarouselExporter from './CarouselExporter';
-import CarouselSliceExporter from './CarouselSliceExporter';
-import { cn } from '@/lib/utils';
-import { memo } from 'react';
+  ArrowLeft,
+  RotateCcw,
+  Type,
+  Shapes,
+  Palette,
+  Stamp,
+  Instagram,
+  MessageSquare,
+  Eye,
+  Download,
+  GripHorizontal,
+  Undo2,
+  Redo2,
+} from "lucide-react";
+import AICaptionGenerator from "./AICaptionGenerator";
+import InstagramCarouselPreview from "./InstagramCarouselPreview";
+import type { GridLayout, GridCellData, CanvasFormat } from "./types";
+import { createCellsForLayout, CANVAS_FORMATS } from "./types";
+import type { TextLayer } from "./text-overlay-types";
+import { GOOGLE_FONTS_URL } from "./text-overlay-types";
+import { preloadCommonFonts } from "./font-library";
+import type { DesignElement } from "./element-types";
+import type { LogoLayer } from "./LogoOverlay";
+import { BackgroundStyle, DEFAULT_BG, bgToCss } from "./BackgroundStyler";
+import GridCell from "./GridCell";
+import TextOverlay from "./TextOverlay";
+import TextToolbar from "./TextToolbar";
+import ElementOverlay from "./ElementOverlay";
+import ElementToolbar from "./ElementToolbar";
+import SafeAreaGuides from "./SafeAreaGuides";
+import BackgroundStyler from "./BackgroundStyler";
+import LogoOverlayComponent from "./LogoOverlay";
+import LogoToolbar from "./LogoToolbar";
+import SmartFillUploader from "./SmartFillUploader";
+import DownloadGridButton from "./DownloadGridButton";
+import CarouselExporter from "./CarouselExporter";
+import CarouselSliceExporter from "./CarouselSliceExporter";
+import { cn } from "@/lib/utils";
+import { memo } from "react";
 
 /** Stable-callback wrapper so GridCell memo isn't defeated by inline closures */
 const MemoGridCellWrapper = memo(function MemoGridCellWrapper({
-  cell, index, area, onImageAdd, onImageRemove, onOffsetChange,
+  cell,
+  index,
+  area,
+  onImageAdd,
+  onImageRemove,
+  onOffsetChange,
 }: {
   cell: GridCellData;
   index: number;
@@ -43,9 +59,14 @@ const MemoGridCellWrapper = memo(function MemoGridCellWrapper({
 }) {
   const addCb = useCallback((f: File) => onImageAdd(index, f), [index, onImageAdd]);
   const removeCb = useCallback(() => onImageRemove(index), [index, onImageRemove]);
-  const offsetCb = useCallback((x: number, y: number, scale?: number) => onOffsetChange(index, x, y, scale), [index, onOffsetChange]);
+  const offsetCb = useCallback(
+    (x: number, y: number, scale?: number) => onOffsetChange(index, x, y, scale),
+    [index, onOffsetChange],
+  );
   const gridArea = `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`;
-  return <GridCell cell={cell} gridArea={gridArea} onImageAdd={addCb} onImageRemove={removeCb} onOffsetChange={offsetCb} />;
+  return (
+    <GridCell cell={cell} gridArea={gridArea} onImageAdd={addCb} onImageRemove={removeCb} onOffsetChange={offsetCb} />
+  );
 });
 
 interface Props {
@@ -54,7 +75,7 @@ interface Props {
   initialTextLayers?: TextLayer[];
 }
 
-type ActiveTool = 'text' | 'elements' | 'background' | 'logo' | 'caption' | null;
+type ActiveTool = "text" | "elements" | "background" | "logo" | "caption" | null;
 
 export default function GridEditor({ layout, onBack, initialTextLayers = [] }: Props) {
   const device = useDeviceDetect();
@@ -75,22 +96,24 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
 
   // ─── Undo/Redo History ───
   const MAX_HISTORY = 30;
-  const historyRef = useRef<Array<{
-    cells: GridCellData[];
-    textLayers: TextLayer[];
-    elements: DesignElement[];
-    logo: LogoLayer | null;
-    background: BackgroundStyle;
-  }>>([]);
+  const historyRef = useRef<
+    Array<{
+      cells: GridCellData[];
+      textLayers: TextLayer[];
+      elements: DesignElement[];
+      logo: LogoLayer | null;
+      background: BackgroundStyle;
+    }>
+  >([]);
   const historyIndexRef = useRef(-1);
   const isUndoRedoRef = useRef(false);
 
   const pushHistory = useCallback(() => {
     if (isUndoRedoRef.current) return;
     const snapshot = {
-      cells: cells.map(c => ({ ...c })),
-      textLayers: textLayers.map(t => ({ ...t })),
-      elements: elements.map(e => ({ ...e })),
+      cells: cells.map((c) => ({ ...c })),
+      textLayers: textLayers.map((t) => ({ ...t })),
+      elements: elements.map((e) => ({ ...e })),
       logo: logo ? { ...logo } : null,
       background: { ...background },
     };
@@ -109,12 +132,14 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     isUndoRedoRef.current = true;
     historyIndexRef.current -= 1;
     const snapshot = historyRef.current[historyIndexRef.current];
-    setCells(snapshot.cells.map(c => ({ ...c })));
-    setTextLayers(snapshot.textLayers.map(t => ({ ...t })));
-    setElements(snapshot.elements.map(e => ({ ...e })));
+    setCells(snapshot.cells.map((c) => ({ ...c })));
+    setTextLayers(snapshot.textLayers.map((t) => ({ ...t })));
+    setElements(snapshot.elements.map((e) => ({ ...e })));
     setLogo(snapshot.logo ? { ...snapshot.logo } : null);
     setBackground({ ...snapshot.background });
-    setTimeout(() => { isUndoRedoRef.current = false; }, 50);
+    setTimeout(() => {
+      isUndoRedoRef.current = false;
+    }, 50);
   }, []);
 
   const redo = useCallback(() => {
@@ -122,12 +147,14 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     isUndoRedoRef.current = true;
     historyIndexRef.current += 1;
     const snapshot = historyRef.current[historyIndexRef.current];
-    setCells(snapshot.cells.map(c => ({ ...c })));
-    setTextLayers(snapshot.textLayers.map(t => ({ ...t })));
-    setElements(snapshot.elements.map(e => ({ ...e })));
+    setCells(snapshot.cells.map((c) => ({ ...c })));
+    setTextLayers(snapshot.textLayers.map((t) => ({ ...t })));
+    setElements(snapshot.elements.map((e) => ({ ...e })));
     setLogo(snapshot.logo ? { ...snapshot.logo } : null);
     setBackground({ ...snapshot.background });
-    setTimeout(() => { isUndoRedoRef.current = false; }, 50);
+    setTimeout(() => {
+      isUndoRedoRef.current = false;
+    }, 50);
   }, []);
 
   // Push initial state on mount
@@ -140,8 +167,12 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   useEffect(() => {
     if (isUndoRedoRef.current) return;
     if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-    pushTimerRef.current = setTimeout(() => { pushHistory(); }, 500);
-    return () => { if (pushTimerRef.current) clearTimeout(pushTimerRef.current); };
+    pushTimerRef.current = setTimeout(() => {
+      pushHistory();
+    }, 500);
+    return () => {
+      if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+    };
   }, [cells, textLayers, elements, logo, background]);
 
   // Panel drag-to-dismiss
@@ -149,11 +180,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const panelDragStart = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!document.querySelector('link[data-grid-fonts]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
+    if (!document.querySelector("link[data-grid-fonts]")) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
       link.href = GOOGLE_FONTS_URL;
-      link.setAttribute('data-grid-fonts', 'true');
+      link.setAttribute("data-grid-fonts", "true");
       document.head.appendChild(link);
     }
     preloadCommonFonts();
@@ -163,17 +194,30 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
-      if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
-      if ((mod && e.key === 'z' && e.shiftKey) || (mod && e.key === 'y')) { e.preventDefault(); redo(); }
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
-        if (selectedTextId) { e.preventDefault(); deleteTextLayer(selectedTextId); }
-        else if (selectedElementId) { e.preventDefault(); deleteElement(selectedElementId); }
-        else if (logoSelected && logo) { e.preventDefault(); handleDeleteLogo(); }
+      if (mod && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      if ((mod && e.key === "z" && e.shiftKey) || (mod && e.key === "y")) {
+        e.preventDefault();
+        redo();
+      }
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
+        if (selectedTextId) {
+          e.preventDefault();
+          deleteTextLayer(selectedTextId);
+        } else if (selectedElementId) {
+          e.preventDefault();
+          deleteElement(selectedElementId);
+        } else if (logoSelected && logo) {
+          e.preventDefault();
+          handleDeleteLogo();
+        }
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [undo, redo, selectedTextId, selectedElementId, logoSelected, logo]);
 
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
@@ -182,32 +226,43 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     setCells((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
   }, []);
 
-  const handleImageAdd = useCallback((index: number, file: File) => {
-    setCells((prev) => {
-      const old = prev[index];
-      if (old.imageUrl) URL.revokeObjectURL(old.imageUrl);
-      return prev;
-    });
-    const url = fileToUrl(file);
-    updateCell(index, { imageUrl: url, file, offsetX: 0, offsetY: 0, scale: 1 });
-  }, [updateCell]);
+  const handleImageAdd = useCallback(
+    (index: number, file: File) => {
+      setCells((prev) => {
+        const old = prev[index];
+        if (old.imageUrl) URL.revokeObjectURL(old.imageUrl);
+        return prev;
+      });
+      const url = fileToUrl(file);
+      updateCell(index, { imageUrl: url, file, offsetX: 0, offsetY: 0, scale: 1 });
+    },
+    [updateCell],
+  );
 
-  const handleImageRemove = useCallback((index: number) => {
-    setCells((prev) => {
-      const old = prev[index];
-      if (old.imageUrl) URL.revokeObjectURL(old.imageUrl);
-      return prev;
-    });
-    updateCell(index, { imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 });
-  }, [updateCell]);
+  const handleImageRemove = useCallback(
+    (index: number) => {
+      setCells((prev) => {
+        const old = prev[index];
+        if (old.imageUrl) URL.revokeObjectURL(old.imageUrl);
+        return prev;
+      });
+      updateCell(index, { imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 });
+    },
+    [updateCell],
+  );
 
-  const handleOffsetChange = useCallback((index: number, x: number, y: number, scale?: number) => {
-    updateCell(index, { offsetX: x, offsetY: y, ...(scale !== undefined ? { scale } : {}) });
-  }, [updateCell]);
+  const handleOffsetChange = useCallback(
+    (index: number, x: number, y: number, scale?: number) => {
+      updateCell(index, { offsetX: x, offsetY: y, ...(scale !== undefined ? { scale } : {}) });
+    },
+    [updateCell],
+  );
 
   const handleSmartFill = useCallback((files: File[]) => {
     setCells((prev) => {
-      prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
+      prev.forEach((c) => {
+        if (c.imageUrl) URL.revokeObjectURL(c.imageUrl);
+      });
       return prev.map((c, i) => {
         if (i < files.length) {
           return { ...c, imageUrl: fileToUrl(files[i]), file: files[i], offsetX: 0, offsetY: 0, scale: 1 };
@@ -219,7 +274,9 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
 
   const handleReset = useCallback(() => {
     setCells((prev) => {
-      prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
+      prev.forEach((c) => {
+        if (c.imageUrl) URL.revokeObjectURL(c.imageUrl);
+      });
       return createCellsForLayout(layout);
     });
     setTextLayers([]);
@@ -267,16 +324,19 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   }, []);
 
   // Logo handlers
-  const handleAddLogo = useCallback((l: LogoLayer) => {
-    if (logo?.imageUrl) URL.revokeObjectURL(logo.imageUrl);
-    setLogo(l);
-    setLogoSelected(true);
-    setSelectedTextId(null);
-    setSelectedElementId(null);
-  }, [logo]);
+  const handleAddLogo = useCallback(
+    (l: LogoLayer) => {
+      if (logo?.imageUrl) URL.revokeObjectURL(logo.imageUrl);
+      setLogo(l);
+      setLogoSelected(true);
+      setSelectedTextId(null);
+      setSelectedElementId(null);
+    },
+    [logo],
+  );
 
   const handleUpdateLogo = useCallback((patch: Partial<LogoLayer>) => {
-    setLogo((prev) => prev ? { ...prev, ...patch } : prev);
+    setLogo((prev) => (prev ? { ...prev, ...patch } : prev));
   }, []);
 
   const handleDeleteLogo = useCallback(() => {
@@ -296,14 +356,17 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const filledCount = useMemo(() => cells.filter((c) => c.imageUrl).length, [cells]);
   const hasFrame = !!layout.frame;
   const canvasRatio = layout.canvasRatio || format.ratio;
-  const canvasBg = useMemo(() => hasFrame ? layout.frame!.background : bgToCss(background), [hasFrame, layout.frame, background]);
+  const canvasBg = useMemo(
+    () => (hasFrame ? layout.frame!.background : bgToCss(background)),
+    [hasFrame, layout.frame, background],
+  );
 
   const toolButtons: { tool: ActiveTool; Icon: any; label: string }[] = [
-    { tool: 'text', Icon: Type, label: 'Text' },
-    { tool: 'elements', Icon: Shapes, label: 'Shapes' },
-    { tool: 'background', Icon: Palette, label: 'BG' },
-    { tool: 'logo', Icon: Stamp, label: 'Logo' },
-    { tool: 'caption', Icon: MessageSquare, label: 'Caption' },
+    { tool: "text", Icon: Type, label: "Text" },
+    { tool: "elements", Icon: Shapes, label: "Shapes" },
+    { tool: "background", Icon: Palette, label: "BG" },
+    { tool: "logo", Icon: Stamp, label: "Logo" },
+    { tool: "caption", Icon: MessageSquare, label: "Caption" },
   ];
 
   // Panel drag handlers — use refs to avoid re-render during drag
@@ -338,7 +401,9 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground transition-colors group min-h-[44px]"
           >
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span className="text-[11px] tracking-wider uppercase font-medium truncate max-w-[100px]">{layout.name}</span>
+            <span className="text-[11px] tracking-wider uppercase font-medium truncate max-w-[100px]">
+              {layout.name}
+            </span>
           </button>
 
           {/* Format selector with dimensions */}
@@ -349,16 +414,20 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                   key={f.id}
                   onClick={() => setFormat(f)}
                   className={cn(
-                    'rounded-full font-medium tracking-wider transition-all duration-300 flex flex-col items-center leading-tight',
-                    isMobile ? 'px-2.5 py-2 text-[10px] min-h-[36px]' : 'px-2.5 py-1.5 text-[9px]',
+                    "rounded-full font-medium tracking-wider transition-all duration-300 flex flex-col items-center leading-tight",
+                    isMobile ? "px-2.5 py-2 text-[10px] min-h-[36px]" : "px-2.5 py-1.5 text-[9px]",
                     format.id === f.id
-                      ? 'bg-foreground text-background shadow-sm'
-                      : 'text-muted-foreground/60 hover:text-foreground'
+                      ? "bg-foreground text-background shadow-sm"
+                      : "text-muted-foreground/60 hover:text-foreground",
                   )}
                   title={formatDimLabel(f)}
                 >
                   <span>{f.label}</span>
-                  {!isMobile && <span className="text-[7px] opacity-60 tabular-nums">{f.exportWidth}×{f.exportHeight}</span>}
+                  {!isMobile && (
+                    <span className="text-[7px] opacity-60 tabular-nums">
+                      {f.exportWidth}×{f.exportHeight}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -370,9 +439,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               onClick={undo}
               disabled={!canUndo}
               className={cn(
-                'rounded-lg flex items-center justify-center transition-all duration-200',
-                isMobile ? 'h-10 w-10' : 'h-8 w-8',
-                canUndo ? 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50' : 'text-muted-foreground/20 cursor-not-allowed'
+                "rounded-lg flex items-center justify-center transition-all duration-200",
+                isMobile ? "h-10 w-10" : "h-8 w-8",
+                canUndo
+                  ? "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50"
+                  : "text-muted-foreground/20 cursor-not-allowed",
               )}
               title="Undo (Ctrl+Z)"
             >
@@ -382,9 +453,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               onClick={redo}
               disabled={!canRedo}
               className={cn(
-                'rounded-lg flex items-center justify-center transition-all duration-200',
-                isMobile ? 'h-10 w-10' : 'h-8 w-8',
-                canRedo ? 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50' : 'text-muted-foreground/20 cursor-not-allowed'
+                "rounded-lg flex items-center justify-center transition-all duration-200",
+                isMobile ? "h-10 w-10" : "h-8 w-8",
+                canRedo
+                  ? "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50"
+                  : "text-muted-foreground/20 cursor-not-allowed",
               )}
               title="Redo (Ctrl+Shift+Z)"
             >
@@ -393,11 +466,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             <button
               onClick={() => setShowSafeArea(!showSafeArea)}
               className={cn(
-                'rounded-lg flex items-center justify-center transition-all duration-200',
-                isMobile ? 'h-10 w-10' : 'h-8 w-8',
+                "rounded-lg flex items-center justify-center transition-all duration-200",
+                isMobile ? "h-10 w-10" : "h-8 w-8",
                 showSafeArea
-                  ? 'bg-primary/15 text-primary'
-                  : 'text-muted-foreground/50 hover:text-foreground hover:bg-muted/50'
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50",
               )}
               title="Safe Area Guides"
             >
@@ -406,8 +479,8 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             <button
               onClick={handleReset}
               className={cn(
-                'rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200',
-                isMobile ? 'h-10 w-10' : 'h-8 w-8'
+                "rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200",
+                isMobile ? "h-10 w-10" : "h-8 w-8",
               )}
               title="Reset"
             >
@@ -418,9 +491,9 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         </div>
       </header>
 
-      {/* ─── Canvas Area ─── */}
+      {/* ─── Canvas Area (FIXED: overflow-y-auto) ─── */}
       <div
-        className={cn("flex-1 flex items-center justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
+        className={cn("flex-1 overflow-y-auto flex items-center justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
         onClick={deselectAll}
       >
         <div
@@ -429,16 +502,20 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           style={{
             aspectRatio: canvasRatio,
             background: canvasBg,
-            boxShadow: '0 12px 48px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06)',
-            willChange: 'auto',
-            containIntrinsicSize: 'auto',
+            boxShadow: "0 12px 48px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06)",
+            willChange: "auto",
+            containIntrinsicSize: "auto",
           }}
         >
           {/* Grain overlay */}
-          {!hasFrame && background.type === 'grain' && (
-            <div className="absolute inset-0 pointer-events-none opacity-20 z-[1]" style={{
-              backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\' opacity=\'0.5\'/%3E%3C/svg%3E")',
-            }} />
+          {!hasFrame && background.type === "grain" && (
+            <div
+              className="absolute inset-0 pointer-events-none opacity-20 z-[1]"
+              style={{
+                backgroundImage:
+                  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")",
+              }}
+            />
           )}
 
           {/* Frame padding wrapper */}
@@ -447,19 +524,25 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             style={{
               padding: hasFrame
                 ? `${layout.frame!.padding[0]}% ${layout.frame!.padding[1]}% ${layout.frame!.padding[2]}% ${layout.frame!.padding[3]}%`
-                : '3px',
+                : "3px",
             }}
           >
             <div
               className="w-full h-full overflow-hidden relative"
               style={{
-                display: 'grid',
+                display: "grid",
                 gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
                 gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-                gap: hasFrame ? '0px' : '3px',
+                gap: hasFrame ? "0px" : "3px",
                 borderRadius: hasFrame && layout.frame!.imageRadius ? `${layout.frame!.imageRadius}px` : undefined,
-                boxShadow: hasFrame && layout.frame!.shadow ? '0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)' : undefined,
-                border: hasFrame && layout.frame!.borderWidth ? `${layout.frame!.borderWidth}px solid ${layout.frame!.borderColor}` : undefined,
+                boxShadow:
+                  hasFrame && layout.frame!.shadow
+                    ? "0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)"
+                    : undefined,
+                border:
+                  hasFrame && layout.frame!.borderWidth
+                    ? `${layout.frame!.borderWidth}px solid ${layout.frame!.borderColor}`
+                    : undefined,
               }}
             >
               {layout.cells.map((area, i) => (
@@ -484,7 +567,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               selected={el.id === selectedElementId}
               containerRef={gridRef}
               onUpdate={(patch) => updateElement(el.id, patch)}
-              onSelect={() => { setSelectedElementId(el.id); setSelectedTextId(null); setLogoSelected(false); }}
+              onSelect={() => {
+                setSelectedElementId(el.id);
+                setSelectedTextId(null);
+                setLogoSelected(false);
+              }}
               onDelete={() => deleteElement(el.id)}
             />
           ))}
@@ -496,7 +583,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               selected={logoSelected}
               containerRef={gridRef}
               onUpdate={handleUpdateLogo}
-              onSelect={() => { setLogoSelected(true); setSelectedTextId(null); setSelectedElementId(null); }}
+              onSelect={() => {
+                setLogoSelected(true);
+                setSelectedTextId(null);
+                setSelectedElementId(null);
+              }}
               onDelete={handleDeleteLogo}
             />
           )}
@@ -509,7 +600,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               selected={layer.id === selectedTextId}
               containerRef={gridRef}
               onUpdate={(patch) => updateTextLayer(layer.id, patch)}
-              onSelect={() => { setSelectedTextId(layer.id); setSelectedElementId(null); setLogoSelected(false); }}
+              onSelect={() => {
+                setSelectedTextId(layer.id);
+                setSelectedElementId(null);
+                setLogoSelected(false);
+              }}
               onDelete={() => deleteTextLayer(layer.id)}
             />
           ))}
@@ -524,10 +619,10 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         {activeTool && (
           <div
             style={{
-              transform: panelDragY > 0 ? `translateY(${panelDragY}px)` : 'translateY(0)',
+              transform: panelDragY > 0 ? `translateY(${panelDragY}px)` : "translateY(0)",
               opacity: panelDragY > 60 ? 0.5 : 1,
-              transition: panelDragY > 0 ? 'none' : 'transform 200ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease',
-              animation: 'slideUp 200ms cubic-bezier(0.4,0,0.2,1)',
+              transition: panelDragY > 0 ? "none" : "transform 200ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease",
+              animation: "slideUp 200ms cubic-bezier(0.4,0,0.2,1)",
             }}
           >
             {/* Drag handle pill */}
@@ -540,19 +635,29 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               <div className="w-8 h-1 rounded-full bg-muted-foreground/20" />
             </div>
 
-            {activeTool === 'text' && (
-              <TextToolbar layers={textLayers} selectedId={selectedTextId} onAddLayer={addTextLayer} onUpdateLayer={updateTextLayer} />
+            {activeTool === "text" && (
+              <TextToolbar
+                layers={textLayers}
+                selectedId={selectedTextId}
+                onAddLayer={addTextLayer}
+                onUpdateLayer={updateTextLayer}
+              />
             )}
-            {activeTool === 'elements' && (
-              <ElementToolbar elements={elements} selectedId={selectedElementId} onAddElement={addElement} onUpdateElement={updateElement} />
+            {activeTool === "elements" && (
+              <ElementToolbar
+                elements={elements}
+                selectedId={selectedElementId}
+                onAddElement={addElement}
+                onUpdateElement={updateElement}
+              />
             )}
-            {activeTool === 'background' && !hasFrame && (
+            {activeTool === "background" && !hasFrame && (
               <BackgroundStyler value={background} onChange={setBackground} />
             )}
-            {activeTool === 'logo' && (
+            {activeTool === "logo" && (
               <LogoToolbar logo={logo} onAddLogo={handleAddLogo} onUpdateLogo={handleUpdateLogo} />
             )}
-            {activeTool === 'caption' && (
+            {activeTool === "caption" && (
               <div className="max-h-[50vh] overflow-y-auto bg-card border-t border-border px-3 py-2">
                 <AICaptionGenerator photoCount={filledCount} onClose={() => setActiveTool(null)} />
               </div>
@@ -561,10 +666,10 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         )}
       </div>
 
-      {/* ─── Bottom Bar ─── */}
+      {/* ─── Bottom Bar (FIXED: proper padding and overflow) ─── */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60"
-        style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}
+        className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60 overflow-y-auto max-h-[52px]"
+        style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom, 8px))" }}
       >
         <div className="max-w-[480px] mx-auto">
           {/* Tool icons */}
@@ -574,15 +679,15 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                 key={tool}
                 onClick={() => toggleTool(tool)}
                 className={cn(
-                  'flex flex-col items-center gap-0.5 rounded-lg transition-all duration-200 relative active:scale-95',
-                  isMobile ? 'px-3 py-2 min-w-[52px] min-h-[44px]' : 'px-3 py-1.5 min-w-[48px]',
-                  activeTool === tool
-                    ? 'text-primary'
-                    : 'text-muted-foreground/60 hover:text-foreground'
+                  "flex flex-col items-center gap-0.5 rounded-lg transition-all duration-200 relative active:scale-95",
+                  isMobile ? "px-3 py-2 min-w-[52px] min-h-[44px]" : "px-3 py-1.5 min-w-[48px]",
+                  activeTool === tool ? "text-primary" : "text-muted-foreground/60 hover:text-foreground",
                 )}
               >
                 <Icon className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
-                <span className={cn("tracking-wider uppercase font-medium", isMobile ? "text-[9px]" : "text-[8px]")}>{label}</span>
+                <span className={cn("tracking-wider uppercase font-medium", isMobile ? "text-[9px]" : "text-[8px]")}>
+                  {label}
+                </span>
                 {activeTool === tool && (
                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-[2px] rounded-full bg-primary" />
                 )}
@@ -596,18 +701,25 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               onClick={() => filledCount > 0 && setShowIgPreview(true)}
               disabled={filledCount === 0}
               className={cn(
-                'relative flex flex-col items-center gap-0.5 rounded-xl transition-all duration-200 border disabled:opacity-30 active:scale-95',
-                isMobile ? 'px-4 py-2 min-w-[56px] min-h-[44px]' : 'px-4 py-1.5 min-w-[52px]',
+                "relative flex flex-col items-center gap-0.5 rounded-xl transition-all duration-200 border disabled:opacity-30 active:scale-95",
+                isMobile ? "px-4 py-2 min-w-[56px] min-h-[44px]" : "px-4 py-1.5 min-w-[52px]",
                 filledCount > 0
-                  ? 'border-primary/40 bg-primary/10 text-primary shadow-[0_0_10px_-2px_hsl(var(--primary)/0.35)]'
-                  : 'border-transparent text-muted-foreground/60'
+                  ? "border-primary/40 bg-primary/10 text-primary shadow-[0_0_10px_-2px_hsl(var(--primary)/0.35)]"
+                  : "border-transparent text-muted-foreground/60",
               )}
             >
               {filledCount > 0 && (
                 <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]" />
               )}
               <Instagram className={isMobile ? "h-5 w-5" : "h-[18px] w-[18px]"} />
-              <span className={cn("tracking-wider uppercase font-semibold text-primary", isMobile ? "text-[9px]" : "text-[8px]")}>Preview</span>
+              <span
+                className={cn(
+                  "tracking-wider uppercase font-semibold text-primary",
+                  isMobile ? "text-[9px]" : "text-[8px]",
+                )}
+              >
+                Preview
+              </span>
             </button>
           </div>
 
@@ -615,7 +727,16 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           <div className={cn("flex items-center justify-end gap-1.5 px-3 pt-1 pb-1")}>
             <CarouselSliceExporter cells={cells} format={format} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
-            <DownloadGridButton gridRef={gridRef} cells={cells} layout={layout} textLayers={textLayers} elements={elements} logo={logo} background={background} format={format} />
+            <DownloadGridButton
+              gridRef={gridRef}
+              cells={cells}
+              layout={layout}
+              textLayers={textLayers}
+              elements={elements}
+              logo={logo}
+              background={background}
+              format={format}
+            />
           </div>
         </div>
       </div>
