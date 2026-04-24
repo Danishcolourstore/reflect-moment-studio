@@ -1057,6 +1057,7 @@ export type Database = {
           expires_at: string | null
           ftp_host: string | null
           ftp_password: string | null
+          ftp_path: string | null
           ftp_port: number | null
           ftp_username: string | null
           id: string
@@ -1078,6 +1079,7 @@ export type Database = {
           expires_at?: string | null
           ftp_host?: string | null
           ftp_password?: string | null
+          ftp_path?: string | null
           ftp_port?: number | null
           ftp_username?: string | null
           id?: string
@@ -1099,6 +1101,7 @@ export type Database = {
           expires_at?: string | null
           ftp_host?: string | null
           ftp_password?: string | null
+          ftp_path?: string | null
           ftp_port?: number | null
           ftp_username?: string | null
           id?: string
