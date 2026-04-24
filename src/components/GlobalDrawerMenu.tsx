@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { label: "Website", path: "/dashboard/website-builder" },
   { label: "Storybook", path: "/dashboard/storybook" },
   { label: "Album", path: "/dashboard/album-designer" },
+  { label: "Daan", path: "/dashboard/daan" },
   { label: "More", path: "/dashboard/more" },
 ] as const;
 
