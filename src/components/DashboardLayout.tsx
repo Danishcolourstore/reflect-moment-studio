@@ -15,7 +15,6 @@ const STUDIO_ITEMS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
   { title: "Gallery", url: "/home", icon: Image, end: true },
   { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
-  { title: "Daan", url: "/dashboard/daan", icon: Sparkles },
 ];
 
 const ACCOUNT_ITEMS = [

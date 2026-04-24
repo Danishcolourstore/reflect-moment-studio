@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense, useCallback, Component, ReactNode, createContext, useContext } from 'react';
 import { useStudioBrain } from '@/hooks/use-studio-brain';
+import { EntiranButton } from './EntiranButton';
 
 const EntiranPanel = lazy(() =>
   import('./EntiranPanel').then(m => ({ default: m.EntiranPanel }))
@@ -54,6 +55,11 @@ function DaanInner({ children }: { children?: ReactNode }) {
   return (
     <EntiranOpenContext.Provider value={{ openBot: handleOpen }}>
       {children}
+
+      {/* Persistent concierge button — always visible, one obvious home for Daan */}
+      {!open && !showSignature && (
+        <EntiranButton onClick={handleOpen} unreadCount={unreadCount} />
+      )}
 
       {/* Signature first-open experience */}
       {showSignature && !open && (
