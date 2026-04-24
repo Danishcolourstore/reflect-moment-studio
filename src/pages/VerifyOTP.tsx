@@ -3,6 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Phone, MessageCircle, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+type AccessCodeResult = { valid?: boolean; locked?: boolean; retry_after?: number; remaining?: number };
+const verifyAccessCode = supabase.rpc as unknown as (
+  fn: "verify_access_code",
+  args: { code_input: string; subject_input: string },
+) => Promise<{ data: AccessCodeResult | null; error: unknown }>;
+
 const VerifyOTP = () => {
   const navigate = useNavigate();
   const [code, setCode] = useState("");
@@ -21,7 +27,7 @@ const VerifyOTP = () => {
       }
     })();
 
-    const { data, error: verifyError } = await (supabase.rpc as any)("verify_access_code", {
+    const { data, error: verifyError } = await verifyAccessCode("verify_access_code", {
       code_input: code,
       subject_input: subject,
     });
