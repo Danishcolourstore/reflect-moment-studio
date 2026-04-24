@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense, useCallback, Component, ReactNode, createContext, useContext } from 'react';
 import { useStudioBrain } from '@/hooks/use-studio-brain';
+import { EntiranButton } from './EntiranButton';
 
 const EntiranPanel = lazy(() =>
   import('./EntiranPanel').then(m => ({ default: m.EntiranPanel }))
