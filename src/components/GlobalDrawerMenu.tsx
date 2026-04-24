@@ -15,10 +15,11 @@ const NAV_ITEMS = [
   { label: "Home", path: "/home" },
   { label: "Events", path: "/dashboard/events" },
   { divider: true },
-  { label: "Website", path: "/dashboard/website-builder" },
-  { label: "Storybook", path: "/dashboard/storybook" },
+  { label: "Grid", path: "/builder-test" },
   { label: "Album", path: "/dashboard/album-designer" },
-  { label: "Daan", path: "/dashboard/daan" },
+  { label: "Storybook", path: "/dashboard/storybook" },
+  { label: "Website", path: "/dashboard/website-builder" },
+  { divider: true },
   { label: "More", path: "/dashboard/more" },
 ] as const;
 
