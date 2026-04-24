@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, CSSProperties, ImgHTMLAttributes } from "react";
+import { useStorageUrl, type StorageRef } from "@/hooks/use-signed-url";
 
-interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "style"> {
-  src: string;
+interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "style" | "src"> {
+  /** Either a direct URL string OR a {bucket, path, eventId?} reference */
+  src: string | StorageRef;
   alt: string;
   /** Fixed width for CLS prevention */
   width?: number | string;
@@ -20,7 +22,7 @@ interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "styl
   /** className on the img */
   imgClassName?: string;
   /** Use a tiny thumbnail URL for blur-up (optional) */
-  thumbnailSrc?: string;
+  thumbnailSrc?: string | StorageRef;
   /** Border radius */
   borderRadius?: number | string;
   /** Object-fit */
@@ -31,7 +33,10 @@ interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "styl
 
 /**
  * LazyImage — Intersection-observer-based lazy loading with blur-up placeholder.
- * Prevents CLS with aspect-ratio. Matches MirrorAI white editorial style.
+ * Accepts either a direct URL or a {bucket, path} StorageRef. When given a ref
+ * AND VITE_SIGNED_URLS_ENABLED=true, it resolves to a 1h signed URL cached for
+ * 55 minutes. Otherwise falls back to the public URL — zero behavior change
+ * when the flag is off.
  */
 export function LazyImage({
   src,
@@ -50,6 +55,8 @@ export function LazyImage({
   onLoaded,
   ...imgProps
 }: LazyImageProps) {
+  const { url: resolvedSrc } = useStorageUrl(src);
+  const { url: resolvedThumb } = useStorageUrl(thumbnailSrc);
   const [inView, setInView] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [thumbLoaded, setThumbLoaded] = useState(false);
