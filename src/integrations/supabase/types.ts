@@ -4833,39 +4833,6 @@ export type Database = {
         }
         Relationships: []
       }
-      public_profile_watermarks: {
-        Row: {
-          avatar_url: string | null
-          studio_accent_color: string | null
-          studio_logo_url: string | null
-          studio_name: string | null
-          user_id: string | null
-          watermark_opacity: number | null
-          watermark_position: string | null
-          watermark_text: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          studio_accent_color?: string | null
-          studio_logo_url?: string | null
-          studio_name?: string | null
-          user_id?: string | null
-          watermark_opacity?: number | null
-          watermark_position?: string | null
-          watermark_text?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          studio_accent_color?: string | null
-          studio_logo_url?: string | null
-          studio_name?: string | null
-          user_id?: string | null
-          watermark_opacity?: number | null
-          watermark_position?: string | null
-          watermark_text?: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       cheetah_generate_credential: {
@@ -4888,6 +4855,19 @@ export type Database = {
           title: string
           total_photos: number
           updated_at: string
+        }[]
+      }
+      get_public_profile_watermark: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_url: string
+          studio_accent_color: string
+          studio_logo_url: string
+          studio_name: string
+          user_id: string
+          watermark_opacity: number
+          watermark_position: string
+          watermark_text: string
         }[]
       }
       has_role: {
