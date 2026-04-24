@@ -233,17 +233,17 @@ export default function LandingGate() {
             <div className="mt-10 md:mt-12 flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setCreateEventOpen(true)}
-                className="bg-[var(--ink)] text-white border-0 px-6 py-3.5 text-[12px] font-medium tracking-[0.08em] uppercase cursor-pointer hover:opacity-90 transition-opacity"
+                className="flex-1 md:flex-none bg-[var(--ink)] text-white border-0 px-6 py-3.5 text-[12px] font-medium tracking-[0.08em] uppercase cursor-pointer hover:opacity-90 transition-opacity"
               >
                 New event
               </button>
               <button
                 onClick={() => navigate("/dashboard/events")}
-                className="bg-transparent text-[var(--ink)] border border-[var(--rule-strong)] px-6 py-3 text-[12px] font-medium tracking-[0.02em] cursor-pointer hover:border-[var(--ink)] transition-colors"
+                className="flex-1 md:flex-none bg-transparent text-[var(--ink)] border border-[var(--rule-strong)] px-6 py-3 text-[12px] font-medium tracking-[0.02em] cursor-pointer hover:border-[var(--ink)] transition-colors"
               >
                 Open events
               </button>
-              <span className="text-[12px] text-[var(--ink-whisper)]">
+              <span className="hidden md:inline text-[12px] text-[var(--ink-whisper)]">
                 or press <span className="font-mono">⌘ N</span>
               </span>
             </div>
@@ -254,18 +254,15 @@ export default function LandingGate() {
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)] mb-5">
               Today's ritual
             </p>
-            <p className="font-serif italic font-light text-[28px] md:text-[40px] leading-[1.3] tracking-[-0.01em] text-[var(--ink)] max-w-[720px]">
+            <p className="font-serif italic font-light text-[26px] md:text-[40px] leading-[1.3] tracking-[-0.01em] text-[var(--ink)] max-w-[720px]">
               {ritual}
-            </p>
-            <p className="text-[11px] text-[var(--ink-whisper)] tracking-[0.02em] leading-[1.6] mt-4">
-              Tiempos Headline Italic, weight 300. Rendered with Fraunces. First visit of the day.
             </p>
           </div>
 
           {/* ─── FOOTER ──────────────────────────────────────────── */}
           <div className="border-t border-[var(--rule)] px-6 md:px-14 py-8 flex justify-between items-baseline">
             <p className="text-[10px] font-medium tracking-[0.14em] uppercase text-[var(--ink-muted)]">
-              Edition No. 001 · {profileName}
+              {profileName}
             </p>
             <p className="font-serif italic text-[14px] text-[var(--ink-whisper)]">
               Every gallery, a story.
