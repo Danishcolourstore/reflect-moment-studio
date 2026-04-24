@@ -155,7 +155,7 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
             className="flex items-center justify-between shrink-0 relative"
             style={{
               height: 56,
-              paddingLeft: 20,
+              paddingLeft: isMobile && embedded ? 60 : 20,
               paddingRight: 8,
               borderBottom: '1px solid rgba(200,169,126,0.06)',
               paddingTop: isMobile ? 'env(safe-area-inset-top, 0px)' : 0,
@@ -408,8 +408,16 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
   );
 
   if (embedded) {
+    // On mobile, use full dynamic viewport (no dashboard chrome around us).
+    // On desktop, leave room for the dashboard header (~88px).
+    const embeddedHeight = isMobile ? '100dvh' : 'calc(100dvh - 88px)';
     return (
-      <div className="h-[calc(100dvh-88px)] min-h-[560px] overflow-hidden" role="region" aria-label="Daan">
+      <div
+        className="overflow-hidden"
+        style={{ height: embeddedHeight, minHeight: isMobile ? undefined : 560 }}
+        role="region"
+        aria-label="Daan"
+      >
         {chatUI}
       </div>
     );
