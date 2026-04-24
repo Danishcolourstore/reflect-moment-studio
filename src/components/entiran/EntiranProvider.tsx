@@ -1,21 +1,16 @@
-import { useState, useEffect, lazy, Suspense, useCallback, Component, ReactNode, createContext, useContext } from 'react';
+import { useState, useEffect, useCallback, Component, ReactNode, createContext, useContext } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useStudioBrain } from '@/hooks/use-studio-brain';
 import { EntiranButton } from './EntiranButton';
 
-const EntiranPanel = lazy(() =>
-  import('./EntiranPanel').then(m => ({ default: m.EntiranPanel }))
-);
-
-// Context to allow bottom nav to open the bot
+// Context to allow bottom nav (or anything else) to open Daan
 const EntiranOpenContext = createContext<{ openBot: () => void }>({ openBot: () => {} });
 export const useEntiranOpen = () => useContext(EntiranOpenContext);
 
 class DaanErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(err: Error) {
-    console.error('Daan AI failed to initialize.', err);
-  }
+  componentDidCatch(err: Error) { console.error('Daan AI failed to initialize.', err); }
   render() {
     if (this.state.hasError) return null;
     return this.props.children;
@@ -23,10 +18,25 @@ class DaanErrorBoundary extends Component<{ children: ReactNode }, { hasError: b
 }
 
 function DaanInner({ children }: { children?: ReactNode }) {
-  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
   const { unreadCount } = useStudioBrain();
   const [showSignature, setShowSignature] = useState(false);
 
+  const onDaanRoute = location.pathname.startsWith('/daan');
+
+  const handleOpen = useCallback(() => {
+    if (!localStorage.getItem('daan_opened')) {
+      localStorage.setItem('daan_opened', 'true');
+      setShowSignature(true);
+      setTimeout(() => {
+        setShowSignature(false);
+        navigate('/daan');
+      }, 2000);
+    } else {
+      navigate('/daan');
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -37,32 +47,19 @@ function DaanInner({ children }: { children?: ReactNode }) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
-
-  const handleOpen = useCallback(() => {
-    if (!localStorage.getItem('daan_opened')) {
-      localStorage.setItem('daan_opened', 'true');
-      setShowSignature(true);
-      setTimeout(() => {
-        setShowSignature(false);
-        setOpen(true);
-      }, 2400);
-    } else {
-      setOpen(true);
-    }
-  }, []);
+  }, [handleOpen]);
 
   return (
     <EntiranOpenContext.Provider value={{ openBot: handleOpen }}>
       {children}
 
-      {/* Persistent concierge button — always visible, one obvious home for Daan */}
-      {!open && !showSignature && (
+      {/* Persistent concierge button — hidden on Daan route and during signature */}
+      {!onDaanRoute && !showSignature && (
         <EntiranButton onClick={handleOpen} unreadCount={unreadCount} />
       )}
 
-      {/* Signature first-open experience */}
-      {showSignature && !open && (
+      {/* First-open signature splash */}
+      {showSignature && (
         <div
           className="fixed inset-0 flex items-center justify-center"
           style={{ zIndex: 10003, background: 'rgba(10,10,10,0.95)', backdropFilter: 'blur(20px)' }}
@@ -80,15 +77,6 @@ function DaanInner({ children }: { children?: ReactNode }) {
             />
           </div>
         </div>
-      )}
-      {open && (
-        <Suspense fallback={null}>
-          <EntiranPanel
-            open={open}
-            onClose={() => setOpen(false)}
-            pendingSuggestionCount={unreadCount}
-          />
-        </Suspense>
       )}
     </EntiranOpenContext.Provider>
   );

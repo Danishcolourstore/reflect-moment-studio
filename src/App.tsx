@@ -28,6 +28,7 @@ const Billing = lazy(() => import("./pages/Billing"));
 const Clients = lazy(() => import("./pages/Clients"));
 const Cheetah = lazy(() => import("./pages/Cheetah"));
 const CheetahLiveView = lazy(() => import("./pages/CheetahLiveView"));
+const Daan = lazy(() => import("./pages/Daan"));
 const Branding = lazy(() => import("./pages/Branding"));
 const MorePage = lazy(() => import("./pages/MorePage"));
 // BrandEditor, WebsiteEditor, TemplatePreview removed
@@ -518,6 +519,15 @@ const AppRoutes = () => {
             <Route path="/dashboard/cheetah-live" element={<Navigate to="/dashboard/cheetah" replace />} />
             <Route path="/dashboard/cheetah-monitor" element={<Navigate to="/dashboard/cheetah" replace />} />
             <Route path="/live/:code" element={<CheetahLiveView />} />
+            <Route
+              path="/daan"
+              element={
+                <ProtectedRoute>
+                  <Daan />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/dashboard/daan" element={<Navigate to="/daan" replace />} />
             <Route
               path="/dashboard/analytics"
               element={

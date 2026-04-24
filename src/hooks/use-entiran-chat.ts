@@ -409,9 +409,47 @@ export function useEntiranChat() {
       .select('*')
       .eq('conversation_id', convId)
       .order('created_at', { ascending: true })
-      .limit(20) as any;
+      .limit(50) as any;
     setMessages(msgs || []);
   }, []);
+
+  const deleteConversation = useCallback(async (convId: string) => {
+    await supabase.from('entiran_messages').delete().eq('conversation_id', convId) as any;
+    await supabase.from('entiran_conversations').delete().eq('id', convId) as any;
+    setConversationHistory(prev => prev.filter((c: any) => c.id !== convId));
+    if (conversationId === convId) {
+      setConversationId(null);
+      setMessages([]);
+    }
+  }, [conversationId]);
+
+  const refreshHistory = useCallback(async () => {
+    if (!user) return;
+    const { data: historyData } = await supabase
+      .from('entiran_conversations')
+      .select('id, page_context, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(40) as any;
+    if (!historyData) return;
+    const withPreview = await Promise.all(
+      historyData.map(async (conv: any) => {
+        const { data: firstMsg } = await supabase
+          .from('entiran_messages')
+          .select('content,created_at')
+          .eq('conversation_id', conv.id)
+          .eq('role', 'user')
+          .order('created_at', { ascending: true })
+          .limit(1) as any;
+        return {
+          ...conv,
+          preview: firstMsg?.[0]?.content?.slice(0, 60) || 'New conversation',
+          last_message_at: firstMsg?.[0]?.created_at || conv.created_at,
+        };
+      })
+    );
+    setConversationHistory(withPreview);
+  }, [user]);
 
   return {
     messages,
@@ -433,5 +471,7 @@ export function useEntiranChat() {
     clearConversation,
     startNewConversation,
     loadConversation,
+    deleteConversation,
+    refreshHistory,
   };
 }
