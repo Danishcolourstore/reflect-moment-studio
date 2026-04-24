@@ -638,6 +638,7 @@ export type Database = {
       blog_posts: {
         Row: {
           content: string | null
+          cover_storage_path: string | null
           cover_url: string | null
           created_at: string
           id: string
@@ -651,6 +652,7 @@ export type Database = {
         }
         Insert: {
           content?: string | null
+          cover_storage_path?: string | null
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -664,6 +666,7 @@ export type Database = {
         }
         Update: {
           content?: string | null
+          cover_storage_path?: string | null
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -957,11 +960,14 @@ export type Database = {
           file_size: number | null
           id: string
           is_best_in_burst: boolean | null
+          original_storage_path: string | null
           original_url: string
+          preview_storage_path: string | null
           preview_url: string | null
           processed_at: string | null
           session_id: string
           sharpness: number | null
+          thumbnail_storage_path: string | null
           thumbnail_url: string | null
           user_id: string
         }
@@ -981,11 +987,14 @@ export type Database = {
           file_size?: number | null
           id?: string
           is_best_in_burst?: boolean | null
+          original_storage_path?: string | null
           original_url: string
+          preview_storage_path?: string | null
           preview_url?: string | null
           processed_at?: string | null
           session_id: string
           sharpness?: number | null
+          thumbnail_storage_path?: string | null
           thumbnail_url?: string | null
           user_id: string
         }
@@ -1005,11 +1014,14 @@ export type Database = {
           file_size?: number | null
           id?: string
           is_best_in_burst?: boolean | null
+          original_storage_path?: string | null
           original_url?: string
+          preview_storage_path?: string | null
           preview_url?: string | null
           processed_at?: string | null
           session_id?: string
           sharpness?: number | null
+          thumbnail_storage_path?: string | null
           thumbnail_url?: string | null
           user_id?: string
         }
@@ -2107,6 +2119,7 @@ export type Database = {
         Row: {
           allow_favorites_download: boolean
           allow_full_download: boolean
+          cover_storage_path: string | null
           cover_url: string | null
           created_at: string
           download_password: string | null
@@ -2146,6 +2159,7 @@ export type Database = {
         Insert: {
           allow_favorites_download?: boolean
           allow_full_download?: boolean
+          cover_storage_path?: string | null
           cover_url?: string | null
           created_at?: string
           download_password?: string | null
@@ -2185,6 +2199,7 @@ export type Database = {
         Update: {
           allow_favorites_download?: boolean
           allow_full_download?: boolean
+          cover_storage_path?: string | null
           cover_url?: string | null
           created_at?: string
           download_password?: string | null
@@ -2445,6 +2460,48 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gallery_access_tokens: {
+        Row: {
+          created_at: string
+          event_id: string
+          expires_at: string
+          id: string
+          ip_hint: string | null
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          expires_at?: string
+          id?: string
+          ip_hint?: string | null
+          token: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          expires_at?: string
+          id?: string
+          ip_hint?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_access_tokens_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gallery_access_tokens_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
             referencedColumns: ["id"]
           },
         ]
@@ -3505,6 +3562,7 @@ export type Database = {
           is_favorite: boolean
           section: string | null
           sort_order: number | null
+          storage_path: string | null
           url: string
           user_id: string
         }
@@ -3518,6 +3576,7 @@ export type Database = {
           is_favorite?: boolean
           section?: string | null
           sort_order?: number | null
+          storage_path?: string | null
           url: string
           user_id: string
         }
@@ -3531,6 +3590,7 @@ export type Database = {
           is_favorite?: boolean
           section?: string | null
           sort_order?: number | null
+          storage_path?: string | null
           url?: string
           user_id?: string
         }
@@ -3910,6 +3970,7 @@ export type Database = {
       profiles: {
         Row: {
           accent_preference: string | null
+          avatar_storage_path: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
@@ -3920,6 +3981,7 @@ export type Database = {
           plan: string
           storage_limit_mb: number | null
           studio_accent_color: string | null
+          studio_logo_storage_path: string | null
           studio_logo_url: string | null
           studio_name: string
           suspended: boolean
@@ -3932,6 +3994,7 @@ export type Database = {
         }
         Insert: {
           accent_preference?: string | null
+          avatar_storage_path?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -3942,6 +4005,7 @@ export type Database = {
           plan?: string
           storage_limit_mb?: number | null
           studio_accent_color?: string | null
+          studio_logo_storage_path?: string | null
           studio_logo_url?: string | null
           studio_name?: string
           suspended?: boolean
@@ -3954,6 +4018,7 @@ export type Database = {
         }
         Update: {
           accent_preference?: string | null
+          avatar_storage_path?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -3964,6 +4029,7 @@ export type Database = {
           plan?: string
           storage_limit_mb?: number | null
           studio_accent_color?: string | null
+          studio_logo_storage_path?: string | null
           studio_logo_url?: string | null
           studio_name?: string
           suspended?: boolean
@@ -4840,6 +4906,11 @@ export type Database = {
         Returns: string
       }
       cheetah_increment_view: { Args: { p_code: string }; Returns: undefined }
+      cleanup_expired_gallery_tokens: { Args: never; Returns: undefined }
+      extract_storage_path: {
+        Args: { p_bucket: string; p_url: string }
+        Returns: string
+      }
       get_public_cheetah_session: {
         Args: { p_code: string }
         Returns: {
@@ -4880,6 +4951,10 @@ export type Database = {
       update_admin_pin: {
         Args: { new_pin: string; reset_token: string }
         Returns: Json
+      }
+      validate_gallery_token: {
+        Args: { p_event_id: string; p_token: string }
+        Returns: boolean
       }
       verify_access_code: {
         Args: { code_input: string; subject_input?: string }
