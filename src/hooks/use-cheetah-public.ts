@@ -20,12 +20,10 @@ export function useCheetahPublic(code: string | undefined) {
     setError(null);
 
     (async () => {
-      const { data: sess, error: sErr } = await (supabase
-        .from('cheetah_sessions')
-        .select('*') as any)
-        .eq('session_code', code)
-        .eq('is_live', true)
-        .maybeSingle();
+      const { data: sessionRows, error: sErr } = await (supabase.rpc as any)('get_public_cheetah_session', {
+        p_code: code,
+      });
+      const sess = Array.isArray(sessionRows) ? sessionRows[0] : null;
 
       if (!alive) return;
       if (sErr || !sess) {
