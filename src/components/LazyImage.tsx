@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, CSSProperties, ImgHTMLAttributes } from "react";
 import { useStorageUrl, type StorageRef } from "@/hooks/use-signed-url";
+import { getImageSrcSet, getImageSizes, getOptimizedUrl, type ImageSize } from "@/lib/image-utils";
 
 interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "style" | "src"> {
   /** Either a direct URL string OR a {bucket, path, eventId?} reference */
@@ -29,6 +30,10 @@ interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "styl
   objectFit?: CSSProperties["objectFit"];
   /** Callback when image loads */
   onLoaded?: () => void;
+  /** Layout context — drives responsive `sizes` attribute (default 'grid') */
+  responsive?: 'grid' | 'lightbox' | 'hero' | 'none';
+  /** Render a smaller variant by default (e.g. 'thumbnail' for cards) */
+  variant?: ImageSize;
 }
 
 /**
@@ -53,6 +58,8 @@ export function LazyImage({
   borderRadius = 0,
   objectFit = "cover",
   onLoaded,
+  responsive = 'grid',
+  variant,
   ...imgProps
 }: LazyImageProps) {
   const { url: resolvedSrc } = useStorageUrl(src);
@@ -119,27 +126,43 @@ export function LazyImage({
       )}
 
       {/* Full resolution image */}
-      {inView && resolvedSrc && (
-        <img
-          {...imgProps}
-          src={resolvedSrc}
-          alt={alt}
-          width={typeof width === "number" ? width : undefined}
-          height={typeof height === "number" ? height : undefined}
-          onLoad={handleLoad}
-          className={imgClassName}
-          style={{
-            display: "block",
-            width: "100%",
-            height: "100%",
-            objectFit,
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 0.5s ease",
-            borderRadius,
-            ...imgStyle,
-          }}
-        />
-      )}
+      {inView && resolvedSrc && (() => {
+        // Responsive variants only apply to direct Supabase public URLs.
+        // Signed URLs (StorageRef) skip transforms — the URL is already pinned.
+        const isStringSrc = typeof src === 'string';
+        const enableResponsive = responsive !== 'none' && isStringSrc;
+        const displaySrc = variant && isStringSrc
+          ? getOptimizedUrl(resolvedSrc, variant)
+          : resolvedSrc;
+        const srcSet = enableResponsive ? getImageSrcSet(resolvedSrc) : undefined;
+        const sizes = enableResponsive ? getImageSizes(responsive as 'grid' | 'hero' | 'lightbox') : undefined;
+
+        return (
+          <img
+            {...imgProps}
+            src={displaySrc}
+            srcSet={srcSet}
+            sizes={sizes}
+            alt={alt}
+            width={typeof width === "number" ? width : undefined}
+            height={typeof height === "number" ? height : undefined}
+            loading={imgProps.loading ?? "lazy"}
+            decoding={imgProps.decoding ?? "async"}
+            onLoad={handleLoad}
+            className={imgClassName}
+            style={{
+              display: "block",
+              width: "100%",
+              height: "100%",
+              objectFit,
+              opacity: loaded ? 1 : 0,
+              transition: "opacity 0.5s ease",
+              borderRadius,
+              ...imgStyle,
+            }}
+          />
+        );
+      })()}
 
       {/* Shimmer skeleton while not loaded */}
       {!loaded && (

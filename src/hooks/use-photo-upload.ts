@@ -50,8 +50,25 @@ const INITIAL: UploadState = {
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 const UPLOAD_TIMEOUT = 300_000;
-const CONCURRENCY = 4;
+const FAST_CONCURRENCY = 4;
+const SLOW_CONCURRENCY = 2;
 const BUCKET = 'gallery-photos';
+
+/**
+ * Pick upload concurrency based on the Network Information API.
+ * Falls back to SLOW (2) when the API is unavailable so flaky mobile
+ * connections never get steamrolled.
+ */
+function getAdaptiveConcurrency(): number {
+  try {
+    const conn = (navigator as any)?.connection;
+    if (!conn || typeof conn.effectiveType !== 'string') return SLOW_CONCURRENCY;
+    if (conn.saveData) return SLOW_CONCURRENCY;
+    return conn.effectiveType === '4g' ? FAST_CONCURRENCY : SLOW_CONCURRENCY;
+  } catch {
+    return SLOW_CONCURRENCY;
+  }
+}
 
 type UploadResult = 'success' | 'failed' | 'duplicate';
 
@@ -197,7 +214,7 @@ export function usePhotoUpload(eventId: string | undefined, userId: string | und
       let duplicates = 0;
       const failed: File[] = [];
       let completed = 0;
-      const limit = pLimit(CONCURRENCY);
+      const limit = pLimit(getAdaptiveConcurrency());
 
       const tasks = infos.map((info) => limit(async () => {
         if (abortRef.current) return;

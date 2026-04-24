@@ -3,6 +3,7 @@ import { X, Send, Plus, Image, Camera, FileText, Globe, MoreVertical, ArrowUp, S
 import { useEntiranChat, type ChatMessage } from '@/hooks/use-entiran-chat';
 import { EntiranMessage, TypingIndicator } from './EntiranMessage';
 import { LanguageSelector, type BotLanguage, getBotLanguageLabel } from './LanguageSelector';
+import { LanguageChips } from './LanguageChips';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
@@ -323,6 +324,9 @@ export function EntiranPanel({ open, onClose, pendingSuggestionCount, embedded =
                 : 10,
             }}
           >
+            <div className="mx-auto max-w-[640px] mb-2">
+              <LanguageChips />
+            </div>
             <div
               className="mx-auto max-w-[640px] flex items-end gap-1 rounded-2xl transition-all duration-200"
               style={{
