@@ -625,6 +625,9 @@ export default function CheetahLivePage() {
                       sessionCode={activeSession.session_code}
                     />
                     <SetupCard session={activeSession} uploadEndpoint={uploadEndpoint} />
+                    <CameraSetupPanel session={activeSession} uploadEndpoint={uploadEndpoint} />
+                    <FtpBridgeSettings session={activeSession as any} />
+                    <LiveFeedStatus session={activeSession} />
                   </>
                 )}
 
