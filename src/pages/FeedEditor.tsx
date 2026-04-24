@@ -7,6 +7,7 @@ const CreateFeedPostModal = lazy(() => import("@/components/CreateFeedPostModal"
 const EditFeedPostModal = lazy(() => import("@/components/EditFeedPostModal"));
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Plus, Share, ArrowLeft } from "lucide-react";
+import { resolveUsername } from "@/lib/studio-url";
 
 interface FeedPost {
   id: string;
@@ -35,14 +36,15 @@ export default function FeedEditor() {
     if (!user) return;
     setLoading(true);
 
-    const { data: prof } = await (supabase.from("profiles").select("studio_name, username") as any)
+    await (supabase.from("profiles").select("studio_name") as any)
       .eq("user_id", user.id).maybeSingle();
-    let slug = prof?.username || null;
+    let slug: string | null = null;
     if (!slug) {
       const { data: dom } = await (supabase.from("domains").select("subdomain") as any)
         .eq("user_id", user.id).maybeSingle();
       slug = dom?.subdomain || null;
     }
+    if (!slug) slug = resolveUsername(undefined, user.email);
     setFeedSlug(slug);
 
     const { data } = await (supabase.from("feed_posts")
