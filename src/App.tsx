@@ -520,6 +520,15 @@ const AppRoutes = () => {
             <Route path="/dashboard/cheetah-monitor" element={<Navigate to="/dashboard/cheetah" replace />} />
             <Route path="/live/:code" element={<CheetahLiveView />} />
             <Route
+              path="/daan"
+              element={
+                <ProtectedRoute>
+                  <Daan />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/dashboard/daan" element={<Navigate to="/daan" replace />} />
+            <Route
               path="/dashboard/analytics"
               element={
                 <ProtectedRoute>
