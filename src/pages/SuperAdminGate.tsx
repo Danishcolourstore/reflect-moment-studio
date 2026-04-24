@@ -3,8 +3,6 @@ import { Navigate } from "react-router-dom";
 import { useAuth, TEST_MODE_BYPASS_AUTH } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
-const ADMIN_OTP = "470815";
-
 export default function SuperAdminGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const [checking, setChecking] = useState(true);
@@ -12,15 +10,6 @@ export default function SuperAdminGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-
-    // 🔥 OTP bypass (stored in localStorage after login)
-    const otpUsed = localStorage.getItem("admin_otp");
-
-    if (otpUsed === ADMIN_OTP) {
-      setIsSuperAdmin(true);
-      setChecking(false);
-      return;
-    }
 
     if (loading)
       return () => {
@@ -47,7 +36,7 @@ export default function SuperAdminGate({ children }: { children: ReactNode }) {
     });
 
     Promise.race([rolePromise, timeoutPromise])
-      .then((result: any) => {
+      .then((result: { data?: unknown }) => {
         if (cancelled) return;
         setIsSuperAdmin(Boolean(result?.data));
       })

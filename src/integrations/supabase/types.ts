@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_code_attempts: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          id: string
+          locked_until: string | null
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          id?: string
+          locked_until?: string | null
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          id?: string
+          locked_until?: string | null
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      access_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string | null
+          updated_at: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_activity_log: {
         Row: {
           action: string
@@ -4786,6 +4840,36 @@ export type Database = {
         Returns: string
       }
       cheetah_increment_view: { Args: { p_code: string }; Returns: undefined }
+      get_public_cheetah_session: {
+        Args: { p_code: string }
+        Returns: {
+          created_at: string
+          event_id: string
+          expires_at: string
+          id: string
+          is_live: boolean
+          last_upload_at: string
+          public_view_count: number
+          session_code: string
+          status: string
+          title: string
+          total_photos: number
+          updated_at: string
+        }[]
+      }
+      get_public_profile_watermark: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_url: string
+          studio_accent_color: string
+          studio_logo_url: string
+          studio_name: string
+          user_id: string
+          watermark_opacity: number
+          watermark_position: string
+          watermark_text: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4795,6 +4879,10 @@ export type Database = {
       }
       update_admin_pin: {
         Args: { new_pin: string; reset_token: string }
+        Returns: Json
+      }
+      verify_access_code: {
+        Args: { code_input: string; subject_input?: string }
         Returns: Json
       }
       verify_admin_pin: { Args: { pin_input: string }; Returns: Json }

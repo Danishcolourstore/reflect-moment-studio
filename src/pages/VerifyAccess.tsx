@@ -7,7 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, ShieldAlert, LogOut, Phone, MessageCircle } from "lucide-react";
 
-const VALID_PINS = ["291219", "010126", "141220"];
+type AccessCodeResult = { valid?: boolean; locked?: boolean; retry_after?: number };
+const verifyAccessCode = supabase.rpc as unknown as (
+  fn: "verify_access_code",
+  args: { code_input: string; subject_input: string },
+) => Promise<{ data: AccessCodeResult | null; error: unknown }>;
+
 const SESSION_KEY = "mirrorai_access_verified";
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_SECONDS = 60;
@@ -59,11 +64,23 @@ export default function VerifyAccess() {
     if (verifying || lockoutEnd) return;
     setVerifying(true);
     setError("");
-    if (VALID_PINS.includes(inputPin)) {
+
+    const subject = user?.id || "authenticated-user";
+    const { data, error: verifyError } = await verifyAccessCode("verify_access_code", {
+      code_input: inputPin,
+      subject_input: subject,
+    });
+
+    if (!verifyError && data?.valid) {
       sessionStorage.setItem(SESSION_KEY, "true");
       const redirect = sessionStorage.getItem("redirectAfterLogin");
       sessionStorage.removeItem("redirectAfterLogin");
       navigate(redirect || "/dashboard", { replace: true });
+    } else if (data?.locked) {
+      const retryAfter = Number(data.retry_after ?? LOCKOUT_SECONDS);
+      setLockoutEnd(Date.now() + retryAfter * 1000);
+      setCountdown(retryAfter);
+      setError("Too many incorrect attempts. Access locked.");
     } else {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
@@ -76,7 +93,7 @@ export default function VerifyAccess() {
       }
     }
     setVerifying(false);
-  }, [attempts, verifying, lockoutEnd, navigate]);
+  }, [attempts, verifying, lockoutEnd, navigate, user?.id]);
 
   const handleSignOut = async () => {
     sessionStorage.removeItem(SESSION_KEY);

@@ -16,9 +16,9 @@ export function SiteHead({ title, description, ogTitle, ogDescription, ogImage }
   const location = useLocation();
 
   const name = profile?.studio_name || "Photography Studio";
-  const bio = profile?.bio || `${name} — Professional Photography`;
+  const bio = `${name} — Professional Photography`;
   const truncatedBio = bio.length > 160 ? bio.slice(0, 157) + "..." : bio;
-  const coverImage = profile?.cover_url || "";
+  const coverImage = profile?.studio_logo_url || profile?.avatar_url || "";
 
   const currentHostname = window.location.hostname;
   const protocol = "https://";
@@ -41,9 +41,6 @@ export function SiteHead({ title, description, ogTitle, ogDescription, ogImage }
     "description": finalDescription,
     "url": canonicalUrl,
     ...(finalOgImage && { "image": finalOgImage }),
-    ...(profile?.location && { "address": { "@type": "PostalAddress", "addressLocality": profile.location } }),
-    ...(profile?.email && { "email": profile.email }),
-    ...(profile?.phone && { "telephone": profile.phone }),
     "priceRange": "$$",
     "@id": canonicalUrl,
   };
