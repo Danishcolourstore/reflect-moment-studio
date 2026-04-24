@@ -274,7 +274,8 @@ export default function LandingGate() {
       {/* ─── FAB ────────────────────────────────────────────────── */}
       <button
         onClick={() => setCreateEventOpen(true)}
-        className="fixed bottom-20 md:bottom-8 right-5 md:right-8 w-14 h-14 rounded-full bg-[var(--ink)] flex items-center justify-center cursor-pointer z-50 hover:opacity-90 transition-opacity border-0"
+        className="fixed right-5 md:right-8 w-14 h-14 rounded-full bg-[var(--ink)] flex items-center justify-center cursor-pointer z-50 hover:opacity-90 transition-opacity border-0 shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
+        style={{ bottom: mob ? "calc(72px + env(safe-area-inset-bottom, 0px))" : "32px" }}
         aria-label="Create event"
       >
         <Plus className="w-5 h-5 text-white" strokeWidth={2} />
