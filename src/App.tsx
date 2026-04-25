@@ -642,6 +642,8 @@ const AppRoutes = () => {
               }
             />
 
+            <Route path="/g/:eventSlug" element={<PublicGallery />} />
+
             <Route
               path="/event/:slug"
               element={
