@@ -63,7 +63,6 @@ export function MobileBottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const drawer = useDrawerMenu();
-  const { openBot } = useEntiranOpen();
   const [createOpen, setCreateOpen] = useState(false);
 
   if (!isMobile) return null;
