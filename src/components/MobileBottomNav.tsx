@@ -1,15 +1,15 @@
 import { lazy, Suspense, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { Calendar, Zap, Sparkles, MoreHorizontal, Plus } from "lucide-react";
+import { Calendar, Zap, BookOpen, MoreHorizontal, Plus } from "lucide-react";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import { useEntiranOpen } from "@/components/entiran/EntiranProvider";
+
 
 const CreateEventModal = lazy(() =>
   import("@/components/CreateEventModal").then((m) => ({ default: m.CreateEventModal })),
 );
 
-type TabKey = "events" | "cheetah" | "gallery" | "daan" | "more";
+type TabKey = "events" | "cheetah" | "gallery" | "storybook" | "more";
 
 interface Tab {
   key: TabKey;
@@ -36,7 +36,13 @@ const TABS: Tab[] = [
     match: (p) => p.startsWith("/dashboard/cheetah") || p === "/cheetah",
   },
   { key: "gallery", title: "Gallery", icon: Plus, center: true },
-  { key: "daan", title: "Daan", icon: Sparkles, url: "/daan", match: (p) => p.startsWith("/daan") },
+  {
+    key: "storybook",
+    title: "Storybook",
+    icon: BookOpen,
+    url: "/storybook",
+    match: (p) => p.startsWith("/storybook") || p.startsWith("/dashboard/storybook"),
+  },
   {
     key: "more",
     title: "More",
@@ -57,7 +63,6 @@ export function MobileBottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const drawer = useDrawerMenu();
-  const { openBot } = useEntiranOpen();
   const [createOpen, setCreateOpen] = useState(false);
 
   if (!isMobile) return null;
@@ -74,8 +79,8 @@ export function MobileBottomNav() {
       setCreateOpen(true);
       return;
     }
-    if (tab.key === "daan") {
-      navigate("/daan");
+    if (tab.key === "storybook") {
+      navigate("/storybook");
       return;
     }
     if (tab.key === "more") {
