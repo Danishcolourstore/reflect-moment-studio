@@ -80,8 +80,8 @@ export function MobileBottomNav() {
       setCreateOpen(true);
       return;
     }
-    if (tab.key === "daan") {
-      navigate("/daan");
+    if (tab.key === "storybook") {
+      navigate("/storybook");
       return;
     }
     if (tab.key === "more") {
