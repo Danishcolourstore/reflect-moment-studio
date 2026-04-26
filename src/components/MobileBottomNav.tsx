@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { Calendar, Zap, Sparkles, MoreHorizontal, Plus } from "lucide-react";
+import { Calendar, Zap, BookOpen, MoreHorizontal, Plus } from "lucide-react";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { useEntiranOpen } from "@/components/entiran/EntiranProvider";
 
