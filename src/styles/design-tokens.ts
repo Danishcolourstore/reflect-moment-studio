@@ -62,8 +62,14 @@ export const colors = {
 } as const;
 
 export const fonts = {
-  display: "'Cormorant Garamond', Georgia, serif",
-  body: "'DM Sans', system-ui, sans-serif",
+  /** Editorial display — Fraunces variable serif, optical sizing. */
+  display: "'Fraunces', 'Cormorant Garamond', Georgia, serif",
+  /** UI & body — Inter Tight, premium SaaS feel with stylistic sets. */
+  body: "'Inter Tight', 'DM Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif",
+  /** Mono — JetBrains Mono, tabular numerics. */
+  mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+  /** Legacy serif italic alias. */
+  serifItalic: "'Cormorant Garamond', 'Fraunces', Georgia, serif",
 } as const;
 
 /** Spacing scale — must match tailwind.config.ts theme.spacing exactly. */
