@@ -104,6 +104,54 @@
     --sidebar-border: 48 12% 92%;
     --sidebar-ring: 25 51% 46%;
   }
+
+  /* ─── Dark theme (opt-in via .dark on <html>) ───────────────────────── */
+  .dark {
+    --ink: #fafaf8;
+    --ink-secondary: #e6e4dd;
+    --ink-muted: #a8a6a0;
+    --ink-whisper: #6b6962;
+    --paper: #0a0a0a;
+
+    --background: 0 0% 4%;
+    --foreground: 60 14% 98%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 60 14% 98%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 60 14% 98%;
+
+    --primary: 60 14% 98%;
+    --primary-foreground: 0 0% 4%;
+
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 60 14% 98%;
+
+    --muted: 0 0% 12%;
+    --muted-foreground: 50 4% 65%;
+
+    --accent: 25 51% 56%;
+    --accent-foreground: 0 0% 4%;
+
+    --destructive: 8 65% 56%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 14%;
+    --input: 0 0% 16%;
+    --ring: 25 51% 56%;
+
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 50 4% 65%;
+    --sidebar-primary: 60 14% 98%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 25 51% 56%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 25 51% 56%;
+
+    color-scheme: dark;
+  }
 }
 
 @layer base {

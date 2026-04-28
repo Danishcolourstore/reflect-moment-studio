@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Users, Palette, Settings, UserCircle, LogOut, Briefcase, BarChart2, Globe, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const menuItems = [
   { label: 'Business Suite', icon: Briefcase, route: '/dashboard/business' },
@@ -49,6 +50,9 @@ const MorePage = () => {
             </span>
           </button>
         ))}
+
+        {/* Theme toggle */}
+        <ThemeToggle />
 
         {/* Logout */}
         <button
