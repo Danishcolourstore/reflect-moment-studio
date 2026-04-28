@@ -51,6 +51,9 @@ const MorePage = () => {
           </button>
         ))}
 
+        {/* Theme toggle */}
+        <ThemeToggle />
+
         {/* Logout */}
         <button
           onClick={handleLogout}
