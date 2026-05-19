@@ -64,7 +64,7 @@ function RevealBlock({ children, delay = 0 }: { children: React.ReactNode; delay
   return (
     <div
       ref={ref}
-      className="transition-all transition-duration:800ms__PLACEHOLDER"
+      className="transition-all [transition-duration:800ms]"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(40px)',
@@ -111,7 +111,7 @@ function PreviewSplitEditorial({ block }: { block: StoryBlock }) {
       <RevealBlock>
         <div className="h-[50vh] md:h-[70vh] overflow-hidden">
           {block.photo_urls[0] && (
-            <img src={block.photo_urls[0]} alt="" className="h-full w-full object-cover transition-transform transition-duration:1200ms__PLACEHOLDER hover:scale-105" loading="lazy" decoding="async" />
+            <img src={block.photo_urls[0]} alt="" className="h-full w-full object-cover transition-transform [transition-duration:1200ms] hover:scale-105" loading="lazy" decoding="async" />
           )}
         </div>
       </RevealBlock>

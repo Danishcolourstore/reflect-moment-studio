@@ -210,7 +210,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
                   {/* Animated ink underline */}
                   <span
                     aria-hidden
-                    className="absolute left-0 bottom-0 h-[1.5px] bg-[#1A1917] transition-transform transition-duration:420ms__PLACEHOLDER ease-[cubic-bezier(0.32,0.72,0,1)] origin-left"
+                    className="absolute left-0 bottom-0 h-[1.5px] bg-[#1A1917] transition-transform [transition-duration:420ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] origin-left"
                     style={{
                       width: "100%",
                       transform: emailFocus || email ? "scaleX(1)" : "scaleX(0)",
@@ -260,7 +260,7 @@ const Auth = function Auth({ initialView }: AuthProps) {
                   />
                   <span
                     aria-hidden
-                    className="absolute left-0 bottom-0 h-[1.5px] bg-[#1A1917] transition-transform transition-duration:420ms__PLACEHOLDER ease-[cubic-bezier(0.32,0.72,0,1)] origin-left"
+                    className="absolute left-0 bottom-0 h-[1.5px] bg-[#1A1917] transition-transform [transition-duration:420ms] [transition-timing-function:cubic-bezier(0.32,0.72,0,1)] origin-left"
                     style={{
                       width: "100%",
                       transform: pwFocus || password ? "scaleX(1)" : "scaleX(0)",
