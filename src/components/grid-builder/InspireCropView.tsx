@@ -41,8 +41,9 @@ export default function InspireCropView({ imageSrc, onBack, onAnalyze }: Props) 
     const x = (cw - w) / 2, y = (ch - h) / 2;
     setImgDisplay({ x, y, w, h });
     if (!crop) {
-      const m = 0.08;
-      setCrop({ x: x + w * m, y: y + h * m, w: w * (1 - 2 * m), h: h * (1 - 2 * m) });
+      const mx = 0.15;
+      const my = 0.20;
+      setCrop({ x: x + w * mx, y: y + h * my, w: w * (1 - 2 * mx), h: h * (1 - 2 * my) });
     }
   }, [crop]);
 
@@ -56,8 +57,9 @@ export default function InspireCropView({ imageSrc, onBack, onAnalyze }: Props) 
   const resetCrop = useCallback(() => {
     if (!imgRef.current) return;
     const { x, y, w, h } = imgDisplay;
-    const m = 0.08;
-    setCrop({ x: x + w * m, y: y + h * m, w: w * (1 - 2 * m), h: h * (1 - 2 * m) });
+    const mx = 0.15;
+    const my = 0.20;
+    setCrop({ x: x + w * mx, y: y + h * my, w: w * (1 - 2 * mx), h: h * (1 - 2 * my) });
   }, [imgDisplay]);
 
   const selectAll = useCallback(() => {
@@ -155,6 +157,13 @@ export default function InspireCropView({ imageSrc, onBack, onAnalyze }: Props) 
             <Maximize2 className="h-3.5 w-3.5" />
           </button>
         </div>
+      </div>
+
+      {/* Tip banner */}
+      <div className="mx-3 mt-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+        <p className="text-center text-[11px] text-foreground">
+          Drag to select only the photo area — exclude likes, captions and UI elements
+        </p>
       </div>
 
       {/* Canvas */}
