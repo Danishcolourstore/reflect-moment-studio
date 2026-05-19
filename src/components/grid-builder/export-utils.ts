@@ -114,57 +114,114 @@ export async function renderGridToCanvas(
     }
   }
 
-  // Calculate grid within image area
-  const gap = frame ? 0 : Math.round(width * 0.007);
-  const pad = frame ? 0 : gap;
+  // ── Free-positioned cells path ──
+  const hasFree = !!layout.freePositions && layout.freePositions.some(Boolean);
 
-  const innerW = areaW - pad * 2 - gap * (layout.gridCols - 1);
-  const innerH = areaH - pad * 2 - gap * (layout.gridRows - 1);
-  const colW = innerW / layout.gridCols;
-  const rowH = innerH / layout.gridRows;
+  if (hasFree) {
+    const ordered = layout.cells
+      .map((_, i) => ({ pos: layout.freePositions![i], cell: cells[i], i }))
+      .filter(o => o.pos);
+    ordered.sort((a, b) => (a.pos!.zIndex || 0) - (b.pos!.zIndex || 0));
 
-  const displaySize = 440;
+    for (const { pos, cell } of ordered) {
+      const p = pos!;
+      const cw = (p.width / 100) * areaW;
+      const ch = (p.height / 100) * areaH;
+      const cx = areaX + (p.x / 100) * areaW + cw / 2;
+      const cy = areaY + (p.y / 100) * areaH + ch / 2;
 
-  for (let i = 0; i < layout.cells.length; i++) {
-    const [rs, cs, re, ce] = layout.cells[i];
-    const cell = cells[i];
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate((p.rotation * Math.PI) / 180);
+      const s = p.scale || 1;
+      ctx.scale(s, s);
+      ctx.globalAlpha = p.opacity ?? 1;
 
-    const x = areaX + pad + (cs - 1) * (colW + gap);
-    const y = areaY + pad + (rs - 1) * (rowH + gap);
-    const cw = (ce - cs) * colW + (ce - cs - 1) * gap;
-    const ch = (re - rs) * rowH + (re - rs - 1) * gap;
-
-    if (!cell.imageUrl) {
-      ctx.fillStyle = '#f0f0f0';
-      ctx.fillRect(x, y, cw, ch);
-      continue;
-    }
-
-    const img = await loadImageElement(cell.imageUrl);
-
-    const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * cell.scale;
-    const dw = img.naturalWidth * scale;
-    const dh = img.naturalHeight * scale;
-
-    const offsetScale = width / displaySize;
-    const ox = cell.offsetX * offsetScale;
-    const oy = cell.offsetY * offsetScale;
-
-    ctx.save();
-
-    if (frame?.imageRadius) {
-      const sr = (frame.imageRadius / 440) * width;
-      roundRect(ctx, x, y, cw, ch, sr);
-      ctx.clip();
-    } else {
       ctx.beginPath();
-      ctx.rect(x, y, cw, ch);
+      ctx.rect(-cw / 2, -ch / 2, cw, ch);
       ctx.clip();
-    }
 
-    ctx.drawImage(img, x + (cw - dw) / 2 + ox, y + (ch - dh) / 2 + oy, dw, dh);
-    ctx.restore();
+      if (cell?.imageUrl) {
+        try {
+          const img = await loadImageElement(cell.imageUrl);
+          const fit = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * (cell.scale || 1);
+          const dw = img.naturalWidth * fit;
+          const dh = img.naturalHeight * fit;
+          const offsetScale = width / 440;
+          const ox = (cell.offsetX || 0) * offsetScale;
+          const oy = (cell.offsetY || 0) * offsetScale;
+          ctx.drawImage(img, -dw / 2 + ox, -dh / 2 + oy, dw, dh);
+        } catch {
+          ctx.fillStyle = '#f0f0f0';
+          ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
+        }
+      } else {
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
+      }
+
+      if (p.borderWidth > 0) {
+        ctx.strokeStyle = p.borderColor;
+        ctx.lineWidth = p.borderWidth * (width / 375);
+        ctx.strokeRect(-cw / 2, -ch / 2, cw, ch);
+      }
+
+      ctx.restore();
+    }
+  } else {
+    // Calculate grid within image area
+    const gap = frame ? 0 : Math.round(width * 0.007);
+    const pad = frame ? 0 : gap;
+
+    const innerW = areaW - pad * 2 - gap * (layout.gridCols - 1);
+    const innerH = areaH - pad * 2 - gap * (layout.gridRows - 1);
+    const colW = innerW / layout.gridCols;
+    const rowH = innerH / layout.gridRows;
+
+    const displaySize = 440;
+
+    for (let i = 0; i < layout.cells.length; i++) {
+      const [rs, cs, re, ce] = layout.cells[i];
+      const cell = cells[i];
+
+      const x = areaX + pad + (cs - 1) * (colW + gap);
+      const y = areaY + pad + (rs - 1) * (rowH + gap);
+      const cw = (ce - cs) * colW + (ce - cs - 1) * gap;
+      const ch = (re - rs) * rowH + (re - rs - 1) * gap;
+
+      if (!cell.imageUrl) {
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(x, y, cw, ch);
+        continue;
+      }
+
+      const img = await loadImageElement(cell.imageUrl);
+
+      const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * cell.scale;
+      const dw = img.naturalWidth * scale;
+      const dh = img.naturalHeight * scale;
+
+      const offsetScale = width / displaySize;
+      const ox = cell.offsetX * offsetScale;
+      const oy = cell.offsetY * offsetScale;
+
+      ctx.save();
+
+      if (frame?.imageRadius) {
+        const sr = (frame.imageRadius / 440) * width;
+        roundRect(ctx, x, y, cw, ch, sr);
+        ctx.clip();
+      } else {
+        ctx.beginPath();
+        ctx.rect(x, y, cw, ch);
+        ctx.clip();
+      }
+
+      ctx.drawImage(img, x + (cw - dw) / 2 + ox, y + (ch - dh) / 2 + oy, dw, dh);
+      ctx.restore();
+    }
   }
+
 
   // ─── Render design elements ───────────────────
   if (elements.length > 0) {
