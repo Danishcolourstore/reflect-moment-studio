@@ -44,7 +44,73 @@ interface LayoutVariation {
   textLayers: TextLayer[];
   label: string;
   description: string;
+  background?: BackgroundStyle | null;
 }
+
+// ─── Color helpers ───
+function lightenColor(hex: string, percent: number): string {
+  try {
+    const clean = hex.replace('#', '');
+    const full = clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean;
+    const num = parseInt(full, 16);
+    const r = Math.min(255, (num >> 16) + Math.round(2.55 * percent));
+    const g = Math.min(255, ((num >> 8) & 0xff) + Math.round(2.55 * percent));
+    const b = Math.min(255, (num & 0xff) + Math.round(2.55 * percent));
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  } catch { return hex; }
+}
+
+function mapFontCategory(category?: string): string {
+  const map: Record<string, string> = {
+    serif: 'Cormorant Garamond',
+    sans: 'DM Sans',
+    script: 'Great Vibes',
+    display: 'Playfair Display',
+  };
+  return (category && map[category]) || 'DM Sans';
+}
+
+function freeCellsToPositions(freeCells: any[], cellCount: number): (FreeCellPosition | null)[] {
+  const positions: (FreeCellPosition | null)[] = new Array(cellCount).fill(null);
+  freeCells.forEach((fc, i) => {
+    const idx = typeof fc.index === 'number' ? Math.max(0, Math.min(cellCount - 1, fc.index)) : i;
+    positions[idx] = {
+      x: Number(fc.x) || 0,
+      y: Number(fc.y) || 0,
+      width: Number(fc.width) || 30,
+      height: Number(fc.height) || 30,
+      rotation: Number(fc.rotation) || 0,
+      scale: Number(fc.scale) || 1,
+      zIndex: typeof fc.zIndex === 'number' ? fc.zIndex : idx + 1,
+      opacity: typeof fc.opacity === 'number' ? fc.opacity : 1,
+      borderWidth: Number(fc.borderWidth) || 0,
+      borderColor: fc.borderColor || '#000000',
+    };
+  });
+  return positions;
+}
+
+function textBlocksToInspireLayers(blocks: any[]): TextLayer[] {
+  return blocks.map((block, i) =>
+    createTextLayer({
+      text: String(block.text || ''),
+      fontFamily: mapFontCategory(block.fontCategory),
+      fontSize: Math.max(8, Math.min(72, Number(block.fontSize) || 16)),
+      fontWeight: Number(block.fontWeight) || 400,
+      fontStyle: block.fontStyle === 'italic' ? 'italic' : 'normal',
+      color: block.color || '#000000',
+      opacity: typeof block.opacity === 'number' ? block.opacity : 1,
+      letterSpacing: Number(block.letterSpacing) || 0,
+      lineHeight: Number(block.lineHeight) || 1.2,
+      alignment: (['left', 'center', 'right'].includes(block.alignment) ? block.alignment : 'center') as any,
+      textTransform: (['none', 'uppercase', 'lowercase'].includes(block.textTransform) ? block.textTransform : 'none') as any,
+      x: Math.max(0, Math.min(100, Number(block.x) || 50)),
+      y: Math.max(0, Math.min(100, Number(block.y) || 50)),
+      rotation: Number(block.rotation) || 0,
+    }),
+  );
+}
+
 
 // ─── Analysis phases with icons ───
 import { Search as SearchIcon, Ruler, Type as TypeIcon } from 'lucide-react';
