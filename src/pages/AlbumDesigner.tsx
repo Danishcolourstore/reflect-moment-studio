@@ -297,7 +297,7 @@ export default function AlbumDesigner() {
             <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No albums.</h2>
             <button
               onClick={() => setWizardOpen(true)}
-              className="h-11 px-6 text-[13px] font-medium tracking-[0.06em] uppercase text-[#FAFAF8] bg-[#1A1A1A] hover:bg-[#1A1A1A] transition-colors duration-[120ms]"
+              className="h-11 px-6 text-[13px] font-medium tracking-[0.06em] uppercase text-[#FAFAF8] bg-[#1A1A1A] hover:bg-[#1A1A1A] transition-colors [transition-duration:120ms]"
             >
               Create album
             </button>
