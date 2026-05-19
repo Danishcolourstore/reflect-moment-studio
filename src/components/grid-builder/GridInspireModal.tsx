@@ -9,15 +9,16 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { X, Upload, Sparkles, Loader2, Link2, Images, ArrowLeft, Shuffle, Check, ChevronLeft, ChevronRight, Wand2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import type { GridLayout } from './types';
+import type { GridLayout, FreeCellPosition } from './types';
 import { GRID_LAYOUTS } from './types';
 import type { TextLayer } from './text-overlay-types';
 import { createTextLayer, FONTS } from './text-overlay-types';
+import type { BackgroundStyle } from './BackgroundStyler';
 import InspireCropView from './InspireCropView';
 
 interface Props {
   onClose: () => void;
-  onLayoutGenerated: (layout: GridLayout, textLayers: TextLayer[]) => void;
+  onLayoutGenerated: (layout: GridLayout, textLayers: TextLayer[], background?: BackgroundStyle | null) => void;
 }
 
 type Step = 'entry' | 'crop' | 'analyzing' | 'preview';
