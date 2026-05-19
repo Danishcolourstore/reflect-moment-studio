@@ -73,11 +73,12 @@ interface Props {
   layout: GridLayout;
   onBack: () => void;
   initialTextLayers?: TextLayer[];
+  initialBackground?: BackgroundStyle | null;
 }
 
 type ActiveTool = "text" | "elements" | "background" | "logo" | "caption" | null;
 
-export default function GridEditor({ layout, onBack, initialTextLayers = [] }: Props) {
+export default function GridEditor({ layout, onBack, initialTextLayers = [], initialBackground = null }: Props) {
   const device = useDeviceDetect();
   const isMobile = device.isPhone;
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
@@ -88,7 +89,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [logo, setLogo] = useState<LogoLayer | null>(null);
   const [logoSelected, setLogoSelected] = useState(false);
   const [showSafeArea, setShowSafeArea] = useState(false);
-  const [background, setBackground] = useState<BackgroundStyle>(DEFAULT_BG);
+  const [background, setBackground] = useState<BackgroundStyle>(initialBackground ?? DEFAULT_BG);
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [showIgPreview, setShowIgPreview] = useState(false);
   const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
