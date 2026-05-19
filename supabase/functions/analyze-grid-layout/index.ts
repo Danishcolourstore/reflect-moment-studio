@@ -13,55 +13,44 @@ serve(async (req) => {
   try {
     const { image } = await req.json();
     if (!image) {
-      return new Response(
-        JSON.stringify({ error: "No image provided" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "No image provided" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are an expert at analyzing Instagram post screenshots to extract grid layouts and design typography. You receive a cropped screenshot and must return BOTH the grid structure AND all overlay text as structured JSON.
+    const systemPrompt = `You analyze Instagram-style design screenshots and return a FULL reconstruction: background, free-positioned photo cells (with rotation/overlap), text overlays, and watermark.
 
-GRID DETECTION:
-- Detect grid rows, columns, and how cells span using 1-based CSS grid coordinates.
-- Each cell: [rowStart, colStart, rowEnd, colEnd] with exclusive end values.
-- Use minimum rows/columns needed. Ignore social media UI chrome.
-- canvasRatio = width/height (1 for square, 0.8 portrait, 1.33 landscape).
+Return ALL values via the "full_layout" tool.
 
-TEXT DETECTION — ONLY DESIGN OVERLAY TEXT:
-Detect ONLY text that is deliberately overlaid on the design as typography (titles, dates, locations, names, quotes, captions, watermarks). Do NOT detect text that is part of photographed scenes (signs, clothing, products, license plates).
+CANVAS:
+- canvasRatio: "1:1" | "4:5" | "9:16" | "3:2" | "16:9". Pick closest.
+- backgroundColor: dominant background hex (sample the page bg, not the photos). If clearly a gradient, set backgroundType="gradient" and provide backgroundGradient {from, to, angle}. Otherwise backgroundType="solid".
 
-CRITICAL POSITIONING RULES — READ CAREFULLY:
-- x and y represent the CENTER POINT of the text block as a percentage (0-100) of the CROPPED AREA dimensions.
-- x=50 means horizontally centered. x=15 means near the left edge. x=85 means near the right edge.
-- y=10 means near the top. y=50 means vertically centered. y=90 means near the bottom.
-- Measure positions PRECISELY by estimating pixel positions relative to the total canvas dimensions.
-- For centered text spanning the full width, x should be 50.
-- For text near margins/edges, use values like 10-20 or 80-90.
-- Multiple lines of text at the same position should be returned as ONE text block with newlines.
+FREE-POSITIONED CELLS (the photos):
+- One cell per visible photo/box.
+- x, y = TOP-LEFT corner of the cell as % of canvas (0–100).
+- width, height = % of canvas.
+- rotation = degrees (negative = counter-clockwise). 0 if upright.
+- scale = 1 unless visibly enlarged. zIndex by stacking order (1 bottom).
+- opacity 0–1. borderWidth in px @ 375px canvas. borderColor hex.
+- index = order top-to-bottom, left-to-right.
 
-FONT ANALYSIS — BE PRECISE:
-- fontGroup: "serif" for fonts with serifs (Times, Garamond, Playfair, Bodoni style), "sans" for clean geometric fonts (Helvetica, Montserrat, Inter style), "script" for cursive/handwritten fonts.
-- fontWeight: Use 300 for thin/light, 400 for regular, 500 for medium, 600 for semibold, 700 for bold. Match the visual thickness precisely.
-- fontSize: Size in px assuming a 440px wide canvas. Measure the actual cap height and convert:
-  - Very small labels/dates: 9-12px
-  - Small subtitles: 13-16px  
-  - Body text: 17-22px
-  - Subheadings: 23-30px
-  - Main titles: 31-42px
-  - Large hero text: 43-56px
-- letterSpacing: 0 for normal, 1-3 for slightly spaced, 4-8 for heavily spaced uppercase, 10+ for very wide tracking.
-- color: Exact hex color. "#ffffff" for white, "#000000" for black, etc. Sample the actual text color.
-- textTransform: "uppercase" if ALL CAPS, "lowercase" if all lowercase, "none" for mixed case.
-- hasShadow: true ONLY if text has a visible drop shadow or glow effect for readability.
+ALSO return a fallback grid (cells as [rowStart,colStart,rowEnd,colEnd], gridCols, gridRows) approximating the structure, for legacy clients.
 
-IMPORTANT: Return the EXACT text content as it appears — preserve casing, punctuation, special characters (•, &, etc.), and line breaks.
+TEXT BLOCKS (overlay typography, not text inside photos):
+- x, y = CENTER of text as % of canvas.
+- fontSize px @ 375 canvas. fontWeight 300/400/500/600/700.
+- fontCategory: "serif" | "sans" | "script".
+- color hex, opacity 0–1. letterSpacing px. lineHeight multiplier.
+- alignment: "left"|"center"|"right". textTransform: "none"|"uppercase"|"lowercase". fontStyle: "normal"|"italic". rotation deg. zIndex.
 
-If NO design typography is found, return an empty textBlocks array.
+WATERMARK (optional): small repeated handle/url text, usually corner or edge. If present include {text, x, y, fontSize, color, opacity}. Else omit.
 
-You MUST respond by calling the "grid_layout_with_text" tool.`;
+Be precise with positions and colors. Sample actual pixels.`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -78,14 +67,8 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
             {
               role: "user",
               content: [
-                {
-                  type: "text",
-                  text: "Analyze this screenshot. Detect the photo grid layout AND all design typography overlays. Return precise positions (x,y as center-point percentage), exact text content, accurate font classification, and full styling. Be precise with fontSize relative to 440px canvas width.",
-                },
-                {
-                  type: "image_url",
-                  image_url: { url: image },
-                },
+                { type: "text", text: "Analyze this screenshot. Return the full reconstruction." },
+                { type: "image_url", image_url: { url: image } },
               ],
             },
           ],
@@ -93,105 +76,91 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
             {
               type: "function",
               function: {
-                name: "grid_layout_with_text",
-                description:
-                  "Return the detected grid layout structure and text elements from the screenshot.",
+                name: "full_layout",
+                description: "Full reconstruction of an Instagram-style design.",
                 parameters: {
                   type: "object",
                   properties: {
-                    gridCols: {
-                      type: "integer",
-                      description: "Total number of CSS grid columns needed",
+                    backgroundColor: { type: "string" },
+                    backgroundType: { type: "string", enum: ["solid", "gradient"] },
+                    backgroundGradient: {
+                      type: "object",
+                      properties: {
+                        from: { type: "string" },
+                        to: { type: "string" },
+                        angle: { type: "number" },
+                      },
                     },
-                    gridRows: {
-                      type: "integer",
-                      description: "Total number of CSS grid rows needed",
-                    },
-                    canvasRatio: {
-                      type: "number",
-                      description: "Width / height ratio of the overall canvas. 1 for square.",
-                    },
+                    canvasRatio: { type: "string" },
+                    gridCols: { type: "integer" },
+                    gridRows: { type: "integer" },
                     cells: {
                       type: "array",
-                      description:
-                        "Array of cell definitions, each [rowStart, colStart, rowEnd, colEnd] (1-based, exclusive end)",
+                      description: "[rowStart,colStart,rowEnd,colEnd] 1-based, exclusive end",
+                      items: { type: "array", items: { type: "integer" } },
+                    },
+                    freeCells: {
+                      type: "array",
                       items: {
-                        type: "array",
-                        items: { type: "integer" },
-                        minItems: 4,
-                        maxItems: 4,
+                        type: "object",
+                        properties: {
+                          index: { type: "integer" },
+                          x: { type: "number" },
+                          y: { type: "number" },
+                          width: { type: "number" },
+                          height: { type: "number" },
+                          rotation: { type: "number" },
+                          scale: { type: "number" },
+                          zIndex: { type: "integer" },
+                          opacity: { type: "number" },
+                          borderWidth: { type: "number" },
+                          borderColor: { type: "string" },
+                        },
+                        required: ["index", "x", "y", "width", "height"],
                       },
                     },
                     textBlocks: {
                       type: "array",
-                      description: "Array of detected text blocks with typography styling",
                       items: {
                         type: "object",
                         properties: {
-                          text: { type: "string", description: "The exact text content" },
-                          fontGroup: {
-                            type: "string",
-                            enum: ["serif", "sans", "script"],
-                            description: "Font classification",
-                          },
-                          fontWeight: {
-                            type: "integer",
-                            description: "Font weight (300, 400, 500, 600, 700)",
-                          },
-                          fontSize: {
-                            type: "number",
-                            description: "Font size in px relative to 440px canvas width",
-                          },
-                          color: { type: "string", description: "Hex color string" },
-                          letterSpacing: {
-                            type: "number",
-                            description: "Letter spacing in px",
-                          },
-                          lineHeight: {
-                            type: "number",
-                            description: "Line height multiplier",
-                          },
-                          alignment: {
-                            type: "string",
-                            enum: ["left", "center", "right"],
-                          },
-                          textTransform: {
-                            type: "string",
-                            enum: ["none", "uppercase", "lowercase"],
-                          },
-                          fontStyle: {
-                            type: "string",
-                            enum: ["normal", "italic"],
-                          },
-                          x: {
-                            type: "number",
-                            description: "Horizontal position as % of canvas (0-100)",
-                          },
-                          y: {
-                            type: "number",
-                            description: "Vertical position as % of canvas (0-100)",
-                          },
-                          hasShadow: { type: "boolean" },
+                          text: { type: "string" },
+                          x: { type: "number" },
+                          y: { type: "number" },
+                          fontSize: { type: "number" },
+                          fontWeight: { type: "integer" },
+                          fontStyle: { type: "string", enum: ["normal", "italic"] },
+                          fontCategory: { type: "string", enum: ["serif", "sans", "script"] },
+                          color: { type: "string" },
+                          opacity: { type: "number" },
+                          letterSpacing: { type: "number" },
+                          lineHeight: { type: "number" },
+                          alignment: { type: "string", enum: ["left", "center", "right"] },
+                          textTransform: { type: "string", enum: ["none", "uppercase", "lowercase"] },
+                          rotation: { type: "number" },
+                          zIndex: { type: "integer" },
                         },
-                        required: [
-                          "text", "fontGroup", "fontWeight", "fontSize", "color",
-                          "letterSpacing", "lineHeight", "alignment", "textTransform",
-                          "fontStyle", "x", "y", "hasShadow",
-                        ],
-                        additionalProperties: false,
+                        required: ["text", "x", "y", "fontSize", "color"],
+                      },
+                    },
+                    watermark: {
+                      type: "object",
+                      properties: {
+                        text: { type: "string" },
+                        x: { type: "number" },
+                        y: { type: "number" },
+                        fontSize: { type: "number" },
+                        color: { type: "string" },
+                        opacity: { type: "number" },
                       },
                     },
                   },
-                  required: ["gridCols", "gridRows", "canvasRatio", "cells", "textBlocks"],
-                  additionalProperties: false,
+                  required: ["backgroundColor", "canvasRatio", "gridCols", "gridRows", "cells"],
                 },
               },
             },
           ],
-          tool_choice: {
-            type: "function",
-            function: { name: "grid_layout_with_text" },
-          },
+          tool_choice: { type: "function", function: { name: "full_layout" } },
           temperature: 0.2,
           max_tokens: 4096,
         }),
@@ -200,16 +169,16 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Try again in a moment." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       const text = await response.text();
       console.error("AI gateway error:", response.status, text);
@@ -217,44 +186,20 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
     }
 
     const data = await response.json();
-    
-    // Handle both tool_calls and regular content responses
     let result: any;
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    
     if (toolCall) {
       result = JSON.parse(toolCall.function.arguments);
     } else {
-      // Fallback: try to parse from content (some models return JSON in content)
       const content = data.choices?.[0]?.message?.content || "";
-      console.log("No tool_calls found, trying content parse. Content:", content.substring(0, 200));
-      
-      try {
-        const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        result = JSON.parse(cleaned);
-      } catch {
-        // Try extracting JSON object from content
-        const jsonMatch = content.match(/\{[\s\S]*"cells"[\s\S]*\}/);
-        if (jsonMatch) {
-          result = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error("AI did not return a valid grid layout. Please try again.");
-        }
-      }
+      const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      result = JSON.parse(cleaned);
     }
 
-    // Validate grid
-    if (
-      !result.cells ||
-      !Array.isArray(result.cells) ||
-      result.cells.length === 0 ||
-      !result.gridCols ||
-      !result.gridRows
-    ) {
-      throw new Error("Could not detect a valid grid layout. Try a clearer screenshot.");
+    if (!result.cells || !Array.isArray(result.cells) || !result.gridCols || !result.gridRows) {
+      throw new Error("Could not detect a valid layout. Try a clearer screenshot.");
     }
 
-    // Validate and fix cells — ensure all values are integers and within bounds
     const validatedCells = result.cells.map((cell: any[]) => {
       if (!Array.isArray(cell) || cell.length < 4) return [1, 1, 2, 2];
       return [
@@ -265,15 +210,11 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
       ];
     });
 
-    // Ensure textBlocks is always an array
-    if (!result.textBlocks || !Array.isArray(result.textBlocks)) {
-      result.textBlocks = [];
-    }
-
-    // Validate canvas ratio
-    const canvasRatio = typeof result.canvasRatio === 'number' && result.canvasRatio > 0.1 && result.canvasRatio < 10
-      ? result.canvasRatio
-      : 1;
+    const ratioStr = typeof result.canvasRatio === "string" ? result.canvasRatio : "1:1";
+    const ratioMap: Record<string, number> = {
+      "1:1": 1, "4:5": 0.8, "9:16": 9 / 16, "3:2": 1.5, "16:9": 16 / 9, "3:4": 0.75,
+    };
+    const canvasRatio = ratioMap[ratioStr] ?? 1;
 
     return new Response(
       JSON.stringify({
@@ -281,9 +222,15 @@ You MUST respond by calling the "grid_layout_with_text" tool.`;
           gridCols: Math.max(1, Math.round(result.gridCols)),
           gridRows: Math.max(1, Math.round(result.gridRows)),
           canvasRatio,
+          canvasRatioLabel: ratioStr,
           cells: validatedCells,
         },
-        textBlocks: result.textBlocks,
+        backgroundColor: result.backgroundColor || "#FFFFFF",
+        backgroundType: result.backgroundType || "solid",
+        backgroundGradient: result.backgroundGradient || null,
+        freeCells: Array.isArray(result.freeCells) ? result.freeCells : [],
+        textBlocks: Array.isArray(result.textBlocks) ? result.textBlocks : [],
+        watermark: result.watermark || null,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
