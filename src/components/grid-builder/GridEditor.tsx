@@ -555,36 +555,72 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
                 : "3px",
             }}
           >
-            <div
-              className="w-full h-full overflow-hidden relative"
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
-                gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-                gap: hasFrame ? "0px" : "3px",
-                borderRadius: hasFrame && layout.frame!.imageRadius ? `${layout.frame!.imageRadius}px` : undefined,
-                boxShadow:
-                  hasFrame && layout.frame!.shadow
-                    ? "0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)"
-                    : undefined,
-                border:
-                  hasFrame && layout.frame!.borderWidth
-                    ? `${layout.frame!.borderWidth}px solid ${layout.frame!.borderColor}`
-                    : undefined,
-              }}
-            >
-              {layout.cells.map((area, i) => (
-                <MemoGridCellWrapper
-                  key={cells[i].id}
-                  cell={cells[i]}
-                  index={i}
-                  area={area}
-                  onImageAdd={handleImageAdd}
-                  onImageRemove={handleImageRemove}
-                  onOffsetChange={handleOffsetChange}
-                />
-              ))}
-            </div>
+            {layout.freePositions && layout.freePositions.some(Boolean) ? (
+              <div className="w-full h-full relative">
+                {layout.cells.map((area, i) => {
+                  const pos = layout.freePositions![i];
+                  if (!pos) return null;
+                  return (
+                    <div
+                      key={cells[i].id}
+                      className="absolute"
+                      style={{
+                        left: `${pos.x}%`,
+                        top: `${pos.y}%`,
+                        width: `${pos.width}%`,
+                        height: `${pos.height}%`,
+                        transform: `rotate(${pos.rotation}deg) scale(${pos.scale})`,
+                        transformOrigin: 'center center',
+                        zIndex: pos.zIndex,
+                        opacity: pos.opacity,
+                        border: pos.borderWidth > 0 ? `${pos.borderWidth}px solid ${pos.borderColor}` : 'none',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <MemoGridCellWrapper
+                        cell={cells[i]}
+                        index={i}
+                        area={area}
+                        onImageAdd={handleImageAdd}
+                        onImageRemove={handleImageRemove}
+                        onOffsetChange={handleOffsetChange}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div
+                className="w-full h-full overflow-hidden relative"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
+                  gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
+                  gap: hasFrame ? "0px" : "3px",
+                  borderRadius: hasFrame && layout.frame!.imageRadius ? `${layout.frame!.imageRadius}px` : undefined,
+                  boxShadow:
+                    hasFrame && layout.frame!.shadow
+                      ? "0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)"
+                      : undefined,
+                  border:
+                    hasFrame && layout.frame!.borderWidth
+                      ? `${layout.frame!.borderWidth}px solid ${layout.frame!.borderColor}`
+                      : undefined,
+                }}
+              >
+                {layout.cells.map((area, i) => (
+                  <MemoGridCellWrapper
+                    key={cells[i].id}
+                    cell={cells[i]}
+                    index={i}
+                    area={area}
+                    onImageAdd={handleImageAdd}
+                    onImageRemove={handleImageRemove}
+                    onOffsetChange={handleOffsetChange}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Design element overlays */}
