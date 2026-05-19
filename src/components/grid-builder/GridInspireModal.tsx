@@ -445,9 +445,100 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     }, 2800);
   }, []);
 
-  const handleAnalyzeComplete = useCallback((layout: GridLayout, textBlocks: DetectedTextBlock[]) => {
-    const textLayers = textBlocks?.length ? textBlocksToLayers(textBlocks) : [];
-    const vars = generateVariations(layout, textLayers);
+  const handleAnalyzeComplete = useCallback((response: any) => {
+    const layoutData = response.layout || {};
+    const baseCells: [number, number, number, number][] = Array.isArray(layoutData.cells) ? layoutData.cells : [];
+    const freeRaw: any[] = Array.isArray(response.freeCells) ? response.freeCells : [];
+    const cellCount = Math.max(baseCells.length, freeRaw.length, 1);
+    // Pad cells if free has more
+    const cells = baseCells.length >= cellCount
+      ? baseCells
+      : [...baseCells, ...Array.from({ length: cellCount - baseCells.length }, () => [1, 1, 2, 2] as [number, number, number, number])];
+
+    const freePositions = freeRaw.length > 0 ? freeCellsToPositions(freeRaw, cellCount) : undefined;
+
+    const baseLayout: GridLayout = {
+      id: `inspire-${Date.now()}`,
+      name: 'Inspired Layout',
+      category: 'creative',
+      cols: layoutData.gridCols || 1,
+      rows: layoutData.gridRows || 1,
+      cells,
+      gridCols: layoutData.gridCols || 1,
+      gridRows: layoutData.gridRows || 1,
+      canvasRatio: layoutData.canvasRatio || 1,
+      freePositions,
+    };
+
+    const baseTextLayers = Array.isArray(response.textBlocks) ? textBlocksToInspireLayers(response.textBlocks) : [];
+    const watermark = response.watermark;
+    const watermarkLayer = (raw: any, colorOverride?: string): TextLayer | null => {
+      if (!raw || !raw.text) return null;
+      return createTextLayer({
+        text: String(raw.text),
+        fontFamily: 'DM Sans',
+        fontWeight: 300,
+        fontSize: Math.max(8, Math.min(28, Number(raw.fontSize) || 11)),
+        color: colorOverride || raw.color || '#888888',
+        opacity: typeof raw.opacity === 'number' ? raw.opacity : 0.7,
+        letterSpacing: 3,
+        textTransform: 'uppercase',
+        x: Math.max(0, Math.min(100, Number(raw.x) || 50)),
+        y: Math.max(0, Math.min(100, Number(raw.y) || 95)),
+      });
+    };
+
+    const bgColor: string = response.backgroundColor || '#FFFFFF';
+    const bgType: 'solid' | 'gradient' = response.backgroundType === 'gradient' ? 'gradient' : 'solid';
+    const bgGradient = response.backgroundGradient;
+
+    const faithfulBg: BackgroundStyle = bgType === 'gradient' && bgGradient
+      ? { type: 'gradient', color: bgGradient.from || bgColor, gradientTo: bgGradient.to || bgColor, gradientAngle: bgGradient.angle ?? 180 }
+      : { type: 'solid', color: bgColor };
+
+    const wmFaithful = watermarkLayer(watermark);
+    const wmCinematic = watermarkLayer(watermark, '#FAFAF8');
+
+    const vars: LayoutVariation[] = [
+      {
+        layout: baseLayout,
+        textLayers: [...baseTextLayers, ...(wmFaithful ? [wmFaithful] : [])],
+        background: faithfulBg,
+        label: 'Faithful',
+        description: 'Exact recreation',
+      },
+      {
+        layout: { ...baseLayout, id: `${baseLayout.id}-v1` },
+        textLayers: [...baseTextLayers, ...(wmFaithful ? [wmFaithful] : [])],
+        background: { type: 'solid', color: lightenColor(bgColor, 20) },
+        label: 'Editorial',
+        description: 'Lighter palette',
+      },
+      {
+        layout: { ...baseLayout, id: `${baseLayout.id}-v2` },
+        textLayers: [
+          ...baseTextLayers.map(l => ({ ...l, color: '#FAFAF8' })),
+          ...(wmCinematic ? [wmCinematic] : []),
+        ],
+        background: { type: 'solid', color: '#1A1816' },
+        label: 'Cinematic',
+        description: 'Dark mood',
+      },
+      {
+        layout: {
+          ...baseLayout,
+          id: `${baseLayout.id}-v3`,
+          freePositions: freePositions
+            ? freePositions.map(p => (p ? { ...p, borderWidth: 0 } : null))
+            : undefined,
+        },
+        textLayers: [],
+        background: { type: 'solid', color: '#FAFAF8' },
+        label: 'Minimal',
+        description: 'Clean & simple',
+      },
+    ];
+
     setVariations(vars);
     setActiveVariation(0);
     setStep('preview');
@@ -457,7 +548,10 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const handleShuffle = useCallback(() => {
     if (!variations.length) return;
     const base = variations[0];
-    const newVars = generateVariations(base.layout, base.textLayers);
+    const newVars = generateVariations(base.layout, base.textLayers).map((v, i) => ({
+      ...v,
+      background: variations[i]?.background ?? base.background,
+    }));
     setVariations(newVars);
     setActiveVariation(0);
     setShuffleKey(k => k + 1);
@@ -468,10 +562,12 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     if (!v) return;
     setApplied(true);
     setTimeout(() => {
-      onLayoutGenerated(v.layout, v.textLayers);
+      onLayoutGenerated(v.layout, v.textLayers, v.background ?? null);
       toast.success('Layout applied — start adding photos!');
     }, 400);
   }, [variations, activeVariation, onLayoutGenerated]);
+
+
 
   const navigateVariation = useCallback((dir: -1 | 1) => {
     setActiveVariation(prev => {
