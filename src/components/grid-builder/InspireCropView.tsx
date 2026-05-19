@@ -159,6 +159,13 @@ export default function InspireCropView({ imageSrc, onBack, onAnalyze }: Props) 
         </div>
       </div>
 
+      {/* Tip banner */}
+      <div className="mx-3 mt-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+        <p className="text-center text-[11px] text-foreground">
+          Drag to select only the photo area — exclude likes, captions and UI elements
+        </p>
+      </div>
+
       {/* Canvas */}
       <div
         ref={containerRef}
