@@ -401,6 +401,17 @@ const PublicGallery = () => {
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
   useEffect(() => { if (event?.id) trackView(); }, [event?.id, trackView]);
 
+  // Safety: clear any stale body-overflow lock left by a previously-mounted lightbox/modal
+  useEffect(() => {
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+    (document.body.style as any).touchAction = "auto";
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, []);
+
   /* ── Sticky navbar observer ── */
   useEffect(() => {
     const observer = new IntersectionObserver(
