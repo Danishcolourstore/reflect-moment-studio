@@ -261,7 +261,7 @@ export default function DeviceUploadFlow({ albumId, onEventReady, onPhotoUploade
     return (
       <div className="px-3 py-3 space-y-2">
         <div
-          className={cn("h-[2px] w-full overflow-hidden transition-opacity duration-[400ms]", isDone && "opacity-0")}
+          className={cn("h-[2px] w-full overflow-hidden transition-opacity transition-duration:400ms__PLACEHOLDER", isDone && "opacity-0")}
           style={{ background: "#E8E5E0" }}
         >
           <div
