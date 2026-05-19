@@ -708,15 +708,9 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
               }
             );
             if (!resp.ok) throw new Error('Analysis failed');
-            const { layout, textBlocks } = await resp.json();
-            if (!layout?.cells?.length) throw new Error('Could not detect a grid');
-            const generated: GridLayout = {
-              id: `inspire-${Date.now()}`, name: 'Inspired Layout', category: 'creative',
-              cols: layout.gridCols, rows: layout.gridRows,
-              cells: layout.cells, gridCols: layout.gridCols, gridRows: layout.gridRows,
-              canvasRatio: layout.canvasRatio || 1,
-            };
-            handleAnalyzeComplete(generated, textBlocks || []);
+            const fullResponse = await resp.json();
+            if (!fullResponse.layout?.cells?.length) throw new Error('Could not detect a grid');
+            handleAnalyzeComplete(fullResponse);
           } catch (err: any) {
             toast.error(err.message || 'Failed to analyze');
             setStep('crop');
