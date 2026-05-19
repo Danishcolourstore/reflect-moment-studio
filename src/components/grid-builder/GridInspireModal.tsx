@@ -9,15 +9,16 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { X, Upload, Sparkles, Loader2, Link2, Images, ArrowLeft, Shuffle, Check, ChevronLeft, ChevronRight, Wand2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import type { GridLayout } from './types';
+import type { GridLayout, FreeCellPosition } from './types';
 import { GRID_LAYOUTS } from './types';
 import type { TextLayer } from './text-overlay-types';
 import { createTextLayer, FONTS } from './text-overlay-types';
+import type { BackgroundStyle } from './BackgroundStyler';
 import InspireCropView from './InspireCropView';
 
 interface Props {
   onClose: () => void;
-  onLayoutGenerated: (layout: GridLayout, textLayers: TextLayer[]) => void;
+  onLayoutGenerated: (layout: GridLayout, textLayers: TextLayer[], background?: BackgroundStyle | null) => void;
 }
 
 type Step = 'entry' | 'crop' | 'analyzing' | 'preview';
@@ -43,7 +44,73 @@ interface LayoutVariation {
   textLayers: TextLayer[];
   label: string;
   description: string;
+  background?: BackgroundStyle | null;
 }
+
+// ─── Color helpers ───
+function lightenColor(hex: string, percent: number): string {
+  try {
+    const clean = hex.replace('#', '');
+    const full = clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean;
+    const num = parseInt(full, 16);
+    const r = Math.min(255, (num >> 16) + Math.round(2.55 * percent));
+    const g = Math.min(255, ((num >> 8) & 0xff) + Math.round(2.55 * percent));
+    const b = Math.min(255, (num & 0xff) + Math.round(2.55 * percent));
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  } catch { return hex; }
+}
+
+function mapFontCategory(category?: string): string {
+  const map: Record<string, string> = {
+    serif: 'Cormorant Garamond',
+    sans: 'DM Sans',
+    script: 'Great Vibes',
+    display: 'Playfair Display',
+  };
+  return (category && map[category]) || 'DM Sans';
+}
+
+function freeCellsToPositions(freeCells: any[], cellCount: number): (FreeCellPosition | null)[] {
+  const positions: (FreeCellPosition | null)[] = new Array(cellCount).fill(null);
+  freeCells.forEach((fc, i) => {
+    const idx = typeof fc.index === 'number' ? Math.max(0, Math.min(cellCount - 1, fc.index)) : i;
+    positions[idx] = {
+      x: Number(fc.x) || 0,
+      y: Number(fc.y) || 0,
+      width: Number(fc.width) || 30,
+      height: Number(fc.height) || 30,
+      rotation: Number(fc.rotation) || 0,
+      scale: Number(fc.scale) || 1,
+      zIndex: typeof fc.zIndex === 'number' ? fc.zIndex : idx + 1,
+      opacity: typeof fc.opacity === 'number' ? fc.opacity : 1,
+      borderWidth: Number(fc.borderWidth) || 0,
+      borderColor: fc.borderColor || '#000000',
+    };
+  });
+  return positions;
+}
+
+function textBlocksToInspireLayers(blocks: any[]): TextLayer[] {
+  return blocks.map((block, i) =>
+    createTextLayer({
+      text: String(block.text || ''),
+      fontFamily: mapFontCategory(block.fontCategory),
+      fontSize: Math.max(8, Math.min(72, Number(block.fontSize) || 16)),
+      fontWeight: Number(block.fontWeight) || 400,
+      fontStyle: block.fontStyle === 'italic' ? 'italic' : 'normal',
+      color: block.color || '#000000',
+      opacity: typeof block.opacity === 'number' ? block.opacity : 1,
+      letterSpacing: Number(block.letterSpacing) || 0,
+      lineHeight: Number(block.lineHeight) || 1.2,
+      alignment: (['left', 'center', 'right'].includes(block.alignment) ? block.alignment : 'center') as any,
+      textTransform: (['none', 'uppercase', 'lowercase'].includes(block.textTransform) ? block.textTransform : 'none') as any,
+      x: Math.max(0, Math.min(100, Number(block.x) || 50)),
+      y: Math.max(0, Math.min(100, Number(block.y) || 50)),
+      rotation: Number(block.rotation) || 0,
+    }),
+  );
+}
+
 
 // ─── Analysis phases with icons ───
 import { Search as SearchIcon, Ruler, Type as TypeIcon } from 'lucide-react';
@@ -378,9 +445,100 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     }, 2800);
   }, []);
 
-  const handleAnalyzeComplete = useCallback((layout: GridLayout, textBlocks: DetectedTextBlock[]) => {
-    const textLayers = textBlocks?.length ? textBlocksToLayers(textBlocks) : [];
-    const vars = generateVariations(layout, textLayers);
+  const handleAnalyzeComplete = useCallback((response: any) => {
+    const layoutData = response.layout || {};
+    const baseCells: [number, number, number, number][] = Array.isArray(layoutData.cells) ? layoutData.cells : [];
+    const freeRaw: any[] = Array.isArray(response.freeCells) ? response.freeCells : [];
+    const cellCount = Math.max(baseCells.length, freeRaw.length, 1);
+    // Pad cells if free has more
+    const cells = baseCells.length >= cellCount
+      ? baseCells
+      : [...baseCells, ...Array.from({ length: cellCount - baseCells.length }, () => [1, 1, 2, 2] as [number, number, number, number])];
+
+    const freePositions = freeRaw.length > 0 ? freeCellsToPositions(freeRaw, cellCount) : undefined;
+
+    const baseLayout: GridLayout = {
+      id: `inspire-${Date.now()}`,
+      name: 'Inspired Layout',
+      category: 'creative',
+      cols: layoutData.gridCols || 1,
+      rows: layoutData.gridRows || 1,
+      cells,
+      gridCols: layoutData.gridCols || 1,
+      gridRows: layoutData.gridRows || 1,
+      canvasRatio: layoutData.canvasRatio || 1,
+      freePositions,
+    };
+
+    const baseTextLayers = Array.isArray(response.textBlocks) ? textBlocksToInspireLayers(response.textBlocks) : [];
+    const watermark = response.watermark;
+    const watermarkLayer = (raw: any, colorOverride?: string): TextLayer | null => {
+      if (!raw || !raw.text) return null;
+      return createTextLayer({
+        text: String(raw.text),
+        fontFamily: 'DM Sans',
+        fontWeight: 300,
+        fontSize: Math.max(8, Math.min(28, Number(raw.fontSize) || 11)),
+        color: colorOverride || raw.color || '#888888',
+        opacity: typeof raw.opacity === 'number' ? raw.opacity : 0.7,
+        letterSpacing: 3,
+        textTransform: 'uppercase',
+        x: Math.max(0, Math.min(100, Number(raw.x) || 50)),
+        y: Math.max(0, Math.min(100, Number(raw.y) || 95)),
+      });
+    };
+
+    const bgColor: string = response.backgroundColor || '#FFFFFF';
+    const bgType: 'solid' | 'gradient' = response.backgroundType === 'gradient' ? 'gradient' : 'solid';
+    const bgGradient = response.backgroundGradient;
+
+    const faithfulBg: BackgroundStyle = bgType === 'gradient' && bgGradient
+      ? { type: 'gradient', color: bgGradient.from || bgColor, gradientTo: bgGradient.to || bgColor, gradientAngle: bgGradient.angle ?? 180 }
+      : { type: 'solid', color: bgColor };
+
+    const wmFaithful = watermarkLayer(watermark);
+    const wmCinematic = watermarkLayer(watermark, '#FAFAF8');
+
+    const vars: LayoutVariation[] = [
+      {
+        layout: baseLayout,
+        textLayers: [...baseTextLayers, ...(wmFaithful ? [wmFaithful] : [])],
+        background: faithfulBg,
+        label: 'Faithful',
+        description: 'Exact recreation',
+      },
+      {
+        layout: { ...baseLayout, id: `${baseLayout.id}-v1` },
+        textLayers: [...baseTextLayers, ...(wmFaithful ? [wmFaithful] : [])],
+        background: { type: 'solid', color: lightenColor(bgColor, 20) },
+        label: 'Editorial',
+        description: 'Lighter palette',
+      },
+      {
+        layout: { ...baseLayout, id: `${baseLayout.id}-v2` },
+        textLayers: [
+          ...baseTextLayers.map(l => ({ ...l, color: '#FAFAF8' })),
+          ...(wmCinematic ? [wmCinematic] : []),
+        ],
+        background: { type: 'solid', color: '#1A1816' },
+        label: 'Cinematic',
+        description: 'Dark mood',
+      },
+      {
+        layout: {
+          ...baseLayout,
+          id: `${baseLayout.id}-v3`,
+          freePositions: freePositions
+            ? freePositions.map(p => (p ? { ...p, borderWidth: 0 } : null))
+            : undefined,
+        },
+        textLayers: [],
+        background: { type: 'solid', color: '#FAFAF8' },
+        label: 'Minimal',
+        description: 'Clean & simple',
+      },
+    ];
+
     setVariations(vars);
     setActiveVariation(0);
     setStep('preview');
@@ -390,7 +548,10 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const handleShuffle = useCallback(() => {
     if (!variations.length) return;
     const base = variations[0];
-    const newVars = generateVariations(base.layout, base.textLayers);
+    const newVars = generateVariations(base.layout, base.textLayers).map((v, i) => ({
+      ...v,
+      background: variations[i]?.background ?? base.background,
+    }));
     setVariations(newVars);
     setActiveVariation(0);
     setShuffleKey(k => k + 1);
@@ -401,10 +562,12 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     if (!v) return;
     setApplied(true);
     setTimeout(() => {
-      onLayoutGenerated(v.layout, v.textLayers);
+      onLayoutGenerated(v.layout, v.textLayers, v.background ?? null);
       toast.success('Layout applied — start adding photos!');
     }, 400);
   }, [variations, activeVariation, onLayoutGenerated]);
+
+
 
   const navigateVariation = useCallback((dir: -1 | 1) => {
     setActiveVariation(prev => {
@@ -545,15 +708,9 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
               }
             );
             if (!resp.ok) throw new Error('Analysis failed');
-            const { layout, textBlocks } = await resp.json();
-            if (!layout?.cells?.length) throw new Error('Could not detect a grid');
-            const generated: GridLayout = {
-              id: `inspire-${Date.now()}`, name: 'Inspired Layout', category: 'creative',
-              cols: layout.gridCols, rows: layout.gridRows,
-              cells: layout.cells, gridCols: layout.gridCols, gridRows: layout.gridRows,
-              canvasRatio: layout.canvasRatio || 1,
-            };
-            handleAnalyzeComplete(generated, textBlocks || []);
+            const fullResponse = await resp.json();
+            if (!fullResponse.layout?.cells?.length) throw new Error('Could not detect a grid');
+            handleAnalyzeComplete(fullResponse);
           } catch (err: any) {
             toast.error(err.message || 'Failed to analyze');
             setStep('crop');

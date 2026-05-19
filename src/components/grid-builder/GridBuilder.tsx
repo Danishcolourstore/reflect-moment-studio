@@ -3,6 +3,7 @@ import { ArrowLeft, Grid3X3, Sparkles, MessageSquare, LayoutGrid } from 'lucide-
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import type { GridLayout } from './types';
 import type { TextLayer } from './text-overlay-types';
+import type { BackgroundStyle } from './BackgroundStyler';
 import GridLayoutSelector from './GridLayoutSelector';
 import GridEditor from './GridEditor';
 const GridInspireModal = lazy(() => import('./GridInspireModal'));
@@ -17,6 +18,7 @@ interface Props {
 export default function GridBuilder({ onClose }: Props) {
   const [selectedLayout, setSelectedLayout] = useState<GridLayout | null>(null);
   const [initialTextLayers, setInitialTextLayers] = useState<TextLayer[]>([]);
+  const [initialBackground, setInitialBackground] = useState<BackgroundStyle | null>(null);
   const [showInspire, setShowInspire] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
   const [showAISuggest, setShowAISuggest] = useState(false);
@@ -27,8 +29,9 @@ export default function GridBuilder({ onClose }: Props) {
     return (
       <GridEditor
         layout={selectedLayout}
-        onBack={() => { setSelectedLayout(null); setInitialTextLayers([]); }}
+        onBack={() => { setSelectedLayout(null); setInitialTextLayers([]); setInitialBackground(null); }}
         initialTextLayers={initialTextLayers}
+        initialBackground={initialBackground}
       />
     );
   }
@@ -38,15 +41,17 @@ export default function GridBuilder({ onClose }: Props) {
       <Suspense fallback={null}>
         <GridInspireModal
           onClose={() => setShowInspire(false)}
-          onLayoutGenerated={(layout, textLayers) => {
+          onLayoutGenerated={(layout, textLayers, background) => {
             setShowInspire(false);
             setInitialTextLayers(textLayers);
+            setInitialBackground(background ?? null);
             setSelectedLayout(layout);
           }}
         />
       </Suspense>
     );
   }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
