@@ -1,12 +1,9 @@
 /**
  * Grid Inspire — Premium AI layout generation experience.
- * Three-step flow: Entry → Crop/Analyze → Preview with variations.
- * Supports multi-slide carousel posts from Instagram or multiple uploaded screenshots.
- * Mobile-first, gesture-friendly, editorial design language.
  */
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { X, Upload, Sparkles, Loader2, Link2, Images, ArrowLeft, Shuffle, Check, ChevronLeft, ChevronRight, Wand2, Eye } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { X, Upload, Sparkles, Loader2, Link2, Images, ArrowLeft, Shuffle, Check, ChevronLeft, ChevronRight, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import type { GridLayout, FreeCellPosition } from './types';
@@ -47,7 +44,6 @@ interface LayoutVariation {
   background?: BackgroundStyle | null;
 }
 
-// ─── Color helpers ───
 function lightenColor(hex: string, percent: number): string {
   try {
     const clean = hex.replace('#', '');
@@ -62,10 +58,8 @@ function lightenColor(hex: string, percent: number): string {
 
 function mapFontCategory(category?: string): string {
   const map: Record<string, string> = {
-    serif: 'Cormorant Garamond',
-    sans: 'DM Sans',
-    script: 'Great Vibes',
-    display: 'Playfair Display',
+    serif: 'Cormorant Garamond', sans: 'DM Sans',
+    script: 'Great Vibes', display: 'Playfair Display',
   };
   return (category && map[category]) || 'DM Sans';
 }
@@ -75,12 +69,9 @@ function freeCellsToPositions(freeCells: any[], cellCount: number): (FreeCellPos
   freeCells.forEach((fc, i) => {
     const idx = typeof fc.index === 'number' ? Math.max(0, Math.min(cellCount - 1, fc.index)) : i;
     positions[idx] = {
-      x: Number(fc.x) || 0,
-      y: Number(fc.y) || 0,
-      width: Number(fc.width) || 30,
-      height: Number(fc.height) || 30,
-      rotation: Number(fc.rotation) || 0,
-      scale: Number(fc.scale) || 1,
+      x: Number(fc.x) || 0, y: Number(fc.y) || 0,
+      width: Number(fc.width) || 30, height: Number(fc.height) || 30,
+      rotation: Number(fc.rotation) || 0, scale: Number(fc.scale) || 1,
       zIndex: typeof fc.zIndex === 'number' ? fc.zIndex : idx + 1,
       opacity: typeof fc.opacity === 'number' ? fc.opacity : 1,
       borderWidth: Number(fc.borderWidth) || 0,
@@ -91,7 +82,7 @@ function freeCellsToPositions(freeCells: any[], cellCount: number): (FreeCellPos
 }
 
 function textBlocksToInspireLayers(blocks: any[]): TextLayer[] {
-  return blocks.map((block, i) =>
+  return blocks.map((block) =>
     createTextLayer({
       text: String(block.text || ''),
       fontFamily: mapFontCategory(block.fontCategory),
@@ -110,24 +101,6 @@ function textBlocksToInspireLayers(blocks: any[]): TextLayer[] {
     }),
   );
 }
-
-
-// ─── Analysis phases with icons ───
-import { Search as SearchIcon, Ruler, Type as TypeIcon } from 'lucide-react';
-const ANALYSIS_PHASES = [
-  { text: 'Scanning composition…', Icon: SearchIcon },
-  { text: 'Mapping grid structure…', Icon: Ruler },
-  { text: 'Detecting typography…', Icon: TypeIcon },
-  { text: 'Crafting variations…', Icon: Sparkles },
-];
-
-// ─── Variation metadata ───
-const STYLE_META = [
-  { label: 'Minimal', description: 'Clean, balanced spacing' },
-  { label: 'Editorial', description: 'Magazine-style emphasis' },
-  { label: 'Cinematic', description: 'Wide, dramatic framing' },
-  { label: 'Balanced', description: 'Symmetrical, harmonious' },
-];
 
 function mapFontFamily(group: 'serif' | 'sans' | 'script', weight: number, textTransform: string, fontSize: number): string {
   if (group === 'script') return fontSize > 28 ? 'Great Vibes' : 'Parisienne';
@@ -176,10 +149,13 @@ function textBlocksToLayers(blocks: DetectedTextBlock[]): TextLayer[] {
 }
 
 function generateVariations(base: GridLayout, textLayers: TextLayer[]): LayoutVariation[] {
-  const variations: LayoutVariation[] = [
-    { layout: base, textLayers, ...STYLE_META[0] },
+  const STYLE_META = [
+    { label: 'Minimal', description: 'Clean, balanced spacing' },
+    { label: 'Editorial', description: 'Magazine-style emphasis' },
+    { label: 'Cinematic', description: 'Wide, dramatic framing' },
+    { label: 'Balanced', description: 'Symmetrical, harmonious' },
   ];
-
+  const variations: LayoutVariation[] = [{ layout: base, textLayers, ...STYLE_META[0] }];
   for (let v = 1; v < 4; v++) {
     const shuffledCells = [...base.cells];
     for (let i = shuffledCells.length - 1; i > 0; i--) {
@@ -192,11 +168,16 @@ function generateVariations(base: GridLayout, textLayers: TextLayer[]): LayoutVa
       ...STYLE_META[v],
     });
   }
-
   return variations;
 }
 
 function getAutoLayouts(): LayoutVariation[] {
+  const STYLE_META = [
+    { label: 'Minimal', description: 'Clean, balanced spacing' },
+    { label: 'Editorial', description: 'Magazine-style emphasis' },
+    { label: 'Cinematic', description: 'Wide, dramatic framing' },
+    { label: 'Balanced', description: 'Symmetrical, harmonious' },
+  ];
   const categories = ['creative', 'instagram', 'basic'] as const;
   const picked: LayoutVariation[] = [];
   for (const cat of categories) {
@@ -204,24 +185,18 @@ function getAutoLayouts(): LayoutVariation[] {
     const shuffled = [...options].sort(() => Math.random() - 0.5);
     const count = Math.min(2, shuffled.length);
     for (let i = 0; i < count; i++) {
-      picked.push({
-        layout: shuffled[i],
-        textLayers: [],
-        ...STYLE_META[picked.length % STYLE_META.length],
-      });
+      picked.push({ layout: shuffled[i], textLayers: [], ...STYLE_META[picked.length % STYLE_META.length] });
     }
   }
   return picked.slice(0, 6);
 }
 
-// ─── Cell color palette for preview cards ───
-const CELL_COLORS = [
-  'hsl(var(--primary) / 0.15)',
-  'hsl(var(--primary) / 0.10)',
-  'hsl(var(--primary) / 0.08)',
-  'hsl(var(--muted-foreground) / 0.08)',
-  'hsl(var(--primary) / 0.12)',
-  'hsl(var(--muted-foreground) / 0.06)',
+import { Search as SearchIcon, Ruler, Type as TypeIcon } from 'lucide-react';
+const ANALYSIS_PHASES = [
+  { text: 'Scanning composition…', Icon: SearchIcon },
+  { text: 'Mapping grid structure…', Icon: Ruler },
+  { text: 'Detecting typography…', Icon: TypeIcon },
+  { text: 'Crafting variations…', Icon: Sparkles },
 ];
 
 export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) {
@@ -236,8 +211,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const [linkLoading, setLinkLoading] = useState(false);
   const [shuffleKey, setShuffleKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Multi-slide state
   const [multiImages, setMultiImages] = useState<string[]>([]);
   const [multiResults, setMultiResults] = useState<Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string }>>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -245,29 +218,19 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const [totalSlides, setTotalSlides] = useState(0);
   const [multiMode, setMultiMode] = useState(false);
 
-  // Cleanup blob URLs on unmount
   useEffect(() => {
-    return () => {
-      multiImages.forEach(url => {
-        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
-      });
-    };
+    return () => { multiImages.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); }); };
   }, []);
 
-  // Analysis phase animation
   useEffect(() => {
     if (step !== 'analyzing') return;
     setAnalysisPhase(0);
     const interval = setInterval(() => {
-      setAnalysisPhase(p => {
-        if (p >= ANALYSIS_PHASES.length - 1) { clearInterval(interval); return p; }
-        return p + 1;
-      });
+      setAnalysisPhase(p => { if (p >= ANALYSIS_PHASES.length - 1) { clearInterval(interval); return p; } return p + 1; });
     }, 800);
     return () => clearInterval(interval);
   }, [step]);
 
-  // Scroll to active variation
   useEffect(() => {
     if (step !== 'preview' || !scrollRef.current) return;
     const cards = scrollRef.current.children;
@@ -288,13 +251,10 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     setMultiResults([]);
     setAnalyzingSlide(0);
     setTotalSlides(imageUrls.length);
-
     const results: Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string }> = [];
-
     for (let i = 0; i < imageUrls.length; i++) {
       setAnalyzingSlide(i + 1);
       setAnalysisPhase(Math.min(i % ANALYSIS_PHASES.length, ANALYSIS_PHASES.length - 1));
-
       try {
         const response = await fetch(imageUrls[i]);
         const blob = await response.blob();
@@ -303,35 +263,19 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           reader.onloadend = () => resolve(reader.result as string);
           reader.readAsDataURL(blob);
         });
-
         const resp = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-grid-layout`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: JSON.stringify({ image: base64 }),
-          }
+          { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` }, body: JSON.stringify({ image: base64 }) }
         );
-
         if (resp.ok) {
           const { layout, textBlocks } = await resp.json();
           if (layout?.cells?.length) {
             const generated: GridLayout = {
-              id: `inspire-${Date.now()}-${i}`,
-              name: `Slide ${i + 1}`,
-              category: 'creative',
-              cols: layout.gridCols,
-              rows: layout.gridRows,
-              cells: layout.cells,
-              gridCols: layout.gridCols,
-              gridRows: layout.gridRows,
-              canvasRatio: layout.canvasRatio || 1,
+              id: `inspire-${Date.now()}-${i}`, name: `Slide ${i + 1}`, category: 'creative',
+              cols: layout.gridCols, rows: layout.gridRows, cells: layout.cells,
+              gridCols: layout.gridCols, gridRows: layout.gridRows, canvasRatio: layout.canvasRatio || 1,
             };
-            const textLayers = textBlocks?.length ? textBlocksToLayers(textBlocks) : [];
-            results.push({ layout: generated, textLayers, image: imageUrls[i] });
+            results.push({ layout: generated, textLayers: textBlocks?.length ? textBlocksToLayers(textBlocks) : [], image: imageUrls[i] });
           } else {
             const fallback = GRID_LAYOUTS.filter(l => l.category === 'creative' && l.cells.length >= 2)[i % 5] || GRID_LAYOUTS[0];
             results.push({ layout: { ...fallback, id: `inspire-fallback-${i}`, name: `Slide ${i + 1}` }, textLayers: [], image: imageUrls[i] });
@@ -345,7 +289,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
         results.push({ layout: { ...fallback, id: `inspire-fallback-${i}`, name: `Slide ${i + 1}` }, textLayers: [], image: imageUrls[i] });
       }
     }
-
     setMultiResults(results);
     setCurrentSlideIndex(0);
     setStep('preview');
@@ -354,12 +297,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const handleMultiFileSelect = useCallback((files: File[]) => {
     const images = files.filter(f => f.type.startsWith('image/'));
     if (images.length === 0) { toast.error('No valid images found'); return; }
-    if (images.length === 1) {
-      setMultiMode(false);
-      setImageSrc(URL.createObjectURL(images[0]));
-      setStep('crop');
-      return;
-    }
+    if (images.length === 1) { setMultiMode(false); setImageSrc(URL.createObjectURL(images[0])); setStep('crop'); return; }
     setMultiMode(true);
     const urls = images.map(f => URL.createObjectURL(f));
     setMultiImages(urls);
@@ -370,48 +308,27 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const handleInstagramLink = useCallback(async () => {
     const url = linkValue.trim();
     if (!url) { toast.error('Please paste an Instagram link'); return; }
-    if (!/instagram\.com\/(p|reel|tv)\/[A-Za-z0-9_-]+/i.test(url)) {
-      toast.error('Please paste a valid Instagram post or reel link');
-      return;
-    }
+    if (!/instagram\.com\/(p|reel|tv)\/[A-Za-z0-9_-]+/i.test(url)) { toast.error('Please paste a valid Instagram post or reel link'); return; }
     setLinkLoading(true);
     try {
       const proxyResp = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-instagram-image`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ url }),
-        }
+        { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` }, body: JSON.stringify({ url }) }
       );
-      if (!proxyResp.ok) {
-        const errData = await proxyResp.json().catch(() => ({}));
-        throw new Error(errData.error || 'Could not fetch Instagram image');
-      }
+      if (!proxyResp.ok) { const errData = await proxyResp.json().catch(() => ({})); throw new Error(errData.error || 'Could not fetch Instagram image'); }
       const result = await proxyResp.json();
-
-      // Check if carousel with multiple images
       if (result.images && result.images.length > 1) {
-        setMultiMode(true);
-        setShowLinkInput(false);
-        setLinkValue('');
+        setMultiMode(true); setShowLinkInput(false); setLinkValue('');
         toast.success(`Found ${result.images.length} carousel slides!`);
-
         const blobUrls: string[] = [];
         for (const b64 of result.images) {
           const byteString = atob(b64);
           const ab = new ArrayBuffer(byteString.length);
           const ia = new Uint8Array(ab);
           for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-          const blob = new Blob([ab], { type: 'image/jpeg' });
-          blobUrls.push(URL.createObjectURL(blob));
+          blobUrls.push(URL.createObjectURL(new Blob([ab], { type: 'image/jpeg' })));
         }
-        setMultiImages(blobUrls);
-        setTotalSlides(blobUrls.length);
-        handleBatchAnalyze(blobUrls);
+        setMultiImages(blobUrls); setTotalSlides(blobUrls.length); handleBatchAnalyze(blobUrls);
       } else if (result.imageBase64) {
         setMultiMode(false);
         const b64 = result.imageBase64;
@@ -419,30 +336,17 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
         const ab = new ArrayBuffer(byteString.length);
         const ia = new Uint8Array(ab);
         for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-        const blob = new Blob([ab], { type: 'image/jpeg' });
-        setImageSrc(URL.createObjectURL(blob));
-        setStep('crop');
-        setShowLinkInput(false);
-        setLinkValue('');
-      } else {
-        throw new Error('No images found in post');
-      }
+        setImageSrc(URL.createObjectURL(new Blob([ab], { type: 'image/jpeg' })));
+        setStep('crop'); setShowLinkInput(false); setLinkValue('');
+      } else { throw new Error('No images found in post'); }
     } catch (err: any) {
       toast.error(err.message || 'Failed to load Instagram image. Try uploading screenshots instead.');
-    } finally {
-      setLinkLoading(false);
-    }
+    } finally { setLinkLoading(false); }
   }, [linkValue, handleBatchAnalyze]);
 
   const handleAutoGenerate = useCallback(() => {
     setStep('analyzing');
-    setTimeout(() => {
-      const auto = getAutoLayouts();
-      setVariations(auto);
-      setActiveVariation(0);
-      setStep('preview');
-      localStorage.setItem('grid-inspire-used', '1');
-    }, 2800);
+    setTimeout(() => { setVariations(getAutoLayouts()); setActiveVariation(0); setStep('preview'); localStorage.setItem('grid-inspire-used', '1'); }, 2800);
   }, []);
 
   const handleAnalyzeComplete = useCallback((response: any) => {
@@ -450,46 +354,36 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     const baseCells: [number, number, number, number][] = Array.isArray(layoutData.cells) ? layoutData.cells : [];
     const freeRaw: any[] = Array.isArray(response.freeCells) ? response.freeCells : [];
     const cellCount = Math.max(baseCells.length, freeRaw.length, 1);
-    // Pad cells if free has more
     const cells = baseCells.length >= cellCount
       ? baseCells
       : [...baseCells, ...Array.from({ length: cellCount - baseCells.length }, () => [1, 1, 2, 2] as [number, number, number, number])];
-
     const freePositions = freeRaw.length > 0 ? freeCellsToPositions(freeRaw, cellCount) : undefined;
 
     const baseLayout: GridLayout = {
-      id: `inspire-${Date.now()}`,
-      name: 'Inspired Layout',
-      category: 'creative',
-      cols: layoutData.gridCols || 1,
-      rows: layoutData.gridRows || 1,
-      cells,
-      gridCols: layoutData.gridCols || 1,
-      gridRows: layoutData.gridRows || 1,
-      canvasRatio: layoutData.canvasRatio || 1,
-      freePositions,
+      id: `inspire-${Date.now()}`, name: 'Inspired Layout', category: 'creative',
+      cols: layoutData.gridCols || 1, rows: layoutData.gridRows || 1, cells,
+      gridCols: layoutData.gridCols || 1, gridRows: layoutData.gridRows || 1,
+      canvasRatio: layoutData.canvasRatio || 1, freePositions,
     };
 
     const baseTextLayers = Array.isArray(response.textBlocks) ? textBlocksToInspireLayers(response.textBlocks) : [];
     const watermark = response.watermark;
+
     const watermarkLayer = (raw: any, colorOverride?: string): TextLayer | null => {
-      if (!raw || !raw.text) return null;
+      if (!raw?.text) return null;
       return createTextLayer({
-        text: String(raw.text),
-        fontFamily: 'DM Sans',
-        fontWeight: 300,
+        text: String(raw.text), fontFamily: 'DM Sans', fontWeight: 300,
         fontSize: Math.max(8, Math.min(28, Number(raw.fontSize) || 11)),
         color: colorOverride || raw.color || '#888888',
         opacity: typeof raw.opacity === 'number' ? raw.opacity : 0.7,
-        letterSpacing: 3,
-        textTransform: 'uppercase',
+        letterSpacing: 3, textTransform: 'uppercase',
         x: Math.max(0, Math.min(100, Number(raw.x) || 50)),
         y: Math.max(0, Math.min(100, Number(raw.y) || 95)),
       });
     };
 
     const bgColor: string = response.backgroundColor || '#FFFFFF';
-    const bgType: 'solid' | 'gradient' = response.backgroundType === 'gradient' ? 'gradient' : 'solid';
+    const bgType = response.backgroundType === 'gradient' ? 'gradient' : 'solid';
     const bgGradient = response.backgroundGradient;
 
     const faithfulBg: BackgroundStyle = bgType === 'gradient' && bgGradient
@@ -503,39 +397,28 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
       {
         layout: baseLayout,
         textLayers: [...baseTextLayers, ...(wmFaithful ? [wmFaithful] : [])],
-        background: faithfulBg,
-        label: 'Faithful',
-        description: 'Exact recreation',
+        background: faithfulBg, label: 'Faithful', description: 'Exact recreation',
       },
       {
         layout: { ...baseLayout, id: `${baseLayout.id}-v1` },
         textLayers: [...baseTextLayers, ...(wmFaithful ? [wmFaithful] : [])],
         background: { type: 'solid', color: lightenColor(bgColor, 20) },
-        label: 'Editorial',
-        description: 'Lighter palette',
+        label: 'Editorial', description: 'Lighter palette',
       },
       {
         layout: { ...baseLayout, id: `${baseLayout.id}-v2` },
-        textLayers: [
-          ...baseTextLayers.map(l => ({ ...l, color: '#FAFAF8' })),
-          ...(wmCinematic ? [wmCinematic] : []),
-        ],
+        textLayers: [...baseTextLayers.map(l => ({ ...l, color: '#FAFAF8' })), ...(wmCinematic ? [wmCinematic] : [])],
         background: { type: 'solid', color: '#1A1816' },
-        label: 'Cinematic',
-        description: 'Dark mood',
+        label: 'Cinematic', description: 'Dark mood',
       },
       {
         layout: {
-          ...baseLayout,
-          id: `${baseLayout.id}-v3`,
-          freePositions: freePositions
-            ? freePositions.map(p => (p ? { ...p, borderWidth: 0 } : null))
-            : undefined,
+          ...baseLayout, id: `${baseLayout.id}-v3`,
+          freePositions: freePositions ? freePositions.map(p => p ? { ...p, borderWidth: 0 } : null) : undefined,
         },
         textLayers: [],
         background: { type: 'solid', color: '#FAFAF8' },
-        label: 'Minimal',
-        description: 'Clean & simple',
+        label: 'Minimal', description: 'Clean & simple',
       },
     ];
 
@@ -549,8 +432,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     if (!variations.length) return;
     const base = variations[0];
     const newVars = generateVariations(base.layout, base.textLayers).map((v, i) => ({
-      ...v,
-      background: variations[i]?.background ?? base.background,
+      ...v, background: variations[i]?.background ?? base.background,
     }));
     setVariations(newVars);
     setActiveVariation(0);
@@ -567,8 +449,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     }, 400);
   }, [variations, activeVariation, onLayoutGenerated]);
 
-
-
   const navigateVariation = useCallback((dir: -1 | 1) => {
     setActiveVariation(prev => {
       const next = prev + dir;
@@ -582,106 +462,74 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   if (step === 'entry') {
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col">
-        <EntryHeader onClose={onClose} />
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="w-11" />
+          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">AI Layouts</span>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
         <div className="flex-1 flex flex-col items-center justify-center px-5 pb-8">
-          {/* Hero section */}
           <div className="text-center mb-10 animate-in fade-in slide-in-from-bottom-3 duration-700">
             <div className="relative mx-auto w-14 h-14 mb-5">
-              <div className="absolute inset-0 rounded-2xl bg-primary/10 skeleton-block" />
-              <div className="absolute inset-0 rounded-2xl border border-primary/20" />
+              <div className="absolute inset-0 bg-primary/10 skeleton-block" />
+              <div className="absolute inset-0 border border-primary/20" />
               <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary" />
             </div>
-            <h2 className="font-display text-2xl font-semibold text-foreground tracking-tight">Grid Inspire</h2>
+            <h2 className="font-display text-2xl text-foreground tracking-tight">Grid Inspire</h2>
             <p className="text-xs text-muted-foreground mt-2 max-w-[240px] mx-auto leading-relaxed">
               Turn any reference into a stunning layout. AI detects grids, fonts & composition.
             </p>
           </div>
-
           <div className="w-full max-w-sm space-y-2.5">
             {showLinkInput ? (
-              <div className="rounded-2xl bg-card border border-border p-4 space-y-3 animate-in fade-in zoom-in-95 duration-300">
+              <div className="bg-card border border-border p-4 space-y-3 animate-in fade-in zoom-in-95 duration-300">
                 <p className="text-xs text-foreground font-medium flex items-center gap-2">
                   <Link2 className="h-3.5 w-3.5 text-primary" />
                   Paste Instagram Post URL
                 </p>
                 <input
-                  type="url"
-                  placeholder="https://www.instagram.com/p/..."
-                  value={linkValue}
-                  onChange={(e) => setLinkValue(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleInstagramLink()}
-                  autoFocus
-                  className="w-full bg-secondary border border-border rounded-xl px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
+                  type="url" placeholder="https://www.instagram.com/p/..."
+                  value={linkValue} onChange={(e) => setLinkValue(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleInstagramLink()} autoFocus
+                  className="w-full bg-secondary border border-border px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-gold/60 transition-all"
                 />
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 h-10"
-                    onClick={() => { setShowLinkInput(false); setLinkValue(''); }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="flex-1 h-10 gap-1.5"
-                    onClick={handleInstagramLink}
-                    disabled={linkLoading || !linkValue.trim()}
-                  >
+                  <Button variant="outline" size="sm" className="flex-1 h-10" onClick={() => { setShowLinkInput(false); setLinkValue(''); }}>Cancel</Button>
+                  <Button size="sm" className="flex-1 h-10 gap-1.5" onClick={handleInstagramLink} disabled={linkLoading || !linkValue.trim()}>
                     {linkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                     {linkLoading ? 'Loading…' : 'Analyze'}
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '100ms' }}>
-                <EntryCard
-                  icon={<Link2 className="h-5 w-5" />}
-                  title="Paste Instagram Link"
-                  subtitle="Analyze any post's layout & style"
-                  onClick={() => setShowLinkInput(true)}
-                />
-              </div>
+              <button onClick={() => setShowLinkInput(true)} className="w-full text-left bg-card border border-border p-4 flex items-center gap-4 transition-all duration-200 group min-h-[72px] active:scale-[0.98] hover:border-primary/20">
+                <div className="shrink-0 w-11 h-11 flex items-center justify-center bg-secondary text-muted-foreground group-hover:scale-105 transition-all duration-200"><Link2 className="h-5 w-5" /></div>
+                <div><p className="text-sm font-medium text-foreground">Paste Instagram Link</p><p className="text-[11px] text-muted-foreground mt-0.5">Analyze any post's layout & style</p></div>
+              </button>
             )}
-
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '200ms' }}>
-              <EntryCard
-                icon={<Upload className="h-5 w-5" />}
-                title="Upload Screenshots"
-                subtitle="Upload 1 or multiple slides — AI detects each"
-                onClick={() => {
-                  const input = document.createElement('input');
-                  input.type = 'file';
-                  input.accept = 'image/*';
-                  input.multiple = true;
-                  input.onchange = (e) => {
-                    const files = Array.from((e.target as HTMLInputElement).files || []);
-                    if (files.length === 1) {
-                      handleFileSelect(files[0]);
-                    } else if (files.length > 1) {
-                      handleMultiFileSelect(files);
-                    }
-                  };
-                  input.click();
-                }}
-              />
-            </div>
-
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: '300ms' }}>
-              <EntryCard
-                icon={<Wand2 className="h-5 w-5" />}
-                title="Auto Generate"
-                subtitle="AI picks the best layouts for you"
-                onClick={handleAutoGenerate}
-                highlight
-              />
-            </div>
+            <button
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file'; input.accept = 'image/*'; input.multiple = true;
+                input.onchange = (e) => {
+                  const files = Array.from((e.target as HTMLInputElement).files || []);
+                  if (files.length === 1) handleFileSelect(files[0]);
+                  else if (files.length > 1) handleMultiFileSelect(files);
+                };
+                input.click();
+              }}
+              className="w-full text-left bg-card border border-border p-4 flex items-center gap-4 transition-all duration-200 group min-h-[72px] active:scale-[0.98] hover:border-primary/20"
+            >
+              <div className="shrink-0 w-11 h-11 flex items-center justify-center bg-secondary text-muted-foreground group-hover:scale-105 transition-all duration-200"><Upload className="h-5 w-5" /></div>
+              <div><p className="text-sm font-medium text-foreground">Upload Screenshots</p><p className="text-[11px] text-muted-foreground mt-0.5">Upload 1 or multiple slides — AI detects each</p></div>
+            </button>
+            <button onClick={handleAutoGenerate} className="w-full text-left bg-primary/8 border border-primary/20 p-4 flex items-center gap-4 transition-all duration-200 group min-h-[72px] active:scale-[0.98] hover:bg-primary/12 hover:border-primary/30">
+              <div className="shrink-0 w-11 h-11 flex items-center justify-center bg-primary/15 text-primary group-hover:scale-105 transition-all duration-200"><Wand2 className="h-5 w-5" /></div>
+              <div><p className="text-sm font-medium text-foreground">Auto Generate</p><p className="text-[11px] text-muted-foreground mt-0.5">AI picks the best layouts for you</p></div>
+            </button>
           </div>
-
-          {/* Tip */}
-          <p className="text-[10px] text-muted-foreground/40 mt-8 text-center animate-in fade-in duration-700" style={{ animationDelay: '500ms' }}>
-            Pro tip: Screenshot any grid design you love — AI will recreate it
-          </p>
+          <p className="text-[10px] text-muted-foreground/40 mt-8 text-center">Pro tip: Screenshot any grid design you love — AI will recreate it</p>
         </div>
       </div>
     );
@@ -698,18 +546,11 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           try {
             const resp = await fetch(
               `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-grid-layout`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-                },
-                body: JSON.stringify({ image: base64 }),
-              }
+              { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` }, body: JSON.stringify({ image: base64 }) }
             );
             if (!resp.ok) throw new Error('Analysis failed');
             const fullResponse = await resp.json();
-            if (!fullResponse.layout?.cells?.length) throw new Error('Could not detect a grid');
+            if (!fullResponse.layout?.cells?.length && !fullResponse.freeCells?.length) throw new Error('Could not detect a grid');
             handleAnalyzeComplete(fullResponse);
           } catch (err: any) {
             toast.error(err.message || 'Failed to analyze');
@@ -725,67 +566,35 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center">
         <div className="text-center space-y-8 animate-in fade-in zoom-in-95 duration-500 px-6">
-          {/* Animated ring spinner */}
           <div className="relative w-20 h-20 mx-auto">
-            <div className="absolute inset-0 rounded-full border-2 border-border" />
-            <div className="absolute inset-0 rounded-full border-2 border-primary border-t-transparent animate-spin" style={{ animationDuration: '1.2s' }} />
-            <div className="absolute inset-[6px] rounded-full border border-primary/20 border-b-transparent animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }} />
+            <div className="absolute inset-0 border-2 border-border" style={{ borderRadius: '50%' }} />
+            <div className="absolute inset-0 border-2 border-primary border-t-transparent animate-spin" style={{ borderRadius: '50%', animationDuration: '1.2s' }} />
+            <div className="absolute inset-[6px] border border-primary/20 border-b-transparent animate-spin" style={{ borderRadius: '50%', animationDuration: '2s', animationDirection: 'reverse' }} />
             <Sparkles className="absolute inset-0 m-auto h-7 w-7 text-primary" />
           </div>
-
           <div>
-            <h3 className="font-display text-lg font-semibold text-foreground mb-1">
-              {totalSlides > 1 ? 'Analyzing Slides' : 'Analyzing Design'}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {totalSlides > 1
-                ? `Slide ${analyzingSlide} of ${totalSlides}`
-                : 'This takes a few seconds'}
-            </p>
+            <h3 className="font-display text-lg text-foreground mb-1">{totalSlides > 1 ? 'Analyzing Slides' : 'Analyzing Design'}</h3>
+            <p className="text-xs text-muted-foreground">{totalSlides > 1 ? `Slide ${analyzingSlide} of ${totalSlides}` : 'This takes a few seconds'}</p>
           </div>
-
-          {/* Phase steps */}
           <div className="space-y-3 text-left max-w-[220px] mx-auto">
             {ANALYSIS_PHASES.map((phase, i) => {
               const isComplete = i < analysisPhase;
               const isActive = i === analysisPhase;
               const isVisible = i <= analysisPhase;
-
               return (
-                <div
-                  key={i}
-                  className={`flex items-center gap-3 transition-all duration-500 ${
-                    !isVisible ? 'opacity-0 translate-y-2' :
-                    isComplete ? 'opacity-70' :
-                    isActive ? 'opacity-100' : 'opacity-30'
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0 transition-all duration-300 ${
-                    isComplete ? 'bg-primary/20 text-primary' :
-                    isActive ? 'bg-primary/10 text-primary skeleton-block' :
-                    'bg-secondary text-muted-foreground'
-                  }`}>
+                <div key={i} className={`flex items-center gap-3 transition-all duration-500 ${!isVisible ? 'opacity-0 translate-y-2' : isComplete ? 'opacity-70' : isActive ? 'opacity-100' : 'opacity-30'}`}>
+                  <div className={`w-6 h-6 flex items-center justify-center text-xs flex-shrink-0 transition-all duration-300 ${isComplete ? 'bg-primary/20 text-primary' : isActive ? 'bg-primary/10 text-primary skeleton-block' : 'bg-secondary text-muted-foreground'}`}>
                     {isComplete ? <Check className="h-3 w-3" /> : <phase.Icon className="h-3 w-3" strokeWidth={1.5} />}
                   </div>
-                  <span className={`text-xs transition-colors duration-300 ${
-                    isActive ? 'text-foreground font-medium' : 'text-muted-foreground'
-                  }`}>
-                    {phase.text}
-                  </span>
+                  <span className={`text-xs transition-colors duration-300 ${isActive ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{phase.text}</span>
                 </div>
               );
             })}
           </div>
-
-          {/* Progress bar */}
           <div className="w-48 mx-auto">
-            <div className="h-1 bg-secondary rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${totalSlides > 1
-                  ? ((analyzingSlide) / totalSlides) * 100
-                  : ((analysisPhase + 1) / ANALYSIS_PHASES.length) * 100}%` }}
-              />
+            <div className="h-1 bg-secondary overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-primary/60 to-primary transition-all duration-700 ease-out"
+                style={{ width: `${totalSlides > 1 ? ((analyzingSlide) / totalSlides) * 100 : ((analysisPhase + 1) / ANALYSIS_PHASES.length) * 100}%` }} />
             </div>
           </div>
         </div>
@@ -793,266 +602,215 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     );
   }
 
-  // ─── Multi-Slide Preview Screen ───
+  // ─── Multi-Slide Preview ───
   if (step === 'preview' && multiMode && multiResults.length > 0) {
     const current = multiResults[currentSlideIndex];
-
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col">
-        {/* Header */}
         <div className="px-4 py-3 flex items-center justify-between border-b border-border/30">
-          <button onClick={() => { setStep('entry'); setMultiResults([]); setMultiImages([]); }} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
+          <button onClick={() => { setStep('entry'); setMultiResults([]); setMultiImages([]); }} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"><ArrowLeft className="h-4 w-4" /></button>
           <div className="text-center">
-            <h2 className="text-xs font-semibold tracking-[0.15em] uppercase text-foreground">
-              {multiResults.length} Slides Detected
-            </h2>
-            <p className="text-[9px] text-muted-foreground mt-0.5">
-              Slide {currentSlideIndex + 1} of {multiResults.length}
-            </p>
+            <h2 className="text-xs tracking-[0.15em] uppercase text-foreground">{multiResults.length} Slides Detected</h2>
+            <p className="text-[9px] text-muted-foreground mt-0.5">Slide {currentSlideIndex + 1} of {multiResults.length}</p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"><X className="h-4 w-4" /></button>
         </div>
-
-        {/* Current slide — reference image + detected layout */}
         <div className="flex-1 overflow-y-auto px-4 py-4">
           <div className="max-w-lg mx-auto space-y-4">
-            {/* Reference image */}
-            <div className="rounded-xl overflow-hidden border border-border/50 bg-muted">
+            <div className="overflow-hidden border border-border/50 bg-muted">
               <img src={current.image} alt={`Slide ${currentSlideIndex + 1}`} className="w-full object-contain max-h-[240px]" loading="lazy" decoding="async" />
             </div>
-
-            {/* Detected layout preview */}
-            <div className="bg-card rounded-xl border border-border p-4">
+            <div className="bg-card border border-border p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-xs font-semibold text-foreground">Detected Layout</p>
+                  <p className="text-xs text-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Detected Layout</p>
                   <p className="text-[10px] text-muted-foreground">{current.layout.cells.length} cells • {current.layout.gridCols}×{current.layout.gridRows} grid</p>
                 </div>
                 {current.textLayers.length > 0 && (
-                  <span className="text-[9px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                    {current.textLayers.length} text{current.textLayers.length > 1 ? 's' : ''} detected
+                  <span className="text-[9px] bg-primary/10 text-primary px-2 py-0.5" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>
+                    {current.textLayers.length} text detected
                   </span>
                 )}
               </div>
-
-              {/* Grid preview */}
-              <div
-                className="w-full rounded-lg overflow-hidden bg-secondary/30"
-                style={{ aspectRatio: `${current.layout.canvasRatio || 1}`, maxHeight: 180 }}
-              >
-                <div
-                  className="w-full h-full grid p-1"
-                  style={{
-                    gridTemplateColumns: `repeat(${current.layout.gridCols}, 1fr)`,
-                    gridTemplateRows: `repeat(${current.layout.gridRows}, 1fr)`,
-                    gap: '3px',
-                  }}
-                >
+              <div className="w-full overflow-hidden bg-secondary/30" style={{ aspectRatio: `${current.layout.canvasRatio || 1}`, maxHeight: 180 }}>
+                <div className="w-full h-full grid p-1" style={{ gridTemplateColumns: `repeat(${current.layout.gridCols}, 1fr)`, gridTemplateRows: `repeat(${current.layout.gridRows}, 1fr)`, gap: '3px' }}>
                   {current.layout.cells.map((cell, ci) => (
-                    <div
-                      key={ci}
-                      className="bg-primary/12 rounded-[3px] flex items-center justify-center"
-                      style={{
-                        gridRow: `${cell[0]} / ${cell[2]}`,
-                        gridColumn: `${cell[1]} / ${cell[3]}`,
-                      }}
-                    >
+                    <div key={ci} className="bg-primary/12 flex items-center justify-center" style={{ gridRow: `${cell[0]} / ${cell[2]}`, gridColumn: `${cell[1]} / ${cell[3]}` }}>
                       <Images className="h-3 w-3 text-primary/30" />
                     </div>
                   ))}
                 </div>
               </div>
-
-              {/* Detected text blocks */}
-              {current.textLayers.length > 0 && (
-                <div className="mt-3 space-y-1.5">
-                  <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-medium">Detected text</p>
-                  {current.textLayers.map((tl, ti) => (
-                    <div key={ti} className="flex items-center gap-2 bg-muted/30 rounded-lg px-2.5 py-1.5">
-                      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: tl.color, border: '1px solid hsl(var(--border))' }} />
-                      <span className="text-[11px] text-foreground truncate flex-1" style={{ fontFamily: tl.fontFamily }}>
-                        {tl.text}
-                      </span>
-                      <span className="text-[8px] text-muted-foreground shrink-0">{tl.fontFamily} {tl.fontWeight}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </div>
-
-        {/* Slide strip — horizontal scroll at bottom */}
         <div className="border-t border-border/30 bg-card/50">
           <div className="flex gap-1.5 px-3 py-2.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
             {multiResults.map((result, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentSlideIndex(i)}
-                className={`shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
-                  i === currentSlideIndex
-                    ? 'border-primary shadow-md shadow-primary/20 scale-100'
-                    : 'border-transparent opacity-50 hover:opacity-80 scale-95'
-                }`}
-              >
+              <button key={i} onClick={() => setCurrentSlideIndex(i)} className={`shrink-0 overflow-hidden border-2 transition-all ${i === currentSlideIndex ? 'border-primary scale-100' : 'border-transparent opacity-50 hover:opacity-80 scale-95'}`}>
                 <img src={result.image} alt="" className="w-12 h-12 object-cover" loading="lazy" decoding="async" />
-                <p className={`text-[7px] text-center py-0.5 font-medium ${
-                  i === currentSlideIndex ? 'text-primary' : 'text-muted-foreground'
-                }`}>
-                  {i + 1}
-                </p>
+                <p className={`text-[7px] text-center py-0.5 ${i === currentSlideIndex ? 'text-primary' : 'text-muted-foreground'}`}>{i + 1}</p>
               </button>
             ))}
           </div>
         </div>
-
-        {/* Bottom actions */}
         <div className="px-5 pt-2 flex gap-2.5 max-w-sm mx-auto w-full" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
-          <Button
-            variant="outline"
-            className="h-12 px-4 gap-1.5"
-            onClick={() => {
-              onLayoutGenerated(current.layout, current.textLayers);
-              toast.success(`Slide ${currentSlideIndex + 1} layout applied!`);
-            }}
-          >
-            <Check className="h-3.5 w-3.5" />
-            This Slide
+          <Button variant="outline" className="h-12 px-4 gap-1.5" onClick={() => { onLayoutGenerated(current.layout, current.textLayers); toast.success(`Slide ${currentSlideIndex + 1} layout applied!`); }}>
+            <Check className="h-3.5 w-3.5" />This Slide
           </Button>
-          <Button
-            className="flex-1 h-12 gap-2 text-sm font-medium tracking-wide shadow-lg shadow-primary/20"
-            onClick={() => {
-              onLayoutGenerated(current.layout, current.textLayers);
-              if (currentSlideIndex < multiResults.length - 1) {
-                toast.success(`Slide ${currentSlideIndex + 1} applied! Open Inspire again for the next slide.`);
-              } else {
-                toast.success('Layout applied — start adding your photos!');
-              }
-            }}
-          >
-            <Sparkles className="h-4 w-4" />
-            Apply & Edit
+          <Button className="flex-1 h-12 gap-2 text-sm tracking-wide" onClick={() => { onLayoutGenerated(current.layout, current.textLayers); toast.success('Layout applied!'); }}>
+            <Sparkles className="h-4 w-4" />Apply & Edit
           </Button>
         </div>
       </div>
     );
   }
 
-  // ─── Preview Screen (single-image flow) ───
+  // ─── Preview Screen (single-image) ───
   if (step === 'preview' && variations.length > 0) {
     const current = variations[activeVariation];
+    const bgColor = current.background?.type === 'gradient'
+      ? `linear-gradient(${current.background.gradientAngle || 180}deg, ${current.background.color}, ${current.background.gradientTo})`
+      : current.background?.color || '#FAFAF8';
 
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col" key={shuffleKey}>
-        {/* Header */}
         <div className="px-4 py-3 flex items-center justify-between border-b border-border/30">
-          <button onClick={() => setStep('entry')} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
+          <button onClick={() => setStep('entry')} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"><ArrowLeft className="h-4 w-4" /></button>
           <div className="text-center">
-            <h2 className="text-xs font-semibold tracking-[0.15em] uppercase text-foreground">Choose Layout</h2>
+            <h2 className="text-xs tracking-[0.15em] uppercase text-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Choose Layout</h2>
             <p className="text-[9px] text-muted-foreground mt-0.5">{variations.length} variations</p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"><X className="h-4 w-4" /></button>
         </div>
 
-        {/* Main preview area — large card */}
+        {/* Main preview — shows actual background color + free cell positions */}
         <div className="flex-1 flex flex-col items-center justify-center px-5 py-4 min-h-0">
-          <div className="animate-in fade-in zoom-in-95 duration-400 w-full max-w-[340px]">
-            <LayoutPreviewCard layout={current.layout} label={current.label} description={current.description} large />
+          <div className="animate-in fade-in zoom-in-95 duration-400 w-full max-w-[320px]">
+            <div className="relative w-full overflow-hidden border border-border/20"
+              style={{ aspectRatio: '1', background: bgColor }}>
+              {current.layout.freePositions && current.layout.freePositions.some(Boolean) ? (
+                current.layout.freePositions.map((pos, i) => {
+                  if (!pos) return null;
+                  const isDark = current.background?.color === '#1A1816' || current.background?.color === '#0E0D0B';
+                  return (
+                    <div key={i} style={{
+                      position: 'absolute',
+                      left: `${pos.x}%`, top: `${pos.y}%`,
+                      width: `${pos.width}%`, height: `${pos.height}%`,
+                      transform: `rotate(${pos.rotation}deg) scale(${pos.scale || 1})`,
+                      transformOrigin: 'center center',
+                      zIndex: pos.zIndex,
+                      opacity: pos.opacity,
+                      background: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
+                      border: pos.borderWidth > 0 ? `${Math.max(1, pos.borderWidth * 0.5)}px solid ${pos.borderColor}` : 'none',
+                    }} />
+                  );
+                })
+              ) : (
+                <div className="w-full h-full grid p-2" style={{
+                  gridTemplateColumns: `repeat(${current.layout.gridCols}, 1fr)`,
+                  gridTemplateRows: `repeat(${current.layout.gridRows}, 1fr)`,
+                  gap: '3px',
+                }}>
+                  {current.layout.cells.map((cell, i) => {
+                    const isDark = current.background?.color === '#1A1816' || current.background?.color === '#0E0D0B';
+                    return (
+                      <div key={i} style={{
+                        gridRow: `${cell[0]} / ${cell[2]}`,
+                        gridColumn: `${cell[1]} / ${cell[3]}`,
+                        background: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
+                      }} />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="text-center mt-3">
+              <span style={{ fontFamily: 'Cormorant Garamond', fontStyle: 'italic', fontWeight: 300, fontSize: '18px', color: '#111111' }}>{current.label}</span>
+              <p style={{ fontFamily: 'DM Sans', fontWeight: 300, fontSize: '11px', color: '#6B6860', marginTop: '2px' }}>{current.description}</p>
+            </div>
           </div>
 
-          {/* Navigation arrows */}
           <div className="flex items-center gap-6 mt-5">
-            <button
-              onClick={() => navigateVariation(-1)}
-              className="h-10 w-10 rounded-full border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-90"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            
-            {/* Dot indicators */}
+            <button onClick={() => navigateVariation(-1)} className="h-10 w-10 border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground transition-all active:scale-90"><ChevronLeft className="h-4 w-4" /></button>
             <div className="flex gap-2">
               {variations.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveVariation(i)}
-                  className={`transition-all duration-300 rounded-full ${
-                    i === activeVariation
-                      ? 'w-6 h-2 bg-primary'
-                      : 'w-2 h-2 bg-muted-foreground/20 hover:bg-muted-foreground/40'
-                  }`}
-                />
+                <button key={i} onClick={() => setActiveVariation(i)}
+                  className={`transition-all duration-300 ${i === activeVariation ? 'w-6 h-2 bg-primary' : 'w-2 h-2 bg-muted-foreground/20 hover:bg-muted-foreground/40'}`}
+                  style={{ borderRadius: i === activeVariation ? '1px' : '50%' }} />
               ))}
             </div>
-
-            <button
-              onClick={() => navigateVariation(1)}
-              className="h-10 w-10 rounded-full border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-90"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            <button onClick={() => navigateVariation(1)} className="h-10 w-10 border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground transition-all active:scale-90"><ChevronRight className="h-4 w-4" /></button>
           </div>
         </div>
 
-        {/* Variation strip — small horizontal scroll */}
+        {/* Variation strip — mini cards with background color */}
         <div className="px-2 pb-2">
-          <div
-            ref={scrollRef}
-            className="flex gap-2 px-3 py-2 overflow-x-auto snap-x snap-mandatory"
-            style={{ scrollbarWidth: 'none' }}
-          >
-            {variations.map((v, i) => (
-              <button
-                key={v.layout.id}
-                onClick={() => setActiveVariation(i)}
-                className={`snap-center shrink-0 transition-all duration-300 rounded-xl p-1.5 ${
-                  i === activeVariation
-                    ? 'ring-2 ring-primary bg-primary/5 scale-100'
-                    : 'opacity-50 hover:opacity-80 scale-95'
-                }`}
-              >
-                <MiniLayoutCard layout={v.layout} />
-                <span className={`text-[8px] font-medium tracking-wider uppercase block text-center mt-1 ${
-                  i === activeVariation ? 'text-primary' : 'text-muted-foreground'
-                }`}>
-                  {v.label}
-                </span>
-              </button>
-            ))}
+          <div ref={scrollRef} className="flex gap-2 px-3 py-2 overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
+            {variations.map((v, i) => {
+              const miniColor = v.background?.type === 'gradient'
+                ? `linear-gradient(${v.background.gradientAngle || 180}deg, ${v.background.color}, ${v.background.gradientTo})`
+                : v.background?.color || '#FAFAF8';
+              return (
+                <button key={v.layout.id} onClick={() => setActiveVariation(i)}
+                  className={`snap-center shrink-0 transition-all duration-300 p-1.5 ${i === activeVariation ? 'ring-2 ring-primary scale-100' : 'opacity-50 hover:opacity-80 scale-95'}`}>
+                  <div className="w-14 h-14 overflow-hidden relative" style={{ background: miniColor }}>
+                    {v.layout.freePositions && v.layout.freePositions.some(Boolean) ? (
+                      v.layout.freePositions.map((pos, pi) => {
+                        if (!pos) return null;
+                        const isDark = v.background?.color === '#1A1816';
+                        return (
+                          <div key={pi} style={{
+                            position: 'absolute',
+                            left: `${pos.x}%`, top: `${pos.y}%`,
+                            width: `${pos.width}%`, height: `${pos.height}%`,
+                            transform: `rotate(${pos.rotation}deg)`,
+                            background: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
+                          }} />
+                        );
+                      })
+                    ) : (
+                      <div className="w-full h-full grid p-0.5" style={{
+                        gridTemplateColumns: `repeat(${v.layout.gridCols}, 1fr)`,
+                        gridTemplateRows: `repeat(${v.layout.gridRows}, 1fr)`,
+                        gap: '1px',
+                      }}>
+                        {v.layout.cells.map((cell, ci) => {
+                          const isDark = v.background?.color === '#1A1816';
+                          return (
+                            <div key={ci} style={{
+                              gridRow: `${cell[0]} / ${cell[2]}`,
+                              gridColumn: `${cell[1]} / ${cell[3]}`,
+                              background: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
+                            }} />
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <span style={{
+                    fontFamily: 'DM Sans', fontWeight: 300, fontSize: '8px',
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                    display: 'block', textAlign: 'center', marginTop: '4px',
+                    color: i === activeVariation ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                  }}>{v.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Bottom actions */}
         <div className="px-5 pb-6 pt-2 flex gap-2.5 max-w-sm mx-auto w-full" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
-          <Button
-            variant="outline"
-            className="h-12 px-4 gap-1.5"
-            onClick={handleShuffle}
-          >
+          <Button variant="outline" className="h-12 px-4 gap-1.5" onClick={handleShuffle}>
             <Shuffle className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Shuffle</span>
           </Button>
           <Button
-            className={`flex-1 h-12 gap-2 text-sm font-medium tracking-wide transition-all duration-300 ${
-              applied
-                ? 'bg-green-600 hover:bg-green-600 text-white shadow-lg shadow-green-600/20'
-                : 'shadow-lg shadow-primary/20'
-            }`}
-            onClick={handleApply}
-            disabled={applied}
+            className={`flex-1 h-12 gap-2 text-sm tracking-wide transition-all duration-300 ${applied ? 'bg-green-600 hover:bg-green-600 text-white' : ''}`}
+            onClick={handleApply} disabled={applied}
           >
-            {applied ? (
-              <><Check className="h-4 w-4" /> Applied!</>
-            ) : (
-              <><Sparkles className="h-4 w-4" /> Apply Layout</>
-            )}
+            {applied ? <><Check className="h-4 w-4" /> Applied!</> : <><Sparkles className="h-4 w-4" /> Apply Layout</>}
           </Button>
         </div>
       </div>
@@ -1060,122 +818,4 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   }
 
   return null;
-}
-
-// ─── Sub-components ────────────────────────────────────────
-
-function EntryHeader({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="px-4 py-3 flex items-center justify-between">
-      <div className="w-11" /> {/* spacer */}
-      <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">AI Layouts</span>
-      <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-        <X className="h-4 w-4" />
-      </button>
-    </div>
-  );
-}
-
-function EntryCard({
-  icon, title, subtitle, onClick, disabled, highlight,
-}: {
-  icon: React.ReactNode; title: string; subtitle: string;
-  onClick: () => void; disabled?: boolean; highlight?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-full text-left rounded-2xl p-4 flex items-center gap-4 transition-all duration-200 group min-h-[72px] active:scale-[0.98] ${
-        disabled
-          ? 'bg-card opacity-40 cursor-not-allowed'
-          : highlight
-            ? 'bg-primary/8 border border-primary/20 hover:bg-primary/12 hover:border-primary/30'
-            : 'bg-card border border-border hover:border-primary/20 hover:bg-card/80'
-      }`}
-    >
-      <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 ${
-        highlight ? 'bg-primary/15 text-primary' : 'bg-secondary text-muted-foreground'
-      } group-hover:scale-105`}>
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-foreground">{title}</p>
-        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{subtitle}</p>
-      </div>
-    </button>
-  );
-}
-
-function LayoutPreviewCard({ layout, label, description, large }: { layout: GridLayout; label: string; description?: string; large?: boolean }) {
-  const size = large ? 280 : 200;
-  const gap = large ? 4 : 3;
-
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div
-        className={`rounded-2xl overflow-hidden border transition-all duration-300 ${
-          large ? 'bg-card border-border shadow-xl shadow-black/10 p-5' : 'bg-card/50 border-border/50 p-3'
-        }`}
-        style={{ width: size + (large ? 40 : 24), height: size + (large ? 40 : 24) }}
-      >
-        <div
-          className="w-full h-full relative"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
-            gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-            gap,
-          }}
-        >
-          {layout.cells.map((cell, i) => (
-            <div
-              key={i}
-              className="rounded-md transition-all duration-500"
-              style={{
-                gridRow: `${cell[0]} / ${cell[2]}`,
-                gridColumn: `${cell[1]} / ${cell[3]}`,
-                background: CELL_COLORS[i % CELL_COLORS.length],
-                border: '1px solid hsl(var(--border) / 0.3)',
-                animationDelay: `${i * 60}ms`,
-              }}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="text-center">
-        <span className="text-[11px] font-semibold tracking-[0.12em] uppercase text-foreground/80">{label}</span>
-        {description && large && (
-          <p className="text-[10px] text-muted-foreground mt-0.5">{description}</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function MiniLayoutCard({ layout }: { layout: GridLayout }) {
-  return (
-    <div
-      className="w-14 h-14 rounded-lg overflow-hidden bg-secondary/50"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
-        gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-        gap: 1,
-        padding: 2,
-      }}
-    >
-      {layout.cells.map((cell, i) => (
-        <div
-          key={i}
-          className="rounded-[2px]"
-          style={{
-            gridRow: `${cell[0]} / ${cell[2]}`,
-            gridColumn: `${cell[1]} / ${cell[3]}`,
-            background: CELL_COLORS[i % CELL_COLORS.length],
-          }}
-        />
-      ))}
-    </div>
-  );
 }
