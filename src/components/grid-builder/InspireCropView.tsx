@@ -41,8 +41,9 @@ export default function InspireCropView({ imageSrc, onBack, onAnalyze }: Props) 
     const x = (cw - w) / 2, y = (ch - h) / 2;
     setImgDisplay({ x, y, w, h });
     if (!crop) {
-      const m = 0.08;
-      setCrop({ x: x + w * m, y: y + h * m, w: w * (1 - 2 * m), h: h * (1 - 2 * m) });
+      const mx = 0.15;
+      const my = 0.20;
+      setCrop({ x: x + w * mx, y: y + h * my, w: w * (1 - 2 * mx), h: h * (1 - 2 * my) });
     }
   }, [crop]);
 
