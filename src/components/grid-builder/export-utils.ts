@@ -222,6 +222,10 @@ export async function renderGridToCanvas(
     }
   }
 
+  const displaySize = 440;
+
+
+
 
   // ─── Render design elements ───────────────────
   if (elements.length > 0) {
