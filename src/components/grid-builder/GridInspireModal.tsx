@@ -58,8 +58,10 @@ function lightenColor(hex: string, percent: number): string {
 
 function mapFontCategory(category?: string): string {
   const map: Record<string, string> = {
-    serif: 'Cormorant Garamond', sans: 'DM Sans',
-    script: 'Great Vibes', display: 'Playfair Display',
+    serif: 'Cormorant Garamond',
+    sans: 'DM Sans',
+    script: 'Great Vibes',
+    display: 'Playfair Display',
   };
   return (category && map[category]) || 'DM Sans';
 }
@@ -69,9 +71,12 @@ function freeCellsToPositions(freeCells: any[], cellCount: number): (FreeCellPos
   freeCells.forEach((fc, i) => {
     const idx = typeof fc.index === 'number' ? Math.max(0, Math.min(cellCount - 1, fc.index)) : i;
     positions[idx] = {
-      x: Number(fc.x) || 0, y: Number(fc.y) || 0,
-      width: Number(fc.width) || 30, height: Number(fc.height) || 30,
-      rotation: Number(fc.rotation) || 0, scale: Number(fc.scale) || 1,
+      x: Number(fc.x) || 0,
+      y: Number(fc.y) || 0,
+      width: Number(fc.width) || 30,
+      height: Number(fc.height) || 30,
+      rotation: Number(fc.rotation) || 0,
+      scale: Number(fc.scale) || 1,
       zIndex: typeof fc.zIndex === 'number' ? fc.zIndex : idx + 1,
       opacity: typeof fc.opacity === 'number' ? fc.opacity : 1,
       borderWidth: Number(fc.borderWidth) || 0,
@@ -101,6 +106,21 @@ function textBlocksToInspireLayers(blocks: any[]): TextLayer[] {
     }),
   );
 }
+
+import { Search as SearchIcon, Ruler, Type as TypeIcon } from 'lucide-react';
+const ANALYSIS_PHASES = [
+  { text: 'Scanning composition…', Icon: SearchIcon },
+  { text: 'Mapping grid structure…', Icon: Ruler },
+  { text: 'Detecting typography…', Icon: TypeIcon },
+  { text: 'Crafting variations…', Icon: Sparkles },
+];
+
+const STYLE_META = [
+  { label: 'Faithful', description: 'Exact recreation' },
+  { label: 'Editorial', description: 'Lighter palette' },
+  { label: 'Cinematic', description: 'Dark mood' },
+  { label: 'Minimal', description: 'Clean & simple' },
+];
 
 function mapFontFamily(group: 'serif' | 'sans' | 'script', weight: number, textTransform: string, fontSize: number): string {
   if (group === 'script') return fontSize > 28 ? 'Great Vibes' : 'Parisienne';
@@ -149,12 +169,6 @@ function textBlocksToLayers(blocks: DetectedTextBlock[]): TextLayer[] {
 }
 
 function generateVariations(base: GridLayout, textLayers: TextLayer[]): LayoutVariation[] {
-  const STYLE_META = [
-    { label: 'Minimal', description: 'Clean, balanced spacing' },
-    { label: 'Editorial', description: 'Magazine-style emphasis' },
-    { label: 'Cinematic', description: 'Wide, dramatic framing' },
-    { label: 'Balanced', description: 'Symmetrical, harmonious' },
-  ];
   const variations: LayoutVariation[] = [{ layout: base, textLayers, ...STYLE_META[0] }];
   for (let v = 1; v < 4; v++) {
     const shuffledCells = [...base.cells];
@@ -172,12 +186,6 @@ function generateVariations(base: GridLayout, textLayers: TextLayer[]): LayoutVa
 }
 
 function getAutoLayouts(): LayoutVariation[] {
-  const STYLE_META = [
-    { label: 'Minimal', description: 'Clean, balanced spacing' },
-    { label: 'Editorial', description: 'Magazine-style emphasis' },
-    { label: 'Cinematic', description: 'Wide, dramatic framing' },
-    { label: 'Balanced', description: 'Symmetrical, harmonious' },
-  ];
   const categories = ['creative', 'instagram', 'basic'] as const;
   const picked: LayoutVariation[] = [];
   for (const cat of categories) {
@@ -190,14 +198,6 @@ function getAutoLayouts(): LayoutVariation[] {
   }
   return picked.slice(0, 6);
 }
-
-import { Search as SearchIcon, Ruler, Type as TypeIcon } from 'lucide-react';
-const ANALYSIS_PHASES = [
-  { text: 'Scanning composition…', Icon: SearchIcon },
-  { text: 'Mapping grid structure…', Icon: Ruler },
-  { text: 'Detecting typography…', Icon: TypeIcon },
-  { text: 'Crafting variations…', Icon: Sparkles },
-];
 
 export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) {
   const [step, setStep] = useState<Step>('entry');
@@ -219,14 +219,19 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const [multiMode, setMultiMode] = useState(false);
 
   useEffect(() => {
-    return () => { multiImages.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); }); };
+    return () => {
+      multiImages.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); });
+    };
   }, []);
 
   useEffect(() => {
     if (step !== 'analyzing') return;
     setAnalysisPhase(0);
     const interval = setInterval(() => {
-      setAnalysisPhase(p => { if (p >= ANALYSIS_PHASES.length - 1) { clearInterval(interval); return p; } return p + 1; });
+      setAnalysisPhase(p => {
+        if (p >= ANALYSIS_PHASES.length - 1) { clearInterval(interval); return p; }
+        return p + 1;
+      });
     }, 800);
     return () => clearInterval(interval);
   }, [step]);
@@ -346,7 +351,12 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
 
   const handleAutoGenerate = useCallback(() => {
     setStep('analyzing');
-    setTimeout(() => { setVariations(getAutoLayouts()); setActiveVariation(0); setStep('preview'); localStorage.setItem('grid-inspire-used', '1'); }, 2800);
+    setTimeout(() => {
+      setVariations(getAutoLayouts());
+      setActiveVariation(0);
+      setStep('preview');
+      localStorage.setItem('grid-inspire-used', '1');
+    }, 2800);
   }, []);
 
   const handleAnalyzeComplete = useCallback((response: any) => {
@@ -383,7 +393,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     };
 
     const bgColor: string = response.backgroundColor || '#FFFFFF';
-    const bgType = response.backgroundType === 'gradient' ? 'gradient' : 'solid';
+    const bgType: 'solid' | 'gradient' = response.backgroundType === 'gradient' ? 'gradient' : 'solid';
     const bgGradient = response.backgroundGradient;
 
     const faithfulBg: BackgroundStyle = bgType === 'gradient' && bgGradient
@@ -397,7 +407,8 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
       {
         layout: baseLayout,
         textLayers: [...baseTextLayers, ...(wmFaithful ? [wmFaithful] : [])],
-        background: faithfulBg, label: 'Faithful', description: 'Exact recreation',
+        background: faithfulBg,
+        label: 'Faithful', description: 'Exact recreation',
       },
       {
         layout: { ...baseLayout, id: `${baseLayout.id}-v1` },
@@ -464,7 +475,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
       <div className="fixed inset-0 z-50 bg-background flex flex-col">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="w-11" />
-          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">AI Layouts</span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>AI Layouts</span>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
@@ -476,23 +487,23 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
               <div className="absolute inset-0 border border-primary/20" />
               <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary" />
             </div>
-            <h2 className="font-display text-2xl text-foreground tracking-tight">Grid Inspire</h2>
-            <p className="text-xs text-muted-foreground mt-2 max-w-[240px] mx-auto leading-relaxed">
+            <h2 style={{ fontFamily: 'Cormorant Garamond', fontStyle: 'italic', fontWeight: 300, fontSize: '26px' }} className="text-foreground tracking-tight">Grid Inspire</h2>
+            <p className="text-xs text-muted-foreground mt-2 max-w-[240px] mx-auto leading-relaxed" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>
               Turn any reference into a stunning layout. AI detects grids, fonts & composition.
             </p>
           </div>
           <div className="w-full max-w-sm space-y-2.5">
             {showLinkInput ? (
               <div className="bg-card border border-border p-4 space-y-3 animate-in fade-in zoom-in-95 duration-300">
-                <p className="text-xs text-foreground font-medium flex items-center gap-2">
-                  <Link2 className="h-3.5 w-3.5 text-primary" />
-                  Paste Instagram Post URL
+                <p className="text-xs text-foreground flex items-center gap-2" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>
+                  <Link2 className="h-3.5 w-3.5 text-primary" />Paste Instagram Post URL
                 </p>
                 <input
                   type="url" placeholder="https://www.instagram.com/p/..."
                   value={linkValue} onChange={(e) => setLinkValue(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleInstagramLink()} autoFocus
-                  className="w-full bg-secondary border border-border px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-gold/60 transition-all"
+                  className="w-full bg-secondary border border-border px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/40 transition-all"
+                  style={{ fontFamily: 'DM Sans', fontWeight: 300 }}
                 />
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" className="flex-1 h-10" onClick={() => { setShowLinkInput(false); setLinkValue(''); }}>Cancel</Button>
@@ -505,7 +516,10 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             ) : (
               <button onClick={() => setShowLinkInput(true)} className="w-full text-left bg-card border border-border p-4 flex items-center gap-4 transition-all duration-200 group min-h-[72px] active:scale-[0.98] hover:border-primary/20">
                 <div className="shrink-0 w-11 h-11 flex items-center justify-center bg-secondary text-muted-foreground group-hover:scale-105 transition-all duration-200"><Link2 className="h-5 w-5" /></div>
-                <div><p className="text-sm font-medium text-foreground">Paste Instagram Link</p><p className="text-[11px] text-muted-foreground mt-0.5">Analyze any post's layout & style</p></div>
+                <div>
+                  <p className="text-sm text-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Paste Instagram Link</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Analyze any post's layout & style</p>
+                </div>
               </button>
             )}
             <button
@@ -522,14 +536,22 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
               className="w-full text-left bg-card border border-border p-4 flex items-center gap-4 transition-all duration-200 group min-h-[72px] active:scale-[0.98] hover:border-primary/20"
             >
               <div className="shrink-0 w-11 h-11 flex items-center justify-center bg-secondary text-muted-foreground group-hover:scale-105 transition-all duration-200"><Upload className="h-5 w-5" /></div>
-              <div><p className="text-sm font-medium text-foreground">Upload Screenshots</p><p className="text-[11px] text-muted-foreground mt-0.5">Upload 1 or multiple slides — AI detects each</p></div>
+              <div>
+                <p className="text-sm text-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Upload Screenshots</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Upload 1 or multiple slides — AI detects each</p>
+              </div>
             </button>
             <button onClick={handleAutoGenerate} className="w-full text-left bg-primary/8 border border-primary/20 p-4 flex items-center gap-4 transition-all duration-200 group min-h-[72px] active:scale-[0.98] hover:bg-primary/12 hover:border-primary/30">
               <div className="shrink-0 w-11 h-11 flex items-center justify-center bg-primary/15 text-primary group-hover:scale-105 transition-all duration-200"><Wand2 className="h-5 w-5" /></div>
-              <div><p className="text-sm font-medium text-foreground">Auto Generate</p><p className="text-[11px] text-muted-foreground mt-0.5">AI picks the best layouts for you</p></div>
+              <div>
+                <p className="text-sm text-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Auto Generate</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>AI picks the best layouts for you</p>
+              </div>
             </button>
           </div>
-          <p className="text-[10px] text-muted-foreground/40 mt-8 text-center">Pro tip: Screenshot any grid design you love — AI will recreate it</p>
+          <p className="text-[10px] text-muted-foreground/40 mt-8 text-center" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>
+            Pro tip: Screenshot any grid design you love — AI will recreate it
+          </p>
         </div>
       </div>
     );
@@ -550,6 +572,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             );
             if (!resp.ok) throw new Error('Analysis failed');
             const fullResponse = await resp.json();
+            console.log('[Inspire] edge fn response:', JSON.stringify(fullResponse, null, 2));
             if (!fullResponse.layout?.cells?.length && !fullResponse.freeCells?.length) throw new Error('Could not detect a grid');
             handleAnalyzeComplete(fullResponse);
           } catch (err: any) {
@@ -573,8 +596,12 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             <Sparkles className="absolute inset-0 m-auto h-7 w-7 text-primary" />
           </div>
           <div>
-            <h3 className="font-display text-lg text-foreground mb-1">{totalSlides > 1 ? 'Analyzing Slides' : 'Analyzing Design'}</h3>
-            <p className="text-xs text-muted-foreground">{totalSlides > 1 ? `Slide ${analyzingSlide} of ${totalSlides}` : 'This takes a few seconds'}</p>
+            <h3 style={{ fontFamily: 'Cormorant Garamond', fontStyle: 'italic', fontWeight: 300, fontSize: '20px' }} className="text-foreground mb-1">
+              {totalSlides > 1 ? 'Analyzing Slides' : 'Analyzing Design'}
+            </h3>
+            <p className="text-xs text-muted-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>
+              {totalSlides > 1 ? `Slide ${analyzingSlide} of ${totalSlides}` : 'This takes a few seconds'}
+            </p>
           </div>
           <div className="space-y-3 text-left max-w-[220px] mx-auto">
             {ANALYSIS_PHASES.map((phase, i) => {
@@ -586,7 +613,9 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
                   <div className={`w-6 h-6 flex items-center justify-center text-xs flex-shrink-0 transition-all duration-300 ${isComplete ? 'bg-primary/20 text-primary' : isActive ? 'bg-primary/10 text-primary skeleton-block' : 'bg-secondary text-muted-foreground'}`}>
                     {isComplete ? <Check className="h-3 w-3" /> : <phase.Icon className="h-3 w-3" strokeWidth={1.5} />}
                   </div>
-                  <span className={`text-xs transition-colors duration-300 ${isActive ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{phase.text}</span>
+                  <span className={`text-xs transition-colors duration-300 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`} style={{ fontFamily: 'DM Sans', fontWeight: isActive ? 400 : 300 }}>
+                    {phase.text}
+                  </span>
                 </div>
               );
             })}
@@ -610,8 +639,8 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
         <div className="px-4 py-3 flex items-center justify-between border-b border-border/30">
           <button onClick={() => { setStep('entry'); setMultiResults([]); setMultiImages([]); }} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"><ArrowLeft className="h-4 w-4" /></button>
           <div className="text-center">
-            <h2 className="text-xs tracking-[0.15em] uppercase text-foreground">{multiResults.length} Slides Detected</h2>
-            <p className="text-[9px] text-muted-foreground mt-0.5">Slide {currentSlideIndex + 1} of {multiResults.length}</p>
+            <h2 className="text-xs tracking-[0.15em] uppercase text-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>{multiResults.length} Slides Detected</h2>
+            <p className="text-[9px] text-muted-foreground mt-0.5" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Slide {currentSlideIndex + 1} of {multiResults.length}</p>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"><X className="h-4 w-4" /></button>
         </div>
@@ -624,7 +653,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs text-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Detected Layout</p>
-                  <p className="text-[10px] text-muted-foreground">{current.layout.cells.length} cells • {current.layout.gridCols}×{current.layout.gridRows} grid</p>
+                  <p className="text-[10px] text-muted-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>{current.layout.cells.length} cells • {current.layout.gridCols}×{current.layout.gridRows} grid</p>
                 </div>
                 {current.textLayers.length > 0 && (
                   <span className="text-[9px] bg-primary/10 text-primary px-2 py-0.5" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>
@@ -649,7 +678,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
             {multiResults.map((result, i) => (
               <button key={i} onClick={() => setCurrentSlideIndex(i)} className={`shrink-0 overflow-hidden border-2 transition-all ${i === currentSlideIndex ? 'border-primary scale-100' : 'border-transparent opacity-50 hover:opacity-80 scale-95'}`}>
                 <img src={result.image} alt="" className="w-12 h-12 object-cover" loading="lazy" decoding="async" />
-                <p className={`text-[7px] text-center py-0.5 ${i === currentSlideIndex ? 'text-primary' : 'text-muted-foreground'}`}>{i + 1}</p>
+                <p className={`text-[7px] text-center py-0.5 ${i === currentSlideIndex ? 'text-primary' : 'text-muted-foreground'}`} style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>{i + 1}</p>
               </button>
             ))}
           </div>
@@ -669,9 +698,6 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   // ─── Preview Screen (single-image) ───
   if (step === 'preview' && variations.length > 0) {
     const current = variations[activeVariation];
-    const bgColor = current.background?.type === 'gradient'
-      ? `linear-gradient(${current.background.gradientAngle || 180}deg, ${current.background.color}, ${current.background.gradientTo})`
-      : current.background?.color || '#FAFAF8';
 
     return (
       <div className="fixed inset-0 z-50 bg-background flex flex-col" key={shuffleKey}>
@@ -679,61 +705,28 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           <button onClick={() => setStep('entry')} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"><ArrowLeft className="h-4 w-4" /></button>
           <div className="text-center">
             <h2 className="text-xs tracking-[0.15em] uppercase text-foreground" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>Choose Layout</h2>
-            <p className="text-[9px] text-muted-foreground mt-0.5">{variations.length} variations</p>
+            <p className="text-[9px] text-muted-foreground mt-0.5" style={{ fontFamily: 'DM Sans', fontWeight: 300 }}>{variations.length} variations</p>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"><X className="h-4 w-4" /></button>
         </div>
 
-        {/* Main preview — shows actual background color + free cell positions */}
+        {/* Main preview */}
         <div className="flex-1 flex flex-col items-center justify-center px-5 py-4 min-h-0">
           <div className="animate-in fade-in zoom-in-95 duration-400 w-full max-w-[320px]">
-            <div className="relative w-full overflow-hidden border border-border/20"
-              style={{ aspectRatio: '1', background: bgColor }}>
-              {current.layout.freePositions && current.layout.freePositions.some(Boolean) ? (
-                current.layout.freePositions.map((pos, i) => {
-                  if (!pos) return null;
-                  const isDark = current.background?.color === '#1A1816' || current.background?.color === '#0E0D0B';
-                  return (
-                    <div key={i} style={{
-                      position: 'absolute',
-                      left: `${pos.x}%`, top: `${pos.y}%`,
-                      width: `${pos.width}%`, height: `${pos.height}%`,
-                      transform: `rotate(${pos.rotation}deg) scale(${pos.scale || 1})`,
-                      transformOrigin: 'center center',
-                      zIndex: pos.zIndex,
-                      opacity: pos.opacity,
-                      background: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
-                      border: pos.borderWidth > 0 ? `${Math.max(1, pos.borderWidth * 0.5)}px solid ${pos.borderColor}` : 'none',
-                    }} />
-                  );
-                })
-              ) : (
-                <div className="w-full h-full grid p-2" style={{
-                  gridTemplateColumns: `repeat(${current.layout.gridCols}, 1fr)`,
-                  gridTemplateRows: `repeat(${current.layout.gridRows}, 1fr)`,
-                  gap: '3px',
-                }}>
-                  {current.layout.cells.map((cell, i) => {
-                    const isDark = current.background?.color === '#1A1816' || current.background?.color === '#0E0D0B';
-                    return (
-                      <div key={i} style={{
-                        gridRow: `${cell[0]} / ${cell[2]}`,
-                        gridColumn: `${cell[1]} / ${cell[3]}`,
-                        background: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
-                      }} />
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            <div className="text-center mt-3">
-              <span style={{ fontFamily: 'Cormorant Garamond', fontStyle: 'italic', fontWeight: 300, fontSize: '18px', color: '#111111' }}>{current.label}</span>
-              <p style={{ fontFamily: 'DM Sans', fontWeight: 300, fontSize: '11px', color: '#6B6860', marginTop: '2px' }}>{current.description}</p>
-            </div>
+            {/* FIX 1 — background prop now passed */}
+            <LayoutPreviewCard
+              layout={current.layout}
+              label={current.label}
+              description={current.description}
+              background={current.background}
+              large
+            />
           </div>
 
           <div className="flex items-center gap-6 mt-5">
-            <button onClick={() => navigateVariation(-1)} className="h-10 w-10 border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground transition-all active:scale-90"><ChevronLeft className="h-4 w-4" /></button>
+            <button onClick={() => navigateVariation(-1)} className="h-10 w-10 border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground transition-all active:scale-90">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
             <div className="flex gap-2">
               {variations.map((_, i) => (
                 <button key={i} onClick={() => setActiveVariation(i)}
@@ -741,63 +734,28 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
                   style={{ borderRadius: i === activeVariation ? '1px' : '50%' }} />
               ))}
             </div>
-            <button onClick={() => navigateVariation(1)} className="h-10 w-10 border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground transition-all active:scale-90"><ChevronRight className="h-4 w-4" /></button>
+            <button onClick={() => navigateVariation(1)} className="h-10 w-10 border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground transition-all active:scale-90">
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
-        {/* Variation strip — mini cards with background color */}
+        {/* Variation strip */}
         <div className="px-2 pb-2">
           <div ref={scrollRef} className="flex gap-2 px-3 py-2 overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
-            {variations.map((v, i) => {
-              const miniColor = v.background?.type === 'gradient'
-                ? `linear-gradient(${v.background.gradientAngle || 180}deg, ${v.background.color}, ${v.background.gradientTo})`
-                : v.background?.color || '#FAFAF8';
-              return (
-                <button key={v.layout.id} onClick={() => setActiveVariation(i)}
-                  className={`snap-center shrink-0 transition-all duration-300 p-1.5 ${i === activeVariation ? 'ring-2 ring-primary scale-100' : 'opacity-50 hover:opacity-80 scale-95'}`}>
-                  <div className="w-14 h-14 overflow-hidden relative" style={{ background: miniColor }}>
-                    {v.layout.freePositions && v.layout.freePositions.some(Boolean) ? (
-                      v.layout.freePositions.map((pos, pi) => {
-                        if (!pos) return null;
-                        const isDark = v.background?.color === '#1A1816';
-                        return (
-                          <div key={pi} style={{
-                            position: 'absolute',
-                            left: `${pos.x}%`, top: `${pos.y}%`,
-                            width: `${pos.width}%`, height: `${pos.height}%`,
-                            transform: `rotate(${pos.rotation}deg)`,
-                            background: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
-                          }} />
-                        );
-                      })
-                    ) : (
-                      <div className="w-full h-full grid p-0.5" style={{
-                        gridTemplateColumns: `repeat(${v.layout.gridCols}, 1fr)`,
-                        gridTemplateRows: `repeat(${v.layout.gridRows}, 1fr)`,
-                        gap: '1px',
-                      }}>
-                        {v.layout.cells.map((cell, ci) => {
-                          const isDark = v.background?.color === '#1A1816';
-                          return (
-                            <div key={ci} style={{
-                              gridRow: `${cell[0]} / ${cell[2]}`,
-                              gridColumn: `${cell[1]} / ${cell[3]}`,
-                              background: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
-                            }} />
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  <span style={{
-                    fontFamily: 'DM Sans', fontWeight: 300, fontSize: '8px',
-                    letterSpacing: '0.1em', textTransform: 'uppercase',
-                    display: 'block', textAlign: 'center', marginTop: '4px',
-                    color: i === activeVariation ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                  }}>{v.label}</span>
-                </button>
-              );
-            })}
+            {variations.map((v, i) => (
+              <button key={v.layout.id} onClick={() => setActiveVariation(i)}
+                className={`snap-center shrink-0 transition-all duration-300 p-1.5 ${i === activeVariation ? 'ring-2 ring-primary scale-100' : 'opacity-50 hover:opacity-80 scale-95'}`}>
+                {/* FIX 1 — background prop now passed */}
+                <MiniLayoutCard layout={v.layout} background={v.background} />
+                <span style={{
+                  fontFamily: 'DM Sans', fontWeight: 300, fontSize: '8px',
+                  letterSpacing: '0.1em', textTransform: 'uppercase',
+                  display: 'block', textAlign: 'center', marginTop: '4px',
+                  color: i === activeVariation ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                }}>{v.label}</span>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -818,4 +776,129 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   }
 
   return null;
+}
+
+// ─── Sub-components ───────────────────────────────────────
+
+// FIX 2 — LayoutPreviewCard now accepts background + renders freePositions
+function LayoutPreviewCard({
+  layout, label, description, large, background,
+}: {
+  layout: GridLayout;
+  label: string;
+  description?: string;
+  large?: boolean;
+  background?: BackgroundStyle | null;
+}) {
+  const bgStyle = background?.type === 'gradient'
+    ? { background: `linear-gradient(${background.gradientAngle || 180}deg, ${background.color}, ${background.gradientTo})` }
+    : { background: background?.color || 'hsl(var(--card))' };
+
+  const isDark = background?.color === '#1A1816' || background?.color === '#0E0D0B';
+  const cellBg = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.13)';
+  const size = large ? 260 : 200;
+  const gap = large ? 4 : 3;
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div
+        className="overflow-hidden border border-border/40 transition-all duration-300"
+        style={{ width: size, height: size, ...bgStyle, padding: large ? 10 : 6 }}
+      >
+        <div className="w-full h-full relative">
+          {layout.freePositions && layout.freePositions.some(Boolean) ? (
+            layout.freePositions.map((pos, i) =>
+              pos ? (
+                <div key={i} style={{
+                  position: 'absolute',
+                  left: `${pos.x}%`, top: `${pos.y}%`,
+                  width: `${pos.width}%`, height: `${pos.height}%`,
+                  transform: `rotate(${pos.rotation}deg) scale(${pos.scale || 1})`,
+                  transformOrigin: 'center center',
+                  zIndex: pos.zIndex,
+                  opacity: pos.opacity,
+                  background: cellBg,
+                  border: pos.borderWidth > 0 ? `${Math.max(1, pos.borderWidth * 0.4)}px solid ${pos.borderColor}` : 'none',
+                }} />
+              ) : null
+            )
+          ) : (
+            <div className="w-full h-full" style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
+              gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
+              gap,
+            }}>
+              {layout.cells.map((cell, i) => (
+                <div key={i} style={{
+                  gridRow: `${cell[0]} / ${cell[2]}`,
+                  gridColumn: `${cell[1]} / ${cell[3]}`,
+                  background: cellBg,
+                }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="text-center">
+        <span style={{ fontFamily: 'Cormorant Garamond', fontStyle: 'italic', fontWeight: 300, fontSize: '18px', color: 'hsl(var(--foreground))' }}>
+          {label}
+        </span>
+        {description && large && (
+          <p style={{ fontFamily: 'DM Sans', fontWeight: 300, fontSize: '11px', color: 'hsl(var(--muted-foreground))', marginTop: '2px' }}>
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// FIX 3 — MiniLayoutCard now accepts background + renders freePositions
+function MiniLayoutCard({
+  layout, background,
+}: {
+  layout: GridLayout;
+  background?: BackgroundStyle | null;
+}) {
+  const bgStyle = background?.type === 'gradient'
+    ? { background: `linear-gradient(${background.gradientAngle || 180}deg, ${background.color}, ${background.gradientTo})` }
+    : { background: background?.color || 'hsl(var(--secondary) / 0.5)' };
+
+  const isDark = background?.color === '#1A1816' || background?.color === '#0E0D0B';
+  const cellBg = isDark ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.15)';
+
+  return (
+    <div className="w-14 h-14 overflow-hidden relative" style={bgStyle}>
+      {layout.freePositions && layout.freePositions.some(Boolean) ? (
+        layout.freePositions.map((pos, i) =>
+          pos ? (
+            <div key={i} style={{
+              position: 'absolute',
+              left: `${pos.x}%`, top: `${pos.y}%`,
+              width: `${pos.width}%`, height: `${pos.height}%`,
+              transform: `rotate(${pos.rotation}deg)`,
+              background: cellBg,
+            }} />
+          ) : null
+        )
+      ) : (
+        <div className="w-full h-full" style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
+          gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
+          gap: 1,
+          padding: 2,
+        }}>
+          {layout.cells.map((cell, i) => (
+            <div key={i} style={{
+              gridRow: `${cell[0]} / ${cell[2]}`,
+              gridColumn: `${cell[1]} / ${cell[3]}`,
+              background: cellBg,
+            }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
