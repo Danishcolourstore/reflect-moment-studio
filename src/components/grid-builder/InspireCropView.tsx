@@ -57,8 +57,9 @@ export default function InspireCropView({ imageSrc, onBack, onAnalyze }: Props) 
   const resetCrop = useCallback(() => {
     if (!imgRef.current) return;
     const { x, y, w, h } = imgDisplay;
-    const m = 0.08;
-    setCrop({ x: x + w * m, y: y + h * m, w: w * (1 - 2 * m), h: h * (1 - 2 * m) });
+    const mx = 0.15;
+    const my = 0.20;
+    setCrop({ x: x + w * mx, y: y + h * my, w: w * (1 - 2 * mx), h: h * (1 - 2 * my) });
   }, [imgDisplay]);
 
   const selectAll = useCallback(() => {
