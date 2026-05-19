@@ -59,19 +59,11 @@ const INITIAL: UploadState = {
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 const UPLOAD_TIMEOUT = 300_000;
-const FAST_CONCURRENCY = 4;
-const SLOW_CONCURRENCY = 2;
+const CONCURRENCY = 5; // fixed concurrency — processes ALL files, no per-batch cap
 const BUCKET = "gallery-photos";
 
 function getAdaptiveConcurrency(): number {
-  try {
-    const conn = (navigator as any)?.connection;
-    if (!conn || typeof conn.effectiveType !== "string") return SLOW_CONCURRENCY;
-    if (conn.saveData) return SLOW_CONCURRENCY;
-    return conn.effectiveType === "4g" ? FAST_CONCURRENCY : SLOW_CONCURRENCY;
-  } catch {
-    return SLOW_CONCURRENCY;
-  }
+  return CONCURRENCY;
 }
 
 type UploadResult = "success" | "failed" | "duplicate";
