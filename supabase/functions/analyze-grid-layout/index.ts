@@ -22,35 +22,37 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You analyze Instagram-style design screenshots and return a FULL reconstruction: background, free-positioned photo cells (with rotation/overlap), text overlays, and watermark.
+    const systemPrompt = `You are a pixel-precise reverse-engineer of Instagram-style design screenshots. You return a FULL reconstruction so a renderer can repaint the post identically: background, free-positioned photo cells (with rotation/overlap/z-order), text overlays, and watermark.
 
-Return ALL values via the "full_layout" tool.
+Return ALL values via the "full_layout" tool. NEVER skip freeCells — even for tight grids, return one freeCell per photo with its exact bounding box.
+
+GOLDEN RULES — read carefully:
+1. IGNORE Instagram UI chrome entirely: top status bar, username/avatar header, like/comment/share/bookmark icons, caption text below the image, carousel dots, nav bars. Reconstruct ONLY the visible POST canvas (the square / 4:5 / 9:16 image area).
+2. SAMPLE COLORS FROM PIXELS — do not guess. For backgroundColor, sample the dominant color of the canvas BEHIND the photos (negative space / paper / matte). If the entire canvas is one wash (deep red, cream, charcoal, etc.), return that exact hex. If it is a gradient, set backgroundType="gradient" with from/to/angle.
+3. POSITIONS ARE MEASURED, NOT GUESSED. For every photo: locate its top-left and bottom-right corners in canvas-relative % to ±2%. x,y = top-left; width,height = box size.
+4. ROTATION: if a photo is tilted, measure the angle. Negative = counter-clockwise. Scrapbook tilts are commonly ±2° to ±12°. Use 0 only when truly upright.
+5. OVERLAP & Z-ORDER: when photos overlap, the one ON TOP gets the higher zIndex. Number them 1 (bottom) upward in stacking order, not reading order.
+6. opacity defaults 1. borderWidth in px at 375px canvas reference. borderColor hex (often #FFFFFF for polaroid frames).
 
 CANVAS:
-- canvasRatio: "1:1" | "4:5" | "9:16" | "3:2" | "16:9". Pick closest.
-- backgroundColor: dominant background hex (sample the page bg, not the photos). If clearly a gradient, set backgroundType="gradient" and provide backgroundGradient {from, to, angle}. Otherwise backgroundType="solid".
+- canvasRatio: closest of "1:1" | "4:5" | "9:16" | "3:2" | "16:9".
 
-FREE-POSITIONED CELLS (the photos):
-- One cell per visible photo/box.
-- x, y = TOP-LEFT corner of the cell as % of canvas (0–100).
-- width, height = % of canvas.
-- rotation = degrees (negative = counter-clockwise). 0 if upright.
-- scale = 1 unless visibly enlarged. zIndex by stacking order (1 bottom).
-- opacity 0–1. borderWidth in px @ 375px canvas. borderColor hex.
-- index = order top-to-bottom, left-to-right.
+FREE-POSITIONED CELLS — REQUIRED, one per visible photo:
+- index = stacking order (1 = bottom).
+- x, y = top-left % (0–100). width, height = % of canvas.
+- rotation deg, scale (default 1), zIndex, opacity, borderWidth, borderColor.
 
-ALSO return a fallback grid (cells as [rowStart,colStart,rowEnd,colEnd], gridCols, gridRows) approximating the structure, for legacy clients.
+ALSO return a fallback grid: cells as [rowStart,colStart,rowEnd,colEnd] (1-based, exclusive end), gridCols, gridRows. For non-grid scrapbook layouts use gridCols=1, gridRows=1, cells=[[1,1,2,2]] and rely on freeCells.
 
-TEXT BLOCKS (overlay typography, not text inside photos):
-- x, y = CENTER of text as % of canvas.
+TEXT BLOCKS (overlay typography only — NOT text inside photos, NOT the Instagram caption below the post):
+- x, y = CENTER of text in % of canvas.
 - fontSize px @ 375 canvas. fontWeight 300/400/500/600/700.
-- fontCategory: "serif" | "sans" | "script".
-- color hex, opacity 0–1. letterSpacing px. lineHeight multiplier.
-- alignment: "left"|"center"|"right". textTransform: "none"|"uppercase"|"lowercase". fontStyle: "normal"|"italic". rotation deg. zIndex.
+- fontCategory: "serif" | "sans" | "script". color = sampled hex. opacity 0–1.
+- letterSpacing px, lineHeight multiplier, alignment, textTransform, fontStyle, rotation, zIndex.
 
-WATERMARK (optional): small repeated handle/url text, usually corner or edge. If present include {text, x, y, fontSize, color, opacity}. Else omit.
+WATERMARK (optional): tiny handle / @username / url near a corner or edge of the post canvas. If present include {text, x, y, fontSize, color, opacity}.
 
-Be precise with positions and colors. Sample actual pixels.`;
+If unsure between two values, choose the one that matches the visible pixels. Never invent defaults.`;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
