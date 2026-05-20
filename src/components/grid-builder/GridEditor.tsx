@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import AICaptionGenerator from "./AICaptionGenerator";
 import InstagramCarouselPreview from "./InstagramCarouselPreview";
-import type { GridLayout, GridCellData, CanvasFormat } from "./types";
+import type { GridLayout, GridCellData, CanvasFormat, FreePosition } from "./types";
 import { createCellsForLayout, CANVAS_FORMATS } from "./types";
 import type { TextLayer } from "./text-overlay-types";
 import { GOOGLE_FONTS_URL } from "./text-overlay-types";
@@ -74,11 +74,18 @@ interface Props {
   onBack: () => void;
   initialTextLayers?: TextLayer[];
   initialBackground?: BackgroundStyle | null;
+  initialFreePositions?: FreePosition[] | null;  // ← new
 }
 
 type ActiveTool = "text" | "elements" | "background" | "logo" | "caption" | null;
 
-export default function GridEditor({ layout, onBack, initialTextLayers = [], initialBackground = null }: Props) {
+export default function GridEditor({
+  layout,
+  onBack,
+  initialTextLayers = [],
+  initialBackground = null,
+  initialFreePositions = null,  // ← new
+}: Props) {
   const device = useDeviceDetect();
   const isMobile = device.isPhone;
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
@@ -93,6 +100,12 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [showIgPreview, setShowIgPreview] = useState(false);
   const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
+
+  // ← new: freePositions state — inspire variation overrides layout default
+  const [freePositions, setFreePositions] = useState<FreePosition[] | null>(
+    initialFreePositions ?? layout.freePositions ?? null,
+  );
+
   const gridRef = useRef<HTMLDivElement>(null);
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const toolPanelRef = useRef<HTMLDivElement>(null);
@@ -108,6 +121,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
       elements: DesignElement[];
       logo: LogoLayer | null;
       background: BackgroundStyle;
+      freePositions: FreePosition[] | null;  // ← include in snapshots
     }>
   >([]);
   const historyIndexRef = useRef(-1);
@@ -121,13 +135,14 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
       elements: elements.map((e) => ({ ...e })),
       logo: logo ? { ...logo } : null,
       background: { ...background },
+      freePositions: freePositions ? freePositions.map((p) => ({ ...p })) : null,  // ← snapshot
     };
     const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
     newHistory.push(snapshot);
     if (newHistory.length > MAX_HISTORY) newHistory.shift();
     historyRef.current = newHistory;
     historyIndexRef.current = newHistory.length - 1;
-  }, [cells, textLayers, elements, logo, background]);
+  }, [cells, textLayers, elements, logo, background, freePositions]);
 
   const canUndo = historyIndexRef.current > 0;
   const canRedo = historyIndexRef.current < historyRef.current.length - 1;
@@ -142,9 +157,8 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
     setElements(snapshot.elements.map((e) => ({ ...e })));
     setLogo(snapshot.logo ? { ...snapshot.logo } : null);
     setBackground({ ...snapshot.background });
-    setTimeout(() => {
-      isUndoRedoRef.current = false;
-    }, 50);
+    setFreePositions(snapshot.freePositions ? snapshot.freePositions.map((p) => ({ ...p })) : null);  // ← restore
+    setTimeout(() => { isUndoRedoRef.current = false; }, 50);
   }, []);
 
   const redo = useCallback(() => {
@@ -157,9 +171,8 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
     setElements(snapshot.elements.map((e) => ({ ...e })));
     setLogo(snapshot.logo ? { ...snapshot.logo } : null);
     setBackground({ ...snapshot.background });
-    setTimeout(() => {
-      isUndoRedoRef.current = false;
-    }, 50);
+    setFreePositions(snapshot.freePositions ? snapshot.freePositions.map((p) => ({ ...p })) : null);  // ← restore
+    setTimeout(() => { isUndoRedoRef.current = false; }, 50);
   }, []);
 
   // Push initial state on mount
@@ -172,13 +185,9 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
   useEffect(() => {
     if (isUndoRedoRef.current) return;
     if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-    pushTimerRef.current = setTimeout(() => {
-      pushHistory();
-    }, 500);
-    return () => {
-      if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-    };
-  }, [cells, textLayers, elements, logo, background]);
+    pushTimerRef.current = setTimeout(() => { pushHistory(); }, 500);
+    return () => { if (pushTimerRef.current) clearTimeout(pushTimerRef.current); };
+  }, [cells, textLayers, elements, logo, background, freePositions]);
 
   // Panel drag-to-dismiss
   const [panelDragY, setPanelDragY] = useState(0);
@@ -195,37 +204,24 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
     preloadCommonFonts();
   }, []);
 
-  // Keyboard shortcuts: Ctrl+Z undo, Ctrl+Shift+Z / Ctrl+Y redo, Delete key
+  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
-      if (mod && e.key === "z" && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-      }
-      if ((mod && e.key === "z" && e.shiftKey) || (mod && e.key === "y")) {
-        e.preventDefault();
-        redo();
-      }
+      if (mod && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+      if ((mod && e.key === "z" && e.shiftKey) || (mod && e.key === "y")) { e.preventDefault(); redo(); }
       if (e.key === "Delete" || e.key === "Backspace") {
         if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
-        if (selectedTextId) {
-          e.preventDefault();
-          deleteTextLayer(selectedTextId);
-        } else if (selectedElementId) {
-          e.preventDefault();
-          deleteElement(selectedElementId);
-        } else if (logoSelected && logo) {
-          e.preventDefault();
-          handleDeleteLogo();
-        }
+        if (selectedTextId) { e.preventDefault(); deleteTextLayer(selectedTextId); }
+        else if (selectedElementId) { e.preventDefault(); deleteElement(selectedElementId); }
+        else if (logoSelected && logo) { e.preventDefault(); handleDeleteLogo(); }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [undo, redo, selectedTextId, selectedElementId, logoSelected, logo]);
 
-  // Measure bottom bar + tool panel so canvas can reserve space and never be hidden
+  // Measure bottom bar + tool panel
   useEffect(() => {
     const measure = () => {
       if (bottomBarRef.current) setBottomBarH(bottomBarRef.current.offsetHeight);
@@ -236,10 +232,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
     if (bottomBarRef.current) ro.observe(bottomBarRef.current);
     if (toolPanelRef.current) ro.observe(toolPanelRef.current);
     window.addEventListener("resize", measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
+    return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
   }, [activeTool]);
 
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
@@ -282,9 +275,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
 
   const handleSmartFill = useCallback((files: File[]) => {
     setCells((prev) => {
-      prev.forEach((c) => {
-        if (c.imageUrl) URL.revokeObjectURL(c.imageUrl);
-      });
+      prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
       return prev.map((c, i) => {
         if (i < files.length) {
           return { ...c, imageUrl: fileToUrl(files[i]), file: files[i], offsetX: 0, offsetY: 0, scale: 1 };
@@ -296,9 +287,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
 
   const handleReset = useCallback(() => {
     setCells((prev) => {
-      prev.forEach((c) => {
-        if (c.imageUrl) URL.revokeObjectURL(c.imageUrl);
-      });
+      prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
       return createCellsForLayout(layout);
     });
     setTextLayers([]);
@@ -309,6 +298,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
     setLogo(null);
     setLogoSelected(false);
     setBackground(DEFAULT_BG);
+    setFreePositions(layout.freePositions ?? null);  // ← reset to layout default
   }, [layout, logo]);
 
   // Text layer handlers
@@ -391,7 +381,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
     { tool: "caption", Icon: MessageSquare, label: "Caption" },
   ];
 
-  // Panel drag handlers — use refs to avoid re-render during drag
   const handlePanelDragStart = useCallback((e: React.TouchEvent) => {
     panelDragStart.current = e.touches[0].clientY;
     setPanelDragY(0);
@@ -407,17 +396,16 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
     panelDragStart.current = null;
   }, [panelDragY]);
 
-  // Format dimensions label
-  const formatDimLabel = (f: CanvasFormat) => {
-    return `${f.label} (${f.exportWidth}×${f.exportHeight})`;
-  };
+  const formatDimLabel = (f: CanvasFormat) => `${f.label} (${f.exportWidth}×${f.exportHeight})`;
+
+  // ─── Determine whether to use free-position or CSS grid layout ───
+  const hasFreePositions = freePositions != null && freePositions.length > 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* ─── Compact Header ─── */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/60">
         <div className={cn("flex items-center justify-between h-12", isMobile ? "px-3" : "px-4")}>
-          {/* Back + layout name */}
           <button
             onClick={onBack}
             className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground transition-colors group min-h-[44px]"
@@ -428,7 +416,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
             </span>
           </button>
 
-          {/* Format selector with dimensions */}
           {!layout.canvasRatio && (
             <div className="flex items-center gap-0.5 bg-muted/40 rounded-full p-0.5">
               {CANVAS_FORMATS.slice(0, 3).map((f) => (
@@ -455,7 +442,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
             </div>
           )}
 
-          {/* Utility actions */}
           <div className="flex items-center gap-1">
             <button
               onClick={undo}
@@ -513,7 +499,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
         </div>
       </header>
 
-      {/* ─── Canvas Area — reserves space for bottom bar + tool panel so canvas stays fully visible ─── */}
+      {/* ─── Canvas Area ─── */}
       <div
         className={cn("flex-1 overflow-y-auto flex items-start justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
         style={{
@@ -555,10 +541,11 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
                 : "3px",
             }}
           >
-            {layout.freePositions && layout.freePositions.some(Boolean) ? (
+            {/* ─── Free-position layout (from Inspire or layout.freePositions) ─── */}
+            {hasFreePositions ? (
               <div className="w-full h-full relative">
                 {layout.cells.map((area, i) => {
-                  const pos = layout.freePositions![i];
+                  const pos = freePositions![i];
                   if (!pos) return null;
                   return (
                     <div
@@ -569,12 +556,15 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
                         top: `${pos.y}%`,
                         width: `${pos.width}%`,
                         height: `${pos.height}%`,
-                        transform: `rotate(${pos.rotation}deg) scale(${pos.scale})`,
-                        transformOrigin: 'center center',
-                        zIndex: pos.zIndex,
-                        opacity: pos.opacity,
-                        border: pos.borderWidth > 0 ? `${pos.borderWidth}px solid ${pos.borderColor}` : 'none',
-                        overflow: 'hidden',
+                        transform: `rotate(${pos.rotation ?? 0}deg) scale(${pos.scale ?? 1})`,
+                        transformOrigin: "center center",
+                        zIndex: pos.zIndex ?? i,
+                        opacity: pos.opacity ?? 1,
+                        border:
+                          pos.borderWidth && pos.borderWidth > 0
+                            ? `${pos.borderWidth}px solid ${pos.borderColor ?? "#ffffff"}`
+                            : "none",
+                        overflow: "hidden",
                       }}
                     >
                       <MemoGridCellWrapper
@@ -590,6 +580,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
                 })}
               </div>
             ) : (
+              /* ─── Standard CSS grid layout ─── */
               <div
                 className="w-full h-full overflow-hidden relative"
                 style={{
@@ -678,11 +669,8 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
         </div>
       </div>
 
-      {/* ─── Tool Panel — anchored above measured bottom-bar height (not hardcoded) ─── */}
-      <div
-        className="fixed left-0 right-0 z-30"
-        style={{ bottom: bottomBarH }}
-      >
+      {/* ─── Tool Panel ─── */}
+      <div className="fixed left-0 right-0 z-30" style={{ bottom: bottomBarH }}>
         {activeTool && (
           <div
             ref={toolPanelRef}
@@ -699,7 +687,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
               boxShadow: "0 -8px 24px -12px rgba(0,0,0,0.18)",
             }}
           >
-            {/* Drag handle pill */}
             <div
               className="flex justify-center py-2 border-b border-border/40 cursor-grab active:cursor-grabbing sticky top-0 bg-card z-[1]"
               onTouchStart={handlePanelDragStart}
@@ -740,14 +727,13 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
         )}
       </div>
 
-      {/* ─── Bottom Bar — auto-height so export row is always visible ─── */}
+      {/* ─── Bottom Bar ─── */}
       <div
         ref={bottomBarRef}
         className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60"
         style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom, 8px))" }}
       >
         <div className="max-w-[480px] mx-auto">
-          {/* Tool icons */}
           <div className={cn("flex items-center justify-between px-2", isMobile ? "pt-2" : "pt-1.5")}>
             {toolButtons.map(({ tool, Icon, label }) => (
               <button
@@ -771,7 +757,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
 
             <div className="h-6 w-px bg-border/60" />
 
-            {/* Preview — primary action */}
             <button
               onClick={() => filledCount > 0 && setShowIgPreview(true)}
               disabled={filledCount === 0}
@@ -787,18 +772,12 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [], ini
                 <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]" />
               )}
               <Instagram className={isMobile ? "h-5 w-5" : "h-[18px] w-[18px]"} />
-              <span
-                className={cn(
-                  "tracking-wider uppercase font-semibold text-primary",
-                  isMobile ? "text-[9px]" : "text-[8px]",
-                )}
-              >
+              <span className={cn("tracking-wider uppercase font-semibold text-primary", isMobile ? "text-[9px]" : "text-[8px]")}>
                 Preview
               </span>
             </button>
           </div>
 
-          {/* Export row */}
           <div className={cn("flex items-center justify-end gap-1.5 px-3 pt-1 pb-1")}>
             <CarouselSliceExporter cells={cells} format={format} />
             <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
