@@ -33,18 +33,18 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground relative">
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-ink/60 hover:text-ink relative">
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full bg-destructive text-destructive-foreground text-[9px] font-medium flex items-center justify-center px-1">
+            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] bg-gold text-white text-[9px] font-light flex items-center justify-center px-1">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[380px] p-0 shadow-lg rounded-lg">
+      <PopoverContent align="end" className="w-[380px] p-0">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h3 className="font-serif text-lg text-foreground">Notifications</h3>
+          <h3 className="font-serif font-light italic text-lg text-foreground">Notifications</h3>
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
@@ -57,7 +57,7 @@ export function NotificationBell() {
         <ScrollArea className="max-h-[480px]">
           {notifications.length === 0 ? (
             <div className="py-20 text-center">
-              <h2 className="font-serif text-[28px] font-light text-foreground leading-tight">No notifications.</h2>
+              <h2 className="font-serif text-[28px] font-light italic text-foreground leading-tight">No notifications.</h2>
             </div>
           ) : (
             <div className="divide-y divide-border/50">
@@ -67,15 +67,15 @@ export function NotificationBell() {
                   <div
                     key={n.id}
                     onClick={() => handleClick(n)}
-                    className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors duration-200 hover:bg-secondary/30"
+                    className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors duration-200 hover:bg-ink/5"
                     style={{
-                      borderLeft: !n.is_read ? '3px solid #1A1A1A' : '3px solid transparent',
-                      backgroundColor: n.is_read ? undefined : 'hsl(var(--card))',
+                      borderLeft: !n.is_read ? '3px solid var(--gold)' : '3px solid transparent',
+                      backgroundColor: n.is_read ? undefined : 'var(--wash)',
                     }}
                   >
-                    <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${n.is_read ? 'text-muted-foreground/40' : 'text-primary'}`} />
+                    <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${n.is_read ? 'text-ink/40' : 'text-gold'}`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground leading-tight">{n.title}</p>
+                      <p className="text-sm font-light text-foreground leading-tight">{n.title}</p>
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
                       <p className="text-[10px] text-muted-foreground/50 mt-1">
                         {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
@@ -90,7 +90,7 @@ export function NotificationBell() {
         <div className="border-t border-border px-4 py-2.5">
           <button
             onClick={() => { setOpen(false); navigate('/dashboard/notifications'); }}
-            className="text-xs text-primary hover:text-primary/80 w-full text-center transition-colors"
+            className="text-xs text-gold hover:text-gold/80 w-full text-center transition-colors"
           >
             View All
           </button>

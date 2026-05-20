@@ -108,15 +108,15 @@ export default function EditFeedPostModal({ open, onOpenChange, post, onSaved }:
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "12px 14px", fontFamily: fonts.body, fontSize: 14,
-    color: "#1A1A1A", background: "#FAFAFA", border: "1px solid #EEEEEE",
-    outline: "none", borderRadius: 8,
+    color: "var(--ink)", background: "transparent", border: "1px solid var(--ink-20)",
+    outline: "none",
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" style={{ background: "#FFFFFF", border: "1px solid #F0F0F0", color: "#1A1A1A" }}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" style={{ background: "var(--bg)", border: "1px solid var(--ink-10)", color: "var(--ink)" }}>
         <DialogHeader>
-          <DialogTitle style={{ fontFamily: fonts.display, fontSize: 24, fontWeight: 400, color: "#1A1A1A" }}>
+          <DialogTitle style={{ fontFamily: fonts.display, fontSize: 24, fontWeight: 300, color: "var(--ink)", fontStyle: 'italic' }}>
             Edit {isBlog ? "Blog Story" : "Post"}
           </DialogTitle>
         </DialogHeader>
@@ -125,7 +125,7 @@ export default function EditFeedPostModal({ open, onOpenChange, post, onSaved }:
             placeholder="Title *"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{ ...inputStyle, fontFamily: fonts.display, fontSize: 18, fontWeight: 400 }}
+            style={{ ...inputStyle, fontFamily: fonts.display, fontSize: 18, fontWeight: 300, fontStyle: 'italic' }}
           />
 
           <textarea
@@ -153,13 +153,13 @@ export default function EditFeedPostModal({ open, onOpenChange, post, onSaved }:
                 <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
                   {existingGallery.map((url, i) => (
                     <div key={i} style={{ position: "relative", flexShrink: 0 }}>
-                      <img src={url} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 6 }} loading="lazy" decoding="async" />
+                      <img src={url} alt="" style={{ width: 72, height: 72, objectFit: "cover" }} loading="lazy" decoding="async" />
                       <button
                         onClick={() => setExistingGallery((prev) => prev.filter((_, j) => j !== i))}
                         style={{
                           position: "absolute", top: -4, right: -4,
-                          width: 20, height: 20, borderRadius: "50%",
-                          background: "rgba(0,0,0,0.6)", color: "white",
+                          width: 20, height: 20,
+                          background: "var(--ink)", color: "var(--bg)",
                           border: "none", cursor: "pointer", fontSize: 11,
                           display: "flex", alignItems: "center", justifyContent: "center",
                         }}
@@ -172,9 +172,9 @@ export default function EditFeedPostModal({ open, onOpenChange, post, onSaved }:
               <label style={{
                 display: "flex", alignItems: "center", gap: 8,
                 padding: "10px 16px", fontFamily: fonts.body, fontSize: 12,
-                fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" as const,
-                color: "#666666", border: "1px dashed #DDDDDD", borderRadius: 8,
-                cursor: "pointer", justifyContent: "center", background: "#FAFAFA",
+                fontWeight: 300, letterSpacing: "0.08em", textTransform: "uppercase" as const,
+                color: "var(--ink-60)", border: "1px dashed var(--ink-20)",
+                cursor: "pointer", justifyContent: "center", background: "transparent",
               }}>
                 <ImageIcon size={16} strokeWidth={1.5} /> Add More Images
                 <input type="file" accept="image/*" multiple onChange={handleGalleryImages} style={{ display: "none" }} />
@@ -191,10 +191,10 @@ export default function EditFeedPostModal({ open, onOpenChange, post, onSaved }:
 
           <button onClick={handleSave} disabled={saving} style={{
             width: "100%", padding: "14px",
-            fontFamily: fonts.body, fontSize: 13, fontWeight: 700,
+            fontFamily: fonts.body, fontSize: 13, fontWeight: 300,
             letterSpacing: "0.1em", textTransform: "uppercase" as const,
-            background: "#1A1A1A", color: "white",
-            border: "none", borderRadius: 8,
+            background: "transparent", color: "var(--gold)",
+            border: "1px solid var(--gold)",
             cursor: saving ? "wait" : "pointer",
             opacity: saving ? 0.6 : 1,
           }}>
@@ -203,9 +203,9 @@ export default function EditFeedPostModal({ open, onOpenChange, post, onSaved }:
 
           <button onClick={handleDelete} style={{
             width: "100%", padding: "12px",
-            fontFamily: fonts.body, fontSize: 12, fontWeight: 600,
-            color: "#CC3333", background: "none",
-            border: "1px solid #FFDDDD", borderRadius: 8,
+            fontFamily: fonts.body, fontSize: 12, fontWeight: 300,
+            color: "var(--alert)", background: "none",
+            border: "1px solid var(--alert-light)",
             cursor: "pointer",
           }}>
             Delete Post

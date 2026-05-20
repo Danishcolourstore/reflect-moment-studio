@@ -96,7 +96,7 @@ export function PixiesetEditorialGrid({ photos, eventName, isFavorite, toggleFav
         <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
         {eventName && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
-            <h2 className="font-serif font-light italic text-3xl sm:text-5xl lg:text-6xl font-light text-card  text-center tracking-wide leading-tight px-4">
+            <h2 className="font-serif font-light italic text-3xl sm:text-5xl lg:text-6xl text-card  text-center tracking-wide leading-tight px-4">
               {eventName}
             </h2>
           </div>
@@ -176,7 +176,7 @@ export function HighlightMosaicGrid({ photos, eventName, isFavorite, toggleFavor
         <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
         {eventName && (
           <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-10 z-10">
-            <h2 className="font-serif font-light italic text-2xl sm:text-4xl lg:text-5xl font-light text-card  leading-tight">
+            <h2 className="font-serif font-light italic text-2xl sm:text-4xl lg:text-5xl text-card  leading-tight">
               {eventName}
             </h2>
           </div>

@@ -79,24 +79,18 @@ export function PWAInstallBanner() {
       className="fixed left-3 right-3 z-[120]"
       style={{
         bottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)',
-        fontFamily: '"DM Sans", system-ui, sans-serif',
       }}
       role="dialog"
       aria-label="Install MirrorAI"
     >
       <div
-        className="relative flex items-center gap-3 bg-background px-4 py-3"
-        style={{
-          border: '1px solid hsl(var(--primary))',
-          borderRadius: 0,
-          boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
-        }}
+        className="relative flex items-center gap-3 bg-transparent px-4 py-3 border border-gold"
       >
         <div
           className="flex h-9 w-9 shrink-0 items-center justify-center"
           style={{
-            border: '1px solid hsl(var(--primary) / 0.4)',
-            color: 'hsl(var(--primary))',
+            border: '1px solid var(--gold-light)',
+            color: 'var(--gold)',
           }}
         >
           <Download className="h-4 w-4" strokeWidth={1.5} />
@@ -105,7 +99,7 @@ export function PWAInstallBanner() {
         <div className="min-w-0 flex-1">
           <p
             className="text-foreground"
-            style={{ fontSize: 13, fontWeight: 500, letterSpacing: '0.01em' }}
+            style={{ fontSize: 13, fontWeight: 300, letterSpacing: '0.01em' }}
           >
             Install MirrorAI
           </p>
@@ -122,13 +116,13 @@ export function PWAInstallBanner() {
           onClick={handleInstall}
           className="shrink-0"
           style={{
-            borderRadius: 0,
             height: 32,
             paddingInline: 14,
             fontSize: 12,
-            fontWeight: 500,
-            background: 'hsl(var(--primary))',
-            color: 'hsl(var(--primary-foreground))',
+            fontWeight: 300,
+            background: 'transparent',
+            color: 'var(--gold)',
+            border: '1px solid var(--gold)',
           }}
         >
           Install

@@ -61,7 +61,7 @@ export const BetaFeedbackButton = forwardRef<HTMLButtonElement, Record<string, n
         <button
           ref={ref}
           onClick={() => setOpen(true)}
-          className="fixed bottom-28 lg:bottom-6 right-4 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full bg-card border border-border shadow-lg text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
+          className="fixed bottom-28 lg:bottom-6 right-4 z-40 flex items-center gap-1.5 px-3 py-2 bg-transparent border border-ink/20 text-[11px] text-muted-foreground hover:text-foreground hover:border-gold transition-all"
         >
           <Bug className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Report Issue</span>
@@ -70,19 +70,19 @@ export const BetaFeedbackButton = forwardRef<HTMLButtonElement, Record<string, n
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="font-serif text-xl">Report an Issue</DialogTitle>
+              <DialogTitle className="font-serif font-light italic text-xl">Report an Issue</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4 mt-2">
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Page</label>
-                <p className="text-[13px] text-foreground mt-1 bg-secondary/50 px-3 py-2 rounded-md font-mono">
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-light">Page</label>
+                <p className="text-[13px] text-foreground mt-1 bg-transparent px-3 py-2 border border-ink/20 font-mono">
                   {location.pathname}
                 </p>
               </div>
 
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-light">
                   What happened? *
                 </label>
                 <Textarea
@@ -94,11 +94,11 @@ export const BetaFeedbackButton = forwardRef<HTMLButtonElement, Record<string, n
               </div>
 
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-light">
                   Screenshot (optional)
                 </label>
                 {screenshot ? (
-                  <div className="mt-1 flex items-center gap-2 bg-secondary/50 px-3 py-2 rounded-md">
+                  <div className="mt-1 flex items-center gap-2 bg-transparent px-3 py-2 border border-ink/20">
                     <span className="text-[12px] text-foreground truncate flex-1">{screenshot.name}</span>
                     <button
                       onClick={() => setScreenshot(null)}
@@ -109,9 +109,9 @@ export const BetaFeedbackButton = forwardRef<HTMLButtonElement, Record<string, n
                   </div>
                 ) : (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="mt-1 h-8 text-[11px]"
+                    className="mt-1 h-8 text-[11px] border border-ink/20 hover:border-gold"
                     onClick={() => fileRef.current?.click()}
                   >
                     <Upload className="h-3 w-3 mr-1.5" /> Attach Screenshot
@@ -132,7 +132,7 @@ export const BetaFeedbackButton = forwardRef<HTMLButtonElement, Record<string, n
               <Button
                 onClick={handleSubmit}
                 disabled={submitting || !message.trim()}
-                className="w-full bg-primary text-primary-foreground text-[11px] uppercase tracking-wider"
+                className="w-full border border-gold text-gold text-[11px] uppercase tracking-wider"
               >
                 {submitting ? (
                   <>
