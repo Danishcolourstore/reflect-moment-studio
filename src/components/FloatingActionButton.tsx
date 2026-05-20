@@ -70,10 +70,10 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
             key={index}
             onClick={() => handleAction(action)}
             className={cn(
-              'flex items-center gap-3 pl-4 pr-5 py-3 rounded-full shadow-lg transition-all duration-200',
-              'bg-card border border-border hover:bg-secondary',
-              action.variant === 'primary' && 'bg-primary text-primary-foreground border-primary hover:bg-primary/90',
-              action.variant === 'accent' && 'bg-accent text-accent-foreground border-accent hover:bg-accent/90'
+              'flex items-center gap-3 pl-4 pr-5 py-3   transition-all duration-200',
+              'bg-transparent border border-ink/20 hover:border-gold',
+              action.variant === 'primary' && 'bg-transparent border border-gold text-gold',
+              action.variant === 'accent' && 'bg-transparent border border-gold text-gold'
             )}
             style={{
               animationDelay: `${index * 50}ms`,
@@ -89,8 +89,8 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'flex items-center justify-center w-14 h-14 rounded-full shadow-xl transition-all duration-300',
-          'bg-primary text-primary-foreground hover:bg-primary/90',
+          'flex items-center justify-center w-14 h-14   transition-all duration-300',
+          'bg-transparent border border-gold text-gold',
           isOpen && 'rotate-45'
         )}
         aria-label={isOpen ? 'Close menu' : 'Open quick actions'}

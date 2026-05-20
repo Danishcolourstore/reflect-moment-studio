@@ -31,7 +31,7 @@ interface EmptyStateProps {
 
 const INK = "#1A1917";
 const PAPER = "#FAFAF8";
-const GOLD = "#1A1A1A";
+const GOLD = "#C0A062";
 const GOLD_INK = "#1A1A1A";
 const RULE = "#E8E6E1";
 const RULE_STRONG = "#D6D3CC";
@@ -66,9 +66,9 @@ function buttonStyle(variant: "primary" | "ghost"): React.CSSProperties {
   if (variant === "primary") {
     return {
       ...BUTTON_BASE,
-      background: GOLD,
-      color: PAPER,
-      border: "none",
+      background: 'transparent',
+      color: GOLD_INK,
+      border: `1px solid ${GOLD}`,
       textTransform: "uppercase",
     };
   }
@@ -82,14 +82,14 @@ function buttonStyle(variant: "primary" | "ghost"): React.CSSProperties {
 
 function buttonHoverIn(variant: "primary" | "ghost") {
   return (e: React.MouseEvent<HTMLElement>) => {
-    if (variant === "primary") e.currentTarget.style.background = GOLD_INK;
+    if (variant === "primary") e.currentTarget.style.borderColor = GOLD_INK;
     else e.currentTarget.style.borderColor = RULE_STRONG;
   };
 }
 
 function buttonHoverOut(variant: "primary" | "ghost") {
   return (e: React.MouseEvent<HTMLElement>) => {
-    if (variant === "primary") e.currentTarget.style.background = GOLD;
+    if (variant === "primary") e.currentTarget.style.borderColor = GOLD;
     else e.currentTarget.style.borderColor = RULE;
   };
 }
