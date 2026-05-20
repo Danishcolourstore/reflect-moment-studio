@@ -63,13 +63,13 @@ If unsure between two values, choose the one that matches the visible pixels. Ne
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-pro",
           messages: [
             { role: "system", content: systemPrompt },
             {
               role: "user",
               content: [
-                { type: "text", text: "Analyze this screenshot. Return the full reconstruction." },
+                { type: "text", text: "Analyze this screenshot. Measure the post canvas precisely. Ignore all Instagram UI chrome. Return the full reconstruction with one freeCell per visible photo." },
                 { type: "image_url", image_url: { url: image } },
               ],
             },
