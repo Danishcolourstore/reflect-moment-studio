@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Lock, Eye, EyeOff } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -21,16 +19,13 @@ export function GalleryPasswordGate({ eventId, eventTitle, studioLogoUrl, onUnlo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (checking || !input.trim()) return;
-
     setChecking(true);
     try {
       const { data, error } = await (supabase.rpc as any)("verify_gallery_password", {
         event_id: eventId,
         password_input: input,
       });
-
       if (error) throw error;
-
       if (data?.valid) {
         localStorage.setItem(`mirrorai_gallery_pw_verified_${eventId}`, "true");
         if (data?.token) localStorage.setItem(`gallery_token:${eventId}`, data.token);
@@ -48,38 +43,168 @@ export function GalleryPasswordGate({ eventId, eventTitle, studioLogoUrl, onUnlo
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-card border border-border rounded-lg p-8 text-center space-y-5 shadow-md">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 200,
+        background: "var(--paper, #FAFAF8)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 16px",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 360,
+          border: "1px solid var(--rule)",
+          padding: 40,
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
         {studioLogoUrl ? (
-          <img src={studioLogoUrl} alt="" className="h-12 mx-auto object-contain" loading="lazy" decoding="async" />
+          <img
+            src={studioLogoUrl}
+            alt=""
+            style={{ height: 48, margin: "0 auto", objectFit: "contain" }}
+            loading="lazy"
+            decoding="async"
+          />
         ) : (
-          <h2 className="font-serif italic text-xl text-foreground">MirrorAI</h2>
+          <p style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 20,
+            fontWeight: 300,
+            fontStyle: "italic",
+            color: "var(--ink)",
+            margin: 0,
+          }}>
+            Mirror
+          </p>
         )}
-        <h1 className="font-serif text-2xl font-semibold text-foreground">{eventTitle}</h1>
-        <p className="font-serif text-lg text-muted-foreground">Private gallery</p>
-        <p className="text-sm text-muted-foreground">Enter the password to view</p>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className={`relative ${shake ? "skeleton-block" : ""}`}>
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
-            <Input
+
+        <h1 style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: 24,
+          fontWeight: 300,
+          fontStyle: "italic",
+          color: "var(--ink)",
+          margin: 0,
+        }}>
+          {eventTitle}
+        </h1>
+
+        <p style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: 16,
+          fontWeight: 300,
+          fontStyle: "italic",
+          color: "var(--ink-muted)",
+          margin: 0,
+        }}>
+          Private gallery
+        </p>
+
+        <p style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: 12,
+          fontWeight: 300,
+          color: "var(--ink-muted)",
+          margin: 0,
+        }}>
+          Enter the password to view
+        </p>
+
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}
+        >
+          <div
+            style={{
+              position: "relative",
+              animation: shake ? "shake 0.4s ease" : undefined,
+            }}
+          >
+            <Lock
+              size={14}
+              strokeWidth={1.5}
+              style={{
+                position: "absolute",
+                left: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--ink-muted)",
+              }}
+            />
+            <input
               type={showPw ? "text" : "password"}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Enter password"
-              className="pl-9 pr-10 bg-background"
               autoFocus
+              style={{
+                width: "100%",
+                border: "1px solid rgba(17,17,17,0.2)",
+                background: "transparent",
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 14,
+                fontWeight: 300,
+                padding: "10px 40px",
+                color: "var(--ink)",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(184,149,63,0.6)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(17,17,17,0.2)")}
             />
             <button
               type="button"
               onClick={() => setShowPw(!showPw)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground"
+              style={{
+                position: "absolute",
+                right: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--ink-muted)",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+              }}
             >
-              {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPw
+                ? <EyeOff size={14} strokeWidth={1.5} />
+                : <Eye size={14} strokeWidth={1.5} />}
             </button>
           </div>
-          <Button type="submit" className="w-full bg-primary text-primary-foreground" disabled={checking}>
+
+          <button
+            type="submit"
+            disabled={checking}
+            style={{
+              border: "1px solid #B8953F",
+              background: "transparent",
+              color: "var(--ink)",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 11,
+              fontWeight: 300,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              padding: "12px 20px",
+              cursor: checking ? "not-allowed" : "pointer",
+              opacity: checking ? 0.6 : 1,
+              width: "100%",
+            }}
+          >
             {checking ? "Verifying…" : "View Gallery"}
-          </Button>
+          </button>
         </form>
       </div>
     </div>
