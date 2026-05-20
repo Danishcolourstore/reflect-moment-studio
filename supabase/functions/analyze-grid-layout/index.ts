@@ -198,8 +198,17 @@ If unsure between two values, choose the one that matches the visible pixels. Ne
       result = JSON.parse(cleaned);
     }
 
-    if (!result.cells || !Array.isArray(result.cells) || !result.gridCols || !result.gridRows) {
+    const hasFreeCells = Array.isArray(result.freeCells) && result.freeCells.length > 0;
+    const hasGrid = Array.isArray(result.cells) && result.cells.length > 0 && result.gridCols && result.gridRows;
+    if (!hasFreeCells && !hasGrid) {
       throw new Error("Could not detect a valid layout. Try a clearer screenshot.");
+    }
+
+    // Synthesize a trivial grid fallback when only freeCells were returned
+    if (!hasGrid) {
+      result.gridCols = 1;
+      result.gridRows = 1;
+      result.cells = result.freeCells.map(() => [1, 1, 2, 2]);
     }
 
     const validatedCells = result.cells.map((cell: any[]) => {
