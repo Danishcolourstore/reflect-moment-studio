@@ -3,7 +3,7 @@
  * Renders grids + frames + text overlays + design elements + logos using original image data — zero compression, lossless PNG output.
  */
 
-import type { GridLayout, GridCellData } from './types';
+import type { GridLayout, GridCellData, FreePosition } from './types';
 import type { TextLayer } from './text-overlay-types';
 import type { DesignElement } from './element-types';
 import type { LogoLayer } from './LogoOverlay';
@@ -38,6 +38,8 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 
 /**
  * Render the full grid to a canvas at the specified resolution.
+ * `freePositions` — pass the GridEditor state value so Inspire variations export correctly.
+ * Falls back to layout.freePositions if not provided.
  */
 export async function renderGridToCanvas(
   layout: GridLayout,
@@ -48,6 +50,7 @@ export async function renderGridToCanvas(
   elements: DesignElement[] = [],
   logo: LogoLayer | null = null,
   background?: BackgroundStyle,
+  freePositions?: FreePosition[] | null,   // ← new param
 ): Promise<HTMLCanvasElement> {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -56,7 +59,7 @@ export async function renderGridToCanvas(
 
   const frame = layout.frame;
 
-  // Background
+  // ─── Background ───────────────────────────────
   if (background && !frame) {
     if (background.type === 'gradient' && background.gradientTo) {
       const angle = (background.gradientAngle || 180) * Math.PI / 180;
@@ -77,7 +80,7 @@ export async function renderGridToCanvas(
     ctx.fillRect(0, 0, width, height);
   }
 
-  // Calculate image area based on frame padding
+  // ─── Image area (respects frame padding) ──────
   let areaX = 0, areaY = 0, areaW = width, areaH = height;
 
   if (frame) {
@@ -114,29 +117,43 @@ export async function renderGridToCanvas(
     }
   }
 
-  // ── Free-positioned cells path ──
-  const hasFree = !!layout.freePositions && layout.freePositions.some(Boolean);
+  // ─── Resolve which freePositions to use ───────
+  // Prefer the explicitly passed state value (from GridEditor),
+  // fall back to whatever is baked into the layout definition.
+  const resolvedFreePositions: FreePosition[] | null =
+    freePositions !== undefined
+      ? (freePositions ?? null)
+      : (layout.freePositions ?? null);
 
+  const hasFree = resolvedFreePositions != null && resolvedFreePositions.length > 0;
+
+  // ─── Free-position cell rendering ─────────────
   if (hasFree) {
     const ordered = layout.cells
-      .map((_, i) => ({ pos: layout.freePositions![i], cell: cells[i], i }))
-      .filter(o => o.pos);
-    ordered.sort((a, b) => (a.pos!.zIndex || 0) - (b.pos!.zIndex || 0));
+      .map((_, i) => ({ pos: resolvedFreePositions![i], cell: cells[i], i }))
+      .filter((o) => o.pos);
+
+    // Paint lowest zIndex first
+    ordered.sort((a, b) => (a.pos?.zIndex ?? 0) - (b.pos?.zIndex ?? 0));
 
     for (const { pos, cell } of ordered) {
       const p = pos!;
+
+      // Cell dimensions and centre point in canvas space
       const cw = (p.width / 100) * areaW;
       const ch = (p.height / 100) * areaH;
       const cx = areaX + (p.x / 100) * areaW + cw / 2;
       const cy = areaY + (p.y / 100) * areaH + ch / 2;
 
       ctx.save();
+
+      // Move origin to cell centre, apply rotation + scale
       ctx.translate(cx, cy);
-      ctx.rotate((p.rotation * Math.PI) / 180);
-      const s = p.scale || 1;
-      ctx.scale(s, s);
+      ctx.rotate(((p.rotation ?? 0) * Math.PI) / 180);
+      ctx.scale(p.scale ?? 1, p.scale ?? 1);
       ctx.globalAlpha = p.opacity ?? 1;
 
+      // Clip to cell bounds (prevents image bleeding past borders/rotation)
       ctx.beginPath();
       ctx.rect(-cw / 2, -ch / 2, cw, ch);
       ctx.clip();
@@ -144,12 +161,17 @@ export async function renderGridToCanvas(
       if (cell?.imageUrl) {
         try {
           const img = await loadImageElement(cell.imageUrl);
+
+          // Cover-fit: image fills the cell, no letterboxing
           const fit = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * (cell.scale || 1);
           const dw = img.naturalWidth * fit;
           const dh = img.naturalHeight * fit;
+
+          // Scale user pan offsets to export resolution
           const offsetScale = width / 440;
           const ox = (cell.offsetX || 0) * offsetScale;
           const oy = (cell.offsetY || 0) * offsetScale;
+
           ctx.drawImage(img, -dw / 2 + ox, -dh / 2 + oy, dw, dh);
         } catch {
           ctx.fillStyle = '#f0f0f0';
@@ -160,8 +182,9 @@ export async function renderGridToCanvas(
         ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
       }
 
-      if (p.borderWidth > 0) {
-        ctx.strokeStyle = p.borderColor;
+      // Border drawn after image, inside clip region
+      if ((p.borderWidth ?? 0) > 0) {
+        ctx.strokeStyle = p.borderColor ?? '#ffffff';
         ctx.lineWidth = p.borderWidth * (width / 375);
         ctx.strokeRect(-cw / 2, -ch / 2, cw, ch);
       }
@@ -169,7 +192,7 @@ export async function renderGridToCanvas(
       ctx.restore();
     }
   } else {
-    // Calculate grid within image area
+    // ─── Standard CSS-grid cell rendering ─────────
     const gap = frame ? 0 : Math.round(width * 0.007);
     const pad = frame ? 0 : gap;
 
@@ -223,9 +246,6 @@ export async function renderGridToCanvas(
   }
 
   const displaySize = 440;
-
-
-
 
   // ─── Render design elements ───────────────────
   if (elements.length > 0) {
@@ -295,7 +315,7 @@ export async function renderGridToCanvas(
     }
   }
 
-  // ─── Render text overlays ───────────────────
+  // ─── Render text overlays ─────────────────────
   if (textLayers.length > 0) {
     const scale = width / displaySize;
 
