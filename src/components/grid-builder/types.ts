@@ -26,6 +26,9 @@ export interface FreeCellPosition {
   borderColor: string;
 }
 
+/** Alias used by GridEditor, GridBuilder, and export-utils */
+export type FreePosition = FreeCellPosition;
+
 export interface GridLayout {
   id: string;
   name: string;
