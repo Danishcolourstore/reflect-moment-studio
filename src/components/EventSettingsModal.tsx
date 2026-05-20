@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Grid2X2, LayoutGrid, AlignJustify, Newspaper, GalleryHorizontalEnd, Clapperboard, Sparkles, LayoutDashboard, Loader2, Copy, ExternalLink, Image, BookOpen } from 'lucide-react';
 import { SmartQRAccess } from '@/components/events/SmartQRAccess';
 import { GALLERY_STYLES, DEFAULT_LAYOUT_FOR_STYLE, type GalleryStyleValue } from '@/lib/gallery-styles';
+
 type WebsiteTemplateValue = string;
 const useWebsiteTemplates = () => ({ data: [] as any[] });
 
@@ -26,38 +24,75 @@ const LAYOUT_OPTIONS = [
 ] as const;
 
 const PREVIEW_HEIGHTS: Record<string, number[]> = {
-  classic:    [1, 1, 1, 1, 1, 1],
-  masonry:    [3, 2, 4, 2, 3, 2],
-  justified:  [2, 3, 2, 3, 2, 3],
-  editorial:  [4, 3, 5, 3, 4, 3],
-  'editorial-collage': [5, 2, 3, 1, 4, 2],
-  pixieset:   [5, 3, 3, 4, 3, 4],
-  cinematic:  [4, 2, 5, 2, 4, 3],
-  mosaic:     [5, 1, 3, 2, 4, 1],
-  'minimal-portfolio': [5, 5, 5, 5, 5, 5],
-  storybook:  [5, 3, 3, 2, 2, 5],
+  classic:    [1,1,1,1,1,1],
+  masonry:    [3,2,4,2,3,2],
+  justified:  [2,3,2,3,2,3],
+  editorial:  [4,3,5,3,4,3],
+  'editorial-collage': [5,2,3,1,4,2],
+  pixieset:   [5,3,3,4,3,4],
+  cinematic:  [4,2,5,2,4,3],
+  mosaic:     [5,1,3,2,4,1],
+  'minimal-portfolio': [5,5,5,5,5,5],
+  storybook:  [5,3,3,2,2,5],
+};
+
+const inputStyle = {
+  border: "1px solid rgba(17,17,17,0.2)",
+  background: "transparent",
+  fontFamily: "'DM Sans', sans-serif",
+  fontSize: 13,
+  fontWeight: 300,
+  padding: "8px 12px",
+  width: "100%",
+  color: "#111111",
+  outline: "none",
+  borderRadius: 0,
+  boxSizing: "border-box" as const,
+  height: 36,
+};
+
+const labelStyle = {
+  fontFamily: "'DM Sans', sans-serif",
+  fontSize: 11,
+  fontWeight: 300,
+  letterSpacing: "0.15em",
+  textTransform: "uppercase" as const,
+  color: "var(--ink-muted)",
+  display: "block",
+  marginBottom: 6,
+};
+
+const helperStyle = {
+  fontFamily: "'DM Sans', sans-serif",
+  fontSize: 11,
+  fontWeight: 300,
+  color: "var(--ink-whisper)",
+  marginTop: 4,
+};
+
+const sectionTitleStyle = {
+  fontFamily: "'Cormorant Garamond', serif",
+  fontSize: 18,
+  fontWeight: 300,
+  fontStyle: "italic",
+  color: "var(--ink)",
+  margin: "0 0 16px",
+};
+
+const dividerStyle = {
+  height: 1,
+  background: "var(--rule)",
+  margin: "8px 0",
 };
 
 interface EventData {
-  id: string;
-  name: string;
-  slug: string;
-  event_date: string;
-  location: string | null;
-  cover_url: string | null;
-  gallery_pin: string | null;
-  gallery_layout: string;
-  gallery_style?: string;
-  downloads_enabled: boolean;
-  download_resolution: string;
-  watermark_enabled: boolean;
-  is_published: boolean;
-  selection_mode_enabled?: boolean;
-  feed_visible?: boolean;
-  hero_couple_name?: string | null;
-  hero_subtitle?: string | null;
-  hero_button_label?: string | null;
-  website_template?: string;
+  id: string; name: string; slug: string; event_date: string;
+  location: string | null; cover_url: string | null; gallery_pin: string | null;
+  gallery_layout: string; gallery_style?: string; downloads_enabled: boolean;
+  download_resolution: string; watermark_enabled: boolean; is_published: boolean;
+  selection_mode_enabled?: boolean; feed_visible?: boolean;
+  hero_couple_name?: string | null; hero_subtitle?: string | null;
+  hero_button_label?: string | null; website_template?: string;
 }
 
 interface EventSettingsModalProps {
@@ -89,19 +124,15 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setTitle(event.name);
-    setDate(event.event_date);
-    setLocation(event.location ?? '');
-    setPassword(event.gallery_pin ?? '');
+    setTitle(event.name); setDate(event.event_date);
+    setLocation(event.location ?? ''); setPassword(event.gallery_pin ?? '');
     setGalleryLayout(event.gallery_layout);
     setGalleryStyle((event.gallery_style as GalleryStyleValue) || 'vogue-editorial');
-    setDownloadsEnabled(event.downloads_enabled);
-    setWatermarkEnabled(event.watermark_enabled);
+    setDownloadsEnabled(event.downloads_enabled); setWatermarkEnabled(event.watermark_enabled);
     setIsPublished(event.is_published);
     setSelectionModeEnabled(event.selection_mode_enabled ?? false);
     setFeedVisible(event.feed_visible ?? false);
-    setHeroCoupleName(event.hero_couple_name ?? '');
-    setHeroSubtitle(event.hero_subtitle ?? '');
+    setHeroCoupleName(event.hero_couple_name ?? ''); setHeroSubtitle(event.hero_subtitle ?? '');
     setHeroButtonLabel(event.hero_button_label ?? '');
     setWebsiteTemplate((event.website_template as WebsiteTemplateValue) || 'vows-elegance');
   }, [event]);
@@ -123,9 +154,10 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
       name: title, event_date: date, location: location || null, cover_url: coverUrl,
       gallery_pin: password || null, gallery_layout: galleryLayout, gallery_style: galleryStyle,
       downloads_enabled: downloadsEnabled, watermark_enabled: watermarkEnabled,
-      is_published: isPublished, selection_mode_enabled: selectionModeEnabled, feed_visible: feedVisible,
-      hero_couple_name: heroCoupleName || null, hero_subtitle: heroSubtitle || null,
-      hero_button_label: heroButtonLabel || null, website_template: websiteTemplate,
+      is_published: isPublished, selection_mode_enabled: selectionModeEnabled,
+      feed_visible: feedVisible, hero_couple_name: heroCoupleName || null,
+      hero_subtitle: heroSubtitle || null, hero_button_label: heroButtonLabel || null,
+      website_template: websiteTemplate,
     } as any).eq('id', event.id);
     if (error) {
       toast({ title: 'Error saving', description: error.message, variant: 'destructive' });
@@ -139,244 +171,305 @@ export function EventSettingsModal({ open, onOpenChange, event, onUpdated }: Eve
 
   const previewBars = PREVIEW_HEIGHTS[galleryLayout] ?? PREVIEW_HEIGHTS.masonry;
 
+  const focusInput = (e: React.FocusEvent<HTMLInputElement>) =>
+    (e.currentTarget.style.borderColor = "rgba(184,149,63,0.6)");
+  const blurInput = (e: React.FocusEvent<HTMLInputElement>) =>
+    (e.currentTarget.style.borderColor = "rgba(17,17,17,0.2)");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-card border-border/20 p-0 max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="px-8 pt-8 pb-2">
-          <DialogTitle className="font-serif text-2xl" style={{ fontWeight: 300 }}>Event Settings</DialogTitle>
-        </DialogHeader>
+      <DialogContent
+        style={{
+          background: "var(--paper, #FAFAF8)",
+          border: "1px solid var(--rule)",
+          borderRadius: 0,
+          padding: 0,
+          maxWidth: 500,
+          maxHeight: "90vh",
+          overflowY: "auto",
+          boxShadow: "0 8px 48px rgba(0,0,0,0.18)",
+        }}
+      >
+        <div style={{ padding: "32px 32px 8px" }}>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, fontStyle: "italic", color: "var(--ink)", margin: 0 }}>
+            Event Settings
+          </h2>
+        </div>
 
-        <div className="px-8 pb-8 space-y-8">
+        <div style={{ padding: "24px 32px 32px", display: "flex", flexDirection: "column", gap: 32 }}>
 
-          {/* ── Section 1: Basic Info ── */}
-          <section className="space-y-4">
-            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Basic Info</h3>
-            <div className="space-y-1.5">
-              <Label className="editorial-label">Gallery Link</Label>
-              <div className="flex gap-1.5">
-                <Input value={`${window.location.origin}/event/${event.slug}`} readOnly className="bg-background h-9 text-[12px] font-mono" />
-                <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/event/${event.slug}`); toast({ title: 'Gallery link copied' }); }}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" asChild>
-                  <a href={`/event/${event.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
-                </Button>
+          {/* Basic Info */}
+          <section>
+            <h3 style={sectionTitleStyle}>Basic Info</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <label style={labelStyle}>Gallery Link</label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    value={`${window.location.origin}/event/${event.slug}`}
+                    readOnly
+                    style={{ ...inputStyle, fontFamily: "'JetBrains Mono', monospace", fontSize: 11, flex: 1 }}
+                  />
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/event/${event.slug}`); toast({ title: 'Gallery link copied' }); }}
+                    style={{ border: "1px solid rgba(17,17,17,0.2)", background: "transparent", width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                  >
+                    <Copy size={14} style={{ color: "var(--ink)" }} />
+                  </button>
+                  <a
+                    href={`/event/${event.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ border: "1px solid rgba(17,17,17,0.2)", background: "transparent", width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, textDecoration: "none" }}
+                  >
+                    <ExternalLink size={14} style={{ color: "var(--ink)" }} />
+                  </a>
+                </div>
+                <p style={helperStyle}>Share this URL with your clients.</p>
               </div>
-              <p className="editorial-helper">Share this URL with your clients to give them access.</p>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="editorial-label">Event Title</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-background h-9 text-[13px]" />
-              <p className="editorial-helper">The title displayed on your gallery page.</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="editorial-label">Event Date</Label>
-                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-background h-9 text-[13px]" />
+              <div>
+                <label style={labelStyle}>Event Title</label>
+                <input value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
               </div>
-              <div className="space-y-1.5">
-                <Label className="editorial-label">Location</Label>
-                <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, Country" className="bg-background h-9 text-[13px]" />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>Event Date</label>
+                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Location</label>
+                  <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, Country" style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
+                </div>
               </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="editorial-label">Cover Photo</Label>
-              <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="bg-background h-9 text-[13px]" />
-              {event.cover_url && !coverFile && <p className="editorial-helper">Current cover set. Upload a new image to replace.</p>}
+              <div>
+                <label style={labelStyle}>Cover Photo</label>
+                <input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} style={inputStyle} />
+                {event.cover_url && !coverFile && <p style={helperStyle}>Current cover set. Upload to replace.</p>}
+              </div>
             </div>
           </section>
 
-          <div className="h-px bg-border/30" />
+          <div style={dividerStyle} />
 
-          {/* ── Section: Website Template ── */}
-          <section className="space-y-4">
-            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Website Template</h3>
-            <p className="editorial-helper !mt-0">Choose how guests experience your gallery — like visiting your own website.</p>
-            <div className="grid grid-cols-1 gap-2">
-              {wsTemplates.map((tmpl) => (
-                <button
-                  key={tmpl.value}
-                  type="button"
-                  onClick={() => setWebsiteTemplate(tmpl.value)}
-                  className={`flex flex-col items-start gap-1 p-3.5 rounded-xl border transition-colors text-left ${
-                    websiteTemplate === tmpl.value
-                      ? 'border-foreground/30 bg-foreground/5'
-                      : 'border-border/30 hover:border-muted-foreground/20'
-                  }`}
-                >
-                  <span className={`text-[11px] font-medium ${websiteTemplate === tmpl.value ? 'text-foreground' : 'text-muted-foreground/70'}`}>{tmpl.label}</span>
-                  <span className="text-[9px] text-muted-foreground/50 leading-snug">{tmpl.description}</span>
-                </button>
-              ))}
-            </div>
-          </section>
+          {/* Website Template */}
+          {wsTemplates.length > 0 && (
+            <>
+              <section>
+                <h3 style={sectionTitleStyle}>Website Template</h3>
+                <p style={{ ...helperStyle, marginBottom: 12 }}>Choose how guests experience your gallery.</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {wsTemplates.map((tmpl: any) => (
+                    <button
+                      key={tmpl.value}
+                      type="button"
+                      onClick={() => setWebsiteTemplate(tmpl.value)}
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 14px",
+                        border: websiteTemplate === tmpl.value ? "1px solid #B8953F" : "1px solid rgba(17,17,17,0.15)",
+                        background: "transparent",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 300, letterSpacing: "0.12em", textTransform: "uppercase", color: websiteTemplate === tmpl.value ? "var(--ink)" : "var(--ink-muted)", display: "block" }}>{tmpl.label}</span>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 300, color: "var(--ink-whisper)" }}>{tmpl.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+              <div style={dividerStyle} />
+            </>
+          )}
 
-          <div className="h-px bg-border/30" />
-          <section className="space-y-4">
-            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Gallery Style</h3>
-            <p className="editorial-helper !mt-0">Choose the visual presentation preset for your gallery.</p>
-            <div className="grid grid-cols-3 gap-2">
+          {/* Gallery Style */}
+          <section>
+            <h3 style={sectionTitleStyle}>Gallery Style</h3>
+            <p style={{ ...helperStyle, marginBottom: 12 }}>Visual presentation preset for your gallery.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
               {GALLERY_STYLES.map((style) => (
                 <button
                   key={style.value}
                   type="button"
                   onClick={() => {
                     setGalleryStyle(style.value);
-                    // Set default layout for the style if user hasn't manually changed it
-                    if (galleryLayout === event.gallery_layout) {
-                      setGalleryLayout(DEFAULT_LAYOUT_FOR_STYLE[style.value]);
-                    }
+                    if (galleryLayout === event.gallery_layout) setGalleryLayout(DEFAULT_LAYOUT_FOR_STYLE[style.value]);
                   }}
-                  className={`flex flex-col items-start gap-1 p-3.5 rounded-xl border transition-colors text-left ${
-                    galleryStyle === style.value
-                      ? 'border-foreground/30 bg-foreground/5'
-                      : 'border-border/30 hover:border-muted-foreground/20'
-                  }`}
+                  style={{
+                    textAlign: "left",
+                    padding: "12px 14px",
+                    border: galleryStyle === style.value ? "1px solid #B8953F" : "1px solid rgba(17,17,17,0.15)",
+                    background: "transparent",
+                    cursor: "pointer",
+                  }}
                 >
-                  <span className={`text-[11px] font-medium ${galleryStyle === style.value ? 'text-foreground' : 'text-muted-foreground/70'}`}>{style.label}</span>
-                  <span className="text-[9px] text-muted-foreground/50 leading-snug">{style.description}</span>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: "0.12em", textTransform: "uppercase", color: galleryStyle === style.value ? "var(--ink)" : "var(--ink-muted)", display: "block", marginBottom: 2 }}>{style.label}</span>
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 300, color: "var(--ink-whisper)", lineHeight: 1.4 }}>{style.description}</span>
                 </button>
               ))}
             </div>
           </section>
 
-          {/* ── Hero Fields (Timeless Wedding & Andhakar) ── */}
+          {/* Hero Section */}
           {(galleryStyle === 'timeless-wedding' || galleryStyle === 'andhakar') && (
             <>
-              <div className="h-px bg-border/30" />
-              <section className="space-y-4">
-                <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Hero Section</h3>
-                <p className="editorial-helper !mt-0">Optional hero displayed above the gallery grid.</p>
-                <div className="space-y-1.5">
-                  <Label className="editorial-label">Couple Name</Label>
-                  <Input value={heroCoupleName} onChange={(e) => setHeroCoupleName(e.target.value)} placeholder="Sarah & James" className="bg-background h-9 text-[13px]" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="editorial-label">Subtitle / Studio Name</Label>
-                  <Input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="Photography by Studio Name" className="bg-background h-9 text-[13px]" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="editorial-label">Button Label</Label>
-                  <Input value={heroButtonLabel} onChange={(e) => setHeroButtonLabel(e.target.value)} placeholder="View Gallery" className="bg-background h-9 text-[13px]" />
-                  <p className="editorial-helper">Leave empty to use default "View Gallery".</p>
+              <div style={dividerStyle} />
+              <section>
+                <h3 style={sectionTitleStyle}>Hero Section</h3>
+                <p style={{ ...helperStyle, marginBottom: 12 }}>Optional hero displayed above the gallery grid.</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div>
+                    <label style={labelStyle}>Couple Name</label>
+                    <input value={heroCoupleName} onChange={(e) => setHeroCoupleName(e.target.value)} placeholder="Sarah & James" style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Subtitle / Studio Name</label>
+                    <input value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} placeholder="Photography by Studio Name" style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Button Label</label>
+                    <input value={heroButtonLabel} onChange={(e) => setHeroButtonLabel(e.target.value)} placeholder="View Gallery" style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
+                    <p style={helperStyle}>Leave empty to use default "View Gallery".</p>
+                  </div>
                 </div>
               </section>
             </>
           )}
 
-          <div className="h-px bg-border/30" />
+          <div style={dividerStyle} />
 
-          {/* ── Section 2: Gallery Layout ── */}
-          <section className="space-y-4">
-            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Gallery Layout</h3>
-            <p className="editorial-helper !mt-0">Choose how your photos are presented to guests.</p>
-            <div className="grid grid-cols-4 gap-2">
+          {/* Gallery Layout */}
+          <section>
+            <h3 style={sectionTitleStyle}>Gallery Layout</h3>
+            <p style={{ ...helperStyle, marginBottom: 12 }}>Choose how your photos are presented to guests.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
               {LAYOUT_OPTIONS.map(({ value, label, icon: Icon }) => (
-                <button key={value} type="button" onClick={() => setGalleryLayout(value)}
-                  className={`flex flex-col items-center gap-1.5 py-3 px-1.5 rounded-xl border transition-colors text-center ${
-                    galleryLayout === value
-                      ? 'border-foreground/30 bg-foreground/5 text-foreground'
-                      : 'border-border/30 text-muted-foreground/50 hover:border-muted-foreground/20'
-                  }`}>
-                  <Icon className="h-4 w-4" strokeWidth={1.5} />
-                  <span className="text-[8px] uppercase tracking-[0.12em] leading-none">{label}</span>
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setGalleryLayout(value)}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "12px 6px",
+                    border: galleryLayout === value ? "1px solid #B8953F" : "1px solid rgba(17,17,17,0.15)",
+                    background: "transparent",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Icon size={16} strokeWidth={1.5} style={{ color: galleryLayout === value ? "#B8953F" : "var(--ink-muted)" }} />
+                  <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: "0.12em", textTransform: "uppercase", color: galleryLayout === value ? "var(--ink)" : "var(--ink-muted)" }}>{label}</span>
                 </button>
               ))}
             </div>
-            <div className="border border-border/20 bg-background/50 p-3 rounded-xl">
-              <p className="editorial-label mb-2">Preview</p>
-              <div className="flex gap-[2px] items-end h-12">
+            <div style={{ border: "1px solid rgba(17,17,17,0.1)", background: "transparent", padding: 12, marginTop: 12 }}>
+              <p style={{ ...labelStyle, marginBottom: 8 }}>Preview</p>
+              <div style={{ display: "flex", gap: 2, alignItems: "flex-end", height: 48 }}>
                 {previewBars.map((h, i) => (
-                  <div key={`${galleryLayout}-${i}`} className="flex-1 bg-muted-foreground/12 rounded-sm transition-all duration-300" style={{ height: `${(h / 5) * 100}%` }} />
+                  <div
+                    key={`${galleryLayout}-${i}`}
+                    style={{
+                      flex: 1,
+                      background: "rgba(17,17,17,0.1)",
+                      height: `${(h / 5) * 100}%`,
+                      transition: "height 300ms ease",
+                    }}
+                  />
                 ))}
               </div>
             </div>
           </section>
 
-          <div className="h-px bg-border/30" />
+          <div style={dividerStyle} />
 
-          {/* ── Section 3: Access & Security ── */}
-          <section className="space-y-4">
-            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Access & Security</h3>
-            <div className="flex items-center justify-between py-1">
+          {/* Access & Security */}
+          <section>
+            <h3 style={sectionTitleStyle}>Access & Security</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {[
+                { label: "Published", desc: "Make this gallery visible to anyone with the link.", checked: isPublished, onChange: setIsPublished },
+                { label: "Show in Public Feed", desc: "Display this shoot on your public portfolio page.", checked: feedVisible, onChange: setFeedVisible },
+              ].map(({ label, desc, checked, onChange }) => (
+                <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                  <div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 300, color: "var(--ink)", margin: 0 }}>{label}</p>
+                    <p style={helperStyle}>{desc}</p>
+                  </div>
+                  <Switch checked={checked} onCheckedChange={onChange} />
+                </div>
+              ))}
               <div>
-                <Label className="text-[12px] text-foreground/70 font-normal">Published</Label>
-                <p className="editorial-helper !mt-0.5">Make this gallery visible to anyone with the link.</p>
+                <label style={labelStyle}>Gallery Password</label>
+                <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="4-digit PIN" maxLength={6} style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
+                <p style={helperStyle}>Optional. Guests enter this PIN to view photos.</p>
               </div>
-              <Switch checked={isPublished} onCheckedChange={setIsPublished} />
-            </div>
-            <div className="flex items-center justify-between py-1">
-              <div>
-                <Label className="text-[12px] text-foreground/70 font-normal">Show in Public Feed</Label>
-                <p className="editorial-helper !mt-0.5">Display this shoot on your public portfolio page.</p>
-              </div>
-              <Switch checked={feedVisible} onCheckedChange={setFeedVisible} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="editorial-label">Gallery Password</Label>
-              <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="4-digit PIN" maxLength={6} className="bg-background h-9 text-[13px]" />
-              <p className="editorial-helper">Optional. Guests will need to enter this PIN to view photos.</p>
             </div>
           </section>
 
-          <div className="h-px bg-border/30" />
+          <div style={dividerStyle} />
 
-          {/* ── Section 4: Downloads & Protection ── */}
-          <section className="space-y-4">
-            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Downloads & Protection</h3>
-            <div className="flex items-center justify-between py-1">
-              <div>
-                <Label className="text-[12px] text-foreground/70 font-normal">Downloads Enabled</Label>
-                <p className="editorial-helper !mt-0.5">Allow guests to download photos from this gallery.</p>
-              </div>
-              <Switch checked={downloadsEnabled} onCheckedChange={setDownloadsEnabled} />
-            </div>
-            <div className="flex items-center justify-between py-1">
-              <div>
-                <Label className="text-[12px] text-foreground/70 font-normal">Watermark Enabled</Label>
-                <p className="editorial-helper !mt-0.5">Display your studio name as a watermark on gallery images.</p>
-              </div>
-              <Switch checked={watermarkEnabled} onCheckedChange={setWatermarkEnabled} />
-            </div>
-          </section>
-
-          <div className="h-px bg-border/30" />
-
-          {/* ── Upload Settings ── */}
-          <section className="space-y-4">
-            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Upload Settings</h3>
-            <div className="flex items-center justify-between py-1">
-              <div>
-                <Label className="text-[12px] text-foreground/70 font-normal">Optimized Upload</Label>
-                <p className="editorial-helper !mt-0.5">
-                  Compress images for faster uploads and delivery. No visible quality loss.
-                </p>
-                <p className="text-[9px] text-muted-foreground/50 mt-0.5">
-                  Turn off for print-quality originals. Max file size: 100MB.
-                </p>
-              </div>
-              <Switch checked={true} disabled />
+          {/* Downloads & Protection */}
+          <section>
+            <h3 style={sectionTitleStyle}>Downloads & Protection</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {[
+                { label: "Downloads Enabled", desc: "Allow guests to download photos.", checked: downloadsEnabled, onChange: setDownloadsEnabled },
+                { label: "Watermark Enabled", desc: "Display your studio name as a watermark.", checked: watermarkEnabled, onChange: setWatermarkEnabled },
+              ].map(({ label, desc, checked, onChange }) => (
+                <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                  <div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 300, color: "var(--ink)", margin: 0 }}>{label}</p>
+                    <p style={helperStyle}>{desc}</p>
+                  </div>
+                  <Switch checked={checked} onCheckedChange={onChange} />
+                </div>
+              ))}
             </div>
           </section>
 
-          <div className="h-px bg-border/30" />
+          <div style={dividerStyle} />
 
-          {/* ── Section 5: Guest & AI Features ── */}
-          <section className="space-y-4">
-            <h3 className="font-serif text-base text-foreground tracking-wide" style={{ fontWeight: 400 }}>Guest & AI Features</h3>
-            <div className="flex items-center justify-between py-1">
+          {/* Guest & AI Features */}
+          <section>
+            <h3 style={sectionTitleStyle}>Guest & AI Features</h3>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
               <div>
-                <Label className="text-[12px] text-foreground/70 font-normal">Photo Selection Mode</Label>
-                <p className="editorial-helper !mt-0.5">Allow guests to curate and submit their favorite photo selections.</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 300, color: "var(--ink)", margin: 0 }}>Photo Selection Mode</p>
+                <p style={helperStyle}>Allow guests to curate and submit their favorite selections.</p>
               </div>
               <Switch checked={selectionModeEnabled} onCheckedChange={setSelectionModeEnabled} />
             </div>
-            <SmartQRAccess eventId={event.id} />
+            <div style={{ marginTop: 16 }}>
+              <SmartQRAccess eventId={event.id} />
+            </div>
           </section>
 
-          <Button onClick={handleSave} disabled={saving} className="w-full h-11 mt-2">
-            {saving ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Saving...</> : 'Save Settings'}
-          </Button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              border: "1px solid #B8953F",
+              background: "transparent",
+              color: "#111111",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 11,
+              fontWeight: 300,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              padding: "14px 20px",
+              cursor: saving ? "not-allowed" : "pointer",
+              opacity: saving ? 0.6 : 1,
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            {saving ? <><Loader2 size={14} className="animate-spin" />Saving...</> : "Save Settings"}
+          </button>
+
         </div>
       </DialogContent>
     </Dialog>
