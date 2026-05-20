@@ -3,7 +3,7 @@ import { LayoutGrid, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { renderGridToCanvas, loadImageElement } from './export-utils';
-import type { GridLayout, GridCellData } from './types';
+import type { GridLayout, GridCellData, FreePosition } from './types';
 import type { TextLayer } from './text-overlay-types';
 
 interface Props {
@@ -11,16 +11,27 @@ interface Props {
   cells: GridCellData[];
   gridRef: React.RefObject<HTMLDivElement | null>;
   textLayers?: TextLayer[];
+  freePositions?: FreePosition[] | null;  // ← new
 }
 
-export default function CarouselExporter({ layout, cells, gridRef, textLayers = [] }: Props) {
+export default function CarouselExporter({
+  layout,
+  cells,
+  gridRef,
+  textLayers = [],
+  freePositions = null,  // ← new
+}: Props) {
   const [exporting, setExporting] = useState(false);
   const filledCount = cells.filter((c) => c.imageUrl).length;
 
   const exportCombined = async () => {
     setExporting(true);
     try {
-      const canvas = await renderGridToCanvas(layout, cells, 1080, 1080, textLayers);
+      const canvas = await renderGridToCanvas(
+        layout, cells, 1080, 1080,
+        textLayers, [], null, undefined,
+        freePositions,  // ← pass through
+      );
       const link = document.createElement('a');
       link.download = 'grid-combined-1080x1080.png';
       link.href = canvas.toDataURL('image/png');
@@ -45,14 +56,17 @@ export default function CarouselExporter({ layout, cells, gridRef, textLayers = 
         canvas.height = 1080;
         const ctx = canvas.getContext('2d')!;
 
-        // Use original image — no compression
         const img = await loadImageElement(cell.imageUrl);
 
-        // Draw with cover behavior at full resolution
         const scale = Math.max(1080 / img.naturalWidth, 1080 / img.naturalHeight);
         const w = img.naturalWidth * scale;
         const h = img.naturalHeight * scale;
-        ctx.drawImage(img, (1080 - w) / 2 + cell.offsetX * (1080 / 440), (1080 - h) / 2 + cell.offsetY * (1080 / 440), w, h);
+        ctx.drawImage(
+          img,
+          (1080 - w) / 2 + cell.offsetX * (1080 / 440),
+          (1080 - h) / 2 + cell.offsetY * (1080 / 440),
+          w, h,
+        );
 
         const link = document.createElement('a');
         link.download = `slide-${i + 1}-1080x1080.png`;
