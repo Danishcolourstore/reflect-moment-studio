@@ -145,15 +145,44 @@ function textBlocksToInspireLayers(blocks: any[]): TextLayer[] {
   );
 }
 
+function fallbackPositionFromCell(
+  cell: [number, number, number, number],
+  gridCols: number,
+  gridRows: number,
+  index: number,
+): FreeCellPosition {
+  const rowStart = Math.max(1, cell[0]);
+  const colStart = Math.max(1, cell[1]);
+  const rowEnd = Math.max(rowStart + 1, cell[2]);
+  const colEnd = Math.max(colStart + 1, cell[3]);
+
+  return {
+    x: ((colStart - 1) / gridCols) * 100,
+    y: ((rowStart - 1) / gridRows) * 100,
+    width: ((colEnd - colStart) / gridCols) * 100,
+    height: ((rowEnd - rowStart) / gridRows) * 100,
+    rotation: 0,
+    scale: 1,
+    zIndex: index + 1,
+    opacity: 1,
+    borderWidth: 0,
+    borderColor: '#FFFFFF',
+  };
+}
+
 function parseInspireResponse(response: any, id: string, name: string): InspireAnalysisResult {
   const layoutData = response?.layout || {};
   const baseCells: [number, number, number, number][] = Array.isArray(layoutData.cells) ? layoutData.cells : [];
   const freeRaw: any[] = Array.isArray(response?.freeCells) ? response.freeCells : [];
   const cellCount = Math.max(baseCells.length, freeRaw.length, 1);
+  const gridCols = Math.max(1, Math.round(toFiniteNumber(layoutData.gridCols, 1)));
+  const gridRows = Math.max(1, Math.round(toFiniteNumber(layoutData.gridRows, 1)));
   const cells = baseCells.length >= cellCount
     ? baseCells
     : [...baseCells, ...Array.from({ length: cellCount - baseCells.length }, () => [1, 1, 2, 2] as [number, number, number, number])];
-  const freePositions = freeRaw.length > 0 ? freeCellsToPositions(freeRaw, cellCount) : undefined;
+  const freePositions = freeRaw.length > 0
+    ? freeCellsToPositions(freeRaw, cellCount).map((pos, index) => pos ?? fallbackPositionFromCell(cells[index], gridCols, gridRows, index))
+    : undefined;
 
   const backgroundColor = normalizeColor(response?.backgroundColor, '#FFFFFF');
   const backgroundType: 'solid' | 'gradient' = response?.backgroundType === 'gradient' ? 'gradient' : 'solid';
@@ -164,11 +193,11 @@ function parseInspireResponse(response: any, id: string, name: string): InspireA
       id,
       name,
       category: 'creative',
-      cols: Math.max(1, Math.round(toFiniteNumber(layoutData.gridCols, 1))),
-      rows: Math.max(1, Math.round(toFiniteNumber(layoutData.gridRows, 1))),
+      cols: gridCols,
+      rows: gridRows,
       cells,
-      gridCols: Math.max(1, Math.round(toFiniteNumber(layoutData.gridCols, 1))),
-      gridRows: Math.max(1, Math.round(toFiniteNumber(layoutData.gridRows, 1))),
+      gridCols,
+      gridRows,
       canvasRatio: toFiniteNumber(layoutData.canvasRatio, 1) || 1,
       freePositions,
     },
