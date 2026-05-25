@@ -15,7 +15,12 @@ import InspireCropView from './InspireCropView';
 
 interface Props {
   onClose: () => void;
-  onLayoutGenerated: (layout: GridLayout, textLayers: TextLayer[], background?: BackgroundStyle | null) => void;
+  onLayoutGenerated: (
+    layout: GridLayout,
+    textLayers: TextLayer[],
+    background?: BackgroundStyle | null,
+    freePositions?: (FreeCellPosition | null)[] | null,
+  ) => void;
 }
 
 type Step = 'entry' | 'crop' | 'analyzing' | 'preview';
@@ -455,7 +460,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     if (!v) return;
     setApplied(true);
     setTimeout(() => {
-      onLayoutGenerated(v.layout, v.textLayers, v.background ?? null);
+      onLayoutGenerated(v.layout, v.textLayers, v.background ?? null, v.layout.freePositions ?? null);
       toast.success('Layout applied — start adding photos!');
     }, 400);
   }, [variations, activeVariation, onLayoutGenerated]);
