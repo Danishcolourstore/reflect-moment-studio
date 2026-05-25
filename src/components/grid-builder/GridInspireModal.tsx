@@ -145,6 +145,22 @@ function textBlocksToInspireLayers(blocks: any[]): TextLayer[] {
   );
 }
 
+function createWatermarkLayer(raw: any, colorOverride?: string): TextLayer | null {
+  if (!raw?.text) return null;
+  return createTextLayer({
+    text: String(raw.text),
+    fontFamily: 'DM Sans',
+    fontWeight: 300,
+    fontSize: clamp(toFiniteNumber(raw.fontSize, 11), 8, 28),
+    color: colorOverride || normalizeColor(raw.color, '#888888'),
+    opacity: clamp(toFiniteNumber(raw.opacity, 0.7), 0, 1),
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+    x: clamp(toFiniteNumber(raw.x, 50), 0, 100),
+    y: clamp(toFiniteNumber(raw.y, 95), 0, 100),
+  });
+}
+
 function fallbackPositionFromCell(
   cell: [number, number, number, number],
   gridCols: number,
