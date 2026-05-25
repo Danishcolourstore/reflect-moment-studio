@@ -460,7 +460,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     if (!v) return;
     setApplied(true);
     setTimeout(() => {
-      onLayoutGenerated(v.layout, v.textLayers, v.background ?? null);
+      onLayoutGenerated(v.layout, v.textLayers, v.background ?? null, v.layout.freePositions ?? null);
       toast.success('Layout applied — start adding photos!');
     }, 400);
   }, [variations, activeVariation, onLayoutGenerated]);
