@@ -49,6 +49,14 @@ interface LayoutVariation {
   background?: BackgroundStyle | null;
 }
 
+interface InspireAnalysisResult {
+  layout: GridLayout;
+  textLayers: TextLayer[];
+  background: BackgroundStyle | null;
+  backgroundColor: string;
+  watermark: any;
+}
+
 function lightenColor(hex: string, percent: number): string {
   try {
     const clean = hex.replace('#', '');
@@ -71,21 +79,46 @@ function mapFontCategory(category?: string): string {
   return (category && map[category]) || 'DM Sans';
 }
 
+function toFiniteNumber(value: unknown, fallback = 0): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value.replace(/[^0-9.-]/g, ''));
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeColor(value: unknown, fallback: string): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
 function freeCellsToPositions(freeCells: any[], cellCount: number): (FreeCellPosition | null)[] {
   const positions: (FreeCellPosition | null)[] = new Array(cellCount).fill(null);
-  freeCells.forEach((fc, i) => {
-    const idx = typeof fc.index === 'number' ? Math.max(0, Math.min(cellCount - 1, fc.index)) : i;
-    positions[idx] = {
-      x: Number(fc.x) || 0,
-      y: Number(fc.y) || 0,
-      width: Number(fc.width) || 30,
-      height: Number(fc.height) || 30,
-      rotation: Number(fc.rotation) || 0,
-      scale: Number(fc.scale) || 1,
-      zIndex: typeof fc.zIndex === 'number' ? fc.zIndex : idx + 1,
-      opacity: typeof fc.opacity === 'number' ? fc.opacity : 1,
-      borderWidth: Number(fc.borderWidth) || 0,
-      borderColor: fc.borderColor || '#000000',
+  const ordered = [...freeCells]
+    .map((fc, originalIndex) => ({
+      fc,
+      originalIndex,
+      sortKey: toFiniteNumber(fc?.zIndex, toFiniteNumber(fc?.index, originalIndex + 1)),
+    }))
+    .sort((a, b) => a.sortKey - b.sortKey || a.originalIndex - b.originalIndex)
+    .slice(0, cellCount);
+
+  ordered.forEach(({ fc }, slot) => {
+    positions[slot] = {
+      x: clamp(toFiniteNumber(fc?.x, 0), 0, 100),
+      y: clamp(toFiniteNumber(fc?.y, 0), 0, 100),
+      width: clamp(toFiniteNumber(fc?.width, 30), 1, 100),
+      height: clamp(toFiniteNumber(fc?.height, 30), 1, 100),
+      rotation: toFiniteNumber(fc?.rotation, 0),
+      scale: clamp(toFiniteNumber(fc?.scale, 1), 0.1, 4),
+      zIndex: Math.max(1, Math.round(toFiniteNumber(fc?.zIndex, slot + 1))),
+      opacity: clamp(toFiniteNumber(fc?.opacity, 1), 0, 1),
+      borderWidth: Math.max(0, toFiniteNumber(fc?.borderWidth, 0)),
+      borderColor: normalizeColor(fc?.borderColor, '#FFFFFF'),
     };
   });
   return positions;
@@ -96,20 +129,61 @@ function textBlocksToInspireLayers(blocks: any[]): TextLayer[] {
     createTextLayer({
       text: String(block.text || ''),
       fontFamily: mapFontCategory(block.fontCategory),
-      fontSize: Math.max(8, Math.min(72, Number(block.fontSize) || 16)),
-      fontWeight: Number(block.fontWeight) || 400,
+      fontSize: clamp(toFiniteNumber(block.fontSize, 16), 8, 72),
+      fontWeight: toFiniteNumber(block.fontWeight, 400),
       fontStyle: block.fontStyle === 'italic' ? 'italic' : 'normal',
-      color: block.color || '#000000',
-      opacity: typeof block.opacity === 'number' ? block.opacity : 1,
-      letterSpacing: Number(block.letterSpacing) || 0,
-      lineHeight: Number(block.lineHeight) || 1.2,
+      color: normalizeColor(block.color, '#000000'),
+      opacity: clamp(toFiniteNumber(block.opacity, 1), 0, 1),
+      letterSpacing: toFiniteNumber(block.letterSpacing, 0),
+      lineHeight: clamp(toFiniteNumber(block.lineHeight, 1.2), 0.8, 3),
       alignment: (['left', 'center', 'right'].includes(block.alignment) ? block.alignment : 'center') as any,
       textTransform: (['none', 'uppercase', 'lowercase'].includes(block.textTransform) ? block.textTransform : 'none') as any,
-      x: Math.max(0, Math.min(100, Number(block.x) || 50)),
-      y: Math.max(0, Math.min(100, Number(block.y) || 50)),
-      rotation: Number(block.rotation) || 0,
+      x: clamp(toFiniteNumber(block.x, 50), 0, 100),
+      y: clamp(toFiniteNumber(block.y, 50), 0, 100),
+      rotation: toFiniteNumber(block.rotation, 0),
     }),
   );
+}
+
+function parseInspireResponse(response: any, id: string, name: string): InspireAnalysisResult {
+  const layoutData = response?.layout || {};
+  const baseCells: [number, number, number, number][] = Array.isArray(layoutData.cells) ? layoutData.cells : [];
+  const freeRaw: any[] = Array.isArray(response?.freeCells) ? response.freeCells : [];
+  const cellCount = Math.max(baseCells.length, freeRaw.length, 1);
+  const cells = baseCells.length >= cellCount
+    ? baseCells
+    : [...baseCells, ...Array.from({ length: cellCount - baseCells.length }, () => [1, 1, 2, 2] as [number, number, number, number])];
+  const freePositions = freeRaw.length > 0 ? freeCellsToPositions(freeRaw, cellCount) : undefined;
+
+  const backgroundColor = normalizeColor(response?.backgroundColor, '#FFFFFF');
+  const backgroundType: 'solid' | 'gradient' = response?.backgroundType === 'gradient' ? 'gradient' : 'solid';
+  const gradient = response?.backgroundGradient;
+
+  return {
+    layout: {
+      id,
+      name,
+      category: 'creative',
+      cols: Math.max(1, Math.round(toFiniteNumber(layoutData.gridCols, 1))),
+      rows: Math.max(1, Math.round(toFiniteNumber(layoutData.gridRows, 1))),
+      cells,
+      gridCols: Math.max(1, Math.round(toFiniteNumber(layoutData.gridCols, 1))),
+      gridRows: Math.max(1, Math.round(toFiniteNumber(layoutData.gridRows, 1))),
+      canvasRatio: toFiniteNumber(layoutData.canvasRatio, 1) || 1,
+      freePositions,
+    },
+    textLayers: Array.isArray(response?.textBlocks) ? textBlocksToInspireLayers(response.textBlocks) : [],
+    background: backgroundType === 'gradient'
+      ? {
+          type: 'gradient',
+          color: normalizeColor(gradient?.from, backgroundColor),
+          gradientTo: normalizeColor(gradient?.to, backgroundColor),
+          gradientAngle: toFiniteNumber(gradient?.angle, 180),
+        }
+      : { type: 'solid', color: backgroundColor },
+    backgroundColor,
+    watermark: response?.watermark || null,
+  };
 }
 
 import { Search as SearchIcon, Ruler, Type as TypeIcon } from 'lucide-react';
