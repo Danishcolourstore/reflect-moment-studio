@@ -15,7 +15,12 @@ import InspireCropView from './InspireCropView';
 
 interface Props {
   onClose: () => void;
-  onLayoutGenerated: (layout: GridLayout, textLayers: TextLayer[], background?: BackgroundStyle | null) => void;
+  onLayoutGenerated: (
+    layout: GridLayout,
+    textLayers: TextLayer[],
+    background?: BackgroundStyle | null,
+    freePositions?: (FreeCellPosition | null)[] | null,
+  ) => void;
 }
 
 type Step = 'entry' | 'crop' | 'analyzing' | 'preview';
