@@ -291,7 +291,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const [shuffleKey, setShuffleKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [multiImages, setMultiImages] = useState<string[]>([]);
-  const [multiResults, setMultiResults] = useState<Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string }>>([]);
+  const [multiResults, setMultiResults] = useState<Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string; background?: BackgroundStyle | null }>>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [analyzingSlide, setAnalyzingSlide] = useState(0);
   const [totalSlides, setTotalSlides] = useState(0);
@@ -335,7 +335,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     setMultiResults([]);
     setAnalyzingSlide(0);
     setTotalSlides(imageUrls.length);
-    const results: Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string }> = [];
+    const results: Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string; background?: BackgroundStyle | null }> = [];
     for (let i = 0; i < imageUrls.length; i++) {
       setAnalyzingSlide(i + 1);
       setAnalysisPhase(Math.min(i % ANALYSIS_PHASES.length, ANALYSIS_PHASES.length - 1));
@@ -352,14 +352,10 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` }, body: JSON.stringify({ image: base64 }) }
         );
         if (resp.ok) {
-          const { layout, textBlocks } = await resp.json();
-          if (layout?.cells?.length) {
-            const generated: GridLayout = {
-              id: `inspire-${Date.now()}-${i}`, name: `Slide ${i + 1}`, category: 'creative',
-              cols: layout.gridCols, rows: layout.gridRows, cells: layout.cells,
-              gridCols: layout.gridCols, gridRows: layout.gridRows, canvasRatio: layout.canvasRatio || 1,
-            };
-            results.push({ layout: generated, textLayers: textBlocks?.length ? textBlocksToLayers(textBlocks) : [], image: imageUrls[i] });
+          const fullResponse = await resp.json();
+          if (fullResponse.layout?.cells?.length || fullResponse.freeCells?.length) {
+            const parsed = parseInspireResponse(fullResponse, `inspire-${Date.now()}-${i}`, `Slide ${i + 1}`);
+            results.push({ layout: parsed.layout, textLayers: parsed.textLayers, background: parsed.background, image: imageUrls[i] });
           } else {
             const fallback = GRID_LAYOUTS.filter(l => l.category === 'creative' && l.cells.length >= 2)[i % 5] || GRID_LAYOUTS[0];
             results.push({ layout: { ...fallback, id: `inspire-fallback-${i}`, name: `Slide ${i + 1}` }, textLayers: [], image: imageUrls[i] });
@@ -439,45 +435,26 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   }, []);
 
   const handleAnalyzeComplete = useCallback((response: any) => {
-    const layoutData = response.layout || {};
-    const baseCells: [number, number, number, number][] = Array.isArray(layoutData.cells) ? layoutData.cells : [];
-    const freeRaw: any[] = Array.isArray(response.freeCells) ? response.freeCells : [];
-    const cellCount = Math.max(baseCells.length, freeRaw.length, 1);
-    const cells = baseCells.length >= cellCount
-      ? baseCells
-      : [...baseCells, ...Array.from({ length: cellCount - baseCells.length }, () => [1, 1, 2, 2] as [number, number, number, number])];
-    const freePositions = freeRaw.length > 0 ? freeCellsToPositions(freeRaw, cellCount) : undefined;
-
-    const baseLayout: GridLayout = {
-      id: `inspire-${Date.now()}`, name: 'Inspired Layout', category: 'creative',
-      cols: layoutData.gridCols || 1, rows: layoutData.gridRows || 1, cells,
-      gridCols: layoutData.gridCols || 1, gridRows: layoutData.gridRows || 1,
-      canvasRatio: layoutData.canvasRatio || 1, freePositions,
-    };
-
-    const baseTextLayers = Array.isArray(response.textBlocks) ? textBlocksToInspireLayers(response.textBlocks) : [];
-    const watermark = response.watermark;
+    const parsed = parseInspireResponse(response, `inspire-${Date.now()}`, 'Inspired Layout');
+    const baseLayout = parsed.layout;
+    const baseTextLayers = parsed.textLayers;
+    const watermark = parsed.watermark;
 
     const watermarkLayer = (raw: any, colorOverride?: string): TextLayer | null => {
       if (!raw?.text) return null;
       return createTextLayer({
         text: String(raw.text), fontFamily: 'DM Sans', fontWeight: 300,
-        fontSize: Math.max(8, Math.min(28, Number(raw.fontSize) || 11)),
-        color: colorOverride || raw.color || '#888888',
-        opacity: typeof raw.opacity === 'number' ? raw.opacity : 0.7,
+        fontSize: clamp(toFiniteNumber(raw.fontSize, 11), 8, 28),
+        color: colorOverride || normalizeColor(raw.color, '#888888'),
+        opacity: clamp(toFiniteNumber(raw.opacity, 0.7), 0, 1),
         letterSpacing: 3, textTransform: 'uppercase',
-        x: Math.max(0, Math.min(100, Number(raw.x) || 50)),
-        y: Math.max(0, Math.min(100, Number(raw.y) || 95)),
+        x: clamp(toFiniteNumber(raw.x, 50), 0, 100),
+        y: clamp(toFiniteNumber(raw.y, 95), 0, 100),
       });
     };
 
-    const bgColor: string = response.backgroundColor || '#FFFFFF';
-    const bgType: 'solid' | 'gradient' = response.backgroundType === 'gradient' ? 'gradient' : 'solid';
-    const bgGradient = response.backgroundGradient;
-
-    const faithfulBg: BackgroundStyle = bgType === 'gradient' && bgGradient
-      ? { type: 'gradient', color: bgGradient.from || bgColor, gradientTo: bgGradient.to || bgColor, gradientAngle: bgGradient.angle ?? 180 }
-      : { type: 'solid', color: bgColor };
+    const bgColor = parsed.backgroundColor;
+    const faithfulBg = parsed.background;
 
     const wmFaithful = watermarkLayer(watermark);
     const wmCinematic = watermarkLayer(watermark, '#FAFAF8');
@@ -504,7 +481,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
       {
         layout: {
           ...baseLayout, id: `${baseLayout.id}-v3`,
-          freePositions: freePositions ? freePositions.map(p => p ? { ...p, borderWidth: 0 } : null) : undefined,
+          freePositions: baseLayout.freePositions ? baseLayout.freePositions.map(p => p ? { ...p, borderWidth: 0 } : null) : undefined,
         },
         textLayers: [],
         background: { type: 'solid', color: '#FAFAF8' },
@@ -763,10 +740,10 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           </div>
         </div>
         <div className="px-5 pt-2 flex gap-2.5 max-w-sm mx-auto w-full" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
-          <Button variant="outline" className="h-12 px-4 gap-1.5" onClick={() => { onLayoutGenerated(current.layout, current.textLayers); toast.success(`Slide ${currentSlideIndex + 1} layout applied!`); }}>
+          <Button variant="outline" className="h-12 px-4 gap-1.5" onClick={() => { onLayoutGenerated(current.layout, current.textLayers, current.background ?? null, current.layout.freePositions ?? null); toast.success(`Slide ${currentSlideIndex + 1} layout applied!`); }}>
             <Check className="h-3.5 w-3.5" />This Slide
           </Button>
-          <Button className="flex-1 h-12 gap-2 text-sm tracking-wide" onClick={() => { onLayoutGenerated(current.layout, current.textLayers); toast.success('Layout applied!'); }}>
+          <Button className="flex-1 h-12 gap-2 text-sm tracking-wide" onClick={() => { onLayoutGenerated(current.layout, current.textLayers, current.background ?? null, current.layout.freePositions ?? null); toast.success('Layout applied!'); }}>
             <Sparkles className="h-4 w-4" />Apply & Edit
           </Button>
         </div>
