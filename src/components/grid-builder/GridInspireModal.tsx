@@ -49,6 +49,14 @@ interface LayoutVariation {
   background?: BackgroundStyle | null;
 }
 
+interface InspireAnalysisResult {
+  layout: GridLayout;
+  textLayers: TextLayer[];
+  background: BackgroundStyle | null;
+  backgroundColor: string;
+  watermark: any;
+}
+
 function lightenColor(hex: string, percent: number): string {
   try {
     const clean = hex.replace('#', '');
@@ -71,21 +79,46 @@ function mapFontCategory(category?: string): string {
   return (category && map[category]) || 'DM Sans';
 }
 
+function toFiniteNumber(value: unknown, fallback = 0): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value.replace(/[^0-9.-]/g, ''));
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeColor(value: unknown, fallback: string): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
 function freeCellsToPositions(freeCells: any[], cellCount: number): (FreeCellPosition | null)[] {
   const positions: (FreeCellPosition | null)[] = new Array(cellCount).fill(null);
-  freeCells.forEach((fc, i) => {
-    const idx = typeof fc.index === 'number' ? Math.max(0, Math.min(cellCount - 1, fc.index)) : i;
-    positions[idx] = {
-      x: Number(fc.x) || 0,
-      y: Number(fc.y) || 0,
-      width: Number(fc.width) || 30,
-      height: Number(fc.height) || 30,
-      rotation: Number(fc.rotation) || 0,
-      scale: Number(fc.scale) || 1,
-      zIndex: typeof fc.zIndex === 'number' ? fc.zIndex : idx + 1,
-      opacity: typeof fc.opacity === 'number' ? fc.opacity : 1,
-      borderWidth: Number(fc.borderWidth) || 0,
-      borderColor: fc.borderColor || '#000000',
+  const ordered = [...freeCells]
+    .map((fc, originalIndex) => ({
+      fc,
+      originalIndex,
+      sortKey: toFiniteNumber(fc?.zIndex, toFiniteNumber(fc?.index, originalIndex + 1)),
+    }))
+    .sort((a, b) => a.sortKey - b.sortKey || a.originalIndex - b.originalIndex)
+    .slice(0, cellCount);
+
+  ordered.forEach(({ fc }, slot) => {
+    positions[slot] = {
+      x: clamp(toFiniteNumber(fc?.x, 0), 0, 100),
+      y: clamp(toFiniteNumber(fc?.y, 0), 0, 100),
+      width: clamp(toFiniteNumber(fc?.width, 30), 1, 100),
+      height: clamp(toFiniteNumber(fc?.height, 30), 1, 100),
+      rotation: toFiniteNumber(fc?.rotation, 0),
+      scale: clamp(toFiniteNumber(fc?.scale, 1), 0.1, 4),
+      zIndex: Math.max(1, Math.round(toFiniteNumber(fc?.zIndex, slot + 1))),
+      opacity: clamp(toFiniteNumber(fc?.opacity, 1), 0, 1),
+      borderWidth: Math.max(0, toFiniteNumber(fc?.borderWidth, 0)),
+      borderColor: normalizeColor(fc?.borderColor, '#FFFFFF'),
     };
   });
   return positions;
@@ -96,20 +129,106 @@ function textBlocksToInspireLayers(blocks: any[]): TextLayer[] {
     createTextLayer({
       text: String(block.text || ''),
       fontFamily: mapFontCategory(block.fontCategory),
-      fontSize: Math.max(8, Math.min(72, Number(block.fontSize) || 16)),
-      fontWeight: Number(block.fontWeight) || 400,
+      fontSize: clamp(toFiniteNumber(block.fontSize, 16), 8, 72),
+      fontWeight: toFiniteNumber(block.fontWeight, 400),
       fontStyle: block.fontStyle === 'italic' ? 'italic' : 'normal',
-      color: block.color || '#000000',
-      opacity: typeof block.opacity === 'number' ? block.opacity : 1,
-      letterSpacing: Number(block.letterSpacing) || 0,
-      lineHeight: Number(block.lineHeight) || 1.2,
+      color: normalizeColor(block.color, '#000000'),
+      opacity: clamp(toFiniteNumber(block.opacity, 1), 0, 1),
+      letterSpacing: toFiniteNumber(block.letterSpacing, 0),
+      lineHeight: clamp(toFiniteNumber(block.lineHeight, 1.2), 0.8, 3),
       alignment: (['left', 'center', 'right'].includes(block.alignment) ? block.alignment : 'center') as any,
       textTransform: (['none', 'uppercase', 'lowercase'].includes(block.textTransform) ? block.textTransform : 'none') as any,
-      x: Math.max(0, Math.min(100, Number(block.x) || 50)),
-      y: Math.max(0, Math.min(100, Number(block.y) || 50)),
-      rotation: Number(block.rotation) || 0,
+      x: clamp(toFiniteNumber(block.x, 50), 0, 100),
+      y: clamp(toFiniteNumber(block.y, 50), 0, 100),
+      rotation: toFiniteNumber(block.rotation, 0),
     }),
   );
+}
+
+function createWatermarkLayer(raw: any, colorOverride?: string): TextLayer | null {
+  if (!raw?.text) return null;
+  return createTextLayer({
+    text: String(raw.text),
+    fontFamily: 'DM Sans',
+    fontWeight: 300,
+    fontSize: clamp(toFiniteNumber(raw.fontSize, 11), 8, 28),
+    color: colorOverride || normalizeColor(raw.color, '#888888'),
+    opacity: clamp(toFiniteNumber(raw.opacity, 0.7), 0, 1),
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+    x: clamp(toFiniteNumber(raw.x, 50), 0, 100),
+    y: clamp(toFiniteNumber(raw.y, 95), 0, 100),
+  });
+}
+
+function fallbackPositionFromCell(
+  cell: [number, number, number, number],
+  gridCols: number,
+  gridRows: number,
+  index: number,
+): FreeCellPosition {
+  const rowStart = Math.max(1, cell[0]);
+  const colStart = Math.max(1, cell[1]);
+  const rowEnd = Math.max(rowStart + 1, cell[2]);
+  const colEnd = Math.max(colStart + 1, cell[3]);
+
+  return {
+    x: ((colStart - 1) / gridCols) * 100,
+    y: ((rowStart - 1) / gridRows) * 100,
+    width: ((colEnd - colStart) / gridCols) * 100,
+    height: ((rowEnd - rowStart) / gridRows) * 100,
+    rotation: 0,
+    scale: 1,
+    zIndex: index + 1,
+    opacity: 1,
+    borderWidth: 0,
+    borderColor: '#FFFFFF',
+  };
+}
+
+function parseInspireResponse(response: any, id: string, name: string): InspireAnalysisResult {
+  const layoutData = response?.layout || {};
+  const baseCells: [number, number, number, number][] = Array.isArray(layoutData.cells) ? layoutData.cells : [];
+  const freeRaw: any[] = Array.isArray(response?.freeCells) ? response.freeCells : [];
+  const cellCount = Math.max(baseCells.length, freeRaw.length, 1);
+  const gridCols = Math.max(1, Math.round(toFiniteNumber(layoutData.gridCols, 1)));
+  const gridRows = Math.max(1, Math.round(toFiniteNumber(layoutData.gridRows, 1)));
+  const cells = baseCells.length >= cellCount
+    ? baseCells
+    : [...baseCells, ...Array.from({ length: cellCount - baseCells.length }, () => [1, 1, 2, 2] as [number, number, number, number])];
+  const freePositions = freeRaw.length > 0
+    ? freeCellsToPositions(freeRaw, cellCount).map((pos, index) => pos ?? fallbackPositionFromCell(cells[index], gridCols, gridRows, index))
+    : undefined;
+
+  const backgroundColor = normalizeColor(response?.backgroundColor, '#FFFFFF');
+  const backgroundType: 'solid' | 'gradient' = response?.backgroundType === 'gradient' ? 'gradient' : 'solid';
+  const gradient = response?.backgroundGradient;
+
+  return {
+    layout: {
+      id,
+      name,
+      category: 'creative',
+      cols: gridCols,
+      rows: gridRows,
+      cells,
+      gridCols,
+      gridRows,
+      canvasRatio: toFiniteNumber(layoutData.canvasRatio, 1) || 1,
+      freePositions,
+    },
+    textLayers: Array.isArray(response?.textBlocks) ? textBlocksToInspireLayers(response.textBlocks) : [],
+    background: backgroundType === 'gradient'
+      ? {
+          type: 'gradient',
+          color: normalizeColor(gradient?.from, backgroundColor),
+          gradientTo: normalizeColor(gradient?.to, backgroundColor),
+          gradientAngle: toFiniteNumber(gradient?.angle, 180),
+        }
+      : { type: 'solid', color: backgroundColor },
+    backgroundColor,
+    watermark: response?.watermark || null,
+  };
 }
 
 import { Search as SearchIcon, Ruler, Type as TypeIcon } from 'lucide-react';
@@ -217,7 +336,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   const [shuffleKey, setShuffleKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [multiImages, setMultiImages] = useState<string[]>([]);
-  const [multiResults, setMultiResults] = useState<Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string }>>([]);
+  const [multiResults, setMultiResults] = useState<Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string; background?: BackgroundStyle | null }>>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [analyzingSlide, setAnalyzingSlide] = useState(0);
   const [totalSlides, setTotalSlides] = useState(0);
@@ -261,7 +380,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     setMultiResults([]);
     setAnalyzingSlide(0);
     setTotalSlides(imageUrls.length);
-    const results: Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string }> = [];
+    const results: Array<{ layout: GridLayout; textLayers: TextLayer[]; image: string; background?: BackgroundStyle | null }> = [];
     for (let i = 0; i < imageUrls.length; i++) {
       setAnalyzingSlide(i + 1);
       setAnalysisPhase(Math.min(i % ANALYSIS_PHASES.length, ANALYSIS_PHASES.length - 1));
@@ -278,14 +397,16 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` }, body: JSON.stringify({ image: base64 }) }
         );
         if (resp.ok) {
-          const { layout, textBlocks } = await resp.json();
-          if (layout?.cells?.length) {
-            const generated: GridLayout = {
-              id: `inspire-${Date.now()}-${i}`, name: `Slide ${i + 1}`, category: 'creative',
-              cols: layout.gridCols, rows: layout.gridRows, cells: layout.cells,
-              gridCols: layout.gridCols, gridRows: layout.gridRows, canvasRatio: layout.canvasRatio || 1,
-            };
-            results.push({ layout: generated, textLayers: textBlocks?.length ? textBlocksToLayers(textBlocks) : [], image: imageUrls[i] });
+          const fullResponse = await resp.json();
+          if (fullResponse.layout?.cells?.length || fullResponse.freeCells?.length) {
+            const parsed = parseInspireResponse(fullResponse, `inspire-${Date.now()}-${i}`, `Slide ${i + 1}`);
+            const watermarkLayer = createWatermarkLayer(parsed.watermark);
+            results.push({
+              layout: parsed.layout,
+              textLayers: [...parsed.textLayers, ...(watermarkLayer ? [watermarkLayer] : [])],
+              background: parsed.background,
+              image: imageUrls[i],
+            });
           } else {
             const fallback = GRID_LAYOUTS.filter(l => l.category === 'creative' && l.cells.length >= 2)[i % 5] || GRID_LAYOUTS[0];
             results.push({ layout: { ...fallback, id: `inspire-fallback-${i}`, name: `Slide ${i + 1}` }, textLayers: [], image: imageUrls[i] });
@@ -365,48 +486,16 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
   }, []);
 
   const handleAnalyzeComplete = useCallback((response: any) => {
-    const layoutData = response.layout || {};
-    const baseCells: [number, number, number, number][] = Array.isArray(layoutData.cells) ? layoutData.cells : [];
-    const freeRaw: any[] = Array.isArray(response.freeCells) ? response.freeCells : [];
-    const cellCount = Math.max(baseCells.length, freeRaw.length, 1);
-    const cells = baseCells.length >= cellCount
-      ? baseCells
-      : [...baseCells, ...Array.from({ length: cellCount - baseCells.length }, () => [1, 1, 2, 2] as [number, number, number, number])];
-    const freePositions = freeRaw.length > 0 ? freeCellsToPositions(freeRaw, cellCount) : undefined;
+    const parsed = parseInspireResponse(response, `inspire-${Date.now()}`, 'Inspired Layout');
+    const baseLayout = parsed.layout;
+    const baseTextLayers = parsed.textLayers;
+    const watermark = parsed.watermark;
 
-    const baseLayout: GridLayout = {
-      id: `inspire-${Date.now()}`, name: 'Inspired Layout', category: 'creative',
-      cols: layoutData.gridCols || 1, rows: layoutData.gridRows || 1, cells,
-      gridCols: layoutData.gridCols || 1, gridRows: layoutData.gridRows || 1,
-      canvasRatio: layoutData.canvasRatio || 1, freePositions,
-    };
+    const bgColor = parsed.backgroundColor;
+    const faithfulBg = parsed.background;
 
-    const baseTextLayers = Array.isArray(response.textBlocks) ? textBlocksToInspireLayers(response.textBlocks) : [];
-    const watermark = response.watermark;
-
-    const watermarkLayer = (raw: any, colorOverride?: string): TextLayer | null => {
-      if (!raw?.text) return null;
-      return createTextLayer({
-        text: String(raw.text), fontFamily: 'DM Sans', fontWeight: 300,
-        fontSize: Math.max(8, Math.min(28, Number(raw.fontSize) || 11)),
-        color: colorOverride || raw.color || '#888888',
-        opacity: typeof raw.opacity === 'number' ? raw.opacity : 0.7,
-        letterSpacing: 3, textTransform: 'uppercase',
-        x: Math.max(0, Math.min(100, Number(raw.x) || 50)),
-        y: Math.max(0, Math.min(100, Number(raw.y) || 95)),
-      });
-    };
-
-    const bgColor: string = response.backgroundColor || '#FFFFFF';
-    const bgType: 'solid' | 'gradient' = response.backgroundType === 'gradient' ? 'gradient' : 'solid';
-    const bgGradient = response.backgroundGradient;
-
-    const faithfulBg: BackgroundStyle = bgType === 'gradient' && bgGradient
-      ? { type: 'gradient', color: bgGradient.from || bgColor, gradientTo: bgGradient.to || bgColor, gradientAngle: bgGradient.angle ?? 180 }
-      : { type: 'solid', color: bgColor };
-
-    const wmFaithful = watermarkLayer(watermark);
-    const wmCinematic = watermarkLayer(watermark, '#FAFAF8');
+    const wmFaithful = createWatermarkLayer(watermark);
+    const wmCinematic = createWatermarkLayer(watermark, '#FAFAF8');
 
     const vars: LayoutVariation[] = [
       {
@@ -430,7 +519,7 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
       {
         layout: {
           ...baseLayout, id: `${baseLayout.id}-v3`,
-          freePositions: freePositions ? freePositions.map(p => p ? { ...p, borderWidth: 0 } : null) : undefined,
+          freePositions: baseLayout.freePositions ? baseLayout.freePositions.map(p => p ? { ...p, borderWidth: 0 } : null) : undefined,
         },
         textLayers: [],
         background: { type: 'solid', color: '#FAFAF8' },
@@ -689,10 +778,10 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           </div>
         </div>
         <div className="px-5 pt-2 flex gap-2.5 max-w-sm mx-auto w-full" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
-          <Button variant="outline" className="h-12 px-4 gap-1.5" onClick={() => { onLayoutGenerated(current.layout, current.textLayers); toast.success(`Slide ${currentSlideIndex + 1} layout applied!`); }}>
+          <Button variant="outline" className="h-12 px-4 gap-1.5" onClick={() => { onLayoutGenerated(current.layout, current.textLayers, current.background ?? null, current.layout.freePositions ?? null); toast.success(`Slide ${currentSlideIndex + 1} layout applied!`); }}>
             <Check className="h-3.5 w-3.5" />This Slide
           </Button>
-          <Button className="flex-1 h-12 gap-2 text-sm tracking-wide" onClick={() => { onLayoutGenerated(current.layout, current.textLayers); toast.success('Layout applied!'); }}>
+          <Button className="flex-1 h-12 gap-2 text-sm tracking-wide" onClick={() => { onLayoutGenerated(current.layout, current.textLayers, current.background ?? null, current.layout.freePositions ?? null); toast.success('Layout applied!'); }}>
             <Sparkles className="h-4 w-4" />Apply & Edit
           </Button>
         </div>
