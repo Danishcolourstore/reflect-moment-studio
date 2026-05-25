@@ -400,7 +400,13 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
           const fullResponse = await resp.json();
           if (fullResponse.layout?.cells?.length || fullResponse.freeCells?.length) {
             const parsed = parseInspireResponse(fullResponse, `inspire-${Date.now()}-${i}`, `Slide ${i + 1}`);
-            results.push({ layout: parsed.layout, textLayers: parsed.textLayers, background: parsed.background, image: imageUrls[i] });
+            const watermarkLayer = createWatermarkLayer(parsed.watermark);
+            results.push({
+              layout: parsed.layout,
+              textLayers: [...parsed.textLayers, ...(watermarkLayer ? [watermarkLayer] : [])],
+              background: parsed.background,
+              image: imageUrls[i],
+            });
           } else {
             const fallback = GRID_LAYOUTS.filter(l => l.category === 'creative' && l.cells.length >= 2)[i % 5] || GRID_LAYOUTS[0];
             results.push({ layout: { ...fallback, id: `inspire-fallback-${i}`, name: `Slide ${i + 1}` }, textLayers: [], image: imageUrls[i] });
@@ -485,24 +491,11 @@ export default function GridInspireModal({ onClose, onLayoutGenerated }: Props) 
     const baseTextLayers = parsed.textLayers;
     const watermark = parsed.watermark;
 
-    const watermarkLayer = (raw: any, colorOverride?: string): TextLayer | null => {
-      if (!raw?.text) return null;
-      return createTextLayer({
-        text: String(raw.text), fontFamily: 'DM Sans', fontWeight: 300,
-        fontSize: clamp(toFiniteNumber(raw.fontSize, 11), 8, 28),
-        color: colorOverride || normalizeColor(raw.color, '#888888'),
-        opacity: clamp(toFiniteNumber(raw.opacity, 0.7), 0, 1),
-        letterSpacing: 3, textTransform: 'uppercase',
-        x: clamp(toFiniteNumber(raw.x, 50), 0, 100),
-        y: clamp(toFiniteNumber(raw.y, 95), 0, 100),
-      });
-    };
-
     const bgColor = parsed.backgroundColor;
     const faithfulBg = parsed.background;
 
-    const wmFaithful = watermarkLayer(watermark);
-    const wmCinematic = watermarkLayer(watermark, '#FAFAF8');
+    const wmFaithful = createWatermarkLayer(watermark);
+    const wmCinematic = createWatermarkLayer(watermark, '#FAFAF8');
 
     const vars: LayoutVariation[] = [
       {
