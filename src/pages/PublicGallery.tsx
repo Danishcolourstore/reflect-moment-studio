@@ -264,7 +264,10 @@ function PhotoCard({
 
 /* ── Main Component ── */
 const PublicGallery = () => {
-  const { slug } = useParams<{ slug: string }>();
+  // Route params differ by path: /g/:eventSlug vs /event/:slug vs /gallery/:slug.
+  // Accept either so all share links resolve to the same gallery.
+  const { slug: slugParam, eventSlug } = useParams<{ slug?: string; eventSlug?: string }>();
+  const slug = slugParam ?? eventSlug;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
