@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/sneak-peek-cron",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}

@@ -41,43 +41,115 @@ export const FORMAT_PRESETS: FormatPreset[] = [
 ];
 
 interface Props {
-  selected: FormatPreset;
+  selected: FormatPreset | null;
   onSelect: (preset: FormatPreset) => void;
 }
 
-function GridPreview({ className }: { className?: string }) {
+const dimLabelStyle: React.CSSProperties = {
+  fontFamily: "'DM Sans', sans-serif",
+  fontSize: 9,
+  color: '#444444',
+  marginTop: 6,
+};
+
+const previewShell: React.CSSProperties = {
+  background: '#1a1a1a',
+  border: '1px solid #2a2a2a',
+};
+
+function SquarePreview() {
   return (
-    <div
-      className={cn('grid grid-cols-2 grid-rows-2 gap-px bg-grid-border-muted', className)}
-    >
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="bg-grid-elevated" />
-      ))}
+    <div className="flex flex-col items-center">
+      <div
+        style={{
+          ...previewShell,
+          width: 80,
+          aspectRatio: '1 / 1',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gridTemplateRows: '1fr 1fr',
+          gap: 1,
+          background: '#2e2e2e',
+        }}
+      >
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} style={{ background: '#1a1a1a' }} />
+        ))}
+      </div>
+      <span style={dimLabelStyle}>1080 × 1080</span>
+    </div>
+  );
+}
+
+function PortraitPreview() {
+  return (
+    <div className="flex flex-col items-center">
+      <div
+        style={{
+          ...previewShell,
+          width: 60,
+          aspectRatio: '4 / 5',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gridTemplateRows: '1fr 1fr',
+          gap: 1,
+          background: '#2e2e2e',
+        }}
+      >
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} style={{ background: '#1a1a1a' }} />
+        ))}
+      </div>
+      <span style={dimLabelStyle}>1080 × 1350</span>
     </div>
   );
 }
 
 function CarouselPreview() {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="flex items-center gap-1">
+    <div className="flex flex-col items-center">
+      <div className="flex items-center" style={{ gap: 3 }}>
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="w-7 aspect-square bg-grid-elevated border border-grid-border-muted"
+            style={{
+              ...previewShell,
+              width: 26,
+              aspectRatio: '1 / 1',
+            }}
           />
         ))}
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center" style={{ gap: 4, marginTop: 6 }}>
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className={cn('text-[8px]', i === 0 ? 'text-grid-gold' : 'text-grid-border-muted')}
+            style={{
+              fontSize: 5,
+              lineHeight: 1,
+              color: i === 0 ? '#B8953F' : '#444444',
+            }}
           >
             ●
           </span>
         ))}
       </div>
+      <span style={dimLabelStyle}>1080 × 1080 × N</span>
+    </div>
+  );
+}
+
+function StoryPreview() {
+  return (
+    <div className="flex flex-col items-center">
+      <div
+        style={{
+          ...previewShell,
+          width: 38,
+          aspectRatio: '9 / 16',
+        }}
+      />
+      <span style={dimLabelStyle}>1080 × 1920</span>
     </div>
   );
 }
@@ -85,15 +157,13 @@ function CarouselPreview() {
 function FormatPreview({ preset }: { preset: FormatPreset }) {
   switch (preset.id) {
     case 'square':
-      return <GridPreview className="w-20 aspect-square border border-grid-border-muted" />;
+      return <SquarePreview />;
     case 'portrait':
-      return <GridPreview className="w-16 aspect-[4/5] border border-grid-border-muted" />;
+      return <PortraitPreview />;
     case 'carousel':
       return <CarouselPreview />;
     case 'story':
-      return (
-        <div className="w-10 aspect-[9/16] bg-grid-elevated border border-grid-border-muted" />
-      );
+      return <StoryPreview />;
     default:
       return null;
   }
@@ -103,7 +173,7 @@ export default function FormatPicker({ selected, onSelect }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {FORMAT_PRESETS.map((preset) => {
-        const isSelected = selected.id === preset.id;
+        const isSelected = selected?.id === preset.id;
         return (
           <button
             key={preset.id}
@@ -112,16 +182,15 @@ export default function FormatPicker({ selected, onSelect }: Props) {
             className={cn(
               'flex flex-col items-center gap-3 border p-5 transition-colors',
               'bg-[#0a0a0a] hover:border-[#444444]',
-              isSelected ? 'border-grid-gold' : 'border-grid-border',
             )}
+            style={{
+              border: isSelected ? '1px solid #B8953F' : '1px solid #222222',
+            }}
           >
             <FormatPreview preset={preset} />
-            <div className="flex flex-col items-center gap-1 mt-2">
-              <span className="font-sans text-[11px] uppercase tracking-[0.12em] text-[#888888]">
-                {preset.name}
-              </span>
-              <span className="font-sans text-[9px] text-grid-hint">{preset.dimensions}</span>
-            </div>
+            <span className="font-sans text-[11px] uppercase tracking-[0.12em] text-[#888888]">
+              {preset.name}
+            </span>
           </button>
         );
       })}

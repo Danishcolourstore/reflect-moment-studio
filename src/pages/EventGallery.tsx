@@ -35,7 +35,8 @@ import { PhotoSectionSelect } from '@/components/PhotoSectionSelect';
 import { SelectionsViewer } from '@/components/SelectionsViewer';
 import { CommentsViewer } from '@/components/CommentsViewer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { MessageCircle, CheckSquare, Type } from 'lucide-react';
+import { MessageCircle, CheckSquare, Type, Clock } from 'lucide-react';
+import ScheduleTab from '@/components/events/ScheduleTab';
 import { TextBlockEditor, TextBlockManager, type TextBlock } from '@/components/GalleryTextBlock';
 // usePortfolioPhotos removed
 
@@ -66,6 +67,8 @@ interface Event {
   hero_subtitle: string | null;
   hero_button_label: string | null;
   website_template: string | null;
+  ceremony_end_time: string | null;
+  sneak_peek_delay_hours: number | null;
 }
 
 type GalleryFilter = 'all' | 'favorites';
@@ -845,6 +848,7 @@ const EventGallery = () => {
               { value: 'favorites', label: 'Guest Favorites', mobileLabel: 'Favs', icon: Heart, badge: favStats.totalFavs },
               { value: 'selections', label: 'Selections', mobileLabel: 'Select', icon: CheckSquare },
               { value: 'comments', label: 'Comments', mobileLabel: 'Chat', icon: MessageCircle },
+              { value: 'schedule', label: 'Schedule', mobileLabel: 'Sched', icon: Clock },
             ].map(tab => (
               <TabsTrigger
                 key={tab.value}
@@ -935,6 +939,15 @@ const EventGallery = () => {
 
           <TabsContent value="comments" className="mt-5">
             <CommentsViewer eventId={event.id} />
+          </TabsContent>
+
+          <TabsContent value="schedule" className="mt-5">
+            <ScheduleTab
+              eventId={event.id}
+              ceremonyEndTime={event.ceremony_end_time}
+              sneakPeekDelayHours={event.sneak_peek_delay_hours ?? 2}
+              photos={photos.map((p) => ({ id: p.id, url: p.url }))}
+            />
           </TabsContent>
         </Tabs>
       ) : (

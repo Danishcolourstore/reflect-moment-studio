@@ -29,7 +29,7 @@ interface Props {
 
 export default function GridBuilder({ onClose }: Props) {
   const [step, setStep] = useState<WizardStep>('format');
-  const [formatPreset, setFormatPreset] = useState<FormatPreset>(FORMAT_PRESETS[0]);
+  const [formatPreset, setFormatPreset] = useState<FormatPreset | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
   const [selectedLayout, setSelectedLayout] = useState<GridLayout | null>(null);
   const [initialTextLayers, setInitialTextLayers] = useState<TextLayer[]>([]);
@@ -56,10 +56,11 @@ export default function GridBuilder({ onClose }: Props) {
 
   const handleFormatChange = useCallback((f: CanvasFormat) => {
     const preset = FORMAT_PRESETS.find((p) => p.format.id === f.id) ?? formatPreset;
-    setFormatPreset(preset);
+    if (preset) setFormatPreset(preset);
   }, [formatPreset]);
 
   const handleStepChange = (next: WizardStep) => {
+    if (next !== 'format' && !formatPreset) return;
     if (next === 'inspire') {
       setShowInspire(true);
       return;
@@ -67,7 +68,7 @@ export default function GridBuilder({ onClose }: Props) {
     setStep(next);
   };
 
-  if (selectedLayout && step === 'design') {
+  if (selectedLayout && step === 'design' && formatPreset) {
     return (
       <GridEditor
         layout={selectedLayout}
@@ -175,7 +176,7 @@ export default function GridBuilder({ onClose }: Props) {
           </div>
         )}
 
-        {step === 'export' && (
+        {step === 'export' && formatPreset && (
           exportSnapshot ? (
             <ExportStep
               layout={exportSnapshot.layout}

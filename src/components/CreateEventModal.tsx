@@ -74,6 +74,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
+  const [ceremonyEndTime, setCeremonyEndTime] = useState('');
   const [location, setLocation] = useState('');
   const [slug, setSlug] = useState('');
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
@@ -133,6 +134,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       const { data: inserted, error } = await (supabase.from('events').insert({
         user_id: user.id, name: title, slug: finalSlug,
         event_date: date || new Date().toISOString().split('T')[0],
+        ceremony_end_time: ceremonyEndTime ? new Date(ceremonyEndTime).toISOString() : null,
         location: location || null, cover_url: coverUrl,
         gallery_pin: password || null, gallery_layout: galleryLayout,
         downloads_enabled: downloadsEnabled,
@@ -141,7 +143,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       } else {
         toast({ title: 'Your gallery is ready' });
-        setTitle(''); setDate(''); setLocation(''); setSlug('');
+        setTitle(''); setDate(''); setCeremonyEndTime(''); setLocation(''); setSlug('');
         setSlugManuallyEdited(false); setPassword(''); setCoverFile(null);
         setGalleryLayout('classic'); setDownloadsEnabled(true); setShowAdvanced(false);
         onOpenChange(false);
@@ -153,7 +155,7 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       setLoading(false);
       mutexRef.current = false;
     }
-  }, [user, title, slug, date, location, coverFile, password, galleryLayout, downloadsEnabled, toast, onOpenChange, onCreated]);
+  }, [user, title, slug, date, ceremonyEndTime, location, coverFile, password, galleryLayout, downloadsEnabled, toast, onOpenChange, onCreated]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -209,6 +211,21 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
               onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(184,149,63,0.6)")}
               onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(17,17,17,0.2)")}
             />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Ceremony ends at</label>
+            <input
+              type="datetime-local"
+              value={ceremonyEndTime}
+              onChange={(e) => setCeremonyEndTime(e.target.value)}
+              style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(184,149,63,0.6)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(17,17,17,0.2)")}
+            />
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 300, color: "var(--ink-muted)", marginTop: 6 }}>
+              Used for sneak peek scheduling
+            </p>
           </div>
 
           <button
@@ -347,4 +364,4 @@ export function CreateEventModal({ open, onOpenChange, onCreated }: CreateEventM
       </DialogContent>
     </Dialog>
   );
-                                               }
+}
