@@ -59,25 +59,25 @@ export function InviteClientModal({ open, onOpenChange, onInvited }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-serif text-xl">Invite</DialogTitle>
+          <DialogTitle className="font-serif font-light italic text-xl">Invite</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-2">
           <div>
-            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 bg-background" placeholder="Jane & John" />
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-light">Name</label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 bg-transparent" placeholder="Jane & John" />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Email</label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 bg-background" placeholder="client@email.com" />
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-light">Email</label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 bg-transparent" placeholder="client@email.com" />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Phone</label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 bg-background" placeholder="+1 (555) 123-4567" />
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-light">Phone</label>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 bg-transparent" placeholder="+1 (555) 123-4567" />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Event</label>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-light">Event</label>
             <Select value={eventId} onValueChange={setEventId}>
-              <SelectTrigger className="mt-1 bg-background">
+              <SelectTrigger className="mt-1 bg-transparent">
                 <SelectValue placeholder="Select an event (optional)" />
               </SelectTrigger>
               <SelectContent>
@@ -87,7 +87,7 @@ export function InviteClientModal({ open, onOpenChange, onInvited }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleInvite} disabled={submitting || !name || !email} className="w-full bg-primary text-primary-foreground text-[11px] uppercase tracking-wider">
+          <Button onClick={handleInvite} disabled={submitting || !name || !email} className="w-full border border-gold text-gold text-[11px] uppercase tracking-wider">
             {submitting ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Sending…</> : 'Send Invitation'}
           </Button>
         </div>

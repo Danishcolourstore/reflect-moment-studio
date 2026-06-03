@@ -1,15 +1,14 @@
 import { lazy, Suspense, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { Calendar, Zap, Sparkles, MoreHorizontal, Plus } from "lucide-react";
+import { Calendar, Zap, BookOpen, MoreHorizontal, Plus } from "lucide-react";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
-import { useEntiranOpen } from "@/components/entiran/EntiranProvider";
 
 const CreateEventModal = lazy(() =>
   import("@/components/CreateEventModal").then((m) => ({ default: m.CreateEventModal })),
 );
 
-type TabKey = "events" | "cheetah" | "gallery" | "daan" | "more";
+type TabKey = "events" | "cheetah" | "gallery" | "storybook" | "more";
 
 interface Tab {
   key: TabKey;
@@ -36,7 +35,13 @@ const TABS: Tab[] = [
     match: (p) => p.startsWith("/dashboard/cheetah") || p === "/cheetah",
   },
   { key: "gallery", title: "Gallery", icon: Plus, center: true },
-  { key: "daan", title: "Daan", icon: Sparkles, url: "/daan", match: (p) => p.startsWith("/daan") },
+  {
+    key: "storybook",
+    title: "Storybook",
+    icon: BookOpen,
+    url: "/storybook",
+    match: (p) => p.startsWith("/storybook") || p.startsWith("/dashboard/storybook"),
+  },
   {
     key: "more",
     title: "More",
@@ -49,7 +54,6 @@ const TABS: Tab[] = [
 const ACTIVE = "hsl(var(--primary))";
 const MUTED = "hsl(var(--muted-foreground))";
 const RULE = "hsl(var(--border))";
-const WASH = "hsl(var(--secondary))";
 const PAPER = "hsl(var(--background))";
 
 export function MobileBottomNav() {
@@ -57,7 +61,6 @@ export function MobileBottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const drawer = useDrawerMenu();
-  const { openBot } = useEntiranOpen();
   const [createOpen, setCreateOpen] = useState(false);
 
   if (!isMobile) return null;
@@ -70,18 +73,9 @@ export function MobileBottomNav() {
   })();
 
   const handleTap = (tab: Tab) => {
-    if (tab.center) {
-      setCreateOpen(true);
-      return;
-    }
-    if (tab.key === "daan") {
-      navigate("/daan");
-      return;
-    }
-    if (tab.key === "more") {
-      navigate("/dashboard/more");
-      return;
-    }
+    if (tab.center) { setCreateOpen(true); return; }
+    if (tab.key === "storybook") { navigate("/storybook"); return; }
+    if (tab.key === "more") { navigate("/dashboard/more"); return; }
     if (tab.url) navigate(tab.url);
   };
 
@@ -135,12 +129,11 @@ export function MobileBottomNav() {
                   style={{
                     width: 34,
                     height: 34,
-                    borderRadius: "50%",
-                    background: WASH,
+                    border: "1px solid rgba(17,17,17,0.2)",
+                    background: "transparent",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    transition: "background 120ms cubic-bezier(0.4,0,0.2,1)",
                   }}
                 >
                   <Plus size={18} strokeWidth={1.75} style={{ color: MUTED }} />
@@ -149,12 +142,11 @@ export function MobileBottomNav() {
                   style={{
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: 10,
-                    fontWeight: 400,
-                    letterSpacing: "0.04em",
+                    fontWeight: 300,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
                     color,
                     lineHeight: 1.1,
-                    maxWidth: 64,
-                    textAlign: "center",
                   }}
                 >
                   {tab.title}
@@ -188,12 +180,11 @@ export function MobileBottomNav() {
                 style={{
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 10,
-                  fontWeight: 400,
-                  letterSpacing: "0.04em",
+                  fontWeight: 300,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
                   color,
                   lineHeight: 1.1,
-                  maxWidth: 64,
-                  textAlign: "center",
                 }}
               >
                 {tab.title}
@@ -203,7 +194,6 @@ export function MobileBottomNav() {
         })}
       </nav>
 
-      {/* Drawer still available for hamburger menu triggers on other pages */}
       <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
       {createOpen && (
@@ -220,4 +210,4 @@ export function MobileBottomNav() {
       )}
     </>
   );
-}
+                      }

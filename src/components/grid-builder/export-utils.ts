@@ -3,7 +3,7 @@
  * Renders grids + frames + text overlays + design elements + logos using original image data — zero compression, lossless PNG output.
  */
 
-import type { GridLayout, GridCellData } from './types';
+import type { GridLayout, GridCellData, FreePosition } from './types';
 import type { TextLayer } from './text-overlay-types';
 import type { DesignElement } from './element-types';
 import type { LogoLayer } from './LogoOverlay';
@@ -249,6 +249,8 @@ function drawTextLayer(ctx: CanvasRenderingContext2D, layer: TextLayer, width: n
 
 /**
  * Render the full grid to a canvas at the specified resolution.
+ * `freePositions` — pass the GridEditor state value so Inspire variations export correctly.
+ * Falls back to layout.freePositions if not provided.
  */
 export async function renderGridToCanvas(
   layout: GridLayout,
@@ -259,6 +261,7 @@ export async function renderGridToCanvas(
   elements: DesignElement[] = [],
   logo: LogoLayer | null = null,
   background?: BackgroundStyle,
+  freePositions?: FreePosition[] | null,   // ← new param
 ): Promise<HTMLCanvasElement> {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -267,7 +270,7 @@ export async function renderGridToCanvas(
 
   const frame = layout.frame;
 
-  // Background
+  // ─── Background ───────────────────────────────
   if (background && !frame) {
     if (background.type === 'gradient' && background.gradientTo) {
       const angle = ((background.gradientAngle || 180) * Math.PI) / 180;
@@ -292,11 +295,8 @@ export async function renderGridToCanvas(
     drawGrainOverlay(ctx, width, height);
   }
 
-  // Calculate image area based on frame padding
-  let areaX = 0;
-  let areaY = 0;
-  let areaW = width;
-  let areaH = height;
+  // ─── Image area (respects frame padding) ──────
+  let areaX = 0, areaY = 0, areaW = width, areaH = height;
 
   if (frame) {
     const pt = (frame.padding[0] / 100) * width;
@@ -332,49 +332,119 @@ export async function renderGridToCanvas(
     }
   }
 
-  const gap = frame ? 0 : Math.round(width * 0.007);
-  const pad = frame ? 0 : gap;
+  // ─── Resolve which freePositions to use ───────
+  // Prefer the explicitly passed state value (from GridEditor),
+  // fall back to whatever is baked into the layout definition.
+  const resolvedFreePositions: FreePosition[] | null =
+    freePositions !== undefined
+      ? (freePositions ?? null)
+      : (layout.freePositions ?? null);
 
-  const innerW = areaW - pad * 2 - gap * (layout.gridCols - 1);
-  const innerH = areaH - pad * 2 - gap * (layout.gridRows - 1);
-  const colW = innerW / layout.gridCols;
-  const rowH = innerH / layout.gridRows;
+  const hasFree = resolvedFreePositions != null && resolvedFreePositions.length > 0;
+
+  // ─── Free-position cell rendering ─────────────
+  if (hasFree) {
+    const ordered = layout.cells
+      .map((_, i) => ({ pos: resolvedFreePositions![i], cell: cells[i], i }))
+      .filter((o) => o.pos);
+
+    // Paint lowest zIndex first
+    ordered.sort((a, b) => (a.pos?.zIndex ?? 0) - (b.pos?.zIndex ?? 0));
+
+    for (const { pos, cell } of ordered) {
+      const p = pos!;
+
+      // Cell dimensions and centre point in canvas space
+      const cw = (p.width / 100) * areaW;
+      const ch = (p.height / 100) * areaH;
+      const cx = areaX + (p.x / 100) * areaW + cw / 2;
+      const cy = areaY + (p.y / 100) * areaH + ch / 2;
+
+      ctx.save();
+
+      // Move origin to cell centre, apply rotation + scale
+      ctx.translate(cx, cy);
+      ctx.rotate(((p.rotation ?? 0) * Math.PI) / 180);
+      ctx.scale(p.scale ?? 1, p.scale ?? 1);
+      ctx.globalAlpha = p.opacity ?? 1;
+
+      // Clip to cell bounds (prevents image bleeding past borders/rotation)
+      ctx.beginPath();
+      ctx.rect(-cw / 2, -ch / 2, cw, ch);
+      ctx.clip();
+
+      if (cell?.imageUrl) {
+        try {
+          const img = await loadImageElement(cell.imageUrl);
+          const offsetScale = width / 440;
+          drawCellImage(ctx, img, cell, -cw / 2, -ch / 2, cw, ch, offsetScale);
+        } catch {
+          ctx.fillStyle = '#f0f0f0';
+          ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
+        }
+      } else {
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
+      }
+
+      // Border drawn after image, inside clip region
+      if ((p.borderWidth ?? 0) > 0) {
+        ctx.strokeStyle = p.borderColor ?? '#ffffff';
+        ctx.lineWidth = p.borderWidth * (width / 375);
+        ctx.strokeRect(-cw / 2, -ch / 2, cw, ch);
+      }
+
+      ctx.restore();
+    }
+  } else {
+    // ─── Standard CSS-grid cell rendering ─────────
+    const gap = frame ? 0 : Math.round(width * 0.007);
+    const pad = frame ? 0 : gap;
+
+    const innerW = areaW - pad * 2 - gap * (layout.gridCols - 1);
+    const innerH = areaH - pad * 2 - gap * (layout.gridRows - 1);
+    const colW = innerW / layout.gridCols;
+    const rowH = innerH / layout.gridRows;
+
+    const displaySize = 440;
+    const offsetScale = width / displaySize;
+
+    for (let i = 0; i < layout.cells.length; i++) {
+      const [rs, cs, re, ce] = layout.cells[i];
+      const cell = cells[i];
+
+      const x = areaX + pad + (cs - 1) * (colW + gap);
+      const y = areaY + pad + (rs - 1) * (rowH + gap);
+      const cw = (ce - cs) * colW + (ce - cs - 1) * gap;
+      const ch = (re - rs) * rowH + (re - rs - 1) * gap;
+
+      if (!cell.imageUrl) {
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(x, y, cw, ch);
+        continue;
+      }
+
+      const img = await loadImageElement(cell.imageUrl);
+
+      ctx.save();
+
+      if (frame?.imageRadius) {
+        const sr = (frame.imageRadius / 440) * width;
+        roundRect(ctx, x, y, cw, ch, sr);
+        ctx.clip();
+      } else {
+        ctx.beginPath();
+        ctx.rect(x, y, cw, ch);
+        ctx.clip();
+      }
+
+      drawCellImage(ctx, img, cell, x, y, cw, ch, offsetScale);
+      ctx.restore();
+    }
+  }
 
   const displaySize = 440;
   const offsetScale = width / displaySize;
-
-  for (let i = 0; i < layout.cells.length; i++) {
-    const [rs, cs, re, ce] = layout.cells[i];
-    const cell = cells[i];
-
-    const x = areaX + pad + (cs - 1) * (colW + gap);
-    const y = areaY + pad + (rs - 1) * (rowH + gap);
-    const cw = (ce - cs) * colW + (ce - cs - 1) * gap;
-    const ch = (re - rs) * rowH + (re - rs - 1) * gap;
-
-    if (!cell.imageUrl) {
-      ctx.fillStyle = '#f0f0f0';
-      ctx.fillRect(x, y, cw, ch);
-      continue;
-    }
-
-    const img = await loadImageElement(cell.imageUrl);
-
-    ctx.save();
-
-    if (frame?.imageRadius) {
-      const sr = (frame.imageRadius / 440) * width;
-      roundRect(ctx, x, y, cw, ch, sr);
-      ctx.clip();
-    } else {
-      ctx.beginPath();
-      ctx.rect(x, y, cw, ch);
-      ctx.clip();
-    }
-
-    drawCellImage(ctx, img, cell, x, y, cw, ch, offsetScale);
-    ctx.restore();
-  }
 
   // ─── Render design elements ───────────────────
   if (elements.length > 0) {

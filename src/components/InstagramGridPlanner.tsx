@@ -129,16 +129,16 @@ function CropEditor({ tile, onUpdate, onClose }: {
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[rgba(0,0,0,0.5)] [backdrop-filter:blur(8px)]">
-      <div className="max-w-md w-full overflow-hidden bg-white border border-[var(--rule)]">
+      <div className="max-w-md w-full overflow-hidden bg-transparent border border-[var(--rule)]">
         <div className="flex items-center justify-between p-4 border-b border-[var(--rule)]">
-          <p className="text-sm font-medium text-[var(--ink)]">Adjust crop</p>
+          <p className="text-sm font-light text-[var(--ink)]">Adjust crop</p>
           <button onClick={onClose} className="text-[var(--ink-muted)] hover:text-[var(--ink)] transition-colors">
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="p-4">
-          <div className="relative w-full aspect-square overflow-hidden mx-auto max-w-[320px] bg-[var(--wash)]">
+          <div className="relative w-full aspect-square overflow-hidden mx-auto max-w-[320px] bg-transparent">
             <img
               src={tile.imageUrl}
               alt=""
@@ -149,7 +149,7 @@ function CropEditor({ tile, onUpdate, onClose }: {
                 transformOrigin: `${tile.cropX * 100}% ${tile.cropY * 100}%`,
               }} loading="lazy" decoding="async" />
             <div className="absolute inset-0 pointer-events-none border border-[var(--rule-strong)]" />
-            <div className="absolute top-2 left-2 px-2 py-0.5 bg-white/90 [backdrop-filter:blur(4px)]">
+            <div className="absolute top-2 left-2 px-2 py-0.5 bg-transparent/90 [backdrop-filter:blur(4px)]">
               <span className="text-[10px] text-[var(--ink-muted)] uppercase tracking-[2px]">Safe crop</span>
             </div>
           </div>
@@ -157,7 +157,7 @@ function CropEditor({ tile, onUpdate, onClose }: {
 
         <div className="px-4 pb-4 space-y-4">
           <div>
-            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">Position</label>
+            <label className="mb-2 block text-[11px] font-light uppercase tracking-[2px] text-[var(--ink-muted)]">Position</label>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <span className="text-[10px] text-[var(--ink-muted)]">Horizontal</span>
@@ -185,7 +185,7 @@ function CropEditor({ tile, onUpdate, onClose }: {
           </div>
 
           <div>
-            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">Zoom</label>
+            <label className="mb-2 block text-[11px] font-light uppercase tracking-[2px] text-[var(--ink-muted)]">Zoom</label>
             <div className="flex items-center gap-3">
               <ZoomOut className="h-3.5 w-3.5 text-[var(--ink-muted)]" />
               <input
@@ -201,7 +201,7 @@ function CropEditor({ tile, onUpdate, onClose }: {
           </div>
 
           <div>
-            <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">Quick position</label>
+            <label className="mb-2 block text-[11px] font-light uppercase tracking-[2px] text-[var(--ink-muted)]">Quick position</label>
             <div className="flex gap-1.5">
               {[
                 { l: 'Center', x: 0.5, y: 0.5 },
@@ -213,7 +213,7 @@ function CropEditor({ tile, onUpdate, onClose }: {
                 <button
                   key={p.l}
                   onClick={() => onUpdate({ cropX: p.x, cropY: p.y })}
-                  className="flex-1 py-1.5 text-[10px] bg-[var(--wash)] text-[var(--ink-muted)] hover:bg-[var(--rule)] hover:text-[var(--ink)] transition-colors"
+                  className="flex-1 py-1.5 text-[10px] text-[var(--ink-muted)] border border-ink/20 hover:border-gold transition-colors"
                 >
                   {p.l}
                 </button>
@@ -293,14 +293,14 @@ function TileCell({ tile, index, isDragTarget, splitMode, splitUrl, splitIdx, sp
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 bg-[rgba(0,0,0,0.5)]">
           <button
             onClick={e => { e.stopPropagation(); onEdit(); }}
-            className="h-7 w-7 rounded-full flex items-center justify-center"
+            className="h-7 w-7  flex items-center justify-center"
             style={{ background: `${IG.blue}40`, color: IG.text }}
           >
             <Move className="h-3 w-3" />
           </button>
           <button
             onClick={e => { e.stopPropagation(); onRemove(); }}
-            className="h-7 w-7 rounded-full flex items-center justify-center bg-[rgba(237,73,86,0.3)] text-[#ED4956]"
+            className="h-7 w-7  flex items-center justify-center bg-[rgba(237,73,86,0.3)] text-[#ED4956]"
           >
             <Trash2 className="h-3 w-3" />
           </button>
@@ -342,10 +342,10 @@ function Pool({ photos, onSelect }: { photos: string[]; onSelect: (u: string) =>
 function PostView({ tile, username }: { tile: GridTile; username: string }) {
   if (!tile.imageUrl) return null;
   return (
-    <div className="rounded-2xl max-w-[320px] mx-auto overflow-hidden" style={{ background: IG.bg, border: `1px solid ${IG.border}` }}>
+    <div className=" max-w-[320px] mx-auto overflow-hidden" style={{ background: IG.bg, border: `1px solid ${IG.border}` }}>
       <div className="flex items-center gap-2.5 px-3 py-2">
-        <div className="h-7 w-7 rounded-full p-[1.5px]" style={{ background: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF, #515BD4)' }}>
-          <div className="h-full w-full rounded-full flex items-center justify-center" style={{ background: IG.bg }}>
+        <div className="h-7 w-7  p-[1.5px]" style={{ background: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF, #515BD4)' }}>
+          <div className="h-full w-full  flex items-center justify-center" style={{ background: IG.bg }}>
             <span style={{ color: IG.text, fontSize: '8px', fontWeight: 700, fontFamily: IG.font }}>{username[0]?.toUpperCase()}</span>
           </div>
         </div>
@@ -481,7 +481,7 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
   const editTile = tiles.find(t => t.id === editId);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white max-w-[100vw]">
+    <div className="fixed inset-0 z-50 flex flex-col bg-transparent max-w-[100vw]">
       {/* ─── Header (MirrorAI Pixieset-Minimal) ─── */}
       <header className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-[var(--rule)]">
         <button
@@ -491,33 +491,33 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-semibold tracking-[0.5px] text-[var(--ink)]">
+          <h1 className="text-sm font-light tracking-[0.5px] text-[var(--ink)]">
             Instagram Grid Planner
           </h1>
-          <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">
+          <p className="mt-0.5 text-[11px] font-light uppercase tracking-[2px] text-[var(--ink-muted)]">
             {preset.label} · {filled}/{preset.tileCount} tiles
           </p>
         </div>
 
         {/* View toggle (Instagram styled) */}
-        <div className="flex rounded-full p-0.5" style={{ background: IG.surface2 }}>
+        <div className="flex  p-0.5" style={{ background: IG.surface2 }}>
           <button
             onClick={() => setView('grid')}
-            className="px-3 py-1 rounded-full text-[11px] font-medium transition-all"
-            style={{ background: view === 'grid' ? IG.text : 'transparent', color: view === 'grid' ? IG.bg : IG.textSecondary, fontFamily: IG.font }}
+            className="px-3 py-1 text-[11px] font-light transition-all border border-transparent"
+            style={{ borderColor: view === 'grid' ? 'var(--gold)' : 'transparent', color: view === 'grid' ? 'var(--ink)' : 'var(--ink-muted)', fontFamily: 'DM Sans' }}
           >
             Grid
           </button>
           <button
             onClick={() => setView('post')}
-            className="px-3 py-1 rounded-full text-[11px] font-medium transition-all"
-            style={{ background: view === 'post' ? IG.text : 'transparent', color: view === 'post' ? IG.bg : IG.textSecondary, fontFamily: IG.font }}
+            className="px-3 py-1 text-[11px] font-light transition-all border border-transparent"
+            style={{ borderColor: view === 'post' ? 'var(--gold)' : 'transparent', color: view === 'post' ? 'var(--ink)' : 'var(--ink-muted)', fontFamily: 'DM Sans' }}
           >
             Post
           </button>
         </div>
 
-        <Button size="sm" onClick={handleExport} disabled={exporting || filled === 0} className="gap-1.5 text-xs">
+        <Button size="sm" onClick={handleExport} disabled={exporting || filled === 0} className="gap-1.5 text-xs border border-ink/20 hover:border-gold">
           <Download className="h-3.5 w-3.5" />
           {exporting ? 'Exporting…' : 'Export ZIP'}
         </Button>
@@ -526,15 +526,15 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
       {/* ─── Body ─── */}
       <div className="flex-1 flex overflow-hidden">
         {/* ─── Sidebar (MirrorAI Pixieset-Minimal) ─── */}
-        <aside className="w-64 shrink-0 flex flex-col overflow-hidden border-r border-[var(--rule)] bg-[var(--wash)]">
+        <aside className="w-64 shrink-0 flex flex-col overflow-hidden border-r border-[var(--rule)] bg-transparent">
           {/* Layout selector */}
           <div className="p-3 border-b border-[var(--rule)]">
             <button
               onClick={() => setShowPresets(!showPresets)}
-              className="w-full flex items-center justify-between py-2 px-3 bg-white border border-[var(--rule)] hover:border-[var(--rule-strong)] transition-colors"
+              className="w-full flex items-center justify-between py-2 px-3 bg-transparent border border-[var(--rule)] hover:border-[var(--rule-strong)] transition-colors"
             >
               <div className="text-left">
-                <p className="text-[11px] font-medium text-[var(--ink)]">{preset.label}</p>
+                <p className="text-[11px] font-light text-[var(--ink)]">{preset.label}</p>
                 <p className="text-[9px] text-[var(--ink-muted)]">{preset.description}</p>
               </div>
               <ChevronDown className={`h-3.5 w-3.5 transition-transform text-[var(--ink-muted)] ${showPresets ? 'rotate-180' : ''}`} />
@@ -548,15 +548,15 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
                     <button
                       key={p.type}
                       onClick={() => switchPreset(p)}
-                      className={`w-full text-left px-3 py-2 transition-colors text-[11px] flex items-center gap-2 ${
+                      className={`w-full text-left px-3 py-2 transition-colors text-[11px] flex items-center gap-2 border border-transparent ${
                         active
-                          ? 'bg-[var(--ink)] text-white'
-                          : 'text-[var(--ink-muted)] hover:bg-white hover:text-[var(--ink)]'
+                          ? 'border-gold text-gold'
+                          : 'text-[var(--ink-muted)] hover:border-gold hover:text-gold'
                       }`}
                     >
                       <p.icon className="h-3.5 w-3.5 shrink-0" />
                       <div>
-                        <p className="font-medium">{p.label}</p>
+                        <p className="font-light">{p.label}</p>
                         <p className="text-[9px] opacity-70 mt-0.5">{p.description}</p>
                       </div>
                     </button>
@@ -569,7 +569,7 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
           {/* Photo pool */}
           <div className="flex-1 overflow-hidden flex flex-col">
             <div className="px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[2px] text-[var(--ink-muted)]">
+              <p className="text-[11px] font-light uppercase tracking-[2px] text-[var(--ink-muted)]">
                 {isSplit ? 'Select source image' : 'Drag photos to grid'}
               </p>
             </div>
@@ -586,8 +586,8 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
 
           {/* Posting guide */}
           <div className="p-3 border-t border-[var(--rule)]">
-            <div className="p-2.5 bg-white border border-[var(--rule)]">
-              <p className="mb-1 text-[10px] font-medium text-[var(--ink)]">Posting order</p>
+            <div className="p-2.5 bg-transparent border border-[var(--rule)]">
+              <p className="mb-1 text-[10px] font-light text-[var(--ink)]">Posting order</p>
               <p className="text-[9px] leading-[14px] text-[var(--ink-muted)]">
                 Post images in reverse order (last file first) for correct grid appearance.
               </p>
@@ -603,10 +603,10 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
               <div className="mb-4 px-2">
                 <div className="flex items-center gap-6 mb-3">
                   <div
-                    className="h-20 w-20 rounded-full shrink-0 p-[3px]"
+                    className="h-20 w-20  shrink-0 p-[3px]"
                     style={{ background: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF, #515BD4)' }}
                   >
-                    <div className="h-full w-full rounded-full flex items-center justify-center" style={{ background: IG.bg }}>
+                    <div className="h-full w-full  flex items-center justify-center" style={{ background: IG.bg }}>
                       <span style={{ color: IG.text, fontSize: '24px', fontWeight: 700, fontFamily: IG.font }}>{username[0]?.toUpperCase()}</span>
                     </div>
                   </div>
@@ -628,10 +628,10 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
 
                 {/* Edit profile buttons */}
                 <div className="flex gap-1.5 mt-3">
-                  <div className="flex-1 rounded-lg py-1.5 text-center" style={{ background: IG.surface2 }}>
+                  <div className="flex-1 border border-ink/20 py-1.5 text-center">
                     <span style={{ color: IG.text, fontSize: '13px', fontWeight: 600, fontFamily: IG.font }}>Edit profile</span>
                   </div>
-                  <div className="flex-1 rounded-lg py-1.5 text-center" style={{ background: IG.surface2 }}>
+                  <div className="flex-1 border border-ink/20 py-1.5 text-center">
                     <span style={{ color: IG.text, fontSize: '13px', fontWeight: 600, fontFamily: IG.font }}>Share profile</span>
                   </div>
                 </div>
@@ -681,7 +681,7 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
                 <button
                   onClick={() => setSelIdx(Math.max(0, selIdx - 1))}
                   disabled={selIdx === 0}
-                  className="h-8 w-8 rounded-full flex items-center justify-center disabled:opacity-30 transition-colors"
+                  className="h-8 w-8  flex items-center justify-center disabled:opacity-30 transition-colors"
                   style={{ background: IG.surface2, color: IG.textSecondary }}
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -692,7 +692,7 @@ export default function InstagramGridPlanner({ photos, username = 'photographer'
                 <button
                   onClick={() => setSelIdx(Math.min(tiles.length - 1, selIdx + 1))}
                   disabled={selIdx >= tiles.length - 1}
-                  className="h-8 w-8 rounded-full flex items-center justify-center disabled:opacity-30 transition-colors -scale-x-100"
+                  className="h-8 w-8  flex items-center justify-center disabled:opacity-30 transition-colors -scale-x-100"
                   style={{ background: IG.surface2, color: IG.textSecondary }}
                 >
                   <ArrowLeft className="h-4 w-4" />

@@ -37,16 +37,15 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: '#FFFFFF' }}>
+    <div className="min-h-screen bg-transparent">
       {/* Minimal top bar */}
-      <header className="sticky top-0 z-30 backdrop-blur-lg" style={{ background: 'rgba(255,255,255,0.95)' }}>
+      <header className="sticky top-0 z-30 backdrop-blur-lg bg-transparent/95">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="flex items-center justify-between h-14">
             {/* Logo */}
             <button onClick={() => navigate('/client')} className="focus:outline-none">
               <span
-                className="text-[13px] tracking-[0.35em] uppercase"
-                style={{ fontFamily: "'Cormorant Garamond', serif", color: '#1A1A1A', fontWeight: 500 }}
+                className="text-[13px] tracking-[0.35em] uppercase font-serif text-ink font-light"
               >
                 Mirror AI
               </span>
@@ -56,26 +55,20 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => navigate('/client/profile')}
-                className="p-2 rounded-full transition-colors"
-                style={{ color: '#999' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#1A1A1A')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#999')}
+                className="p-2 text-ink/60 hover:text-ink transition-colors"
               >
                 <Settings className="h-[18px] w-[18px]" />
               </button>
               <button
                 onClick={handleSignOut}
-                className="p-2 rounded-full transition-colors"
-                style={{ color: '#999' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#1A1A1A')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#999')}
+                className="p-2 text-ink/60 hover:text-ink transition-colors"
               >
                 <LogOut className="h-[18px] w-[18px]" />
               </button>
             </div>
           </div>
         </div>
-        <div style={{ height: 1, background: '#F0EDE8' }} />
+        <div className="h-px bg-ink/10" />
       </header>
 
       {/* Main content */}
@@ -86,7 +79,7 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
       {/* Mobile bottom nav */}
       <nav
         className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around py-2 lg:hidden safe-area-pb"
-        style={{ background: 'rgba(255,255,255,0.97)', borderTop: '1px solid #F0EDE8', backdropFilter: 'blur(12px)' }}
+        style={{ background: 'rgba(255,255,255,0.97)', borderTop: '1px solid var(--ink-10)', backdropFilter: 'blur(12px)' }}
       >
         {NAV_ITEMS.map((item) => (
           <NavLink
@@ -94,10 +87,10 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
             to={item.url}
             end={item.end}
             className="flex flex-col items-center gap-0.5 px-3 py-1"
-            activeClassName="[&>span]:text-[#1A1A1A] [&>svg]:text-[#1A1A1A]"
+            activeClassName="[&>span]:text-gold [&>svg]:text-gold"
           >
-            <item.icon className="h-[18px] w-[18px]" style={{ color: '#AAAAAA' }} />
-            <span className="text-[9px] tracking-[0.1em] uppercase" style={{ color: '#AAAAAA', fontFamily: "'DM Sans', sans-serif" }}>
+            <item.icon className="h-[18px] w-[18px] text-ink/50" />
+            <span className="text-[9px] tracking-[0.1em] uppercase text-ink/50 font-sans">
               {item.title}
             </span>
           </NavLink>
@@ -107,17 +100,11 @@ export function ClientDashboardLayout({ children }: { children: ReactNode }) {
       {/* Footer */}
       <footer className="pb-24 lg:pb-12 pt-16">
         <div className="text-center space-y-2">
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#CCCCCC', letterSpacing: '0.08em' }}>
+          <p className="font-sans text-xs text-ink/30 tracking-widest">
             Delivered with love
           </p>
           <p
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 10,
-              color: '#DDDDDD',
-              letterSpacing: '0.3em',
-              textTransform: 'uppercase',
-            }}
+            className="font-serif text-xs text-ink/20 tracking-[0.3em] uppercase"
           >
             Mirror AI
           </p>

@@ -36,43 +36,75 @@ export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHub
       <div>
         <div className="flex items-end justify-between mb-12">
           <div>
-            <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-muted-foreground mb-2">STUDIO</p>
-            <h1 className="font-serif text-4xl text-foreground tracking-wide" style={{ fontWeight: 300 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--ink-muted)", marginBottom: 8 }}>
+              Studio
+            </p>
+            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, fontStyle: "italic", color: "var(--ink)", margin: 0 }}>
               Welcome back
             </h1>
           </div>
-          <Button onClick={() => navigate("/dashboard/events")} className="gap-2">
-            <Plus className="h-4 w-4" />
+          <button
+            onClick={() => navigate("/dashboard/events")}
+            style={{
+              border: "1px solid rgba(17,17,17,0.2)",
+              background: "transparent",
+              color: "#111111",
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 11,
+              fontWeight: 300,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              padding: "8px 20px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Plus size={14} />
             New Event
-          </Button>
+          </button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-12">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 48 }}>
           {stats.map((stat) => (
-            <div key={stat.label} className="p-6 rounded-xl bg-card border border-border">
-              <p className="text-[9px] font-medium tracking-[0.2em] uppercase text-muted-foreground mb-3">{stat.label}</p>
-              <p className="font-serif text-3xl text-primary" style={{ fontWeight: 300 }}>{stat.value}</p>
+            <div key={stat.label} style={{ padding: 24, border: "1px solid var(--rule)", background: "var(--surface)" }}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--ink-muted)", marginBottom: 12 }}>
+                {stat.label}
+              </p>
+              <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 44, fontWeight: 300, fontStyle: "italic", color: "var(--ink)", margin: 0, lineHeight: 1 }}>
+                {stat.value}
+              </p>
             </div>
           ))}
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-3 gap-4">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
           {QUICK_ACTIONS.map((item) => (
             <button
               key={item.url}
               onClick={() => navigate(item.url)}
-              className="group text-left p-6 rounded-xl bg-card border border-border transition-all duration-200 hover:border-primary/30 hover:shadow-[0_8px_32px_rgba(212,175,55,0.06)]"
+              style={{
+                textAlign: "left",
+                padding: 24,
+                border: "1px solid var(--rule)",
+                background: "var(--surface)",
+                cursor: "pointer",
+                transition: "border-color 200ms ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#B8953F")}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--rule)")}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                  <item.icon className="h-[18px] w-[18px] text-primary" strokeWidth={1.5} />
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+                <item.icon size={18} strokeWidth={1.5} style={{ color: "var(--ink)" }} />
+                <ArrowRight size={14} style={{ color: "var(--ink-muted)" }} />
               </div>
-              <h3 className="font-serif text-lg text-foreground mb-1">{item.title}</h3>
-              <p className="text-xs text-muted-foreground">{item.desc}</p>
+              <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, fontStyle: "italic", color: "var(--ink)", margin: "0 0 4px" }}>
+                {item.title}
+              </p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 300, color: "var(--ink-muted)", margin: 0 }}>
+                {item.desc}
+              </p>
             </button>
           ))}
         </div>
@@ -80,46 +112,74 @@ export function HomeDashboardHub({ insights, leads, bookings }: HomeDashboardHub
     );
   }
 
-  // ── Mobile ──
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
-          <p className="text-[9px] font-medium tracking-[0.2em] uppercase text-muted-foreground mb-1">STUDIO</p>
-          <h1 className="font-serif text-2xl text-foreground" style={{ fontWeight: 300 }}>Welcome back</h1>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--ink-muted)", marginBottom: 4 }}>
+            Studio
+          </p>
+          <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 300, fontStyle: "italic", color: "var(--ink)", margin: 0 }}>
+            Welcome back
+          </h1>
         </div>
         <button
           onClick={() => navigate("/dashboard/events")}
-          className="flex items-center justify-center w-9 h-9 rounded-full bg-primary"
+          style={{
+            width: 36,
+            height: 36,
+            border: "1px solid rgba(17,17,17,0.2)",
+            background: "transparent",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+          }}
         >
-          <Plus className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
+          <Plus size={16} strokeWidth={1.75} style={{ color: "var(--ink)" }} />
         </button>
       </div>
 
-      <div className="flex gap-3 mb-6 overflow-x-auto pb-1 -mx-5 px-5" style={{ scrollbarWidth: "none" }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 24, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
         {stats.map((stat) => (
-          <div key={stat.label} className="flex-shrink-0 px-4 py-3 rounded-lg bg-card border border-border min-w-[80px]">
-            <p className="text-[9px] font-medium tracking-[0.15em] uppercase text-muted-foreground mb-1">{stat.label}</p>
-            <p className="font-serif text-xl text-primary" style={{ fontWeight: 300 }}>{stat.value}</p>
+          <div key={stat.label} style={{ flexShrink: 0, padding: "12px 16px", border: "1px solid var(--rule)", background: "var(--surface)", minWidth: 80 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 300, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--ink-muted)", marginBottom: 4 }}>
+              {stat.label}
+            </p>
+            <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 300, fontStyle: "italic", color: "var(--ink)", margin: 0 }}>
+              {stat.value}
+            </p>
           </div>
         ))}
       </div>
 
-      <div className="space-y-2">
+      <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
         {QUICK_ACTIONS.map((item) => (
           <button
             key={item.url}
             onClick={() => navigate(item.url)}
-            className="flex items-center gap-4 w-full px-4 py-4 rounded-xl bg-card border border-border transition-all active:scale-[0.98]"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              width: "100%",
+              padding: "16px",
+              border: "1px solid var(--rule)",
+              background: "var(--surface)",
+              cursor: "pointer",
+              textAlign: "left",
+            }}
           >
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 flex-shrink-0">
-              <item.icon className="h-[18px] w-[18px] text-primary" strokeWidth={1.5} />
+            <item.icon size={18} strokeWidth={1.5} style={{ color: "var(--ink)", flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 16, fontWeight: 300, fontStyle: "italic", color: "var(--ink)", margin: 0 }}>
+                {item.title}
+              </p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 300, color: "var(--ink-muted)", margin: 0 }}>
+                {item.desc}
+              </p>
             </div>
-            <div className="flex-1 text-left min-w-0">
-              <h3 className="font-serif text-[15px] text-foreground">{item.title}</h3>
-              <p className="text-[11px] text-muted-foreground truncate">{item.desc}</p>
-            </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <ArrowRight size={14} style={{ color: "var(--ink-muted)", flexShrink: 0 }} />
           </button>
         ))}
       </div>

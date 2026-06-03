@@ -13,22 +13,35 @@ export interface FrameConfig {
   borderColor: string;
 }
 
+export interface FreeCellPosition {
+  x: number;       // % of canvas (top-left)
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  scale: number;
+  zIndex: number;
+  opacity: number;
+  borderWidth: number;
+  borderColor: string;
+}
+
+/** Alias used by GridEditor, GridBuilder, and export-utils */
+export type FreePosition = FreeCellPosition;
+
 export interface GridLayout {
   id: string;
   name: string;
   category: 'basic' | 'instagram' | 'creative' | 'single';
   cols: number;
   rows: number;
-  /** Each cell defines its grid area: [rowStart, colStart, rowEnd, colEnd] */
   cells: [number, number, number, number][];
-  /** Total grid columns for CSS grid */
   gridCols: number;
-  /** Total grid rows for CSS grid */
   gridRows: number;
-  /** Optional frame styling for single-image layouts */
   frame?: FrameConfig;
-  /** Canvas aspect ratio (width / height). Defaults to 1 (square) */
   canvasRatio?: number;
+  /** When present (parallel to cells[]), each non-null entry positions that cell absolutely instead of via CSS grid */
+  freePositions?: (FreeCellPosition | null)[];
 }
 
 export type CellFitMode = 'cover' | 'contain' | 'fill';

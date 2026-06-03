@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import AICaptionGenerator from "./AICaptionGenerator";
 import InstagramCarouselPreview from "./InstagramCarouselPreview";
-import type { GridLayout, GridCellData, CanvasFormat } from "./types";
+import type { GridLayout, GridCellData, CanvasFormat, FreePosition } from "./types";
 import { createCellsForLayout, CANVAS_FORMATS } from "./types";
 import type { TextLayer } from "./text-overlay-types";
 import { GOOGLE_FONTS_URL } from "./text-overlay-types";
@@ -50,7 +50,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-/** Stable-callback wrapper so GridCell memo isn't defeated by inline closures */
 const MemoGridCellWrapper = memo(function MemoGridCellWrapper({
   cell,
   index,
@@ -85,11 +84,19 @@ interface Props {
   layout: GridLayout;
   onBack: () => void;
   initialTextLayers?: TextLayer[];
+  initialBackground?: BackgroundStyle | null;
+  initialFreePositions?: FreePosition[] | null;
 }
 
 type ActiveTool = "text" | "elements" | "background" | "logo" | "caption" | null;
 
-export default function GridEditor({ layout, onBack, initialTextLayers = [] }: Props) {
+export default function GridEditor({
+  layout,
+  onBack,
+  initialTextLayers = [],
+  initialBackground = null,
+  initialFreePositions = null,
+}: Props) {
   const device = useDeviceDetect();
   const isMobile = device.isPhone;
   const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
@@ -100,18 +107,21 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [logo, setLogo] = useState<LogoLayer | null>(null);
   const [logoSelected, setLogoSelected] = useState(false);
   const [showSafeArea, setShowSafeArea] = useState(false);
-  const [background, setBackground] = useState<BackgroundStyle>(DEFAULT_BG);
+  const [background, setBackground] = useState<BackgroundStyle>(initialBackground ?? DEFAULT_BG);
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [showIgPreview, setShowIgPreview] = useState(false);
   const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [freePositions, setFreePositions] = useState<FreePosition[] | null>(
+    initialFreePositions ?? layout.freePositions ?? null,
+  );
+
   const gridRef = useRef<HTMLDivElement>(null);
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const toolPanelRef = useRef<HTMLDivElement>(null);
   const [bottomBarH, setBottomBarH] = useState(96);
   const [toolPanelH, setToolPanelH] = useState(0);
 
-  // ─── Undo/Redo History ───
   const MAX_HISTORY = 30;
   const historyRef = useRef<
     Array<{
@@ -120,6 +130,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       elements: DesignElement[];
       logo: LogoLayer | null;
       background: BackgroundStyle;
+      freePositions: FreePosition[] | null;
     }>
   >([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -144,13 +155,14 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       elements: elements.map((e) => ({ ...e })),
       logo: logo ? { ...logo } : null,
       background: { ...background },
+      freePositions: freePositions ? freePositions.map((p) => ({ ...p })) : null,
     };
     const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
     newHistory.push(snapshot);
     if (newHistory.length > MAX_HISTORY) newHistory.shift();
     historyRef.current = newHistory;
     setHistoryIndexBoth(newHistory.length - 1);
-  }, [cells, textLayers, elements, logo, background, setHistoryIndexBoth]);
+  }, [cells, textLayers, elements, logo, background, freePositions, setHistoryIndexBoth]);
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex >= 0 && historyIndex < historyRef.current.length - 1;
@@ -163,6 +175,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     setElements(snapshot.elements.map((e) => ({ ...e })));
     setLogo(snapshot.logo ? { ...snapshot.logo } : null);
     setBackground({ ...snapshot.background });
+    setFreePositions(snapshot.freePositions ? snapshot.freePositions.map((p) => ({ ...p })) : null);
     setHistoryIndexBoth(index);
   }, [setHistoryIndexBoth]);
 
@@ -184,7 +197,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     }, 50);
   }, [historyIndex, applySnapshot]);
 
-  // Push initial state on mount
   useEffect(() => {
     if (historyRef.current.length === 0) {
       const snapshot = {
@@ -193,6 +205,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         elements: elements.map((e) => ({ ...e })),
         logo: logo ? { ...logo } : null,
         background: { ...background },
+        freePositions: freePositions ? freePositions.map((p) => ({ ...p })) : null,
       };
       historyRef.current = [snapshot];
       setHistoryIndexBoth(0);
@@ -201,7 +214,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debounced history push on state changes
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (isUndoRedoRef.current || skipHistoryPushRef.current) return;
@@ -212,7 +224,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     return () => {
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
     };
-  }, [cells, textLayers, elements, logo, background, pushHistory]);
+  }, [cells, textLayers, elements, logo, background, freePositions, pushHistory]);
 
   // Revoke blob URLs on unmount
   useEffect(() => {
@@ -226,7 +238,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     };
   }, []);
 
-  // Panel drag-to-dismiss
   const [panelDragY, setPanelDragY] = useState(0);
   const panelDragStart = useRef<number | null>(null);
 
@@ -241,37 +252,22 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     preloadCommonFonts();
   }, []);
 
-  // Keyboard shortcuts: Ctrl+Z undo, Ctrl+Shift+Z / Ctrl+Y redo, Delete key
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
-      if (mod && e.key === "z" && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-      }
-      if ((mod && e.key === "z" && e.shiftKey) || (mod && e.key === "y")) {
-        e.preventDefault();
-        redo();
-      }
+      if (mod && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+      if ((mod && e.key === "z" && e.shiftKey) || (mod && e.key === "y")) { e.preventDefault(); redo(); }
       if (e.key === "Delete" || e.key === "Backspace") {
         if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
-        if (selectedTextId) {
-          e.preventDefault();
-          deleteTextLayer(selectedTextId);
-        } else if (selectedElementId) {
-          e.preventDefault();
-          deleteElement(selectedElementId);
-        } else if (logoSelected && logo) {
-          e.preventDefault();
-          handleDeleteLogo();
-        }
+        if (selectedTextId) { e.preventDefault(); deleteTextLayer(selectedTextId); }
+        else if (selectedElementId) { e.preventDefault(); deleteElement(selectedElementId); }
+        else if (logoSelected && logo) { e.preventDefault(); handleDeleteLogo(); }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [undo, redo, selectedTextId, selectedElementId, logoSelected, logo]);
 
-  // Measure bottom bar + tool panel so canvas can reserve space and never be hidden
   useEffect(() => {
     const measure = () => {
       if (bottomBarRef.current) setBottomBarH(bottomBarRef.current.offsetHeight);
@@ -282,10 +278,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     if (bottomBarRef.current) ro.observe(bottomBarRef.current);
     if (toolPanelRef.current) ro.observe(toolPanelRef.current);
     window.addEventListener("resize", measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
+    return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
   }, [activeTool]);
 
   const fileToUrl = (file: File): string => URL.createObjectURL(file);
@@ -335,9 +328,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
 
   const handleSmartFill = useCallback((files: File[]) => {
     setCells((prev) => {
-      prev.forEach((c) => {
-        if (c.imageUrl) URL.revokeObjectURL(c.imageUrl);
-      });
+      prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
       return prev.map((c, i) => {
         if (i < files.length) {
           return {
@@ -357,9 +348,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
 
   const performReset = useCallback(() => {
     setCells((prev) => {
-      prev.forEach((c) => {
-        if (c.imageUrl) URL.revokeObjectURL(c.imageUrl);
-      });
+      prev.forEach((c) => { if (c.imageUrl) URL.revokeObjectURL(c.imageUrl); });
       return createCellsForLayout(layout);
     });
     setTextLayers([]);
@@ -370,6 +359,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     setLogo(null);
     setLogoSelected(false);
     setBackground(DEFAULT_BG);
+    setFreePositions(layout.freePositions ?? null);
 
     isUndoRedoRef.current = true;
     skipHistoryPushRef.current = true;
@@ -379,6 +369,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       elements: [] as DesignElement[],
       logo: null,
       background: { ...DEFAULT_BG },
+      freePositions: layout.freePositions ? layout.freePositions.map((p) => ({ ...p })) : null,
     };
     historyRef.current = [snapshot];
     setHistoryIndexBoth(0);
@@ -388,7 +379,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     }, 50);
   }, [layout, logo, setHistoryIndexBoth]);
 
-  // Text layer handlers
   const addTextLayer = useCallback((layer: TextLayer) => {
     setTextLayers((prev) => [...prev, layer]);
     setSelectedTextId(layer.id);
@@ -405,7 +395,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     setSelectedTextId(null);
   }, []);
 
-  // Element handlers
   const addElement = useCallback((el: DesignElement) => {
     setElements((prev) => [...prev, el]);
     setSelectedElementId(el.id);
@@ -422,7 +411,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     setSelectedElementId(null);
   }, []);
 
-  // Logo handlers
   const handleAddLogo = useCallback(
     (l: LogoLayer) => {
       if (logo?.imageUrl) URL.revokeObjectURL(logo.imageUrl);
@@ -468,7 +456,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     { tool: "caption", Icon: MessageSquare, label: "Caption" },
   ];
 
-  // Panel drag handlers — use refs to avoid re-render during drag
   const handlePanelDragStart = useCallback((e: React.TouchEvent) => {
     panelDragStart.current = e.touches[0].clientY;
     setPanelDragY(0);
@@ -484,17 +471,15 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     panelDragStart.current = null;
   }, [panelDragY]);
 
-  // Format dimensions label
-  const formatDimLabel = (f: CanvasFormat) => {
-    return `${f.label} (${f.exportWidth}×${f.exportHeight})`;
-  };
+  const formatDimLabel = (f: CanvasFormat) => `${f.label} (${f.exportWidth}×${f.exportHeight})`;
+
+  const hasFreePositions = freePositions != null && freePositions.length > 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* ─── Compact Header ─── */}
+      {/* ─── Header ─── */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/60">
         <div className={cn("flex items-center justify-between h-12", isMobile ? "px-3" : "px-4")}>
-          {/* Back + layout name */}
           <button
             onClick={onBack}
             className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground transition-colors group min-h-[44px]"
@@ -505,7 +490,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             </span>
           </button>
 
-          {/* Format selector with dimensions */}
           {!layout.canvasRatio && (
             <div className="flex items-center gap-0.5 bg-muted/40 rounded-full p-0.5">
               {CANVAS_FORMATS.slice(0, 3).map((f) => (
@@ -532,7 +516,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             </div>
           )}
 
-          {/* Utility actions */}
           <div className="flex items-center gap-1">
             <button
               onClick={undo}
@@ -540,9 +523,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               className={cn(
                 "rounded-lg flex items-center justify-center transition-all duration-200",
                 isMobile ? "h-10 w-10" : "h-8 w-8",
-                canUndo
-                  ? "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50"
-                  : "text-muted-foreground/20 cursor-not-allowed",
+                canUndo ? "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50" : "text-muted-foreground/20 cursor-not-allowed",
               )}
               title="Undo (Ctrl+Z)"
             >
@@ -554,9 +535,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               className={cn(
                 "rounded-lg flex items-center justify-center transition-all duration-200",
                 isMobile ? "h-10 w-10" : "h-8 w-8",
-                canRedo
-                  ? "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50"
-                  : "text-muted-foreground/20 cursor-not-allowed",
+                canRedo ? "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50" : "text-muted-foreground/20 cursor-not-allowed",
               )}
               title="Redo (Ctrl+Shift+Z)"
             >
@@ -567,9 +546,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               className={cn(
                 "rounded-lg flex items-center justify-center transition-all duration-200",
                 isMobile ? "h-10 w-10" : "h-8 w-8",
-                showSafeArea
-                  ? "bg-primary/15 text-primary"
-                  : "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50",
+                showSafeArea ? "bg-primary/15 text-primary" : "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50",
               )}
               title="Safe Area Guides"
             >
@@ -590,29 +567,21 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         </div>
       </header>
 
-      {/* ─── Canvas Area — reserves space for bottom bar + tool panel so canvas stays fully visible ─── */}
+      {/* ─── Canvas Area ─── */}
       <div
         className={cn("flex-1 overflow-y-auto flex items-start justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
-        style={{
-          paddingBottom: `calc(${bottomBarH + toolPanelH + 16}px + env(safe-area-inset-bottom, 0px))`,
-        }}
+        style={{ paddingBottom: `calc(${bottomBarH + toolPanelH + 16}px + env(safe-area-inset-bottom, 0px))` }}
         onClick={deselectAll}
       >
         <div
           ref={gridRef}
-          className={cn(
-            "w-full rounded-xl overflow-hidden relative my-auto",
-            isMobile ? "max-w-[420px]" : "max-w-[560px]",
-          )}
+          className={cn("w-full rounded-xl overflow-hidden relative my-auto", isMobile ? "max-w-[420px]" : "max-w-[560px]")}
           style={{
             aspectRatio: canvasRatio,
             background: canvasBg,
             boxShadow: "0 12px 48px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06)",
-            willChange: "auto",
-            containIntrinsicSize: "auto",
           }}
         >
-          {/* Grain overlay */}
           {!hasFrame && background.type === "grain" && (
             <div
               className="absolute inset-0 pointer-events-none opacity-20 z-[1]"
@@ -623,7 +592,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             />
           )}
 
-          {/* Frame padding wrapper */}
           <div
             className="w-full h-full relative"
             style={{
@@ -632,40 +600,73 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                 : "3px",
             }}
           >
-            <div
-              className="w-full h-full overflow-hidden relative"
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
-                gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
-                gap: hasFrame ? "0px" : "3px",
-                borderRadius: hasFrame && layout.frame!.imageRadius ? `${layout.frame!.imageRadius}px` : undefined,
-                boxShadow:
-                  hasFrame && layout.frame!.shadow
-                    ? "0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)"
-                    : undefined,
-                border:
-                  hasFrame && layout.frame!.borderWidth
-                    ? `${layout.frame!.borderWidth}px solid ${layout.frame!.borderColor}`
-                    : undefined,
-              }}
-            >
-              {layout.cells.map((area, i) => (
-                <MemoGridCellWrapper
-                  key={cells[i].id}
-                  cell={cells[i]}
-                  index={i}
-                  area={area}
-                  onImageAdd={handleImageAdd}
-                  onImageRemove={handleImageRemove}
-                  onOffsetChange={handleOffsetChange}
-                  onCellPatch={handleCellPatch}
-                />
-              ))}
-            </div>
+            {hasFreePositions ? (
+              <div className="w-full h-full relative">
+                {layout.cells.map((area, i) => {
+                  const pos = freePositions![i];
+                  if (!pos) return null;
+                  return (
+                    <div
+                      key={cells[i].id}
+                      className="absolute"
+                      style={{
+                        left: `${pos.x}%`,
+                        top: `${pos.y}%`,
+                        width: `${pos.width}%`,
+                        height: `${pos.height}%`,
+                        transform: `rotate(${pos.rotation ?? 0}deg) scale(${pos.scale ?? 1})`,
+                        transformOrigin: "center center",
+                        zIndex: pos.zIndex ?? i,
+                        opacity: pos.opacity ?? 1,
+                        border:
+                          pos.borderWidth && pos.borderWidth > 0
+                            ? `${pos.borderWidth}px solid ${pos.borderColor ?? "#ffffff"}`
+                            : "none",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <MemoGridCellWrapper
+                        cell={cells[i]}
+                        index={i}
+                        area={area}
+                        onImageAdd={handleImageAdd}
+                        onImageRemove={handleImageRemove}
+                        onOffsetChange={handleOffsetChange}
+                        onCellPatch={handleCellPatch}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div
+                className="w-full h-full overflow-hidden relative"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
+                  gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
+                  gap: hasFrame ? "0px" : "3px",
+                  borderRadius: hasFrame && layout.frame!.imageRadius ? `${layout.frame!.imageRadius}px` : undefined,
+                  boxShadow: hasFrame && layout.frame!.shadow ? "0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)" : undefined,
+                  border: hasFrame && layout.frame!.borderWidth ? `${layout.frame!.borderWidth}px solid ${layout.frame!.borderColor}` : undefined,
+                }}
+              >
+                {layout.cells.map((area, i) => (
+                  <MemoGridCellWrapper
+                    key={cells[i].id}
+                    cell={cells[i]}
+                    index={i}
+                    area={area}
+                    onImageAdd={handleImageAdd}
+                    onImageRemove={handleImageRemove}
+                    onOffsetChange={handleOffsetChange}
+                    onCellPatch={handleCellPatch}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Design element overlays */}
           {elements.map((el) => (
             <ElementOverlay
               key={el.id}
@@ -673,32 +674,22 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               selected={el.id === selectedElementId}
               containerRef={gridRef}
               onUpdate={(patch) => updateElement(el.id, patch)}
-              onSelect={() => {
-                setSelectedElementId(el.id);
-                setSelectedTextId(null);
-                setLogoSelected(false);
-              }}
+              onSelect={() => { setSelectedElementId(el.id); setSelectedTextId(null); setLogoSelected(false); }}
               onDelete={() => deleteElement(el.id)}
             />
           ))}
 
-          {/* Logo overlay */}
           {logo && (
             <LogoOverlayComponent
               logo={logo}
               selected={logoSelected}
               containerRef={gridRef}
               onUpdate={handleUpdateLogo}
-              onSelect={() => {
-                setLogoSelected(true);
-                setSelectedTextId(null);
-                setSelectedElementId(null);
-              }}
+              onSelect={() => { setLogoSelected(true); setSelectedTextId(null); setSelectedElementId(null); }}
               onDelete={handleDeleteLogo}
             />
           )}
 
-          {/* Text overlays */}
           {textLayers.map((layer) => (
             <TextOverlay
               key={layer.id}
@@ -706,25 +697,17 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               selected={layer.id === selectedTextId}
               containerRef={gridRef}
               onUpdate={(patch) => updateTextLayer(layer.id, patch)}
-              onSelect={() => {
-                setSelectedTextId(layer.id);
-                setSelectedElementId(null);
-                setLogoSelected(false);
-              }}
+              onSelect={() => { setSelectedTextId(layer.id); setSelectedElementId(null); setLogoSelected(false); }}
               onDelete={() => deleteTextLayer(layer.id)}
             />
           ))}
 
-          {/* Safe area guides */}
           {showSafeArea && <SafeAreaGuides canvasRatio={canvasRatio} />}
         </div>
       </div>
 
-      {/* ─── Tool Panel — anchored above measured bottom-bar height (not hardcoded) ─── */}
-      <div
-        className="fixed left-0 right-0 z-30"
-        style={{ bottom: bottomBarH }}
-      >
+      {/* ─── Tool Panel ─── */}
+      <div className="fixed left-0 right-0 z-30" style={{ bottom: bottomBarH }}>
         {activeTool && (
           <div
             ref={toolPanelRef}
@@ -741,7 +724,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               boxShadow: "0 -8px 24px -12px rgba(0,0,0,0.18)",
             }}
           >
-            {/* Drag handle pill */}
             <div
               className="flex justify-center py-2 border-b border-border/40 cursor-grab active:cursor-grabbing sticky top-0 bg-card z-[1]"
               onTouchStart={handlePanelDragStart}
@@ -752,20 +734,10 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
             </div>
 
             {activeTool === "text" && (
-              <TextToolbar
-                layers={textLayers}
-                selectedId={selectedTextId}
-                onAddLayer={addTextLayer}
-                onUpdateLayer={updateTextLayer}
-              />
+              <TextToolbar layers={textLayers} selectedId={selectedTextId} onAddLayer={addTextLayer} onUpdateLayer={updateTextLayer} />
             )}
             {activeTool === "elements" && (
-              <ElementToolbar
-                elements={elements}
-                selectedId={selectedElementId}
-                onAddElement={addElement}
-                onUpdateElement={updateElement}
-              />
+              <ElementToolbar elements={elements} selectedId={selectedElementId} onAddElement={addElement} onUpdateElement={updateElement} />
             )}
             {activeTool === "background" && !hasFrame && (
               <BackgroundStyler value={background} onChange={setBackground} />
@@ -782,14 +754,13 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         )}
       </div>
 
-      {/* ─── Bottom Bar — auto-height so export row is always visible ─── */}
+      {/* ─── Bottom Bar ─── */}
       <div
         ref={bottomBarRef}
         className="fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60"
         style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom, 8px))" }}
       >
         <div className="max-w-[480px] mx-auto">
-          {/* Tool icons */}
           <div className={cn("flex items-center justify-between px-2", isMobile ? "pt-2" : "pt-1.5")}>
             {toolButtons.map(({ tool, Icon, label }) => (
               <button
@@ -813,7 +784,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
 
             <div className="h-6 w-px bg-border/60" />
 
-            {/* Preview — primary action */}
             <button
               onClick={() => filledCount > 0 && setShowIgPreview(true)}
               disabled={filledCount === 0}
@@ -829,18 +799,13 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                 <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]" />
               )}
               <Instagram className={isMobile ? "h-5 w-5" : "h-[18px] w-[18px]"} />
-              <span
-                className={cn(
-                  "tracking-wider uppercase font-semibold text-primary",
-                  isMobile ? "text-[9px]" : "text-[8px]",
-                )}
-              >
+              <span className={cn("tracking-wider uppercase font-semibold text-primary", isMobile ? "text-[9px]" : "text-[8px]")}>
                 Preview
               </span>
             </button>
           </div>
 
-          {/* Export row */}
+          {/* ─── Export row — freePositions wired to both exporters ─── */}
           <div className={cn("flex items-center justify-end gap-1.5 px-3 pt-1 pb-1")}>
             <CarouselSliceExporter cells={cells} format={format} />
             <DownloadGridButton
@@ -852,12 +817,12 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               logo={logo}
               background={background}
               format={format}
+              freePositions={freePositions}
             />
           </div>
         </div>
       </div>
 
-      {/* Instagram Preview Modal */}
       {showIgPreview && (
         <InstagramCarouselPreview
           images={cells.filter((c) => c.imageUrl).map((c) => c.imageUrl!)}

@@ -77,21 +77,21 @@ export function CommentsViewer({ eventId }: { eventId: string }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <Badge variant="secondary" className="text-[10px]">{comments.length} comments</Badge>
+        <Badge variant="outline" className="text-[10px]">{comments.length} comments</Badge>
         <div className="relative flex-1 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search comments..." className="pl-8 h-8 text-[12px] bg-card" />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search comments..." className="pl-8 h-8 text-[12px] bg-transparent" />
         </div>
       </div>
 
       <div className="space-y-2">
         {filtered.map(c => (
-          <div key={c.id} className="bg-card border border-border rounded-lg p-3 flex gap-3">
+          <div key={c.id} className="bg-transparent border border-ink/20 p-3 flex gap-3">
             {c.photo_url && (
-              <img src={c.photo_url} alt="" className="h-16 w-16 object-cover rounded-lg shrink-0" loading="lazy" decoding="async" />
+              <img src={c.photo_url} alt="" className="h-16 w-16 object-cover shrink-0" loading="lazy" decoding="async" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="font-serif text-sm font-medium text-foreground">{c.guest_name || 'Guest'}</p>
+              <p className="font-serif text-sm font-light text-foreground">{c.guest_name || 'Guest'}</p>
               <p className="text-sm text-foreground mt-0.5">{c.comment}</p>
               <div className="flex items-center gap-2 mt-1">
                 {c.photo_filename && <p className="text-[10px] text-muted-foreground/50">{c.photo_filename}</p>}
@@ -119,11 +119,11 @@ export function CommentsViewer({ eventId }: { eventId: string }) {
 
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent className="sm:max-w-xs">
-          <DialogHeader><DialogTitle className="font-serif">Delete Comment?</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-serif font-light italic">Delete Comment?</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">This action cannot be undone.</p>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+            <Button variant="outline" onClick={confirmDelete}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

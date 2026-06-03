@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EXPORT_SIZES, type ExportSize, type GridLayout, type GridCellData, type CanvasFormat, CANVAS_FORMATS } from './types';
+import { EXPORT_SIZES, type ExportSize, type GridLayout, type GridCellData, type CanvasFormat, type FreePosition, CANVAS_FORMATS } from './types';
 import type { TextLayer } from './text-overlay-types';
 import type { DesignElement } from './element-types';
 import type { LogoLayer } from './LogoOverlay';
@@ -24,9 +24,20 @@ interface Props {
   logo?: LogoLayer | null;
   background?: BackgroundStyle;
   format?: CanvasFormat;
+  freePositions?: FreePosition[] | null;  // ← new
 }
 
-export default function DownloadGridButton({ gridRef, cells, layout, textLayers = [], elements = [], logo = null, background, format }: Props) {
+export default function DownloadGridButton({
+  gridRef,
+  cells,
+  layout,
+  textLayers = [],
+  elements = [],
+  logo = null,
+  background,
+  format,
+  freePositions = null,  // ← new
+}: Props) {
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -42,7 +53,11 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
       const progressTimer = setInterval(() => {
         setProgress(prev => Math.min(prev + 8, 75));
       }, 200);
-      const canvas = await renderGridToCanvas(layout, cells, exportW, exportH, textLayers, elements, logo, background);
+      const canvas = await renderGridToCanvas(
+        layout, cells, exportW, exportH,
+        textLayers, elements, logo, background,
+        freePositions,  // ← pass through
+      );
       clearInterval(progressTimer);
       setProgress(85);
       const link = document.createElement('a');
@@ -67,7 +82,11 @@ export default function DownloadGridButton({ gridRef, cells, layout, textLayers 
       const progressTimer = setInterval(() => {
         setProgress(prev => Math.min(prev + 8, 75));
       }, 200);
-      const canvas = await renderGridToCanvas(layout, cells, activeFormat.exportWidth, activeFormat.exportHeight, textLayers, elements, logo, background);
+      const canvas = await renderGridToCanvas(
+        layout, cells, activeFormat.exportWidth, activeFormat.exportHeight,
+        textLayers, elements, logo, background,
+        freePositions,  // ← pass through
+      );
       clearInterval(progressTimer);
       setProgress(85);
       const link = document.createElement('a');

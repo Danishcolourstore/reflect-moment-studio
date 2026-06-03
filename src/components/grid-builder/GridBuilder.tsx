@@ -2,8 +2,9 @@ import { useState, lazy, Suspense } from 'react';
 import { ArrowLeft, Grid3X3, Sparkles, MessageSquare, LayoutGrid } from 'lucide-react';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
 import { useMergedGridLayouts } from '@/hooks/use-grid-templates';
-import type { GridLayout } from './types';
+import type { GridLayout, FreePosition } from './types';
 import type { TextLayer } from './text-overlay-types';
+import type { BackgroundStyle } from './BackgroundStyler';
 import GridLayoutSelector from './GridLayoutSelector';
 import GridEditor from './GridEditor';
 const GridInspireModal = lazy(() => import('./GridInspireModal'));
@@ -18,6 +19,8 @@ interface Props {
 export default function GridBuilder({ onClose }: Props) {
   const [selectedLayout, setSelectedLayout] = useState<GridLayout | null>(null);
   const [initialTextLayers, setInitialTextLayers] = useState<TextLayer[]>([]);
+  const [initialBackground, setInitialBackground] = useState<BackgroundStyle | null>(null);
+  const [initialFreePositions, setInitialFreePositions] = useState<FreePosition[] | null>(null);
   const [showInspire, setShowInspire] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
   const [showAISuggest, setShowAISuggest] = useState(false);
@@ -25,12 +28,32 @@ export default function GridBuilder({ onClose }: Props) {
   const isMobile = device.isPhone;
   const { layouts: mergedLayouts } = useMergedGridLayouts();
 
+  const handleInspireApply = (
+    layout: GridLayout,
+    textLayers: TextLayer[],
+    background?: BackgroundStyle,
+    freePositions?: FreePosition[],
+  ) => {
+    setShowInspire(false);
+    setInitialTextLayers(textLayers);
+    setInitialBackground(background ?? null);
+    setInitialFreePositions(freePositions ?? null);
+    setSelectedLayout(layout);
+  };
+
   if (selectedLayout) {
     return (
       <GridEditor
         layout={selectedLayout}
-        onBack={() => { setSelectedLayout(null); setInitialTextLayers([]); }}
+        onBack={() => {
+          setSelectedLayout(null);
+          setInitialTextLayers([]);
+          setInitialBackground(null);
+          setInitialFreePositions(null);
+        }}
         initialTextLayers={initialTextLayers}
+        initialBackground={initialBackground}
+        initialFreePositions={initialFreePositions}
       />
     );
   }
@@ -40,11 +63,7 @@ export default function GridBuilder({ onClose }: Props) {
       <Suspense fallback={null}>
         <GridInspireModal
           onClose={() => setShowInspire(false)}
-          onLayoutGenerated={(layout, textLayers) => {
-            setShowInspire(false);
-            setInitialTextLayers(textLayers);
-            setSelectedLayout(layout);
-          }}
+          onLayoutGenerated={handleInspireApply}
         />
       </Suspense>
     );
@@ -106,7 +125,6 @@ export default function GridBuilder({ onClose }: Props) {
         "flex-1 pt-4 pb-24 lg:pb-12",
         isMobile ? "px-3" : "px-4 sm:px-6 lg:px-8 sm:pt-6"
       )}>
-        {/* AI panels */}
         {showAISuggest && (
           <div className="mb-4 animate-fade-in">
             <AILayoutSuggestions

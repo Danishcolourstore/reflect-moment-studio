@@ -263,7 +263,7 @@ export function StoryBookLayout({
         style={{ height: '100vh', minHeight: '600px' }}
         onClick={() => onOpenLightbox?.(heroPhoto.id)}
       >
-        <div className="absolute inset-0 transition-transform duration-[8s] ease-out group-hover:scale-[1.04]">
+        <div className="absolute inset-0 transition-transform [transition-duration:8s] ease-out group-hover:scale-[1.04]">
           <ProgressiveImage src={heroPhoto.url} alt={heroPhoto.file_name || ''} className="h-full w-full object-cover" />
         </div>
 

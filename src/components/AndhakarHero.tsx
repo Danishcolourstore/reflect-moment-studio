@@ -33,43 +33,76 @@ export function AndhakarHero({
   })();
 
   return (
-    <div className="relative h-screen overflow-hidden" style={{ backgroundColor: '#0D0D0D' }}>
+    <div
+      style={{
+        position: "relative",
+        height: "100vh",
+        overflow: "hidden",
+        backgroundColor: "#0D0D0D",
+      }}
+    >
       {/* Cover image */}
       {coverUrl ? (
         <img
           src={coverUrl}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ opacity: 0.7 }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: 0.7,
+          }}
         />
       ) : (
-        <div className="absolute inset-0" style={{ backgroundColor: '#0D0D0D' }} />
+        <div style={{ position: "absolute", inset: 0, backgroundColor: "#0D0D0D" }} />
       )}
 
-      {/* Dark cinematic overlay */}
+      {/* Dark overlay */}
       <div
-        className="absolute inset-0"
-        style={{ background: 'rgba(0, 0, 0, 0.35)' }}
-      />
-
-      {/* Gradient fade: dark → grey at bottom */}
-      <div
-        className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to bottom, #0D0D0D 0%, transparent 30%, transparent 50%, #2C2C2C 75%, #8B8B8B 95%, #0D0D0D 100%)',
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.35)",
         }}
       />
 
-      {/* Center-aligned content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 px-6 text-center">
+      {/* Gradient fade */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to bottom, #0D0D0D 0%, transparent 30%, transparent 50%, #2C2C2C 75%, #8B8B8B 95%, #0D0D0D 100%)",
+        }}
+      />
+
+      {/* Content */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          paddingBottom: 96,
+          paddingLeft: 24,
+          paddingRight: 24,
+          textAlign: "center",
+        }}
+      >
         {coupleName && (
           <h1
-            className="text-4xl md:text-6xl leading-tight"
             style={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 700,
-              color: '#C8C8C8',
-              letterSpacing: '-0.01em',
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontSize: "clamp(32px, 6vw, 64px)",
+              fontWeight: 300,
+              fontStyle: "italic",
+              color: "#C8C8C8",
+              letterSpacing: "-0.01em",
+              lineHeight: 1.05,
+              margin: 0,
             }}
           >
             {coupleName}
@@ -77,14 +110,15 @@ export function AndhakarHero({
         )}
 
         <p
-          className="mt-3"
           style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '11px',
-            fontWeight: 500,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: '#8B8B8B',
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 11,
+            fontWeight: 300,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "#8B8B8B",
+            marginTop: 12,
+            marginBottom: 0,
           }}
         >
           {formattedDate}
@@ -92,12 +126,13 @@ export function AndhakarHero({
 
         {subtitle && (
           <p
-            className="mt-2"
             style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '13px',
-              fontWeight: 400,
-              color: '#8B8B8B',
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12,
+              fontWeight: 300,
+              color: "#8B8B8B",
+              marginTop: 8,
+              marginBottom: 0,
             }}
           >
             {subtitle}
@@ -106,36 +141,48 @@ export function AndhakarHero({
 
         <button
           onClick={onScrollToGallery}
-          className="mt-8 px-8 py-3 rounded-full transition-all duration-200"
           style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '11px',
-            fontWeight: 500,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: '#1A1A1A',
-            backgroundColor: 'transparent',
-            border: '1px solid #D4D4D4',
+            marginTop: 32,
+            padding: "12px 32px",
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 11,
+            fontWeight: 300,
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
+            color: "#C8C8C8",
+            backgroundColor: "transparent",
+            border: "1px solid rgba(212,212,212,0.4)",
+            cursor: "pointer",
+            transition: "border-color 200ms ease",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(212, 212, 212, 0.15)';
-            e.currentTarget.style.color = '#C8C8C8';
+            e.currentTarget.style.borderColor = "rgba(212,212,212,0.8)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#1A1A1A';
+            e.currentTarget.style.borderColor = "rgba(212,212,212,0.4)";
           }}
         >
-          {buttonLabel || 'View Gallery'}
+          {buttonLabel || "View Gallery"}
         </button>
       </div>
 
+      {/* Scroll indicator */}
       <button
         onClick={onScrollToGallery}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce transition"
-        style={{ color: 'rgba(200, 200, 200, 0.3)' }}
+        style={{
+          position: "absolute",
+          bottom: 32,
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "rgba(200,200,200,0.3)",
+          animation: "bounce 1s infinite",
+          padding: 0,
+        }}
       >
-        <ChevronDown className="h-8 w-8" />
+        <ChevronDown size={32} strokeWidth={1} />
       </button>
     </div>
   );

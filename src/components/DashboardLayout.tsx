@@ -1,11 +1,11 @@
-import { ReactNode, useState, useEffect, useRef } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewMode } from "@/lib/ViewModeContext";
 import {
-  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu, Sparkles, Grid3X3,
+  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu, Grid3X3,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
@@ -33,12 +33,11 @@ interface Profile {
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  /** When true on mobile, header becomes a transparent overlay and content goes edge-to-edge */
   immersive?: boolean;
 }
 
 export function DashboardLayout({ children, immersive = false }: DashboardLayoutProps) {
-  const { user, signOut, studioName: authStudioName } = useAuth();
+  const { user, signOut } = useAuth();
   const { isDesktop, isMobile } = useViewMode();
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,23 +69,17 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
       });
   }, [user, location.pathname, navigate]);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
-  };
-
-  const showSidebar = isDesktop;
-  const showBottomNav = isMobile;
+  const handleSignOut = async () => { await signOut(); navigate("/login"); };
 
   const sectionLabel = (text: string) => (
     <div
       style={{
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 10,
-        fontWeight: 400,
+        fontWeight: 300,
         letterSpacing: "0.15em",
         textTransform: "uppercase",
-        color: "hsl(35, 4%, 56%)",
+        color: "var(--ink-whisper)",
         padding: "0 20px",
         marginTop: 40,
         marginBottom: 8,
@@ -102,22 +95,23 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
       to={item.url}
       end={item.end}
       className="flex items-center gap-3 transition-colors duration-200"
-      activeClassName="!border-l-2"
+      activeClassName="!border-l-[#B8953F] !text-[var(--ink)]"
       style={{
         fontFamily: "'DM Sans', sans-serif",
-        fontSize: 13,
-        letterSpacing: "0.08em",
+        fontSize: 11,
+        fontWeight: 300,
+        letterSpacing: "0.15em",
         textTransform: "uppercase",
         padding: "10px 20px",
         display: "flex",
         alignItems: "center",
         gap: 10,
         textDecoration: "none",
-        borderLeft: "2px solid transparent",
-        color: "hsl(35, 4%, 56%)",
+        borderLeft: "1px solid transparent",
+        color: "var(--ink-muted)",
       }}
     >
-      <item.icon size={17} strokeWidth={1.5} />
+      <item.icon size={15} strokeWidth={1.5} />
       <span>{item.title}</span>
     </NavLink>
   );
@@ -125,15 +119,15 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
   return (
     <EntiranProvider>
       <div
-        className="min-h-screen"
         style={{
-          background: isImmersiveMobile ? "#0a0a0b" : "hsl(45, 14%, 97%)",
+          background: isImmersiveMobile ? "#0a0a0b" : "var(--paper, #FAFAF8)",
+          minHeight: "100vh",
           margin: 0,
           padding: 0,
           overflowX: "hidden",
         }}
       >
-        {/* ── Mobile Top Bar ── */}
+        {/* Mobile Top Bar */}
         {isMobile && (
           <header
             style={{
@@ -150,46 +144,49 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
               paddingTop: "env(safe-area-inset-top)",
               background: isImmersiveMobile
                 ? (scrolled ? "rgba(10,10,11,0.88)" : "transparent")
-                : (scrolled ? "hsla(45, 14%, 97%, 0.92)" : "hsla(45, 14%, 97%, 0.9)"),
+                : (scrolled ? "rgba(250,250,248,0.92)" : "rgba(250,250,248,0.9)"),
               backdropFilter: scrolled ? "blur(16px)" : "none",
               WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-              borderBottom: isImmersiveMobile
-                ? "none"
-                : (scrolled ? "1px solid hsl(37, 10%, 92%)" : "none"),
-              transition: "background 0.4s ease, backdrop-filter 0.4s ease",
+              borderBottom: isImmersiveMobile ? "none" : (scrolled ? "1px solid var(--rule)" : "none"),
+              transition: "background 0.4s ease",
             }}
           >
             <button
               onClick={drawer.toggle}
               style={{
-                background: "none", border: "none", cursor: "pointer",
-                padding: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                minWidth: 44, minHeight: 44,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: 44,
+                minHeight: 44,
               }}
               aria-label="Menu"
             >
-              <Menu style={{
-                width: 24, height: 24,
-                color: "hsl(48, 7%, 10%)",
-              }} strokeWidth={2} />
+              <Menu size={22} strokeWidth={1.5} style={{ color: "var(--ink)" }} />
             </button>
 
-            <span style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "1.15rem", fontWeight: 600,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              color: "hsl(48, 7%, 10%)",
-            }}>
-              Mirror AI
+            <span
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: 18,
+                fontWeight: 300,
+                fontStyle: "italic",
+                color: "var(--ink)",
+              }}
+            >
+              Mirror
             </span>
 
-            <div style={{ width: 44, minHeight: 44 }} />
+            <div style={{ width: 44 }} />
           </header>
         )}
 
-        {/* ── Sidebar (Desktop) ── */}
-        {showSidebar && (
+        {/* Sidebar (Desktop) */}
+        {isDesktop && (
           <aside
             style={{
               position: "fixed",
@@ -198,8 +195,8 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
               zIndex: 30,
               height: "100vh",
               width: 200,
-              background: "hsl(0, 0%, 100%)",
-              borderRight: "1px solid hsl(37, 10%, 92%)",
+              background: "var(--surface)",
+              borderRight: "1px solid var(--rule)",
               display: "flex",
               flexDirection: "column",
             }}
@@ -208,52 +205,59 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
               <span
                 style={{
                   fontFamily: "'Cormorant Garamond', Georgia, serif",
-                  fontSize: 18, fontWeight: 400, letterSpacing: "0.05em",
-                  color: "hsl(48, 7%, 10%)",
+                  fontSize: 20,
+                  fontWeight: 300,
+                  fontStyle: "italic",
+                  color: "var(--ink)",
                 }}
               >
-                MirrorAI
+                Mirror
               </span>
             </div>
             <nav style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              {sectionLabel("STUDIO")}
+              {sectionLabel("Studio")}
               {STUDIO_ITEMS.map(navItem)}
-              {sectionLabel("ACCOUNT")}
+              {sectionLabel("Account")}
               {ACCOUNT_ITEMS.map(navItem)}
             </nav>
             <div style={{ padding: "16px 20px 24px" }}>
               <button
                 onClick={handleSignOut}
                 style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 8,
-                  fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                  letterSpacing: "0.1em", textTransform: "uppercase",
-                  color: "hsl(35, 4%, 56%)", padding: "8px 0",
-                  transition: "color 0.2s",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 11,
+                  fontWeight: 300,
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  color: "var(--ink-muted)",
+                  padding: 0,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(48, 7%, 10%)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(35, 4%, 56%)")}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-muted)")}
               >
-                <LogOut size={15} strokeWidth={1.5} />
+                <LogOut size={14} strokeWidth={1.5} />
                 Sign Out
               </button>
             </div>
           </aside>
         )}
 
-        {/* ── Main Content ── */}
+        {/* Main Content */}
         <main
           style={{
             minHeight: isImmersiveMobile ? "100dvh" : "100vh",
-            marginLeft: showSidebar ? 200 : 0,
+            marginLeft: isDesktop ? 200 : 0,
             paddingTop: isImmersiveMobile ? 0 : (isMobile ? 52 : 0),
-            paddingBottom: showBottomNav ? (isImmersiveMobile ? 0 : 80) : 0,
+            paddingBottom: isMobile ? (isImmersiveMobile ? 0 : 80) : 0,
           }}
         >
-          {isImmersiveMobile ? (
-            children
-          ) : (
+          {isImmersiveMobile ? children : (
             <div
               style={{
                 maxWidth: 1200,
@@ -266,7 +270,7 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
           )}
         </main>
 
-        {showBottomNav && <MobileBottomNav />}
+        {isMobile && <MobileBottomNav />}
         <DrawerMenu open={drawer.open} onClose={drawer.close} />
       </div>
     </EntiranProvider>

@@ -1085,8 +1085,14 @@ export default function ClientGalleryExperience() {
     const style = document.createElement("style");
     style.textContent = galleryStyles;
     document.head.appendChild(style);
+    // Safety: clear any stale body overflow lock left by a previous modal/lightbox
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+    (document.body.style as any).touchAction = "auto";
     return () => {
       document.head.removeChild(style);
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     };
   }, []);
 

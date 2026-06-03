@@ -2,58 +2,42 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}"
+  ],
   prefix: "",
   theme: {
-    /* ─── UI PARAMETER SYSTEM v2 — Token-locked scales ────────────────────
-       Spacing: 4px base (v1 stood — production-correct).
-       Radius: 4-step token system (sharp/soft/rounded/pill) per §5.
-       Shadow: 4-step taxonomy (border/lift/float/modal) per §5/§9.
-       Drift dies at the build.
-       ──────────────────────────────────────────────────────────────────── */
     spacing: {
-      0: "0",
-      px: "1px",
-      0.5: "2px",
-      1: "4px",
-      2: "8px",
-      3: "12px",
-      4: "16px",
-      5: "20px",
-      6: "24px",
-      7: "28px",
-      8: "32px",
-      9: "36px",
-      10: "40px",
-      11: "44px",
-      12: "48px",
-      14: "56px",
-      16: "64px",
-      20: "80px",
-      24: "96px",
+      0: "0", px: "1px", 0.5: "2px", 1: "4px", 2: "8px",
+      3: "12px", 4: "16px", 5: "20px", 6: "24px", 7: "28px",
+      8: "32px", 9: "36px", 10: "40px", 11: "44px", 12: "48px",
+      14: "56px", 16: "64px", 20: "80px", 24: "96px",
     },
     borderRadius: {
       none: "0",
-      DEFAULT: "var(--radius-sharp)",     // 2px — primary surfaces
-      sharp: "var(--radius-sharp)",       // 2px — cards, inputs, primary buttons
-      sm: "var(--radius-sharp)",
-      soft: "var(--radius-soft)",         // 6px — chips, tags, badges
-      md: "var(--radius-soft)",
-      rounded: "var(--radius-rounded)",   // 12px — mobile bottom sheets
-      lg: "var(--radius-rounded)",
-      xl: "var(--radius-rounded)",
-      "2xl": "var(--radius-rounded)",
-      "3xl": "var(--radius-rounded)",
-      pill: "var(--radius-pill)",         // 999px — status dots, toggles
-      full: "var(--radius-pill)",
+      DEFAULT: "0",
+      sharp: "0",
+      sm: "0",
+      soft: "0",
+      md: "0",
+      rounded: "0",
+      lg: "0",
+      xl: "0",
+      "2xl": "0",
+      "3xl": "0",
+      pill: "999px",
+      full: "999px",
     },
     boxShadow: {
       none: "none",
       DEFAULT: "var(--shadow-border)",
-      border: "var(--shadow-border)",     // inset 1px — replaces border on cards
-      lift: "var(--shadow-lift)",         // hover state
-      float: "var(--shadow-float)",       // popovers, floating panels
-      modal: "var(--shadow-modal)",       // modal dialogs
+      border: "var(--shadow-border)",
+      lift: "var(--shadow-lift)",
+      float: "var(--shadow-float)",
+      modal: "var(--shadow-modal)",
       sm: "var(--shadow-border)",
       md: "var(--shadow-lift)",
       lg: "var(--shadow-float)",
@@ -64,34 +48,40 @@ export default {
     container: {
       center: true,
       padding: "20px",
-      screens: {
-        "2xl": "1400px",
-      },
+      screens: { "2xl": "1400px" },
     },
     extend: {
       fontFamily: {
-        sans: ['"DM Sans"', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
         display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
         serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       fontSize: {
-        // v2 §2 size scale
         "2xs": ["10px", { lineHeight: "1.4" }],
-        xs: ["12px", { lineHeight: "1.4" }],
-        sm: ["13px", { lineHeight: "1.5" }],
-        base: ["15px", { lineHeight: "1.55" }],
-        md: ["17px", { lineHeight: "1.5" }],
-        lg: ["22px", { lineHeight: "1.3", letterSpacing: "-0.005em" }],
-        xl: ["28px", { lineHeight: "1.15", letterSpacing: "-0.01em" }],
-        "2xl": ["36px", { lineHeight: "1.1", letterSpacing: "-0.01em" }],
-        "3xl": ["48px", { lineHeight: "1.05", letterSpacing: "-0.015em" }],
-        "4xl": ["64px", { lineHeight: "1.0", letterSpacing: "-0.02em" }],
+        xs:   ["11px", { lineHeight: "1.4" }],
+        sm:   ["12px", { lineHeight: "1.5" }],
+        base: ["14px", { lineHeight: "1.55" }],
+        md:   ["16px", { lineHeight: "1.5" }],
+        lg:   ["18px", { lineHeight: "1.3" }],
+        xl:   ["24px", { lineHeight: "1.15", letterSpacing: "-0.01em" }],
+        "2xl":["32px", { lineHeight: "1.1",  letterSpacing: "-0.01em" }],
+        "3xl":["44px", { lineHeight: "1.05", letterSpacing: "-0.015em" }],
+        "4xl":["56px", { lineHeight: "1.0",  letterSpacing: "-0.02em" }],
       },
       colors: {
+        ivory:   '#FAFAF8',
+        noir:    '#0E0D0B',
+        ink:     '#111111',
+        gold:    '#B8953F',
+        canvas:  '#F5F0E8',
+        surface: '#EEEBE4',
+        muted2:  '#6B6860',
+        success: '#7C9A6B',
+        error:   '#A8615B',
         border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        input:  "hsl(var(--input))",
+        ring:   "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
@@ -134,14 +124,11 @@ export default {
         },
       },
       transitionTimingFunction: {
-        "v2-press": "cubic-bezier(0.4, 0, 0.2, 1)",
-        "v2-spring": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "v2-press": "cubic-bezier(0.4,0,0.2,1)",
+        "v2-spring": "cubic-bezier(0.32,0.72,0,1)",
       },
       transitionDuration: {
-        instant: "80ms",
-        fast: "160ms",
-        base: "240ms",
-        slow: "340ms",
+        instant: "80ms", fast: "160ms", base: "240ms", slow: "340ms",
       },
       keyframes: {
         "accordion-down": {

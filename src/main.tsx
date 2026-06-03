@@ -2,10 +2,14 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// Always white editorial theme — remove any dark classes
+// Theme: respect saved preference (light default, dark opt-in)
 document.documentElement.classList.remove("dark", "light", "editorial", "classic", "versace", "darkroom", "accent-red");
-localStorage.setItem('theme', 'light');
-localStorage.setItem('mirrorai-theme', 'light');
+const savedTheme = localStorage.getItem('mirrorai-theme');
+if (savedTheme === 'dark') {
+  document.documentElement.classList.add('dark');
+} else {
+  localStorage.setItem('mirrorai-theme', 'light');
+}
 
 // PWA service worker — only in production, never in iframe/preview
 const isInIframe = (() => {

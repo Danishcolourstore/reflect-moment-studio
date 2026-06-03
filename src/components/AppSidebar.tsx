@@ -1,11 +1,6 @@
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/lib/auth";
 
-/**
- * AppSidebar — Pixieset-Minimal.
- * 200px fixed. Text-only. No icons. Active row gets --wash-strong + ink + 500.
- */
-
 const STUDIO_ITEMS = [
   { title: "Events", url: "/dashboard/events" },
   { title: "Gallery", url: "/home", end: true },
@@ -25,8 +20,8 @@ export function AppSidebar() {
       style={{
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 10,
-        fontWeight: 500,
-        letterSpacing: "0.12em",
+        fontWeight: 300,
+        letterSpacing: "0.15em",
         textTransform: "uppercase",
         color: "var(--ink-whisper)",
         padding: "0 24px",
@@ -59,7 +54,8 @@ export function AppSidebar() {
           style={{
             fontFamily: "'Cormorant Garamond', Georgia, serif",
             fontSize: 22,
-            fontWeight: 400,
+            fontWeight: 300,
+            fontStyle: "italic",
             letterSpacing: "0",
             color: "var(--ink)",
           }}
@@ -76,11 +72,13 @@ export function AppSidebar() {
             to={item.url}
             end={item.end}
             className="transition-colors duration-150"
-            activeClassName="!bg-[var(--wash-strong)] !text-[var(--ink)] !font-medium"
+            activeClassName="!border-l-[1px] !border-l-[#B8953F] !text-[var(--ink)] !pl-[23px]"
             style={{
               fontFamily: "'DM Sans', sans-serif",
-              fontSize: 13,
-              fontWeight: 400,
+              fontSize: 11,
+              fontWeight: 300,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
               padding: "10px 24px",
               color: "var(--ink-muted)",
               textDecoration: "none",
@@ -97,11 +95,13 @@ export function AppSidebar() {
             key={item.url}
             to={item.url}
             className="transition-colors duration-150"
-            activeClassName="!bg-[var(--wash-strong)] !text-[var(--ink)] !font-medium"
+            activeClassName="!border-l-[1px] !border-l-[#B8953F] !text-[var(--ink)] !pl-[23px]"
             style={{
               fontFamily: "'DM Sans', sans-serif",
-              fontSize: 13,
-              fontWeight: 400,
+              fontSize: 11,
+              fontWeight: 300,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
               padding: "10px 24px",
               color: "var(--ink-muted)",
               textDecoration: "none",
@@ -121,8 +121,10 @@ export function AppSidebar() {
             border: "none",
             cursor: "pointer",
             fontFamily: "'DM Sans', sans-serif",
-            fontSize: 12,
-            fontWeight: 400,
+            fontSize: 11,
+            fontWeight: 300,
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
             color: "var(--ink-muted)",
             padding: 0,
           }}

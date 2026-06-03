@@ -264,7 +264,10 @@ function PhotoCard({
 
 /* ── Main Component ── */
 const PublicGallery = () => {
-  const { slug } = useParams<{ slug: string }>();
+  // Route params differ by path: /g/:eventSlug vs /event/:slug vs /gallery/:slug.
+  // Accept either so all share links resolve to the same gallery.
+  const { slug: slugParam, eventSlug } = useParams<{ slug?: string; eventSlug?: string }>();
+  const slug = slugParam ?? eventSlug;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -400,6 +403,17 @@ const PublicGallery = () => {
 
   useEffect(() => { fetchGallery(); }, [fetchGallery]);
   useEffect(() => { if (event?.id) trackView(); }, [event?.id, trackView]);
+
+  // Safety: clear any stale body-overflow lock left by a previously-mounted lightbox/modal
+  useEffect(() => {
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+    (document.body.style as any).touchAction = "auto";
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, []);
 
   /* ── Sticky navbar observer ── */
   useEffect(() => {

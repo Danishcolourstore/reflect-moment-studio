@@ -34,15 +34,16 @@ export function HamburgerButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="cursor-pointer z-50"
       style={{
         background: "none",
         border: "none",
+        cursor: "pointer",
         fontFamily: "'DM Sans', sans-serif",
         fontSize: 11,
-        fontWeight: 500,
+        fontWeight: 300,
+        letterSpacing: "0.15em",
+        textTransform: "uppercase",
         color: INK,
-        letterSpacing: "0.2em",
       }}
       aria-label="Menu"
     >
@@ -71,28 +72,17 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  const handleNav = (path: string) => {
-    navigate(path);
-    onClose();
-  };
+  const handleNav = (path: string) => { navigate(path); onClose(); };
 
   const handleSignOut = async () => {
     await signOut();
@@ -120,7 +110,6 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
           transition: `opacity 280ms ${CUBIC}`,
         }}
       />
-
       <aside
         style={{
           position: "fixed",
@@ -151,13 +140,14 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
           <span
             style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 12,
-              letterSpacing: "0.18em",
-              color: WHISPER,
-              fontWeight: 400,
+              fontSize: 18,
+              fontWeight: 300,
+              fontStyle: "italic",
+              letterSpacing: "0.02em",
+              color: "var(--ink)",
             }}
           >
-            MirrorAI
+            Mirror
           </span>
           <button
             onClick={onClose}
@@ -165,10 +155,10 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               background: "none",
               border: "none",
               cursor: "pointer",
-              fontSize: 16,
               color: WHISPER,
-              lineHeight: 1,
               padding: 0,
+              display: "flex",
+              alignItems: "center",
             }}
             aria-label="Close menu"
           >
@@ -190,18 +180,11 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               return (
                 <div
                   key={`div-${i}`}
-                  style={{
-                    height: 1,
-                    background: RULE,
-                    marginTop: 14,
-                    marginBottom: 14,
-                  }}
+                  style={{ height: 1, background: RULE, marginTop: 14, marginBottom: 14 }}
                 />
               );
             }
-
             const active = isActive(item.path);
-
             return (
               <button
                 key={item.path}
@@ -216,18 +199,14 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
                   fontFamily: "'Cormorant Garamond', serif",
                   fontSize: 28,
                   lineHeight: 1.55,
-                  fontWeight: 400,
-                  fontStyle: "normal",
+                  fontWeight: 300,
+                  fontStyle: "italic",
                   color: active ? INK : MUTED,
                   padding: 0,
-                  transition: `color 180ms ease`,
+                  transition: "color 180ms ease",
                 }}
-                onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.color = INK;
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.color = MUTED;
-                }}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = INK; }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = MUTED; }}
               >
                 {item.label}
               </button>
@@ -253,12 +232,12 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
-              letterSpacing: "0.14em",
-              color: INK,
+              fontWeight: 300,
+              letterSpacing: "0.15em",
               textTransform: "uppercase",
-              fontWeight: 400,
+              color: INK,
               padding: 0,
-              marginBottom: 8,
+              marginBottom: 12,
             }}
           >
             Settings
@@ -272,8 +251,10 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif",
               fontSize: 11,
+              fontWeight: 300,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
               color: WHISPER,
-              fontWeight: 400,
               padding: 0,
             }}
           >
