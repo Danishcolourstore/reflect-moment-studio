@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { DashboardLayout } from "@/components/DashboardLayout";
+import { StudioLayout } from "@/components/studio/StudioLayout";
 import { PageError, PageSkeleton } from "@/components/PageStates";
 import { useFavoritesSubmissions } from "@/hooks/use-favorites-submissions";
 
@@ -119,7 +119,7 @@ export default function Audience() {
   const { submissions, loading, error, reload } = useFavoritesSubmissions();
 
   return (
-    <DashboardLayout>
+    <StudioLayout>
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 4px" }}>
         <h1
           style={{
@@ -161,6 +161,6 @@ export default function Audience() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </StudioLayout>
   );
 }

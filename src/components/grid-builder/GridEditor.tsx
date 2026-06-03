@@ -38,6 +38,7 @@ import SmartFillUploader from "./SmartFillUploader";
 import DownloadGridButton from "./DownloadGridButton";
 import CarouselSliceExporter from "./CarouselSliceExporter";
 import { cn } from "@/lib/utils";
+import { ScrollableTabBar } from "@/components/studio/ScrollableTabBar";
 import { memo } from "react";
 import {
   AlertDialog,
@@ -549,27 +550,12 @@ export default function GridEditor({
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/60">
         {wizardTabs && onWizardTab && (
-          <div className="relative border-b border-grid-border bg-grid-noir">
-            <div className="grid-tabs-scroll flex">
-              {wizardTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => onWizardTab(tab.id)}
-                  className={cn(
-                    'inline-flex flex-shrink-0 min-w-fit items-center px-4 py-3 font-sans text-[11px] uppercase tracking-[0.1em]',
-                    tab.active
-                      ? 'border-b border-grid-ivory text-grid-ivory'
-                      : 'border-b border-transparent text-[#555555]',
-                  )}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <div
-              className="pointer-events-none absolute right-0 top-0 h-full w-10"
-              style={{ background: 'linear-gradient(to left, #000000, transparent)' }}
+          <div style={{ ['--bg-primary' as string]: '#000000', ['--border-default' as string]: '#222222' }}>
+            <ScrollableTabBar
+              variant="dark"
+              tabs={wizardTabs.map((tab) => ({ id: tab.id, label: tab.label }))}
+              activeId={wizardTabs.find((t) => t.active)?.id ?? wizardTabs[0].id}
+              onChange={onWizardTab}
             />
           </div>
         )}

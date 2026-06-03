@@ -1,110 +1,61 @@
 import { ReactNode, useState } from 'react';
-import { Plus, X, Upload, Image, Palette, Zap } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useNavigate } from 'react-router-dom';
-
-interface FABAction {
-  icon: ReactNode;
-  label: string;
-  onClick?: () => void;
-  href?: string;
-  variant?: 'default' | 'primary' | 'accent';
-}
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useViewMode } from '@/lib/ViewModeContext';
 
 interface FloatingActionButtonProps {
   className?: string;
 }
 
+function shouldShowFab(pathname: string): boolean {
+  if (pathname.startsWith('/studio/storybook')) return true;
+  if (/^\/studio\/weddings\/[^/]+$/.test(pathname)) return true;
+  return false;
+}
+
 /**
- * Mobile floating action button with expandable quick actions
+ * Pencil FAB — visible only on Grid Builder and wedding event detail.
  */
 export function FloatingActionButton({ className }: FloatingActionButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isMobile } = useViewMode();
 
-  const actions: FABAction[] = [
-    {
-      icon: <Upload className="h-5 w-5" />,
-      label: 'Upload Photos',
-      href: '/dashboard/events',
-      variant: 'primary',
-    },
-    {
-      icon: <Image className="h-5 w-5" />,
-      label: 'Create Gallery',
-      href: '/dashboard/events',
-    },
-    {
-      icon: <Palette className="h-5 w-5" />,
-      label: 'Design Grid',
-      href: '/studio/storybook',
-    },
-    {
-      icon: <Zap className="h-5 w-5" />,
-      label: 'AI Cull',
-      href: '/dashboard/cheetah-live',
-      variant: 'accent',
-    },
-  ];
+  if (!isMobile || !shouldShowFab(location.pathname)) {
+    return null;
+  }
 
-  const handleAction = (action: FABAction) => {
-    if (action.onClick) {
-      action.onClick();
-    } else if (action.href) {
-      navigate(action.href);
+  const handleClick = () => {
+    if (location.pathname.startsWith('/studio/storybook')) {
+      window.dispatchEvent(new CustomEvent('studio-fab:grid-edit'));
+      return;
     }
-    setIsOpen(false);
+    const id = location.pathname.split('/').pop();
+    if (id) navigate(`/dashboard/events/${id}`);
   };
 
   return (
-    <div className={cn('fixed z-40 lg:hidden', className)} style={{ bottom: '88px', left: '16px' }}>
-      {/* Action buttons */}
-      <div
-        className={cn(
-          'absolute bottom-16 right-0 flex flex-col-reverse gap-3 transition-all duration-300',
-          isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
-        )}
-      >
-        {actions.map((action, index) => (
-          <button
-            key={index}
-            onClick={() => handleAction(action)}
-            className={cn(
-              'flex items-center gap-3 pl-4 pr-5 py-3   transition-all duration-200',
-              'bg-transparent border border-ink/20 hover:border-gold',
-              action.variant === 'primary' && 'bg-transparent border border-gold text-gold',
-              action.variant === 'accent' && 'bg-transparent border border-gold text-gold'
-            )}
-            style={{
-              animationDelay: `${index * 50}ms`,
-            }}
-          >
-            {action.icon}
-            <span className="text-sm font-medium whitespace-nowrap">{action.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Main FAB */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          'flex items-center justify-center w-14 h-14   transition-all duration-300',
-          'bg-transparent border border-gold text-gold',
-          isOpen && 'rotate-45'
-        )}
-        aria-label={isOpen ? 'Close menu' : 'Open quick actions'}
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
-      </button>
-
-      {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-background/60 backdrop-blur-sm -z-10"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-    </div>
+    <button
+      type="button"
+      onClick={handleClick}
+      className={cn('fixed z-40 lg:hidden', className)}
+      aria-label="Edit"
+      style={{
+        bottom: 'calc(88px + env(safe-area-inset-bottom, 0px))',
+        right: 16,
+        width: 56,
+        height: 56,
+        borderRadius: 0,
+        background: 'var(--ink, #1A1917)',
+        border: '1px solid var(--border-default, #E8E6E1)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Pencil className="h-5 w-5" style={{ color: 'var(--paper, #FAFAF8)' }} strokeWidth={1.5} />
+    </button>
   );
 }

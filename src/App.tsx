@@ -52,6 +52,9 @@ const GuestFinder = lazy(() => import("./pages/GuestFinder"));
 // PhotographerFeed, PublicFeed removed
 const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
 const Audience = lazy(() => import("./routes/studio/Audience"));
+const StudioOverview = lazy(() => import("./routes/studio/Overview"));
+const StudioEvents = lazy(() => import("./routes/studio/Events"));
+const StudioSettingsPage = lazy(() => import("./routes/studio/Settings"));
 const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
 const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
@@ -466,6 +469,38 @@ const AppRoutes = () => {
               element={
                 <ProtectedRoute>
                   <UploadPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/studio/overview"
+              element={
+                <ProtectedRoute>
+                  <StudioOverview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/studio/weddings"
+              element={
+                <ProtectedRoute>
+                  <StudioEvents />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/studio/weddings/:id"
+              element={
+                <ProtectedRoute>
+                  <EventGallery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/studio/settings"
+              element={
+                <ProtectedRoute>
+                  <StudioSettingsPage />
                 </ProtectedRoute>
               }
             />

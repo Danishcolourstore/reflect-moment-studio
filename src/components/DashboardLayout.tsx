@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { EntiranProvider } from "@/components/entiran/EntiranProvider";
 
 import { STUDIO_NAV_ITEMS } from "@/components/studio/Sidebar";
@@ -273,6 +274,7 @@ export function DashboardLayout({ children, immersive = false }: DashboardLayout
         </main>
 
         {isMobile && <MobileBottomNav />}
+        <FloatingActionButton />
         <DrawerMenu open={drawer.open} onClose={drawer.close} />
       </div>
     </EntiranProvider>

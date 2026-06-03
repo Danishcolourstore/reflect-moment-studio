@@ -9,6 +9,7 @@ import GridEditor, { type GridEditorSnapshot } from './GridEditor';
 import FormatPicker, { FORMAT_PRESETS, type FormatPreset } from './FormatPicker';
 import PhotosStep from './PhotosStep';
 import ExportStep from './ExportStep';
+import { ScrollableTabBar } from '@/components/studio/ScrollableTabBar';
 const GridInspireModal = lazy(() => import('./GridInspireModal'));
 import { cn } from '@/lib/utils';
 
@@ -102,7 +103,10 @@ export default function GridBuilder({ onClose }: Props) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-grid-noir text-grid-ivory">
+    <div
+      className="flex min-h-screen flex-col bg-grid-noir text-grid-ivory"
+      style={{ ['--bg-primary' as string]: '#000000', ['--border-default' as string]: '#222222' }}
+    >
       <header className="sticky top-0 z-20 border-b border-grid-border bg-grid-noir/95 backdrop-blur-xl">
         <div className={cn('flex h-12 items-center justify-between px-4 sm:h-14')}>
           <div className="flex items-center gap-2.5">
@@ -121,32 +125,12 @@ export default function GridBuilder({ onClose }: Props) {
           </div>
         </div>
 
-        <div className="relative border-t border-grid-border">
-          <div className="grid-tabs-scroll flex">
-            {STEPS.map((tab) => {
-              const active = step === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => handleStepChange(tab.id)}
-                  className={cn(
-                    'inline-flex flex-shrink-0 min-w-fit items-center px-4 py-3 font-sans text-[11px] uppercase tracking-[0.1em] transition-colors',
-                    active
-                      ? 'border-b border-grid-ivory text-grid-ivory'
-                      : 'border-b border-transparent text-[#555555]',
-                  )}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-          <div
-            className="pointer-events-none absolute right-0 top-0 h-full w-10"
-            style={{ background: 'linear-gradient(to left, #000000, transparent)' }}
-          />
-        </div>
+        <ScrollableTabBar
+          variant="dark"
+          tabs={STEPS.map((s) => ({ id: s.id, label: s.label }))}
+          activeId={step}
+          onChange={(id) => handleStepChange(id as WizardStep)}
+        />
       </header>
 
       <div className="flex-1 px-4 pb-24 pt-4">

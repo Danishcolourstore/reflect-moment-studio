@@ -29,6 +29,9 @@
     --radius-soft: 0px;
     --radius-rounded: 0px;
     --radius-pill: 999px;
+    --bg-primary: #FAFAF8;
+    --bg-surface: #FFFFFF;
+    --border-default: #E8E6E1;
     --shadow-none: none;
     --shadow-border: inset 0 0 0 1px var(--rule-strong);
     --shadow-lift: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
@@ -74,6 +77,9 @@
     --ink-muted: #a8a6a0;
     --ink-whisper: #6B6860;
     --paper: #0E0D0B;
+    --bg-primary: #000000;
+    --bg-surface: #111111;
+    --border-default: #222222;
     --background: 0 0% 4%;
     --foreground: 60 14% 98%;
     --card: 0 0% 7%;
@@ -339,3 +345,7 @@
   to { transform: translateY(0); opacity: 1; }
 }
 .num { font-variant-numeric: tabular-nums; }
+
+.studio-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
