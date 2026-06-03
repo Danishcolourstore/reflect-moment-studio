@@ -36,10 +36,19 @@ import LogoOverlayComponent from "./LogoOverlay";
 import LogoToolbar from "./LogoToolbar";
 import SmartFillUploader from "./SmartFillUploader";
 import DownloadGridButton from "./DownloadGridButton";
-import CarouselExporter from "./CarouselExporter";
 import CarouselSliceExporter from "./CarouselSliceExporter";
 import { cn } from "@/lib/utils";
 import { memo } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /** Stable-callback wrapper so GridCell memo isn't defeated by inline closures */
 const MemoGridCellWrapper = memo(function MemoGridCellWrapper({
@@ -49,6 +58,7 @@ const MemoGridCellWrapper = memo(function MemoGridCellWrapper({
   onImageAdd,
   onImageRemove,
   onOffsetChange,
+  onCellPatch,
 }: {
   cell: GridCellData;
   index: number;
@@ -56,6 +66,7 @@ const MemoGridCellWrapper = memo(function MemoGridCellWrapper({
   onImageAdd: (i: number, f: File) => void;
   onImageRemove: (i: number) => void;
   onOffsetChange: (i: number, x: number, y: number, scale?: number) => void;
+  onCellPatch: (i: number, patch: Partial<GridCellData>) => void;
 }) {
   const addCb = useCallback((f: File) => onImageAdd(index, f), [index, onImageAdd]);
   const removeCb = useCallback(() => onImageRemove(index), [index, onImageRemove]);
@@ -63,9 +74,10 @@ const MemoGridCellWrapper = memo(function MemoGridCellWrapper({
     (x: number, y: number, scale?: number) => onOffsetChange(index, x, y, scale),
     [index, onOffsetChange],
   );
+  const patchCb = useCallback((patch: Partial<GridCellData>) => onCellPatch(index, patch), [index, onCellPatch]);
   const gridArea = `${area[0]} / ${area[1]} / ${area[2]} / ${area[3]}`;
   return (
-    <GridCell cell={cell} gridArea={gridArea} onImageAdd={addCb} onImageRemove={removeCb} onOffsetChange={offsetCb} />
+    <GridCell cell={cell} gridArea={gridArea} onImageAdd={addCb} onImageRemove={removeCb} onOffsetChange={offsetCb} onCellPatch={patchCb} />
   );
 });
 
@@ -92,6 +104,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [showIgPreview, setShowIgPreview] = useState(false);
   const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const toolPanelRef = useRef<HTMLDivElement>(null);
@@ -109,8 +122,19 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       background: BackgroundStyle;
     }>
   >([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const historyIndexRef = useRef(-1);
   const isUndoRedoRef = useRef(false);
+  const skipHistoryPushRef = useRef(true);
+  const cellsRef = useRef(cells);
+  const logoRef = useRef(logo);
+  cellsRef.current = cells;
+  logoRef.current = logo;
+
+  const setHistoryIndexBoth = useCallback((index: number) => {
+    historyIndexRef.current = index;
+    setHistoryIndex(index);
+  }, []);
 
   const pushHistory = useCallback(() => {
     if (isUndoRedoRef.current) return;
@@ -125,51 +149,62 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     newHistory.push(snapshot);
     if (newHistory.length > MAX_HISTORY) newHistory.shift();
     historyRef.current = newHistory;
-    historyIndexRef.current = newHistory.length - 1;
-  }, [cells, textLayers, elements, logo, background]);
+    setHistoryIndexBoth(newHistory.length - 1);
+  }, [cells, textLayers, elements, logo, background, setHistoryIndexBoth]);
 
-  const canUndo = historyIndexRef.current > 0;
-  const canRedo = historyIndexRef.current < historyRef.current.length - 1;
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex >= 0 && historyIndex < historyRef.current.length - 1;
+
+  const applySnapshot = useCallback((index: number) => {
+    const snapshot = historyRef.current[index];
+    if (!snapshot) return;
+    setCells(snapshot.cells.map((c) => ({ ...c })));
+    setTextLayers(snapshot.textLayers.map((t) => ({ ...t })));
+    setElements(snapshot.elements.map((e) => ({ ...e })));
+    setLogo(snapshot.logo ? { ...snapshot.logo } : null);
+    setBackground({ ...snapshot.background });
+    setHistoryIndexBoth(index);
+  }, [setHistoryIndexBoth]);
 
   const undo = useCallback(() => {
-    if (historyIndexRef.current <= 0) return;
+    if (historyIndex <= 0) return;
     isUndoRedoRef.current = true;
-    historyIndexRef.current -= 1;
-    const snapshot = historyRef.current[historyIndexRef.current];
-    setCells(snapshot.cells.map((c) => ({ ...c })));
-    setTextLayers(snapshot.textLayers.map((t) => ({ ...t })));
-    setElements(snapshot.elements.map((e) => ({ ...e })));
-    setLogo(snapshot.logo ? { ...snapshot.logo } : null);
-    setBackground({ ...snapshot.background });
+    applySnapshot(historyIndex - 1);
     setTimeout(() => {
       isUndoRedoRef.current = false;
     }, 50);
-  }, []);
+  }, [historyIndex, applySnapshot]);
 
   const redo = useCallback(() => {
-    if (historyIndexRef.current >= historyRef.current.length - 1) return;
+    if (historyIndex >= historyRef.current.length - 1) return;
     isUndoRedoRef.current = true;
-    historyIndexRef.current += 1;
-    const snapshot = historyRef.current[historyIndexRef.current];
-    setCells(snapshot.cells.map((c) => ({ ...c })));
-    setTextLayers(snapshot.textLayers.map((t) => ({ ...t })));
-    setElements(snapshot.elements.map((e) => ({ ...e })));
-    setLogo(snapshot.logo ? { ...snapshot.logo } : null);
-    setBackground({ ...snapshot.background });
+    applySnapshot(historyIndex + 1);
     setTimeout(() => {
       isUndoRedoRef.current = false;
     }, 50);
-  }, []);
+  }, [historyIndex, applySnapshot]);
 
   // Push initial state on mount
   useEffect(() => {
-    if (historyRef.current.length === 0) pushHistory();
+    if (historyRef.current.length === 0) {
+      const snapshot = {
+        cells: cells.map((c) => ({ ...c })),
+        textLayers: textLayers.map((t) => ({ ...t })),
+        elements: elements.map((e) => ({ ...e })),
+        logo: logo ? { ...logo } : null,
+        background: { ...background },
+      };
+      historyRef.current = [snapshot];
+      setHistoryIndexBoth(0);
+      skipHistoryPushRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debounced history push on state changes
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (isUndoRedoRef.current) return;
+    if (isUndoRedoRef.current || skipHistoryPushRef.current) return;
     if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
     pushTimerRef.current = setTimeout(() => {
       pushHistory();
@@ -177,7 +212,19 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     return () => {
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
     };
-  }, [cells, textLayers, elements, logo, background]);
+  }, [cells, textLayers, elements, logo, background, pushHistory]);
+
+  // Revoke blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      cellsRef.current.forEach((c) => {
+        if (c.imageUrl?.startsWith('blob:')) URL.revokeObjectURL(c.imageUrl);
+      });
+      if (logoRef.current?.imageUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(logoRef.current.imageUrl);
+      }
+    };
+  }, []);
 
   // Panel drag-to-dismiss
   const [panelDragY, setPanelDragY] = useState(0);
@@ -255,7 +302,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         return prev;
       });
       const url = fileToUrl(file);
-      updateCell(index, { imageUrl: url, file, offsetX: 0, offsetY: 0, scale: 1 });
+      updateCell(index, { imageUrl: url, file, offsetX: 0, offsetY: 0, scale: 1, fitMode: 'cover' });
     },
     [updateCell],
   );
@@ -267,7 +314,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
         if (old.imageUrl) URL.revokeObjectURL(old.imageUrl);
         return prev;
       });
-      updateCell(index, { imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 });
+      updateCell(index, { imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1, fitMode: 'cover' });
     },
     [updateCell],
   );
@@ -279,6 +326,13 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     [updateCell],
   );
 
+  const handleCellPatch = useCallback(
+    (index: number, patch: Partial<GridCellData>) => {
+      updateCell(index, patch);
+    },
+    [updateCell],
+  );
+
   const handleSmartFill = useCallback((files: File[]) => {
     setCells((prev) => {
       prev.forEach((c) => {
@@ -286,14 +340,22 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
       });
       return prev.map((c, i) => {
         if (i < files.length) {
-          return { ...c, imageUrl: fileToUrl(files[i]), file: files[i], offsetX: 0, offsetY: 0, scale: 1 };
+          return {
+            ...c,
+            imageUrl: fileToUrl(files[i]),
+            file: files[i],
+            offsetX: 0,
+            offsetY: 0,
+            scale: 1,
+            fitMode: 'cover' as const,
+          };
         }
-        return { ...c, imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1 };
+        return { ...c, imageUrl: null, file: null, offsetX: 0, offsetY: 0, scale: 1, fitMode: 'cover' as const };
       });
     });
   }, []);
 
-  const handleReset = useCallback(() => {
+  const performReset = useCallback(() => {
     setCells((prev) => {
       prev.forEach((c) => {
         if (c.imageUrl) URL.revokeObjectURL(c.imageUrl);
@@ -308,7 +370,23 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
     setLogo(null);
     setLogoSelected(false);
     setBackground(DEFAULT_BG);
-  }, [layout, logo]);
+
+    isUndoRedoRef.current = true;
+    skipHistoryPushRef.current = true;
+    const snapshot = {
+      cells: createCellsForLayout(layout),
+      textLayers: [] as TextLayer[],
+      elements: [] as DesignElement[],
+      logo: null,
+      background: { ...DEFAULT_BG },
+    };
+    historyRef.current = [snapshot];
+    setHistoryIndexBoth(0);
+    setTimeout(() => {
+      isUndoRedoRef.current = false;
+      skipHistoryPushRef.current = false;
+    }, 50);
+  }, [layout, logo, setHistoryIndexBoth]);
 
   // Text layer handlers
   const addTextLayer = useCallback((layer: TextLayer) => {
@@ -498,7 +576,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
               <Eye className="h-3.5 w-3.5" />
             </button>
             <button
-              onClick={handleReset}
+              onClick={() => setShowResetDialog(true)}
               className={cn(
                 "rounded-lg flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/50 transition-all duration-200",
                 isMobile ? "h-10 w-10" : "h-8 w-8",
@@ -581,6 +659,7 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
                   onImageAdd={handleImageAdd}
                   onImageRemove={handleImageRemove}
                   onOffsetChange={handleOffsetChange}
+                  onCellPatch={handleCellPatch}
                 />
               ))}
             </div>
@@ -764,7 +843,6 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           {/* Export row */}
           <div className={cn("flex items-center justify-end gap-1.5 px-3 pt-1 pb-1")}>
             <CarouselSliceExporter cells={cells} format={format} />
-            <CarouselExporter layout={layout} cells={cells} gridRef={gridRef} textLayers={textLayers} />
             <DownloadGridButton
               gridRef={gridRef}
               cells={cells}
@@ -787,6 +865,29 @@ export default function GridEditor({ layout, onBack, initialTextLayers = [] }: P
           canvasRatio={format.ratio}
         />
       )}
+
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset grid?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will clear all photos, text, and settings. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                setShowResetDialog(false);
+                performReset();
+              }}
+            >
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

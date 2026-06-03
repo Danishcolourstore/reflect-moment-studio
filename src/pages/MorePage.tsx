@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Users, Palette, Settings, UserCircle, LogOut, Briefcase, BarChart2, Globe, BookOpen } from 'lucide-react';
+import { Users, Palette, Settings, UserCircle, LogOut, Briefcase, BarChart2, Globe, BookOpen, Grid3X3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const menuItems = [
   { label: 'Business Suite', icon: Briefcase, route: '/dashboard/business' },
   { label: 'Analytics', icon: BarChart2, route: '/dashboard/analytics' },
   { label: 'Website', icon: Globe, route: '/dashboard/website-builder' },
-  { label: 'Storybook', icon: BookOpen, route: '/dashboard/storybook' },
+  { label: 'Grid Builder', icon: Grid3X3, route: '/studio/storybook' },
+  { label: 'Storybook', icon: BookOpen, route: '/studio/storybook' },
   { label: 'Clients', icon: Users, route: '/dashboard/clients' },
   { label: 'Brand Studio', icon: Palette, route: '/dashboard/branding' },
   { label: 'Settings', icon: Settings, route: '/dashboard/profile' },

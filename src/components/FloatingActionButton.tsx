@@ -37,7 +37,7 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
     {
       icon: <Palette className="h-5 w-5" />,
       label: 'Design Grid',
-      href: '/dashboard/grid-builder',
+      href: '/studio/storybook',
     },
     {
       icon: <Zap className="h-5 w-5" />,

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { GridLayout, FrameConfig } from '@/components/grid-builder/types';
+import { GRID_LAYOUTS, type GridLayout, FrameConfig } from '@/components/grid-builder/types';
 
 export const GRID_TEMPLATES_QUERY_KEY = ['grid_templates'];
 
@@ -109,6 +109,18 @@ async function fetchGridTemplates(): Promise<GridLayout[]> {
   return (data as DbGridTemplate[]).map(toGridLayout);
 }
 
+/** Merge hardcoded layouts with DB templates; DB entry wins on id conflict. */
+export function mergeGridLayouts(dbTemplates?: GridLayout[]): GridLayout[] {
+  const byId = new Map<string, GridLayout>();
+  for (const layout of GRID_LAYOUTS) {
+    byId.set(layout.id, layout);
+  }
+  for (const layout of dbTemplates ?? []) {
+    byId.set(layout.id, layout);
+  }
+  return Array.from(byId.values());
+}
+
 /**
  * Hook to fetch grid templates from the database.
  * Templates are managed by Super Admin and sync in real-time.
@@ -120,4 +132,11 @@ export function useGridTemplates() {
     staleTime: 60_000,
     gcTime: 5 * 60_000,
   });
+}
+
+/** Hardcoded layouts merged with active DB templates. */
+export function useMergedGridLayouts() {
+  const { data: dbTemplates, isLoading, error } = useGridTemplates();
+  const layouts = mergeGridLayouts(dbTemplates);
+  return { layouts, isLoading, error };
 }

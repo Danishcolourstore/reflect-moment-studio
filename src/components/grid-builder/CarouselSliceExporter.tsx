@@ -7,7 +7,7 @@ import { Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
-import { loadImageElement } from './export-utils';
+import { loadImageElement, drawCellToCanvas } from './export-utils';
 import type { GridCellData, CanvasFormat } from './types';
 import { CANVAS_FORMATS } from './types';
 
@@ -41,17 +41,7 @@ export default function CarouselSliceExporter({ cells, format }: Props) {
 
         const img = await loadImageElement(cell.imageUrl);
 
-        // Cover fit
-        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight) * cell.scale;
-        const iw = img.naturalWidth * scale;
-        const ih = img.naturalHeight * scale;
-        const offsetScale = w / 440;
-        ctx.drawImage(
-          img,
-          (w - iw) / 2 + cell.offsetX * offsetScale,
-          (h - ih) / 2 + cell.offsetY * offsetScale,
-          iw, ih
-        );
+        drawCellToCanvas(ctx, cell, img, w, h);
 
         const blob = await new Promise<Blob>((resolve) =>
           canvas.toBlob((b) => resolve(b!), 'image/png')

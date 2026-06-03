@@ -13,9 +13,9 @@ const RULE = "hsl(var(--border))";
 const NAV_ITEMS = [
   { label: "Home", path: "/home" },
   { divider: true },
-  { label: "Grid", path: "/builder-test" },
+  { label: "Grid Builder", path: "/studio/storybook" },
   { label: "Album", path: "/dashboard/album-designer" },
-  { label: "Storybook", path: "/dashboard/storybook" },
+  { label: "Storybook", path: "/studio/storybook" },
   { label: "Website", path: "/dashboard/website-builder" },
   { label: "Business Suite", path: "/dashboard/business" },
   { label: "Analytics", path: "/dashboard/analytics" },

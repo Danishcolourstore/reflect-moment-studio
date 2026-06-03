@@ -31,6 +31,8 @@ export interface GridLayout {
   canvasRatio?: number;
 }
 
+export type CellFitMode = 'cover' | 'contain' | 'fill';
+
 export interface GridCellData {
   id: string;
   imageUrl: string | null;
@@ -38,6 +40,7 @@ export interface GridCellData {
   offsetX: number;
   offsetY: number;
   scale: number;
+  fitMode?: CellFitMode;
 }
 
 export type CanvasFormat = {
@@ -446,5 +449,6 @@ export function createCellsForLayout(layout: GridLayout): GridCellData[] {
     offsetX: 0,
     offsetY: 0,
     scale: 1,
+    fitMode: 'cover',
   }));
 }

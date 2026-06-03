@@ -9,14 +9,15 @@ interface Props {
   onImageAdd: (file: File) => void;
   onImageRemove: () => void;
   onOffsetChange: (x: number, y: number, scale?: number) => void;
+  onCellPatch: (patch: Partial<GridCellData>) => void;
 }
 
 // Memoised to prevent re-renders when sibling cells change
-const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRemove, onOffsetChange }: Props) {
+const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRemove, onOffsetChange, onCellPatch }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
-  const [fitMode, setFitMode] = useState<"fill" | "fit">("fill");
+  const fitMode = cell.fitMode ?? 'cover';
   const [showControls, setShowControls] = useState(false);
   const device = useDeviceDetect();
   const isMobile = device.isPhone || device.isTablet;
@@ -149,14 +150,12 @@ const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRem
   }, [cell.scale, cell.offsetX, cell.offsetY, onOffsetChange]);
 
   const handleFit = useCallback(() => {
-    setFitMode("fit");
-    onOffsetChange(0, 0, 0.65);
-  }, [onOffsetChange]);
+    onCellPatch({ fitMode: 'contain', offsetX: 0, offsetY: 0, scale: 0.65 });
+  }, [onCellPatch]);
 
   const handleFill = useCallback(() => {
-    setFitMode("fill");
-    onOffsetChange(0, 0, 1);
-  }, [onOffsetChange]);
+    onCellPatch({ fitMode: 'cover', offsetX: 0, offsetY: 0, scale: 1 });
+  }, [onCellPatch]);
 
   const scalePercent = Math.round(cell.scale * 100);
   const controlsVisible = showControls;
@@ -185,7 +184,7 @@ const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRem
             draggable={false}
             className="absolute inset-0 w-full h-full select-none"
             style={{
-              objectFit: fitMode === "fit" ? "contain" : "cover",
+              objectFit: fitMode === 'contain' ? 'contain' : fitMode === 'fill' ? 'fill' : 'cover',
               transform: `translate3d(${cell.offsetX}px, ${cell.offsetY}px, 0) scale(${cell.scale})`,
               cursor: dragging ? "grabbing" : "grab",
               willChange: "transform",
@@ -285,7 +284,7 @@ const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRem
               onClick={handleFit}
               className={`rounded-full flex items-center gap-1 font-medium tracking-wide uppercase active:scale-90 ${
                 isMobile ? "h-9 px-2.5 text-[10px]" : "h-7 px-2 text-[9px]"
-              } ${fitMode === "fit" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
+              } ${fitMode === "contain" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
               style={{ transition: "transform 100ms ease, background 150ms ease" }}
             >
               <Maximize className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
@@ -296,7 +295,7 @@ const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRem
               onClick={handleFill}
               className={`rounded-full flex items-center gap-1 font-medium tracking-wide uppercase active:scale-90 ${
                 isMobile ? "h-9 px-2.5 text-[10px]" : "h-7 px-2 text-[9px]"
-              } ${fitMode === "fill" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
+              } ${fitMode === "cover" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"}`}
               style={{ transition: "transform 100ms ease, background 150ms ease" }}
             >
               <Expand className={isMobile ? "h-4 w-4" : "h-3 w-3"} />

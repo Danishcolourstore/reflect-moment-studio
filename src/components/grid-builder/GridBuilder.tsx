@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense } from 'react';
 import { ArrowLeft, Grid3X3, Sparkles, MessageSquare, LayoutGrid } from 'lucide-react';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
+import { useMergedGridLayouts } from '@/hooks/use-grid-templates';
 import type { GridLayout } from './types';
 import type { TextLayer } from './text-overlay-types';
 import GridLayoutSelector from './GridLayoutSelector';
@@ -22,6 +23,7 @@ export default function GridBuilder({ onClose }: Props) {
   const [showAISuggest, setShowAISuggest] = useState(false);
   const device = useDeviceDetect();
   const isMobile = device.isPhone;
+  const { layouts: mergedLayouts } = useMergedGridLayouts();
 
   if (selectedLayout) {
     return (
@@ -108,7 +110,7 @@ export default function GridBuilder({ onClose }: Props) {
         {showAISuggest && (
           <div className="mb-4 animate-fade-in">
             <AILayoutSuggestions
-              photoCount={4}
+              layouts={mergedLayouts}
               onSelectLayout={(layout) => { setShowAISuggest(false); setInitialTextLayers([]); setSelectedLayout(layout); }}
               onClose={() => setShowAISuggest(false)}
             />

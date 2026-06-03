@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { useGridTemplates } from "@/hooks/use-grid-templates";
+import { useMergedGridLayouts } from "@/hooks/use-grid-templates";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
-import { GRID_LAYOUTS, type GridLayout } from "./types";
+import type { GridLayout } from "./types";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Square, Grid3X3, LayoutGrid, Sparkles } from "lucide-react";
@@ -49,16 +49,11 @@ function LayoutPreview({ layout }: { layout: GridLayout }) {
 
 export default function GridLayoutSelector({ onSelect }: Props) {
   const [cat, setCat] = useState<"single" | "basic" | "instagram" | "creative">("single");
-  const { data: dbTemplates, isLoading } = useGridTemplates();
+  const { layouts, isLoading } = useMergedGridLayouts();
   const device = useDeviceDetect();
   const isMobile = device.isPhone;
 
-  const layouts = useMemo(() => {
-    if (dbTemplates && dbTemplates.length > 0) return dbTemplates;
-    return GRID_LAYOUTS;
-  }, [dbTemplates]);
-
-  const filtered = layouts.filter((l) => l.category === cat);
+  const filtered = useMemo(() => layouts.filter((l) => l.category === cat), [layouts, cat]);
 
   return (
     <div className="flex flex-col gap-4">

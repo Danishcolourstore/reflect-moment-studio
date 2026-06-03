@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import {
-  Camera, Globe, BookOpen, Zap, Users, ArrowRight, Plus,
+  Camera, Globe, BookOpen, Zap, Users, ArrowRight, Plus, Grid3X3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BusinessInsights, Lead, Booking } from "@/hooks/use-business-suite";
@@ -15,7 +15,8 @@ interface HomeDashboardHubProps {
 const QUICK_ACTIONS = [
   { title: "Events", icon: Camera, url: "/dashboard/events", desc: "Your galleries" },
   { title: "Website", icon: Globe, url: "/dashboard/website-builder", desc: "Your presence" },
-  { title: "Storybook", icon: BookOpen, url: "/dashboard/storybook", desc: "Album design" },
+  { title: "Grid Builder", icon: Grid3X3, url: "/studio/storybook", desc: "Instagram layouts" },
+  { title: "Storybook", icon: BookOpen, url: "/studio/storybook", desc: "Album design" },
   { title: "Cheetah", icon: Zap, url: "/dashboard/cheetah-live", desc: "Smart culling" },
   { title: "Clients", icon: Users, url: "/dashboard/clients", desc: "Relationships" },
 ];

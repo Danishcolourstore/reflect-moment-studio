@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewMode } from "@/lib/ViewModeContext";
 import {
-  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu, Sparkles,
+  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu, Sparkles, Grid3X3,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
@@ -14,6 +14,7 @@ import { EntiranProvider } from "@/components/entiran/EntiranProvider";
 const STUDIO_ITEMS = [
   { title: "Events", url: "/dashboard/events", icon: CalendarDays },
   { title: "Gallery", url: "/home", icon: Image, end: true },
+  { title: "Grid Builder", url: "/studio/storybook", icon: Grid3X3 },
   { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
 ];
 

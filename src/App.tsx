@@ -469,12 +469,20 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/dashboard/storybook"
+              path="/studio/storybook"
               element={
                 <ProtectedRoute>
                   <StorybookCreator />
                 </ProtectedRoute>
               }
+            />
+            <Route
+              path="/dashboard/storybook"
+              element={<Navigate to="/studio/storybook" replace />}
+            />
+            <Route
+              path="/dashboard/grid-builder"
+              element={<Navigate to="/studio/storybook" replace />}
             />
             <Route
               path="/dashboard/album-designer"

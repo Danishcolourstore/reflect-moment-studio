@@ -7,7 +7,7 @@ import { Sparkles, LayoutGrid, ArrowRight, X, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { GRID_LAYOUTS, type GridLayout } from './types';
+import type { GridLayout } from './types';
 
 interface Suggestion {
   layoutId: string;
@@ -17,15 +17,20 @@ interface Suggestion {
 }
 
 interface Props {
-  photoCount: number;
+  /** When set (e.g. from editor filled cells), used directly. Otherwise user can adjust count. */
+  photoCount?: number;
+  layouts: GridLayout[];
   onSelectLayout: (layout: GridLayout) => void;
   onClose?: () => void;
 }
 
-export default function AILayoutSuggestions({ photoCount, onSelectLayout, onClose }: Props) {
+export default function AILayoutSuggestions({ photoCount, layouts, onSelectLayout, onClose }: Props) {
   const [eventType, setEventType] = useState('wedding');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [localPhotoCount, setLocalPhotoCount] = useState(4);
+
+  const effectivePhotoCount = photoCount ?? localPhotoCount;
 
   const EVENT_TYPES = ['wedding', 'portrait', 'engagement', 'event', 'product', 'editorial', 'family', 'landscape'];
 
@@ -33,7 +38,7 @@ export default function AILayoutSuggestions({ photoCount, onSelectLayout, onClos
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('suggest-layout', {
-        body: { photoCount, eventType, style: 'editorial' },
+        body: { photoCount: effectivePhotoCount, eventType, style: 'editorial' },
       });
       if (error) throw error;
       setSuggestions(data.suggestions || []);
@@ -48,7 +53,7 @@ export default function AILayoutSuggestions({ photoCount, onSelectLayout, onClos
   };
 
   const handleSelect = (suggestion: Suggestion) => {
-    const layout = GRID_LAYOUTS.find(l => l.id === suggestion.layoutId);
+    const layout = layouts.find(l => l.id === suggestion.layoutId);
     if (layout) {
       onSelectLayout(layout);
       toast.success(`Applied "${suggestion.name}" layout`);
@@ -71,7 +76,21 @@ export default function AILayoutSuggestions({ photoCount, onSelectLayout, onClos
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <LayoutGrid className="h-3.5 w-3.5" />
-        <span>{photoCount} photo{photoCount !== 1 ? 's' : ''} available</span>
+        {photoCount !== undefined ? (
+          <span>{effectivePhotoCount} photo{effectivePhotoCount !== 1 ? 's' : ''} in grid</span>
+        ) : (
+          <label className="flex items-center gap-2">
+            <span>Photos:</span>
+            <input
+              type="number"
+              min={1}
+              max={25}
+              value={localPhotoCount}
+              onChange={(e) => setLocalPhotoCount(Math.max(1, Number(e.target.value) || 1))}
+              className="w-14 rounded-md border border-border bg-background px-2 py-0.5 text-xs text-foreground"
+            />
+          </label>
+        )}
       </div>
 
       {/* Event type chips */}

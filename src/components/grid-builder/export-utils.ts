@@ -8,7 +8,6 @@ import type { TextLayer } from './text-overlay-types';
 import type { DesignElement } from './element-types';
 import type { LogoLayer } from './LogoOverlay';
 import type { BackgroundStyle } from './BackgroundStyler';
-import { bgToCss } from './BackgroundStyler';
 
 /** Load an image element from a URL (blob/object URL or data URL) */
 export function loadImageElement(src: string): Promise<HTMLImageElement> {
@@ -36,6 +35,218 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
+let grainPatternCache: CanvasPattern | null = null;
+
+function getGrainPattern(ctx: CanvasRenderingContext2D): CanvasPattern {
+  if (grainPatternCache) return grainPatternCache;
+
+  const size = 256;
+  const noiseCanvas = document.createElement('canvas');
+  noiseCanvas.width = size;
+  noiseCanvas.height = size;
+  const nctx = noiseCanvas.getContext('2d')!;
+  const imageData = nctx.createImageData(size, size);
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    const v = Math.floor(Math.random() * 255);
+    imageData.data[i] = v;
+    imageData.data[i + 1] = v;
+    imageData.data[i + 2] = v;
+    imageData.data[i + 3] = 128;
+  }
+  nctx.putImageData(imageData, 0, 0);
+  grainPatternCache = ctx.createPattern(noiseCanvas, 'repeat')!;
+  return grainPatternCache;
+}
+
+function drawGrainOverlay(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  ctx.save();
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = getGrainPattern(ctx);
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+}
+
+function drawCellImage(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  cell: GridCellData,
+  x: number,
+  y: number,
+  cw: number,
+  ch: number,
+  offsetScale: number,
+) {
+  const fitMode = cell.fitMode ?? 'cover';
+  const ox = cell.offsetX * offsetScale;
+  const oy = cell.offsetY * offsetScale;
+
+  if (fitMode === 'fill') {
+    ctx.drawImage(img, x + ox, y + oy, cw, ch);
+    return;
+  }
+
+  if (fitMode === 'contain') {
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(x, y, cw, ch);
+    const scale = Math.min(cw / img.naturalWidth, ch / img.naturalHeight) * cell.scale;
+    const dw = img.naturalWidth * scale;
+    const dh = img.naturalHeight * scale;
+    ctx.drawImage(img, x + (cw - dw) / 2 + ox, y + (ch - dh) / 2 + oy, dw, dh);
+    return;
+  }
+
+  const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * cell.scale;
+  const dw = img.naturalWidth * scale;
+  const dh = img.naturalHeight * scale;
+  ctx.drawImage(img, x + (cw - dw) / 2 + ox, y + (ch - dh) / 2 + oy, dw, dh);
+}
+
+function transformText(text: string, textTransform: TextLayer['textTransform']) {
+  if (textTransform === 'uppercase') return text.toUpperCase();
+  if (textTransform === 'lowercase') return text.toLowerCase();
+  return text;
+}
+
+function setTextFill(ctx: CanvasRenderingContext2D, layer: TextLayer, fontSizePx: number) {
+  const hasGradient = layer.gradientColors && layer.gradientColors.length === 2;
+  if (hasGradient) {
+    const grad = ctx.createLinearGradient(0, -fontSizePx / 2, fontSizePx, fontSizePx / 2);
+    grad.addColorStop(0, layer.gradientColors![0]);
+    grad.addColorStop(1, layer.gradientColors![1]);
+    ctx.fillStyle = grad;
+  } else {
+    ctx.fillStyle = layer.color;
+  }
+}
+
+function measureLineWidth(ctx: CanvasRenderingContext2D, line: string, letterSpacingPx: number) {
+  if (letterSpacingPx <= 0 || line.length === 0) {
+    return ctx.measureText(line).width;
+  }
+  let totalW = 0;
+  for (let ci = 0; ci < line.length; ci++) {
+    totalW += ctx.measureText(line[ci]).width + (ci < line.length - 1 ? letterSpacingPx : 0);
+  }
+  return totalW;
+}
+
+function drawTextLine(
+  ctx: CanvasRenderingContext2D,
+  line: string,
+  lineY: number,
+  layer: TextLayer,
+  scale: number,
+  startX: number,
+) {
+  const letterSpacingPx = layer.letterSpacing > 0 ? layer.letterSpacing * scale : 0;
+  const fontSizePx = layer.fontSize * scale;
+  const highlightPadX = 6 * scale;
+  const highlightPadY = 2 * scale;
+
+  const drawChars = (x: number, y: number) => {
+    if (letterSpacingPx > 0) {
+      let curX = x;
+      ctx.textAlign = 'left';
+      for (let ci = 0; ci < line.length; ci++) {
+        const ch = line[ci];
+        if (layer.stroke) {
+          ctx.lineWidth = layer.stroke.width * scale;
+          ctx.strokeStyle = layer.stroke.color;
+          ctx.strokeText(ch, curX, y);
+        }
+        ctx.fillText(ch, curX, y);
+        curX += ctx.measureText(ch).width + letterSpacingPx;
+      }
+    } else {
+      if (layer.stroke) {
+        ctx.lineWidth = layer.stroke.width * scale;
+        ctx.strokeStyle = layer.stroke.color;
+        ctx.strokeText(line, x, y);
+      }
+      ctx.fillText(line, x, y);
+    }
+  };
+
+  if (layer.bgHighlight) {
+    const lineW = measureLineWidth(ctx, line, letterSpacingPx);
+    const boxW = lineW + highlightPadX * 2;
+    const boxH = fontSizePx * layer.lineHeight + highlightPadY * 2;
+    const boxX = startX - highlightPadX;
+    const boxY = lineY - boxH / 2;
+    ctx.save();
+    ctx.fillStyle = layer.bgHighlight;
+    roundRect(ctx, boxX, boxY, boxW, boxH, 3 * scale);
+    ctx.fill();
+    ctx.restore();
+    setTextFill(ctx, layer, fontSizePx);
+  }
+
+  drawChars(startX, lineY);
+
+  if (layer.underline) {
+    const lineW = measureLineWidth(ctx, line, letterSpacingPx);
+    const underlineY = lineY + fontSizePx * 0.35;
+    ctx.save();
+    ctx.strokeStyle = layer.gradientColors?.[0] ?? layer.color;
+    ctx.lineWidth = Math.max(1, scale);
+    ctx.beginPath();
+    ctx.moveTo(startX, underlineY);
+    ctx.lineTo(startX + lineW, underlineY);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawTextLayer(ctx: CanvasRenderingContext2D, layer: TextLayer, width: number, height: number) {
+  const scale = width / 440;
+
+  ctx.save();
+
+  const tx = (layer.x / 100) * width;
+  const ty = (layer.y / 100) * height;
+
+  ctx.translate(tx, ty);
+  ctx.rotate((layer.rotation * Math.PI) / 180);
+  ctx.scale(layer.scale, layer.scale);
+  ctx.globalAlpha = layer.opacity;
+
+  const fontSizePx = layer.fontSize * scale;
+  const fontStyle = layer.fontStyle === 'italic' ? 'italic' : '';
+  ctx.font = `${fontStyle} ${layer.fontWeight} ${fontSizePx}px '${layer.fontFamily}'`;
+  ctx.textBaseline = 'middle';
+
+  if (layer.shadow) {
+    ctx.shadowOffsetX = layer.shadow.x * scale;
+    ctx.shadowOffsetY = layer.shadow.y * scale;
+    ctx.shadowBlur = layer.shadow.blur * scale;
+    ctx.shadowColor = layer.shadow.color;
+  }
+
+  setTextFill(ctx, layer, fontSizePx);
+
+  const text = transformText(layer.text, layer.textTransform);
+  const lines = text.split('\n');
+  const lineHeightPx = fontSizePx * layer.lineHeight;
+  const totalHeight = lines.length * lineHeightPx;
+  const startY = -(totalHeight / 2) + lineHeightPx / 2;
+  const letterSpacingPx = layer.letterSpacing > 0 ? layer.letterSpacing * scale : 0;
+
+  for (let li = 0; li < lines.length; li++) {
+    const lineY = startY + li * lineHeightPx;
+    const line = lines[li];
+    const lineW = measureLineWidth(ctx, line, letterSpacingPx);
+
+    let startX = 0;
+    if (layer.alignment === 'center') startX = -lineW / 2;
+    else if (layer.alignment === 'right') startX = -lineW;
+
+    ctx.shadowColor = layer.shadow?.color ?? 'transparent';
+    drawTextLine(ctx, line, lineY, layer, scale, startX);
+  }
+
+  ctx.restore();
+}
+
 /**
  * Render the full grid to a canvas at the specified resolution.
  */
@@ -59,11 +270,11 @@ export async function renderGridToCanvas(
   // Background
   if (background && !frame) {
     if (background.type === 'gradient' && background.gradientTo) {
-      const angle = (background.gradientAngle || 180) * Math.PI / 180;
-      const x0 = width / 2 - Math.sin(angle) * width / 2;
-      const y0 = height / 2 - Math.cos(angle) * height / 2;
-      const x1 = width / 2 + Math.sin(angle) * width / 2;
-      const y1 = height / 2 + Math.cos(angle) * height / 2;
+      const angle = ((background.gradientAngle || 180) * Math.PI) / 180;
+      const x0 = width / 2 - Math.sin(angle) * (width / 2);
+      const y0 = height / 2 - Math.cos(angle) * (height / 2);
+      const x1 = width / 2 + Math.sin(angle) * (width / 2);
+      const y1 = height / 2 + Math.cos(angle) * (height / 2);
       const grad = ctx.createLinearGradient(x0, y0, x1, y1);
       grad.addColorStop(0, background.color);
       grad.addColorStop(1, background.gradientTo);
@@ -77,8 +288,15 @@ export async function renderGridToCanvas(
     ctx.fillRect(0, 0, width, height);
   }
 
+  if (background?.type === 'grain' && !frame) {
+    drawGrainOverlay(ctx, width, height);
+  }
+
   // Calculate image area based on frame padding
-  let areaX = 0, areaY = 0, areaW = width, areaH = height;
+  let areaX = 0;
+  let areaY = 0;
+  let areaW = width;
+  let areaH = height;
 
   if (frame) {
     const pt = (frame.padding[0] / 100) * width;
@@ -114,7 +332,6 @@ export async function renderGridToCanvas(
     }
   }
 
-  // Calculate grid within image area
   const gap = frame ? 0 : Math.round(width * 0.007);
   const pad = frame ? 0 : gap;
 
@@ -124,6 +341,7 @@ export async function renderGridToCanvas(
   const rowH = innerH / layout.gridRows;
 
   const displaySize = 440;
+  const offsetScale = width / displaySize;
 
   for (let i = 0; i < layout.cells.length; i++) {
     const [rs, cs, re, ce] = layout.cells[i];
@@ -142,14 +360,6 @@ export async function renderGridToCanvas(
 
     const img = await loadImageElement(cell.imageUrl);
 
-    const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight) * cell.scale;
-    const dw = img.naturalWidth * scale;
-    const dh = img.naturalHeight * scale;
-
-    const offsetScale = width / displaySize;
-    const ox = cell.offsetX * offsetScale;
-    const oy = cell.offsetY * offsetScale;
-
     ctx.save();
 
     if (frame?.imageRadius) {
@@ -162,7 +372,7 @@ export async function renderGridToCanvas(
       ctx.clip();
     }
 
-    ctx.drawImage(img, x + (cw - dw) / 2 + ox, y + (ch - dh) / 2 + oy, dw, dh);
+    drawCellImage(ctx, img, cell, x, y, cw, ch, offsetScale);
     ctx.restore();
   }
 
@@ -235,76 +445,26 @@ export async function renderGridToCanvas(
   }
 
   // ─── Render text overlays ───────────────────
-  if (textLayers.length > 0) {
-    const scale = width / displaySize;
-
-    for (const layer of textLayers) {
-      ctx.save();
-
-      const tx = (layer.x / 100) * width;
-      const ty = (layer.y / 100) * height;
-
-      ctx.translate(tx, ty);
-      ctx.rotate((layer.rotation * Math.PI) / 180);
-      ctx.scale(layer.scale, layer.scale);
-      ctx.globalAlpha = layer.opacity;
-
-      const fontSizePx = layer.fontSize * scale;
-      const fontStyle = layer.fontStyle === 'italic' ? 'italic' : '';
-      ctx.font = `${fontStyle} ${layer.fontWeight} ${fontSizePx}px '${layer.fontFamily}'`;
-      ctx.fillStyle = layer.color;
-      ctx.textAlign = layer.alignment;
-      ctx.textBaseline = 'middle';
-
-      if (layer.shadow) {
-        ctx.shadowOffsetX = layer.shadow.x * scale;
-        ctx.shadowOffsetY = layer.shadow.y * scale;
-        ctx.shadowBlur = layer.shadow.blur * scale;
-        ctx.shadowColor = layer.shadow.color;
-      }
-
-      let text = layer.text;
-      if (layer.textTransform === 'uppercase') text = text.toUpperCase();
-      else if (layer.textTransform === 'lowercase') text = text.toLowerCase();
-
-      const lines = text.split('\n');
-      const lineHeightPx = fontSizePx * layer.lineHeight;
-      const totalHeight = lines.length * lineHeightPx;
-      const startY = -(totalHeight / 2) + lineHeightPx / 2;
-
-      if (layer.letterSpacing > 0) {
-        const spacingPx = layer.letterSpacing * scale;
-
-        for (let li = 0; li < lines.length; li++) {
-          const lineY = startY + li * lineHeightPx;
-          const line = lines[li];
-
-          let totalW = 0;
-          for (let ci = 0; ci < line.length; ci++) {
-            totalW += ctx.measureText(line[ci]).width + (ci < line.length - 1 ? spacingPx : 0);
-          }
-
-          let startX = 0;
-          if (layer.alignment === 'center') startX = -totalW / 2;
-          else if (layer.alignment === 'right') startX = -totalW;
-
-          let curX = startX;
-          ctx.textAlign = 'left';
-          for (let ci = 0; ci < line.length; ci++) {
-            ctx.fillText(line[ci], curX, lineY);
-            curX += ctx.measureText(line[ci]).width + spacingPx;
-          }
-        }
-      } else {
-        for (let li = 0; li < lines.length; li++) {
-          const lineY = startY + li * lineHeightPx;
-          ctx.fillText(lines[li], 0, lineY);
-        }
-      }
-
-      ctx.restore();
-    }
+  for (const layer of textLayers) {
+    drawTextLayer(ctx, layer, width, height);
   }
 
   return canvas;
+}
+
+/** Draw a single cell image for carousel slice export (respects fit mode). */
+export function drawCellToCanvas(
+  ctx: CanvasRenderingContext2D,
+  cell: GridCellData,
+  img: HTMLImageElement,
+  w: number,
+  h: number,
+) {
+  const offsetScale = w / 440;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, w, h);
+  ctx.clip();
+  drawCellImage(ctx, img, cell, 0, 0, w, h, offsetScale);
+  ctx.restore();
 }

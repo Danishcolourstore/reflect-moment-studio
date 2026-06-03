@@ -1,5 +1,9 @@
+/**
+ * @deprecated Hidden from export bar — use DownloadGridButton + CarouselSliceExporter instead.
+ * TODO: Remove once no external callers remain. Ignores overlays and uses legacy slide export.
+ */
+
 import { useState } from 'react';
-import { LayoutGrid, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { renderGridToCanvas, loadImageElement } from './export-utils';
