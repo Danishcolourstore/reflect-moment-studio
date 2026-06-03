@@ -325,7 +325,9 @@ const AppRoutes = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-access" element={<VerifyAccess />} />
             <Route path="/verify-otp" element={<VerifyOTP />} />
-            <Route path="/builder-test" element={<BuilderTest />} />
+            {import.meta.env.DEV && (
+              <Route path="/builder-test" element={<BuilderTest />} />
+            )}
             <Route path="/preview/:previewId" element={<ClientPreview />} />
             <Route
               path="/home"

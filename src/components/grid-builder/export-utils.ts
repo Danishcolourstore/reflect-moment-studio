@@ -9,13 +9,30 @@ import type { DesignElement } from './element-types';
 import type { LogoLayer } from './LogoOverlay';
 import type { BackgroundStyle } from './BackgroundStyler';
 
-/** Load an image element from a URL (blob/object URL or data URL) */
+/** Load an image for canvas export (blob/data URLs, fetch fallback for remote CORS). */
 export function loadImageElement(src: string): Promise<HTMLImageElement> {
+  if (src.startsWith('data:') || src.startsWith('blob:')) {
+    return loadImageFromSrc(src);
+  }
+
+  return fetch(src, { mode: 'cors', credentials: 'omit' })
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.blob();
+    })
+    .then((blob) => {
+      const objectUrl = URL.createObjectURL(blob);
+      return loadImageFromSrc(objectUrl).finally(() => URL.revokeObjectURL(objectUrl));
+    })
+    .catch(() => loadImageFromSrc(src, true));
+}
+
+function loadImageFromSrc(src: string, useCors = false): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
-    img.crossOrigin = 'anonymous';
+    if (useCors) img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
-    img.onerror = reject;
+    img.onerror = () => reject(new Error('Could not load image for export'));
     img.src = src;
   });
 }
@@ -398,7 +415,9 @@ export async function renderGridToCanvas(
     }
   } else {
     // ─── Standard CSS-grid cell rendering ─────────
-    const gap = frame ? 0 : Math.round(width * 0.007);
+    const displaySize = 440;
+    const offsetScale = width / displaySize;
+    const gap = frame ? 0 : Math.max(1, Math.round((3 / displaySize) * width));
     const pad = frame ? 0 : gap;
 
     const innerW = areaW - pad * 2 - gap * (layout.gridCols - 1);
@@ -406,20 +425,23 @@ export async function renderGridToCanvas(
     const colW = innerW / layout.gridCols;
     const rowH = innerH / layout.gridRows;
 
-    const displaySize = 440;
-    const offsetScale = width / displaySize;
+    const gapFill = background?.color ?? '#111111';
+    if (gap > 0) {
+      ctx.fillStyle = gapFill;
+      ctx.fillRect(areaX, areaY, areaW, areaH);
+    }
 
     for (let i = 0; i < layout.cells.length; i++) {
       const [rs, cs, re, ce] = layout.cells[i];
       const cell = cells[i];
 
-      const x = areaX + pad + (cs - 1) * (colW + gap);
-      const y = areaY + pad + (rs - 1) * (rowH + gap);
-      const cw = (ce - cs) * colW + (ce - cs - 1) * gap;
-      const ch = (re - rs) * rowH + (re - rs - 1) * gap;
+      const x = Math.floor(areaX + pad + (cs - 1) * (colW + gap));
+      const y = Math.floor(areaY + pad + (rs - 1) * (rowH + gap));
+      const cw = Math.ceil((ce - cs) * colW + (ce - cs - 1) * gap);
+      const ch = Math.ceil((re - rs) * rowH + (re - rs - 1) * gap);
 
       if (!cell.imageUrl) {
-        ctx.fillStyle = '#f0f0f0';
+        ctx.fillStyle = '#111111';
         ctx.fillRect(x, y, cw, ch);
         continue;
       }
@@ -429,7 +451,7 @@ export async function renderGridToCanvas(
       ctx.save();
 
       if (frame?.imageRadius) {
-        const sr = (frame.imageRadius / 440) * width;
+        const sr = (frame.imageRadius / displaySize) * width;
         roundRect(ctx, x, y, cw, ch, sr);
         ctx.clip();
       } else {
@@ -438,7 +460,8 @@ export async function renderGridToCanvas(
         ctx.clip();
       }
 
-      drawCellImage(ctx, img, cell, x, y, cw, ch, offsetScale);
+      // 1px bleed prevents hairline gaps between adjacent frames (SCRL-class artifact)
+      drawCellImage(ctx, img, cell, x - 0.5, y - 0.5, cw + 1, ch + 1, offsetScale);
       ctx.restore();
     }
   }

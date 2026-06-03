@@ -1,212 +1,295 @@
-import { useState, lazy, Suspense, useCallback } from 'react';
-import { ArrowLeft, Grid3X3 } from 'lucide-react';
-import { useDeviceDetect } from '@/hooks/use-device-detect';
-import type { GridLayout, FreePosition, CanvasFormat } from './types';
-import type { TextLayer } from './text-overlay-types';
-import type { BackgroundStyle } from './BackgroundStyler';
-import GridLayoutSelector from './GridLayoutSelector';
-import GridEditor, { type GridEditorSnapshot } from './GridEditor';
-import FormatPicker, { FORMAT_PRESETS, type FormatPreset } from './FormatPicker';
-import PhotosStep from './PhotosStep';
-import ExportStep from './ExportStep';
-import { ScrollableTabBar } from '@/components/studio/ScrollableTabBar';
-const GridInspireModal = lazy(() => import('./GridInspireModal'));
-import { cn } from '@/lib/utils';
-
-type WizardStep = 'format' | 'inspire' | 'photos' | 'design' | 'export';
-
-const STEPS: { id: WizardStep; label: string }[] = [
-  { id: 'format', label: 'Format' },
-  { id: 'inspire', label: 'Inspire' },
-  { id: 'photos', label: 'Photos' },
-  { id: 'design', label: 'Design' },
-  { id: 'export', label: 'Export' },
-];
+import { useState, useCallback, useRef } from "react";
+import { ArrowLeft } from "lucide-react";
+import GridEditor from "./GridEditor";
+import type { GridLayout, GridCellData, CanvasFormat } from "./types";
+import { GRID_LAYOUTS, CANVAS_FORMATS } from "./types";
+import type { TextLayer } from "./text-overlay-types";
+import type { BackgroundStyle } from "./BackgroundStyler";
+import { loadDraft, hasDraft } from "./grid-draft";
+import { cn } from "@/lib/utils";
 
 interface Props {
   onClose: () => void;
 }
 
+/* ── The six layouts a wedding photographer actually posts ── */
+
+function singleLayout(id: string, canvasRatio: number): GridLayout {
+  return {
+    id,
+    name: id,
+    category: "single",
+    cols: 1,
+    rows: 1,
+    cells: [[1, 1, 2, 2]],
+    gridCols: 1,
+    gridRows: 1,
+    canvasRatio,
+  };
+}
+
+function stackLayout(id: string, n: number, canvasRatio: number): GridLayout {
+  const cells = Array.from({ length: n }, (_, r) => [r + 1, 1, r + 2, 2]) as [number, number, number, number][];
+  return {
+    id,
+    name: id,
+    category: "basic",
+    cols: 1,
+    rows: n,
+    cells,
+    gridCols: 1,
+    gridRows: n,
+    canvasRatio,
+  };
+}
+
+const carouselLayout: GridLayout = {
+  id: "post-carousel",
+  name: "Carousel",
+  category: "instagram",
+  cols: 3,
+  rows: 1,
+  cells: [
+    [1, 1, 2, 2],
+    [1, 2, 2, 3],
+    [1, 3, 2, 4],
+  ],
+  gridCols: 3,
+  gridRows: 1,
+  canvasRatio: 1,
+};
+
+interface PostLayout {
+  layout: GridLayout;
+  label: string;
+  sub: string;
+}
+
+const POST_LAYOUTS: PostLayout[] = [
+  { layout: singleLayout("post-square", 1), label: "Single", sub: "1:1 square" },
+  { layout: singleLayout("post-portrait", 4 / 5), label: "Portrait", sub: "4:5" },
+  { layout: stackLayout("post-pairing", 2, 4 / 5), label: "Pairing", sub: "Two frames" },
+  { layout: stackLayout("post-sequence", 3, 4 / 5), label: "Sequence", sub: "Three frames" },
+  { layout: singleLayout("post-story", 9 / 16), label: "Story", sub: "9:16" },
+  { layout: carouselLayout, label: "Carousel", sub: "Multi-slide" },
+];
+
+function formatForRatio(ratio: number): CanvasFormat {
+  if (Math.abs(ratio - 4 / 5) < 0.02) return CANVAS_FORMATS[1];
+  if (Math.abs(ratio - 9 / 16) < 0.02) return CANVAS_FORMATS[2];
+  return CANVAS_FORMATS[0];
+}
+
+function findLayout(id: string): GridLayout | null {
+  const post = POST_LAYOUTS.find((p) => p.layout.id === id);
+  if (post) return post.layout;
+  return GRID_LAYOUTS.find((l) => l.id === id) ?? null;
+}
+
+interface EditorInit {
+  key: number;
+  layout: GridLayout;
+  format: CanvasFormat;
+  cells?: GridCellData[];
+  textLayers?: TextLayer[];
+  background?: BackgroundStyle | null;
+}
+
+function CarouselStripPreview() {
+  return (
+    <div className="flex w-full items-center justify-center gap-[3px]">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="aspect-square flex-1 bg-[#2e2e2e] transition-colors duration-200 group-hover:bg-[#C8A97E]/30"
+          style={{ border: "1px solid #242424" }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function LayoutDiagram({ layout }: { layout: GridLayout }) {
+  if (layout.id === "post-carousel") {
+    return (
+      <div className="w-full overflow-hidden bg-[#1a1a1a] p-[3px]" style={{ border: "1px solid #242424" }}>
+        <CarouselStripPreview />
+      </div>
+    );
+  }
+
+  const ratio = layout.canvasRatio ?? 1;
+  return (
+    <div
+      className="w-full overflow-hidden bg-[#1a1a1a]"
+      style={{ aspectRatio: `${ratio}`, border: "1px solid #242424" }}
+    >
+      <div
+        className="grid h-full w-full p-[3px]"
+        style={{
+          gridTemplateColumns: `repeat(${layout.gridCols}, 1fr)`,
+          gridTemplateRows: `repeat(${layout.gridRows}, 1fr)`,
+          gap: "3px",
+        }}
+      >
+        {layout.cells.map((cell, i) => (
+          <div
+            key={i}
+            className="bg-[#2e2e2e] transition-colors duration-200 group-hover:bg-[#C8A97E]/30"
+            style={{ gridRow: `${cell[0]} / ${cell[2]}`, gridColumn: `${cell[1]} / ${cell[3]}` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function GridBuilder({ onClose }: Props) {
-  const [step, setStep] = useState<WizardStep>('format');
-  const [formatPreset, setFormatPreset] = useState<FormatPreset | null>(null);
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [selectedLayout, setSelectedLayout] = useState<GridLayout | null>(null);
-  const [initialTextLayers, setInitialTextLayers] = useState<TextLayer[]>([]);
-  const [initialBackground, setInitialBackground] = useState<BackgroundStyle | null>(null);
-  const [initialFreePositions, setInitialFreePositions] = useState<FreePosition[] | null>(null);
-  const [showInspire, setShowInspire] = useState(false);
-  const [exportSnapshot, setExportSnapshot] = useState<GridEditorSnapshot | null>(null);
-  const device = useDeviceDetect();
-  const isMobile = device.isPhone;
+  const [view, setView] = useState<"layouts" | "editor">("layouts");
+  const [editorInit, setEditorInit] = useState<EditorInit | null>(null);
+  const [draftAvailable] = useState(() => hasDraft());
 
-  const handleInspireApply = (
-    layout: GridLayout,
-    textLayers: TextLayer[],
-    background?: BackgroundStyle,
-    freePositions?: FreePosition[],
-  ) => {
-    setShowInspire(false);
-    setInitialTextLayers(textLayers);
-    setInitialBackground(background ?? null);
-    setInitialFreePositions(freePositions ?? null);
-    setSelectedLayout(layout);
-    setStep('design');
-  };
+  const [expandRect, setExpandRect] = useState<DOMRect | null>(null);
+  const [expandFull, setExpandFull] = useState(false);
+  const [expandLayout, setExpandLayout] = useState<GridLayout | null>(null);
+  const keyRef = useRef(0);
 
-  const handleFormatChange = useCallback((f: CanvasFormat) => {
-    const preset = FORMAT_PRESETS.find((p) => p.format.id === f.id) ?? formatPreset;
-    if (preset) setFormatPreset(preset);
-  }, [formatPreset]);
+  const openLayout = useCallback((layout: GridLayout, rect: DOMRect) => {
+    keyRef.current += 1;
+    setExpandLayout(layout);
+    setExpandRect(rect);
+    setExpandFull(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setExpandFull(true)));
+    window.setTimeout(() => {
+      setEditorInit({ key: keyRef.current, layout, format: formatForRatio(layout.canvasRatio ?? 1) });
+      setView("editor");
+      setExpandRect(null);
+      setExpandLayout(null);
+      setExpandFull(false);
+    }, 320);
+  }, []);
 
-  const handleStepChange = (next: WizardStep) => {
-    if (next !== 'format' && !formatPreset) return;
-    if (next === 'inspire') {
-      setShowInspire(true);
-      return;
-    }
-    setStep(next);
-  };
+  const continueDraft = useCallback(() => {
+    const d = loadDraft();
+    if (!d) return;
+    const layout = findLayout(d.layoutId);
+    if (!layout) return;
+    keyRef.current += 1;
+    const cells: GridCellData[] = d.cells.map((c, i) => ({
+      id: `cell-${i}`,
+      imageUrl: c.imageUrl,
+      file: null,
+      offsetX: c.offsetX,
+      offsetY: c.offsetY,
+      scale: c.scale,
+      fitMode: c.fitMode ?? "cover",
+    }));
+    setEditorInit({
+      key: keyRef.current,
+      layout,
+      format: formatForRatio(layout.canvasRatio ?? 1),
+      cells,
+      textLayers: d.textLayers,
+      background: d.background,
+    });
+    setView("editor");
+  }, []);
 
-  if (selectedLayout && step === 'design' && formatPreset) {
+  const backToLayouts = useCallback(() => {
+    setView("layouts");
+    setEditorInit(null);
+  }, []);
+
+  if (view === "editor" && editorInit) {
     return (
       <GridEditor
-        layout={selectedLayout}
-        onBack={() => setSelectedLayout(null)}
-        initialTextLayers={initialTextLayers}
-        initialBackground={initialBackground}
-        initialFreePositions={initialFreePositions}
-        format={formatPreset.format}
-        onFormatChange={handleFormatChange}
-        hideExportBar={isMobile}
+        key={editorInit.key}
+        layout={editorInit.layout}
+        format={editorInit.format}
+        onBack={backToLayouts}
         showEmptyOverlay
-        initialPhotoFiles={photos}
-        onStateSnapshot={setExportSnapshot}
-        onOpenExport={() => setStep('export')}
-        wizardTabs={STEPS.map((s) => ({ id: s.id, label: s.label, active: s.id === 'design' }))}
-        onWizardTab={(id) => setStep(id as WizardStep)}
+        initialCells={editorInit.cells}
+        initialTextLayers={editorInit.textLayers}
+        initialBackground={editorInit.background ?? null}
       />
     );
   }
 
-  if (showInspire) {
-    return (
-      <Suspense fallback={null}>
-        <GridInspireModal
-          onClose={() => {
-            setShowInspire(false);
-            setStep('format');
-          }}
-          onLayoutGenerated={handleInspireApply}
-        />
-      </Suspense>
-    );
-  }
-
   return (
-    <div
-      className="flex min-h-screen flex-col bg-grid-noir text-grid-ivory"
-      style={{ ['--bg-primary' as string]: '#000000', ['--border-default' as string]: '#222222' }}
-    >
-      <header className="sticky top-0 z-20 border-b border-grid-border bg-grid-noir/95 backdrop-blur-xl">
-        <div className={cn('flex h-12 items-center justify-between px-4 sm:h-14')}>
-          <div className="flex items-center gap-2.5">
+    <div className="dark flex min-h-screen flex-col bg-[#0D0B09] text-[#E8E0D5]">
+      <header className="sticky top-0 z-20 border-b border-[#242424] bg-[#0D0B09]/95 backdrop-blur-xl">
+        <div className="flex h-12 items-center px-4">
+          <button
+            onClick={onClose}
+            className="-ml-2 flex min-h-[44px] min-w-[44px] items-center justify-center text-[#E8E0D5]/50 transition-colors hover:text-[#E8E0D5]"
+            aria-label="Close"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
+          </button>
+          <span className="ml-1 font-serif text-lg text-[#E8E0D5]">Grid Builder</span>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-[640px] flex-1 px-5 pb-16 pt-8">
+        <div className="mb-8">
+          <h1 className="font-serif text-3xl italic text-[#E8E0D5]">Choose a layout</h1>
+          <p className="mt-2 font-sans text-sm font-light text-[#E8E0D5]/50">
+            Build a post, carousel, or story from your shoot.
+          </p>
+          {draftAvailable && (
             <button
-              onClick={onClose}
-              className="-ml-2 flex min-h-[44px] min-w-[44px] items-center justify-center text-grid-muted transition-colors hover:text-grid-ivory"
+              type="button"
+              onClick={continueDraft}
+              className="mt-4 font-sans text-[13px] font-light text-[#E8E0D5]/40 transition-opacity hover:opacity-70"
             >
-              <ArrowLeft className="h-4 w-4" />
+              Continue your last post
             </button>
-            <div className="flex items-center gap-2">
-              <Grid3X3 className="h-4 w-4 text-grid-gold" />
-              <h1 className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em]">
-                Grid Builder
-              </h1>
+          )}
+        </div>
+
+        <div className={cn("grid grid-cols-2 gap-4 transition-opacity duration-300 sm:grid-cols-3", expandLayout ? "opacity-0" : "opacity-100")}>
+          {POST_LAYOUTS.map(({ layout, label, sub }) => (
+            <button
+              key={layout.id}
+              onClick={(e) => openLayout(layout, e.currentTarget.getBoundingClientRect())}
+              className="group flex flex-col gap-3 border border-[#242424] bg-[#121212] p-4 transition-colors duration-200 hover:border-[#C8A97E]/50 active:scale-[0.98]"
+            >
+              <div className="flex flex-1 items-center justify-center">
+                <div className="w-full max-w-[110px]">
+                  <LayoutDiagram layout={layout} />
+                </div>
+              </div>
+              <div className="text-left">
+                <p className="font-sans text-[13px] font-medium text-[#E8E0D5]">{label}</p>
+                <p className="font-sans text-[11px] font-light text-[#E8E0D5]/40">{sub}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </main>
+
+      {expandRect && expandLayout && (
+        <div
+          className="fixed z-50 overflow-hidden bg-[#121212]"
+          style={{
+            left: expandFull ? 0 : expandRect.left,
+            top: expandFull ? 0 : expandRect.top,
+            width: expandFull ? "100vw" : expandRect.width,
+            height: expandFull ? "100vh" : expandRect.height,
+            border: "1px solid #242424",
+            transition: "all 320ms cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <div
+            className="flex h-full w-full items-center justify-center p-6 transition-opacity duration-200"
+            style={{ opacity: expandFull ? 0 : 1 }}
+          >
+            <div className="w-full max-w-[110px]">
+              <LayoutDiagram layout={expandLayout} />
             </div>
           </div>
         </div>
-
-        <ScrollableTabBar
-          variant="dark"
-          tabs={STEPS.map((s) => ({ id: s.id, label: s.label }))}
-          activeId={step}
-          onChange={(id) => handleStepChange(id as WizardStep)}
-        />
-      </header>
-
-      <div className="flex-1 px-4 pb-24 pt-4">
-        {step === 'format' && (
-          <FormatPicker selected={formatPreset} onSelect={setFormatPreset} />
-        )}
-
-        {step === 'inspire' && (
-          <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <p className="font-sans text-[11px] uppercase tracking-[0.08em] text-grid-muted">
-              Generate a layout from a reference image
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowInspire(true)}
-              className="border border-grid-gold px-6 py-3 font-sans text-[11px] uppercase tracking-[0.12em] text-grid-gold"
-            >
-              Open Inspire
-            </button>
-          </div>
-        )}
-
-        {step === 'photos' && (
-          <PhotosStep
-            photos={photos}
-            onPhotosChange={setPhotos}
-            onContinue={() => setStep('design')}
-          />
-        )}
-
-        {step === 'design' && (
-          <div className="flex flex-col gap-4 pb-24">
-            <p className="font-sans text-[11px] uppercase tracking-[0.06em] text-grid-hint">
-              Choose a layout to begin designing your grid.
-            </p>
-            <GridLayoutSelector
-              onSelect={(layout) => {
-                setInitialTextLayers([]);
-                setSelectedLayout(layout);
-              }}
-            />
-          </div>
-        )}
-
-        {step === 'export' && formatPreset && (
-          exportSnapshot ? (
-            <ExportStep
-              layout={exportSnapshot.layout}
-              cells={exportSnapshot.cells}
-              textLayers={exportSnapshot.textLayers}
-              elements={exportSnapshot.elements}
-              logo={exportSnapshot.logo}
-              background={exportSnapshot.background}
-              format={formatPreset.format}
-              formatPreset={formatPreset}
-              freePositions={exportSnapshot.freePositions}
-              filledCount={exportSnapshot.filledCount}
-            />
-          ) : (
-            <div className="flex flex-col items-center gap-3 py-12 text-center">
-              <p className="font-serif text-lg italic text-[#555555]">Nothing to export yet</p>
-              <p className="font-sans text-[11px] uppercase tracking-[0.06em] text-grid-hint">
-                Complete the design step first
-              </p>
-              <button
-                type="button"
-                onClick={() => setStep('design')}
-                className="mt-2 border border-grid-border-muted px-4 py-2 font-sans text-[10px] uppercase tracking-[0.1em] text-grid-muted"
-              >
-                Go to design
-              </button>
-            </div>
-          )
-        )}
-      </div>
+      )}
     </div>
   );
 }

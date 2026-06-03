@@ -1,19 +1,44 @@
-import { useNavigate } from 'react-router-dom';
-import { DashboardLayout } from '@/components/DashboardLayout';
-import { Users, Palette, Settings, UserCircle, LogOut, Briefcase, BarChart2, Globe, BookOpen, Grid3X3 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { useNavigate } from "react-router-dom";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import {
+  Users, Palette, Settings, CreditCard, LogOut,
+  Briefcase, BarChart2, Globe, Grid3X3, BookOpen,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { cn } from "@/lib/utils";
 
-const menuItems = [
-  { label: 'Business Suite', icon: Briefcase, route: '/dashboard/business' },
-  { label: 'Analytics', icon: BarChart2, route: '/dashboard/analytics' },
-  { label: 'Website', icon: Globe, route: '/dashboard/website-builder' },
-  { label: 'Grid Builder', icon: Grid3X3, route: '/studio/storybook' },
-  { label: 'Storybook', icon: BookOpen, route: '/studio/storybook' },
-  { label: 'Clients', icon: Users, route: '/dashboard/clients' },
-  { label: 'Brand Studio', icon: Palette, route: '/dashboard/branding' },
-  { label: 'Settings', icon: Settings, route: '/dashboard/profile' },
-  { label: 'Account', icon: UserCircle, route: '/dashboard/billing' },
+interface MenuItem {
+  label: string;
+  icon: typeof Grid3X3;
+  route: string;
+}
+
+const SECTIONS: { title: string; items: MenuItem[] }[] = [
+  {
+    title: "Create",
+    items: [
+      { label: "Grid Builder", icon: Grid3X3, route: "/studio/storybook" },
+      { label: "Albums", icon: BookOpen, route: "/dashboard/album-designer" },
+    ],
+  },
+  {
+    title: "Manage",
+    items: [
+      { label: "Clients", icon: Users, route: "/dashboard/clients" },
+      { label: "Website", icon: Globe, route: "/dashboard/website-builder" },
+      { label: "Analytics", icon: BarChart2, route: "/dashboard/analytics" },
+      { label: "Business Suite", icon: Briefcase, route: "/dashboard/business" },
+      { label: "Brand Studio", icon: Palette, route: "/dashboard/branding" },
+    ],
+  },
+  {
+    title: "Account",
+    items: [
+      { label: "Settings", icon: Settings, route: "/dashboard/profile" },
+      { label: "Billing", icon: CreditCard, route: "/dashboard/billing" },
+    ],
+  },
 ];
 
 const MorePage = () => {
@@ -21,52 +46,67 @@ const MorePage = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    sessionStorage.removeItem('mirrorai_access_verified');
-    window.location.href = '/login';
+    sessionStorage.removeItem("mirrorai_access_verified");
+    window.location.href = "/login";
   };
 
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1
-          className="text-foreground"
-          style={{ fontFamily: 'var(--editorial-heading)', fontSize: '28px', fontWeight: 400, letterSpacing: '-0.3px' }}
-        >
-          More
-        </h1>
+        <h1 className="text-xl font-medium text-ink">Studio</h1>
       </div>
 
-      <div className="space-y-2">
-        {menuItems.map((item) => (
-          <button
-            key={item.label}
-            onClick={() => navigate(item.route)}
-            className="w-full flex items-center gap-4 bg-card border border-border rounded px-5 py-4 active:scale-[0.98] transition-all hover:border-primary/30"
-          >
-            <div className="h-10 w-10 rounded bg-secondary flex items-center justify-center">
-              <item.icon className="h-5 w-5 text-foreground" strokeWidth={1.5} />
+      <div className="space-y-8">
+        {SECTIONS.map((section) => (
+          <div key={section.title}>
+            <p className="mb-2 px-1 text-2xs font-medium tracking-wide text-ink-tertiary">
+              {section.title}
+            </p>
+            <div className="overflow-hidden rounded-lg border border-rule">
+              {section.items.map((item, i) => (
+                <button
+                  key={item.label}
+                  onClick={() => navigate(item.route)}
+                  className={cn(
+                    "flex w-full items-center gap-4 bg-card px-4 py-3.5",
+                    "transition-colors duration-fast active:scale-[0.99] active:bg-wash",
+                    "hover:bg-wash",
+                    i < section.items.length - 1 && "border-b border-rule",
+                  )}
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-wash-strong">
+                    <item.icon className="h-[18px] w-[18px] text-ink-muted" strokeWidth={1.5} />
+                  </div>
+                  <span className="text-[14px] font-medium text-ink">
+                    {item.label}
+                  </span>
+                </button>
+              ))}
             </div>
-            <span className="text-[14px] text-foreground font-medium" style={{ fontFamily: 'var(--editorial-body)' }}>
-              {item.label}
-            </span>
-          </button>
+          </div>
         ))}
 
-        {/* Theme toggle */}
-        <ThemeToggle />
+        {/* Theme + Sign out */}
+        <div>
+          <ThemeToggle />
 
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-4 bg-card border border-destructive/20 rounded px-5 py-4 active:scale-[0.98] transition-all mt-4"
-        >
-          <div className="h-10 w-10 rounded bg-destructive/10 flex items-center justify-center">
-            <LogOut className="h-5 w-5 text-destructive" strokeWidth={1.5} />
+          <div className="mt-3 overflow-hidden rounded-lg border border-error/20">
+            <button
+              onClick={handleLogout}
+              className={cn(
+                "flex w-full items-center gap-4 bg-card px-4 py-3.5",
+                "transition-colors duration-fast active:scale-[0.99]",
+              )}
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-error/10">
+                <LogOut className="h-[18px] w-[18px] text-error" strokeWidth={1.5} />
+              </div>
+              <span className="text-[14px] font-medium text-error">
+                Sign out
+              </span>
+            </button>
           </div>
-          <span className="text-[14px] text-destructive font-medium" style={{ fontFamily: 'var(--editorial-body)' }}>
-            Logout
-          </span>
-        </button>
+        </div>
       </div>
     </DashboardLayout>
   );

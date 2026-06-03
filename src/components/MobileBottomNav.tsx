@@ -1,72 +1,67 @@
 import { lazy, Suspense, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { Calendar, Zap, Grid3X3, MoreHorizontal, Plus } from "lucide-react";
-import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
+import { useScrollChrome } from "@/lib/ScrollChromeContext";
+import { Home, Calendar, Scissors, Briefcase, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const CreateEventModal = lazy(() =>
   import("@/components/CreateEventModal").then((m) => ({ default: m.CreateEventModal })),
 );
 
-type TabKey = "events" | "cheetah" | "gallery" | "storybook" | "more";
+type TabKey = "home" | "events" | "create" | "cull" | "studio";
 
 interface Tab {
   key: TabKey;
-  title: string;
+  label: string;
   icon: typeof Calendar;
   url?: string;
   match?: (path: string) => boolean;
-  center?: boolean;
+  isCreate?: boolean;
 }
 
 const TABS: Tab[] = [
   {
+    key: "home",
+    label: "Home",
+    icon: Home,
+    url: "/home",
+    match: (p) => p === "/home",
+  },
+  {
     key: "events",
-    title: "Events",
+    label: "Events",
     icon: Calendar,
     url: "/dashboard/events",
     match: (p) => p.startsWith("/dashboard/events"),
   },
+  { key: "create", label: "New", icon: Plus, isCreate: true },
   {
-    key: "cheetah",
-    title: "Cheetah",
-    icon: Zap,
+    key: "cull",
+    label: "Cull",
+    icon: Scissors,
     url: "/dashboard/cheetah",
     match: (p) => p.startsWith("/dashboard/cheetah") || p === "/cheetah",
   },
-  { key: "gallery", title: "Gallery", icon: Plus, center: true },
   {
-    key: "storybook",
-    title: "Grid",
-    icon: Grid3X3,
-    url: "/studio/storybook",
-    match: (p) =>
-      p.startsWith("/studio/storybook") ||
-      p.startsWith("/storybook") ||
-      p.startsWith("/dashboard/storybook"),
-  },
-  {
-    key: "more",
-    title: "More",
-    icon: MoreHorizontal,
+    key: "studio",
+    label: "Studio",
+    icon: Briefcase,
     url: "/dashboard/more",
-    match: (p) => p.startsWith("/dashboard/more"),
+    match: (p) => p.startsWith("/dashboard/more") || p.startsWith("/dashboard/business") || p.startsWith("/dashboard/analytics") || p.startsWith("/dashboard/clients") || p.startsWith("/dashboard/branding") || p.startsWith("/dashboard/website") || p.startsWith("/studio/storybook"),
   },
 ];
 
-const ACTIVE = "hsl(var(--primary))";
-const MUTED = "hsl(var(--muted-foreground))";
-const RULE = "hsl(var(--border))";
-const PAPER = "hsl(var(--background))";
-
 export function MobileBottomNav() {
   const { isMobile } = useViewMode();
+  const { navState } = useScrollChrome();
   const navigate = useNavigate();
   const location = useLocation();
-  const drawer = useDrawerMenu();
   const [createOpen, setCreateOpen] = useState(false);
 
   if (!isMobile) return null;
+
+  const navHidden = navState === "hidden";
 
   const activeKey: TabKey | null = (() => {
     for (const t of TABS) {
@@ -75,84 +70,51 @@ export function MobileBottomNav() {
     return null;
   })();
 
+  const handleCreate = () => {
+    if (activeKey === "cull") {
+      navigate("/dashboard/cheetah");
+      return;
+    }
+    if (!createOpen) setCreateOpen(true);
+  };
+
   const handleTap = (tab: Tab) => {
-    if (tab.center) { setCreateOpen(true); return; }
-    if (tab.key === "storybook") { navigate("/studio/storybook"); return; }
-    if (tab.key === "more") { navigate("/dashboard/more"); return; }
+    if (tab.isCreate) {
+      handleCreate();
+      return;
+    }
     if (tab.url) navigate(tab.url);
   };
 
   return (
     <>
       <nav
-        style={{
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 60,
-          background: `color-mix(in hsl, ${PAPER} 86%, transparent)`,
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderTop: `1px solid ${RULE}`,
-          height: 64,
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
-          display: "flex",
-          justifyContent: "space-around",
-          alignItems: "center",
-        }}
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-[60]",
+          "flex h-16 items-center justify-around",
+          "border-t border-rule bg-paper/90 backdrop-blur-xl",
+          "safe-area-pb",
+          "transition-transform duration-200 ease-out will-change-transform",
+          navHidden ? "translate-y-full" : "translate-y-0",
+        )}
       >
         {TABS.map((tab) => {
           const active = activeKey === tab.key;
           const Icon = tab.icon;
-          const isCenter = tab.center;
-          const color = active ? ACTIVE : MUTED;
 
-          if (isCenter) {
+          if (tab.isCreate) {
             return (
               <button
                 key={tab.key}
                 onClick={() => handleTap(tab)}
-                aria-label="Create event"
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 4,
-                  flex: 1,
-                  minHeight: 44,
-                  minWidth: 44,
-                }}
+                aria-label="Create"
+                className="flex flex-1 flex-col items-center justify-center gap-1 active:scale-[0.92]"
               >
-                <div
-                  style={{
-                    width: 34,
-                    height: 34,
-                    border: "1px solid rgba(17,17,17,0.2)",
-                    background: "transparent",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Plus size={18} strokeWidth={1.75} style={{ color: MUTED }} />
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-paper">
+                  <Plus size={18} strokeWidth={2} />
                 </div>
-                <span
-                  style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 10,
-                    fontWeight: 300,
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                    color,
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {tab.title}
+                <span className="text-2xs font-medium text-ink-muted">
+                  {tab.label}
                 </span>
               </button>
             );
@@ -162,42 +124,39 @@ export function MobileBottomNav() {
             <button
               key={tab.key}
               onClick={() => handleTap(tab)}
-              aria-label={tab.title}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-                flex: 1,
-                minHeight: 44,
-                minWidth: 44,
-                transition: "color 120ms cubic-bezier(0.4,0,0.2,1)",
-              }}
+              aria-label={tab.label}
+              className={cn(
+                "flex flex-1 flex-col items-center justify-center gap-0.5",
+                "transition-colors duration-fast active:scale-[0.98]",
+              )}
             >
-              <Icon size={20} strokeWidth={1.5} style={{ color }} />
+              <Icon
+                size={20}
+                strokeWidth={active ? 2 : 1.5}
+                className={cn(
+                  "transition-all duration-fast",
+                  active ? "text-ink" : "text-ink-muted",
+                )}
+              />
+              {/* Active indicator dot */}
               <span
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: 10,
-                  fontWeight: 300,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color,
-                  lineHeight: 1.1,
-                }}
+                className={cn(
+                  "h-1 w-1 rounded-full bg-ink transition-transform duration-fast",
+                  active ? "scale-100" : "scale-0",
+                )}
+              />
+              <span
+                className={cn(
+                  "text-2xs transition-colors duration-fast",
+                  active ? "font-semibold text-ink" : "font-medium text-ink-muted",
+                )}
               >
-                {tab.title}
+                {tab.label}
               </span>
             </button>
           );
         })}
       </nav>
-
-      <DrawerMenu open={drawer.open} onClose={drawer.close} />
 
       {createOpen && (
         <Suspense fallback={null}>
@@ -213,4 +172,4 @@ export function MobileBottomNav() {
       )}
     </>
   );
-                      }
+}

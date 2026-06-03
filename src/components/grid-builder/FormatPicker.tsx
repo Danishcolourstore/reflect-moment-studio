@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CanvasFormat } from './types';
 import { CANVAS_FORMATS } from './types';
@@ -45,125 +46,106 @@ interface Props {
   onSelect: (preset: FormatPreset) => void;
 }
 
-const dimLabelStyle: React.CSSProperties = {
-  fontFamily: "'DM Sans', sans-serif",
-  fontSize: 9,
-  color: '#444444',
-  marginTop: 6,
-};
-
-const previewShell: React.CSSProperties = {
-  background: '#1a1a1a',
-  border: '1px solid #2a2a2a',
-};
-
-function SquarePreview() {
+function SquarePreview({ selected }: { selected?: boolean }) {
   return (
     <div className="flex flex-col items-center">
       <div
-        style={{
-          ...previewShell,
-          width: 80,
-          aspectRatio: '1 / 1',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: '1fr 1fr',
-          gap: 1,
-          background: '#2e2e2e',
-        }}
+        className={cn(
+          'grid aspect-square w-20 grid-cols-2 grid-rows-2 gap-px overflow-hidden border transition-colors duration-200',
+          selected ? 'border-grid-gold/50 bg-grid-gold/20' : 'border-[#2a2a2a] bg-[#2e2e2e]',
+        )}
       >
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} style={{ background: '#1a1a1a' }} />
-        ))}
-      </div>
-      <span style={dimLabelStyle}>1080 × 1080</span>
-    </div>
-  );
-}
-
-function PortraitPreview() {
-  return (
-    <div className="flex flex-col items-center">
-      <div
-        style={{
-          ...previewShell,
-          width: 60,
-          aspectRatio: '4 / 5',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: '1fr 1fr',
-          gap: 1,
-          background: '#2e2e2e',
-        }}
-      >
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} style={{ background: '#1a1a1a' }} />
-        ))}
-      </div>
-      <span style={dimLabelStyle}>1080 × 1350</span>
-    </div>
-  );
-}
-
-function CarouselPreview() {
-  return (
-    <div className="flex flex-col items-center">
-      <div className="flex items-center" style={{ gap: 3 }}>
-        {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            style={{
-              ...previewShell,
-              width: 26,
-              aspectRatio: '1 / 1',
-            }}
+            className={cn(
+              'transition-colors duration-200',
+              selected ? 'bg-[#1a1a1a]' : 'bg-[#1a1a1a]',
+            )}
           />
         ))}
       </div>
-      <div className="flex items-center" style={{ gap: 4, marginTop: 6 }}>
+      <span className="mt-1.5 font-sans text-[9px] text-[#555555]">1080 × 1080</span>
+    </div>
+  );
+}
+
+function PortraitPreview({ selected }: { selected?: boolean }) {
+  return (
+    <div className="flex flex-col items-center">
+      <div
+        className={cn(
+          'grid w-[60px] grid-cols-2 grid-rows-2 gap-px overflow-hidden border transition-colors duration-200',
+          selected ? 'border-grid-gold/50 bg-grid-gold/20' : 'border-[#2a2a2a] bg-[#2e2e2e]',
+        )}
+        style={{ aspectRatio: '4 / 5' }}
+      >
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-[#1a1a1a]" />
+        ))}
+      </div>
+      <span className="mt-1.5 font-sans text-[9px] text-[#555555]">1080 × 1350</span>
+    </div>
+  );
+}
+
+function CarouselPreview({ selected }: { selected?: boolean }) {
+  return (
+    <div className="flex flex-col items-center">
+      <div className="flex items-center gap-1">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              'aspect-square w-[26px] border transition-colors duration-200',
+              selected ? 'border-grid-gold/50 bg-[#1a1a1a]' : 'border-[#2a2a2a] bg-[#1a1a1a]',
+            )}
+          />
+        ))}
+      </div>
+      <div className="mt-1.5 flex items-center gap-1">
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            style={{
-              fontSize: 5,
-              lineHeight: 1,
-              color: i === 0 ? '#B8953F' : '#444444',
-            }}
+            className={cn(
+              'text-[5px] leading-none transition-colors duration-200',
+              i === 0 ? 'text-grid-gold' : 'text-[#444444]',
+            )}
           >
             ●
           </span>
         ))}
       </div>
-      <span style={dimLabelStyle}>1080 × 1080 × N</span>
+      <span className="mt-1 font-sans text-[9px] text-[#555555]">1080 × 1080 × N</span>
     </div>
   );
 }
 
-function StoryPreview() {
+function StoryPreview({ selected }: { selected?: boolean }) {
   return (
     <div className="flex flex-col items-center">
       <div
-        style={{
-          ...previewShell,
-          width: 38,
-          aspectRatio: '9 / 16',
-        }}
+        className={cn(
+          'w-[38px] border transition-colors duration-200',
+          selected ? 'border-grid-gold/50 bg-[#1a1a1a]' : 'border-[#2a2a2a] bg-[#1a1a1a]',
+        )}
+        style={{ aspectRatio: '9 / 16' }}
       />
-      <span style={dimLabelStyle}>1080 × 1920</span>
+      <span className="mt-1.5 font-sans text-[9px] text-[#555555]">1080 × 1920</span>
     </div>
   );
 }
 
-function FormatPreview({ preset }: { preset: FormatPreset }) {
+function FormatPreview({ preset, selected }: { preset: FormatPreset; selected?: boolean }) {
   switch (preset.id) {
     case 'square':
-      return <SquarePreview />;
+      return <SquarePreview selected={selected} />;
     case 'portrait':
-      return <PortraitPreview />;
+      return <PortraitPreview selected={selected} />;
     case 'carousel':
-      return <CarouselPreview />;
+      return <CarouselPreview selected={selected} />;
     case 'story':
-      return <StoryPreview />;
+      return <StoryPreview selected={selected} />;
     default:
       return null;
   }
@@ -180,15 +162,33 @@ export default function FormatPicker({ selected, onSelect }: Props) {
             type="button"
             onClick={() => onSelect(preset)}
             className={cn(
-              'flex flex-col items-center gap-3 border p-5 transition-colors',
-              'bg-[#0a0a0a] hover:border-[#444444]',
+              'group relative flex flex-col items-center gap-3 border p-5 transition-all duration-200',
+              'bg-[#0a0a0a]',
+              isSelected
+                ? 'border-grid-gold'
+                : 'border-[#222222] hover:border-[#444444] hover:bg-[#0f0f0f]',
             )}
-            style={{
-              border: isSelected ? '1px solid #B8953F' : '1px solid #222222',
-            }}
           >
-            <FormatPreview preset={preset} />
-            <span className="font-sans text-[11px] uppercase tracking-[0.12em] text-[#888888]">
+            {/* Selection indicator */}
+            <div
+              className={cn(
+                'absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full border transition-all duration-200',
+                isSelected
+                  ? 'border-grid-gold bg-grid-gold'
+                  : 'border-[#333333] bg-transparent opacity-0 group-hover:opacity-100',
+              )}
+            >
+              {isSelected && <Check className="h-3 w-3 text-black" strokeWidth={2.5} />}
+            </div>
+
+            <FormatPreview preset={preset} selected={isSelected} />
+
+            <span
+              className={cn(
+                'font-sans text-[11px] uppercase tracking-[0.12em] transition-colors duration-200',
+                isSelected ? 'text-grid-gold' : 'text-[#888888] group-hover:text-[#aaaaaa]',
+              )}
+            >
               {preset.name}
             </span>
           </button>

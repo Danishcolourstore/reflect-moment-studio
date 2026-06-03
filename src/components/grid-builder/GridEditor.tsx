@@ -36,7 +36,7 @@ import LogoOverlayComponent from "./LogoOverlay";
 import LogoToolbar from "./LogoToolbar";
 import SmartFillUploader from "./SmartFillUploader";
 import DownloadGridButton from "./DownloadGridButton";
-import CarouselSliceExporter from "./CarouselSliceExporter";
+import { saveDraft } from "./grid-draft";
 import { cn } from "@/lib/utils";
 import { ScrollableTabBar } from "@/components/studio/ScrollableTabBar";
 import { memo } from "react";
@@ -92,6 +92,7 @@ interface Props {
   hideExportBar?: boolean;
   showEmptyOverlay?: boolean;
   initialPhotoFiles?: File[];
+  initialCells?: GridCellData[];
   onStateSnapshot?: (snapshot: GridEditorSnapshot) => void;
   onOpenExport?: () => void;
   wizardTabs?: { id: string; label: string; active: boolean }[];
@@ -122,6 +123,7 @@ export default function GridEditor({
   hideExportBar = false,
   showEmptyOverlay = false,
   initialPhotoFiles = [],
+  initialCells,
   onStateSnapshot,
   onOpenExport,
   wizardTabs,
@@ -129,7 +131,7 @@ export default function GridEditor({
 }: Props) {
   const device = useDeviceDetect();
   const isMobile = device.isPhone;
-  const [cells, setCells] = useState<GridCellData[]>(() => createCellsForLayout(layout));
+  const [cells, setCells] = useState<GridCellData[]>(() => initialCells ?? createCellsForLayout(layout));
   const [textLayers, setTextLayers] = useState<TextLayer[]>(initialTextLayers);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [elements, setElements] = useState<DesignElement[]>([]);
@@ -501,6 +503,16 @@ export default function GridEditor({
     });
   }, [cells, textLayers, elements, logo, background, freePositions, layout, filledCount, onStateSnapshot]);
 
+  // Draft autosave — debounced; only once there is at least one frame
+  useEffect(() => {
+    if (skipHistoryPushRef.current) return;
+    if (!cells.some((c) => c.imageUrl)) return;
+    const t = setTimeout(() => {
+      saveDraft({ layoutId: layout.id, cells, textLayers, background });
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [cells, textLayers, background, layout.id]);
+
   useEffect(() => {
     if (!isMobile) return;
     const shown = localStorage.getItem('mirror_fab_tooltip_shown') === 'true';
@@ -546,9 +558,9 @@ export default function GridEditor({
   const hasFreePositions = freePositions != null && freePositions.length > 0;
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="dark flex flex-col min-h-screen bg-[#0D0B09] text-[#E8E0D5]">
       {/* ─── Header ─── */}
-      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/60">
+      <header className="sticky top-0 z-20 border-b border-[#242424] bg-[#0D0B09]/95 backdrop-blur-xl">
         {wizardTabs && onWizardTab && (
           <div style={{ ['--bg-primary' as string]: '#000000', ['--border-default' as string]: '#222222' }}>
             <ScrollableTabBar
@@ -655,11 +667,11 @@ export default function GridEditor({
       >
         <div
           ref={gridRef}
-          className={cn("w-full rounded-xl overflow-hidden relative my-auto", isMobile ? "max-w-[420px]" : "max-w-[560px]")}
+          className={cn("w-full overflow-hidden relative my-auto", isMobile ? "max-w-[420px]" : "max-w-[560px]")}
           style={{
             aspectRatio: canvasRatio,
             background: canvasBg,
-            boxShadow: "0 12px 48px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06)",
+            boxShadow: "0 24px 70px -24px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.07)",
           }}
         >
           {!hasFrame && background.type === "grain" && (
@@ -786,15 +798,15 @@ export default function GridEditor({
 
           {showEmptyOverlay && filledCount === 0 && (
             <div className="absolute inset-0 z-[5] flex flex-col items-center justify-center gap-3 pointer-events-none bg-black/20">
-              <ImageIcon className="h-8 w-8 text-grid-border-muted" strokeWidth={1.25} />
+              <ImageIcon className="h-8 w-8 text-[#E8E0D5]/30" strokeWidth={1.25} />
               <p
-                className="font-serif text-[22px] italic text-[#555555]"
+                className="font-serif text-[22px] italic text-[#E8E0D5]/70"
                 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
               >
-                Your grid awaits
+                Your post awaits
               </p>
-              <p className="font-sans text-[11px] uppercase tracking-[0.06em] text-grid-hint">
-                Add photos in the Photos step
+              <p className="font-sans text-[11px] uppercase tracking-[0.06em] text-[#E8E0D5]/40">
+                Choose frames to begin
               </p>
             </div>
           )}
@@ -840,9 +852,8 @@ export default function GridEditor({
               maxHeight: "55vh",
               overflowY: "auto",
               background: "hsl(var(--card))",
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
-              boxShadow: "0 -8px 24px -12px rgba(0,0,0,0.18)",
+              borderTop: "1px solid #242424",
+              boxShadow: "0 -8px 24px -12px rgba(0,0,0,0.5)",
             }}
           >
             <div
@@ -929,7 +940,6 @@ export default function GridEditor({
           {/* ─── Export row — freePositions wired to both exporters ─── */}
           {!hideExportBar && (
           <div className={cn("flex items-center justify-end gap-1.5 px-3 pt-1 pb-1")}>
-            <CarouselSliceExporter cells={cells} format={format} />
             <DownloadGridButton
               gridRef={gridRef}
               cells={cells}
@@ -956,7 +966,7 @@ export default function GridEditor({
                   : 'pointer-events-none cursor-not-allowed border border-grid-border bg-grid-surface text-[#333333]',
               )}
             >
-              Continue to export
+              Save & Export
             </button>
           </div>
           )}
@@ -972,11 +982,11 @@ export default function GridEditor({
       )}
 
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="dark text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>Reset grid?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will clear all photos, text, and settings. This cannot be undone.
+              This will clear all frames, text, and settings. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

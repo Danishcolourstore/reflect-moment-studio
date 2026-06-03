@@ -230,7 +230,7 @@ const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRem
                 isMobile ? "h-9 w-9" : "h-7 w-7"
               }`}
               style={{ transition: "transform 100ms ease, background 150ms ease" }}
-              title="Replace photo"
+              title="Replace frame"
             >
               <RefreshCw className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
             </button>
@@ -241,7 +241,7 @@ const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRem
                 isMobile ? "h-9 w-9" : "h-7 w-7"
               }`}
               style={{ transition: "transform 100ms ease, background 150ms ease" }}
-              title="Remove photo"
+              title="Remove frame"
             >
               <X className={isMobile ? "h-4 w-4" : "h-3 w-3"} />
             </button>
@@ -342,7 +342,7 @@ const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRem
           <span
             className="font-sans text-[10px] uppercase tracking-[0.08em] text-grid-hint"
           >
-            Tap to add
+            Add frame
           </span>
         </button>
       )}

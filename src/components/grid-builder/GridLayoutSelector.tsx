@@ -56,7 +56,7 @@ export default function GridLayoutSelector({ onSelect }: Props) {
   const filtered = useMemo(() => layouts.filter((l) => l.category === cat), [layouts, cat]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="dark flex flex-col gap-4 text-foreground">
       {/* Category tabs — larger on mobile for tap targets */}
       <div className={cn(
         "flex bg-secondary/40 rounded-xl",

@@ -2,20 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { X } from "lucide-react";
-
-const CUBIC = "cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-const PANEL = "hsl(var(--background))";
-const INK = "hsl(var(--foreground))";
-const MUTED = "hsl(var(--muted-foreground))";
-const WHISPER = "var(--ink-whisper)";
-const RULE = "hsl(var(--border))";
+import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { label: "Home", path: "/home" },
   { divider: true },
   { label: "Grid Builder", path: "/studio/storybook" },
   { label: "Album", path: "/dashboard/album-designer" },
-  { label: "Storybook", path: "/studio/storybook" },
   { label: "Website", path: "/dashboard/website-builder" },
   { label: "Business Suite", path: "/dashboard/business" },
   { label: "Analytics", path: "/dashboard/analytics" },
@@ -34,20 +27,10 @@ export function HamburgerButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: 11,
-        fontWeight: 300,
-        letterSpacing: "0.15em",
-        textTransform: "uppercase",
-        color: INK,
-      }}
+      className="text-xs font-medium text-ink"
       aria-label="Menu"
     >
-      MENU
+      Menu
     </button>
   );
 }
@@ -72,17 +55,24 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
-  const handleNav = (path: string) => { navigate(path); onClose(); };
+  const handleNav = (path: string) => {
+    navigate(path);
+    onClose();
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -91,97 +81,51 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
   };
 
   const isActive = (path: string) =>
-    path === "/home" ? location.pathname === path : location.pathname.startsWith(path);
+    path === "/home"
+      ? location.pathname === path
+      : location.pathname.startsWith(path);
 
   if (!mounted) return null;
 
   return (
     <>
+      {/* Backdrop */}
       <div
         onClick={onClose}
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 190,
-          background: "color-mix(in hsl, hsl(var(--card)) 40%, transparent)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          opacity: animating ? 1 : 0,
-          transition: `opacity 280ms ${CUBIC}`,
-        }}
+        className={cn(
+          "fixed inset-0 z-[190] bg-ink/30 backdrop-blur-sm transition-opacity duration-base ease-v2-spring",
+          animating ? "opacity-100" : "opacity-0",
+        )}
       />
+
+      {/* Panel */}
       <aside
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 200,
-          height: "100dvh",
-          width: "80vw",
-          maxWidth: 360,
-          background: PANEL,
-          borderRight: `1px solid ${RULE}`,
-          boxShadow: "none",
-          display: "flex",
-          flexDirection: "column",
-          transform: animating ? "translateX(0)" : "translateX(-100%)",
-          transition: `transform 280ms ${CUBIC}`,
-        }}
+        className={cn(
+          "fixed inset-y-0 left-0 z-[200] flex w-[80vw] max-w-[360px] flex-col",
+          "border-r border-rule bg-paper",
+          "transition-transform duration-base ease-v2-spring",
+          animating ? "translate-x-0" : "-translate-x-full",
+        )}
+        style={{ height: "100dvh" }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "18px 22px",
-            borderBottom: `1px solid ${RULE}`,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 18,
-              fontWeight: 300,
-              fontStyle: "italic",
-              letterSpacing: "0.02em",
-              color: "var(--ink)",
-            }}
-          >
-            Mirror
-          </span>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-rule px-6 py-4">
+          <span className="font-serif text-lg text-ink">Mirror</span>
           <button
             onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: WHISPER,
-              padding: 0,
-              display: "flex",
-              alignItems: "center",
-            }}
+            className="flex h-9 w-9 items-center justify-center text-ink-tertiary transition-colors hover:text-ink"
             aria-label="Close menu"
           >
             <X size={16} strokeWidth={1.5} />
           </button>
         </div>
 
-        <nav
-          style={{
-            flex: 1,
-            paddingLeft: 28,
-            paddingRight: 28,
-            paddingTop: 24,
-            overflowY: "auto",
-          }}
-        >
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-4 pt-4">
           {NAV_ITEMS.map((item, i) => {
             if ("divider" in item) {
               return (
-                <div
-                  key={`div-${i}`}
-                  style={{ height: 1, background: RULE, marginTop: 14, marginBottom: 14 }}
-                />
+                <div key={`div-${i}`} className="my-3 h-px bg-rule" />
               );
             }
             const active = isActive(item.path);
@@ -189,24 +133,13 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
               <button
                 key={item.path}
                 onClick={() => handleNav(item.path)}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: 28,
-                  lineHeight: 1.55,
-                  fontWeight: 300,
-                  fontStyle: "italic",
-                  color: active ? INK : MUTED,
-                  padding: 0,
-                  transition: "color 180ms ease",
-                }}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = INK; }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = MUTED; }}
+                className={cn(
+                  "flex w-full items-center rounded-lg px-3 py-3 text-left text-[15px] transition-colors duration-fast",
+                  "active:scale-[0.98]",
+                  active
+                    ? "bg-wash-strong font-medium text-ink"
+                    : "font-normal text-ink-muted hover:bg-wash hover:text-ink",
+                )}
               >
                 {item.label}
               </button>
@@ -214,49 +147,17 @@ export function DrawerMenu({ open, onClose }: { open: boolean; onClose: () => vo
           })}
         </nav>
 
-        <div
-          style={{
-            borderTop: `1px solid ${RULE}`,
-            paddingTop: 20,
-            paddingBottom: 32,
-            paddingLeft: 28,
-            paddingRight: 28,
-          }}
-        >
+        {/* Footer */}
+        <div className="border-t border-rule px-6 py-4 space-y-1">
           <button
             onClick={() => handleNav("/dashboard/profile")}
-            style={{
-              display: "block",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 11,
-              fontWeight: 300,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: INK,
-              padding: 0,
-              marginBottom: 12,
-            }}
+            className="block w-full py-2 text-left text-sm text-ink transition-colors hover:text-ink-secondary active:scale-[0.98]"
           >
             Settings
           </button>
           <button
             onClick={handleSignOut}
-            style={{
-              display: "block",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 11,
-              fontWeight: 300,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: WHISPER,
-              padding: 0,
-            }}
+            className="block w-full py-2 text-left text-sm text-ink-muted transition-colors hover:text-ink active:scale-[0.98]"
           >
             Sign out
           </button>
