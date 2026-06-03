@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, memo } from "react";
-import { Plus, X, RefreshCw, Maximize, Expand, ZoomIn, ZoomOut, Move } from "lucide-react";
+import { Camera, X, RefreshCw, Maximize, Expand, ZoomIn, ZoomOut, Move } from "lucide-react";
 import { useDeviceDetect } from "@/hooks/use-device-detect";
+import { cn } from "@/lib/utils";
 import type { GridCellData } from "./types";
 
 interface Props {
@@ -10,10 +11,11 @@ interface Props {
   onImageRemove: () => void;
   onOffsetChange: (x: number, y: number, scale?: number) => void;
   onCellPatch: (patch: Partial<GridCellData>) => void;
+  selected?: boolean;
 }
 
 // Memoised to prevent re-renders when sibling cells change
-const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRemove, onOffsetChange, onCellPatch }: Props) {
+const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRemove, onOffsetChange, onCellPatch, selected = false }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -163,12 +165,21 @@ const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRem
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden ${cell.imageUrl ? "" : "bg-muted/20"}`}
+      className={cn(
+        "relative overflow-hidden",
+        !cell.imageUrl && "grid-cell-empty",
+      )}
       style={{
         gridArea,
         minHeight: "44px",
         touchAction: "none",
-        border: cell.imageUrl ? "none" : "1px dashed hsl(var(--muted-foreground) / 0.15)",
+        borderRadius: 0,
+        background: cell.imageUrl ? undefined : "#111111",
+        border: cell.imageUrl
+          ? "1px solid transparent"
+          : selected
+            ? "1.5px solid #B8953F"
+            : "1px dashed #333333",
         willChange: dragging ? "transform" : undefined,
       }}
       onMouseEnter={() => !isMobile && setShowControls(true)}
@@ -322,21 +333,17 @@ const GridCell = memo(function GridCell({ cell, gridArea, onImageAdd, onImageRem
             if (target.closest("[data-text-overlay]") || target.closest("[data-text-edit]")) return;
             triggerPicker();
           }}
-          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground/30 cursor-pointer hover:text-muted-foreground/50 hover:bg-muted/10 group/empty ${
-            isMobile ? "active:bg-muted/20" : ""
-          }`}
-          style={{ transition: "color 150ms ease, background 150ms ease" }}
+          className="absolute inset-0 flex flex-col items-center justify-center gap-2 cursor-pointer active:bg-[#1a1a1a]"
         >
-          <div className={`rounded-full border-2 border-dashed border-current flex items-center justify-center group-hover/empty:scale-110 ${
-            isMobile ? "h-12 w-12" : "h-10 w-10"
-          }`}
-            style={{ transition: "transform 150ms ease" }}
+          <Camera
+            className="grid-cell-empty-icon h-5 w-5 text-grid-hint"
+            strokeWidth={1.5}
+          />
+          <span
+            className="font-sans text-[10px] uppercase tracking-[0.08em] text-grid-hint"
           >
-            <Plus className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
-          </div>
-          <span className={`tracking-[0.15em] uppercase font-medium ${
-            isMobile ? "text-[9px]" : "text-[8px]"
-          }`}>Add photo</span>
+            Tap to add
+          </span>
         </button>
       )}
     </div>

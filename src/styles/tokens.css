@@ -1,0 +1,35 @@
+/* Grid Builder noir palette */
+:root {
+  --grid-bg-primary: #000000;
+  --grid-bg-surface: #111111;
+  --grid-bg-elevated: #1a1a1a;
+  --grid-border-default: #222222;
+  --grid-border-muted: #333333;
+  --grid-border-active: #B8953F;
+  --grid-text-primary: #FFFFFF;
+  --grid-text-muted: #666666;
+  --grid-text-hint: #444444;
+  --grid-gold: #B8953F;
+}
+
+/* Hide scrollbar for horizontal tab strips */
+.grid-tabs-scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.grid-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@media (hover: hover) {
+  .grid-cell-empty:hover {
+    border-color: #555555 !important;
+  }
+
+  .grid-cell-empty:hover .grid-cell-empty-icon {
+    color: #666666 !important;
+  }
+}

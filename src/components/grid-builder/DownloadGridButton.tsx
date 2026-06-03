@@ -14,6 +14,7 @@ import type { LogoLayer } from './LogoOverlay';
 import type { BackgroundStyle } from './BackgroundStyler';
 import { renderGridToCanvas } from './export-utils';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface Props {
   gridRef: React.RefObject<HTMLDivElement | null>;
@@ -24,11 +25,14 @@ interface Props {
   logo?: LogoLayer | null;
   background?: BackgroundStyle;
   format?: CanvasFormat;
-  freePositions?: FreePosition[] | null;  // ← new
+  freePositions?: FreePosition[] | null;
+  mobileFullWidth?: boolean;
+  disabled?: boolean;
+  label?: string;
 }
 
 export default function DownloadGridButton({
-  gridRef,
+  gridRef: _gridRef,
   cells,
   layout,
   textLayers = [],
@@ -36,12 +40,17 @@ export default function DownloadGridButton({
   logo = null,
   background,
   format,
-  freePositions = null,  // ← new
+  freePositions = null,
+  mobileFullWidth = false,
+  disabled = false,
+  label = 'Download',
 }: Props) {
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState(0);
 
   const activeFormat = format || CANVAS_FORMATS[0];
+  const filledCount = cells.filter((c) => c.imageUrl).length;
+  const isDisabled = disabled || exporting || filledCount === 0;
 
   const exportGrid = async (size: ExportSize) => {
     setExporting(true);
@@ -56,7 +65,7 @@ export default function DownloadGridButton({
       const canvas = await renderGridToCanvas(
         layout, cells, exportW, exportH,
         textLayers, elements, logo, background,
-        freePositions,  // ← pass through
+        freePositions,
       );
       clearInterval(progressTimer);
       setProgress(85);
@@ -85,7 +94,7 @@ export default function DownloadGridButton({
       const canvas = await renderGridToCanvas(
         layout, cells, activeFormat.exportWidth, activeFormat.exportHeight,
         textLayers, elements, logo, background,
-        freePositions,  // ← pass through
+        freePositions,
       );
       clearInterval(progressTimer);
       setProgress(85);
@@ -104,23 +113,37 @@ export default function DownloadGridButton({
     }
   };
 
+  const triggerClass = cn(
+    mobileFullWidth
+      ? 'w-full gap-2 px-6 py-4 font-sans text-[11px] uppercase tracking-[0.12em] border-0 rounded-none'
+      : 'gap-1.5 text-[10px] min-w-[100px]',
+    mobileFullWidth && (isDisabled
+      ? 'bg-grid-surface text-[#333333] pointer-events-none'
+      : 'bg-grid-ivory text-grid-noir hover:bg-grid-ivory/90'),
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" disabled={exporting} className="gap-1.5 text-[10px] relative overflow-hidden min-w-[100px]">
+        <Button
+          size={mobileFullWidth ? 'lg' : 'sm'}
+          disabled={isDisabled}
+          variant={mobileFullWidth ? 'ghost' : 'default'}
+          className={cn('relative overflow-hidden', triggerClass)}
+        >
           {exporting ? (
             <>
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               <span>{progress < 100 ? `${progress}%` : 'Done!'}</span>
               <div
-                className="absolute bottom-0 left-0 h-[2px] bg-primary-foreground/40 transition-all duration-300"
+                className="absolute bottom-0 left-0 h-[2px] bg-grid-gold/40 transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </>
           ) : (
             <>
-              <Download className="h-3 w-3" />
-              Download
+              <Download className={mobileFullWidth ? 'h-4 w-4' : 'h-3 w-3'} />
+              {label}
             </>
           )}
         </Button>

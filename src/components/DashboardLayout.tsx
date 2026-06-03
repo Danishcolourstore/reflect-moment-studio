@@ -5,18 +5,20 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewMode } from "@/lib/ViewModeContext";
 import {
-  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu, Grid3X3,
+  CalendarDays, Image, Scissors, Settings, CreditCard, LogOut, Menu,
 } from "lucide-react";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 import { EntiranProvider } from "@/components/entiran/EntiranProvider";
 
-const STUDIO_ITEMS = [
-  { title: "Events", url: "/dashboard/events", icon: CalendarDays },
-  { title: "Gallery", url: "/home", icon: Image, end: true },
-  { title: "Grid Builder", url: "/studio/storybook", icon: Grid3X3 },
-  { title: "Cull", url: "/dashboard/cheetah-live", icon: Scissors },
-];
+import { STUDIO_NAV_ITEMS } from "@/components/studio/Sidebar";
+
+const STUDIO_ITEMS = STUDIO_NAV_ITEMS.map((item) => ({
+  title: item.title,
+  url: item.url,
+  icon: item.icon,
+  ...(item.end ? { end: true } : {}),
+}));
 
 const ACCOUNT_ITEMS = [
   { title: "Settings", url: "/dashboard/profile", icon: Settings },

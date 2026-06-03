@@ -1,32 +1,43 @@
-import { useState, lazy, Suspense } from 'react';
-import { ArrowLeft, Grid3X3, Sparkles, MessageSquare, LayoutGrid } from 'lucide-react';
+import { useState, lazy, Suspense, useCallback } from 'react';
+import { ArrowLeft, Grid3X3 } from 'lucide-react';
 import { useDeviceDetect } from '@/hooks/use-device-detect';
-import { useMergedGridLayouts } from '@/hooks/use-grid-templates';
-import type { GridLayout, FreePosition } from './types';
+import type { GridLayout, FreePosition, CanvasFormat } from './types';
 import type { TextLayer } from './text-overlay-types';
 import type { BackgroundStyle } from './BackgroundStyler';
 import GridLayoutSelector from './GridLayoutSelector';
-import GridEditor from './GridEditor';
+import GridEditor, { type GridEditorSnapshot } from './GridEditor';
+import FormatPicker, { FORMAT_PRESETS, type FormatPreset } from './FormatPicker';
+import PhotosStep from './PhotosStep';
+import ExportStep from './ExportStep';
 const GridInspireModal = lazy(() => import('./GridInspireModal'));
-import AICaptionGenerator from './AICaptionGenerator';
-import AILayoutSuggestions from './AILayoutSuggestions';
 import { cn } from '@/lib/utils';
+
+type WizardStep = 'format' | 'inspire' | 'photos' | 'design' | 'export';
+
+const STEPS: { id: WizardStep; label: string }[] = [
+  { id: 'format', label: 'Format' },
+  { id: 'inspire', label: 'Inspire' },
+  { id: 'photos', label: 'Photos' },
+  { id: 'design', label: 'Design' },
+  { id: 'export', label: 'Export' },
+];
 
 interface Props {
   onClose: () => void;
 }
 
 export default function GridBuilder({ onClose }: Props) {
+  const [step, setStep] = useState<WizardStep>('format');
+  const [formatPreset, setFormatPreset] = useState<FormatPreset>(FORMAT_PRESETS[0]);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [selectedLayout, setSelectedLayout] = useState<GridLayout | null>(null);
   const [initialTextLayers, setInitialTextLayers] = useState<TextLayer[]>([]);
   const [initialBackground, setInitialBackground] = useState<BackgroundStyle | null>(null);
   const [initialFreePositions, setInitialFreePositions] = useState<FreePosition[] | null>(null);
   const [showInspire, setShowInspire] = useState(false);
-  const [showCaption, setShowCaption] = useState(false);
-  const [showAISuggest, setShowAISuggest] = useState(false);
+  const [exportSnapshot, setExportSnapshot] = useState<GridEditorSnapshot | null>(null);
   const device = useDeviceDetect();
   const isMobile = device.isPhone;
-  const { layouts: mergedLayouts } = useMergedGridLayouts();
 
   const handleInspireApply = (
     layout: GridLayout,
@@ -39,21 +50,39 @@ export default function GridBuilder({ onClose }: Props) {
     setInitialBackground(background ?? null);
     setInitialFreePositions(freePositions ?? null);
     setSelectedLayout(layout);
+    setStep('design');
   };
 
-  if (selectedLayout) {
+  const handleFormatChange = useCallback((f: CanvasFormat) => {
+    const preset = FORMAT_PRESETS.find((p) => p.format.id === f.id) ?? formatPreset;
+    setFormatPreset(preset);
+  }, [formatPreset]);
+
+  const handleStepChange = (next: WizardStep) => {
+    if (next === 'inspire') {
+      setShowInspire(true);
+      return;
+    }
+    setStep(next);
+  };
+
+  if (selectedLayout && step === 'design') {
     return (
       <GridEditor
         layout={selectedLayout}
-        onBack={() => {
-          setSelectedLayout(null);
-          setInitialTextLayers([]);
-          setInitialBackground(null);
-          setInitialFreePositions(null);
-        }}
+        onBack={() => setSelectedLayout(null)}
         initialTextLayers={initialTextLayers}
         initialBackground={initialBackground}
         initialFreePositions={initialFreePositions}
+        format={formatPreset.format}
+        onFormatChange={handleFormatChange}
+        hideExportBar={isMobile}
+        showEmptyOverlay
+        initialPhotoFiles={photos}
+        onStateSnapshot={setExportSnapshot}
+        onOpenExport={() => setStep('export')}
+        wizardTabs={STEPS.map((s) => ({ id: s.id, label: s.label, active: s.id === 'design' }))}
+        onWizardTab={(id) => setStep(id as WizardStep)}
       />
     );
   }
@@ -62,7 +91,10 @@ export default function GridBuilder({ onClose }: Props) {
     return (
       <Suspense fallback={null}>
         <GridInspireModal
-          onClose={() => setShowInspire(false)}
+          onClose={() => {
+            setShowInspire(false);
+            setStep('format');
+          }}
           onLayoutGenerated={handleInspireApply}
         />
       </Suspense>
@@ -70,80 +102,125 @@ export default function GridBuilder({ onClose }: Props) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/60">
-        <div className={cn(
-          "flex items-center justify-between h-12",
-          isMobile ? "px-3" : "px-4 sm:px-6 lg:px-8 sm:h-14"
-        )}>
+    <div className="flex min-h-screen flex-col bg-grid-noir text-grid-ivory">
+      <header className="sticky top-0 z-20 border-b border-grid-border bg-grid-noir/95 backdrop-blur-xl">
+        <div className={cn('flex h-12 items-center justify-between px-4 sm:h-14')}>
           <div className="flex items-center gap-2.5">
             <button
               onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2"
+              className="-ml-2 flex min-h-[44px] min-w-[44px] items-center justify-center text-grid-muted transition-colors hover:text-grid-ivory"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
             <div className="flex items-center gap-2">
-              <Grid3X3 className="h-4 w-4 text-primary" />
-              <h1 className="text-[11px] font-semibold tracking-[0.12em] uppercase text-foreground">Grid Builder</h1>
+              <Grid3X3 className="h-4 w-4 text-grid-gold" />
+              <h1 className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em]">
+                Grid Builder
+              </h1>
             </div>
           </div>
+        </div>
 
-          {/* Action pills */}
-          <div className="flex items-center gap-1">
-            {[
-              { active: showAISuggest, onClick: () => { setShowAISuggest(!showAISuggest); setShowCaption(false); }, icon: <LayoutGrid className="h-3.5 w-3.5" />, label: 'AI', ariaLabel: 'AI Layout' },
-              { active: showCaption, onClick: () => { setShowCaption(!showCaption); setShowAISuggest(false); }, icon: <MessageSquare className="h-3.5 w-3.5" />, label: 'Cap', ariaLabel: 'Caption' },
-              { active: false, onClick: () => setShowInspire(true), icon: <Sparkles className="h-3.5 w-3.5" />, label: '', ariaLabel: 'Inspire' },
-            ].map((btn) => (
-              <button
-                key={btn.ariaLabel}
-                onClick={btn.onClick}
-                aria-label={btn.ariaLabel}
-                className={cn(
-                  'flex items-center justify-center gap-1 rounded-full font-semibold transition-all duration-200 active:scale-95',
-                  isMobile
-                    ? 'min-h-[40px] min-w-[40px] px-3 text-[10px] tracking-wider uppercase'
-                    : 'min-h-[36px] px-2.5 py-1.5 text-[9px] tracking-wider uppercase',
-                  btn.active
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/50'
-                )}
-              >
-                {btn.icon}
-                <span className={isMobile ? 'hidden' : 'hidden sm:inline'}>{btn.ariaLabel}</span>
-                <span className={isMobile ? '' : 'sm:hidden'}>{btn.label}</span>
-              </button>
-            ))}
+        <div className="relative border-t border-grid-border">
+          <div className="grid-tabs-scroll flex">
+            {STEPS.map((tab) => {
+              const active = step === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => handleStepChange(tab.id)}
+                  className={cn(
+                    'inline-flex flex-shrink-0 min-w-fit items-center px-4 py-3 font-sans text-[11px] uppercase tracking-[0.1em] transition-colors',
+                    active
+                      ? 'border-b border-grid-ivory text-grid-ivory'
+                      : 'border-b border-transparent text-[#555555]',
+                  )}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
+          <div
+            className="pointer-events-none absolute right-0 top-0 h-full w-10"
+            style={{ background: 'linear-gradient(to left, #000000, transparent)' }}
+          />
         </div>
       </header>
 
-      {/* Content */}
-      <div className={cn(
-        "flex-1 pt-4 pb-24 lg:pb-12",
-        isMobile ? "px-3" : "px-4 sm:px-6 lg:px-8 sm:pt-6"
-      )}>
-        {showAISuggest && (
-          <div className="mb-4 animate-fade-in">
-            <AILayoutSuggestions
-              layouts={mergedLayouts}
-              onSelectLayout={(layout) => { setShowAISuggest(false); setInitialTextLayers([]); setSelectedLayout(layout); }}
-              onClose={() => setShowAISuggest(false)}
-            />
-          </div>
+      <div className="flex-1 px-4 pb-24 pt-4">
+        {step === 'format' && (
+          <FormatPicker selected={formatPreset} onSelect={setFormatPreset} />
         )}
-        {showCaption && (
-          <div className="mb-4 animate-fade-in">
-            <AICaptionGenerator onClose={() => setShowCaption(false)} />
+
+        {step === 'inspire' && (
+          <div className="flex flex-col items-center gap-4 py-8 text-center">
+            <p className="font-sans text-[11px] uppercase tracking-[0.08em] text-grid-muted">
+              Generate a layout from a reference image
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowInspire(true)}
+              className="border border-grid-gold px-6 py-3 font-sans text-[11px] uppercase tracking-[0.12em] text-grid-gold"
+            >
+              Open Inspire
+            </button>
           </div>
         )}
 
-        <p className="text-muted-foreground/60 text-xs tracking-wide mb-3 sm:mb-6">
-          Choose a layout to begin designing your grid.
-        </p>
-        <GridLayoutSelector onSelect={(layout) => { setInitialTextLayers([]); setSelectedLayout(layout); }} />
+        {step === 'photos' && (
+          <PhotosStep
+            photos={photos}
+            onPhotosChange={setPhotos}
+            onContinue={() => setStep('design')}
+          />
+        )}
+
+        {step === 'design' && (
+          <div className="flex flex-col gap-4 pb-24">
+            <p className="font-sans text-[11px] uppercase tracking-[0.06em] text-grid-hint">
+              Choose a layout to begin designing your grid.
+            </p>
+            <GridLayoutSelector
+              onSelect={(layout) => {
+                setInitialTextLayers([]);
+                setSelectedLayout(layout);
+              }}
+            />
+          </div>
+        )}
+
+        {step === 'export' && (
+          exportSnapshot ? (
+            <ExportStep
+              layout={exportSnapshot.layout}
+              cells={exportSnapshot.cells}
+              textLayers={exportSnapshot.textLayers}
+              elements={exportSnapshot.elements}
+              logo={exportSnapshot.logo}
+              background={exportSnapshot.background}
+              format={formatPreset.format}
+              formatPreset={formatPreset}
+              freePositions={exportSnapshot.freePositions}
+              filledCount={exportSnapshot.filledCount}
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-12 text-center">
+              <p className="font-serif text-lg italic text-[#555555]">Nothing to export yet</p>
+              <p className="font-sans text-[11px] uppercase tracking-[0.06em] text-grid-hint">
+                Complete the design step first
+              </p>
+              <button
+                type="button"
+                onClick={() => setStep('design')}
+                className="mt-2 border border-grid-border-muted px-4 py-2 font-sans text-[10px] uppercase tracking-[0.1em] text-grid-muted"
+              >
+                Go to design
+              </button>
+            </div>
+          )
+        )}
       </div>
     </div>
   );

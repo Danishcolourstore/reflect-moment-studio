@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useViewMode } from "@/lib/ViewModeContext";
-import { Calendar, Zap, BookOpen, MoreHorizontal, Plus } from "lucide-react";
+import { Calendar, Zap, Grid3X3, MoreHorizontal, Plus } from "lucide-react";
 import { DrawerMenu, useDrawerMenu } from "@/components/GlobalDrawerMenu";
 
 const CreateEventModal = lazy(() =>
@@ -37,10 +37,13 @@ const TABS: Tab[] = [
   { key: "gallery", title: "Gallery", icon: Plus, center: true },
   {
     key: "storybook",
-    title: "Storybook",
-    icon: BookOpen,
-    url: "/storybook",
-    match: (p) => p.startsWith("/storybook") || p.startsWith("/dashboard/storybook"),
+    title: "Grid",
+    icon: Grid3X3,
+    url: "/studio/storybook",
+    match: (p) =>
+      p.startsWith("/studio/storybook") ||
+      p.startsWith("/storybook") ||
+      p.startsWith("/dashboard/storybook"),
   },
   {
     key: "more",
@@ -74,7 +77,7 @@ export function MobileBottomNav() {
 
   const handleTap = (tab: Tab) => {
     if (tab.center) { setCreateOpen(true); return; }
-    if (tab.key === "storybook") { navigate("/storybook"); return; }
+    if (tab.key === "storybook") { navigate("/studio/storybook"); return; }
     if (tab.key === "more") { navigate("/dashboard/more"); return; }
     if (tab.url) navigate(tab.url);
   };

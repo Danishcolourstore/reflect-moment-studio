@@ -10,10 +10,10 @@ import {
   Instagram,
   MessageSquare,
   Eye,
-  Download,
   GripHorizontal,
   Undo2,
   Redo2,
+  Image as ImageIcon,
 } from "lucide-react";
 import AICaptionGenerator from "./AICaptionGenerator";
 import InstagramCarouselPreview from "./InstagramCarouselPreview";
@@ -86,6 +86,26 @@ interface Props {
   initialTextLayers?: TextLayer[];
   initialBackground?: BackgroundStyle | null;
   initialFreePositions?: FreePosition[] | null;
+  format?: CanvasFormat;
+  onFormatChange?: (format: CanvasFormat) => void;
+  hideExportBar?: boolean;
+  showEmptyOverlay?: boolean;
+  initialPhotoFiles?: File[];
+  onStateSnapshot?: (snapshot: GridEditorSnapshot) => void;
+  onOpenExport?: () => void;
+  wizardTabs?: { id: string; label: string; active: boolean }[];
+  onWizardTab?: (id: string) => void;
+}
+
+export interface GridEditorSnapshot {
+  cells: GridCellData[];
+  textLayers: TextLayer[];
+  elements: DesignElement[];
+  logo: LogoLayer | null;
+  background: BackgroundStyle;
+  freePositions: FreePosition[] | null;
+  layout: GridLayout;
+  filledCount: number;
 }
 
 type ActiveTool = "text" | "elements" | "background" | "logo" | "caption" | null;
@@ -96,6 +116,15 @@ export default function GridEditor({
   initialTextLayers = [],
   initialBackground = null,
   initialFreePositions = null,
+  format: formatProp,
+  onFormatChange,
+  hideExportBar = false,
+  showEmptyOverlay = false,
+  initialPhotoFiles = [],
+  onStateSnapshot,
+  onOpenExport,
+  wizardTabs,
+  onWizardTab,
 }: Props) {
   const device = useDeviceDetect();
   const isMobile = device.isPhone;
@@ -110,8 +139,17 @@ export default function GridEditor({
   const [background, setBackground] = useState<BackgroundStyle>(initialBackground ?? DEFAULT_BG);
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [showIgPreview, setShowIgPreview] = useState(false);
-  const [format, setFormat] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
+  const [formatInternal, setFormatInternal] = useState<CanvasFormat>(CANVAS_FORMATS[0]);
+  const format = formatProp ?? formatInternal;
+  const setFormat = useCallback(
+    (f: CanvasFormat) => {
+      if (onFormatChange) onFormatChange(f);
+      else setFormatInternal(f);
+    },
+    [onFormatChange],
+  );
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showTextFabTooltip, setShowTextFabTooltip] = useState(false);
   const [freePositions, setFreePositions] = useState<FreePosition[] | null>(
     initialFreePositions ?? layout.freePositions ?? null,
   );
@@ -441,6 +479,37 @@ export default function GridEditor({
   const toggleTool = useCallback((tool: ActiveTool) => setActiveTool((prev) => (prev === tool ? null : tool)), []);
 
   const filledCount = useMemo(() => cells.filter((c) => c.imageUrl).length, [cells]);
+
+  const initialPhotosApplied = useRef(false);
+  useEffect(() => {
+    if (initialPhotosApplied.current || initialPhotoFiles.length === 0) return;
+    initialPhotosApplied.current = true;
+    handleSmartFill(initialPhotoFiles);
+  }, [initialPhotoFiles, handleSmartFill]);
+
+  useEffect(() => {
+    onStateSnapshot?.({
+      cells,
+      textLayers,
+      elements,
+      logo,
+      background,
+      freePositions,
+      layout,
+      filledCount,
+    });
+  }, [cells, textLayers, elements, logo, background, freePositions, layout, filledCount, onStateSnapshot]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    const shown = localStorage.getItem('mirror_fab_tooltip_shown') === 'true';
+    if (shown) return;
+    setShowTextFabTooltip(true);
+    localStorage.setItem('mirror_fab_tooltip_shown', 'true');
+    const timer = setTimeout(() => setShowTextFabTooltip(false), 3000);
+    return () => clearTimeout(timer);
+  }, [isMobile]);
+
   const hasFrame = !!layout.frame;
   const canvasRatio = layout.canvasRatio || format.ratio;
   const canvasBg = useMemo(
@@ -479,7 +548,32 @@ export default function GridEditor({
     <div className="flex flex-col min-h-screen bg-background">
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border/60">
-        <div className={cn("flex items-center justify-between h-12", isMobile ? "px-3" : "px-4")}>
+        {wizardTabs && onWizardTab && (
+          <div className="relative border-b border-grid-border bg-grid-noir">
+            <div className="grid-tabs-scroll flex">
+              {wizardTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => onWizardTab(tab.id)}
+                  className={cn(
+                    'inline-flex flex-shrink-0 min-w-fit items-center px-4 py-3 font-sans text-[11px] uppercase tracking-[0.1em]',
+                    tab.active
+                      ? 'border-b border-grid-ivory text-grid-ivory'
+                      : 'border-b border-transparent text-[#555555]',
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div
+              className="pointer-events-none absolute right-0 top-0 h-full w-10"
+              style={{ background: 'linear-gradient(to left, #000000, transparent)' }}
+            />
+          </div>
+        )}
+        <div className={cn("flex items-center justify-between h-12", isMobile ? "px-4" : "px-4")}>
           <button
             onClick={onBack}
             className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground transition-colors group min-h-[44px]"
@@ -569,7 +663,7 @@ export default function GridEditor({
 
       {/* ─── Canvas Area ─── */}
       <div
-        className={cn("flex-1 overflow-y-auto flex items-start justify-center", isMobile ? "px-2 py-3" : "px-4 py-6")}
+        className={cn("flex-1 overflow-y-auto flex items-start justify-center", isMobile ? "px-4 py-4" : "px-4 py-6")}
         style={{ paddingBottom: `calc(${bottomBarH + toolPanelH + 16}px + env(safe-area-inset-bottom, 0px))` }}
         onClick={deselectAll}
       >
@@ -703,8 +797,49 @@ export default function GridEditor({
           ))}
 
           {showSafeArea && <SafeAreaGuides canvasRatio={canvasRatio} />}
+
+          {showEmptyOverlay && filledCount === 0 && (
+            <div className="absolute inset-0 z-[5] flex flex-col items-center justify-center gap-3 pointer-events-none bg-black/20">
+              <ImageIcon className="h-8 w-8 text-grid-border-muted" strokeWidth={1.25} />
+              <p
+                className="font-serif text-[22px] italic text-[#555555]"
+                style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+              >
+                Your grid awaits
+              </p>
+              <p className="font-sans text-[11px] uppercase tracking-[0.06em] text-grid-hint">
+                Add photos in the Photos step
+              </p>
+            </div>
+          )}
         </div>
       </div>
+
+      {isMobile && (
+        <div
+          className="fixed z-40 flex flex-col items-end"
+          style={{ bottom: bottomBarH + 16, right: 16 }}
+        >
+          {showTextFabTooltip && (
+            <div className="mb-2 bg-grid-ivory px-2 py-1 font-sans text-[10px] text-grid-noir">
+              Add text
+            </div>
+          )}
+          <button
+            type="button"
+            aria-label="Add text"
+            onClick={() => toggleTool('text')}
+            className={cn(
+              'flex h-12 w-12 items-center justify-center border transition-colors',
+              activeTool === 'text'
+                ? 'border-grid-gold bg-grid-elevated text-grid-gold'
+                : 'border-grid-border-muted bg-grid-surface text-grid-muted',
+            )}
+          >
+            <Type className="h-5 w-5" strokeWidth={1.5} />
+          </button>
+        </div>
+      )}
 
       {/* ─── Tool Panel ─── */}
       <div className="fixed left-0 right-0 z-30" style={{ bottom: bottomBarH }}>
@@ -806,6 +941,7 @@ export default function GridEditor({
           </div>
 
           {/* ─── Export row — freePositions wired to both exporters ─── */}
+          {!hideExportBar && (
           <div className={cn("flex items-center justify-end gap-1.5 px-3 pt-1 pb-1")}>
             <CarouselSliceExporter cells={cells} format={format} />
             <DownloadGridButton
@@ -820,6 +956,24 @@ export default function GridEditor({
               freePositions={freePositions}
             />
           </div>
+          )}
+          {hideExportBar && onOpenExport && (
+          <div className="px-4 pb-2">
+            <button
+              type="button"
+              onClick={onOpenExport}
+              disabled={filledCount === 0}
+              className={cn(
+                'w-full py-3.5 font-sans text-[11px] uppercase tracking-[0.12em] transition-colors',
+                filledCount > 0
+                  ? 'bg-grid-ivory text-grid-noir'
+                  : 'pointer-events-none cursor-not-allowed border border-grid-border bg-grid-surface text-[#333333]',
+              )}
+            >
+              Continue to export
+            </button>
+          </div>
+          )}
         </div>
       </div>
 

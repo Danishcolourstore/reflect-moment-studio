@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "./styles/tokens.css";
 
 // Theme: respect saved preference (light default, dark opt-in)
 document.documentElement.classList.remove("dark", "light", "editorial", "classic", "versace", "darkroom", "accent-red");
