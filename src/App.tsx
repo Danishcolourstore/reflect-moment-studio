@@ -51,6 +51,7 @@ const BuilderTest = lazy(() => import("./pages/BuilderTest"));
 const GuestFinder = lazy(() => import("./pages/GuestFinder"));
 // PhotographerFeed, PublicFeed removed
 const StorybookCreator = lazy(() => import("./pages/StorybookCreator"));
+const Audience = lazy(() => import("./routes/studio/Audience"));
 const AlbumDesigner = lazy(() => import("./pages/AlbumDesigner"));
 const AlbumEditorPage = lazy(() => import("./pages/AlbumEditorPage"));
 const AlbumPreviewPage = lazy(() => import("./pages/AlbumPreviewPage"));
@@ -473,6 +474,14 @@ const AppRoutes = () => {
               element={
                 <ProtectedRoute>
                   <StorybookCreator />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/studio/audience"
+              element={
+                <ProtectedRoute>
+                  <Audience />
                 </ProtectedRoute>
               }
             />
